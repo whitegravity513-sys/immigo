@@ -9,9 +9,9 @@ const createSuperAdmin = async () => {
   try {
     await connectDB();
 
-    const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "admin@vista.com").trim().toLowerCase();
+    const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "admin@immigo.com").trim().toLowerCase();
     const superAdminName = process.env.SUPER_ADMIN_NAME || "Super Admin";
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || "SuperAdmin@Secure2026!";
+    const superAdminPassword = (process.env.SUPER_ADMIN_PASSWORD || "Abhi@123").trim();
 
     const existingSuperAdmin = await User.findOne({
       $or: [{ role: ROLES.SUPER_ADMIN }, { email: superAdminEmail }],
