@@ -36,7 +36,7 @@ function ActiveBreakRow({ rep, formatTime }) {
     <div className={`flex items-center justify-between p-2.5 rounded-xl border ${isLunch ? "bg-amber-50/90 border-amber-300" : "bg-cyan-50/90 border-cyan-300"}`}>
       <div className="flex flex-col gap-0.5 min-w-0">
         <div className="flex items-center gap-1.5">
-          <strong className="text-slate-900 text-xs font-bold truncate">{rep.name}</strong>
+          <strong className="text-slate-900 text-xs font-bold truncate">{typeof rep?.name === 'string' ? rep.name : (rep?.name?.first ? `${rep.name.first} ${rep.name.last}` : String(rep?.name || ""))}</strong>
           <EmployeeIdBadge id={rep.employeeId} size="xs" />
         </div>
         <span className="text-[10px] text-slate-500 truncate">{rep.designation || "Employee"}</span>
@@ -134,7 +134,7 @@ export default function LiveAttendanceSection({
                   {/* Employee Info: Compact 2 lines */}
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <strong className="text-slate-900 font-bold text-xs">{rep.name}</strong>
+                      <strong className="text-slate-900 font-bold text-xs">{typeof rep?.name === 'string' ? rep.name : (rep?.name?.first ? `${rep.name.first} ${rep.name.last}` : String(rep?.name || ""))}</strong>
                       <EmployeeIdBadge id={rep.employeeId} size="xs" />
                       <button onClick={() => openEmployeeDetail(rep._id, currentPath)} className="text-blue-600 hover:text-blue-800 transition cursor-pointer p-0.5" title="View profile">
                         <Eye size={13} />
