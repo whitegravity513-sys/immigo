@@ -63,7 +63,7 @@ export default function AttendanceSummarySection({
                 <tr key={emp._id} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
                   <td className="px-4 py-4">
                     <button className="text-sm font-bold text-green-700 hover:underline cursor-pointer text-left" onClick={() => openEmployeeDetail(emp._id, "summary")}>
-                      {emp.name}
+                      {typeof emp?.name === 'string' ? emp.name : (emp?.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp?.name || ""))}
                     </button>
                     <div className="text-xs text-slate-500">{emp.employeeId} • {emp.designation}</div>
                     {emp.status === "inactive" && <span className="text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 rounded-md uppercase mt-0.5 inline-block">Deactivated</span>}
