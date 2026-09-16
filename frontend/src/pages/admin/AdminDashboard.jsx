@@ -53,6 +53,7 @@ import {
 } from "../../components/admin";
 import { AdminHeader, AdminSidebar, AdminFooter } from "../../components/admin/layout";
 import { DashboardWatermark } from "../../components/common/ImmiGoLogo.jsx";
+import ErrorBoundary from "../../components/common/ErrorBoundary.jsx";
 
 const toLocalDateStr = (d) => {
   if (!d) return "";
@@ -573,27 +574,29 @@ function AdminDashboard({ user, token, onLogout }) {
               <span>{successMsg}</span>
             </div>
           )}
-          {(view === "dashboard" || view === "live") && renderLiveTracker()}
-          {view === "employees" && renderEmployeesDirectory()}
-          {view === "leaves" && renderLeaveApprovals()}
-          {view === "summary" && renderAttendanceSummary()}
-          {view === "employee-detail" && renderEmployeeDetail()}
-          {view === "holidays" && renderHolidays()}
-          {view === "announcements" && <AnnouncementsSection />}
-          {(view === "meetings" || view === "calendar") && <CalendarMeetings />}
-          {editingAttendance && (
-            <EditAttendance
-              attendance={editingAttendance}
-              onClose={() => setEditingAttendance(null)}
-              onSaved={fetchAdminReports}
-            />
-          )}
-          {view === "monthly-report" && (
-            <EmployeeMonthlyReport
-              token={token}
-              onGoBack={() => navigateTo("live")}
-            />
-          )}
+          <ErrorBoundary key={view}>
+            {(view === "dashboard" || view === "live") && renderLiveTracker()}
+            {view === "employees" && renderEmployeesDirectory()}
+            {view === "leaves" && renderLeaveApprovals()}
+            {view === "summary" && renderAttendanceSummary()}
+            {view === "employee-detail" && renderEmployeeDetail()}
+            {view === "holidays" && renderHolidays()}
+            {view === "announcements" && <AnnouncementsSection />}
+            {(view === "meetings" || view === "calendar") && <CalendarMeetings />}
+            {editingAttendance && (
+              <EditAttendance
+                attendance={editingAttendance}
+                onClose={() => setEditingAttendance(null)}
+                onSaved={fetchAdminReports}
+              />
+            )}
+            {view === "monthly-report" && (
+              <EmployeeMonthlyReport
+                token={token}
+                onGoBack={() => navigateTo("live")}
+              />
+            )}
+          </ErrorBoundary>
           {renderPastAttendanceModal()}
           {textModalData && (
             <div

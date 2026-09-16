@@ -8,6 +8,7 @@ import {
   isSecondOrFourthSaturday,
   isWeeklyOff,
   getHolidayForDate,
+  getWorkingDays,
 } from "../utils/dateUtils.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
@@ -495,31 +496,69 @@ export class AttendanceService {
     const endDay = new Date(y, m, 0).getDate();
     const startDate = `${y}-${String(m).padStart(2, "0")}-01`;
     const endDate = `${y}-${String(m).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
-    const [employees, records, leaves] = await Promise.all([
-      Employee.find({ status: { $ne: "inactive" } }).lean(),
+    const [employees, records, leaves, holidays] = await Promise.all([
+      Employee.find().lean(),
       Attendance.find({ date: { $gte: startDate, $lte: endDate } }).lean(),
       Leave.find({
         status: "Approved",
         startDate: { $lte: new Date(endDate) },
         endDate: { $gte: new Date(startDate) },
       }).lean(),
+      Holiday.find({ date: { $gte: startDate, $lte: endDate } }).lean(),
     ]);
+
+    const holidayDatesSet = new Set(holidays.map((h) => h.date));
+    const workingDays = getWorkingDays(y, m, holidayDatesSet);
+    const todayStr = getTodayDateString();
 
     const summary = employees.map((emp) => {
       const empRecords = records.filter((r) => r.employeeId?.toString() === emp._id.toString());
       const empLeaves = leaves.filter((l) => l.employeeId?.toString() === emp._id.toString());
 
-      const present = empRecords.filter((r) =>
-        ["Present", "Active", "Checked Out", "On Break"].includes(r.status)
-      ).length;
+      const joiningDateStr = emp.joiningDate ? new Date(emp.joiningDate).toISOString().split("T")[0] : null;
+      const applicableWorkingDays = workingDays.filter((d) => !joiningDateStr || d >= joiningDateStr);
+      const pastApplicableWorkingDays = applicableWorkingDays.filter((d) => d <= todayStr);
+
+      let presentCount = 0;
+      let halfDayCount = 0;
+
+      empRecords.forEach((r) => {
+        if (["Present", "Active", "Checked Out", "On Break"].includes(r.status)) {
+          let totalWorkSeconds = r.totalWorkSeconds || 0;
+          if (!totalWorkSeconds && r.checkInTime && r.checkOutTime) {
+            const diff = Math.floor((new Date(r.checkOutTime).getTime() - new Date(r.checkInTime).getTime()) / 1000);
+            totalWorkSeconds = Math.max(0, diff - (r.totalBreakSeconds || 0));
+          }
+          if (totalWorkSeconds > 0 && totalWorkSeconds < 28800) {
+            halfDayCount++;
+          } else {
+            presentCount++;
+          }
+        }
+      });
+
       const leaveDays = empLeaves.reduce((acc, l) => acc + (l.totalDays || 0), 0);
+      const absentDays = Math.max(0, pastApplicableWorkingDays.length - presentCount - halfDayCount - leaveDays);
 
       return {
-        employeeId: emp._id.toString(),
+        _id: emp._id.toString(),
+        id: emp._id.toString(),
+        employeeId: emp.employeeId,
         employeeCode: emp.employeeId,
-        name: emp.name,
+        name: typeof emp.name === "string" ? emp.name : (emp.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp.name || "")),
         designation: emp.designation,
-        totalPresent: present,
+        status: emp.status || "active",
+        leaveBalance: emp.leaveBalance ?? 0,
+        nextMonthLeaves: emp.nextMonthLeaves ?? 0,
+        nextMonthLeaveEarned: 1.5,
+        summary: {
+          applicableWorkingDays: applicableWorkingDays.length,
+          presentDays: presentCount,
+          halfDays: halfDayCount,
+          absentDays,
+          leaveDays,
+        },
+        totalPresent: presentCount,
         totalLeaves: leaveDays,
       };
     });

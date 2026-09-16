@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import apiClient from "./services/apiClient.js";
 import appConfig from "./config/appConfig.js";
 import LoadingFallback from "./components/common/LoadingFallback.jsx";
+import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 import "./App.css";
 
 // Lazy-loaded routes for enterprise-grade code-splitting & ultra-fast initial page loads
@@ -121,42 +122,44 @@ function App() {
   }
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route path="/admin/login" element={
-          token && role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/login?role=admin" replace />
-        } />
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/admin/login" element={
+            token && role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/login?role=admin" replace />
+          } />
 
-        <Route path="/employee/login" element={
-          token && role === "employee" ? <Navigate to="/employee/dashboard" /> : <Navigate to="/login?role=employee" replace />
-        } />
+          <Route path="/employee/login" element={
+            token && role === "employee" ? <Navigate to="/employee/dashboard" /> : <Navigate to="/login?role=employee" replace />
+          } />
 
-        <Route path="/login" element={
-          token ? (role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/employee/dashboard" />) : <UnifiedLogin onLoginSuccess={handleLoginSuccess} />
-        } />
+          <Route path="/login" element={
+            token ? (role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/employee/dashboard" />) : <UnifiedLogin onLoginSuccess={handleLoginSuccess} />
+          } />
 
-        {/* Admin Dashboard shell — handles all /admin/dashboard/* sub-routes internally */}
-        <Route path="/admin/dashboard/*" element={
-          token && role === "admin"
-            ? <AdminDashboard user={user} token={token} onLogout={handleLogout} />
-            : <Navigate to="/login?role=admin" />
-        } />
+          {/* Admin Dashboard shell — handles all /admin/dashboard/* sub-routes internally */}
+          <Route path="/admin/dashboard/*" element={
+            token && role === "admin"
+              ? <AdminDashboard user={user} token={token} onLogout={handleLogout} />
+              : <Navigate to="/login?role=admin" />
+          } />
 
-        <Route path="/employee/dashboard" element={
-          token && role === "employee"
-            ? <EmployeeDashboard user={user} token={token} onLogout={handleLogout} />
-            : <Navigate to="/login?role=employee" />
-        } />
+          <Route path="/employee/dashboard" element={
+            token && role === "employee"
+              ? <EmployeeDashboard user={user} token={token} onLogout={handleLogout} />
+              : <Navigate to="/login?role=employee" />
+          } />
 
-        <Route path="/" element={
-          token
-            ? (role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/employee/dashboard" />)
-            : <Navigate to="/employee/login" />
-        } />
+          <Route path="/" element={
+            token
+              ? (role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/employee/dashboard" />)
+              : <Navigate to="/employee/login" />
+          } />
 
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Suspense>
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 
