@@ -55,7 +55,7 @@ export default function HolidaysSection({
             </div>
             <button
               type="submit"
-              className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl text-sm transition-all cursor-pointer"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-xl text-sm transition-all cursor-pointer shadow-sm shadow-blue-500/20"
               disabled={holidayLoading}
             >
               {holidayLoading ? "Saving..." : "Save Holiday"}
