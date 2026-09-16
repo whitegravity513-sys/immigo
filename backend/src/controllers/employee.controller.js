@@ -1,0 +1,89 @@
+import AttendanceService from "../services/attendance.service.js";
+import LeaveService from "../services/leave.service.js";
+import HolidayService from "../services/holiday.service.js";
+import EmployeeService from "../services/employee.service.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+
+/**
+ * Enterprise Employee Portal Controller
+ */
+export const getEmployeeStatus = asyncHandler(async (req, res) => {
+  const status = await AttendanceService.getEmployeeStatus(req.user.id || req.user._id);
+  return res.status(200).json(status);
+});
+
+export const checkIn = asyncHandler(async (req, res) => {
+  const record = await AttendanceService.checkIn(req.user.id || req.user._id, req.body.location);
+  return res.status(200).json({
+    message: "Checked in successfully",
+    attendance: record,
+  });
+});
+
+export const startBreak = asyncHandler(async (req, res) => {
+  const record = await AttendanceService.startBreak(req.user.id || req.user._id, req.body.breakType);
+  return res.status(200).json({
+    message: "Break started",
+    attendance: record,
+  });
+});
+
+export const endBreak = asyncHandler(async (req, res) => {
+  const record = await AttendanceService.endBreak(req.user.id || req.user._id);
+  return res.status(200).json({
+    message: "Break ended",
+    attendance: record,
+  });
+});
+
+export const checkOut = asyncHandler(async (req, res) => {
+  const record = await AttendanceService.checkOut(
+    req.user.id || req.user._id,
+    req.body.location,
+    req.body.checkOutNote
+  );
+  return res.status(200).json({
+    message: "Checked out successfully",
+    attendance: record,
+  });
+});
+
+export const applyLeave = asyncHandler(async (req, res) => {
+  const leave = await LeaveService.applyLeave(req.user.id || req.user._id, req.body);
+  return res.status(201).json({
+    message: "Leave application submitted successfully",
+    leave,
+  });
+});
+
+export const getLeaveHistory = asyncHandler(async (req, res) => {
+  const history = await LeaveService.getLeaveHistory(req.user.id || req.user._id);
+  return res.status(200).json(history);
+});
+
+export const getHolidays = asyncHandler(async (req, res) => {
+  const holidays = await HolidayService.getHolidays();
+  return res.status(200).json(holidays);
+});
+
+export const getMyMonthlyDetails = asyncHandler(async (req, res) => {
+  const { month, year } = req.query;
+  const details = await EmployeeService.getEmployeeMonthlyDetails(
+    req.user.id || req.user._id,
+    month,
+    year
+  );
+  return res.status(200).json(details);
+});
+
+export default {
+  getEmployeeStatus,
+  checkIn,
+  startBreak,
+  endBreak,
+  checkOut,
+  applyLeave,
+  getLeaveHistory,
+  getHolidays,
+  getMyMonthlyDetails,
+};

@@ -1,0 +1,111 @@
+import React from "react";
+import { Edit, Save } from "lucide-react";
+
+export default function AttendanceSummarySection({
+  summaryMonth,
+  summaryYear,
+  setSummaryMonth,
+  setSummaryYear,
+  summaryLoading,
+  summaryData = [],
+  fetchSummary,
+  openEmployeeDetail,
+  inlineLeaveEdit,
+  setInlineLeaveEdit,
+  inlineLeaveLoading,
+  handleSetLeaveBalance
+}) {
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-4 justify-between">
+        <div>
+          <h3 className="text-lg font-black text-slate-800 tracking-tight">Attendance Summary</h3>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Monthly per-employee breakdown (2nd & 4th Sat + Sunday = Off)</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            value={summaryMonth}
+            onChange={e => setSummaryMonth(Number(e.target.value))}
+          >
+            {months.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+          </select>
+          <select
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none cursor-pointer"
+            value={summaryYear}
+            onChange={e => setSummaryYear(Number(e.target.value))}
+          >
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <button
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+            onClick={fetchSummary}
+          >
+            {summaryLoading ? "Loading..." : "Apply"}
+          </button>
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr>
+                {["Employee", "Working Days", "Full Day", "Half Day", "Absent", "Leaves Taken", "Leave Balance", "Next Month Leaves", "Set Leave"].map(h => (
+                  <th key={h} className="px-4 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {summaryData.map(emp => (
+                <tr key={emp._id} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-4">
+                    <button className="text-sm font-bold text-green-700 hover:underline cursor-pointer text-left" onClick={() => openEmployeeDetail(emp._id, "summary")}>
+                      {emp.name}
+                    </button>
+                    <div className="text-xs text-slate-500">{emp.employeeId} • {emp.designation}</div>
+                    {emp.status === "inactive" && <span className="text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 rounded-md uppercase mt-0.5 inline-block">Deactivated</span>}
+                  </td>
+                  <td className="px-4 py-4 text-sm font-bold text-slate-700 text-center">{emp.summary.applicableWorkingDays}</td>
+                  <td className="px-4 py-4 text-center"><span className="text-sm font-black text-emerald-600">{emp.summary.presentDays}</span></td>
+                  <td className="px-4 py-4 text-center"><span className="text-sm font-black text-amber-600">{emp.summary.halfDays}</span></td>
+                  <td className="px-4 py-4 text-center"><span className={`text-sm font-black ${emp.summary.absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{emp.summary.absentDays}</span></td>
+                  <td className="px-4 py-4 text-center"><span className="text-sm font-bold text-blue-600">{emp.summary.leaveDays}</span></td>
+                  <td className="px-4 py-4 text-center">
+                    {inlineLeaveEdit?.empId === emp._id
+                      ? <input type="number" min="0" step="0.5" className="w-16 text-center bg-white border border-green-400 rounded-lg px-1 py-1 text-sm font-bold text-slate-800 focus:outline-none" value={inlineLeaveEdit.leaveBalance} onChange={e => setInlineLeaveEdit({ ...inlineLeaveEdit, leaveBalance: e.target.value })} autoFocus />
+                      : <span className="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 text-xs font-black rounded-lg border border-green-200">{emp.leaveBalance} days</span>}
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    {inlineLeaveEdit?.empId === emp._id
+                      ? <input type="number" min="0" step="0.5" className="w-16 text-center bg-white border border-blue-400 rounded-lg px-1 py-1 text-sm font-bold text-slate-800 focus:outline-none" value={inlineLeaveEdit.nextMonthLeaves} onChange={e => setInlineLeaveEdit({ ...inlineLeaveEdit, nextMonthLeaves: e.target.value })} />
+                      : <div className="flex flex-col items-center gap-0.5"><span className="inline-flex items-center px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-black rounded-lg border border-blue-200">{emp.nextMonthLeaves} days</span>{emp.nextMonthLeaveEarned !== emp.nextMonthLeaves && <span className="text-[9px] text-slate-500">Auto: {emp.nextMonthLeaveEarned}</span>}</div>}
+                  </td>
+                  <td className="px-4 py-4">
+                    {inlineLeaveEdit?.empId === emp._id ? (
+                      <div className="flex items-center gap-1.5">
+                        <button className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1" onClick={handleSetLeaveBalance} disabled={inlineLeaveLoading}><Save size={11} />{inlineLeaveLoading ? "..." : "Save"}</button>
+                        <button className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer" onClick={() => setInlineLeaveEdit(null)}>✕</button>
+                      </div>
+                    ) : (
+                      <button className="px-3 py-1.5 bg-slate-100 hover:bg-green-50 hover:text-green-700 text-slate-700 border border-slate-200 hover:border-green-200 rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1" onClick={() => setInlineLeaveEdit({ empId: emp._id, leaveBalance: emp.leaveBalance, nextMonthLeaves: emp.nextMonthLeaves })}><Edit size={11} /> Edit</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {summaryData.length === 0 && !summaryLoading && (
+                <tr>
+                  <td colSpan="9">
+                    <div className="text-center py-12 text-slate-500 font-semibold text-sm">Click "Apply" to load summary.</div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
