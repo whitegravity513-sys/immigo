@@ -10,11 +10,13 @@ export const corsOptions = {
       env.ALLOWED_ORIGINS.includes(origin) ||
       origin.startsWith("http://localhost:") ||
       origin.startsWith("http://127.0.0.1:") ||
-      origin.endsWith(".vesta.in")
+      origin.endsWith(".vesta.in") ||
+      origin.includes("vercel.app") ||
+      origin.includes("onrender.com")
     ) {
       return callback(null, true);
     }
-    // Allow in non-production for dev agility, or default true
+    // Allow by default for cloud deployments
     return callback(null, true);
   },
   credentials: true,
