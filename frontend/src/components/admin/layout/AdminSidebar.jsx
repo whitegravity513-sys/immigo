@@ -67,10 +67,10 @@ export const AdminSidebar = ({
         {!sidebarCollapsed && (
           <div className="mx-3 mt-3 px-3 py-2 bg-white/90 border border-blue-200/80 rounded-xl flex items-center gap-2.5 shadow-2xs">
             <div className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
-              {(user?.name || user?.email || "A")[0].toUpperCase()}
+              {String((typeof user?.name === 'string' ? user.name : user?.name?.first) || user?.email || "A").charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-bold text-slate-800 text-[12px] truncate leading-tight">{user?.name || user?.email?.split("@")[0] || "Administrator"}</div>
+              <div className="font-bold text-slate-800 text-[12px] truncate leading-tight">{(typeof user?.name === 'string' ? user.name : (user?.name?.first ? `${user.name.first} ${user.name.last}` : String(user?.name || ""))) || user?.email?.split("@")[0] || "Administrator"}</div>
               <div className="text-[10px] text-slate-500 font-semibold truncate flex items-center gap-1">
                 Admin <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5"></span>
               </div>

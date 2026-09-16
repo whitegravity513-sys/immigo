@@ -258,6 +258,8 @@ export default function EmployeeDetailSection({
     );
   };
 
+  const safeEmpName = typeof emp?.name === 'string' ? emp.name : (emp?.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp?.name || "Employee"));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -274,9 +276,9 @@ export default function EmployeeDetailSection({
         <>
           <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6">
             <div className="flex flex-wrap items-start gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl shadow-lg shrink-0">{emp.name?.charAt(0)?.toUpperCase()}</div>
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-black text-2xl shadow-lg shrink-0">{safeEmpName.charAt(0).toUpperCase()}</div>
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1"><h3 className="text-xl font-black text-slate-800">{emp.name}</h3><span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg border ${emp.status === "inactive" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>{emp.status === "inactive" ? "Deactivated" : "Active"}</span></div>
+                <div className="flex flex-wrap items-center gap-2 mb-1"><h3 className="text-xl font-black text-slate-800">{safeEmpName}</h3><span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg border ${emp.status === "inactive" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>{emp.status === "inactive" ? "Deactivated" : "Active"}</span></div>
                 <div className="flex items-center gap-2 my-1">
                   <EmployeeIdBadge id={emp.employeeId} />
                   <span className="text-xs text-slate-500 font-bold">&bull; {emp.designation || "Employee"}</span>

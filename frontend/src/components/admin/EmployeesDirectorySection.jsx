@@ -36,7 +36,7 @@ export default function EmployeesDirectorySection({
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-sm">
                     <button className="font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left" onClick={() => openEmployeeDetail(emp._id, "employees")}>
-                      {emp.name}
+                      {typeof emp?.name === 'string' ? emp.name : (emp?.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp?.name || ""))}
                     </button>
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-sm text-slate-500">{emp.email}</td>
