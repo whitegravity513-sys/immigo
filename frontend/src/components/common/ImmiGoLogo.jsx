@@ -160,6 +160,9 @@ export function DashboardWatermark() {
  * Employee ID Badge Styled in the signature immiGo Brand Identity ("employe id logo jaisa bnao")
  */
 export function EmployeeIdBadge({ id, size = "md", className = "" }) {
+  if (id && /^[0-9a-fA-F]{24}$/.test(id)) {
+    return null;
+  }
   const cleanId = id || "EMP-001";
   const isSm = size === "sm";
 
