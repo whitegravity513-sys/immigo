@@ -133,13 +133,18 @@ export default function LiveAttendanceSection({
                 <tr key={rep.employeeId} className="hover:bg-blue-50/40 transition-colors">
                   {/* Employee Info: Compact 2 lines */}
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      <strong className="text-slate-900 font-bold text-xs">{typeof rep?.name === 'string' ? rep.name : (rep?.name?.first ? `${rep.name.first} ${rep.name.last}` : String(rep?.name || ""))}</strong>
-                      <EmployeeIdBadge id={rep.employeeId} size="xs" />
-                      <button onClick={() => openEmployeeDetail(rep._id, currentPath)} className="text-blue-600 hover:text-blue-800 transition cursor-pointer p-0.5" title="View profile">
-                        <Eye size={13} />
-                      </button>
-                    </div>
+                    {(() => {
+                      const actualEmpId = rep.employeeId || (typeof rep._id === 'string' ? rep._id.replace(/^virtual-/, '') : rep._id);
+                      return (
+                        <div className="flex items-center gap-1.5">
+                          <strong className="text-slate-900 font-bold text-xs">{typeof rep?.name === 'string' ? rep.name : (rep?.name?.first ? `${rep.name.first} ${rep.name.last}` : String(rep?.name || ""))}</strong>
+                          <EmployeeIdBadge id={rep.employeeCode || rep.employeeId} size="xs" />
+                          <button onClick={() => openEmployeeDetail(actualEmpId, currentPath)} className="text-blue-600 hover:text-blue-800 transition cursor-pointer p-0.5" title="View profile">
+                            <Eye size={13} />
+                          </button>
+                        </div>
+                      );
+                    })()}
                     <div className="text-[10px] text-slate-500 font-medium truncate max-w-[150px]">
                       {rep.designation || "Employee"}
                     </div>
@@ -250,17 +255,20 @@ export default function LiveAttendanceSection({
                   {/* Edit Action Button */}
                   <td className="px-2 py-2 text-xs text-right whitespace-nowrap">
                     <button
-                      onClick={() => setEditingAttendance({
-                        employeeId: rep._id,
-                        date: rep.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()),
-                        checkInTime: rep.checkInTime,
-                        checkOutTime: rep.checkOutTime,
-                        name: rep.name,
-                        status: rep.status,
-                        halfSalaryDeduct: rep.halfSalaryDeduct,
-                        isPenaltyAbsent: rep.isPenaltyAbsent,
-                        penaltyWaivedByAdmin: rep.penaltyWaivedByAdmin
-                      })}
+                      onClick={() => {
+                        const actualEmpId = rep.employeeId || (typeof rep._id === 'string' ? rep._id.replace(/^virtual-/, '') : rep._id);
+                        setEditingAttendance({
+                          employeeId: actualEmpId,
+                          date: rep.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()),
+                          checkInTime: rep.checkInTime,
+                          checkOutTime: rep.checkOutTime,
+                          name: rep.name,
+                          status: rep.status,
+                          halfSalaryDeduct: rep.halfSalaryDeduct,
+                          isPenaltyAbsent: rep.isPenaltyAbsent,
+                          penaltyWaivedByAdmin: rep.penaltyWaivedByAdmin
+                        });
+                      }}
                       className="text-slate-500 hover:text-blue-600 cursor-pointer p-1 rounded hover:bg-slate-100 border border-slate-300 transition-colors"
                       title="Edit Attendance"
                     >

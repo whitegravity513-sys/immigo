@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  LogOut,
   X,
   ChevronRight,
   ChevronDown,
@@ -48,16 +47,16 @@ export const AdminSidebar = ({
         `}
       >
         {/* Integrated Brand Header */}
-        <div className={`px-4 pt-4 pb-3 border-b border-blue-200/60 bg-white/75 backdrop-blur-xs flex items-center gap-2 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+        <div className={`h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <div className="flex items-center gap-2.5 min-w-0">
             {sidebarCollapsed ? (
               <ImmiGoIcon size="md" />
             ) : (
-              <ImmiGoLogo size="sm" subtitle="Admin Portal" />
+              <ImmiGoLogo size="sm" subtitle="Admin Portal" theme="light" />
             )}
           </div>
           {!sidebarCollapsed && (
-            <button onClick={() => setSidebarMobileOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer flex-shrink-0">
+            <button onClick={() => setSidebarMobileOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-blue-200 hover:text-white hover:bg-blue-800/60 rounded-lg cursor-pointer flex-shrink-0">
               <X size={15} />
             </button>
           )}
@@ -202,17 +201,21 @@ export const AdminSidebar = ({
           })}
         </div>
 
-        {/* Bottom Footer Logout - full width */}
-        <div className="border-t border-blue-200/70 bg-white/50 p-3">
-          <button
-            type="button"
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-[12px] font-bold text-rose-600 hover:text-white bg-white hover:bg-rose-600 border border-rose-200 transition-all duration-150 cursor-pointer shadow-xs ${sidebarCollapsed ? "px-0" : ""}`}
-            onClick={onLogout}
-            title="Sign Out"
-          >
-            <LogOut size={14} className="shrink-0" />
-            {!sidebarCollapsed && <span>Sign Out</span>}
-          </button>
+        {/* Bottom Sidebar Footer — exactly aligned with dashboard footer (h-[48px] min-h-[48px]) */}
+        <div className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+          {!sidebarCollapsed ? (
+            <>
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Console Active</span>
+              </div>
+              <span className="px-1.5 py-0.5 rounded bg-blue-900/90 text-blue-200 text-[9px] font-mono border border-blue-700/50">
+                v2.5
+              </span>
+            </>
+          ) : (
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="System Active"></span>
+          )}
         </div>
       </aside>
     </>

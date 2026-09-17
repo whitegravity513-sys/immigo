@@ -5,9 +5,7 @@ import {
 import ProjectInvoice from "./ProjectInvoice.jsx";
 import ProjectPayments from "./ProjectPayments.jsx";
 import { useProjectDetail } from "../../../hooks/useProjectDetail";
-import axios from "axios";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+import apiClient from "../../../services/apiClient.js";
 
 export default function ProjectDetail({ initialProject, onBack, onUpdate }) {
   const {
@@ -74,9 +72,9 @@ export default function ProjectDetail({ initialProject, onBack, onUpdate }) {
       };
 
       if (project.renewal) {
-        await axios.put(`${API_BASE}/admin/renewals/${project.renewal.id}`, payload, { withCredentials: true });
+        await apiClient.put(`/admin/renewals/${project.renewal.id}`, payload);
       } else {
-        await axios.post(`${API_BASE}/admin/renewals`, payload, { withCredentials: true });
+        await apiClient.post("/admin/renewals", payload);
       }
 
       setIsRenewalModalOpen(false);

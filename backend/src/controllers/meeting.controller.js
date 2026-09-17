@@ -26,6 +26,15 @@ export const createMeeting = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Title, Date, Start Time, and Meeting Link are required");
   }
 
+  // Business Rule: calender ma meating uss date ya uske a bad dki date ma ho na ki usse phele add kene ka
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (date < todayStr) {
+    throw new ApiError(
+      400,
+      "Meeting date cannot be in the past. Please select today or a future date."
+    );
+  }
+
   // Create meeting record
   const meeting = await Meeting.create({
     title: title.trim(),
@@ -65,17 +74,19 @@ export const createMeeting = asyncHandler(async (req, res) => {
       metadata: meetingMetadata,
     });
   } else if (targetType === "SPECIFIC" && Array.isArray(targetEmployees) && targetEmployees.length > 0) {
-    for (const empId of targetEmployees) {
-      await NotificationService.createNotification({
-        type: "MEETING",
-        title: `📅 Meeting Invitation: ${meeting.title}`,
-        message: `You are invited to a meeting on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-        targetRole: "EMPLOYEE",
-        targetType: "SPECIFIC",
-        targetEmployeeId: empId,
-        metadata: meetingMetadata,
-      });
-    }
+    await Promise.all(
+      targetEmployees.map((empId) =>
+        NotificationService.createNotification({
+          type: "MEETING",
+          title: `📅 Meeting Invitation: ${meeting.title}`,
+          message: `You are invited to a meeting on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+          targetRole: "EMPLOYEE",
+          targetType: "SPECIFIC",
+          targetEmployeeId: empId,
+          metadata: meetingMetadata,
+        })
+      )
+    );
   }
 
   return res.status(201).json({
@@ -133,7 +144,16 @@ export const updateMeeting = asyncHandler(async (req, res) => {
 
   if (title) meeting.title = title.trim();
   if (description !== undefined) meeting.description = description.trim();
-  if (date) meeting.date = date;
+  if (date) {
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (date < todayStr) {
+      throw new ApiError(
+        400,
+        "Meeting date cannot be in the past. Please select today or a future date."
+      );
+    }
+    meeting.date = date;
+  }
   if (startTime) meeting.startTime = startTime;
   if (endTime !== undefined) meeting.endTime = endTime;
   if (meetingLink) meeting.meetingLink = meetingLink.trim();
@@ -166,18 +186,20 @@ export const updateMeeting = asyncHandler(async (req, res) => {
         metadata: meetingMetadata,
       });
     } else if (meeting.targetEmployees?.length > 0) {
-      for (const emp of meeting.targetEmployees) {
-        const empId = emp._id || emp;
-        await NotificationService.createNotification({
-          type: "UPDATE",
-          title: `🔄 Meeting Updated: ${meeting.title}`,
-          message: `Your meeting on ${meeting.date} at ${meeting.startTime} has been updated.`,
-          targetRole: "EMPLOYEE",
-          targetType: "SPECIFIC",
-          targetEmployeeId: empId,
-          metadata: meetingMetadata,
-        });
-      }
+      await Promise.all(
+        meeting.targetEmployees.map((emp) => {
+          const empId = emp._id || emp;
+          return NotificationService.createNotification({
+            type: "UPDATE",
+            title: `🔄 Meeting Updated: ${meeting.title}`,
+            message: `Your meeting on ${meeting.date} at ${meeting.startTime} has been updated.`,
+            targetRole: "EMPLOYEE",
+            targetType: "SPECIFIC",
+            targetEmployeeId: empId,
+            metadata: meetingMetadata,
+          });
+        })
+      );
     }
   }
 

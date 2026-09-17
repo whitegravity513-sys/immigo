@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+import apiClient from "../services/apiClient.js";
 
 const toLocalDateStr = (d) => {
   if (!d) return "";
@@ -39,7 +37,23 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null);
   const [leaveActionRemark, setLeaveActionRemark] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [employeeForm, setEmployeeForm] = useState({ name: "", email: "", password: "", role: "", joiningDate: "", employeeId: "" });
+  const [employeeForm, setEmployeeForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "",
+    department: "",
+    phone: "",
+    address: "",
+    previousCompany: "",
+    previousPackage: "",
+    currentPackage: "",
+    experience: "",
+    joiningDate: new Date().toISOString().split("T")[0],
+    employeeId: "",
+    profileImage: "",
+    documents: [],
+  });
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", email: "", designation: "", joiningDate: "", leavingDate: "", leaveBalance: 0, nextMonthLeaves: 0, password: "" });
   const [summaryData, setSummaryData] = useState([]);
@@ -107,19 +121,18 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   async function fetchAdminReports() {
     try {
-      const effectiveToken = token || localStorage.getItem("vista_auth_token") || localStorage.getItem("token");
-      const authHeaders = effectiveToken ? { Authorization: `Bearer ${effectiveToken}` } : {};
-
       if (view === "live" || view === "dashboard") {
-        let url = `${API_BASE}/admin/attendance`;
-        if (filterStart && filterEnd) url = `${API_BASE}/admin/attendance/range?start=${filterStart.toISOString().split('T')[0]}&end=${filterEnd.toISOString().split('T')[0]}`;
-        const r = await axios.get(url, { headers: { ...authHeaders, 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
+        let url = `/admin/attendance`;
+        if (filterStart && filterEnd) {
+          url = `/admin/attendance/range?start=${filterStart.toISOString().split('T')[0]}&end=${filterEnd.toISOString().split('T')[0]}`;
+        }
+        const r = await apiClient.get(url, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
         setAttendanceReport(r.data);
       } else if (view === "employees") {
-        const r = await axios.get(`${API_BASE}/admin/employee/list`, { headers: authHeaders });
+        const r = await apiClient.get(`/admin/employee/list`);
         setEmployees(Array.isArray(r.data) ? r.data : (r.data.employees || []));
       } else if (view === "leaves") {
-        const r = await axios.get(`${API_BASE}/admin/leaves`, { headers: authHeaders });
+        const r = await apiClient.get(`/admin/leaves`);
         setLeavesReport(r.data);
       } else if (view === "summary") {
         fetchSummary();
@@ -136,24 +149,17 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   async function fetchSummary() {
     setSummaryLoading(true);
     try {
-      const effectiveToken = token || localStorage.getItem("vista_auth_token") || localStorage.getItem("token");
-      const r = await axios.get(`${API_BASE}/admin/attendance/summary?month=${summaryMonth}&year=${summaryYear}`, {
-        headers: effectiveToken ? { Authorization: `Bearer ${effectiveToken}` } : {}
-      });
+      const r = await apiClient.get(`/admin/attendance/summary?month=${summaryMonth}&year=${summaryYear}`);
       setSummaryData(r.data.summary || []);
     } catch { setErrorMsg("Failed to load attendance summary."); }
     finally { setSummaryLoading(false); }
   }
 
   async function fetchNotes(dateObj) {
-    const effectiveToken = token || localStorage.getItem("vista_auth_token") || localStorage.getItem("token");
-    if (!effectiveToken) return;
     setNotesLoading(true);
     try {
       const dateStr = dateObj ? (typeof dateObj === "string" ? dateObj : dateObj.toISOString().split('T')[0]) : new Date().toISOString().split('T')[0];
-      const r = await axios.get(`${API_BASE}/admin/attendance/notes?date=${dateStr}`, {
-        headers: { Authorization: `Bearer ${effectiveToken}` }
-      });
+      const r = await apiClient.get(`/admin/attendance/notes?date=${dateStr}`);
       setNotesData(Array.isArray(r.data) ? r.data : []);
     } catch (err) {
       console.warn("fetchNotes:", err?.message);
@@ -164,7 +170,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   async function fetchHolidays() {
     try {
-      const r = await axios.get(`${API_BASE}/admin/holidays`);
+      const r = await apiClient.get(`/admin/holidays`);
       setHolidays(r.data);
     } catch { setErrorMsg("Failed to load holidays."); }
   }
@@ -172,7 +178,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   async function fetchExpenses() {
     setExpenseLoading(true);
     try {
-      const r = await axios.get(`${API_BASE}/admin/expenses`);
+      const r = await apiClient.get(`/admin/expenses`);
       setExpenses(r.data || []);
     } catch {
       setErrorMsg("Failed to load expense records.");
@@ -184,7 +190,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   async function fetchRenewals() {
     setRenewalLoading(true);
     try {
-      const r = await axios.get(`${API_BASE}/admin/renewals`);
+      const r = await apiClient.get(`/admin/renewals`);
       setRenewals(r.data || []);
     } catch {
       setErrorMsg("Failed to load renewals.");
@@ -195,7 +201,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   async function fetchRenewalAlerts() {
     try {
-      const r = await axios.get(`${API_BASE}/admin/renewals/alerts`);
+      const r = await apiClient.get(`/admin/renewals/alerts`);
       setRenewalAlerts(r.data);
     } catch (err) {
       console.error("Failed to fetch renewal alerts:", err);
@@ -214,11 +220,11 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     try {
       if (expenseForm._id) {
         // Edit mode
-        await axios.put(`${API_BASE}/admin/expenses/${expenseForm._id}`, expenseForm);
+        await apiClient.put(`/admin/expenses/${expenseForm._id}`, expenseForm);
         setSuccessMsg("Expense record updated successfully");
       } else {
         // Create mode
-        await axios.post(`${API_BASE}/admin/expenses`, expenseForm);
+        await apiClient.post("/admin/expenses", expenseForm);
         setSuccessMsg("Expense record saved successfully");
       }
       setExpenseForm({
@@ -253,7 +259,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     if (!window.confirm("Are you sure you want to delete this expense record?")) return;
     setLoading(true);
     try {
-      await axios.delete(`${API_BASE}/admin/expenses/${id}`);
+      await apiClient.delete(`/admin/expenses/${id}`);
       setSuccessMsg("Expense record deleted successfully");
       fetchExpenses();
     } catch {
@@ -269,7 +275,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const r = await axios.post(`${API_BASE}/admin/holidays`, holidayForm);
+      const r = await apiClient.post("/admin/holidays", holidayForm);
       setSuccessMsg(r.data.message);
       setHolidayForm({ date: "", title: "", description: "" });
       fetchHolidays();
@@ -285,7 +291,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const r = await axios.delete(`${API_BASE}/admin/holidays/${holidayId}`);
+      const r = await apiClient.delete(`/admin/holidays/${holidayId}`);
       setSuccessMsg(r.data.message);
       fetchHolidays();
     } catch (err) {
@@ -321,7 +327,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
         halfSalaryDeduct,
       };
       
-      await axios.post(`${API_BASE}/admin/attendance/update`, payload);
+      await apiClient.post("/admin/attendance/update", payload);
       setSuccessMsg("Attendance recorded successfully!");
       setPastAttendanceModal(null);
       fetchEmployeeHistoryById(selectedEmployeeId);
@@ -342,7 +348,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     if (!inlineLeaveEdit) return;
     setInlineLeaveLoading(true);
     try {
-      await axios.put(`${API_BASE}/admin/employee/${inlineLeaveEdit.empId}/leave-balance`, {
+      await apiClient.put(`/admin/employee/${inlineLeaveEdit.empId}/leave-balance`, {
         leaveBalance: inlineLeaveEdit.leaveBalance,
         nextMonthLeaves: inlineLeaveEdit.nextMonthLeaves,
       });
@@ -354,11 +360,16 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   };
 
   const openEmployeeDetail = (empId, fromPath) => {
-    setSelectedEmployeeId(empId);
+    const cleanId = String(empId || "").replace(/^virtual-/, "").trim();
+    setSelectedEmployeeId(cleanId);
     setPreviousPath(fromPath || location.pathname);
     setDetailFromDate(null); setDetailToDate(null); setEmployeeHistory(null);
-    navigate(`/admin/dashboard/employee/${empId}`);
-    fetchEmployeeHistoryById(empId);
+    if (fromPath === "summary" || fromPath?.includes("summary")) {
+      setCalendarMonth(summaryMonth);
+      setCalendarYear(summaryYear);
+    }
+    navigate(`/admin/dashboard/employee/${cleanId}`);
+    fetchEmployeeHistoryById(cleanId);
   };
 
   const handleGoBack = () => {
@@ -370,25 +381,64 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   };
 
   async function fetchEmployeeHistoryById(empId, fromDate, toDate) {
+    const cleanId = String(empId || "").replace(/^virtual-/, "").trim();
     setEmployeeHistoryLoading(true);
     try {
-      const r = await axios.get(`${API_BASE}/admin/employee/${empId}/history`);
-      let data = r.data;
+      const r = await apiClient.get(`/admin/employee/${cleanId}/history`);
+      let data = r.data || {};
+
+      const rawList = Array.isArray(data.attendanceHistory)
+        ? data.attendanceHistory
+        : (Array.isArray(data) ? data : []);
+
       if (fromDate || toDate) {
         const from = fromDate ? fromDate.toISOString().split("T")[0] : null;
         const to = toDate ? toDate.toISOString().split("T")[0] : null;
-        data = { ...data, attendanceHistory: data.attendanceHistory.filter(a => { if (from && a.date < from) return false; if (to && a.date > to) return false; return true; }) };
+        const filtered = rawList.filter(a => {
+          if (!a) return false;
+          if (from && a.date < from) return false;
+          if (to && a.date > to) return false;
+          return true;
+        });
+        data = {
+          ...data,
+          attendanceHistory: filtered,
+        };
+      } else {
+        data = {
+          ...data,
+          attendanceHistory: rawList,
+        };
       }
       setEmployeeHistory(data);
-    } catch { setErrorMsg("Failed to load employee details."); }
-    finally { setEmployeeHistoryLoading(false); }
+    } catch {
+      setErrorMsg("Failed to load employee details.");
+    } finally {
+      setEmployeeHistoryLoading(false);
+    }
   }
 
   const handleOpenAddModal = async () => {
     setLoading(true); setErrorMsg("");
     try {
-      const r = await axios.get(`${API_BASE}/admin/employee/next-id`);
-      setEmployeeForm({ name: "", email: "", password: "", role: "", joiningDate: new Date().toISOString().split("T")[0], employeeId: r.data.employeeId });
+      const r = await apiClient.get("/admin/employee/next-id");
+      setEmployeeForm({
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+        department: "",
+        phone: "",
+        address: "",
+        previousCompany: "",
+        previousPackage: "",
+        currentPackage: "",
+        experience: "",
+        joiningDate: new Date().toISOString().split("T")[0],
+        employeeId: r.data.employeeId,
+        profileImage: "",
+        documents: [],
+      });
       setIsAddModalOpen(true);
     } catch { setErrorMsg("Failed to generate next employee ID."); }
     finally { setLoading(false); }
@@ -397,9 +447,25 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const handleCreateEmployeeSubmit = async (e) => {
     e.preventDefault(); setLoading(true); setErrorMsg("");
     try {
-      const r = await axios.post(`${API_BASE}/admin/employee/create`, employeeForm);
-      setSuccessMsg(r.data.message);
-      setEmployeeForm({ name: "", email: "", password: "", role: "", joiningDate: "", employeeId: "" });
+      const r = await apiClient.post("/admin/employee/create", employeeForm);
+      setSuccessMsg(r.data.message || "Employee created successfully!");
+      setEmployeeForm({
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+        department: "",
+        phone: "",
+        address: "",
+        previousCompany: "",
+        previousPackage: "",
+        currentPackage: "",
+        experience: "",
+        joiningDate: "",
+        employeeId: "",
+        profileImage: "",
+        documents: [],
+      });
       setIsAddModalOpen(false); fetchAdminReports();
     } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to create employee."); }
     finally { setLoading(false); }
@@ -409,7 +475,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     if (!window.confirm("Are you sure you want to deactivate this employee? Their historical logs will remain.")) return;
     setLoading(true); setErrorMsg(""); setSuccessMsg("");
     try {
-      const r = await axios.put(`${API_BASE}/admin/employee/deactivate/${id}`);
+      const r = await apiClient.put(`/admin/employee/deactivate/${id}`);
       setSuccessMsg(r.data.message); fetchAdminReports();
     } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to deactivate employee."); }
     finally { setLoading(false); }
@@ -417,13 +483,33 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleEditClick = (emp) => {
     setEditingEmployee(emp);
-    setEditForm({ name: emp.name, email: emp.email, designation: emp.designation || emp.role || "", joiningDate: emp.joiningDate ? emp.joiningDate.split("T")[0] : "", leavingDate: emp.leavingDate ? emp.leavingDate.split("T")[0] : "", leaveBalance: emp.leaveBalance || 0, nextMonthLeaves: emp.nextMonthLeaves || 0, password: "" });
+    const empName = typeof emp.name === 'string' ? emp.name : (emp.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp.name || ""));
+    setEditForm({
+      name: empName,
+      email: emp.email,
+      designation: emp.designation || emp.role || "",
+      department: emp.department || "",
+      phone: emp.phone || "",
+      address: emp.address || "",
+      status: emp.status || "active",
+      previousCompany: emp.previousCompany || "",
+      previousPackage: emp.previousPackage || "",
+      currentPackage: emp.currentPackage || "",
+      experience: emp.experience || "",
+      profileImage: emp.profileImage || "",
+      joiningDate: emp.joiningDate ? emp.joiningDate.split("T")[0] : "",
+      leavingDate: emp.leavingDate ? emp.leavingDate.split("T")[0] : "",
+      leaveBalance: emp.leaveBalance ?? 18,
+      allocatedLeaves: emp.allocatedLeaves ?? 18,
+      nextMonthLeaves: emp.nextMonthLeaves || 0,
+      password: ""
+    });
   };
 
   const handleUpdateEmployeeSubmit = async (e) => {
     e.preventDefault(); setLoading(true); setErrorMsg("");
     try {
-      const r = await axios.put(`${API_BASE}/admin/employee/update/${editingEmployee._id}`, editForm);
+      const r = await apiClient.put(`/admin/employee/update/${editingEmployee._id}`, editForm);
       setSuccessMsg(r.data.message); setEditingEmployee(null); fetchAdminReports();
     } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to update employee."); }
     finally { setLoading(false); }
@@ -440,7 +526,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     if (action === "Rejected" && !leaveActionRemark.trim()) { setErrorMsg("Rejection remark is required!"); return; }
     setLoading(true);
     try {
-      const r = await axios.put(`${API_BASE}/admin/leaves/${leaveId}`, { status: action, adminRemark: leaveActionRemark.trim() });
+      const r = await apiClient.put(`/admin/leaves/${leaveId}`, { status: action, adminRemark: leaveActionRemark.trim() });
       setSuccessMsg(r.data.message); setLeaveActionModal(null); setLeaveActionRemark(""); fetchAdminReports();
     } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to update leave status."); }
     finally { setLoading(false); }

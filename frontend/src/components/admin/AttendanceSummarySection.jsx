@@ -23,7 +23,9 @@ export default function AttendanceSummarySection({
       <div className="flex flex-wrap items-center gap-4 justify-between">
         <div>
           <h3 className="text-lg font-black text-slate-800 tracking-tight">Attendance Summary</h3>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Monthly per-employee breakdown (2nd & 4th Sat + Sunday = Off)</p>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Monthly per-employee breakdown • Calculated strictly from Joining Date onwards, excluding Weekends (2nd & 4th Sat + Sunday) and Declared Holidays
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -53,7 +55,7 @@ export default function AttendanceSummarySection({
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr>
-                {["Employee", "Working Days", "Full Day", "Half Day", "Absent", "Leaves Taken", "Leave Balance", "Next Month Leaves", "Set Leave"].map(h => (
+                {["Employee", "Working Days (Post-DOJ)", "Full Day", "Half Day", "Absent", "Leaves Taken", "Leave Balance", "Next Month Leaves", "Set Leave"].map(h => (
                   <th key={h} className="px-4 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
                 ))}
               </tr>
@@ -80,7 +82,23 @@ export default function AttendanceSummarySection({
                       <div className="text-xs text-slate-500">{emp.employeeId || emp.employeeCode || "-"} • {emp.designation || "-"}</div>
                       {emp.status === "inactive" && <span className="text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 rounded-md uppercase mt-0.5 inline-block">Deactivated</span>}
                     </td>
-                    <td className="px-4 py-4 text-sm font-bold text-slate-700 text-center">{workingDays}</td>
+                    <td className="px-4 py-4 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-sm font-black text-slate-800">{workingDays} Days</span>
+                        {emp.joiningDate && emp.summary?.totalMonthWorkingDays && emp.summary.totalMonthWorkingDays !== workingDays ? (
+                          <span
+                            className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded mt-0.5"
+                            title={`Joined: ${new Date(emp.joiningDate).toLocaleDateString("en-IN")}. Full month has ${emp.summary.totalMonthWorkingDays} working days.`}
+                          >
+                            DOJ: {new Date(emp.joiningDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} (Total: {emp.summary.totalMonthWorkingDays})
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-400 font-medium">
+                            (Full Month)
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-4 text-center"><span className="text-sm font-black text-emerald-600">{presentDays}</span></td>
                     <td className="px-4 py-4 text-center"><span className="text-sm font-black text-amber-600">{halfDays}</span></td>
                     <td className="px-4 py-4 text-center"><span className={`text-sm font-black ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>

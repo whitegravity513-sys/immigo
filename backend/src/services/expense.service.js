@@ -18,6 +18,9 @@ export class ExpenseService {
   static formatExpense(expense) {
     if (!expense) return null;
     const catObj = expense.categoryId;
+    const empObj = expense.employeeId;
+    const clientObj = expense.clientId;
+
     return {
       ...(expense.toObject ? expense.toObject() : expense),
       id: expense._id?.toString() || expense.id,
@@ -27,6 +30,20 @@ export class ExpenseService {
             ...(catObj.toObject ? catObj.toObject() : catObj),
             id: catObj._id?.toString() || catObj.toString(),
             _id: catObj._id?.toString() || catObj.toString(),
+          }
+        : null,
+      employee: empObj
+        ? {
+            ...(empObj.toObject ? empObj.toObject() : empObj),
+            id: empObj._id?.toString() || empObj.toString(),
+            _id: empObj._id?.toString() || empObj.toString(),
+          }
+        : null,
+      client: clientObj
+        ? {
+            ...(clientObj.toObject ? clientObj.toObject() : clientObj),
+            id: clientObj._id?.toString() || clientObj.toString(),
+            _id: clientObj._id?.toString() || clientObj.toString(),
           }
         : null,
     };
@@ -79,10 +96,13 @@ export class ExpenseService {
 
   // --- Expenses ---
   static async getExpenses(filters = {}) {
-    const { categoryId, startDate, endDate } = filters;
+    const { categoryId, clientId, employeeId, status, startDate, endDate } = filters;
     const query = {};
 
     if (categoryId) query.categoryId = categoryId;
+    if (clientId) query.clientId = clientId;
+    if (employeeId) query.employeeId = employeeId;
+    if (status) query.status = status;
     if (startDate && endDate) {
       query.date = {
         $gte: new Date(startDate),
@@ -90,31 +110,89 @@ export class ExpenseService {
       };
     }
 
-    const expenses = await Expense.find(query).populate("categoryId").sort({ date: -1 }).lean();
+    const expenses = await Expense.find(query)
+      .populate("categoryId", "name")
+      .populate("employeeId", "name employeeId email designation")
+      .populate("clientId", "name company email phone")
+      .sort({ date: -1, createdAt: -1 })
+      .lean();
+
     return expenses.map((e) => this.formatExpense(e));
   }
 
-  static async createExpense(data) {
-    const { title, amount, date, categoryId, receipt, notes } = data;
-    if (!title || !amount || !categoryId) {
-      throw new ApiError(400, "Title, amount, and category are required.");
+  static async createExpense(data, userRole = "admin", userId = null) {
+    const {
+      title,
+      description,
+      amount,
+      date,
+      categoryId,
+      clientId,
+      receipt,
+      remarks,
+      notes,
+    } = data;
+
+    const finalTitle = title ? title.trim() : (description ? description.trim() : "");
+    if (!finalTitle || amount === undefined || amount === null || !categoryId) {
+      throw new ApiError(400, "Title / Description, amount, and category are required.");
     }
 
+    const isEmployee = userRole === "employee";
+    const status = isEmployee ? "Pending" : (data.status || "Approved");
+
     const expense = await Expense.create({
-      title: title.trim(),
+      title: finalTitle,
+      description: description ? description.trim() : finalTitle,
       amount: parseFloat(amount),
       date: date ? new Date(date) : new Date(),
       categoryId,
+      employeeId: isEmployee ? userId : (data.employeeId || null),
+      clientId: clientId || null,
       receipt: receipt || "",
-      notes: notes || "",
+      remarks: remarks ? remarks.trim() : "",
+      notes: notes ? notes.trim() : "",
+      status,
     });
 
-    await expense.populate("categoryId");
+    await expense.populate(["categoryId", "employeeId", "clientId"]);
+    return this.formatExpense(expense);
+  }
+
+  static async reviewExpense(id, { status, adminRemark, adminId }) {
+    if (!["Approved", "Rejected", "Pending"].includes(status)) {
+      throw new ApiError(400, "Invalid status. Use 'Approved', 'Rejected', or 'Pending'.");
+    }
+
+    const expense = await Expense.findById(id);
+    if (!expense) {
+      throw new ApiError(404, "Expense not found.");
+    }
+
+    expense.status = status;
+    if (adminRemark !== undefined) expense.adminRemark = adminRemark.trim();
+    expense.reviewedBy = adminId || null;
+    expense.reviewedAt = new Date();
+
+    await expense.save();
+    await expense.populate(["categoryId", "employeeId", "clientId"]);
     return this.formatExpense(expense);
   }
 
   static async updateExpense(id, data) {
-    const { title, amount, date, categoryId, receipt, notes } = data;
+    const {
+      title,
+      description,
+      amount,
+      date,
+      categoryId,
+      clientId,
+      receipt,
+      remarks,
+      notes,
+      status,
+      adminRemark,
+    } = data;
 
     const expense = await Expense.findById(id);
     if (!expense) {
@@ -122,14 +200,19 @@ export class ExpenseService {
     }
 
     if (title) expense.title = title.trim();
+    if (description !== undefined) expense.description = description.trim();
     if (amount !== undefined) expense.amount = parseFloat(amount);
     if (date) expense.date = new Date(date);
     if (categoryId) expense.categoryId = categoryId;
+    if (clientId !== undefined) expense.clientId = clientId || null;
     if (receipt !== undefined) expense.receipt = receipt;
+    if (remarks !== undefined) expense.remarks = remarks;
     if (notes !== undefined) expense.notes = notes;
+    if (status) expense.status = status;
+    if (adminRemark !== undefined) expense.adminRemark = adminRemark;
 
     await expense.save();
-    await expense.populate("categoryId");
+    await expense.populate(["categoryId", "employeeId", "clientId"]);
     return this.formatExpense(expense);
   }
 
@@ -139,6 +222,32 @@ export class ExpenseService {
       throw new ApiError(404, "Expense not found.");
     }
     return expense;
+  }
+
+  // Track Expense history according to Client
+  static async getClientExpenseHistory(clientId) {
+    if (!clientId) {
+      throw new ApiError(400, "Client ID is required");
+    }
+
+    const expenses = await Expense.find({ clientId })
+      .populate("categoryId", "name")
+      .populate("employeeId", "name employeeId")
+      .sort({ date: -1 })
+      .lean();
+
+    const totalAmount = expenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    const approvedAmount = expenses
+      .filter((e) => e.status === "Approved")
+      .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+    return {
+      clientId,
+      totalCount: expenses.length,
+      totalAmount,
+      approvedAmount,
+      expenses: expenses.map((e) => this.formatExpense(e)),
+    };
   }
 }
 

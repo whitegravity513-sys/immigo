@@ -11,31 +11,31 @@ import {
   Calendar,
   Sparkles,
   X,
+  Briefcase,
 } from "lucide-react";
 
-export default function NotificationBell() {
+export default function NotificationBell({ className }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const audioRef = useRef(null);
 
   const fetchNotifications = async () => {
     try {
-      const res = await apiClient.get("/admin/notifications?limit=25");
+      const res = await apiClient.get("/admin/notifications?limit=30");
       if (res.data) {
         setNotifications(res.data.notifications || []);
         setUnreadCount(res.data.unreadCount || 0);
       }
     } catch (err) {
-      // Non-blocking
+      // Silent error for polling
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    // Live polling every 10 seconds for real-time notification updates
-    const interval = setInterval(fetchNotifications, 10000);
+    const interval = setInterval(fetchNotifications, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -52,11 +52,11 @@ export default function NotificationBell() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await apiClient.put("/admin/notifications/read-all");
+      await apiClient.put("/admin/notifications/mark-all-read");
       setUnreadCount(0);
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
     } catch (err) {
-      console.error(err);
+      console.error("Failed to mark all as read:", err);
     }
   };
 
@@ -64,11 +64,11 @@ export default function NotificationBell() {
     try {
       await apiClient.put(`/admin/notifications/${id}/read`);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n._id === id || n.id === id ? { ...n, isRead: true, read: true } : n))
       );
-      setUnreadCount((c) => Math.max(0, c - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error(err);
+      console.error("Failed to mark notification as read:", err);
     }
   };
 
@@ -84,8 +84,10 @@ export default function NotificationBell() {
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return "";
-    const diffMs = Date.now() - new Date(dateStr).getTime();
-    const diffSec = Math.floor(diffMs / 1000);
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffSec = Math.floor((now - d) / 1000);
+
     if (diffSec < 60) return "Just now";
     const diffMin = Math.floor(diffSec / 60);
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -113,13 +115,13 @@ export default function NotificationBell() {
         return {
           icon: <Coffee size={15} className="text-amber-500" />,
           bg: "bg-amber-50 border-amber-200 text-amber-700",
-          tag: "Break Start",
+          tag: "On Break",
         };
       case "BREAK_END":
         return {
-          icon: <Play size={15} className="text-cyan-500" />,
-          bg: "bg-cyan-50 border-cyan-200 text-cyan-700",
-          tag: "Break End",
+          icon: <Briefcase size={15} className="text-blue-500" />,
+          bg: "bg-blue-50 border-blue-200 text-blue-700",
+          tag: "Back to Work",
         };
       case "LEAVE_APPLY":
         return {
@@ -129,9 +131,9 @@ export default function NotificationBell() {
         };
       default:
         return {
-          icon: <Sparkles size={15} className="text-blue-500" />,
-          bg: "bg-blue-50 border-blue-200 text-blue-700",
-          tag: "Notice",
+          icon: <Bell size={15} className="text-indigo-500" />,
+          bg: "bg-indigo-50 border-indigo-200 text-indigo-700",
+          tag: "Activity",
         };
     }
   };
@@ -142,10 +144,10 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer border border-slate-200/80 shadow-xs focus:outline-none"
+        className={className || "relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer border border-slate-200/80 shadow-xs focus:outline-none"}
         title="Live Notifications"
       >
-        <Bell size={19} className="text-slate-700" />
+        <Bell size={18} className={className ? "text-blue-200 hover:text-white" : "text-slate-700"} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white shadow-md animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}

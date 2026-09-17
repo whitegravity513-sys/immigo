@@ -39,9 +39,26 @@ export const deactivateEmployee = asyncHandler(async (req, res) => {
 });
 
 export const setLeaveBalance = asyncHandler(async (req, res) => {
-  const employee = await EmployeeService.setLeaveBalance(req.params.id, req.body.leaveBalance);
+  const { leaveBalance, allocatedLeaves } = req.body;
+  const employee = await EmployeeService.setLeaveBalance(req.params.id, leaveBalance, allocatedLeaves);
   return res.status(200).json({
     message: "Leave balance updated successfully",
+    employee,
+  });
+});
+
+export const uploadAdminDocument = asyncHandler(async (req, res) => {
+  const employee = await EmployeeService.uploadDocument(req.params.id, req.body, "Admin");
+  return res.status(201).json({
+    message: "Document uploaded successfully",
+    employee,
+  });
+});
+
+export const deleteAdminDocument = asyncHandler(async (req, res) => {
+  const employee = await EmployeeService.deleteDocument(req.params.id, req.params.docId);
+  return res.status(200).json({
+    message: "Document deleted successfully",
     employee,
   });
 });
@@ -78,6 +95,8 @@ export default {
   updateEmployee,
   deactivateEmployee,
   setLeaveBalance,
+  uploadAdminDocument,
+  deleteAdminDocument,
   getEmployeeHistory,
   getEmployeeMonthlyDetails,
   getEmployeeNote,

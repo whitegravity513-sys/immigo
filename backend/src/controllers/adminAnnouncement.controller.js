@@ -9,15 +9,18 @@ export const getAnnouncements = asyncHandler(async (req, res) => {
 });
 
 export const createAnnouncement = asyncHandler(async (req, res) => {
-  const { title, message } = req.body;
+  const { title, message, date, category, priority } = req.body;
   if (!title || !message) {
     throw new ApiError(400, "Title and message are required");
   }
 
   const announcement = await Announcement.create({
-    title,
-    message,
-    createdBy: req.admin?._id,
+    title: title.trim(),
+    message: message.trim(),
+    date: date || new Date().toISOString().split("T")[0],
+    category: category || "Company Notification",
+    priority: priority || "Medium",
+    createdBy: req.admin?._id || req.user?._id,
   });
 
   // Broadcast to all employees
@@ -27,6 +30,11 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
       title: `Announcement: ${title}`,
       message,
       targetType: "ALL",
+      metadata: {
+        announcementId: announcement._id,
+        category: announcement.category,
+        date: announcement.date,
+      },
     });
   } catch (e) {
     // Non-blocking

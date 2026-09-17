@@ -30,9 +30,14 @@ import {
   Folder,
   UserPlus,
   Sparkles,
+  Camera,
+  UploadCloud,
+  Trash2,
+  Building,
+  Award,
 } from "lucide-react";
 import { useAdminDashboard } from "../../hooks/useAdminDashboard";
-import EditAttendance from "../../components/EditAttendance.jsx";
+import EditAttendance from "../../components/admin/EditAttendance.jsx";
 import EmployeeMonthlyReport from "./employees/EmployeeMonthlyReport.jsx";
 import EmployeeDetail from "./employees/EmployeeDetail.jsx";
 import ExpenseCategories from "./expenses/ExpenseCategories.jsx";
@@ -52,6 +57,7 @@ import {
   EmployeeDetailSection,
 } from "../../components/admin";
 import { AdminHeader, AdminSidebar, AdminFooter } from "../../components/admin/layout";
+import RegisterEmployeeModal from "../../components/admin/RegisterEmployeeModal.jsx";
 import { DashboardWatermark } from "../../components/common/ImmiGoLogo.jsx";
 import ErrorBoundary from "../../components/common/ErrorBoundary.jsx";
 
@@ -347,22 +353,48 @@ function AdminDashboard({ user, token, onLogout }) {
             </button>
           </div>
           <div className="p-6 space-y-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Date
-              </label>
-              <input
-                type="date"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
-                value={pastAttendanceModal.date || ""}
-                onChange={(e) =>
-                  setPastAttendanceModal({
-                    ...pastAttendanceModal,
-                    date: e.target.value,
-                  })
-                }
-              />
-            </div>
+            {(() => {
+              const empJoiningDateStr = employeeHistory?.employee?.joiningDate
+                ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(employeeHistory.employee.joiningDate))
+                : null;
+              const isBeforeJoining = empJoiningDateStr && pastAttendanceModal.date && pastAttendanceModal.date < empJoiningDateStr;
+
+              return (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Date
+                      </label>
+                      {empJoiningDateStr && (
+                        <span className="text-[10px] font-bold text-slate-400">
+                          Joined: {empJoiningDateStr}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      type="date"
+                      min={empJoiningDateStr || undefined}
+                      className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 ${
+                        isBeforeJoining ? "border-rose-400 bg-rose-50" : "border-slate-200"
+                      }`}
+                      value={pastAttendanceModal.date || ""}
+                      onChange={(e) =>
+                        setPastAttendanceModal({
+                          ...pastAttendanceModal,
+                          date: e.target.value,
+                        })
+                      }
+                    />
+                    {isBeforeJoining && (
+                      <p className="text-xs font-bold text-rose-600 mt-0.5">
+                        ⚠️ Attendance cannot be recorded before joining date ({empJoiningDateStr}).
+                      </p>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Status
@@ -512,6 +544,15 @@ function AdminDashboard({ user, token, onLogout }) {
           label: "Monthly Report",
         },
         {
+          key: "expenses",
+          icon: <IndianRupee size={15} className="shrink-0" />,
+          label: "Expense Management",
+          onClick: () => {
+            navigateTo("expenses");
+            if (typeof fetchExpenses === "function") setTimeout(fetchExpenses, 50);
+          },
+        },
+        {
           key: "meetings",
           icon: <Calendar size={15} className="shrink-0" />,
           label: "Calendar & Meetings",
@@ -559,6 +600,7 @@ function AdminDashboard({ user, token, onLogout }) {
           sidebarMobileOpen={sidebarMobileOpen}
           setSidebarMobileOpen={setSidebarMobileOpen}
           view={view}
+          onLogout={onLogout}
         />
 
         <main className="flex-1 p-3.5 sm:p-5 md:p-6 max-w-[1440px] w-full mx-auto overflow-x-hidden">
@@ -580,6 +622,7 @@ function AdminDashboard({ user, token, onLogout }) {
             {view === "leaves" && renderLeaveApprovals()}
             {view === "summary" && renderAttendanceSummary()}
             {view === "employee-detail" && renderEmployeeDetail()}
+            {view === "expenses" && renderExpenses()}
             {view === "holidays" && renderHolidays()}
             {view === "announcements" && <AnnouncementsSection />}
             {(view === "meetings" || view === "calendar") && <CalendarMeetings />}
@@ -640,103 +683,14 @@ function AdminDashboard({ user, token, onLogout }) {
         <AdminFooter navigate={navigate} />
       </div>
 
-      {isAddModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setIsAddModalOpen(false)}
-        >
-          <div
-            className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white">
-              <h3 className="text-base font-black text-slate-800">
-                Register New Employee
-              </h3>
-              <button
-                className="text-slate-500 text-xl cursor-pointer p-1"
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                ×
-              </button>
-            </div>
-            <div className="p-6">
-              <form onSubmit={handleCreateEmployeeSubmit} className="space-y-4">
-                {[
-                  {
-                    label: "Employee ID",
-                    key: "employeeId",
-                    type: "text",
-                    disabled: true,
-                  },
-                  {
-                    label: "Full Name",
-                    key: "name",
-                    type: "text",
-                    ph: "e.g. Rahul Kumar",
-                  },
-                  {
-                    label: "Email Address",
-                    key: "email",
-                    type: "email",
-                    ph: "e.g. rahul@company.com",
-                  },
-                  {
-                    label: "Role / Designation",
-                    key: "role",
-                    type: "text",
-                    ph: "e.g. Software Engineer",
-                  },
-                  { label: "Joining Date", key: "joiningDate", type: "date" },
-                  {
-                    label: "Password",
-                    key: "password",
-                    type: "password",
-                    ph: "••••••••",
-                  },
-                ].map((f) => (
-                  <div key={f.key} className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      {f.label}
-                    </label>
-                    <input
-                      type={f.type}
-                      className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-all ${f.disabled ? "bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" : "bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:bg-white"}`}
-                      value={employeeForm[f.key]}
-                      onChange={(e) =>
-                        !f.disabled &&
-                        setEmployeeForm({
-                          ...employeeForm,
-                          [f.key]: e.target.value,
-                        })
-                      }
-                      placeholder={f.ph}
-                      disabled={f.disabled}
-                      required={!f.disabled}
-                    />
-                  </div>
-                ))}
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl cursor-pointer text-sm shadow-sm shadow-blue-500/20 transition-all"
-                    disabled={loading}
-                  >
-                    Register Employee
-                  </button>
-                  <button
-                    type="button"
-                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold cursor-pointer text-sm"
-                    onClick={() => setIsAddModalOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <RegisterEmployeeModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        employeeForm={employeeForm}
+        setEmployeeForm={setEmployeeForm}
+        onSubmit={handleCreateEmployeeSubmit}
+        loading={loading}
+      />
 
       {editingEmployee && (
         <div
@@ -788,18 +742,80 @@ function AdminDashboard({ user, token, onLogout }) {
                     required
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Role / Designation
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                      value={editForm.designation}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, designation: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Department
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Engineering, Sales"
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                      value={editForm.department || ""}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, department: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Contact Phone
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. +91 9876543210"
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                      value={editForm.phone || ""}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Employee Status
+                    </label>
+                    <select
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                      value={editForm.status || "active"}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, status: e.target.value })
+                      }
+                    >
+                      <option value="active">Active</option>
+                      <option value="probation">Probation</option>
+                      <option value="inactive">Inactive / Deactivated</option>
+                    </select>
+                  </div>
+                </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Role / Designation
+                    Residential Address
                   </label>
                   <input
                     type="text"
+                    placeholder="e.g. Flat 402, Sunshine Heights, Mumbai"
                     className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
-                    value={editForm.designation}
+                    value={editForm.address || ""}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, designation: e.target.value })
+                      setEditForm({ ...editForm, address: e.target.value })
                     }
-                    required
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">

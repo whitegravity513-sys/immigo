@@ -224,8 +224,16 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
-              <div className="text-sm text-slate-600 font-bold">Working Days</div>
-              <div className="text-2xl font-bold text-slate-900">{monthlyData.summary?.totalWorkingDays ?? 0}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-slate-600 font-bold">Working Days</div>
+                <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">Post-DOJ</span>
+              </div>
+              <div className="text-2xl font-bold text-slate-900 mt-0.5">{monthlyData.summary?.totalWorkingDays ?? 0} Days</div>
+              <div className="text-[11px] text-slate-400 font-medium mt-1">
+                {monthlyData.workingDaysInMonth && monthlyData.workingDaysInMonth !== monthlyData.summary?.totalWorkingDays
+                  ? `Active from DOJ (Full Month: ${monthlyData.workingDaysInMonth} Days)`
+                  : "Excludes weekends & declared holidays"}
+              </div>
             </div>
             <div className="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
               <div className="text-sm text-slate-600 font-bold">Present Days</div>
@@ -289,13 +297,14 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <table className="w-full">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-In</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-Out</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Work Hours</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Break</th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Notes</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date & Day</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Status</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-In</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-Out</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Location / Where From</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Work Hours</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Break</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -306,6 +315,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                     const workMinutes = Math.floor((record.workSeconds % 3600) / 60);
                     const breakHours = Math.floor(record.breakSeconds / 3600);
                     const breakMinutes = Math.floor((record.breakSeconds % 3600) / 60);
+                    const checkInLoc = record.checkInLocation?.address || record.checkInLocation?.device || record.checkInAddress || (record.checkInTime ? "Office / Web" : "—");
 
                     const statusColors = {
                       Present: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -325,21 +335,29 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                         key={idx}
                         className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
                       >
-                        <td className="px-6 py-4 font-bold text-slate-900">{record.date}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${statusColors[record.status] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
+                        <td className="px-5 py-3.5 font-bold text-slate-900 whitespace-nowrap">
+                          {record.date} <span className="text-xs text-slate-400 font-semibold">({record.dayOfWeek})</span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold border ${statusColors[record.status] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
                             {record.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-700">{formatTime(record.checkInTime)}</td>
-                        <td className="px-6 py-4 text-slate-700">{formatTime(record.checkOutTime)}</td>
-                        <td className="px-6 py-4 font-bold text-slate-900">
+                        <td className="px-5 py-3.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkInTime)}</td>
+                        <td className="px-5 py-3.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkOutTime)}</td>
+                        <td className="px-5 py-3.5 text-xs text-slate-600 max-w-[180px] truncate font-medium" title={checkInLoc}>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                            <span className="truncate">{checkInLoc}</span>
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 font-bold text-slate-900 text-xs">
                           {String(workHours).padStart(2, "0")}:{String(workMinutes).padStart(2, "0")}
                         </td>
-                        <td className="px-6 py-4 text-slate-700">
+                        <td className="px-5 py-3.5 text-slate-600 text-xs">
                           {String(breakHours).padStart(2, "0")}:{String(breakMinutes).padStart(2, "0")}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">
+                        <td className="px-5 py-3.5 text-xs text-slate-600 max-w-xs truncate">
                           {record.checkOutNote || "-"}
                         </td>
                       </tr>

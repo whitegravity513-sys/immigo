@@ -12,11 +12,11 @@ import RememberForgotRow from "./RememberForgotRow";
  */
 export default function EmployeeLoginForm({ onLoginSuccess, onSwitchToAdmin }) {
   const [identifier, setIdentifier] = useState("");
-  const [password, setPassword]     = useState("");
-  const [showPass, setShowPass]     = useState(false);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState("");
-  const [capsLock, setCapsLock]     = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [capsLock, setCapsLock] = useState(false);
 
   useEffect(() => {
     if (!error) return;
@@ -54,10 +54,11 @@ export default function EmployeeLoginForm({ onLoginSuccess, onSwitchToAdmin }) {
         type="text"
         value={identifier}
         onChange={(e) => setIdentifier(e.target.value)}
-        placeholder="e.g. EMP001 or name@company.com"
+        placeholder="e.g. EMP001"
         required
         autoFocus
         autoComplete="username"
+
       />
 
       <AuthInputField

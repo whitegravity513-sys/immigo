@@ -11,6 +11,27 @@ const announcementSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    date: {
+      type: String, // Format: YYYY-MM-DD
+      default: () => new Date().toISOString().split("T")[0],
+      index: true,
+    },
+    category: {
+      type: String,
+      enum: [
+        "Company Notification",
+        "Internal Updates",
+        "Important Announcements",
+        "General Notice",
+      ],
+      default: "Company Notification",
+      index: true,
+    },
+    priority: {
+      type: String,
+      enum: ["High", "Medium", "Low"],
+      default: "Medium",
+    },
     targetType: {
       type: String,
       default: "ALL",

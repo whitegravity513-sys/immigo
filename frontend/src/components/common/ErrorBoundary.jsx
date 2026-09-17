@@ -32,9 +32,21 @@ export class ErrorBoundary extends React.Component {
             <AlertTriangle size={32} />
           </div>
           <h2 className="text-xl font-black text-slate-800 tracking-tight mb-2">Something went wrong in this section</h2>
-          <p className="text-sm text-slate-500 max-w-md mb-6">
+          <p className="text-sm text-slate-500 max-w-md mb-4">
             An unexpected error occurred while rendering this data. You can try refreshing or returning to the live overview.
           </p>
+          {this.state.error && (
+            <div className="w-full max-w-2xl bg-rose-50 border border-rose-200 rounded-xl p-4 mb-6 text-left overflow-x-auto">
+              <p className="text-xs font-bold text-rose-800 mb-1">
+                Error Details:
+              </p>
+              <pre className="text-[11px] font-mono text-rose-700 whitespace-pre-wrap break-all">
+                {this.state.error?.toString()}
+                {"\n"}
+                {this.state.error?.stack}
+              </pre>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <button
               onClick={() => this.setState({ hasError: false, error: null })}

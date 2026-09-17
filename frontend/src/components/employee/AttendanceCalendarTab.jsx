@@ -35,14 +35,32 @@ export default function AttendanceCalendarTab({
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Working Days", value: summary.totalWorkingDays ?? "—", color: "bg-blue-50 text-blue-700" },
-          { label: "Present", value: summary.presentDays ?? "—", color: "bg-emerald-50 text-emerald-700" },
-          { label: "Half Day", value: summary.halfDays ?? "—", color: "bg-amber-50 text-amber-700" },
-          { label: "Absent", value: summary.absentDays ?? "—", color: "bg-rose-50 text-rose-700" },
+          {
+            label: "Working Days",
+            value: summary.totalWorkingDays !== undefined && summary.totalWorkingDays !== null ? `${summary.totalWorkingDays} Days` : "—",
+            sub: "Post-DOJ (Excl. Holidays & Offs)",
+            color: "bg-blue-50 text-blue-700",
+          },
+          {
+            label: "Present",
+            value: summary.presentDays !== undefined && summary.presentDays !== null ? `${summary.presentDays} Days` : "—",
+            color: "bg-emerald-50 text-emerald-700",
+          },
+          {
+            label: "Half Day",
+            value: summary.halfDays !== undefined && summary.halfDays !== null ? `${summary.halfDays} Days` : "—",
+            color: "bg-amber-50 text-amber-700",
+          },
+          {
+            label: "Absent",
+            value: summary.absentDays !== undefined && summary.absentDays !== null ? `${summary.absentDays} Days` : "—",
+            color: "bg-rose-50 text-rose-700",
+          },
         ].map((item) => (
           <div key={item.label} className={`rounded-2xl border border-slate-200/70 p-4 ${item.color}`}>
             <div className="text-2xl font-black">{item.value}</div>
             <div className="text-[10px] font-bold uppercase tracking-wider mt-1">{item.label}</div>
+            {item.sub && <div className="text-[10px] font-semibold opacity-75 mt-0.5">{item.sub}</div>}
           </div>
         ))}
       </div>

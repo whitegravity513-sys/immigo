@@ -4,6 +4,7 @@ import {
   Clock, Coffee, Calendar, FileText, Eye, LogOut, AlertCircle,
   CheckCircle, Play, FileUp, Award, Menu, X, ArrowRightFromLine,
   ArrowLeftFromLine, Timer, Sandwich, Pause, LogIn, Video, ExternalLink, ChevronRight,
+  IndianRupee, User, ShieldCheck,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
@@ -17,7 +18,10 @@ import LeaveHistorySection from "../../components/employee/LeaveHistorySection.j
 import EmployeeNotificationBell from "../../components/employee/EmployeeNotificationBell.jsx";
 import EmployeeMeetingsTab from "../../components/employee/EmployeeMeetingsTab.jsx";
 import EmployeeAnnouncementsTab from "../../components/employee/EmployeeAnnouncementsTab.jsx";
+import EmployeeProfileDocsTab from "../../components/employee/EmployeeProfileDocsTab.jsx";
+import EmployeeExpensesTab from "../../components/employee/EmployeeExpensesTab.jsx";
 import { ImmiGoLogo, DashboardWatermark, EmployeeIdBadge } from "../../components/common/ImmiGoLogo.jsx";
+import AppFooter from "../../components/common/AppFooter.jsx";
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 const fmtDur = (s) => {
@@ -296,11 +300,13 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   /* ── sidebar nav items ── */
   const navItems = [
     { key: "tracker", icon: <Clock size={18} />, label: "Live Tracker" },
+    { key: "profile-docs", icon: <User size={18} />, label: "Profile & Documents" },
     { key: "calendar", icon: <Calendar size={18} />, label: "Attendance Calendar" },
     { key: "checkinout", icon: <LogIn size={18} />, label: "Check In / Out" },
     { key: "breaks", icon: <Coffee size={18} />, label: "Breaks" },
     { key: "apply-leave", icon: <Calendar size={18} />, label: "Apply Leave" },
     { key: "leave-history", icon: <FileText size={18} />, label: "Leave History" },
+    { key: "expenses", icon: <IndianRupee size={18} />, label: "Expenses & Claims" },
     { key: "announcements", icon: <FileText size={18} />, label: "Announcements" },
     { key: "meetings", icon: <Video size={18} />, label: "Meetings" },
   ];
@@ -318,9 +324,9 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       <aside className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-60 bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
 
         {/* Integrated Brand + Employee Header */}
-        <div className="px-4 pt-4 pb-3 border-b border-blue-200/60 bg-white/75 backdrop-blur-xs flex items-center justify-between gap-2">
-          <ImmiGoLogo size="sm" subtitle="Employee Portal" />
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer flex-shrink-0">
+        <div className="h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between gap-2 shadow-xs">
+          <ImmiGoLogo size="sm" subtitle="Employee Portal" theme="light" />
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-blue-200 hover:text-white hover:bg-blue-800/60 rounded-lg cursor-pointer flex-shrink-0">
             <X size={15} />
           </button>
         </div>
@@ -360,53 +366,74 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           ))}
         </nav>
 
-        {/* Footer Logout — full width, pinned to bottom */}
-        <div className="border-t border-blue-200/70 bg-white/50 p-3">
-          <button
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-rose-600 hover:text-white bg-white hover:bg-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
-            onClick={onLogout}
-          >
-            <LogOut size={14} /> Sign Out
-          </button>
+        {/* Bottom Sidebar Footer — exactly aligned with dashboard footer (h-[48px] min-h-[48px]) */}
+        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center justify-between shadow-xs text-blue-200 text-xs">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Portal Active</span>
+          </div>
+          <span className="px-1.5 py-0.5 rounded bg-blue-900/90 text-blue-200 text-[9px] font-mono border border-blue-700/50">
+            v2.5
+          </span>
         </div>
       </aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-        {/* Header with soft light blue gradient tint */}
-        <header className="h-[72px] min-h-[72px] bg-gradient-to-r from-white via-blue-50/25 to-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center justify-between border-b border-slate-300 shadow-xs">
+        {/* Header with corporate dark blue gradient matching AdminHeader */}
+        <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center justify-between border-b border-blue-800/80 shadow-md">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <button className="lg:hidden w-9 h-9 bg-slate-50 border border-slate-300 hover:bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 cursor-pointer" onClick={() => setSidebarOpen(true)}>
+            <button
+              type="button"
+              className="lg:hidden p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white border border-blue-700/60 transition-all cursor-pointer shadow-xs"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open Sidebar"
+            >
               <Menu size={18} />
             </button>
             <div className="flex flex-col justify-center min-w-0">
               <div className="flex items-center gap-2 truncate">
-                <span className="hidden sm:flex items-end gap-0.5 select-none font-black text-lg tracking-tighter leading-none text-slate-900">
+                <span className="hidden sm:flex items-end gap-0.5 select-none font-black text-lg tracking-tighter leading-none text-white">
                   <span>immi</span>
-                  <span className="text-blue-600">Go</span>
-                  <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-500 mb-0.5 ml-0.5 shrink-0">
+                  <span className="text-cyan-400">Go</span>
+                  <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
                     <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-                <ChevronRight size={13} className="text-slate-400 shrink-0 hidden sm:inline" />
-                <span className="text-slate-900 font-extrabold text-sm sm:text-[15px] tracking-tight truncate">
+                <ChevronRight size={13} className="text-blue-400 shrink-0 hidden sm:inline" />
+                <span className="text-white font-extrabold text-sm sm:text-[15px] tracking-tight truncate drop-shadow-2xs">
                   Welcome, {user?.name || "Employee"}
                 </span>
               </div>
               <div className="hidden md:flex items-center gap-2 mt-0.5">
                 <EmployeeIdBadge id={user?.employeeId} size="sm" />
-                <span className="text-[10px] text-blue-700 font-bold tracking-wide">Portal Active</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span className="text-[10px] text-blue-300 font-bold tracking-wide">Employee Self-Service Portal</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Real-time Notification Bell */}
-            <EmployeeNotificationBell token={token} />
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700">
-              <span className={`w-2 h-2 rounded-full ${statusColor}`} />
+            <EmployeeNotificationBell
+              token={token}
+              className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs focus:outline-none"
+            />
+            <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-900/60 border border-blue-700/50 rounded-xl text-xs font-bold text-white shadow-2xs">
+              <span className={`w-2 h-2 rounded-full ${statusColor} animate-pulse`} />
               <span className="hidden sm:inline">{status}</span>
               <span className="sm:hidden">EMPLOYEE</span>
             </div>
+
+            {/* Sign Out Button in Header */}
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs group"
+              title="Sign Out"
+            >
+              <LogOut size={13} className="shrink-0 text-rose-400 group-hover:text-white transition-colors" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
           </div>
         </header>
 
@@ -569,33 +596,22 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               fmtDate={fmtDate}
             />
           )}
+          {view === "profile-docs" && (
+            <EmployeeProfileDocsTab user={user} token={token} />
+          )}
+          {view === "expenses" && (
+            <EmployeeExpensesTab user={user} token={token} />
+          )}
           {view === "meetings" && (
             <EmployeeMeetingsTab token={token} />
           )}
         </main>
         
-        {/* Footer */}
-        <footer className="px-4 sm:px-6 py-4 select-none shrink-0 bg-gradient-to-r from-slate-50 via-blue-50/25 to-slate-50 border-t border-slate-300 mt-auto">
-          <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="flex items-end gap-0.5 select-none font-black text-base tracking-tighter leading-none text-slate-900">
-                <span>immi</span>
-                <span className="text-blue-600">Go</span>
-                <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-500 mb-0.5 ml-0.5 shrink-0">
-                  <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>System Online</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-              <Award size={14} className="text-blue-500" />
-              <span>&copy; {new Date().getFullYear()} immiGo &middot; HRMS & Operations Platform</span>
-            </div>
-          </div>
-        </footer>
+        {/* Unified App Footer */}
+        <AppFooter
+          role="employee"
+          onNavigate={(key) => setView(key)}
+        />
       </div>
 
       {/* Document preview modal */}

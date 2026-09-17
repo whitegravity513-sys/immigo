@@ -1,4 +1,5 @@
 import Leave from "../models/Leave.js";
+import Employee from "../models/Employee.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 
@@ -24,7 +25,7 @@ export class LeaveService {
 
   static async getLeaves() {
     const leaves = await Leave.find()
-      .populate("employeeId", "id employeeId name email")
+      .populate("employeeId", "id employeeId name email leaveBalance allocatedLeaves department designation")
       .sort({ createdAt: -1 });
 
     return leaves.map((l) => this.formatLeave(l));
@@ -40,11 +41,30 @@ export class LeaveService {
       throw new ApiError(404, "Leave application not found");
     }
 
+    const previousStatus = leave.status;
     leave.status = status;
     leave.adminRemark = adminRemark || "";
     leave.approvedAt = new Date();
     await leave.save();
-    await leave.populate("employeeId", "id employeeId name email");
+    await leave.populate("employeeId", "id employeeId name email leaveBalance allocatedLeaves");
+
+    // Manage Leave Balance deduction/refund
+    try {
+      const emp = await Employee.findById(leave.employeeId._id || leave.employeeId);
+      if (emp) {
+        if (status === "Approved" && previousStatus !== "Approved") {
+          // Deduct leaves
+          emp.leaveBalance = Math.max(0, (emp.leaveBalance || 0) - (leave.totalDays || 1));
+          await emp.save();
+        } else if (status === "Rejected" && previousStatus === "Approved") {
+          // Restore refunded leaves
+          emp.leaveBalance = (emp.leaveBalance || 0) + (leave.totalDays || 1);
+          await emp.save();
+        }
+      }
+    } catch (e) {
+      console.warn("Leave balance sync warning:", e.message);
+    }
 
     // Send notification specifically to the employee
     try {
@@ -63,7 +83,7 @@ export class LeaveService {
   }
 
   static async applyLeave(employeeId, data) {
-    const { leaveType, startDate, endDate, reason } = data;
+    const { leaveType, startDate, endDate, reason, document } = data;
     if (!leaveType || !startDate || !endDate || !reason) {
       throw new ApiError(400, "All fields (leaveType, startDate, endDate, reason) are required");
     }
@@ -83,6 +103,7 @@ export class LeaveService {
       endDate: end,
       totalDays: diffDays,
       reason,
+      document: document || "",
       status: "Pending",
     });
 

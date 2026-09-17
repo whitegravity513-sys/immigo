@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../../../services/apiClient.js";
 import * as XLSX from "xlsx";
 import {
   FileText, Search, Eye, Download, Building2, User,
   Calendar, IndianRupee, Hash, RefreshCw, Folder
 } from "lucide-react";
 import ProfessionalInvoiceModal from "../../../components/admin/ProfessionalInvoiceModal.jsx";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 export default function AllInvoicesDirectory() {
   const [invoices, setInvoices] = useState([]);
@@ -24,7 +22,7 @@ export default function AllInvoicesDirectory() {
     setLoading(true);
     setErrorMsg("");
     try {
-      const res = await axios.get(`${API_BASE}/admin/invoices/all`);
+      const res = await apiClient.get("/admin/invoices/all");
       setInvoices(res.data.invoices || []);
     } catch (err) {
       console.error("Failed to fetch all invoices:", err);

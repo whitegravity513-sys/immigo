@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import apiClient from "../../services/apiClient.js";
 import {
   Bell,
   CheckCheck,
@@ -12,25 +12,20 @@ import {
   X,
 } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
-
-export default function EmployeeNotificationBell({ token, onSelectMeeting }) {
+export default function EmployeeNotificationBell({ token, onSelectMeeting, className }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const fetchNotifications = async () => {
-    if (!token) return;
     try {
-      const res = await axios.get(`${API_BASE}/employee/notifications?limit=25`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiClient.get("/employee/notifications?limit=25");
       if (res.data) {
         setNotifications(res.data.notifications || []);
         setUnreadCount(res.data.unreadCount || 0);
       }
-    } catch (err) {
+    } catch {
       // Silent error for polling
     }
   };
@@ -54,11 +49,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting }) {
 
   const handleMarkOneAsRead = async (id) => {
     try {
-      await axios.put(
-        `${API_BASE}/employee/notifications/${id}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await apiClient.put(`/employee/notifications/${id}/read`, {});
       setNotifications((prev) =>
         prev.map((n) => (n.id === id || n._id === id ? { ...n, read: true } : n))
       );
@@ -70,11 +61,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting }) {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await axios.put(
-        `${API_BASE}/employee/notifications/read-all`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await apiClient.put("/employee/notifications/read-all", {});
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (err) {
@@ -101,10 +88,10 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting }) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer border border-slate-200/80 shadow-xs focus:outline-none"
+        className={className || "relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer border border-slate-200/80 shadow-xs focus:outline-none"}
         title="Live Notifications"
       >
-        <Bell size={18} className="text-slate-700" />
+        <Bell size={18} className={className ? "text-blue-200 hover:text-white" : "text-slate-700"} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-black text-white shadow-md animate-bounce">
             {unreadCount > 99 ? "99+" : unreadCount}

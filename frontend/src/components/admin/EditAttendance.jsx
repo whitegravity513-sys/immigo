@@ -7,10 +7,6 @@ const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 /**
  * Modal component for admin to edit an employee's check‑in / check‑out times.
  * Also allows admin to waive penalty absents applied due to < 7 day advance notice.
- * Props:
- *  - attendance: { employeeId, date, checkInTime, checkOutTime, name, isPenaltyAbsent, penaltyWaivedByAdmin }
- *  - onClose: () => void
- *  - onSaved: () => void  // callback to refresh parent data
  */
 const formatHHMM = (val) => {
   if (!val) return '';
@@ -99,7 +95,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to waive penalty');
     } finally {
-      setWaivingPenalty(false);
+      setLoading(false);
     }
   };
 

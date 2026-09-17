@@ -125,10 +125,12 @@ export default function CalendarMeetings() {
 
   // Open Create Modal
   const handleOpenCreateModal = (prefilledDate = null) => {
+    const today = new Date().toISOString().split("T")[0];
+    const targetDate = prefilledDate && prefilledDate < today ? today : (prefilledDate || today);
     setEditingMeeting(null);
     setFormData({
       ...initialFormState,
-      date: prefilledDate || new Date().toISOString().split("T")[0],
+      date: targetDate,
     });
     setEmpSearch("");
     setIsModalOpen(true);
@@ -157,6 +159,12 @@ export default function CalendarMeetings() {
   // Submit Meeting (Create or Update)
   const handleSubmitMeeting = async (e) => {
     e.preventDefault();
+
+    const today = new Date().toISOString().split("T")[0];
+    if (formData.date < today) {
+      showFeedback("error", "Meetings cannot be scheduled in the past. Date must be today or a future date.");
+      return;
+    }
 
     if (!formData.title.trim()) {
       showFeedback("error", "Please provide a meeting title");
@@ -385,14 +393,20 @@ export default function CalendarMeetings() {
                       {dayNum}
                     </span>
 
-                    {/* Always visible + button */}
-                    <button
-                      onClick={() => handleOpenCreateModal(dateStr)}
-                      className="w-5 h-5 flex items-center justify-center text-slate-700 hover:bg-indigo-600 hover:text-white rounded cursor-pointer border border-slate-300 hover:border-indigo-600 transition-all"
-                      title="Schedule meeting on this day"
-                    >
-                      <Plus size={11} />
-                    </button>
+                    {/* Schedule + button: only for today or future dates */}
+                    {dateStr >= todayStr ? (
+                      <button
+                        onClick={() => handleOpenCreateModal(dateStr)}
+                        className="w-5 h-5 flex items-center justify-center text-slate-700 hover:bg-indigo-600 hover:text-white rounded cursor-pointer border border-slate-300 hover:border-indigo-600 transition-all"
+                        title="Schedule meeting on this day"
+                      >
+                        <Plus size={11} />
+                      </button>
+                    ) : (
+                      <span className="w-5 h-5 flex items-center justify-center text-slate-300 text-[10px]" title="Past date">
+                        —
+                      </span>
+                    )}
                   </div>
 
                   {/* Meeting Chips */}
@@ -710,6 +724,7 @@ export default function CalendarMeetings() {
                   <input
                     type="date"
                     required
+                    min={todayStr}
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"

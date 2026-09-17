@@ -88,7 +88,24 @@ export class AttendanceService {
   }
 
   static async checkIn(employeeId, location = {}) {
+    const emp = await Employee.findById(employeeId);
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
     const today = getTodayDateString();
+
+    // Business Rule: joing date ka badd hi attendence lage
+    if (emp.joiningDate) {
+      const joiningDateStr = new Date(emp.joiningDate).toISOString().split("T")[0];
+      if (today < joiningDateStr) {
+        throw new ApiError(
+          400,
+          `Attendance cannot be marked prior to employee joining date (${joiningDateStr})`
+        );
+      }
+    }
+
     let record = await Attendance.findOne({ employeeId, date: today });
 
     if (record && record.status !== "Absent") {
@@ -447,7 +464,8 @@ export class AttendanceService {
 
     const records = await Attendance.find(query)
       .populate("employeeId", "employeeId name email designation")
-      .sort({ date: -1 });
+      .sort({ date: -1 })
+      .lean();
 
     return records.map((r) => this.formatAttendance(r));
   }
@@ -456,6 +474,22 @@ export class AttendanceService {
     const { employeeId, date, status, checkInTime, checkOutTime, note } = data;
     if (!employeeId || !date) {
       throw new ApiError(400, "Employee ID and date are required");
+    }
+
+    const emp = await Employee.findById(employeeId);
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
+    // Business Rule: joing date ka badd hi attendence lage
+    if (emp.joiningDate) {
+      const joiningDateStr = new Date(emp.joiningDate).toISOString().split("T")[0];
+      if (date < joiningDateStr) {
+        throw new ApiError(
+          400,
+          `Attendance date (${date}) cannot be earlier than employee joining date (${joiningDateStr})`
+        );
+      }
     }
 
     let record = await Attendance.findOne({ employeeId, date });
@@ -504,10 +538,16 @@ export class AttendanceService {
         startDate: { $lte: new Date(endDate) },
         endDate: { $gte: new Date(startDate) },
       }).lean(),
-      Holiday.find({ date: { $gte: startDate, $lte: endDate } }).lean(),
+      Holiday.find().lean(),
     ]);
 
-    const holidayDatesSet = new Set(holidays.map((h) => h.date));
+    const holidayDatesSet = new Set();
+    holidays.forEach((h) => {
+      if (!h || !h.date) return;
+      const dStr = typeof h.date === "string" ? h.date.split("T")[0] : new Date(h.date).toISOString().split("T")[0];
+      holidayDatesSet.add(dStr);
+    });
+
     const workingDays = getWorkingDays(y, m, holidayDatesSet);
     const todayStr = getTodayDateString();
 
@@ -515,7 +555,17 @@ export class AttendanceService {
       const empRecords = records.filter((r) => r.employeeId?.toString() === emp._id.toString());
       const empLeaves = leaves.filter((l) => l.employeeId?.toString() === emp._id.toString());
 
-      const joiningDateStr = emp.joiningDate ? new Date(emp.joiningDate).toISOString().split("T")[0] : null;
+      let joiningDateStr = null;
+      if (emp.joiningDate) {
+        try {
+          const d = new Date(emp.joiningDate);
+          if (!isNaN(d.getTime())) {
+            joiningDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(d);
+          }
+        } catch {}
+      }
+
+      // Applicable working days: strictly days on or after joiningDate, excluding weekends & holidays
       const applicableWorkingDays = workingDays.filter((d) => !joiningDateStr || d >= joiningDateStr);
       const pastApplicableWorkingDays = applicableWorkingDays.filter((d) => d <= todayStr);
 
@@ -548,16 +598,20 @@ export class AttendanceService {
         name: typeof emp.name === "string" ? emp.name : (emp.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp.name || "")),
         designation: emp.designation,
         status: emp.status || "active",
+        joiningDate: emp.joiningDate,
         leaveBalance: emp.leaveBalance ?? 0,
         nextMonthLeaves: emp.nextMonthLeaves ?? 0,
         nextMonthLeaveEarned: 1.5,
         summary: {
           applicableWorkingDays: applicableWorkingDays.length,
+          totalMonthWorkingDays: workingDays.length,
           presentDays: presentCount,
           halfDays: halfDayCount,
           absentDays,
           leaveDays,
         },
+        applicableWorkingDays: applicableWorkingDays.length,
+        totalMonthWorkingDays: workingDays.length,
         totalPresent: presentCount,
         totalLeaves: leaveDays,
       };
@@ -571,7 +625,9 @@ export class AttendanceService {
     const records = await Attendance.find({
       date: targetDate,
       checkOutNote: { $nin: ["", null] },
-    }).populate("employeeId", "employeeId name designation");
+    })
+      .populate("employeeId", "employeeId name designation")
+      .lean();
 
     return records.map((r) => ({
       employeeId: r.employeeId?.employeeId,

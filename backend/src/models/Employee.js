@@ -1,5 +1,56 @@
 import mongoose from "mongoose";
 
+const employeeDocumentSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    type: {
+      type: String,
+      default: "Other",
+      enum: [
+        "Profile Photo",
+        "Resume / CV",
+        "Aadhaar / National ID",
+        "PAN Card",
+        "Offer Letter",
+        "Appointment Letter",
+        "Educational Certificates",
+        "Relieving / Experience Letter",
+        "Bank Proof / Cancelled Cheque",
+        "Address Proof",
+        "NDA / Agreement",
+        "Other",
+      ],
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+    uploadedBy: {
+      type: String,
+      enum: ["Employee", "Admin"],
+      default: "Employee",
+    },
+    status: {
+      type: String,
+      enum: ["Submitted", "Verified", "Rejected"],
+      default: "Submitted",
+    },
+    verificationNote: {
+      type: String,
+      default: "",
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
 const employeeSchema = new mongoose.Schema(
   {
     employeeId: {
@@ -24,9 +75,54 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    profileImage: {
+      type: String,
+      default: "",
+    },
+    department: {
+      type: String,
+      default: "General",
+      trim: true,
+    },
     designation: {
       type: String,
       default: "Employee",
+      trim: true,
+    },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    address: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    previousCompany: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    previousPackage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    currentPackage: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    experience: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    emergencyContact: {
+      name: { type: String, default: "" },
+      phone: { type: String, default: "" },
+      relation: { type: String, default: "" },
     },
     joiningDate: {
       type: Date,
@@ -39,12 +135,28 @@ const employeeSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "active",
-      enum: ["active", "inactive"],
+      enum: ["active", "inactive", "probation", "on_leave"],
+    },
+    role: {
+      type: String,
+      default: "employee",
+      enum: ["employee", "manager", "admin", "hr"],
+    },
+    permissions: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    allocatedLeaves: {
+      type: Number,
+      default: 18,
     },
     leaveBalance: {
       type: Number,
-      default: 0,
+      default: 18,
     },
+    documents: [employeeDocumentSchema],
   },
   {
     timestamps: true,
@@ -66,6 +178,13 @@ const employeeSchema = new mongoose.Schema(
     },
   }
 );
+
+// High-performance database indexes for instant query resolution
+employeeSchema.index({ status: 1 });
+employeeSchema.index({ name: 1 });
+employeeSchema.index({ joiningDate: 1 });
+employeeSchema.index({ department: 1 });
+employeeSchema.index({ createdAt: -1 });
 
 const Employee = mongoose.model("Employee", employeeSchema);
 export default Employee;

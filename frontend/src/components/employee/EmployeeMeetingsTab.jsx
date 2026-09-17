@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../../services/apiClient.js";
 import {
   Video,
   Calendar as CalendarIcon,
@@ -13,8 +13,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
-
 export default function EmployeeMeetingsTab({ token }) {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,9 +21,7 @@ export default function EmployeeMeetingsTab({ token }) {
   const fetchMeetings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/employee/meetings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await apiClient.get("/employee/meetings");
       setMeetings(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to load meetings", err);

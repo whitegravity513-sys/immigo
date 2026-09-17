@@ -36,15 +36,68 @@ export const deleteCategory = asyncHandler(async (req, res) => {
 
 // --- Expenses ---
 export const getExpenses = asyncHandler(async (req, res) => {
-  const { categoryId, startDate, endDate } = req.query;
-  const expenses = await ExpenseService.getExpenses({ categoryId, startDate, endDate });
+  const { categoryId, clientId, employeeId, status, startDate, endDate } = req.query;
+  const expenses = await ExpenseService.getExpenses({
+    categoryId,
+    clientId,
+    employeeId,
+    status,
+    startDate,
+    endDate,
+  });
   return res.status(200).json(expenses);
 });
 
 export const createExpense = asyncHandler(async (req, res) => {
-  const expense = await ExpenseService.createExpense(req.body);
+  const userRole = req.admin ? "admin" : (req.employee ? "employee" : "admin");
+  const userId = req.admin?._id || req.employee?._id || null;
+
+  const expense = await ExpenseService.createExpense(req.body, userRole, userId);
   return res.status(201).json({
     message: "Expense created successfully",
+    expense,
+  });
+});
+
+export const reviewExpense = asyncHandler(async (req, res) => {
+  const { status, adminRemark } = req.body;
+  const adminId = req.admin?._id || req.user?._id || null;
+
+  const expense = await ExpenseService.reviewExpense(req.params.id, {
+    status,
+    adminRemark,
+    adminId,
+  });
+
+  return res.status(200).json({
+    message: `Expense claim ${status.toLowerCase()} successfully`,
+    expense,
+  });
+});
+
+export const getClientExpenses = asyncHandler(async (req, res) => {
+  const result = await ExpenseService.getClientExpenseHistory(req.params.clientId);
+  return res.status(200).json(result);
+});
+
+export const getMyExpenses = asyncHandler(async (req, res) => {
+  const employeeId = req.employee?._id || req.user?._id;
+  const { categoryId, status, startDate, endDate } = req.query;
+  const expenses = await ExpenseService.getExpenses({
+    employeeId,
+    categoryId,
+    status,
+    startDate,
+    endDate,
+  });
+  return res.status(200).json(expenses);
+});
+
+export const submitMyExpense = asyncHandler(async (req, res) => {
+  const employeeId = req.employee?._id || req.user?._id;
+  const expense = await ExpenseService.createExpense(req.body, "employee", employeeId);
+  return res.status(201).json({
+    message: "Expense submitted successfully for review",
     expense,
   });
 });
@@ -69,6 +122,10 @@ export default {
   deleteCategory,
   getExpenses,
   createExpense,
+  reviewExpense,
+  getClientExpenses,
+  getMyExpenses,
+  submitMyExpense,
   updateExpense,
   deleteExpense,
 };

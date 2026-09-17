@@ -8,4 +8,5 @@ export { default as ExpensesSection } from "./ExpensesSection.jsx";
 export { default as AnnouncementsSection } from "./AnnouncementsSection.jsx";
 export { default as NotificationBell } from "./NotificationBell.jsx";
 export { default as ProfessionalInvoiceModal } from "./ProfessionalInvoiceModal.jsx";
-
+export { default as RegisterEmployeeModal } from "./RegisterEmployeeModal.jsx";
+export { default as EditAttendance } from "./EditAttendance.jsx";

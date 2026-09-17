@@ -11,6 +11,8 @@ import {
   updateEmployee,
   deactivateEmployee,
   setLeaveBalance,
+  uploadAdminDocument,
+  deleteAdminDocument,
   getEmployeeHistory,
   getEmployeeMonthlyDetails,
   getEmployeeNote,
@@ -39,6 +41,8 @@ import {
   deleteCategory,
   getExpenses,
   createExpense,
+  reviewExpense,
+  getClientExpenses,
   updateExpense,
   deleteExpense,
 } from "../controllers/expense.controller.js";
@@ -106,6 +110,8 @@ router.get("/employee/:id/history", verifyAdmin, getEmployeeHistory);
 router.get("/employee/:employeeId/monthly", verifyAdmin, getEmployeeMonthlyDetails);
 router.get("/employee/:id/note", verifyAdmin, getEmployeeNote);
 router.get("/employee/:id/leaves", verifyAdmin, getEmployeeLeaves);
+router.post("/employee/:id/documents", verifyAdmin, uploadAdminDocument);
+router.delete("/employee/:id/documents/:docId", verifyAdmin, deleteAdminDocument);
 
 // ─── ATTENDANCE ROUTES ───
 router.get("/attendance", verifyAdmin, getAttendanceReport);
@@ -132,6 +138,8 @@ router.delete("/expense-categories/:id", verifyAdmin, deleteCategory);
 // ─── EXPENSE ROUTES ───
 router.get("/expenses", verifyAdmin, getExpenses);
 router.post("/expenses", verifyAdmin, createExpense);
+router.put("/expenses/:id/review", verifyAdmin, reviewExpense);
+router.get("/expenses/client/:clientId", verifyAdmin, getClientExpenses);
 router.put("/expenses/:id", verifyAdmin, updateExpense);
 router.delete("/expenses/:id", verifyAdmin, deleteExpense);
 
