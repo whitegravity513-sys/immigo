@@ -276,17 +276,7 @@ function AdminDashboard({ user, token, onLogout }) {
     />
   );
 
-  const renderHolidays = () => (
-    <HolidaysSection
-      handleCreateHolidaySubmit={handleCreateHolidaySubmit}
-      holidayForm={holidayForm}
-      setHolidayForm={setHolidayForm}
-      holidayLoading={holidayLoading}
-      holidays={holidays}
-      formatDate={formatDate}
-      handleDeleteHoliday={handleDeleteHoliday}
-    />
-  );
+  // Holidays are now handled inside AnnouncementsSection (unified form)
 
   const renderExpenses = () => (
     <ExpensesSection
@@ -524,19 +514,13 @@ function AdminDashboard({ user, token, onLogout }) {
           },
         },
         {
-          key: "holidays",
-          icon: <Calendar size={15} className="shrink-0" />,
-          label: "Holidays",
-          onClick: () => {
-            navigateTo("holidays");
-            setTimeout(fetchHolidays, 50);
-          },
-        },
-        {
           key: "announcements",
           icon: <FileText size={15} className="shrink-0" />,
-          label: "Announcements",
-          onClick: () => navigateTo("announcements"),
+          label: "Announcements & Holidays",
+          onClick: () => {
+            navigateTo("announcements");
+            setTimeout(fetchHolidays, 50);
+          },
         },
         {
           key: "monthly-report",
@@ -623,8 +607,16 @@ function AdminDashboard({ user, token, onLogout }) {
             {view === "summary" && renderAttendanceSummary()}
             {view === "employee-detail" && renderEmployeeDetail()}
             {view === "expenses" && renderExpenses()}
-            {view === "holidays" && renderHolidays()}
-            {view === "announcements" && <AnnouncementsSection />}
+            {view === "announcements" && (
+              <AnnouncementsSection
+                holidays={holidays}
+                holidayForm={holidayForm}
+                setHolidayForm={setHolidayForm}
+                holidayLoading={holidayLoading}
+                handleCreateHolidaySubmit={handleCreateHolidaySubmit}
+                handleDeleteHoliday={handleDeleteHoliday}
+              />
+            )}
             {(view === "meetings" || view === "calendar") && <CalendarMeetings />}
             {editingAttendance && (
               <EditAttendance

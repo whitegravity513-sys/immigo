@@ -22,6 +22,7 @@ import EmployeeProfileDocsTab from "../../components/employee/EmployeeProfileDoc
 import EmployeeExpensesTab from "../../components/employee/EmployeeExpensesTab.jsx";
 import { ImmiGoLogo, DashboardWatermark, EmployeeIdBadge } from "../../components/common/ImmiGoLogo.jsx";
 import AppFooter from "../../components/common/AppFooter.jsx";
+import CRMDashboard from "../../components/crm/CRMDashboard.jsx";
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 const fmtDur = (s) => {
@@ -298,6 +299,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   }[status] || "bg-slate-400";
 
   /* ── sidebar nav items ── */
+  const isSalesEmployee = user?.department?.toLowerCase?.()?.includes?.("sales");
   const navItems = [
     { key: "tracker", icon: <Clock size={18} />, label: "Live Tracker" },
     { key: "profile-docs", icon: <User size={18} />, label: "Profile & Documents" },
@@ -309,6 +311,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     { key: "expenses", icon: <IndianRupee size={18} />, label: "Expenses & Claims" },
     { key: "announcements", icon: <FileText size={18} />, label: "Announcements" },
     { key: "meetings", icon: <Video size={18} />, label: "Meetings" },
+    ...(isSalesEmployee ? [{ key: "crm", icon: <ShieldCheck size={18} />, label: "💼 Lead CRM" }] : []),
   ];
 
   /* ══════════════════════════ SHELL ══════════════════════════ */
@@ -495,18 +498,79 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           )}
 
           {view === "tracker" && (
-            <MonthlyTrackerTab
-              holidays={holidays}
-              status={status}
-              statusColor={statusColor}
-              workSeconds={workSeconds}
-              lunchSeconds={lunchSeconds}
-              breakSeconds={breakSeconds}
-              fmtDur={fmtDur}
-              overLimit={overLimit}
-              statusRecord={statusRecord}
-              fmtTime={fmtTime}
-            />
+            <>
+              {/* ── Employee Profile Card ── */}
+              <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                {/* Hero gradient band */}
+                <div className="h-16 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 relative">
+                  {isHolidayToday && (
+                    <span className="absolute right-4 top-4 px-3 py-1 bg-amber-400/90 text-amber-950 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                      🌟 Holiday: {todayHoliday?.title}
+                    </span>
+                  )}
+                  {isWeeklyOffToday && !isHolidayToday && (
+                    <span className="absolute right-4 top-4 px-3 py-1 bg-slate-400/80 text-white text-[10px] font-black rounded-lg uppercase tracking-wider">
+                      {weeklyOffReason}
+                    </span>
+                  )}
+                </div>
+                <div className="px-6 pb-5 pt-0">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-7">
+                    {/* Avatar */}
+                    <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white font-black text-2xl flex items-center justify-center border-4 border-white shadow-md shrink-0">
+                      {statusRecord?.profileImage
+                        ? <img src={statusRecord.profileImage} alt="" className="w-full h-full object-cover rounded-xl" />
+                        : (user?.name || "E")[0].toUpperCase()}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 pt-2 sm:pt-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-lg font-black text-slate-900 leading-tight">{user?.name || "Employee"}</h2>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                          isOnBreak ? "bg-amber-100 text-amber-800 border border-amber-300"
+                          : isActive ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          : isCheckedOut ? "bg-slate-100 text-slate-600 border border-slate-200"
+                          : "bg-rose-100 text-rose-700 border border-rose-200"
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusColor} ${isActive || isOnBreak ? "animate-pulse" : ""}`} />
+                          {status}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
+                        {user?.employeeId && <span>ID: <span className="font-bold text-slate-700">{user.employeeId}</span></span>}
+                        {user?.department && <span>Dept: <span className="font-bold text-slate-700">{user.department}</span></span>}
+                        {user?.designation && <span>Role: <span className="font-bold text-slate-700">{user.designation}</span></span>}
+                      </div>
+                    </div>
+                    {/* Today's Time Stats */}
+                    <div className="flex gap-4 shrink-0 text-center">
+                      <div>
+                        <div className="text-lg font-black tabular-nums text-slate-900">{fmtDur(workSeconds)}</div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Work Time</div>
+                      </div>
+                      <div className="w-px bg-slate-200" />
+                      <div>
+                        <div className="text-lg font-black tabular-nums text-amber-700">{fmtDur((lunchSeconds||0)+(breakSeconds||0))}</div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Break Time</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <MonthlyTrackerTab
+                holidays={holidays}
+                status={status}
+                statusColor={statusColor}
+                workSeconds={workSeconds}
+                lunchSeconds={lunchSeconds}
+                breakSeconds={breakSeconds}
+                fmtDur={fmtDur}
+                overLimit={overLimit}
+                statusRecord={statusRecord}
+                fmtTime={fmtTime}
+              />
+            </>
           )}
           {view === "calendar" && (
             <AttendanceCalendarTab
@@ -604,6 +668,9 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           )}
           {view === "meetings" && (
             <EmployeeMeetingsTab token={token} />
+          )}
+          {view === "crm" && (
+            <CRMDashboard user={user} />
           )}
         </main>
         

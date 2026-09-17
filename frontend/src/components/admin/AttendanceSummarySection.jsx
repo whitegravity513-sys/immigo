@@ -55,7 +55,7 @@ export default function AttendanceSummarySection({
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr>
-                {["Employee", "Working Days (Post-DOJ)", "Full Day", "Half Day", "Absent", "Leaves Taken", "Leave Balance", "Next Month Leaves", "Set Leave"].map(h => (
+                {["Employee", "Working Days (Post-DOJ)", "Full Day", "Half Day", "Absent", "Leaves Taken"].map(h => (
                   <th key={h} className="px-4 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
                 ))}
               </tr>
@@ -68,10 +68,6 @@ export default function AttendanceSummarySection({
                 const halfDays = emp.summary?.halfDays ?? 0;
                 const absentDays = emp.summary?.absentDays ?? 0;
                 const leaveDays = emp.summary?.leaveDays ?? emp.totalLeaves ?? 0;
-                const leaveBal = emp.leaveBalance ?? 0;
-                const nextLeaves = emp.nextMonthLeaves ?? 0;
-                const autoEarned = emp.nextMonthLeaveEarned ?? nextLeaves;
-                const isEditing = inlineLeaveEdit?.empId === empId;
 
                 return (
                   <tr key={empId} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
@@ -103,32 +99,12 @@ export default function AttendanceSummarySection({
                     <td className="px-4 py-4 text-center"><span className="text-sm font-black text-amber-600">{halfDays}</span></td>
                     <td className="px-4 py-4 text-center"><span className={`text-sm font-black ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>
                     <td className="px-4 py-4 text-center"><span className="text-sm font-bold text-blue-600">{leaveDays}</span></td>
-                    <td className="px-4 py-4 text-center">
-                      {isEditing
-                        ? <input type="number" min="0" step="0.5" className="w-16 text-center bg-white border border-green-400 rounded-lg px-1 py-1 text-sm font-bold text-slate-800 focus:outline-none" value={inlineLeaveEdit.leaveBalance} onChange={e => setInlineLeaveEdit({ ...inlineLeaveEdit, leaveBalance: e.target.value })} autoFocus />
-                        : <span className="inline-flex items-center px-2.5 py-1 bg-green-50 text-green-700 text-xs font-black rounded-lg border border-green-200">{leaveBal} days</span>}
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      {isEditing
-                        ? <input type="number" min="0" step="0.5" className="w-16 text-center bg-white border border-blue-400 rounded-lg px-1 py-1 text-sm font-bold text-slate-800 focus:outline-none" value={inlineLeaveEdit.nextMonthLeaves} onChange={e => setInlineLeaveEdit({ ...inlineLeaveEdit, nextMonthLeaves: e.target.value })} />
-                        : <div className="flex flex-col items-center gap-0.5"><span className="inline-flex items-center px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-black rounded-lg border border-blue-200">{nextLeaves} days</span>{autoEarned !== nextLeaves && <span className="text-[9px] text-slate-500">Auto: {autoEarned}</span>}</div>}
-                    </td>
-                    <td className="px-4 py-4">
-                      {isEditing ? (
-                        <div className="flex items-center gap-1.5">
-                          <button className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1" onClick={handleSetLeaveBalance} disabled={inlineLeaveLoading}><Save size={11} />{inlineLeaveLoading ? "..." : "Save"}</button>
-                          <button className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer" onClick={() => setInlineLeaveEdit(null)}>✕</button>
-                        </div>
-                      ) : (
-                        <button className="px-3 py-1.5 bg-slate-100 hover:bg-green-50 hover:text-green-700 text-slate-700 border border-slate-200 hover:border-green-200 rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1" onClick={() => setInlineLeaveEdit({ empId, leaveBalance: leaveBal, nextMonthLeaves })}><Edit size={11} /> Edit</button>
-                      )}
-                    </td>
                   </tr>
                 );
               })}
               {summaryData.length === 0 && !summaryLoading && (
                 <tr>
-                  <td colSpan="9">
+                  <td colSpan="6">
                     <div className="text-center py-12 text-slate-500 font-semibold text-sm">Click "Apply" to load summary.</div>
                   </td>
                 </tr>
