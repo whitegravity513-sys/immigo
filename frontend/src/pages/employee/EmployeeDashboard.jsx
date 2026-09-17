@@ -15,6 +15,7 @@ import AttendanceCalendarTab from "../../components/employee/AttendanceCalendarT
 import MonthlyTrackerTab from "../../components/employee/MonthlyTrackerTab.jsx";
 import ApplyLeaveModal from "../../components/employee/ApplyLeaveModal.jsx";
 import LeaveHistorySection from "../../components/employee/LeaveHistorySection.jsx";
+import LeaveManagementSection from "../../components/employee/LeaveManagementSection.jsx";
 import EmployeeNotificationBell from "../../components/employee/EmployeeNotificationBell.jsx";
 import EmployeeMeetingsTab from "../../components/employee/EmployeeMeetingsTab.jsx";
 import EmployeeAnnouncementsTab from "../../components/employee/EmployeeAnnouncementsTab.jsx";
@@ -113,7 +114,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   }, [token, view, calendarMonth, calendarYear]);
 
   useEffect(() => {
-    if (token && (view === "calendar" || view === "tracker")) {
+    if (token && (view === "calendar" || view === "tracker" || view === "home")) {
       fetchMonthlyAttendance();
     }
   }, [token, view, calendarMonth, calendarYear]);
@@ -339,12 +340,12 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         />
 
         {/* Main Body View */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
-          {errorMsg && <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-sm font-medium mb-6"><AlertCircle size={16} className="shrink-0" /><span>{errorMsg}</span></div>}
-          {successMsg && <div className="flex items-center gap-2.5 p-4 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-2xl text-sm font-medium mb-6"><CheckCircle size={16} className="shrink-0" /><span>{successMsg}</span></div>}
+        <main className="flex-1 p-3.5 sm:p-5 max-w-7xl w-full mx-auto">
+          {errorMsg && <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mb-3"><AlertCircle size={15} className="shrink-0" /><span>{errorMsg}</span></div>}
+          {successMsg && <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold mb-3"><CheckCircle size={15} className="shrink-0" /><span>{successMsg}</span></div>}
 
-          {/* ── 0. Home Dashboard Overview (New Default) ── */}
-          {view === "home" && (
+          {/* ── 0. Home Dashboard Overview (Clean Single Unified Dashboard) ── */}
+          {(view === "home" || view === "tracker") && (
             <EmpHomeOverview
               user={user}
               statusRecord={statusRecord}
@@ -363,140 +364,19 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               setView={setView}
               handleCheckIn={handleCheckIn}
               handleCheckOut={handleCheckOut}
+              handleBreakStart={handleBreakStart}
+              handleBreakEnd={handleBreakEnd}
+              isOnBreak={isOnBreak}
+              isActive={isActive}
+              isCheckedOut={isCheckedOut}
+              overLimit={overLimit}
+              monthlyData={monthlyData}
               loading={loading}
               isHolidayToday={isHolidayToday}
               todayHoliday={todayHoliday}
               isWeeklyOffToday={isWeeklyOffToday}
               weeklyOffReason={weeklyOffReason}
             />
-          )}
-
-          {view === "tracker" && announcements.length > 0 && (
-            <div className="mb-5 bg-white border border-slate-300 rounded-2xl p-5 shadow-xs">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <AlertCircle size={16} className="text-indigo-500" /> Company Announcements
-              </h3>
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                {announcements.map((a) => (
-                  <div key={a._id} className="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl">
-                    <div className="flex justify-between items-start mb-1 gap-2">
-                      <h4 className="font-bold text-indigo-900 text-sm leading-tight">{a.title}</h4>
-                      <span className="text-[10px] text-indigo-500 font-semibold shrink-0">{fmtDate(a.createdAt)}</span>
-                    </div>
-                    <p className="text-xs text-indigo-700 whitespace-pre-wrap leading-relaxed">{a.message}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Today's meetings banner (only on tracker view) */}
-          {view === "tracker" && todayMeetings.length > 0 && (
-            <div className="mb-5 p-4 rounded-2xl border border-indigo-300 bg-indigo-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-indigo-600 rounded-xl">
-                  <Video size={16} className="text-white" />
-                </div>
-                <div>
-                  <p className="text-xs font-black text-indigo-900 uppercase tracking-wider">You have {todayMeetings.length} meeting{todayMeetings.length > 1 ? "s" : ""} today</p>
-                  <p className="text-xs text-indigo-700 font-semibold">{todayMeetings.map(m => `${m.title} @ ${m.startTime}`).join(" · ")}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {todayMeetings[0]?.meetingLink && (
-                  <a
-                    href={todayMeetings[0].meetingLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
-                  >
-                    <ExternalLink size={12} /> Join Now
-                  </a>
-                )}
-                <button
-                  onClick={() => setView("meetings")}
-                  className="px-3 py-1.5 bg-white border border-indigo-200 hover:bg-indigo-100 text-indigo-800 rounded-xl text-xs font-bold cursor-pointer"
-                >
-                  View All
-                </button>
-              </div>
-            </div>
-          )}
-
-          {view === "tracker" && (
-            <>
-              {/* ── Employee Profile Card ── */}
-              <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                {/* Hero gradient band */}
-                <div className="h-16 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 relative">
-                  {isHolidayToday && (
-                    <span className="absolute right-4 top-4 px-3 py-1 bg-amber-400/90 text-amber-950 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                      🌟 Holiday: {todayHoliday?.title}
-                    </span>
-                  )}
-                  {isWeeklyOffToday && !isHolidayToday && (
-                    <span className="absolute right-4 top-4 px-3 py-1 bg-slate-400/80 text-white text-[10px] font-black rounded-lg uppercase tracking-wider">
-                      {weeklyOffReason}
-                    </span>
-                  )}
-                </div>
-                <div className="px-6 pb-5 pt-0">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-7">
-                    {/* Avatar */}
-                    <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white font-black text-2xl flex items-center justify-center border-4 border-white shadow-md shrink-0">
-                      {statusRecord?.profileImage
-                        ? <img src={statusRecord.profileImage} alt="" className="w-full h-full object-cover rounded-xl" />
-                        : (user?.name || "E")[0].toUpperCase()}
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0 pt-2 sm:pt-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-lg font-black text-slate-900 leading-tight">{user?.name || "Employee"}</h2>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                          isOnBreak ? "bg-amber-100 text-amber-800 border border-amber-300"
-                          : isActive ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                          : isCheckedOut ? "bg-slate-100 text-slate-600 border border-slate-200"
-                          : "bg-rose-100 text-rose-700 border border-rose-200"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusColor} ${isActive || isOnBreak ? "animate-pulse" : ""}`} />
-                          {status}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 font-medium">
-                        {user?.employeeId && <span>ID: <span className="font-bold text-slate-700">{user.employeeId}</span></span>}
-                        {user?.department && <span>Dept: <span className="font-bold text-slate-700">{user.department}</span></span>}
-                        {user?.designation && <span>Role: <span className="font-bold text-slate-700">{user.designation}</span></span>}
-                      </div>
-                    </div>
-                    {/* Today's Time Stats */}
-                    <div className="flex gap-4 shrink-0 text-center">
-                      <div>
-                        <div className="text-lg font-black tabular-nums text-slate-900">{fmtDur(workSeconds)}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Work Time</div>
-                      </div>
-                      <div className="w-px bg-slate-200" />
-                      <div>
-                        <div className="text-lg font-black tabular-nums text-amber-700">{fmtDur((lunchSeconds||0)+(breakSeconds||0))}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Break Time</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <MonthlyTrackerTab
-                holidays={holidays}
-                status={status}
-                statusColor={statusColor}
-                workSeconds={workSeconds}
-                lunchSeconds={lunchSeconds}
-                breakSeconds={breakSeconds}
-                fmtDur={fmtDur}
-                overLimit={overLimit}
-                statusRecord={statusRecord}
-                fmtTime={fmtTime}
-              />
-            </>
           )}
           {view === "calendar" && (
             <AttendanceCalendarTab
@@ -561,8 +441,8 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               handleBreakEnd={handleBreakEnd}
             />
           )}
-          {view === "apply-leave" && (
-            <ApplyLeaveModal
+          {(view === "leaves" || view === "apply-leave" || view === "leave-history") && (
+            <LeaveManagementSection
               leaveBalance={leaveBalance}
               leaveForm={leaveForm}
               setLeaveForm={setLeaveForm}
@@ -570,11 +450,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               handleLeaveFile={handleLeaveFile}
               fileLabel={fileLabel}
               loading={loading}
-            />
-          )}
-          {view === "leave-history" && (
-            <LeaveHistorySection
-              leaveBalance={leaveBalance}
               leaveHistory={leaveHistory}
               fmtDate={fmtDate}
               setPreviewDoc={setPreviewDoc}

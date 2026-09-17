@@ -35,7 +35,6 @@ export default function EmpSidebar({
       title: "Main",
       items: [
         { key: "home", label: "Dashboard", icon: LayoutDashboard },
-        { key: "tracker", label: "Live Tracker", icon: Clock },
       ],
     },
     {
@@ -43,9 +42,7 @@ export default function EmpSidebar({
       items: [
         { key: "checkinout", label: "Check In / Out", icon: LogIn },
         { key: "calendar", label: "Attendance Calendar", icon: Calendar },
-        { key: "breaks", label: "Breaks & Timing", icon: Coffee },
-        { key: "apply-leave", label: "Apply Leave", icon: CalendarPlus },
-        { key: "leave-history", label: "Leave History", icon: FileText },
+        { key: "leaves", label: "Leave Management", icon: CalendarPlus },
       ],
     },
     {
@@ -142,7 +139,10 @@ export default function EmpSidebar({
               <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = view === item.key;
+                  const isActive =
+                    view === item.key ||
+                    (item.key === "home" && (view === "tracker" || view === "breaks")) ||
+                    (item.key === "leaves" && (view === "apply-leave" || view === "leave-history"));
                   return (
                     <button
                       key={item.key}
