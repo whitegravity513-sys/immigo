@@ -23,6 +23,9 @@ import EmployeeExpensesTab from "../../components/employee/EmployeeExpensesTab.j
 import { ImmiGoLogo, DashboardWatermark, EmployeeIdBadge } from "../../components/common/ImmiGoLogo.jsx";
 import AppFooter from "../../components/common/AppFooter.jsx";
 import CRMDashboard from "../../components/crm/CRMDashboard.jsx";
+import EmpSidebar from "../../components/employee/layout/EmpSidebar.jsx";
+import EmpTopbar from "../../components/employee/layout/EmpTopbar.jsx";
+import EmpHomeOverview from "../../components/employee/dashboard/EmpHomeOverview.jsx";
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 const fmtDur = (s) => {
@@ -61,7 +64,7 @@ const isDateInLeaveRange = (dateKey, leave) => {
 /* ─────────────────────────── component ─────────────────────────── */
 export default function EmployeeDashboard({ user, token, onLogout }) {
   // ── nav state ──
-  const [view, setView] = useState("tracker");     // tracker | checkinout | breaks | apply-leave | leave-history | meetings
+  const [view, setView] = useState("home");     // home | tracker | checkinout | breaks | apply-leave | leave-history | meetings
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── today's meetings (for banner) ──
@@ -298,21 +301,8 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     "Weekly Off": "bg-slate-400", Holiday: "bg-indigo-500",
   }[status] || "bg-slate-400";
 
-  /* ── sidebar nav items ── */
+  /* ── sales employee check ── */
   const isSalesEmployee = user?.department?.toLowerCase?.()?.includes?.("sales");
-  const navItems = [
-    { key: "tracker", icon: <Clock size={18} />, label: "Live Tracker" },
-    { key: "profile-docs", icon: <User size={18} />, label: "Profile & Documents" },
-    { key: "calendar", icon: <Calendar size={18} />, label: "Attendance Calendar" },
-    { key: "checkinout", icon: <LogIn size={18} />, label: "Check In / Out" },
-    { key: "breaks", icon: <Coffee size={18} />, label: "Breaks" },
-    { key: "apply-leave", icon: <Calendar size={18} />, label: "Apply Leave" },
-    { key: "leave-history", icon: <FileText size={18} />, label: "Leave History" },
-    { key: "expenses", icon: <IndianRupee size={18} />, label: "Expenses & Claims" },
-    { key: "announcements", icon: <FileText size={18} />, label: "Announcements" },
-    { key: "meetings", icon: <Video size={18} />, label: "Meetings" },
-    ...(isSalesEmployee ? [{ key: "crm", icon: <ShieldCheck size={18} />, label: "💼 Lead CRM" }] : []),
-  ];
 
   /* ══════════════════════════ SHELL ══════════════════════════ */
   return (
@@ -320,130 +310,66 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       {/* Light Background Watermark Logo */}
       <DashboardWatermark />
 
-      {/* Mobile overlay */}
-      {sidebarOpen && <div className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {/* Enterprise Dark Navy Sidebar */}
+      <EmpSidebar
+        view={view}
+        setView={setView}
+        onLogout={onLogout}
+        user={user}
+        status={status}
+        statusColor={statusColor}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        isSalesEmployee={isSalesEmployee}
+      />
 
-      {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-60 bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-
-        {/* Integrated Brand + Employee Header */}
-        <div className="h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between gap-2 shadow-xs">
-          <ImmiGoLogo size="sm" subtitle="Employee Portal" theme="light" />
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-blue-200 hover:text-white hover:bg-blue-800/60 rounded-lg cursor-pointer flex-shrink-0">
-            <X size={15} />
-          </button>
-        </div>
-
-        {/* Employee Info chip */}
-        <div className="mx-3 mt-3 px-3 py-2.5 bg-white/95 border border-blue-200/80 rounded-xl flex items-center gap-2.5 shadow-2xs">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-[12px] flex items-center justify-center shrink-0 shadow-xs">
-            {(user?.name || "E")[0].toUpperCase()}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-slate-800 text-[12px] truncate leading-tight mb-1">{user?.name || "Employee"}</div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <EmployeeIdBadge id={user?.employeeId} size="sm" />
-              <span className={`text-[10px] font-bold ${status === "Active" ? "text-blue-600" : status === "On Break" ? "text-amber-500" : "text-slate-400"}`}>
-                &bull; {status}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1 custom-scrollbar">
-          <p className="text-[11px] font-extrabold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">Navigation</p>
-          {navItems.map((item) => (
-            <button
-              key={item.key}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                view === item.key
-                  ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
-                  : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
-              }`}
-              onClick={() => { setView(item.key); setSidebarOpen(false); }}
-            >
-              <span className={`shrink-0 ${view === item.key ? "text-white" : "text-slate-500"}`}>{item.icon}</span>
-              <span className={view === item.key ? "text-white" : "text-slate-700 font-semibold"}>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        {/* Bottom Sidebar Footer — exactly aligned with dashboard footer (h-[48px] min-h-[48px]) */}
-        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center justify-between shadow-xs text-blue-200 text-xs">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Portal Active</span>
-          </div>
-          <span className="px-1.5 py-0.5 rounded bg-blue-900/90 text-blue-200 text-[9px] font-mono border border-blue-700/50">
-            v2.5
-          </span>
-        </div>
-      </aside>
-
-      {/* Main content */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-        {/* Header with corporate dark blue gradient matching AdminHeader */}
-        <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center justify-between border-b border-blue-800/80 shadow-md">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <button
-              type="button"
-              className="lg:hidden p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white border border-blue-700/60 transition-all cursor-pointer shadow-xs"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Open Sidebar"
-            >
-              <Menu size={18} />
-            </button>
-            <div className="flex flex-col justify-center min-w-0">
-              <div className="flex items-center gap-2 truncate">
-                <span className="hidden sm:flex items-end gap-0.5 select-none font-black text-lg tracking-tighter leading-none text-white">
-                  <span>immi</span>
-                  <span className="text-cyan-400">Go</span>
-                  <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
-                    <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-                <ChevronRight size={13} className="text-blue-400 shrink-0 hidden sm:inline" />
-                <span className="text-white font-extrabold text-sm sm:text-[15px] tracking-tight truncate drop-shadow-2xs">
-                  Welcome, {user?.name || "Employee"}
-                </span>
-              </div>
-              <div className="hidden md:flex items-center gap-2 mt-0.5">
-                <EmployeeIdBadge id={user?.employeeId} size="sm" />
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span className="text-[10px] text-blue-300 font-bold tracking-wide">Employee Self-Service Portal</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Real-time Notification Bell */}
-            <EmployeeNotificationBell
-              token={token}
-              className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs focus:outline-none"
-            />
-            <div className="flex items-center gap-2 px-2.5 py-1 bg-blue-900/60 border border-blue-700/50 rounded-xl text-xs font-bold text-white shadow-2xs">
-              <span className={`w-2 h-2 rounded-full ${statusColor} animate-pulse`} />
-              <span className="hidden sm:inline">{status}</span>
-              <span className="sm:hidden">EMPLOYEE</span>
-            </div>
+        {/* Enterprise White Topbar */}
+        <EmpTopbar
+          view={view}
+          setView={setView}
+          onLogout={onLogout}
+          user={user}
+          token={token}
+          isSalesEmployee={isSalesEmployee}
+          status={status}
+          statusColor={statusColor}
+          setSidebarOpen={setSidebarOpen}
+        />
 
-            {/* Sign Out Button in Header */}
-            <button
-              type="button"
-              onClick={onLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs group"
-              title="Sign Out"
-            >
-              <LogOut size={13} className="shrink-0 text-rose-400 group-hover:text-white transition-colors" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Main */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-5xl w-full mx-auto">
+        {/* Main Body View */}
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
           {errorMsg && <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-sm font-medium mb-6"><AlertCircle size={16} className="shrink-0" /><span>{errorMsg}</span></div>}
           {successMsg && <div className="flex items-center gap-2.5 p-4 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-2xl text-sm font-medium mb-6"><CheckCircle size={16} className="shrink-0" /><span>{successMsg}</span></div>}
+
+          {/* ── 0. Home Dashboard Overview (New Default) ── */}
+          {view === "home" && (
+            <EmpHomeOverview
+              user={user}
+              statusRecord={statusRecord}
+              status={status}
+              statusColor={statusColor}
+              workSeconds={workSeconds}
+              lunchSeconds={lunchSeconds}
+              breakSeconds={breakSeconds}
+              fmtDur={fmtDur}
+              fmtTime={fmtTime}
+              leaveBalance={leaveBalance}
+              leaveHistory={leaveHistory}
+              todayMeetings={todayMeetings}
+              announcements={announcements}
+              holidays={holidays}
+              setView={setView}
+              handleCheckIn={handleCheckIn}
+              handleCheckOut={handleCheckOut}
+              loading={loading}
+              isHolidayToday={isHolidayToday}
+              todayHoliday={todayHoliday}
+              isWeeklyOffToday={isWeeklyOffToday}
+              weeklyOffReason={weeklyOffReason}
+            />
+          )}
 
           {view === "tracker" && announcements.length > 0 && (
             <div className="mb-5 bg-white border border-slate-300 rounded-2xl p-5 shadow-xs">
