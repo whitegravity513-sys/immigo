@@ -167,7 +167,6 @@ const attendanceSchema = new mongoose.Schema(
 
 attendanceSchema.index({ employeeId: 1, date: 1 }, { unique: true });
 attendanceSchema.index({ employeeId: 1, date: -1 });
-attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ date: 1, status: 1 });
 attendanceSchema.index({ status: 1, date: 1 });
 attendanceSchema.index({ date: 1, checkOutNote: 1 });
