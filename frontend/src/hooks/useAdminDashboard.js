@@ -90,7 +90,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   useEffect(() => {
     const effectiveToken = token || localStorage.getItem("vista_auth_token") || localStorage.getItem("token");
     if (effectiveToken) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${effectiveToken}`;
+      apiClient.defaults.headers.common["Authorization"] = `Bearer ${effectiveToken}`;
     }
   }, [token]);
 

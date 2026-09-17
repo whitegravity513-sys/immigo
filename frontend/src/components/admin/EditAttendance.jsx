@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/apiClient.js';
 import { CheckCircle, XCircle, AlertCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 /**
  * Modal component for admin to edit an employee's check‑in / check‑out times.
@@ -69,7 +67,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
         checkOutTime: calcCheckOut,
         halfSalaryDeduct: dayType === 'Half Day',
       };
-      await axios.post(`${API_BASE}/admin/attendance/update`, payload, { withCredentials: true });
+      await apiClient.post("/admin/attendance/update", payload);
       setSuccess('Attendance updated successfully');
       setTimeout(() => { onSaved(); onClose(); }, 800);
     } catch (err) {
@@ -89,7 +87,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
         status: 'Present',
         penaltyWaivedByAdmin: true,
       };
-      await axios.post(`${API_BASE}/admin/attendance/update`, payload, { withCredentials: true });
+      await apiClient.post("/admin/attendance/update", payload);
       setSuccess('Penalty absent waived! Attendance marked as Present.');
       setTimeout(() => { onSaved(); onClose(); }, 900);
     } catch (err) {
