@@ -17,6 +17,7 @@ export const checkIn = asyncHandler(async (req, res) => {
   return res.status(200).json({
     message: "Checked in successfully",
     attendance: record,
+    record,
   });
 });
 
@@ -25,14 +26,16 @@ export const startBreak = asyncHandler(async (req, res) => {
   return res.status(200).json({
     message: "Break started",
     attendance: record,
+    record,
   });
 });
 
 export const endBreak = asyncHandler(async (req, res) => {
   const record = await AttendanceService.endBreak(req.user.id || req.user._id);
   return res.status(200).json({
-    message: "Break ended",
+    message: "Break ended. Work resumed.",
     attendance: record,
+    record,
   });
 });
 
@@ -45,6 +48,7 @@ export const checkOut = asyncHandler(async (req, res) => {
   return res.status(200).json({
     message: "Checked out successfully",
     attendance: record,
+    record,
   });
 });
 

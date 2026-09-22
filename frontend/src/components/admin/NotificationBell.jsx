@@ -12,6 +12,7 @@ import {
   Sparkles,
   X,
   Briefcase,
+  Receipt,
 } from "lucide-react";
 
 export default function NotificationBell({ className }) {
@@ -52,7 +53,7 @@ export default function NotificationBell({ className }) {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await apiClient.put("/admin/notifications/mark-all-read");
+      await apiClient.put("/admin/notifications/read-all");
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
     } catch (err) {
@@ -128,6 +129,12 @@ export default function NotificationBell({ className }) {
           icon: <Calendar size={15} className="text-purple-500" />,
           bg: "bg-purple-50 border-purple-200 text-purple-700",
           tag: "Leave Request",
+        };
+      case "EXPENSE_CLAIM":
+        return {
+          icon: <Receipt size={15} className="text-emerald-500" />,
+          bg: "bg-emerald-50 border-emerald-200 text-emerald-700",
+          tag: "Expense Claim",
         };
       default:
         return {

@@ -5,8 +5,15 @@ import { asyncHandler } from "../utils/asyncHandler.js";
  * Enterprise Admin Attendance Controller
  */
 export const getAttendanceReport = asyncHandler(async (req, res) => {
-  const report = await AttendanceService.getAttendanceReport();
+  const { date } = req.query;
+  const report = await AttendanceService.getAttendanceReport(date);
   return res.status(200).json(report);
+});
+
+export const getAttendanceCalendarMonth = asyncHandler(async (req, res) => {
+  const { month, year } = req.query;
+  const data = await AttendanceService.getAttendanceCalendarMonth(month, year);
+  return res.status(200).json(data);
 });
 
 export const getAttendanceByDate = asyncHandler(async (req, res) => {
@@ -34,6 +41,7 @@ export const getDailyNotes = asyncHandler(async (req, res) => {
 
 export default {
   getAttendanceReport,
+  getAttendanceCalendarMonth,
   getAttendanceByDate,
   updateAttendance,
   getAttendanceSummary,

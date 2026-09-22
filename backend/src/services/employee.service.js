@@ -6,6 +6,8 @@ import Leave from "../models/Leave.js";
 import Holiday from "../models/Holiday.js";
 import { getTodayDateString, isWeeklyOff, getWorkingDays } from "../utils/dateUtils.js";
 import { ApiError } from "../utils/apiError.js";
+import { saveBase64File } from "../utils/fileStorage.js";
+import NotificationService from "./notification.service.js";
 
 const cleanObjectId = (id) => {
   const str = String(id || "").replace(/^virtual-/, "").trim();
@@ -46,6 +48,7 @@ export class EmployeeService {
     const {
       name,
       email,
+      personalEmail,
       password,
       role,
       designation,
@@ -67,46 +70,91 @@ export class EmployeeService {
       documents,
     } = data;
 
-    if (!name || !email || !password) {
-      throw new ApiError(400, "Name, email, and password are required");
+    if (!name || !name.trim()) {
+      throw new ApiError(400, "Employee full name is required");
+    }
+
+    if (!email || !email.trim()) {
+      throw new ApiError(400, "Company email address is required");
+    }
+
+    if (!password || !password.trim()) {
+      throw new ApiError(400, "Password is required");
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(cleanEmail)) {
+      throw new ApiError(400, `"${cleanEmail}" is not a valid email address. Please use format name@company.com`);
+    }
+
+    let cleanPersonalEmail = "";
+    if (personalEmail && personalEmail.trim()) {
+      cleanPersonalEmail = personalEmail.trim().toLowerCase();
+      if (!emailRegex.test(cleanPersonalEmail)) {
+        throw new ApiError(400, `"${cleanPersonalEmail}" is not a valid personal email address.`);
+      }
+    }
+
+    let cleanPhone = "";
+    if (phone) {
+      cleanPhone = String(phone).replace(/\s+/g, "").replace(/^(\+91|91)/, "").replace(/-/g, "").replace(/\D/g, "").trim();
+      if (cleanPhone.length > 10) cleanPhone = cleanPhone.slice(-10);
+      if (cleanPhone && !/^\d{10}$/.test(cleanPhone)) {
+        throw new ApiError(400, "Mobile number must be a valid 10-digit number (e.g. 9876543210)");
+      }
+    }
+
     const existingEmployee = await Employee.findOne({ email: cleanEmail });
     if (existingEmployee) {
-      throw new ApiError(400, "Email already exists");
+      throw new ApiError(400, `Company email "${cleanEmail}" already exists. Please use a different email.`);
     }
 
-    let finalEmployeeId = employeeId;
+    let finalEmployeeId = employeeId?.trim();
     if (!finalEmployeeId) {
       finalEmployeeId = await this.getNextEmployeeId();
+    } else {
+      const existingId = await Employee.findOne({ employeeId: finalEmployeeId });
+      if (existingId) {
+        finalEmployeeId = await this.getNextEmployeeId();
+      }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const validStatus = status === "inactive" ? "inactive" : "active";
+
+    const hashedPassword = await bcrypt.hash(password, 8);
     const initialLeaves = leaveBalance !== undefined ? Number(leaveBalance) : (allocatedLeaves !== undefined ? Number(allocatedLeaves) : 18);
     const initialAllocated = allocatedLeaves !== undefined ? Number(allocatedLeaves) : initialLeaves;
 
+    let savedProfileImage = "";
+    if (profileImage) {
+      savedProfileImage = profileImage.startsWith("data:")
+        ? saveBase64File(profileImage, "profiles")
+        : profileImage;
+    }
+
     const formattedDocs = Array.isArray(documents)
       ? documents
-          .filter((d) => d && d.url)
-          .map((d) => ({
-            name: d.name || "Official Document",
-            type: d.type || "Other",
-            url: d.url,
-            uploadedBy: "Admin",
-            status: "Verified",
-            uploadedAt: new Date(),
-          }))
+        .filter((d) => d && d.url)
+        .map((d) => ({
+          name: d.name || "Official Document",
+          type: d.type || "Other",
+          url: d.url.startsWith("data:") ? saveBase64File(d.url, "documents", d.name) : d.url,
+          uploadedBy: "Admin",
+          status: "Verified",
+          uploadedAt: new Date(),
+        }))
       : [];
 
     const newEmployee = await Employee.create({
       employeeId: finalEmployeeId,
       name: name.trim(),
       email: cleanEmail,
+      personalEmail: cleanPersonalEmail,
       password: hashedPassword,
       department: department ? department.trim() : "General",
       designation: designation || role || "Employee",
-      phone: phone ? phone.trim() : "",
+      phone: cleanPhone,
       address: address ? address.trim() : "",
       previousCompany: previousCompany ? previousCompany.trim() : "",
       previousPackage: previousPackage ? previousPackage.trim() : "",
@@ -114,12 +162,12 @@ export class EmployeeService {
       experience: experience ? experience.trim() : "",
       emergencyContact: emergencyContact || { name: "", phone: "", relation: "" },
       joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
-      status: status || "active",
+      status: validStatus,
       role: role || "employee",
       permissions: Array.isArray(permissions) ? permissions : [],
       allocatedLeaves: initialAllocated,
       leaveBalance: initialLeaves,
-      profileImage: profileImage || "",
+      profileImage: savedProfileImage,
       documents: formattedDocs,
     });
 
@@ -135,6 +183,7 @@ export class EmployeeService {
     const {
       name,
       email,
+      personalEmail,
       password,
       department,
       designation,
@@ -167,6 +216,9 @@ export class EmployeeService {
 
     if (name) emp.name = name.trim();
     if (email) emp.email = email.trim().toLowerCase();
+    if (personalEmail !== undefined) {
+      emp.personalEmail = personalEmail ? personalEmail.trim().toLowerCase() : "";
+    }
     if (password) {
       emp.password = await bcrypt.hash(password, 10);
     }
@@ -186,7 +238,9 @@ export class EmployeeService {
     if (permissions !== undefined && Array.isArray(permissions)) emp.permissions = permissions;
     if (allocatedLeaves !== undefined) emp.allocatedLeaves = Number(allocatedLeaves);
     if (leaveBalance !== undefined) emp.leaveBalance = Number(leaveBalance);
-    if (profileImage !== undefined) emp.profileImage = profileImage;
+    if (profileImage !== undefined) {
+      emp.profileImage = profileImage ? saveBase64File(profileImage, "profiles", "photo.png") : "";
+    }
 
     await emp.save();
     return this.formatEmployee(emp);
@@ -235,7 +289,7 @@ export class EmployeeService {
     if (!cleanId) {
       throw new ApiError(404, "Employee not found");
     }
-    const emp = await Employee.findById(cleanId).select("-password");
+    const emp = await Employee.findById(cleanId).select("-password +documents");
     if (!emp) {
       throw new ApiError(404, "Employee not found");
     }
@@ -275,7 +329,9 @@ export class EmployeeService {
       throw new ApiError(404, "Employee not found");
     }
 
-    emp.profileImage = profileImage;
+    // Save base64 image to server storage for high-speed delivery and zero DB bloat
+    const storedPhotoUrl = saveBase64File(profileImage, "profiles", "photo.png");
+    emp.profileImage = storedPhotoUrl;
     await emp.save();
     return this.formatEmployee(emp);
   }
@@ -290,7 +346,7 @@ export class EmployeeService {
     if (!cleanId) {
       throw new ApiError(404, "Employee not found");
     }
-    const emp = await Employee.findById(cleanId);
+    const emp = await Employee.findById(cleanId).select("+documents");
     if (!emp) {
       throw new ApiError(404, "Employee not found");
     }
@@ -299,10 +355,13 @@ export class EmployeeService {
       emp.documents = [];
     }
 
+    // Save base64 document (PDF/Image) to disk for instant performance and no Mongo size limit
+    const storedDocUrl = saveBase64File(url, "documents", name);
+
     const newDoc = {
       name: name.trim(),
       type: type || "Other",
-      url,
+      url: storedDocUrl,
       uploadedBy,
       status: uploadedBy === "Admin" ? "Verified" : "Submitted",
       uploadedAt: new Date(),
@@ -318,7 +377,7 @@ export class EmployeeService {
     if (!cleanId) {
       throw new ApiError(404, "Employee not found");
     }
-    const emp = await Employee.findById(cleanId);
+    const emp = await Employee.findById(cleanId).select("+documents");
     if (!emp) {
       throw new ApiError(404, "Employee not found");
     }
@@ -415,7 +474,7 @@ export class EmployeeService {
         if (!isNaN(d.getTime())) {
           joiningDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(d);
         }
-      } catch {}
+      } catch { }
     }
     const applicableWorkingDays = workingDays.filter((d) => !joiningDateStr || d >= joiningDateStr);
 
@@ -559,17 +618,21 @@ export class EmployeeService {
     const workedDaysCount = presentCount + halfDayCount;
     const avgSecondsPerDay = workedDaysCount > 0 ? Math.floor(totalWorkSecondsAll / workedDaysCount) : 0;
 
-    const formattedLeaves = leaves.map((l) => ({
-      ...l.toObject(),
-      id: l._id.toString(),
-      _id: l._id.toString(),
-    }));
+    const formattedLeaves = (leaves || []).map((l) => {
+      const obj = typeof l.toObject === "function" ? l.toObject() : l;
+      return {
+        ...obj,
+        id: (l._id || l.id || "").toString(),
+        _id: (l._id || l.id || "").toString(),
+      };
+    });
 
+    const empObj = typeof emp.toObject === "function" ? emp.toObject() : emp;
     return {
       employee: {
-        ...emp.toObject(),
-        id: emp._id.toString(),
-        _id: emp._id.toString(),
+        ...empObj,
+        id: (emp._id || emp.id || "").toString(),
+        _id: (emp._id || emp.id || "").toString(),
         nextMonthLeaves: 0,
       },
       month: m,
@@ -624,6 +687,201 @@ export class EmployeeService {
       id: l._id.toString(),
       _id: l._id.toString(),
     }));
+  }
+
+  // --- Profile & Document Vault Self-Service ---
+  static async getEmployeeProfile(id) {
+    const cleanId = cleanObjectId(id) || id;
+    const emp = await Employee.findById(cleanId).select("-password").lean();
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    return {
+      ...emp,
+      id: emp._id.toString(),
+      _id: emp._id.toString(),
+    };
+  }
+
+  static async updateContactDetails(id, data) {
+    const cleanId = cleanObjectId(id) || id;
+    const emp = await Employee.findById(cleanId);
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
+    if (data.phone !== undefined) emp.phone = String(data.phone).trim();
+    if (data.address !== undefined) emp.address = String(data.address).trim();
+    if (data.emergencyContact) {
+      emp.emergencyContact = {
+        name: data.emergencyContact.name || "",
+        phone: data.emergencyContact.phone || "",
+        relation: data.emergencyContact.relation || "",
+      };
+    }
+
+    await emp.save();
+    return this.formatEmployee(emp);
+  }
+
+  static async updateProfilePhoto(id, profileImage) {
+    const cleanId = cleanObjectId(id) || id;
+    const emp = await Employee.findById(cleanId);
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
+    const storedImage = profileImage ? saveBase64File(profileImage, "profiles", "photo") : "";
+    emp.profileImage = storedImage;
+    await emp.save();
+    return this.formatEmployee(emp);
+  }
+
+  static async uploadDocument(id, docData, uploadedBy = "Employee") {
+    const cleanId = cleanObjectId(id);
+    if (!cleanId) {
+      throw new ApiError(400, "Invalid employee ID");
+    }
+
+    const docName = String(
+      docData?.name || docData?.type || "Document"
+    ).trim();
+
+    const rawFile = docData?.fileData || docData?.url || "";
+    const docType = docData?.type || "Other";
+
+    if (!rawFile) {
+      throw new ApiError(400, "Document file content or URL is required");
+    }
+
+    // Save Base64 to disk instantly, store lightweight relative URL in DB
+    const docUrl = saveBase64File(rawFile, "documents", docName);
+
+    const emp = await Employee.findById(cleanId).select("+documents");
+
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
+    if (!Array.isArray(emp.documents)) {
+      emp.documents = [];
+    }
+
+    const newDoc = {
+      name: docName,
+      type: docType,
+      url: docUrl,
+      uploadedBy,
+      status: uploadedBy === "Admin" ? "Verified" : "Submitted",
+      verificationNote: "",
+      uploadedAt: new Date(),
+    };
+
+    emp.documents.push(newDoc);
+
+    console.log("5. Saving employee document");
+
+    await emp.save();
+
+    console.log("6. Document saved successfully");
+
+    // Send Live Admin Notification when employee uploads compliance document
+    if (uploadedBy === "Employee") {
+      try {
+        await NotificationService.createNotification({
+          type: "DOCUMENT_UPLOAD",
+          title: "New Employee Document Submitted",
+          message: `${emp.name} (${emp.employeeId}) uploaded compliance document "${docName}" (${docType}). Awaiting verification.`,
+          targetRole: "ADMIN",
+          targetType: "ALL",
+          employeeId: emp._id,
+          employeeName: emp.name,
+          metadata: {
+            employeeId: emp._id.toString(),
+            docName,
+            docType,
+            uploadedAt: newDoc.uploadedAt,
+          },
+        });
+      } catch (notifErr) {
+        console.error("Failed to notify admin of document upload:", notifErr);
+      }
+    }
+
+    return this.formatEmployee(emp);
+  }
+
+  static async reviewDocument(id, docId, { status, verificationNote, adminId = null }) {
+    const cleanId = cleanObjectId(id) || id;
+    if (!["Verified", "Rejected", "Submitted"].includes(status)) {
+      throw new ApiError(400, "Invalid status. Use 'Verified' or 'Rejected'.");
+    }
+
+    const emp = await Employee.findById(cleanId).select("+documents");
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
+    if (!Array.isArray(emp.documents)) {
+      emp.documents = [];
+    }
+
+    const doc = emp.documents.find(
+      (d) => (d._id && d._id.toString() === docId.toString()) || d.id === docId
+    );
+
+    if (!doc) {
+      throw new ApiError(404, "Document not found in employee vault");
+    }
+
+    doc.status = status;
+    doc.verificationNote = verificationNote !== undefined ? String(verificationNote).trim() : doc.verificationNote;
+
+    await emp.save();
+
+    // Send Real-time Notification to Employee on HR verification / rejection
+    try {
+      const isApproved = status === "Verified";
+      await NotificationService.createNotification({
+        type: "DOCUMENT_UPDATE",
+        title: isApproved ? `Document Approved: ${doc.name}` : `Document Rejected: ${doc.name}`,
+        message: isApproved
+          ? `Your document "${doc.name}" (${doc.type}) has been verified and approved by HR.`
+          : `Your document "${doc.name}" (${doc.type}) was rejected by HR. Reason: ${doc.verificationNote || "Please re-upload a clear and valid document."}`,
+        targetRole: "EMPLOYEE",
+        targetType: "SPECIFIC",
+        targetEmployeeId: emp._id,
+        employeeId: emp._id,
+        employeeName: emp.name,
+        metadata: {
+          employeeId: emp._id.toString(),
+          docId: doc._id?.toString(),
+          docName: doc.name,
+          docType: doc.type,
+          status,
+          verificationNote: doc.verificationNote,
+        },
+      });
+    } catch (notifErr) {
+      console.error("Failed to notify employee of document review:", notifErr);
+    }
+
+    return this.formatEmployee(emp);
+  }
+
+  static async deleteDocument(id, docId) {
+    const cleanId = cleanObjectId(id) || id;
+    const emp = await Employee.findById(cleanId).select("+documents");
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+
+    emp.documents = (emp.documents || []).filter(
+      (doc) => doc._id && doc._id.toString() !== docId.toString()
+    );
+
+    await emp.save();
+    return this.formatEmployee(emp);
   }
 }
 

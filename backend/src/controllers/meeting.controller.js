@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
 import Employee from "../models/Employee.js";
 import NotificationService from "../services/notification.service.js";
@@ -270,14 +271,20 @@ export const sendBroadcastNotification = asyncHandler(async (req, res) => {
 
 // ── Employee: Get Assigned & Company Meetings ──
 export const getEmployeeMeetings = asyncHandler(async (req, res) => {
-  const employeeId = req.user.id || req.user._id;
+  const employeeId = req.user?.id || req.user?._id;
+  const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
+    ? new mongoose.Types.ObjectId(employeeId.toString())
+    : null;
 
-  const meetings = await Meeting.find({
+  const filter = {
     $or: [
       { targetType: "ALL" },
+      ...(empObjId ? [{ targetEmployees: empObjId }] : []),
       { targetEmployees: employeeId },
     ],
-  })
+  };
+
+  const meetings = await Meeting.find(filter)
     .sort({ date: 1, startTime: 1 })
     .lean();
 

@@ -1,10 +1,10 @@
-import "dotenv/config";
+import { env } from "./config/env.js";
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { logger } from "./utils/logger.js";
 import { startCronJobs } from "./utils/cronJobs.js";
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.PORT || process.env.PORT || 5000;
 
 // Catch unhandled exceptions
 process.on("uncaughtException", (error) => {

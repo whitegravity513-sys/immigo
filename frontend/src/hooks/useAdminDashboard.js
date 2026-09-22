@@ -40,11 +40,13 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [employeeForm, setEmployeeForm] = useState({
     name: "",
     email: "",
+    personalEmail: "",
     password: "",
     role: "",
     department: "",
     phone: "",
     address: "",
+    status: "active",
     previousCompany: "",
     previousPackage: "",
     currentPackage: "",
@@ -111,17 +113,29 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     }
   }, [view, token, location.pathname]);
 
-  // Auto-refresh admin live tracker only when on live view to optimize response time & prevent lag
+  // Auto-refresh admin live tracker / workforce view
   useEffect(() => {
-    if (token && (view === "live" || view === "dashboard")) {
-      const iv = setInterval(() => fetchAdminReports(), 6000);
+    if (token && (view === "live" || view === "dashboard" || view === "workforce")) {
+      const iv = setInterval(() => fetchAdminReports(), 8000);
       return () => clearInterval(iv);
     }
   }, [view, token]);
 
   async function fetchAdminReports() {
     try {
-      if (view === "live" || view === "dashboard") {
+      if (view === "workforce") {
+        const [attRes, empRes, leaveRes] = await Promise.allSettled([
+          apiClient.get(`/admin/attendance`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } }),
+          apiClient.get(`/admin/employee/list`),
+          apiClient.get(`/admin/leaves`),
+        ]);
+        if (attRes.status === "fulfilled") setAttendanceReport(attRes.value.data);
+        if (empRes.status === "fulfilled") {
+          const d = empRes.value.data;
+          setEmployees(Array.isArray(d) ? d : (d.employees || []));
+        }
+        if (leaveRes.status === "fulfilled") setLeavesReport(leaveRes.value.data);
+      } else if (view === "live" || view === "dashboard") {
         let url = `/admin/attendance`;
         if (filterStart && filterEnd) {
           url = `/admin/attendance/range?start=${filterStart.toISOString().split('T')[0]}&end=${filterEnd.toISOString().split('T')[0]}`;
@@ -418,45 +432,98 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     }
   }
 
-  const handleOpenAddModal = async () => {
-    setLoading(true); setErrorMsg("");
-    try {
-      const r = await apiClient.get("/admin/employee/next-id");
-      setEmployeeForm({
-        name: "",
-        email: "",
-        password: "",
-        role: "",
-        department: "",
-        phone: "",
-        address: "",
-        previousCompany: "",
-        previousPackage: "",
-        currentPackage: "",
-        experience: "",
-        joiningDate: new Date().toISOString().split("T")[0],
-        employeeId: r.data.employeeId,
-        profileImage: "",
-        documents: [],
+  const handleOpenAddModal = () => {
+    setErrorMsg("");
+    setEmployeeForm({
+      name: "",
+      email: "",
+      personalEmail: "",
+      password: "",
+      role: "",
+      department: "",
+      phone: "",
+      address: "",
+      status: "active",
+      previousCompany: "",
+      previousPackage: "",
+      currentPackage: "",
+      experience: "",
+      joiningDate: new Date().toISOString().split("T")[0],
+      employeeId: "",
+      profileImage: "",
+      documents: [],
+    });
+    setIsAddModalOpen(true);
+
+    // Fetch next sequential employee ID in background
+    apiClient
+      .get("/admin/employee/next-id")
+      .then((r) => {
+        if (r.data?.employeeId) {
+          setEmployeeForm((prev) => ({ ...prev, employeeId: r.data.employeeId }));
+        }
+      })
+      .catch((e) => {
+        console.warn("Auto-next-id fetch warning:", e);
       });
-      setIsAddModalOpen(true);
-    } catch { setErrorMsg("Failed to generate next employee ID."); }
-    finally { setLoading(false); }
   };
 
   const handleCreateEmployeeSubmit = async (e) => {
-    e.preventDefault(); setLoading(true); setErrorMsg("");
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!employeeForm.name?.trim()) {
+      setErrorMsg("Please enter employee full name.");
+      return;
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!employeeForm.email || !emailRegex.test(employeeForm.email.trim())) {
+      setErrorMsg("Please enter a valid company work email address (e.g. name@company.com).");
+      return;
+    }
+
+    if (employeeForm.personalEmail && employeeForm.personalEmail.trim()) {
+      if (!emailRegex.test(employeeForm.personalEmail.trim())) {
+        setErrorMsg("Please enter a valid personal email address (e.g. name@gmail.com).");
+        return;
+      }
+    }
+
+    if (!employeeForm.password || !employeeForm.password.trim()) {
+      setErrorMsg("Please enter portal password.");
+      return;
+    }
+
+    const digitsOnly = (employeeForm.phone || "").replace(/\D/g, "");
+    const cleanPhone = digitsOnly.length > 10 ? digitsOnly.slice(-10) : digitsOnly;
+    if (cleanPhone && cleanPhone.length !== 10) {
+      setErrorMsg("Contact phone number must be a 10-digit number (e.g. 9876543210).");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const r = await apiClient.post("/admin/employee/create", employeeForm);
+      const payload = {
+        ...employeeForm,
+        name: employeeForm.name.trim(),
+        email: employeeForm.email.trim().toLowerCase(),
+        personalEmail: (employeeForm.personalEmail || "").trim().toLowerCase(),
+        status: employeeForm.status === "inactive" ? "inactive" : "active",
+        phone: cleanPhone,
+      };
+      const r = await apiClient.post("/admin/employee/create", payload);
       setSuccessMsg(r.data.message || "Employee created successfully!");
       setEmployeeForm({
         name: "",
         email: "",
+        personalEmail: "",
         password: "",
         role: "",
         department: "",
         phone: "",
         address: "",
+        status: "active",
         previousCompany: "",
         previousPackage: "",
         currentPackage: "",
@@ -466,9 +533,13 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
         profileImage: "",
         documents: [],
       });
-      setIsAddModalOpen(false); fetchAdminReports();
-    } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to create employee."); }
-    finally { setLoading(false); }
+      setIsAddModalOpen(false);
+      fetchAdminReports();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to create employee.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeactivateEmployee = async (id) => {
@@ -487,6 +558,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     setEditForm({
       name: empName,
       email: emp.email,
+      personalEmail: emp.personalEmail || "",
       designation: emp.designation || emp.role || "",
       department: emp.department || "",
       phone: emp.phone || "",

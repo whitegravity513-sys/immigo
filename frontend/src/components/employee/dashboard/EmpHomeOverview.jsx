@@ -1,15 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Clock,
   Calendar,
   LogIn,
+  LogOut,
   Coffee,
   CheckCircle2,
   AlertCircle,
   Video,
   CalendarPlus,
-  CheckSquare,
-  Square,
   ChevronDown,
   ChevronUp,
   Play,
@@ -17,12 +16,11 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
-  FileText
+  FileText,
+  Megaphone,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
-import DeptSalesWidgets from "./DeptSalesWidgets.jsx";
-import DeptAccountsWidgets from "./DeptAccountsWidgets.jsx";
-import DeptAdminWidgets from "./DeptAdminWidgets.jsx";
+import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
 
 export default function EmpHomeOverview({
   user,
@@ -52,6 +50,9 @@ export default function EmpHomeOverview({
   todayHoliday,
   isWeeklyOffToday,
   weeklyOffReason,
+  errorMsg = "",
+  successMsg = "",
+  complianceInfo = { isComplianceOnHold: false, missingDocs: [], rejectedDocs: [] },
 }) {
   const [showMorePast, setShowMorePast] = useState(false);
 
@@ -59,123 +60,197 @@ export default function EmpHomeOverview({
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
-  // Department identification
-  const dept = (user?.department || "").toLowerCase().trim();
-  const isSales = dept.includes("sales");
-  const isAdmin = dept.includes("admin");
-  const isAccounts = dept.includes("account") || dept.includes("finance") || dept.includes("billing");
 
   // Today's total break seconds
   const totalBreakSeconds = (lunchSeconds || 0) + (breakSeconds || 0);
 
-  // Past attendance records from monthlyData
-  const todayDateStr =
-    statusRecord?.date ||
-    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
-
-  const rawPastRecords = (monthlyData?.dailyRecords || monthlyData?.records || [])
-    .filter((r) => r.date < todayDateStr && r.status !== "Before Joining");
-  const pastRecords = [...rawPastRecords].sort((a, b) => (a.date < b.date ? 1 : -1));
-  const visiblePastRecords = showMorePast ? pastRecords : pastRecords.slice(0, 3);
-
-  // Interactive local task list (compact)
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Review daily workforce allocation sheet", priority: "High", completed: true },
-    { id: 2, title: "Follow up on client documents & compliance", priority: "High", completed: false },
-    { id: 3, title: "Update departmental weekly deliverables", priority: "Medium", completed: false },
-    { id: 4, title: "Team sync & operational review", priority: "Low", completed: false },
-  ]);
-
-  const toggleTask = (id) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+  // Lifetime Attendance Stats since Joining Date
+  const attStats = statusRecord?.attendanceStats || {
+    presentDays: monthlyData?.summary?.presentDays ?? 0,
+    absentDays: monthlyData?.summary?.absentDays ?? 0,
+    leaveDays: monthlyData?.summary?.totalLeaveDays ?? (monthlyData?.summary?.onLeave ?? 0),
+    halfDays: monthlyData?.summary?.halfDays ?? 0,
+    joiningDate: user?.joiningDate || "",
   };
 
-  const completedCount = tasks.filter((t) => t.completed).length;
+  const formattedJoiningDate = attStats.joiningDate
+    ? new Date(attStats.joiningDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : user?.joiningDate
+      ? new Date(user.joiningDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+      : "Day 1";
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto text-slate-800">
       {/* ── ACTIVE BREAK ALERT BANNER (Only shown when On Break) ── */}
       {(status === "On Break" || isOnBreak) && (
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl px-4 py-2.5 shadow-sm flex items-center justify-between gap-3 animate-in fade-in duration-150">
-          <div className="flex items-center gap-2.5">
-            <Coffee size={18} className="animate-pulse shrink-0" />
-            <span className="text-xs font-bold">
-              Currently On Break • Elapsed:{" "}
-              <strong className="font-mono text-sm underline font-black">
-                {fmtDur(totalBreakSeconds)}
-              </strong>
-            </span>
+        <div className="bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 border border-sky-400/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 shadow-inner">
+              <Coffee size={22} className="animate-bounce text-white" />
+            </div>
+            <div>
+              <div className="text-xs font-black uppercase tracking-wider text-amber-100">
+                You are Currently on Break • Work Timer Paused
+              </div>
+              <div className="text-sm font-bold text-white flex items-center gap-2 mt-0.5">
+                <span>Break Elapsed:</span>
+                <strong className="font-mono text-base font-black underline bg-black/20 px-2 py-0.5 rounded-lg tabular-nums">
+                  {fmtDur(totalBreakSeconds)}
+                </strong>
+              </div>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={() => handleBreakEnd && handleBreakEnd()}
             disabled={loading}
-            className="px-3.5 py-1.5 bg-white text-amber-950 rounded-lg text-xs font-black hover:bg-amber-50 transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 disabled:opacity-50 shadow-xs"
+            className="px-5 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 shadow-md border border-emerald-300"
           >
-            <Play size={12} className="fill-current text-amber-600" />
-            <span>Resume Work</span>
+            <Play size={14} className="fill-current text-emerald-700" />
+            <span>Break In (Resume Work)</span>
           </button>
         </div>
       )}
 
-      {/* ── Break limit warning ── */}
-      {overLimit && (
-        <div className="flex items-center gap-2 px-3.5 py-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold">
-          <AlertCircle size={14} className="shrink-0 text-rose-600" />
-          <span>Break limit of 1 hour exceeded. Salary deduction policy applies.</span>
+      {/* ── MANDATORY COMPLIANCE DOCUMENTS ON HOLD BANNER ── */}
+      {complianceInfo?.isComplianceOnHold && (
+        <div className="bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl p-5 shadow-lg border border-rose-300/40 space-y-3 animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 shadow-inner">
+                <AlertCircle size={24} className="text-white animate-pulse" />
+              </div>
+              <div className="space-y-0.5 text-left">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 bg-black/25 text-white rounded-full text-[10px] font-black uppercase tracking-wider border border-white/20">
+                    Compliance Status: ON HOLD
+                  </span>
+                  <span className="text-xs font-bold text-amber-100">Mandatory Verification Pending</span>
+                </div>
+                <h3 className="text-base font-black text-white tracking-tight">
+                  Required Compliance Documents Missing or Rejected
+                </h3>
+                <p className="text-xs text-rose-100 font-medium max-w-2xl">
+                  Your employee profile documentation is currently on hold. Mandatory compliance documents must be submitted and approved by HR.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setView("profile-docs")}
+              className="px-5 py-2.5 bg-white hover:bg-rose-50 text-rose-700 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+            >
+              <span>Upload / Resolve Documents</span>
+              <ChevronRight size={15} />
+            </button>
+          </div>
+
+          {/* Pending / Rejected Chips */}
+          <div className="pt-2 border-t border-white/20 flex items-center gap-2 flex-wrap text-left">
+            <span className="text-[11px] font-bold text-rose-100">Action Needed:</span>
+            {complianceInfo.rejectedDocs?.map((doc) => (
+              <span
+                key={doc._id || doc.id}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-900/40 text-rose-100 rounded-lg text-[11px] font-bold border border-rose-300/30"
+                title={doc.verificationNote || "Rejected by HR"}
+              >
+                ⚠️ Rejected: {doc.name || doc.type}
+              </span>
+            ))}
+            {complianceInfo.missingDocs?.map((type) => (
+              <span
+                key={type}
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-black/25 text-amber-100 rounded-lg text-[11px] font-bold border border-white/20"
+              >
+                Missing: {type}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* ── 1. COMPACT BLUE CORPORATE HEADER ── */}
-      <div className="bg-gradient-to-r from-[#0d1e48] via-[#102a6b] to-[#1a367c] text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-blue-900/50">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+
+
+      {/* ── 1. CLEAN MNC HERO BANNER ── */}
+      <div
+        className="text-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-md shadow-blue-900/25 border border-blue-500/40 relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #1e40af 0%, #163883ff 50%, #1d4ed8 100%)" }}
+      >
+        {/* Subtle decorative glow */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Employee Avatar & Info */}
-          <div className="flex items-center gap-3.5">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-xl bg-blue-500 text-white font-black text-lg flex items-center justify-center shadow-inner border border-blue-400/30 overflow-hidden shrink-0">
-                {statusRecord?.profileImage || user?.profileImage ? (
-                  <img
-                    src={statusRecord?.profileImage || user?.profileImage}
-                    alt={user?.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  (user?.name || "E")[0].toUpperCase()
-                )}
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              {(() => {
+                const avatarUrl = user?.profileImage || statusRecord?.profileImage;
+                return (
+                  <div className={`w-14 h-14 sm:w-16 sm:h-16  ${avatarUrl ? "bg-white" : "bg-gradient-to-tr from-slate-600 to-slate-700"} text-white font-black text-xl flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={user?.name || "Employee"}
+                        className="w-full h-full object-cover rounded-2xl"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback = e.currentTarget.parentElement?.querySelector(".banner-avatar-fallback");
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+                    <span
+                      className="banner-avatar-fallback w-full h-full items-center justify-center font-black text-xl text-white select-none"
+                      style={{ display: avatarUrl ? "none" : "flex" }}
+                    >
+                      {(user?.name || "E")[0].toUpperCase()}
+                    </span>
+                  </div>
+                );
+              })()}
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0d1e48] ${statusColor}`}
+                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${statusColor} ${status === "Active" || status === "On Break" ? "animate-pulse" : ""}`}
+                title={status}
               />
             </div>
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
+                <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">
                   {greeting}, {user?.name || "Employee"}!
                 </h2>
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                    status === "Active"
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                      : status === "On Break"
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                      : "bg-white/15 text-slate-200 border border-white/20"
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${status === "Active"
+                    ? "bg-emerald-500/30 text-emerald-200 border border-emerald-400"
+                    : status === "On Break"
+                      ? "bg-amber-500/30 text-amber-200 border border-amber-400"
+                      : "bg-white/20 text-slate-100 border border-white/40"
+                    }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${statusColor} ${status === "Active" || status === "On Break" ? "animate-pulse" : ""}`} />
+                  <span className={`w-2 h-2 rounded-full ${statusColor} ${status === "Active" || status === "On Break" ? "animate-pulse" : ""}`} />
                   {status}
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-[11px] text-blue-200/90 font-medium">
-                <EmployeeIdBadge id={user?.employeeId} size="xs" />
-                <span>•</span>
-                <span className="text-cyan-300 font-semibold">{user?.department || "General"}</span>
-                <span>•</span>
-                <span>{user?.designation || "Staff"}</span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-white font-semibold">
+                <EmployeeIdBadge
+                  id={user?.employeeId}
+                  size="xs"
+                  onClick={() => setView("profile-docs")}
+                  title="Click to view My Profile & Documents"
+                />
+                <span className="text-white/80 font-black">•</span>
+                <span className="text-white font-bold bg-white/20 px-2.5 py-0.5 rounded-md border border-white/30 text-[11px]">
+                  {user?.department || "Staff"}
+                </span>
+                <span className="text-white/80 font-black">•</span>
+                <span className="text-slate-100 font-semibold">{user?.designation || "Employee"}</span>
                 {isHolidayToday && (
-                  <span className="text-amber-300 font-bold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 text-[10px]">
+                  <span className="text-amber-300 font-bold bg-amber-400/25 px-2 py-0.5 rounded-md border border-amber-400/40 text-[10px] flex items-center gap-1">
                     🌟 {todayHoliday?.title}
                   </span>
                 )}
@@ -183,444 +258,268 @@ export default function EmpHomeOverview({
             </div>
           </div>
 
-          {/* Quick Action Buttons */}
+          {/* Quick Leave Management Shortcut */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* 1-CLICK BREAK BUTTON */}
-            {status === "Active" ? (
-              <button
-                type="button"
-                onClick={() => handleBreakStart && handleBreakStart("Break")}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/15 hover:bg-amber-400/25 text-amber-200 border border-amber-400/30 text-xs font-bold transition-all cursor-pointer active:scale-95 disabled:opacity-50"
-                title="Start Break"
-              >
-                <Coffee size={13} />
-                <span>Take Break</span>
-              </button>
-            ) : status === "On Break" ? (
-              <button
-                type="button"
-                onClick={() => handleBreakEnd && handleBreakEnd()}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer active:scale-95 disabled:opacity-50 shadow-sm"
-                title="Resume Work"
-              >
-                <Play size={13} className="fill-current" />
-                <span>Resume Work</span>
-              </button>
-            ) : null}
-
-            {/* Check In / Out Button */}
-            <button
-              type="button"
-              onClick={() => setView("checkinout")}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all cursor-pointer shadow-xs ${
-                status === "Active"
-                  ? "bg-rose-600 hover:bg-rose-700"
-                  : "bg-blue-600 hover:bg-blue-500 border border-blue-400/30"
-              }`}
-            >
-              <LogIn size={13} />
-              <span>{status === "Active" ? "Check Out" : "Check In"}</span>
-            </button>
-
-            {/* Leave Management Button */}
             <button
               type="button"
               onClick={() => setView("leaves")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/30 transition-all cursor-pointer backdrop-blur-xs active:scale-95 shadow-xs"
             >
-              <CalendarPlus size={13} />
-              <span>Leaves</span>
+              <CalendarPlus size={15} />
+              <span>Apply / View Leaves</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── 2. COMPACT 4-STAT BLUE CARDS ROW ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Card 1: Shift Status & Punch In */}
-        <div className="bg-white rounded-xl border border-blue-100 p-3.5 shadow-2xs">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>Shift Punch</span>
-            <LogIn size={15} className="text-blue-600" />
+      {/* ── 2. LIFETIME ATTENDANCE STATS SINCE JOINING DATE (Compacted) ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
+        {/* Card 1: Present Days */}
+        <div className="bg-white rounded-xl border-2 border-emerald-300 hover:border-emerald-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider">Present Days</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <CheckCircle2 size={16} />
+            </div>
           </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 mt-1.5 truncate">
-            {statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "Not Punched"}
-          </div>
-          <div className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">
-            {statusRecord?.checkOutTime
-              ? `Out: ${fmtTime(statusRecord.checkOutTime)}`
-              : statusRecord?.checkInTime
-              ? "Shift In Progress"
-              : "Pending check in"}
-          </div>
-        </div>
-
-        {/* Card 2: Net Work Time */}
-        <div className="bg-white rounded-xl border border-blue-100 p-3.5 shadow-2xs">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>Net Work</span>
-            <Clock size={15} className="text-blue-600" />
-          </div>
-          <div className="text-lg sm:text-xl font-black text-blue-900 mt-1.5 tabular-nums">
-            {fmtDur(workSeconds)}
-          </div>
-          <div className="text-[11px] text-slate-500 font-medium mt-0.5 flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${status === "Active" ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
-            <span>Target: 8.5 Hours</span>
+          <div className="mt-2">
+            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
+              {attStats.presentDays ?? 0} <span className="text-[11px] font-bold text-emerald-800">Days</span>
+            </div>
+            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+              <span>● Since Joining ({formattedJoiningDate})</span>
+            </div>
           </div>
         </div>
 
-        {/* Card 3: Break Time with Direct 1-Click Action */}
-        <div className="bg-white rounded-xl border border-blue-100 p-3.5 shadow-2xs">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>Break Time</span>
-            <Coffee size={15} className="text-amber-600" />
+        {/* Card 2: Absent Days */}
+        <div className="bg-white rounded-xl border-2 border-rose-300 hover:border-rose-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black text-rose-900 uppercase tracking-wider">Absent Days</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <AlertCircle size={16} />
+            </div>
           </div>
-          <div className="text-lg sm:text-xl font-black text-amber-700 mt-1.5 tabular-nums">
-            {fmtDur(totalBreakSeconds)}
-          </div>
-          <div className="text-[11px] mt-0.5">
-            {status === "Active" ? (
-              <button
-                type="button"
-                onClick={() => handleBreakStart && handleBreakStart("Break")}
-                disabled={loading}
-                className="text-amber-700 font-bold hover:underline cursor-pointer"
-              >
-                Take break now →
-              </button>
-            ) : status === "On Break" ? (
-              <button
-                type="button"
-                onClick={() => handleBreakEnd && handleBreakEnd()}
-                disabled={loading}
-                className="text-emerald-700 font-bold hover:underline cursor-pointer"
-              >
-                Resume work →
-              </button>
-            ) : (
-              <span className="text-slate-400 font-medium">Standard 1 hr limit</span>
-            )}
+          <div className="mt-2">
+            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
+              {attStats.absentDays ?? 0} <span className="text-[11px] font-bold text-rose-800">Days</span>
+            </div>
+            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+              <span>● Working Days Missed</span>
+            </div>
           </div>
         </div>
 
-        {/* Card 4: Quick Action - Leaves & Tasks */}
-        <div className="bg-white rounded-xl border border-blue-100 p-3.5 shadow-2xs">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>Leave / Requests</span>
-            <CalendarPlus size={15} className="text-indigo-600" />
+        {/* Card 3: On Leave */}
+        <div className="bg-white rounded-xl border-2 border-blue-300 hover:border-blue-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black text-blue-900 uppercase tracking-wider">On Leave</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <CalendarPlus size={16} />
+            </div>
           </div>
-          <div className="text-base sm:text-lg font-black text-slate-900 mt-1.5">
-            Apply Leave
+          <div className="mt-2">
+            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
+              {attStats.leaveDays ?? 0} <span className="text-[11px] font-bold text-blue-800">Days</span>
+            </div>
+            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+              <span>● Approved Leaves Taken</span>
+            </div>
           </div>
-          <div className="text-[11px] mt-0.5">
-            <button
-              type="button"
-              onClick={() => setView("leaves")}
-              className="text-blue-600 font-bold hover:underline cursor-pointer"
-            >
-              Open leave form →
-            </button>
+        </div>
+
+        {/* Card 4: Half Day */}
+        <div className="bg-white rounded-xl border-2 border-amber-300 hover:border-amber-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black text-amber-900 uppercase tracking-wider">Half Day</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Clock size={16} />
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
+              {attStats.halfDays ?? 0} <span className="text-[11px] font-bold text-amber-800">Days</span>
+            </div>
+            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+              <span>● Shifts Under 8 Hours</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── 3. CONDITIONAL DEPARTMENT TOOL (Sales/Admin/Accounts ONLY) ── */}
-      {isSales ? (
-        <DeptSalesWidgets setView={setView} />
-      ) : isAdmin ? (
-        <DeptAdminWidgets />
-      ) : isAccounts ? (
-        <DeptAccountsWidgets />
-      ) : null}
 
-      {/* ── 4. COMPACT 2-COLUMN MAIN BODY ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left 7 Columns: Today's Shift Details & Attendance Records */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Today's Shift & Break Log */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
+      {/* ── 4. CLEAN MNC 2-COLUMN MAIN BODY (Shift Activity & Daily Work Log - Symmetrical Height) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+        {/* Left 7 Columns: Today's Shift & Break Control Terminal (Compacted to match Work Log) */}
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="bg-white rounded-2xl border-2 border-slate-300 p-3.5 sm:p-4 shadow-xs h-full flex flex-col justify-between">
+            {/* Header: Title & Status */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <Timer size={16} className="text-blue-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Today's Shift Activity
-                </h3>
+                <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center">
+                  <Timer size={15} />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 leading-tight">
+                    Today's Shift & Break Activity
+                  </h3>
+                  <p className="text-[10px] text-slate-500 font-semibold">Live punch tracking & shift duration</p>
+                </div>
               </div>
-              {statusRecord?.halfSalaryDeduct !== undefined && (
-                <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-black border ${
-                    statusRecord.halfSalaryDeduct
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${status === "Active"
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-400"
+                  : status === "On Break"
+                    ? "bg-amber-50 text-amber-800 border-amber-400"
+                    : status === "Checked Out"
+                      ? "bg-slate-100 text-slate-800 border-slate-400"
+                      : "bg-rose-50 text-rose-800 border-rose-400"
                   }`}
-                >
-                  {statusRecord.halfSalaryDeduct ? "Half Day (<8h)" : "Full Day (8h+)"}
-                </span>
-              )}
-            </div>
-
-            {/* Shift timings micro bar */}
-            <div className="grid grid-cols-3 gap-2 text-center p-2.5 bg-blue-50/50 rounded-xl border border-blue-100/80 mb-3">
-              <div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Check In</div>
-                <div className="text-xs font-black text-slate-800 tabular-nums mt-0.5">
-                  {statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Check Out</div>
-                <div className="text-xs font-black text-slate-800 tabular-nums mt-0.5">
-                  {statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : "—"}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-400 font-bold uppercase">Total Break</div>
-                <div className="text-xs font-black text-amber-700 tabular-nums mt-0.5">
-                  {fmtDur(totalBreakSeconds)}
-                </div>
-              </div>
-            </div>
-
-            {/* Breaks log list */}
-            {statusRecord?.breaks?.length > 0 ? (
-              <div className="space-y-1.5">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Break Intervals ({statusRecord.breaks.length})
-                </div>
-                {statusRecord.breaks.map((b, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg text-xs border border-slate-100"
-                  >
-                    <span className="font-bold text-slate-700">{b.type || "Break"}</span>
-                    <span className="text-slate-500 font-medium text-[11px] tabular-nums">
-                      {fmtTime(b.startTime)} → {b.endTime ? fmtTime(b.endTime) : <span className="text-amber-600 font-bold animate-pulse">Ongoing</span>}
-                    </span>
-                    <span className="font-bold text-slate-800 text-[11px] tabular-nums">
-                      {b.durationSeconds ? fmtDur(b.durationSeconds) : "Active"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-2 text-xs text-slate-400">
-                No breaks taken yet today.
-              </div>
-            )}
-          </div>
-
-          {/* Recent Attendance Records */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-blue-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Recent Attendance
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setView("calendar")}
-                className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
               >
-                Calendar View →
-              </button>
-            </div>
-
-            {pastRecords.length === 0 ? (
-              <div className="text-center py-4 text-xs text-slate-400">
-                No past attendance records found.
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {visiblePastRecords.map((rec) => {
-                  const isHalfDay = rec.halfSalaryDeduct || (rec.totalWorkSeconds > 0 && rec.totalWorkSeconds < 28800);
-                  return (
-                    <div
-                      key={rec.date}
-                      className="flex items-center justify-between p-2.5 bg-slate-50/70 hover:bg-slate-50 rounded-lg text-xs border border-slate-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-800 tabular-nums">
-                          {rec.date}
-                        </span>
-                        <span
-                          className={`font-black px-1.5 py-0.2 rounded text-[9px] uppercase ${
-                            rec.status === "Absent"
-                              ? "bg-rose-100 text-rose-800"
-                              : rec.status === "Holiday"
-                              ? "bg-purple-100 text-purple-800"
-                              : rec.status === "On Leave"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-emerald-100 text-emerald-800"
-                          }`}
-                        >
-                          {rec.status}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3 text-slate-500 text-[11px]">
-                        {rec.checkInTime && <span>In: <strong>{fmtTime(rec.checkInTime)}</strong></span>}
-                        {rec.totalWorkSeconds > 0 && (
-                          <span className="font-bold text-blue-900">
-                            {fmtDur(rec.totalWorkSeconds)}
-                          </span>
-                        )}
-                        {isHalfDay && (
-                          <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1 rounded">
-                            Half Day
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {pastRecords.length > 3 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowMorePast(!showMorePast)}
-                    className="w-full py-1.5 text-center text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
-                  >
-                    {showMorePast ? "Show Less ↑" : `Show More (${pastRecords.length - 3} records) ↓`}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right 5 Columns: Tasks & Notices */}
-        <div className="lg:col-span-5 space-y-4">
-          {/* Today's Tasks */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <CheckSquare size={16} className="text-blue-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Tasks
-                </h3>
-              </div>
-              <span className="text-[10px] font-bold text-slate-500">
-                {completedCount}/{tasks.length} Done
+                {status}
               </span>
             </div>
 
-            <div className="space-y-1.5">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => toggleTask(task.id)}
-                  className={`flex items-center justify-between p-2 rounded-lg border transition-all cursor-pointer text-xs ${
-                    task.completed
-                      ? "bg-slate-50 border-slate-200 text-slate-400 line-through"
-                      : "bg-white border-slate-200/70 hover:border-blue-300 text-slate-700"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {task.completed ? (
-                      <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    ) : (
-                      <Square size={15} className="text-slate-400 shrink-0" />
-                    )}
-                    <span className="truncate">{task.title}</span>
-                  </div>
-                  <span
-                    className={`text-[9px] font-black uppercase px-1 py-0.5 rounded shrink-0 ${
-                      task.priority === "High" ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {task.priority}
-                  </span>
+            {/* Middle Section: Live Timer + 3 Micro Metrics in One Streamlined Row */}
+            <div className="my-2.5 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+              {/* Left 6 cols: Live Net Work Timer Banner */}
+              <div className="sm:col-span-6 p-2.5 bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100/60 rounded-xl border border-blue-200 flex flex-col justify-center text-center">
+                <div className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">
+                  Net Work Duration
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Today's Meetings */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Video size={16} className="text-blue-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Meetings
-                </h3>
+                <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight tabular-nums text-blue-950 my-0.5">
+                  {fmtDur(workSeconds)}
+                </div>
+                <div className="text-[10px] font-bold">
+                  {status === "On Break" || isOnBreak ? (
+                    <span className="text-amber-700 font-bold">⏸ Break Paused</span>
+                  ) : status === "Active" ? (
+                    <span className="text-emerald-700 font-bold">▶ Counting Live</span>
+                  ) : status === "Checked Out" ? (
+                    <span className="text-slate-600 font-bold">✓ Shift Done</span>
+                  ) : (
+                    <span className="text-slate-500 font-bold">Inactive</span>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setView("meetings")}
-                className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
-              >
-                All →
-              </button>
-            </div>
 
-            {todayMeetings && todayMeetings.length > 0 ? (
-              <div className="space-y-1.5">
-                {todayMeetings.map((m, idx) => (
-                  <div key={idx} className="p-2.5 bg-blue-50/40 border border-blue-100 rounded-lg flex items-center justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-bold text-slate-900">{m.title}</div>
-                      <div className="text-[10px] text-blue-700">{m.startTime || "Scheduled"} • {m.platform || "Online"}</div>
-                    </div>
-                    {m.meetingLink && (
-                      <a
-                        href={m.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold"
-                      >
-                        Join
-                      </a>
-                    )}
+              {/* Right 6 cols: Micro Shift Timings Bar (Check In, Out, Break) */}
+              <div className="sm:col-span-6 grid grid-cols-3 gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                <div className="p-1">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase">In</div>
+                  <div className="text-xs font-black text-slate-900 tabular-nums mt-0.5">
+                    {statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "—"}
                   </div>
-                ))}
+                </div>
+                <div className="p-1 border-x border-slate-200">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase">Out</div>
+                  <div className="text-xs font-black text-slate-900 tabular-nums mt-0.5">
+                    {statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : "—"}
+                  </div>
+                </div>
+                <div className="p-1">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase">Break</div>
+                  <div className="text-xs font-black text-sky-900 tabular-nums mt-0.5">
+                    {fmtDur(totalBreakSeconds)}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-2 text-xs text-slate-400">
-                No meetings scheduled for today.
-              </div>
-            )}
-          </div>
-
-          {/* Announcements Notice */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <AlertCircle size={16} className="text-amber-600" />
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  Notice Board
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setView("announcements")}
-                className="text-[11px] font-bold text-amber-800 hover:underline cursor-pointer"
-              >
-                All →
-              </button>
             </div>
 
-            {announcements && announcements.length > 0 ? (
-              <div className="space-y-2">
-                {announcements.slice(0, 2).map((a) => (
-                  <div key={a._id} className="p-2.5 bg-amber-50/50 border border-amber-200/60 rounded-lg">
-                    <div className="text-xs font-bold text-amber-950">{a.title}</div>
-                    <div className="text-[11px] text-amber-900 line-clamp-2 mt-0.5">{a.message}</div>
+            {/* Bottom Actions: Compact 1-Row Quick Action Terminal */}
+            <div className="pt-2 border-t border-slate-100">
+              {errorMsg && (
+                <div className="mb-2 p-1.5 bg-rose-50 border border-rose-300 text-rose-800 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+                  <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              {successMsg && (
+                <div className="mb-2 p-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+                  <CheckCircle2 size={13} className="shrink-0 text-emerald-600" />
+                  <span>{successMsg}</span>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* CHECK IN BUTTON */}
+                {(status !== "Active" && status !== "On Break" && status !== "Checked Out") && (
+                  <button
+                    type="button"
+                    onClick={() => handleCheckIn && handleCheckIn()}
+                    disabled={loading}
+                    className="flex-1 min-w-[130px] py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                  >
+                    <LogIn size={13} />
+                    <span>{loading ? "Checking In…" : "Check In Shift"}</span>
+                  </button>
+                )}
+
+                {/* SHIFT COMPLETED BADGE (NO RE-CHECK IN) */}
+                {status === "Checked Out" && (
+                  <div className="flex-1 min-w-[170px] py-2 px-3 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">
+                    <span>🔒 Shift Completed (Checked Out)</span>
                   </div>
-                ))}
+                )}
+
+                {/* BREAK BUTTON */}
+                {status === "Active" && (
+                  <button
+                    type="button"
+                    onClick={() => handleBreakStart && handleBreakStart("Break")}
+                    disabled={loading}
+                    className="flex-1 py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    title="Take Break"
+                  >
+                    <Coffee size={13} />
+                    <span>Take Break</span>
+                  </button>
+                )}
+
+                {/* BREAK IN BUTTON */}
+                {(status === "On Break" || isOnBreak) && (
+                  <button
+                    type="button"
+                    onClick={() => handleBreakEnd && handleBreakEnd()}
+                    disabled={loading}
+                    className="flex-1 min-w-[130px] py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50 animate-pulse"
+                  >
+                    <Play size={13} className="fill-current" />
+                    <span>Break In (Resume)</span>
+                  </button>
+                )}
+
+                {/* CHECK OUT BUTTON */}
+                {(status === "Active" || status === "On Break") && (
+                  <button
+                    type="button"
+                    onClick={() => handleCheckOut && handleCheckOut()}
+                    disabled={loading}
+                    className="py-2 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    title="Check Out Shift"
+                  >
+                    <LogOut size={13} />
+                    <span>{loading ? "…" : "Check Out"}</span>
+                  </button>
+                )}
+
+                {status === "Checked Out" && (
+                  <div className="w-full py-1.5 px-2.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-[11px] font-bold text-center flex items-center justify-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-emerald-700 shrink-0" />
+                    <span>Completed at {fmtTime(statusRecord?.checkOutTime)}. Re-Check In anytime if needed.</span>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="text-center py-2 text-xs text-slate-400">
-                No active announcements.
-              </div>
-            )}
+            </div>
           </div>
+        </div>
+
+        {/* Right 5 Columns: Enterprise Daily Work Log (Symmetrical Height) */}
+        <div className="lg:col-span-5 flex flex-col">
+          <DailyWorkLogSection />
         </div>
       </div>
     </div>
   );
 }
+

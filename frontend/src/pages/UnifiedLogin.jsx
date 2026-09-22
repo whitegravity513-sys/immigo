@@ -77,7 +77,7 @@ export default function UnifiedLogin({ onLoginSuccess }) {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          `Invalid ${role} credentials. Please check your username/password and try again.`
+        `Invalid ${role} credentials. Please check your username/password and try again.`
       );
     } finally {
       setLoading(false);
@@ -118,11 +118,7 @@ export default function UnifiedLogin({ onLoginSuccess }) {
           </div>
 
           {/* Language Selector */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-2xs cursor-pointer">
-            <Globe size={13} className="text-slate-500" />
-            <span>English</span>
-            <ChevronDown size={13} className="text-slate-400" />
-          </div>
+
         </div>
       </header>
 
@@ -139,7 +135,7 @@ export default function UnifiedLogin({ onLoginSuccess }) {
 
       {/* Main Content Area */}
       <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-6 sm:px-10 lg:px-14 xl:px-18 py-6 sm:py-8 gap-8">
-        
+
         {/* Left Hero Area with High Contrast & Crystal-Clear Readability */}
         <div className="w-full lg:w-[55%] flex flex-col justify-between text-left space-y-6">
           <div className="space-y-4">
@@ -282,7 +278,7 @@ export default function UnifiedLogin({ onLoginSuccess }) {
         {/* Right Column: Floating Login Card in ALL-BLUE Theme */}
         <div className="w-full lg:w-[44%] flex items-center justify-center lg:justify-end">
           <div className="w-full max-w-[430px] bg-white rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.12)] border border-slate-200/90 p-6 sm:p-8 text-left relative">
-            
+
             {/* Top Brand Header inside Card with Globe Vector Badge */}
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -315,22 +311,20 @@ export default function UnifiedLogin({ onLoginSuccess }) {
               <button
                 type="button"
                 onClick={() => handleRoleChange("admin")}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  role === "admin"
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "admin"
                     ? "bg-[#1877f2] text-white shadow-sm shadow-blue-500/20"
                     : "text-slate-600 hover:text-slate-900 bg-transparent"
-                }`}
+                  }`}
               >
                 <Shield size={14} /> Admin
               </button>
               <button
                 type="button"
                 onClick={() => handleRoleChange("employee")}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  role === "employee"
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${role === "employee"
                     ? "bg-[#1877f2] text-white shadow-sm shadow-blue-500/20"
                     : "text-slate-600 hover:text-slate-900 bg-transparent"
-                }`}
+                  }`}
               >
                 <User size={14} /> Employee
               </button>

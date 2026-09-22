@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import apiClient from '../../services/apiClient.js';
-import { CheckCircle, XCircle, AlertCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { CheckCircle, AlertCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 /**
  * Modal component for admin to edit an employee's check‑in / check‑out times.

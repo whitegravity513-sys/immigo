@@ -29,37 +29,51 @@ export default function AttendanceCalendarTab({
   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
   const gridItems = [...blanks, ...days];
   const todayKey = getDateKey(new Date());
-  const summary = monthlyData?.summary || {};
+  const stats = statusRecord?.attendanceStats || {
+    presentDays: monthlyData?.summary?.presentDays ?? 0,
+    absentDays: monthlyData?.summary?.absentDays ?? 0,
+    leaveDays: monthlyData?.summary?.totalLeaveDays ?? (monthlyData?.summary?.onLeave ?? 0),
+    halfDays: monthlyData?.summary?.halfDays ?? 0,
+    joiningDate: statusRecord?.joiningDate || "",
+  };
+
+  const formattedJoining = stats.joiningDate
+    ? new Date(stats.joiningDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+    : "Joining Date";
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Lifetime Attendance Since Joining Date */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
-            label: "Working Days",
-            value: summary.totalWorkingDays !== undefined && summary.totalWorkingDays !== null ? `${summary.totalWorkingDays} Days` : "—",
-            sub: "Post-DOJ (Excl. Holidays & Offs)",
-            color: "bg-blue-50 text-blue-700",
+            label: "Present Days",
+            value: `${stats.presentDays ?? 0} Days`,
+            sub: `Since Joining (${formattedJoining})`,
+            color: "bg-emerald-50 text-emerald-800 border-emerald-200",
           },
           {
-            label: "Present",
-            value: summary.presentDays !== undefined && summary.presentDays !== null ? `${summary.presentDays} Days` : "—",
-            color: "bg-emerald-50 text-emerald-700",
+            label: "Absent Days",
+            value: `${stats.absentDays ?? 0} Days`,
+            sub: "Working Days Missed",
+            color: "bg-rose-50 text-rose-800 border-rose-200",
+          },
+          {
+            label: "On Leave",
+            value: `${stats.leaveDays ?? 0} Days`,
+            sub: "Approved Leaves Taken",
+            color: "bg-blue-50 text-blue-800 border-blue-200",
           },
           {
             label: "Half Day",
-            value: summary.halfDays !== undefined && summary.halfDays !== null ? `${summary.halfDays} Days` : "—",
-            color: "bg-amber-50 text-amber-700",
-          },
-          {
-            label: "Absent",
-            value: summary.absentDays !== undefined && summary.absentDays !== null ? `${summary.absentDays} Days` : "—",
-            color: "bg-rose-50 text-rose-700",
+            value: `${stats.halfDays ?? 0} Days`,
+            sub: "Shifts Under 8 Hours",
+            color: "bg-amber-50 text-amber-800 border-amber-200",
           },
         ].map((item) => (
-          <div key={item.label} className={`rounded-2xl border border-slate-200/70 p-4 ${item.color}`}>
+          <div key={item.label} className={`rounded-2xl border p-4 shadow-2xs ${item.color}`}>
             <div className="text-2xl font-black">{item.value}</div>
-            <div className="text-[10px] font-bold uppercase tracking-wider mt-1">{item.label}</div>
+            <div className="text-[11px] font-black uppercase tracking-wider mt-1">{item.label}</div>
             {item.sub && <div className="text-[10px] font-semibold opacity-75 mt-0.5">{item.sub}</div>}
           </div>
         ))}

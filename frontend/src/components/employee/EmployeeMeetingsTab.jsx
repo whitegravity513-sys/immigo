@@ -13,16 +13,25 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export default function EmployeeMeetingsTab({ token }) {
-  const [meetings, setMeetings] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
+  const [meetings, setMeetings] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem("cached_employee_meetings") || "[]");
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+    } catch {}
+    return Array.isArray(initialMeetings) ? initialMeetings : [];
+  });
+  const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
 
   const fetchMeetings = async () => {
-    setLoading(true);
     try {
       const res = await apiClient.get("/employee/meetings");
-      setMeetings(Array.isArray(res.data) ? res.data : []);
+      const list = Array.isArray(res.data) ? res.data : [];
+      setMeetings(list);
+      try {
+        localStorage.setItem("cached_employee_meetings", JSON.stringify(list));
+      } catch {}
     } catch (err) {
       console.error("Failed to load meetings", err);
     } finally {
@@ -32,7 +41,7 @@ export default function EmployeeMeetingsTab({ token }) {
 
   useEffect(() => {
     fetchMeetings();
-    const interval = setInterval(fetchMeetings, 15000);
+    const interval = setInterval(() => fetchMeetings(false), 25000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -74,12 +83,7 @@ export default function EmployeeMeetingsTab({ token }) {
         </button>
       </div>
 
-      {loading ? (
-        <div className="py-16 text-center text-slate-400">
-          <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-          <p className="text-xs font-semibold">Loading your schedule...</p>
-        </div>
-      ) : meetings.length === 0 ? (
+      {meetings.length === 0 ? (
         <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-400 shadow-xs">
           <Video size={40} className="mx-auto mb-3 opacity-30 text-slate-500" />
           <h3 className="text-base font-bold text-slate-700">No Meetings Scheduled</h3>

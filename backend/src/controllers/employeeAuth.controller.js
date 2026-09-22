@@ -57,7 +57,10 @@ export const employeeLogin = asyncHandler(async (req, res) => {
       employeeId: employee.employeeId,
       name: employee.name,
       email: employee.email,
-      designation: employee.designation,
+      designation: employee.designation || "Employee",
+      department: employee.department || "General",
+      profileImage: employee.profileImage || "",
+      leaveBalance: employee.leaveBalance ?? 0,
     },
   });
 });

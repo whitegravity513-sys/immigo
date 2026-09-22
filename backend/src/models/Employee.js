@@ -10,20 +10,7 @@ const employeeDocumentSchema = new mongoose.Schema(
     type: {
       type: String,
       default: "Other",
-      enum: [
-        "Profile Photo",
-        "Resume / CV",
-        "Aadhaar / National ID",
-        "PAN Card",
-        "Offer Letter",
-        "Appointment Letter",
-        "Educational Certificates",
-        "Relieving / Experience Letter",
-        "Bank Proof / Cancelled Cheque",
-        "Address Proof",
-        "NDA / Agreement",
-        "Other",
-      ],
+      trim: true,
     },
     url: {
       type: String,
@@ -68,6 +55,12 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    personalEmail: {
+      type: String,
+      default: "",
       lowercase: true,
       trim: true,
     },
@@ -140,7 +133,7 @@ const employeeSchema = new mongoose.Schema(
     role: {
       type: String,
       default: "employee",
-      enum: ["employee", "manager", "admin", "hr"],
+      trim: true,
     },
     permissions: [
       {
@@ -156,7 +149,10 @@ const employeeSchema = new mongoose.Schema(
       type: Number,
       default: 18,
     },
-    documents: [employeeDocumentSchema],
+    documents: {
+      type: [employeeDocumentSchema],
+      select: false,
+    },
   },
   {
     timestamps: true,

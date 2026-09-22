@@ -10,18 +10,18 @@ import {
   XCircle,
   Eye,
   Calendar,
-  Building2,
   Tag,
   UploadCloud,
   FileUp,
   ExternalLink,
   MessageSquare,
+  Trash2,
 } from "lucide-react";
+import { compressImage, formatFileUrl } from "./EmployeeProfileDocsTab.jsx";
 
 export default function EmployeeExpensesTab({ user, token }) {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -36,7 +36,7 @@ export default function EmployeeExpensesTab({ user, token }) {
     amount: "",
     date: new Date().toISOString().split("T")[0],
     categoryId: "",
-    clientId: "",
+    categoryName: "",
     receipt: "",
     remarks: "",
   });
@@ -58,10 +58,9 @@ export default function EmployeeExpensesTab({ user, token }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [expRes, catRes, clientRes] = await Promise.all([
+      const [expRes, catRes] = await Promise.all([
         apiClient.get("/employee/expenses"),
         apiClient.get("/employee/expense-categories").catch(() => ({ data: [] })),
-        apiClient.get("/employee/clients").catch(() => ({ data: [] })),
       ]);
 
       setExpenses(Array.isArray(expRes.data) ? expRes.data : []);
@@ -70,7 +69,6 @@ export default function EmployeeExpensesTab({ user, token }) {
       if (cats.length > 0 && !formData.categoryId) {
         setFormData((prev) => ({ ...prev, categoryId: cats[0]._id || cats[0].id }));
       }
-      setClients(Array.isArray(clientRes.data) ? clientRes.data : []);
     } catch (err) {
       showError(err.response?.data?.message || "Failed to load expense history.");
     } finally {
@@ -82,39 +80,58 @@ export default function EmployeeExpensesTab({ user, token }) {
     fetchData();
   }, []);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      showError("Receipt file must be under 10 MB.");
+    if (file.size > 15 * 1024 * 1024) {
+      showError("Receipt file must be under 15 MB.");
       return;
     }
     setReceiptLabel(file.name);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, receipt: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrl = await compressImage(file, 1600, 0.85);
+      setFormData((prev) => ({ ...prev, receipt: dataUrl }));
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, receipt: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.amount || !formData.categoryId) {
+    const catVal = (formData.categoryName || formData.categoryId || "").trim();
+    if (!formData.title.trim() || !formData.amount || !catVal) {
       showError("Title, Amount, and Category are required.");
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await apiClient.post("/employee/expenses", formData);
-      showSuccess("Expense submitted successfully! Awaiting Admin review.");
+      const payload = {
+        ...formData,
+        categoryName: catVal,
+        categoryId: formData.categoryId || catVal,
+      };
+      const res = await apiClient.post("/employee/expenses", payload);
+      const newExp = res.data?.expense;
+      if (newExp) {
+        setExpenses((prev) => [
+          newExp,
+          ...prev.filter((e) => (e._id || e.id) !== (newExp._id || newExp.id)),
+        ]);
+      }
+      showSuccess("Expense claim submitted successfully! Admin has been notified.");
       setIsModalOpen(false);
       setFormData({
         title: "",
         description: "",
         amount: "",
         date: new Date().toISOString().split("T")[0],
-        categoryId: categories.length > 0 ? (categories[0]._id || categories[0].id) : "",
+        categoryId: "",
+        categoryName: "",
         clientId: "",
         receipt: "",
         remarks: "",
@@ -125,6 +142,19 @@ export default function EmployeeExpensesTab({ user, token }) {
       showError(err.response?.data?.message || "Failed to submit expense claim.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteExpense = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete "${title || "this expense"}"?`)) {
+      return;
+    }
+    try {
+      await apiClient.delete(`/employee/expenses/${id}`);
+      setExpenses((prev) => prev.filter((e) => (e._id || e.id) !== id));
+      showSuccess("Expense claim deleted successfully.");
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to delete expense claim.");
     }
   };
 
@@ -242,16 +272,15 @@ export default function EmployeeExpensesTab({ user, token }) {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
+          <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Date</th>
                 <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Expense Item</th>
                 <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Category</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Client</th>
                 <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Amount</th>
                 <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Status</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider text-right">Receipt / Details</th>
+                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -276,16 +305,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                       {item.category?.name || "General"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs font-medium text-slate-600 whitespace-nowrap">
-                    {item.client?.name ? (
-                      <span className="flex items-center gap-1">
-                        <Building2 size={13} className="text-slate-400" />
-                        {item.client.name}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400 italic">Internal</span>
-                    )}
-                  </td>
                   <td className="px-6 py-4 text-sm font-black text-slate-800 whitespace-nowrap">
                     ₹{Number(item.amount || 0).toLocaleString("en-IN")}
                   </td>
@@ -303,24 +322,33 @@ export default function EmployeeExpensesTab({ user, token }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
-                    {item.receipt ? (
+                    <div className="flex items-center justify-end gap-1.5">
+                      {item.receipt ? (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewReceipt(item)}
+                          className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                          title="View Receipt Bill"
+                        >
+                          <Eye size={13} /> View
+                        </button>
+                      ) : null}
                       <button
                         type="button"
-                        onClick={() => setPreviewReceipt(item)}
-                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                        onClick={() => handleDeleteExpense(item._id || item.id, item.title || item.name)}
+                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold inline-flex items-center justify-center cursor-pointer transition-colors border border-rose-100"
+                        title="Delete Expense Claim"
                       >
-                        <Eye size={13} /> View Bill
+                        <Trash2 size={13} />
                       </button>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">No receipt</span>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
 
               {filteredExpenses.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400 font-semibold text-sm">
+                  <td colSpan={6} className="text-center py-12 text-slate-400 font-semibold text-sm">
                     No expense claims found for this filter.
                   </td>
                 </tr>
@@ -354,42 +382,45 @@ export default function EmployeeExpensesTab({ user, token }) {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
-              {/* Category & Client */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Expense Category *</label>
-                  <select
-                    required
-                    value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
-                  >
-                    <option value="" disabled>
-                      Select Category
-                    </option>
-                    {categories.map((c) => (
-                      <option key={c._id || c.id} value={c._id || c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+              {/* Expense Category - Full Width */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Expense Category *
+                  </label>
+                  <span className="text-[10px] text-blue-600 font-semibold">Type custom or pick</span>
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Related Client (Optional)</label>
-                  <select
-                    value={formData.clientId}
-                    onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
-                  >
-                    <option value="">None / Company Internal</option>
-                    {clients.map((c) => (
-                      <option key={c._id || c.id} value={c._id || c.id}>
-                        {c.name} ({c.company || "Client"})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <input
+                  type="text"
+                  required
+                  list="category-suggestions"
+                  placeholder="Type category (e.g. Travel, Food, Office Supplies, Lodging)"
+                  value={formData.categoryName || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const matched = categories.find((c) => c.name.toLowerCase() === val.toLowerCase());
+                    setFormData({
+                      ...formData,
+                      categoryName: val,
+                      categoryId: matched ? (matched._id || matched.id) : val,
+                    });
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-semibold focus:outline-none focus:border-blue-500 transition-all placeholder:font-normal placeholder:text-slate-400"
+                />
+                <datalist id="category-suggestions">
+                  {categories.map((c) => (
+                    <option key={c._id || c.id} value={c.name} />
+                  ))}
+                  <option value="Travel / Taxi / Cab" />
+                  <option value="Client Dinner / Meeting" />
+                  <option value="Office Supplies & Stationery" />
+                  <option value="Phone / Internet Recharge" />
+                  <option value="Government & Embassy Fees" />
+                  <option value="Hotel & Lodging" />
+                  <option value="Fuel / Petrol" />
+                  <option value="Courier / Speed Post" />
+                  <option value="General & Miscellaneous" />
+                </datalist>
               </div>
 
               {/* Title & Amount */}
@@ -524,10 +555,10 @@ export default function EmployeeExpensesTab({ user, token }) {
 
             <div className="flex-1 p-4 bg-slate-100 overflow-y-auto flex items-center justify-center min-h-[350px]">
               {previewReceipt.receipt?.startsWith("data:application/pdf") || previewReceipt.receipt?.endsWith(".pdf") ? (
-                <iframe src={previewReceipt.receipt} title="Receipt" className="w-full h-[500px] rounded-xl border" />
+                <iframe src={formatFileUrl(previewReceipt.receipt)} title="Receipt" className="w-full h-[500px] rounded-xl border" />
               ) : (
                 <img
-                  src={previewReceipt.receipt}
+                  src={formatFileUrl(previewReceipt.receipt)}
                   alt="Receipt"
                   className="max-h-[500px] max-w-full rounded-xl object-contain shadow-sm"
                 />
@@ -539,7 +570,7 @@ export default function EmployeeExpensesTab({ user, token }) {
                 Amount: ₹{Number(previewReceipt.amount || 0).toLocaleString("en-IN")}
               </span>
               <a
-                href={previewReceipt.receipt}
+                href={formatFileUrl(previewReceipt.receipt)}
                 download={`Receipt-${previewReceipt.title}`}
                 target="_blank"
                 rel="noreferrer"

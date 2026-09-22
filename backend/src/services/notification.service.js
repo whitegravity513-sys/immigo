@@ -102,7 +102,9 @@ export class NotificationService {
    * Fetch employee-targeted notifications
    */
   static async getEmployeeNotifications(employeeId, limit = 30) {
-    const empObjId = new mongoose.Types.ObjectId(employeeId.toString());
+    const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
+      ? new mongoose.Types.ObjectId(employeeId.toString())
+      : null;
 
     const filter = {
       $or: [
@@ -112,8 +114,12 @@ export class NotificationService {
         },
         {
           targetRole: { $in: ["EMPLOYEE", "ALL"] },
-          targetType: "SPECIFIC",
-          targetEmployeeId: empObjId,
+          $or: [
+            ...(empObjId ? [{ targetEmployeeId: empObjId }] : []),
+            { targetEmployeeId: employeeId },
+            ...(empObjId ? [{ employeeId: empObjId }] : []),
+            { employeeId },
+          ],
         },
       ],
     };
@@ -173,30 +179,37 @@ export class NotificationService {
    * Mark all notifications as read for an employee
    */
   static async markAllAsReadForEmployee(employeeId) {
-    const empObjId = new mongoose.Types.ObjectId(employeeId.toString());
+    const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
+      ? new mongoose.Types.ObjectId(employeeId.toString())
+      : null;
 
     // Mark specific notifications as read
     await Notification.updateMany(
       {
-        targetRole: { $in: ["EMPLOYEE", "ALL"] },
-        targetType: "SPECIFIC",
-        targetEmployeeId: empObjId,
+        $or: [
+          ...(empObjId ? [{ targetEmployeeId: empObjId }] : []),
+          { targetEmployeeId: employeeId },
+          ...(empObjId ? [{ employeeId: empObjId }] : []),
+          { employeeId },
+        ],
         read: false,
       },
-      { read: true }
+      { $set: { read: true } }
     );
 
-    // Add employee to readBy for ALL notifications
-    await Notification.updateMany(
-      {
-        targetRole: { $in: ["EMPLOYEE", "ALL"] },
-        targetType: "ALL",
-        readBy: { $ne: empObjId },
-      },
-      {
-        $addToSet: { readBy: empObjId },
-      }
-    );
+    // Add employee to readBy for ALL broadcast notifications
+    if (empObjId) {
+      await Notification.updateMany(
+        {
+          targetRole: { $in: ["EMPLOYEE", "ALL"] },
+          targetType: "ALL",
+          readBy: { $ne: empObjId },
+        },
+        {
+          $addToSet: { readBy: empObjId },
+        }
+      );
+    }
 
     return { success: true };
   }

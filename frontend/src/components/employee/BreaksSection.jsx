@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Coffee, Play, Pause, AlertCircle, Clock, ShieldCheck, Timer } from "lucide-react";
 
 export default function BreaksSection({
@@ -30,7 +30,7 @@ export default function BreaksSection({
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
               <Timer size={22} />
             </div>
             <div>
@@ -39,7 +39,7 @@ export default function BreaksSection({
             </div>
           </div>
           <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black ${
-            isOnBreak ? "bg-amber-100 text-amber-800 border border-amber-300"
+            isOnBreak ? "bg-sky-100 text-sky-800 border border-sky-300"
             : status === "Active" ? "bg-emerald-50 text-emerald-700 border border-emerald-300"
             : "bg-slate-100 text-slate-600 border border-slate-200"
           }`}>
@@ -49,11 +49,11 @@ export default function BreaksSection({
         </div>
 
         {/* Big Timer Display */}
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-6 text-center">
-          <div className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight text-amber-900 mb-1">
+        <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-2xl border border-sky-200 p-6 text-center">
+          <div className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight text-sky-950 mb-1">
             {fmtDur(totalBreakSec)}
           </div>
-          <div className="text-xs font-bold text-amber-700 uppercase tracking-wider">Total Break Time Used Today</div>
+          <div className="text-xs font-bold text-sky-700 uppercase tracking-wider">Total Break Time Used Today</div>
         </div>
 
         {/* Single Break Action Button */}
@@ -63,9 +63,9 @@ export default function BreaksSection({
               <button
                 onClick={() => handleBreakStart("Break")}
                 disabled={loading || isHolidayToday}
-                className="flex-1 py-4 bg-amber-500 hover:bg-amber-600 active:scale-[.98] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm shadow-amber-500/20 text-sm"
+                className="flex-1 py-4 bg-sky-500 hover:bg-sky-600 active:scale-[.98] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm shadow-sky-500/20 text-sm"
               >
-                <Pause size={18} /> Take a Break
+                <Pause size={18} /> Break
               </button>
             ) : (
               <button
@@ -107,21 +107,21 @@ export default function BreaksSection({
 
         {breaksList.length === 0 ? (
           <div className="text-center py-6 text-slate-400 text-xs font-semibold bg-slate-50 rounded-xl border border-dashed border-slate-300">
-            No breaks taken yet today. Click "Take a Break" above when stepping away.
+            No breaks taken yet today. Click "Break" above when stepping away.
           </div>
         ) : (
           <div className="space-y-2.5">
             {breaksList.map((b, idx) => (
               <div key={idx} className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl text-xs">
                 <div className="flex items-center gap-3">
-                  <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5">
+                  <span className="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-800 border border-sky-300 flex items-center gap-1.5">
                     <Coffee size={11} /> {b.type || "Break"}
                   </span>
                   <span className="text-slate-600 font-semibold tabular-nums">
                     {fmtTime ? fmtTime(b.startTime) : b.startTime} →{" "}
                     {b.endTime
                       ? (fmtTime ? fmtTime(b.endTime) : b.endTime)
-                      : <span className="text-amber-600 font-black animate-pulse">Ongoing</span>}
+                      : <span className="text-sky-600 font-black animate-pulse">Ongoing</span>}
                   </span>
                 </div>
                 <div className="font-extrabold tabular-nums text-slate-900">

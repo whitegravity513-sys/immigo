@@ -88,7 +88,7 @@ export function ImmiGoLogo({
       {subtitle && (
         <span
           className={`font-bold tracking-wider uppercase mt-1 ${sizeClasses.sub} ${
-            isLight ? "text-blue-200/80" : "text-blue-600"
+            isLight ? "text-white" : "text-blue-600"
           }`}
         >
           {subtitle}
@@ -121,45 +121,13 @@ export function ImmiGoIcon({ size = "md", className = "" }) {
  * Sits subtly in the viewport background without blocking interactions.
  */
 export function DashboardWatermark() {
-  return (
-    <div
-      className="fixed inset-0 pointer-events-none select-none z-0 flex items-center justify-center overflow-hidden"
-      aria-hidden="true"
-    >
-      <div className="relative flex flex-col items-center justify-center opacity-[0.032] transform -rotate-12 scale-110 sm:scale-125 lg:scale-150">
-        <div className="flex items-end gap-2">
-          <span className="font-black text-7xl sm:text-9xl text-slate-900 tracking-tighter leading-none">
-            immi
-          </span>
-          <span className="font-black text-7xl sm:text-9xl text-blue-600 tracking-tighter leading-none">
-            Go
-          </span>
-          <svg
-            viewBox="0 0 20 20"
-            fill="none"
-            className="w-16 h-16 sm:w-24 sm:h-24 text-orange-500 mb-4 ml-1 shrink-0"
-          >
-            <path
-              d="M3 10h14M10 3l7 7-7 7"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <div className="text-lg sm:text-2xl font-black text-blue-900 uppercase tracking-[0.35em] mt-3">
-          Immigration &bull; Recruitment &bull; Global Mobility
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 /**
  * Employee ID Badge Styled in the signature immiGo Brand Identity ("employe id logo jaisa bnao")
  */
-export function EmployeeIdBadge({ id, size = "md", className = "" }) {
+export function EmployeeIdBadge({ id, size = "md", className = "", onClick, title }) {
   if (id && /^[0-9a-fA-F]{24}$/.test(id)) {
     return null;
   }
@@ -168,7 +136,15 @@ export function EmployeeIdBadge({ id, size = "md", className = "" }) {
 
   return (
     <span
+      onClick={onClick}
+      title={title || (onClick ? "Click to view Employee Profile & Documents" : undefined)}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={`inline-flex items-center gap-1.5 rounded-lg font-black tracking-tight select-none shadow-2xs ${
+        onClick
+          ? "cursor-pointer hover:border-blue-400 hover:shadow-xs hover:scale-102 active:scale-98 transition-all"
+          : ""
+      } ${
         isSm
           ? "px-2 py-0.5 text-[10px] bg-blue-50/95 border border-blue-200/90 text-slate-900"
           : "px-2.5 py-1 text-xs bg-blue-50/95 border border-blue-200/90 text-slate-900"

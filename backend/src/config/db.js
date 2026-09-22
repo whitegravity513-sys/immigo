@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { logger } from "../utils/logger.js";
+import { env } from "./env.js";
 
 let isConnected = false;
 
@@ -9,7 +10,7 @@ export const connectDB = async () => {
     return;
   }
 
-  const mongoUri = process.env.MONGO_URI;
+  const mongoUri = env.MONGO_URI || process.env.MONGO_URI;
   if (!mongoUri) {
     throw new Error("MONGO_URI environment variable is not defined in .env");
   }
@@ -46,7 +47,7 @@ export const connectDB = async () => {
       heartbeatFrequencyMS: 10000,
       retryWrites: true,
       retryReads: true,
-      autoIndex: process.env.NODE_ENV !== "production", // Disable auto-index in prod for perf
+      autoIndex: false, // Explicitly disabled to prevent startup query blocking on Atlas
     });
 
     isConnected = true;

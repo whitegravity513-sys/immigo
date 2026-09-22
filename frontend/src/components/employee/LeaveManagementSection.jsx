@@ -108,6 +108,29 @@ export default function LeaveManagementSection({
           </div>
 
           <form onSubmit={handleLeaveSubmit} className="space-y-4">
+            {/* Leave Type Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                <span>Leave Type *</span>
+                <span className="text-[10px] text-blue-600 font-semibold lowercase">Select type</span>
+              </label>
+              <select
+                required
+                value={leaveForm.leaveType || "Casual Leave"}
+                onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold cursor-pointer"
+              >
+                <option value="Casual Leave">Casual Leave (CL)</option>
+                <option value="Sick Leave">Sick / Medical Leave (SL)</option>
+                <option value="Paid Leave">Paid / Privilege Leave (PL)</option>
+                <option value="Half Day Leave">Half Day Leave</option>
+                <option value="Emergency Leave">Emergency Leave</option>
+                <option value="Maternity / Paternity">Maternity / Paternity Leave</option>
+                <option value="Bereavement Leave">Bereavement Leave</option>
+                <option value="Other">Other Reason</option>
+              </select>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
@@ -229,7 +252,7 @@ export default function LeaveManagementSection({
                     Doc
                   </th>
                   <th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
-                    Status & Remark
+                    Status
                   </th>
                 </tr>
               </thead>
@@ -281,20 +304,6 @@ export default function LeaveManagementSection({
                       >
                         {lv.status}
                       </span>
-                      {lv.adminRemark && (
-                        <div
-                          className={`text-[11px] font-medium p-2 rounded-lg border mt-1.5 ${
-                            lv.status === "Rejected"
-                              ? "bg-rose-50 text-rose-800 border-rose-100"
-                              : "bg-slate-50 text-slate-600 border-slate-100"
-                          }`}
-                        >
-                          <span className="font-bold uppercase text-[9px] tracking-wider block text-slate-500 mb-0.5">
-                            Admin Remark:
-                          </span>
-                          {lv.adminRemark}
-                        </div>
-                      )}
                     </td>
                   </tr>
                 ))}

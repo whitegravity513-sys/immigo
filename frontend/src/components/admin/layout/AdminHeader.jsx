@@ -20,6 +20,7 @@ export const AdminHeader = ({
 }) => {
   const getSectionTitle = (v) => {
     const titles = {
+      workforce: "Workforce Management Hub",
       live: "Live Attendance Monitor",
       dashboard: "Live Attendance Monitor",
       employees: "Employee Directory",
@@ -35,6 +36,7 @@ export const AdminHeader = ({
       "expense-report": "Expense Analytics",
       expenses: "Corporate Expense Hub",
       announcements: "Company Announcements",
+      "attendance-all": "Full Attendance Register",
     };
     return titles[v] || "HR Operations";
   };
@@ -86,18 +88,15 @@ export const AdminHeader = ({
               </span>
             </div>
             <div className="hidden md:flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span className="text-[10px] text-blue-300 font-bold tracking-wide">Enterprise Admin Console</span>
+
+
             </div>
           </div>
         </div>
 
         {/* Right: Status + Notifications + Role Badge */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-900/60 border border-blue-700/50 text-[11px] font-bold text-emerald-300 shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Console Live</span>
-          </div>
+
 
           <div className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-black text-cyan-300 uppercase tracking-widest">
             <Shield size={11} className="text-cyan-400" />

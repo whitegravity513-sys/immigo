@@ -12,18 +12,47 @@ import {
   X,
 } from "lucide-react";
 
-export default function EmployeeNotificationBell({ token, onSelectMeeting, className }) {
+export default function EmployeeNotificationBell({ token, onSelectMeeting, onNewNotification, className }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+  const lastKnownIdRef = useRef(null);
+  const initialFetchDone = useRef(false);
 
   const fetchNotifications = async () => {
     try {
       const res = await apiClient.get("/employee/notifications?limit=25");
       if (res.data) {
-        setNotifications(res.data.notifications || []);
-        setUnreadCount(res.data.unreadCount || 0);
+        let list = res.data.notifications || [];
+        const lastReadAllTs = parseInt(localStorage.getItem("emp_notifs_read_all_ts") || "0", 10);
+
+        let effectiveUnread = 0;
+        list = list.map((n) => {
+          const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
+          const isRead = Boolean(n.read || (lastReadAllTs && itemTime && itemTime <= lastReadAllTs));
+          if (!isRead) effectiveUnread++;
+          return { ...n, read: isRead };
+        });
+
+        setNotifications(list);
+        setUnreadCount(effectiveUnread);
+
+        // Detect new unread notification from admin
+        if (initialFetchDone.current && list.length > 0) {
+          const newest = list[0];
+          const newestId = newest.id || newest._id;
+          if (newestId !== lastKnownIdRef.current && !newest.read) {
+            lastKnownIdRef.current = newestId;
+            if (onNewNotification) onNewNotification(newest);
+            window.dispatchEvent(new CustomEvent("new-admin-notification", { detail: newest }));
+          }
+        }
+
+        if (list.length > 0) {
+          lastKnownIdRef.current = list[0].id || list[0]._id;
+        }
+        initialFetchDone.current = true;
       }
     } catch {
       // Silent error for polling
@@ -32,7 +61,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, class
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 6000);
+    const interval = setInterval(fetchNotifications, 10000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -61,9 +90,10 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, class
 
   const handleMarkAllAsRead = async () => {
     try {
-      await apiClient.put("/employee/notifications/read-all", {});
+      localStorage.setItem("emp_notifs_read_all_ts", Date.now().toString());
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      await apiClient.put("/employee/notifications/read-all", {});
     } catch (err) {
       console.error(err);
     }
@@ -149,11 +179,16 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, class
                     key={notifId}
                     onClick={() => !item.read && handleMarkOneAsRead(notifId)}
                     className={`p-3.5 transition-colors cursor-pointer hover:bg-slate-50 flex flex-col gap-1.5 ${
-                      !item.read ? "bg-emerald-50/40 border-l-3 border-emerald-500" : ""
+                      !item.read
+                        ? "bg-blue-50/50 border-l-3 border-blue-600"
+                        : "bg-white opacity-80 hover:opacity-100"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
+                        {!item.read && (
+                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" title="Unread" />
+                        )}
                         <span
                           className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border ${
                             isMeeting

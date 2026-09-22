@@ -1,4 +1,5 @@
 import Holiday from "../models/Holiday.js";
+import Attendance from "../models/Attendance.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 
@@ -38,15 +39,40 @@ export class HolidayService {
       });
     }
 
+    // Policy: Update any existing attendance records for this date so employees are not penalized/absent
     try {
-      NotificationService.createNotification({
+      await Attendance.updateMany(
+        { date },
+        {
+          $set: {
+            status: "Holiday",
+            isPenaltyAbsent: false,
+            halfSalaryDeduct: false,
+            otherBreakExceeded: false,
+            notes: `Official Holiday: ${title}`,
+          },
+        }
+      );
+    } catch (attErr) {
+      console.error("Error updating attendance for declared holiday:", attErr);
+    }
+
+    // Broadcast official notification to all employees
+    try {
+      await NotificationService.createNotification({
         type: "HOLIDAY_ANNOUNCEMENT",
-        title: `Announcement: ${title}`,
-        message: `Date: ${date}. ${description}`,
+        title: `Official Holiday Declared: ${title}`,
+        message: `Office will remain closed on ${date} (${title}). Attendance is not required. ${description || ""}`.trim(),
+        targetRole: "ALL",
         targetType: "ALL",
+        metadata: {
+          holidayId: holiday._id.toString(),
+          date,
+          title,
+        },
       });
     } catch (e) {
-      // non-blocking
+      console.error("Error broadcasting holiday notification:", e);
     }
 
     return this.formatHoliday(holiday);

@@ -1,5 +1,4 @@
-import React from "react";
-import { Edit, Save } from "lucide-react";
+
 
 export default function AttendanceSummarySection({
   summaryMonth,
@@ -10,9 +9,13 @@ export default function AttendanceSummarySection({
   summaryData = [],
   fetchSummary,
   openEmployeeDetail,
+  // eslint-disable-next-line no-unused-vars
   inlineLeaveEdit,
+  // eslint-disable-next-line no-unused-vars
   setInlineLeaveEdit,
+  // eslint-disable-next-line no-unused-vars
   inlineLeaveLoading,
+  // eslint-disable-next-line no-unused-vars
   handleSetLeaveBalance
 }) {
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -55,7 +58,7 @@ export default function AttendanceSummarySection({
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr>
-                {["Employee", "Working Days (Post-DOJ)", "Full Day", "Half Day", "Absent", "Leaves Taken"].map(h => (
+                {["Employee", "Post-DOJ", "Full Day", "Half Day", "Absent", "Leaves Taken"].map(h => (
                   <th key={h} className="px-4 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
                 ))}
               </tr>
@@ -80,7 +83,7 @@ export default function AttendanceSummarySection({
                     </td>
                     <td className="px-4 py-4 text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <span className="text-sm font-black text-slate-800">{workingDays} Days</span>
+
                         {emp.joiningDate && emp.summary?.totalMonthWorkingDays && emp.summary.totalMonthWorkingDays !== workingDays ? (
                           <span
                             className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded mt-0.5"

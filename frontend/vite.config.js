@@ -3,6 +3,15 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   base: '/',
+  server: {
+    port: 5173,
+    proxy: {
+      '/uploads': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     tailwindcss(),
   ],

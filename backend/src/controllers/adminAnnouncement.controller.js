@@ -29,6 +29,7 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
       type: "ANNOUNCEMENT",
       title: `Announcement: ${title}`,
       message,
+      targetRole: "ALL",
       targetType: "ALL",
       metadata: {
         announcementId: announcement._id,

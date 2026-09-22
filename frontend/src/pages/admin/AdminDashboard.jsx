@@ -35,17 +35,15 @@ import {
   Trash2,
   Building,
   Award,
+  LayoutDashboard,
 } from "lucide-react";
+import WorkforceDashboardSection from "../../components/admin/WorkforceDashboardSection.jsx";
 import { useAdminDashboard } from "../../hooks/useAdminDashboard";
 import EditAttendance from "../../components/admin/EditAttendance.jsx";
-import EmployeeMonthlyReport from "./employees/EmployeeMonthlyReport.jsx";
-import EmployeeDetail from "./employees/EmployeeDetail.jsx";
-import ExpenseCategories from "./expenses/ExpenseCategories.jsx";
-import ExpenseForm from "./expenses/ExpenseForm.jsx";
-import ExpenseReport from "./expenses/ExpenseReport.jsx";
-import CalendarMeetings from "./meetings/CalendarMeetings.jsx";
 import NotificationBell from "../../components/admin/NotificationBell.jsx";
 import AnnouncementsSection from "../../components/admin/AnnouncementsSection.jsx";
+import CalendarMeetings from "./meetings/CalendarMeetings.jsx";
+import EmployeeMonthlyReport from "./employees/EmployeeMonthlyReport.jsx";
 
 import {
   LiveAttendanceSection,
@@ -55,6 +53,7 @@ import {
   HolidaysSection,
   ExpensesSection,
   EmployeeDetailSection,
+  AttendanceCalendarSection,
 } from "../../components/admin";
 import { AdminHeader, AdminSidebar, AdminFooter } from "../../components/admin/layout";
 import RegisterEmployeeModal from "../../components/admin/RegisterEmployeeModal.jsx";
@@ -81,7 +80,7 @@ function AdminDashboard({ user, token, onLogout }) {
   const rawSegment = pathParts.pop();
   const pathSegment =
     rawSegment === "admin" || rawSegment === "dashboard" || !rawSegment
-      ? "live"
+      ? "workforce"
       : rawSegment;
   const view = isEmployeeDetail ? "employee-detail" : pathSegment;
 
@@ -222,6 +221,40 @@ function AdminDashboard({ user, token, onLogout }) {
     navigateTo,
   } = useAdminDashboard(user, token, navigate, location, view);
 
+  const renderWorkforceHub = () => (
+    <WorkforceDashboardSection
+      employees={employees}
+      attendanceReport={attendanceReport}
+      leavesReport={leavesReport}
+      openEmployeeDetail={openEmployeeDetail}
+      openAddModal={handleOpenAddModal}
+      fetchAdminReports={fetchAdminReports}
+      openLeaveAction={openLeaveActionModal}
+      navigateTo={navigateTo}
+      formatTime={formatTime}
+      formatDate={formatDate}
+      setEditingAttendance={setEditingAttendance}
+      isFullRegisterPage={false}
+    />
+  );
+
+  const renderFullAttendanceRegister = () => (
+    <WorkforceDashboardSection
+      employees={employees}
+      attendanceReport={attendanceReport}
+      leavesReport={leavesReport}
+      openEmployeeDetail={openEmployeeDetail}
+      openAddModal={handleOpenAddModal}
+      fetchAdminReports={fetchAdminReports}
+      openLeaveAction={openLeaveActionModal}
+      navigateTo={navigateTo}
+      formatTime={formatTime}
+      formatDate={formatDate}
+      setEditingAttendance={setEditingAttendance}
+      isFullRegisterPage={true}
+    />
+  );
+
   const renderLiveTracker = () => (
     <LiveAttendanceSection
       attendanceReport={attendanceReport}
@@ -292,6 +325,7 @@ function AdminDashboard({ user, token, onLogout }) {
       openTextModal={openTextModal}
       handleEditExpenseClick={handleEditExpenseClick}
       handleDeleteExpense={handleDeleteExpense}
+      fetchExpenses={fetchExpenses}
     />
   );
 
@@ -490,9 +524,16 @@ function AdminDashboard({ user, token, onLogout }) {
       isGroup: true,
       subItems: [
         {
-          key: "live",
+          key: "workforce",
+          icon: <LayoutDashboard size={15} className="shrink-0" />,
+          label: "Dashboard",
+          onClick: () => navigateTo("workforce"),
+        },
+        {
+          key: "attendance-all",
           icon: <Clock size={15} className="shrink-0" />,
-          label: "Live Tracker",
+          label: "Attendance Register",
+          onClick: () => navigateTo("attendance-all"),
         },
         {
           key: "employees",
@@ -587,7 +628,7 @@ function AdminDashboard({ user, token, onLogout }) {
           onLogout={onLogout}
         />
 
-        <main className="flex-1 p-3.5 sm:p-5 md:p-6 max-w-[1440px] w-full mx-auto overflow-x-hidden">
+        <main className="flex-1 p-2.5 sm:p-4 md:p-6 max-w-[1440px] w-full mx-auto min-w-0">
           {errorMsg && (
             <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-sm font-medium mb-6">
               <AlertCircle size={16} className="shrink-0" />
@@ -601,10 +642,18 @@ function AdminDashboard({ user, token, onLogout }) {
             </div>
           )}
           <ErrorBoundary key={view}>
-            {(view === "dashboard" || view === "live") && renderLiveTracker()}
+            {(view === "workforce" || view === "dashboard" || view === "live") && renderWorkforceHub()}
+            {view === "attendance-all" && renderFullAttendanceRegister()}
             {view === "employees" && renderEmployeesDirectory()}
             {view === "leaves" && renderLeaveApprovals()}
             {view === "summary" && renderAttendanceSummary()}
+            {view === "attendance-calendar" && (
+              <AttendanceCalendarSection
+                setEditingAttendance={setEditingAttendance}
+                openEmployeeDetail={openEmployeeDetail}
+                refreshTrigger={attendanceReport.length}
+              />
+            )}
             {view === "employee-detail" && renderEmployeeDetail()}
             {view === "expenses" && renderExpenses()}
             {view === "announcements" && (
@@ -682,6 +731,7 @@ function AdminDashboard({ user, token, onLogout }) {
         setEmployeeForm={setEmployeeForm}
         onSubmit={handleCreateEmployeeSubmit}
         loading={loading}
+        errorMsg={errorMsg}
       />
 
       {editingEmployee && (
@@ -720,19 +770,35 @@ function AdminDashboard({ user, token, onLogout }) {
                     required
                   />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
-                    value={editForm.email}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, email: e.target.value })
-                    }
-                    required
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Company Email (Work)
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                      value={editForm.email}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, email: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Personal Email
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="e.g. name@gmail.com"
+                      className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                      value={editForm.personalEmail || ""}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, personalEmail: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
@@ -791,7 +857,6 @@ function AdminDashboard({ user, token, onLogout }) {
                       }
                     >
                       <option value="active">Active</option>
-                      <option value="probation">Probation</option>
                       <option value="inactive">Inactive / Deactivated</option>
                     </select>
                   </div>

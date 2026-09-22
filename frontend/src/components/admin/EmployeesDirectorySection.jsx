@@ -93,7 +93,12 @@ export default function EmployeesDirectorySection({
                           >
                             {safeName}
                           </button>
-                          <span className="text-[11px] text-slate-400 block">{emp.email}</span>
+                          <span className="text-[11px] text-slate-600 font-medium block">{emp.email}</span>
+                          {emp.personalEmail && (
+                            <span className="text-[10px] text-slate-400 block font-normal truncate max-w-[200px]" title={`Personal: ${emp.personalEmail}`}>
+                              Personal: {emp.personalEmail}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>

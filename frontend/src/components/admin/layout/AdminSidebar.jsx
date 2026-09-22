@@ -89,7 +89,7 @@ export const AdminSidebar = ({
             if (item.isGroup) {
               const isGroupActive =
                 item.key === "employee-group"
-                  ? view === "employees" || view === "live" || view === "leaves" ||
+                  ? view === "workforce" || view === "employees" || view === "live" || view === "leaves" ||
                   view === "summary" || view === "holidays" || view === "monthly-report" ||
                   view === "employee-detail"
                   : typeof view === "string" && view.startsWith("expense");
@@ -205,13 +205,8 @@ export const AdminSidebar = ({
         <div className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           {!sidebarCollapsed ? (
             <>
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Console Active</span>
-              </div>
-              <span className="px-1.5 py-0.5 rounded bg-blue-900/90 text-blue-200 text-[9px] font-mono border border-blue-700/50">
-                v2.5
-              </span>
+
+
             </>
           ) : (
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="System Active"></span>

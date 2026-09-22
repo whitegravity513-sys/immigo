@@ -20,6 +20,15 @@ import {
 } from "lucide-react";
 import apiClient from "../../services/apiClient.js";
 
+const formatFileUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const apiBase = (apiClient.defaults?.baseURL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
+  return `${apiBase}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 export default function ExpensesSection({
   expenses = [],
   expenseFilterDate,
@@ -34,6 +43,7 @@ export default function ExpensesSection({
   loading,
   formatDate,
   openTextModal,
+  fetchExpenses,
 }) {
   const [activeTab, setActiveTab] = useState("company"); // "company" | "claims" | "clients"
   const [clients, setClients] = useState([]);
@@ -63,7 +73,7 @@ export default function ExpensesSection({
   useEffect(() => {
     async function loadEmployees() {
       try {
-        const res = await apiClient.get("/admin/employees");
+        const res = await apiClient.get("/admin/employee/list");
         const list = res.data?.employees || res.data?.data || res.data;
         if (Array.isArray(list)) setEmployeeList(list);
       } catch (err) {
@@ -121,8 +131,11 @@ export default function ExpensesSection({
       setReviewModalOpen(false);
       setSelectedClaim(null);
       setAdminRemark("");
-      // Refresh page or trigger reload
-      window.location.reload();
+      if (typeof fetchExpenses === "function") {
+        fetchExpenses();
+      } else {
+        window.location.reload();
+      }
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to update claim review");
     } finally {
@@ -780,36 +793,47 @@ export default function ExpensesSection({
                           </span>
                         </td>
                         <td className="px-4 py-3.5">
-                          {claim.status === "Pending" ? (
-                            <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            {claim.status === "Pending" ? (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setSelectedClaim(claim);
+                                    setReviewAction("Approved");
+                                    setAdminRemark("Approved for payment");
+                                    setReviewModalOpen(true);
+                                  }}
+                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedClaim(claim);
+                                    setReviewAction("Rejected");
+                                    setAdminRemark("Invalid bill receipt or reason");
+                                    setReviewModalOpen(true);
+                                  }}
+                                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">
+                                {claim.adminRemark ? `Remark: ${claim.adminRemark}` : "Done"}
+                              </span>
+                            )}
+                            {handleDeleteExpense && (
                               <button
-                                onClick={() => {
-                                  setSelectedClaim(claim);
-                                  setReviewAction("Approved");
-                                  setAdminRemark("Approved for payment");
-                                  setReviewModalOpen(true);
-                                }}
-                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
+                                onClick={() => handleDeleteExpense(claim._id || claim.id)}
+                                title="Delete Expense Claim"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                               >
-                                Approve
+                                <Trash2 size={14} />
                               </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedClaim(claim);
-                                  setReviewAction("Rejected");
-                                  setAdminRemark("Invalid bill receipt or reason");
-                                  setReviewModalOpen(true);
-                                }}
-                                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-slate-400 italic">
-                              {claim.adminRemark ? `Remark: ${claim.adminRemark}` : "Done"}
-                            </span>
-                          )}
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1021,14 +1045,26 @@ export default function ExpensesSection({
             </div>
 
             <div className="flex-1 overflow-auto flex items-center justify-center p-3 bg-slate-50 rounded-xl">
-              {receiptModalUrl.startsWith("data:image/") ? (
-                <img src={receiptModalUrl} alt="Bill Receipt" className="max-h-[60vh] object-contain rounded-lg" />
+              {receiptModalUrl.startsWith("data:application/pdf") || receiptModalUrl.endsWith(".pdf") ? (
+                <iframe
+                  src={formatFileUrl(receiptModalUrl)}
+                  title="Receipt"
+                  className="w-full h-[60vh] rounded-lg border border-slate-200"
+                />
+              ) : receiptModalUrl.startsWith("data:image/") ||
+                receiptModalUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)($|\?)/i) ||
+                receiptModalUrl.startsWith("/uploads/") ? (
+                <img
+                  src={formatFileUrl(receiptModalUrl)}
+                  alt="Bill Receipt"
+                  className="max-h-[60vh] object-contain rounded-lg shadow-xs"
+                />
               ) : (
                 <div className="text-center py-10 space-y-3">
                   <FileText size={48} className="mx-auto text-blue-500" />
                   <p className="text-sm font-semibold text-slate-700">Bill receipt attached as document</p>
                   <a
-                    href={receiptModalUrl}
+                    href={formatFileUrl(receiptModalUrl)}
                     target="_blank"
                     rel="noreferrer"
                     download="bill_receipt"
@@ -1040,7 +1076,16 @@ export default function ExpensesSection({
               )}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+              <a
+                href={formatFileUrl(receiptModalUrl)}
+                target="_blank"
+                rel="noreferrer"
+                download="bill_receipt"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition"
+              >
+                <ExternalLink size={13} /> Open in New Tab
+              </a>
               <button
                 onClick={() => setReceiptModalUrl(null)}
                 className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold rounded-xl cursor-pointer"

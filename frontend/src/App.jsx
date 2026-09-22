@@ -111,7 +111,7 @@ function App() {
     localStorage.setItem(appConfig.STORAGE_KEYS.ROLE, newRole);
     if (newRole === "admin") {
       localStorage.setItem(appConfig.STORAGE_KEYS.SESSION_TIMESTAMP, Date.now().toString());
-      navigate("/admin/dashboard/live");
+      navigate("/admin/dashboard/workforce");
     } else {
       navigate("/employee/dashboard");
     }
@@ -126,7 +126,7 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/admin/login" element={
-            token && role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/login?role=admin" replace />
+            token && role === "admin" ? <Navigate to="/admin/dashboard/workforce" /> : <Navigate to="/login?role=admin" replace />
           } />
 
           <Route path="/employee/login" element={
@@ -134,7 +134,7 @@ function App() {
           } />
 
           <Route path="/login" element={
-            token ? (role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/employee/dashboard" />) : <UnifiedLogin onLoginSuccess={handleLoginSuccess} />
+            token ? (role === "admin" ? <Navigate to="/admin/dashboard/workforce" /> : <Navigate to="/employee/dashboard" />) : <UnifiedLogin onLoginSuccess={handleLoginSuccess} />
           } />
 
           {/* Admin Dashboard shell — handles all /admin/dashboard/* sub-routes internally */}
@@ -152,7 +152,7 @@ function App() {
 
           <Route path="/" element={
             token
-              ? (role === "admin" ? <Navigate to="/admin/dashboard/live" /> : <Navigate to="/employee/dashboard" />)
+              ? (role === "admin" ? <Navigate to="/admin/dashboard/workforce" /> : <Navigate to="/employee/dashboard" />)
               : <Navigate to="/employee/login" />
           } />
 

@@ -18,6 +18,27 @@ export default function ApplyLeaveModal({
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6">
         <h3 className="text-base font-black text-slate-800 mb-5">Apply for Leave</h3>
         <form onSubmit={handleLeaveSubmit} className="space-y-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Leave Type *
+            </label>
+            <select
+              required
+              value={leaveForm.leaveType || "Casual Leave"}
+              onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-semibold cursor-pointer"
+            >
+              <option value="Casual Leave">Casual Leave (CL)</option>
+              <option value="Sick Leave">Sick / Medical Leave (SL)</option>
+              <option value="Paid Leave">Paid / Privilege Leave (PL)</option>
+              <option value="Half Day Leave">Half Day Leave</option>
+              <option value="Emergency Leave">Emergency Leave</option>
+              <option value="Maternity / Paternity">Maternity / Paternity Leave</option>
+              <option value="Bereavement Leave">Bereavement Leave</option>
+              <option value="Other">Other Reason</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {["startDate", "endDate"].map((key) => (
               <div key={key} className="flex flex-col gap-1.5">

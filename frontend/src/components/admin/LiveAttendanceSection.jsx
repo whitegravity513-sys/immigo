@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Users, UserCheck, Coffee, ShieldCheck, Play, MapPin, Eye, Pencil } from "lucide-react";
+import { Users, UserCheck, Coffee, ShieldCheck, Play, MapPin, Eye, Pencil, FileText } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import AdminWorkLogsModal from "./AdminWorkLogsModal.jsx";
 
 const StatCard = ({ icon, color, val, label }) => (
   <div className="bg-white p-3.5 sm:p-4 rounded-xl border-2 border-slate-300 shadow-xs flex items-center gap-3">
@@ -66,6 +67,8 @@ export default function LiveAttendanceSection({
   setEditingAttendance,
   currentPath = "/admin/dashboard/live"
 }) {
+  const [workLogsModalOpen, setWorkLogsModalOpen] = useState(false);
+
   return (
     <div className="space-y-5">
       {/* ── Top Stat Cards (Compact & Defined) ── */}
@@ -112,6 +115,15 @@ export default function LiveAttendanceSection({
             )}
             <button className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm shadow-blue-500/20" onClick={fetchAdminReports}>
               <Play size={11} className="rotate-90" /> {filterStart && filterEnd ? 'Apply' : 'Refresh'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setWorkLogsModalOpen(true)}
+              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+              title="Review what employees accomplished today"
+            >
+              <FileText size={12} className="text-indigo-600" />
+              Daily Work Logs
             </button>
           </div>
         </div>

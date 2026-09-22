@@ -10,7 +10,7 @@ const createSuperAdmin = async () => {
     await connectDB();
 
     const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "admin@immigo.com").trim().toLowerCase();
-    const superAdminName = process.env.SUPER_ADMIN_NAME || "Super Admin";
+    const superAdminName = process.env.SUPER_ADMIN_NAME || "Admin";
     const superAdminPassword = (process.env.SUPER_ADMIN_PASSWORD || "Abhi@123").trim();
 
     const existingSuperAdmin = await User.findOne({
@@ -41,4 +41,4 @@ const createSuperAdmin = async () => {
   }
 };
 
-createSuperAdmin();
+createSuperAdmin();   

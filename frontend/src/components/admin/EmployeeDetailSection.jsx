@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
@@ -13,7 +13,10 @@ import {
   Plus,
   Save,
   Check,
-  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  X,
   FolderLock,
   Calendar as CalendarIcon,
   Briefcase,
@@ -31,6 +34,15 @@ const formatHHMM = (val) => {
   const h = String(d.getHours()).padStart(2, '0');
   const m = String(d.getMinutes()).padStart(2, '0');
   return `${h}:${m}`;
+};
+
+const formatFileUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  const apiBase = (apiClient.defaults?.baseURL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
+  return `${apiBase}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
 export default function EmployeeDetailSection({
@@ -66,19 +78,6 @@ export default function EmployeeDetailSection({
 
   // Sub tab state
   const [activeTab, setActiveTab] = useState("attendance"); // attendance | documents | leaves
-
-  // Leave balance allocator state
-  const [balanceInput, setBalanceInput] = useState(emp?.leaveBalance ?? 18);
-  const [allocatedInput, setAllocatedInput] = useState(emp?.allocatedLeaves ?? 18);
-  const [savingBalance, setSavingBalance] = useState(false);
-  const [balanceSavedMsg, setBalanceSavedMsg] = useState("");
-
-  React.useEffect(() => {
-    if (emp) {
-      setBalanceInput(emp.leaveBalance ?? 18);
-      setAllocatedInput(emp.allocatedLeaves ?? 18);
-    }
-  }, [emp]);
 
   // Document Vault state
   const [adminDocModalOpen, setAdminDocModalOpen] = useState(false);
@@ -341,27 +340,6 @@ export default function EmployeeDetailSection({
     );
   };
 
-  const handleSaveLeaveBalance = async () => {
-    if (!emp?._id) return;
-    try {
-      setSavingBalance(true);
-      setBalanceSavedMsg("");
-      await apiClient.patch(`/admin/employee/${emp._id}/leave-balance`, {
-        leaveBalance: Number(balanceInput),
-        allocatedLeaves: Number(allocatedInput),
-      });
-      setBalanceSavedMsg("Saved!");
-      setTimeout(() => setBalanceSavedMsg(""), 3000);
-      if (fetchEmployeeHistoryById && selectedEmployeeId) {
-        fetchEmployeeHistoryById(selectedEmployeeId, detailFromDate, detailToDate);
-      }
-    } catch (err) {
-      alert(err?.response?.data?.message || "Failed to update leave balance");
-    } finally {
-      setSavingBalance(false);
-    }
-  };
-
   const handleAdminFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -415,6 +393,27 @@ export default function EmployeeDetailSection({
     }
   };
 
+  const [rejectDocModal, setRejectDocModal] = useState(null); // { docId, docName, note }
+  const [reviewingDoc, setReviewingDoc] = useState(false);
+
+  const handleReviewDoc = async (docId, status, verificationNote = "") => {
+    try {
+      setReviewingDoc(true);
+      await apiClient.put(`/admin/employee/${emp._id}/documents/${docId}/review`, {
+        status,
+        verificationNote,
+      });
+      setRejectDocModal(null);
+      if (fetchEmployeeHistoryById && selectedEmployeeId) {
+        fetchEmployeeHistoryById(selectedEmployeeId, detailFromDate, detailToDate);
+      }
+    } catch (err) {
+      alert(err?.response?.data?.message || "Failed to update document review status");
+    } finally {
+      setReviewingDoc(false);
+    }
+  };
+
   const safeEmpName = typeof emp?.name === 'string' ? emp.name : (emp?.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp?.name || "Employee"));
 
   return (
@@ -436,7 +435,7 @@ export default function EmployeeDetailSection({
             <div className="flex flex-wrap items-start justify-between gap-6">
               <div className="flex items-start gap-4">
                 {emp.profileImage ? (
-                  <img src={emp.profileImage} alt={safeEmpName} className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0" />
+                  <img src={formatFileUrl(emp.profileImage)} alt={safeEmpName} className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0" />
                 ) : (
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-black text-3xl shadow-md shrink-0">
                     {safeEmpName.charAt(0).toUpperCase()}
@@ -461,52 +460,13 @@ export default function EmployeeDetailSection({
                     <span>&bull;</span>
                     <span className="text-slate-500">{emp.department || "General Department"}</span>
                   </div>
-                  <p className="text-sm text-slate-500 flex items-center gap-1.5 pt-0.5">
-                    <span className="text-slate-400">Email:</span> {emp.email}
-                  </p>
-                </div>
-              </div>
-
-              {/* Leave Balance Allocator Box */}
-              <div className="bg-gradient-to-br from-blue-50/60 to-indigo-50/40 border border-blue-200/80 rounded-2xl p-4 sm:w-80 shadow-2xs">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-blue-900 font-black text-xs uppercase tracking-wider">
-                    <Briefcase size={14} className="text-blue-600" />
-                    <span>Leave Balance Allocator</span>
-                  </div>
-                  {balanceSavedMsg && <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">{balanceSavedMsg}</span>}
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Current Balance</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={balanceInput}
-                      onChange={(e) => setBalanceInput(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-sm font-black text-blue-700 outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Annual Quota</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={allocatedInput}
-                      onChange={(e) => setAllocatedInput(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-sm font-black text-slate-700 outline-none focus:border-blue-500"
-                    />
+                  <div className="text-sm text-slate-500 flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
+                    <p><span className="text-slate-400 font-medium">Work Email:</span> <span className="font-semibold text-slate-700">{emp.email}</span></p>
+                    {emp.personalEmail && (
+                      <p><span className="text-slate-400 font-medium">Personal Email:</span> <span className="font-semibold text-slate-700">{emp.personalEmail}</span></p>
+                    )}
                   </div>
                 </div>
-                <button
-                  onClick={handleSaveLeaveBalance}
-                  disabled={savingBalance}
-                  className="mt-3 w-full py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
-                >
-                  <Save size={13} /> {savingBalance ? "Saving..." : "Update Leave Balance"}
-                </button>
               </div>
             </div>
 
@@ -836,21 +796,76 @@ export default function EmployeeDetailSection({
                               {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "—"}
                             </td>
                             <td className="px-4 py-3.5">
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <Check size={12} /> Stored
-                              </span>
+                              <div className="space-y-1">
+                                <span
+                                  className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${
+                                    doc.status === "Verified"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                      : doc.status === "Rejected"
+                                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                                      : "bg-amber-50 text-amber-700 border-amber-200"
+                                  }`}
+                                >
+                                  {doc.status === "Verified" ? (
+                                    <CheckCircle size={12} />
+                                  ) : doc.status === "Rejected" ? (
+                                    <XCircle size={12} />
+                                  ) : (
+                                    <Clock size={12} />
+                                  )}
+                                  {doc.status || "Submitted"}
+                                </span>
+                                {doc.verificationNote && (
+                                  <div
+                                    className="text-[10px] text-slate-500 font-medium max-w-[180px] truncate"
+                                    title={doc.verificationNote}
+                                  >
+                                    Note: {doc.verificationNote}
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-3.5">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 <button
+                                  type="button"
                                   onClick={() => setPreviewDocModal(doc)}
                                   className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition"
                                 >
                                   <Eye size={13} /> View
                                 </button>
+                                {doc.status !== "Verified" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleReviewDoc(doc._id, "Verified")}
+                                    disabled={reviewingDoc}
+                                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition shadow-xs disabled:opacity-50"
+                                    title="Verify & Approve Document"
+                                  >
+                                    <Check size={12} /> Approve
+                                  </button>
+                                )}
+                                {doc.status !== "Rejected" && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setRejectDocModal({
+                                        docId: doc._id,
+                                        docName: doc.name,
+                                        note: "",
+                                      })
+                                    }
+                                    disabled={reviewingDoc}
+                                    className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition disabled:opacity-50"
+                                    title="Reject Document"
+                                  >
+                                    <X size={12} /> Reject
+                                  </button>
+                                )}
                                 <button
+                                  type="button"
                                   onClick={() => handleDeleteDoc(doc._id)}
-                                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                                   title="Delete document"
                                 >
                                   <Trash2 size={15} />
@@ -1000,14 +1015,14 @@ export default function EmployeeDetailSection({
                 </div>
 
                 <div className="flex-1 overflow-auto flex items-center justify-center p-2 bg-slate-50 rounded-xl">
-                  {previewDocModal.url?.startsWith("data:image/") ? (
-                    <img src={previewDocModal.url} alt={previewDocModal.name} className="max-h-[60vh] object-contain rounded-lg" />
+                  {previewDocModal.url?.startsWith("data:image/") || /\.(png|jpe?g|webp|svg)$/i.test(previewDocModal.url || "") ? (
+                    <img src={formatFileUrl(previewDocModal.url)} alt={previewDocModal.name} className="max-h-[60vh] object-contain rounded-lg" />
                   ) : (
                     <div className="text-center py-10 space-y-3">
                       <FileText size={48} className="mx-auto text-blue-500" />
                       <p className="text-sm font-semibold text-slate-700">Document ready for review</p>
                       <a
-                        href={previewDocModal.url}
+                        href={formatFileUrl(previewDocModal.url)}
                         target="_blank"
                         rel="noreferrer"
                         download={previewDocModal.name}
@@ -1025,6 +1040,73 @@ export default function EmployeeDetailSection({
                     className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold rounded-xl cursor-pointer"
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Document Rejection Modal */}
+          {rejectDocModal && (
+            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">
+                      <XCircle size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-800">Reject Compliance Document</h3>
+                      <p className="text-xs text-slate-500">{rejectDocModal.docName}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setRejectDocModal(null)}
+                    className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                    Reason for Rejection *
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="e.g. Blurred photocopy, missing signature, expired document, or mismatched name..."
+                    value={rejectDocModal.note}
+                    onChange={(e) =>
+                      setRejectDocModal((prev) => ({ ...prev, note: e.target.value }))
+                    }
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 font-medium focus:outline-none focus:border-rose-500 focus:bg-white resize-none"
+                  />
+                  <p className="text-[11px] text-slate-400">
+                    The employee will receive an instant notification with this reason and an option to re-upload.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setRejectDocModal(null)}
+                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={reviewingDoc}
+                    onClick={() =>
+                      handleReviewDoc(
+                        rejectDocModal.docId,
+                        "Rejected",
+                        rejectDocModal.note || "Document rejected by HR, please re-upload a clear copy."
+                      )
+                    }
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {reviewingDoc ? "Rejecting..." : "Confirm Rejection"}
                   </button>
                 </div>
               </div>

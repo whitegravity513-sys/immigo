@@ -26,6 +26,7 @@ export const RegisterEmployeeModal = ({
   setEmployeeForm,
   onSubmit,
   loading,
+  errorMsg = "",
 }) => {
   const [docCategory, setDocCategory] = useState("Aadhaar Card");
   const [docTitle, setDocTitle] = useState("");
@@ -163,10 +164,10 @@ export const RegisterEmployeeModal = ({
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6">
-          {modalError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-semibold">
-              <AlertCircle size={16} />
-              <span>{modalError}</span>
+          {(modalError || errorMsg) && (
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-bold shadow-xs">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{modalError || errorMsg}</span>
             </div>
           )}
 
@@ -253,7 +254,12 @@ export const RegisterEmployeeModal = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600">Work Email Address *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">Company Email (Official / Work) *</label>
+                    {employeeForm.email && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.email.trim()) && (
+                      <span className="text-[10px] font-bold text-emerald-600">Valid ✓</span>
+                    )}
+                  </div>
                   <input
                     type="email"
                     required
@@ -264,10 +270,30 @@ export const RegisterEmployeeModal = ({
                     }
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   />
+                  <span className="text-[10px] text-slate-400">Official company email provided for login</span>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600">Portal Password *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">Personal Email Address</label>
+                    {employeeForm.personalEmail && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.personalEmail.trim()) && (
+                      <span className="text-[10px] font-bold text-emerald-600">Valid ✓</span>
+                    )}
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="e.g. rahul.personal@gmail.com"
+                    value={employeeForm.personalEmail || ""}
+                    onChange={(e) =>
+                      setEmployeeForm({ ...employeeForm, personalEmail: e.target.value })
+                    }
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                  />
+                  <span className="text-[10px] text-slate-400">Personal Gmail/Outlook ID for records</span>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Portal Password *</label>
                   <input
                     type="password"
                     required
@@ -281,21 +307,38 @@ export const RegisterEmployeeModal = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600">Contact Phone Number *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">Contact Phone Number *</label>
+                    <span className={`text-[10px] font-bold ${
+                      (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
+                        ? "text-emerald-600"
+                        : "text-slate-400"
+                    }`}>
+                      {(employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
+                        ? "10 Digits ✓"
+                        : `${employeeForm.phone?.replace(/\D/g, "")?.length || 0}/10 digits`}
+                    </span>
+                  </div>
                   <input
                     type="tel"
                     required
-                    placeholder="e.g. +91 98765 43210"
-                    value={employeeForm.phone || ""}
-                    onChange={(e) =>
-                      setEmployeeForm({ ...employeeForm, phone: e.target.value })
-                    }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    maxLength={10}
+                    placeholder="10-digit number (e.g. 9876543210)"
+                    value={employeeForm.phone?.replace(/\D/g, "").slice(0, 10) || ""}
+                    onChange={(e) => {
+                      const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setEmployeeForm({ ...employeeForm, phone: digitsOnly });
+                    }}
+                    className={`w-full bg-slate-50 border rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition ${
+                      (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
+                        ? "border-emerald-300 focus:border-emerald-500"
+                        : "border-slate-200 focus:border-blue-500"
+                    }`}
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600">Date of Joining (DOJ) *</label>
+                  <label className="text-xs font-bold text-slate-700">Date of Joining (DOJ) *</label>
                   <input
                     type="date"
                     required
@@ -308,18 +351,18 @@ export const RegisterEmployeeModal = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600">Employment Status</label>
+                  <label className="text-xs font-bold text-slate-700">Employee Status *</label>
                   <select
                     value={employeeForm.status || "active"}
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, status: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-semibold cursor-pointer"
                   >
-                    <option value="active">Active (Standard)</option>
-                    <option value="probation">Probationary Period</option>
-                    <option value="inactive">Inactive / On Notice</option>
+                    <option value="active">🟢 Active</option>
+                    <option value="inactive">🔴 Inactive</option>
                   </select>
+                  <span className="text-[10px] text-slate-400">Choose Active or Inactive status</span>
                 </div>
               </div>
             </div>

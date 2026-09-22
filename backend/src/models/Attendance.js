@@ -17,7 +17,10 @@ const breakSchema = new mongoose.Schema(
     type: {
       type: String,
       default: "Break",
-      enum: ["Lunch", "Break"],
+    },
+    breakType: {
+      type: String,
+      default: "Break",
     },
   },
   {

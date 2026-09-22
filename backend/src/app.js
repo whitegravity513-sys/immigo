@@ -14,7 +14,12 @@ import apiRouter from "./routes/index.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import { ApiError } from "./utils/apiError.js";
 
+import path from "path";
+
 const app = express();
+
+// Serve uploaded documents, photos, and receipts statically
+app.use("/uploads", cors(corsOptions), express.static(path.join(process.cwd(), "uploads")));
 
 // High-speed response compression (Gzip / Deflate)
 app.use(compression({
@@ -29,6 +34,7 @@ app.use(
   helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 app.disable("x-powered-by");
@@ -44,19 +50,19 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 // Enterprise NoSQL Query Injection & Input Sanitization
 app.use(sanitizeRequests);
 
+// Disable ETags to prevent browser from reusing 304 responses with cached CORS headers
+app.set("etag", false);
+
 // General API Rate Limiter
 app.use("/api", apiLimiter);
 
-// Cache control headers for sensitive live queries
-app.use((req, res, next) => {
-  if (
-    req.method === "GET" &&
-    (req.path.startsWith("/api/admin/attendance") || req.path.startsWith("/api/admin/leaves"))
-  ) {
-    res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.header("Pragma", "no-cache");
-    res.header("Expires", "0");
-  }
+// Cache control headers: APIs are live and must never be 304 cached across different dev origins
+app.use("/api", (req, res, next) => {
+  res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.header("Pragma", "no-cache");
+  res.header("Expires", "0");
+  res.header("Surrogate-Control", "no-store");
+  res.header("Vary", "Origin");
   next();
 });
 

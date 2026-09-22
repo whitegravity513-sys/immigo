@@ -4,6 +4,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
 } from "../controllers/adminAnnouncement.controller.js";
+import { getAdminWorkLogs } from "../controllers/worklog.controller.js";
 import {
   createEmployee,
   getNextEmployeeId,
@@ -13,6 +14,7 @@ import {
   setLeaveBalance,
   uploadAdminDocument,
   deleteAdminDocument,
+  reviewAdminDocument,
   getEmployeeHistory,
   getEmployeeMonthlyDetails,
   getEmployeeNote,
@@ -20,6 +22,7 @@ import {
 } from "../controllers/adminEmployee.controller.js";
 import {
   getAttendanceReport,
+  getAttendanceCalendarMonth,
   getAttendanceByDate,
   updateAttendance,
   getAttendanceSummary,
@@ -103,6 +106,7 @@ const router = express.Router();
 router.post("/employee/create", verifyAdmin, createEmployee);
 router.get("/employee/next-id", verifyAdmin, getNextEmployeeId);
 router.get("/employee/list", verifyAdmin, getEmployees);
+router.get("/employees", verifyAdmin, getEmployees);
 router.put("/employee/update/:id", verifyAdmin, updateEmployee);
 router.put("/employee/deactivate/:id", verifyAdmin, deactivateEmployee);
 router.put("/employee/:id/leave-balance", verifyAdmin, setLeaveBalance);
@@ -111,10 +115,13 @@ router.get("/employee/:employeeId/monthly", verifyAdmin, getEmployeeMonthlyDetai
 router.get("/employee/:id/note", verifyAdmin, getEmployeeNote);
 router.get("/employee/:id/leaves", verifyAdmin, getEmployeeLeaves);
 router.post("/employee/:id/documents", verifyAdmin, uploadAdminDocument);
+router.put("/employee/:id/documents/:docId/review", verifyAdmin, reviewAdminDocument);
+router.patch("/employee/:id/documents/:docId/review", verifyAdmin, reviewAdminDocument);
 router.delete("/employee/:id/documents/:docId", verifyAdmin, deleteAdminDocument);
 
 // ─── ATTENDANCE ROUTES ───
 router.get("/attendance", verifyAdmin, getAttendanceReport);
+router.get("/attendance/calendar-month", verifyAdmin, getAttendanceCalendarMonth);
 router.get("/attendance/range", verifyAdmin, getAttendanceByDate);
 router.post("/attendance/update", verifyAdmin, updateAttendance);
 router.get("/attendance/summary", verifyAdmin, getAttendanceSummary);
@@ -139,6 +146,7 @@ router.delete("/expense-categories/:id", verifyAdmin, deleteCategory);
 router.get("/expenses", verifyAdmin, getExpenses);
 router.post("/expenses", verifyAdmin, createExpense);
 router.put("/expenses/:id/review", verifyAdmin, reviewExpense);
+router.patch("/expenses/:id/review", verifyAdmin, reviewExpense);
 router.get("/expenses/client/:clientId", verifyAdmin, getClientExpenses);
 router.put("/expenses/:id", verifyAdmin, updateExpense);
 router.delete("/expenses/:id", verifyAdmin, deleteExpense);
@@ -182,6 +190,7 @@ router.delete("/renewals/:id", verifyAdmin, deleteRenewal);
 // ─── NOTIFICATION ROUTES ───
 router.get("/notifications", verifyAdmin, getNotifications);
 router.put("/notifications/read-all", verifyAdmin, markAllAsRead);
+router.put("/notifications/mark-all-read", verifyAdmin, markAllAsRead);
 router.put("/notifications/:id/read", verifyAdmin, markAsRead);
 router.delete("/notifications", verifyAdmin, clearAllNotifications);
 router.post("/notifications/broadcast", verifyAdmin, sendBroadcastNotification);
@@ -196,4 +205,8 @@ router.get("/announcements", verifyAdmin, getAnnouncements);
 router.post("/announcements", verifyAdmin, createAnnouncement);
 router.delete("/announcements/:id", verifyAdmin, deleteAnnouncement);
 
+// ─── DAILY WORK LOGS REVIEW (ADMIN / TEAM LEAD) ───
+router.get("/worklogs", verifyAdmin, getAdminWorkLogs);
+
 export default router;
+

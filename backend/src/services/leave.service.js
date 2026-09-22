@@ -68,12 +68,15 @@ export class LeaveService {
 
     // Send notification specifically to the employee
     try {
-      NotificationService.createNotification({
+      const empId = leave.employeeId?._id || leave.employeeId;
+      await NotificationService.createNotification({
         type: "LEAVE_UPDATE",
         title: `Leave ${status}`,
-        message: `Your leave application has been ${status.toLowerCase()}.${adminRemark ? ` Remark: "${adminRemark}"` : ""}`,
-        targetType: "EMPLOYEE",
-        targetId: leave.employeeId._id,
+        message: `Your leave application has been ${status.toLowerCase()}.`,
+        targetRole: "EMPLOYEE",
+        targetType: "SPECIFIC",
+        targetEmployeeId: empId,
+        metadata: { leaveId: leave._id, status },
       });
     } catch (e) {
       // non-blocking
@@ -83,9 +86,10 @@ export class LeaveService {
   }
 
   static async applyLeave(employeeId, data) {
-    const { leaveType, startDate, endDate, reason, document } = data;
-    if (!leaveType || !startDate || !endDate || !reason) {
-      throw new ApiError(400, "All fields (leaveType, startDate, endDate, reason) are required");
+    const { startDate, endDate, reason, document } = data;
+    const leaveType = (data.leaveType || "Casual Leave").trim();
+    if (!startDate || !endDate || !reason) {
+      throw new ApiError(400, "All fields (startDate, endDate, reason) are required");
     }
 
     const start = new Date(startDate);

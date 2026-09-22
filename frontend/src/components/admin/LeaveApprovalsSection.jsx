@@ -95,17 +95,24 @@ export default function LeaveApprovalsSection({
                     <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border w-fit ${leave.status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : leave.status === "Rejected" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                       {leave.status}
                     </span>
+                    {leave.adminRemark && (
+                      <div className="text-[11px] text-slate-600 font-medium mt-1 max-w-[220px]" title={leave.adminRemark}>
+                        <strong className="text-slate-800 font-bold">Remark:</strong> {leave.adminRemark}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-sm">
                     {leave.status === "Pending" ? (
                       <div className="flex items-center gap-2 flex-wrap">
                         <button
+                          type="button"
                           className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
                           onClick={() => openLeaveActionModal(leave._id, "Approved", leave)}
                         >
                           ✓ Approve
                         </button>
                         <button
+                          type="button"
                           className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
                           onClick={() => openLeaveActionModal(leave._id, "Rejected", leave)}
                         >
@@ -113,7 +120,22 @@ export default function LeaveApprovalsSection({
                         </button>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400 italic">Completed</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1 shadow-2xs"
+                          onClick={() =>
+                            openLeaveActionModal(
+                              leave._id,
+                              leave.status === "Approved" ? "Rejected" : "Approved",
+                              leave
+                            )
+                          }
+                          title="Edit leave approval status or remark"
+                        >
+                          ✎ Edit Decision
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

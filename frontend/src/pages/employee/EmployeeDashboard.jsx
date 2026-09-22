@@ -23,10 +23,11 @@ import EmployeeProfileDocsTab from "../../components/employee/EmployeeProfileDoc
 import EmployeeExpensesTab from "../../components/employee/EmployeeExpensesTab.jsx";
 import { ImmiGoLogo, DashboardWatermark, EmployeeIdBadge } from "../../components/common/ImmiGoLogo.jsx";
 import AppFooter from "../../components/common/AppFooter.jsx";
-import CRMDashboard from "../../components/crm/CRMDashboard.jsx";
 import EmpSidebar from "../../components/employee/layout/EmpSidebar.jsx";
 import EmpTopbar from "../../components/employee/layout/EmpTopbar.jsx";
 import EmpHomeOverview from "../../components/employee/dashboard/EmpHomeOverview.jsx";
+import HolidayAnnouncementModals from "../../components/employee/dashboard/HolidayAnnouncementModals.jsx";
+import AdminUpdateToast from "../../components/employee/notifications/AdminUpdateToast.jsx";
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 const fmtDur = (s) => {
@@ -64,6 +65,87 @@ const isDateInLeaveRange = (dateKey, leave) => {
 
 /* ─────────────────────────── component ─────────────────────────── */
 export default function EmployeeDashboard({ user, token, onLogout }) {
+  // ── user profile sync state ──
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("user") || "null");
+      return stored ? { ...user, ...stored } : user;
+    } catch {
+      return user;
+    }
+  });
+
+  const handleProfileImageUpdate = (newImage) => {
+    if (!newImage) return;
+    setCurrentUser((prev) => {
+      const updated = { ...(prev || {}), profileImage: newImage };
+      try {
+        const stored = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...stored, profileImage: newImage }));
+      } catch (e) { }
+      return updated;
+    });
+    setStatusRecord((prev) => (prev ? { ...prev, profileImage: newImage } : prev));
+  };
+
+  useEffect(() => {
+    const onUserUpdated = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("user") || "null");
+        if (stored?.profileImage) {
+          handleProfileImageUpdate(stored.profileImage);
+        }
+      } catch (e) { }
+    };
+    window.addEventListener("user-updated", onUserUpdated);
+    return () => window.removeEventListener("user-updated", onUserUpdated);
+  }, []);
+
+  // ── Sync fresh profile info and documents compliance on mount ──
+  const [employeeProfile, setEmployeeProfile] = useState(null);
+
+  const fetchProfile = async () => {
+    if (!token) return;
+    try {
+      const res = await apiClient.get("/employee/profile");
+      if (res.data) {
+        setEmployeeProfile(res.data);
+        if (res.data.profileImage) {
+          handleProfileImageUpdate(res.data.profileImage);
+        }
+        if (res.data.department) {
+          setCurrentUser((prev) => ({ ...(prev || {}), department: res.data.department }));
+        }
+      }
+    } catch (e) { }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [token]);
+
+  // Mandatory compliance required documents
+  const REQUIRED_DOC_TYPES = [
+    "Resume / CV",
+    "Aadhaar / National ID",
+    "PAN Card",
+    "Offer Letter",
+    "Educational Certificates",
+    "Bank Proof / Cancelled Cheque",
+  ];
+
+  const profileDocs = employeeProfile?.documents || [];
+  const missingDocs = REQUIRED_DOC_TYPES.filter(
+    (type) => !profileDocs.some((d) => d.type === type)
+  );
+  const rejectedDocs = profileDocs.filter((d) => d.status === "Rejected");
+  const isComplianceOnHold = missingDocs.length > 0 || rejectedDocs.length > 0;
+  const complianceInfo = {
+    isComplianceOnHold,
+    missingDocs,
+    rejectedDocs,
+  };
+
   // ── nav state ──
   const [view, setView] = useState("home");     // home | tracker | checkinout | breaks | apply-leave | leave-history | meetings
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -71,8 +153,25 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   // ── today's meetings (for banner) ──
   const [todayMeetings, setTodayMeetings] = useState([]);
 
+  // ── live admin update notification popup state ──
+  const [liveAdminNotification, setLiveAdminNotification] = useState(null);
+
+  useEffect(() => {
+    const handleNewAdminNotif = (e) => {
+      if (e?.detail) {
+        setLiveAdminNotification(e.detail);
+        if (e.detail?.type === "DOCUMENT_UPDATE") {
+          fetchProfile();
+        }
+      }
+    };
+    window.addEventListener("new-admin-notification", handleNewAdminNotif);
+    return () => window.removeEventListener("new-admin-notification", handleNewAdminNotif);
+  }, []);
+
   // ── ui feedback ──
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -83,7 +182,13 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const [announcements, setAnnouncements] = useState([]);
   const [monthlyData, setMonthlyData] = useState(null);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
-  const [leaveForm, setLeaveForm] = useState({ startDate: "", endDate: "", reason: "", document: "" });
+  const [leaveForm, setLeaveForm] = useState({
+    leaveType: "Casual Leave",
+    startDate: "",
+    endDate: "",
+    reason: "",
+    document: "",
+  });
   const [fileLabel, setFileLabel] = useState("");
   const [checkOutNote, setCheckOutNote] = useState("");
   const [previewDoc, setPreviewDoc] = useState(null);
@@ -100,26 +205,24 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   useEffect(() => { if (errorMsg) { const t = setTimeout(() => setErrorMsg(""), 6000); return () => clearTimeout(t); } }, [errorMsg]);
   useEffect(() => { if (successMsg) { const t = setTimeout(() => setSuccessMsg(""), 6000); return () => clearTimeout(t); } }, [successMsg]);
 
-  /* ── live background polling ── */
+  /* ── optimized background sync (eliminates excessive loading lag) ── */
   useEffect(() => {
     if (!token) return;
     fetchAll();
     const iv = setInterval(() => {
-      fetchAll();
-      if (view === "calendar") {
-        fetchMonthlyAttendance(calendarMonth, calendarYear, true);
-      }
-    }, 3500);
+      fetchAll(true);
+    }, 45000);
     return () => clearInterval(iv);
-  }, [token, view, calendarMonth, calendarYear]);
+  }, [token]);
 
+  // Only fetch monthly attendance when viewing calendar or tracker tab
   useEffect(() => {
-    if (token && (view === "calendar" || view === "tracker" || view === "home")) {
-      fetchMonthlyAttendance();
+    if (token && (view === "calendar" || view === "tracker")) {
+      fetchMonthlyAttendance(calendarMonth, calendarYear);
     }
   }, [token, view, calendarMonth, calendarYear]);
 
-  // ── fetch today's meetings for banner ──
+  // ── fetch today's meetings for tabs ──
   useEffect(() => {
     if (!token) return;
     const todayStr = new Date().toISOString().split("T")[0];
@@ -128,20 +231,10 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     }).then((res) => {
       const all = Array.isArray(res.data) ? res.data : [];
       setTodayMeetings(all.filter((m) => m.date === todayStr));
-    }).catch(() => {});
-    const iv = setInterval(() => {
-      const ts = new Date().toISOString().split("T")[0];
-      apiClient.get(`/employee/meetings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then((res) => {
-        const all = Array.isArray(res.data) ? res.data : [];
-        setTodayMeetings(all.filter((m) => m.date === ts));
-      }).catch(() => {});
-    }, 30000);
-    return () => clearInterval(iv);
+    }).catch(() => { });
   }, [token]);
 
-  async function fetchAll() {
+  async function fetchAll(silent = false) {
     try {
       const [sRes, lRes, hRes, aRes] = await Promise.all([
         apiClient.get(`/employee/status`),
@@ -150,11 +243,19 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         apiClient.get(`/employee/announcements`).catch(() => ({ data: [] })),
       ]);
       setStatusRecord(sRes.data);
+      if (sRes.data?.profileImage) {
+        handleProfileImageUpdate(sRes.data.profileImage);
+      }
+      if (sRes.data?.department && sRes.data.department !== currentUser?.department) {
+        setCurrentUser((prev) => ({ ...(prev || {}), department: sRes.data.department }));
+      }
       setLeaveHistory(lRes.data);
       setHolidays(hRes.data || []);
       setAnnouncements(aRes.data || []);
     } catch (err) {
-      console.error("Failed to load employee data across refresh:", err);
+      if (!silent) console.error("Failed to load employee data:", err);
+    } finally {
+      setInitialLoading(false);
     }
   }
 
@@ -174,36 +275,53 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (!statusRecord) return;
-    const { status, checkInTime, lunchBreakSeconds: ls = 0, otherBreakSeconds: os = 0, totalBreakSeconds: ts = 0, breaks = [] } = statusRecord;
+    const {
+      status,
+      checkInTime,
+      lunchBreakSeconds: ls = 0,
+      otherBreakSeconds: os = 0,
+      totalBreakSeconds: ts = 0,
+      breaks = []
+    } = statusRecord;
 
     if (status === "Active" && checkInTime) {
       const start = new Date(checkInTime).getTime();
-      timerRef.current = setInterval(() => {
+      const tick = () => {
         const elapsed = Math.floor((Date.now() - start) / 1000);
         setWorkSeconds(Math.max(0, elapsed - ts));
         setLunchSeconds(ls);
         setBreakSeconds(os);
-      }, 1000);
+      };
+      tick();
+      timerRef.current = setInterval(tick, 1000);
     } else if (status === "On Break" && checkInTime) {
-      const lastBreak = breaks[breaks.length - 1];
+      const lastBreak = breaks && breaks.length > 0 ? breaks[breaks.length - 1] : null;
       const start = new Date(checkInTime).getTime();
-      timerRef.current = setInterval(() => {
-        const breakElapsed = Math.floor((Date.now() - new Date(lastBreak.startTime).getTime()) / 1000);
-        const curLunch = lastBreak.type === "Lunch" ? ls + breakElapsed : ls;
-        const curOther = lastBreak.type !== "Lunch" ? os + breakElapsed : os;
+      const breakStart = lastBreak?.startTime ? new Date(lastBreak.startTime).getTime() : Date.now();
+      const tick = () => {
+        const breakElapsed = Math.max(0, Math.floor((Date.now() - breakStart) / 1000));
+        const isLunch = (lastBreak?.type === "Lunch" || lastBreak?.breakType === "Lunch");
+        const curLunch = isLunch ? ls + breakElapsed : ls;
+        const curOther = !isLunch ? os + breakElapsed : os;
         const elapsed = Math.floor((Date.now() - start) / 1000);
         setWorkSeconds(Math.max(0, elapsed - (curLunch + curOther)));
         setLunchSeconds(curLunch);
         setBreakSeconds(curOther);
-      }, 1000);
+      };
+      tick();
+      timerRef.current = setInterval(tick, 1000);
     } else if (status === "Checked Out") {
       setWorkSeconds(statusRecord.totalWorkSeconds || 0);
       setLunchSeconds(ls);
       setBreakSeconds(os);
     } else {
-      setWorkSeconds(0); setLunchSeconds(0); setBreakSeconds(0);
+      setWorkSeconds(0);
+      setLunchSeconds(0);
+      setBreakSeconds(0);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [statusRecord]);
 
   /* ── location / device utils ── */
@@ -214,38 +332,91 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     return `${os} (${br})`;
   };
   const getLoc = () => new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve({ latitude: null, longitude: null, address: "Not supported" });
-    navigator.geolocation.getCurrentPosition(
-      (p) => resolve({ latitude: p.coords.latitude, longitude: p.coords.longitude, address: `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}` }),
-      () => resolve({ latitude: null, longitude: null, address: "Permission Denied" }),
-      { enableHighAccuracy: false, timeout: 3000 }
-    );
+    try {
+      if (!navigator?.geolocation) {
+        return resolve({ latitude: null, longitude: null, address: "Device Location" });
+      }
+      let resolved = false;
+      const fallbackTimer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve({ latitude: null, longitude: null, address: "Device Location" });
+        }
+      }, 500);
+
+      navigator.geolocation.getCurrentPosition(
+        (p) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(fallbackTimer);
+            resolve({
+              latitude: p.coords.latitude,
+              longitude: p.coords.longitude,
+              address: `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}`,
+            });
+          }
+        },
+        () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(fallbackTimer);
+            resolve({ latitude: null, longitude: null, address: "Device Location" });
+          }
+        },
+        { enableHighAccuracy: false, timeout: 500, maximumAge: 60000 }
+      );
+    } catch (e) {
+      resolve({ latitude: null, longitude: null, address: "Device Location" });
+    }
   });
 
   /* ── actions ── */
-  const apiCall = async (fn) => { setLoading(true); setErrorMsg(""); try { await fn(); } catch (err) { setErrorMsg(err.response?.data?.message || "Action failed."); } finally { setLoading(false); } };
+  const apiCall = async (fn) => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      await fn();
+    } catch (err) {
+      console.error("Action error:", err);
+      setErrorMsg(err.response?.data?.message || err.message || "Action failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCheckIn = () => apiCall(async () => {
-    const loc = await getLoc(); loc.device = getDevice();
+    const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
     const res = await apiClient.post(`/employee/check-in`, { location: loc });
-    setStatusRecord(res.data.record); setSuccessMsg(res.data.message);
+    const rec = res.data?.record || res.data?.attendance;
+    if (rec) setStatusRecord(rec);
+    setSuccessMsg(res.data?.message || "Checked in successfully");
+    await fetchAll(true);
   });
 
   const handleCheckOut = () => apiCall(async () => {
-    const loc = await getLoc(); loc.device = getDevice();
+    const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
     const res = await apiClient.post(`/employee/check-out`, { location: loc, checkOutNote });
-    setStatusRecord(res.data.record); setSuccessMsg(res.data.message);
+    const rec = res.data?.record || res.data?.attendance;
+    if (rec) setStatusRecord(rec);
+    setSuccessMsg(res.data?.message || "Checked out successfully");
     setCheckOutNote("");
+    await fetchAll(true);
   });
 
-  const handleBreakStart = (type) => apiCall(async () => {
+  const handleBreakStart = (type = "Break") => apiCall(async () => {
     const res = await apiClient.post(`/employee/break/start`, { breakType: type });
-    setStatusRecord(res.data.record); setSuccessMsg(res.data.message);
+    const rec = res.data?.record || res.data?.attendance;
+    if (rec) setStatusRecord(rec);
+    setSuccessMsg(res.data?.message || "Break started. Work timer paused.");
+    fetchAll(true);
   });
 
   const handleBreakEnd = () => apiCall(async () => {
     const res = await apiClient.post(`/employee/break/end`);
-    setStatusRecord(res.data.record); setSuccessMsg(res.data.message);
+    const rec = res.data?.record || res.data?.attendance;
+    if (rec) setStatusRecord(rec);
+    setSuccessMsg(res.data?.message || "Break ended. Work timer resumed.");
+    fetchAll(true);
   });
 
   const handleLeaveFile = (e) => {
@@ -262,17 +433,22 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     e.preventDefault();
     if (!leaveForm.startDate || !leaveForm.endDate || !leaveForm.reason) { setErrorMsg("Fill all required fields."); return; }
     apiCall(async () => {
-      const res = await apiClient.post(`/employee/leaves`, leaveForm);
+      const payload = {
+        ...leaveForm,
+        leaveType: leaveForm.leaveType || "Casual Leave",
+      };
+      const res = await apiClient.post(`/employee/leaves`, payload);
       setSuccessMsg(res.data.message);
-      setLeaveForm({ startDate: "", endDate: "", reason: "", document: "" });
+      setLeaveForm({ leaveType: "Casual Leave", startDate: "", endDate: "", reason: "", document: "" });
       setFileLabel("");
       fetchAll();
     });
   };
 
   /* ── derived ── */
-  const status = statusRecord?.status || "Absent";
+  const status = initialLoading && !statusRecord ? "Syncing..." : (statusRecord?.status || "Absent");
   const leaveBalance = statusRecord?.leaveBalance ?? 0;
+
   const nextMonthLeaves = statusRecord?.nextMonthLeaves ?? 0;
   const isOnBreak = status === "On Break";
   const isActive = status === "Active";
@@ -297,13 +473,11 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
 
   /* ── status colours ── */
   const statusColor = {
-    Active: "bg-indigo-500", "On Break": "bg-amber-500",
+    Active: "bg-emerald-500", "On Break": "bg-sky-500",
     "Checked Out": "bg-slate-400", Absent: "bg-rose-500",
     "Weekly Off": "bg-slate-400", Holiday: "bg-indigo-500",
+    "Syncing...": "bg-sky-500 animate-pulse",
   }[status] || "bg-slate-400";
-
-  /* ── sales employee check ── */
-  const isSalesEmployee = user?.department?.toLowerCase?.()?.includes?.("sales");
 
   /* ══════════════════════════ SHELL ══════════════════════════ */
   return (
@@ -311,17 +485,43 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       {/* Light Background Watermark Logo */}
       <DashboardWatermark />
 
+      {/* Holiday & Announcement Pop-up Modals */}
+      <HolidayAnnouncementModals
+        todayHoliday={todayHoliday}
+        isHolidayToday={isHolidayToday}
+        announcements={announcements}
+        onViewAnnouncements={() => setView("announcements")}
+        onViewCalendar={() => setView("calendar")}
+      />
+
+      {/* Real-time Admin Update Floating Pop-up Alert */}
+      {liveAdminNotification && (
+        <AdminUpdateToast
+          notification={liveAdminNotification}
+          onClose={() => setLiveAdminNotification(null)}
+          onView={(n) => {
+            setLiveAdminNotification(null);
+            if (n?.type === "LEAVE_UPDATE") setView("leaves");
+            else if (n?.type === "EXPENSE_UPDATE") setView("expenses");
+            else if (n?.type === "DOCUMENT_UPDATE") setView("profile-docs");
+            else if (n?.type === "ANNOUNCEMENT") setView("announcements");
+            else if (n?.type === "MEETING") setView("meetings");
+            else if (n?.type === "ATTENDANCE_UPDATE") setView("calendar");
+            else setView("home");
+          }}
+        />
+      )}
+
       {/* Enterprise Dark Navy Sidebar */}
       <EmpSidebar
         view={view}
         setView={setView}
         onLogout={onLogout}
-        user={user}
+        user={currentUser}
         status={status}
         statusColor={statusColor}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        isSalesEmployee={isSalesEmployee}
       />
 
       {/* Main Content Area */}
@@ -331,12 +531,12 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           view={view}
           setView={setView}
           onLogout={onLogout}
-          user={user}
+          user={currentUser}
           token={token}
-          isSalesEmployee={isSalesEmployee}
           status={status}
           statusColor={statusColor}
           setSidebarOpen={setSidebarOpen}
+          onNewNotification={(n) => setLiveAdminNotification(n)}
         />
 
         {/* Main Body View */}
@@ -347,7 +547,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           {/* ── 0. Home Dashboard Overview (Clean Single Unified Dashboard) ── */}
           {(view === "home" || view === "tracker") && (
             <EmpHomeOverview
-              user={user}
+              user={currentUser}
               statusRecord={statusRecord}
               status={status}
               statusColor={statusColor}
@@ -361,6 +561,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               todayMeetings={todayMeetings}
               announcements={announcements}
               holidays={holidays}
+              complianceInfo={complianceInfo}
               setView={setView}
               handleCheckIn={handleCheckIn}
               handleCheckOut={handleCheckOut}
@@ -376,6 +577,8 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               todayHoliday={todayHoliday}
               isWeeklyOffToday={isWeeklyOffToday}
               weeklyOffReason={weeklyOffReason}
+              errorMsg={errorMsg}
+              successMsg={successMsg}
             />
           )}
           {view === "calendar" && (
@@ -416,6 +619,8 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               loading={loading}
               handleCheckIn={handleCheckIn}
               handleCheckOut={handleCheckOut}
+              handleBreakStart={handleBreakStart}
+              handleBreakEnd={handleBreakEnd}
               checkOutNote={checkOutNote}
               setCheckOutNote={setCheckOutNote}
             />
@@ -461,20 +666,24 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               fmtDate={fmtDate}
             />
           )}
-          {view === "profile-docs" && (
-            <EmployeeProfileDocsTab user={user} token={token} />
+          {(view === "profile-docs" || view === "profile") && (
+            <EmployeeProfileDocsTab
+              user={currentUser}
+              token={token}
+              onProfileUpdate={(img) => {
+                if (img) handleProfileImageUpdate(img);
+                fetchProfile();
+              }}
+            />
           )}
           {view === "expenses" && (
-            <EmployeeExpensesTab user={user} token={token} />
+            <EmployeeExpensesTab user={currentUser} token={token} />
           )}
           {view === "meetings" && (
-            <EmployeeMeetingsTab token={token} />
-          )}
-          {view === "crm" && (
-            <CRMDashboard user={user} />
+            <EmployeeMeetingsTab token={token} initialMeetings={todayMeetings} />
           )}
         </main>
-        
+
         {/* Unified App Footer */}
         <AppFooter
           role="employee"
@@ -493,7 +702,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
             <div className="p-6 flex justify-center items-center">
               {previewDoc.startsWith("data:image/") ? <img src={previewDoc} className="max-h-[450px] w-auto object-contain rounded-lg shadow-sm" alt="Doc" />
                 : previewDoc.startsWith("data:application/pdf") ? <iframe src={previewDoc} style={{ width: "100%", height: "450px", border: "none", borderRadius: "8px" }} />
-                : <div className="text-center py-8"><FileText size={48} className="mb-4 text-blue-600 mx-auto" /><a href={previewDoc} download="attachment" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold inline-block cursor-pointer">Download</a></div>}
+                  : <div className="text-center py-8"><FileText size={48} className="mb-4 text-blue-600 mx-auto" /><a href={previewDoc} download="attachment" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold inline-block cursor-pointer">Download</a></div>}
             </div>
           </div>
         </div>

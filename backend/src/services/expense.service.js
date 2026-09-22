@@ -1,6 +1,11 @@
+import mongoose from "mongoose";
 import ExpenseCategory from "../models/ExpenseCategory.js";
 import Expense from "../models/Expense.js";
+import Employee from "../models/Employee.js";
+import Client from "../models/Client.js";
 import { ApiError } from "../utils/apiError.js";
+import NotificationService from "./notification.service.js";
+import { saveBase64File } from "../utils/fileStorage.js";
 
 /**
  * Enterprise Expense Management Service
@@ -25,6 +30,9 @@ export class ExpenseService {
       ...(expense.toObject ? expense.toObject() : expense),
       id: expense._id?.toString() || expense.id,
       _id: expense._id?.toString() || expense.id,
+      name: expense.title || expense.name || "",
+      title: expense.title || expense.name || "",
+      type: (expense.status === "Pending" ? "Claim" : "Expense"),
       category: catObj
         ? {
             ...(catObj.toObject ? catObj.toObject() : catObj),
@@ -101,7 +109,16 @@ export class ExpenseService {
 
     if (categoryId) query.categoryId = categoryId;
     if (clientId) query.clientId = clientId;
-    if (employeeId) query.employeeId = employeeId;
+    if (employeeId) {
+      if (mongoose.Types.ObjectId.isValid(employeeId)) {
+        query.$or = [
+          { employeeId: new mongoose.Types.ObjectId(employeeId) },
+          { employeeId: employeeId.toString() },
+        ];
+      } else {
+        query.employeeId = employeeId;
+      }
+    }
     if (status) query.status = status;
     if (startDate && endDate) {
       query.date = {
@@ -127,35 +144,102 @@ export class ExpenseService {
       amount,
       date,
       categoryId,
+      category,
+      categoryName,
       clientId,
       receipt,
       remarks,
       notes,
     } = data;
 
-    const finalTitle = title ? title.trim() : (description ? description.trim() : "");
-    if (!finalTitle || amount === undefined || amount === null || !categoryId) {
-      throw new ApiError(400, "Title / Description, amount, and category are required.");
+    let targetCategoryId = categoryId;
+    const customCategoryText = (
+      categoryName ||
+      category ||
+      (typeof categoryId === "string" && !mongoose.Types.ObjectId.isValid(categoryId) ? categoryId : "")
+    ).trim();
+
+    if (customCategoryText) {
+      let catDoc = await ExpenseCategory.findOne({
+        name: { $regex: new RegExp(`^${customCategoryText}$`, "i") },
+      });
+      if (!catDoc) {
+        catDoc = await ExpenseCategory.create({ name: customCategoryText });
+      }
+      targetCategoryId = catDoc._id;
+    }
+
+    if (!targetCategoryId) {
+      // Default to General category if none provided
+      let defaultCat = await ExpenseCategory.findOne({ name: "General" });
+      if (!defaultCat) {
+        defaultCat = await ExpenseCategory.create({ name: "General" });
+      }
+      targetCategoryId = defaultCat._id;
+    }
+
+    const finalTitle = (title || data.name || description || "General Expense").trim();
+    if (!finalTitle || amount === undefined || amount === null || amount === "") {
+      throw new ApiError(400, "Title / Name and amount are required.");
     }
 
     const isEmployee = userRole === "employee";
     const status = isEmployee ? "Pending" : (data.status || "Approved");
 
+    // Automatically store base64 receipts to disk for zero DB bloat
+    const storedReceipt = receipt ? saveBase64File(receipt, "receipts", "receipt") : "";
+
+    let finalEmployeeId = null;
+    if (isEmployee) {
+      const rawId = userId || data.employeeId || null;
+      finalEmployeeId = rawId && mongoose.Types.ObjectId.isValid(rawId) ? new mongoose.Types.ObjectId(rawId) : rawId;
+    } else if (data.employeeId && data.employeeId !== "all" && data.employeeId !== "") {
+      finalEmployeeId = mongoose.Types.ObjectId.isValid(data.employeeId) ? new mongoose.Types.ObjectId(data.employeeId) : data.employeeId;
+    }
+
     const expense = await Expense.create({
       title: finalTitle,
-      description: description ? description.trim() : finalTitle,
+      description: (description || data.name || finalTitle).trim(),
       amount: parseFloat(amount),
       date: date ? new Date(date) : new Date(),
-      categoryId,
-      employeeId: isEmployee ? userId : (data.employeeId || null),
+      categoryId: targetCategoryId,
+      employeeId: finalEmployeeId,
       clientId: clientId || null,
-      receipt: receipt || "",
+      receipt: storedReceipt,
       remarks: remarks ? remarks.trim() : "",
       notes: notes ? notes.trim() : "",
       status,
     });
 
     await expense.populate(["categoryId", "employeeId", "clientId"]);
+
+    // Send Live Admin Notification when employee submits an expense
+    if (isEmployee) {
+      try {
+        const empName = expense.employeeId?.name
+          ? (typeof expense.employeeId.name === "string"
+              ? expense.employeeId.name
+              : `${expense.employeeId.name.first || ""} ${expense.employeeId.name.last || ""}`.trim())
+          : "An employee";
+
+        await NotificationService.createNotification({
+          type: "EXPENSE_CLAIM",
+          title: "New Expense Claim Submitted",
+          message: `${empName} submitted an expense claim of ₹${Number(expense.amount || 0).toLocaleString("en-IN")} for "${expense.title}".`,
+          targetRole: "ADMIN",
+          targetType: "ALL",
+          metadata: {
+            expenseId: expense._id?.toString(),
+            employeeId: finalEmployeeId?.toString(),
+            amount: expense.amount,
+            title: expense.title,
+          },
+        });
+      } catch (notifErr) {
+        console.error("Failed to notify admin of new expense claim:", notifErr);
+      }
+    }
+
     return this.formatExpense(expense);
   }
 
@@ -176,6 +260,25 @@ export class ExpenseService {
 
     await expense.save();
     await expense.populate(["categoryId", "employeeId", "clientId"]);
+
+    // Trigger Employee Live Notification
+    try {
+      if (expense.employeeId) {
+        const empId = expense.employeeId._id || expense.employeeId;
+        await NotificationService.createNotification({
+          type: "EXPENSE_UPDATE",
+          title: `Expense Claim ${status}`,
+          message: `Your expense "${expense.title}" for ₹${Number(expense.amount || 0).toLocaleString("en-IN")} has been ${status.toLowerCase()}.${adminRemark ? ` Remark: "${adminRemark}"` : ""}`,
+          targetRole: "EMPLOYEE",
+          targetType: "SPECIFIC",
+          targetEmployeeId: empId,
+          metadata: { expenseId: expense._id, status, adminRemark, amount: expense.amount },
+        });
+      }
+    } catch (e) {
+      console.error("Failed to notify employee of expense review:", e);
+    }
+
     return this.formatExpense(expense);
   }
 
@@ -221,6 +324,20 @@ export class ExpenseService {
     if (!expense) {
       throw new ApiError(404, "Expense not found.");
     }
+    return expense;
+  }
+
+  static async deleteEmployeeExpense(id, employeeId) {
+    const expense = await Expense.findById(id);
+    if (!expense) {
+      throw new ApiError(404, "Expense claim not found.");
+    }
+    const empIdStr = (employeeId?._id || employeeId || "").toString();
+    const ownerIdStr = (expense.employeeId?._id || expense.employeeId || "").toString();
+    if (ownerIdStr && empIdStr && ownerIdStr !== empIdStr) {
+      throw new ApiError(403, "You can only delete your own expense claims.");
+    }
+    await Expense.findByIdAndDelete(id);
     return expense;
   }
 

@@ -49,8 +49,9 @@ export const getExpenses = asyncHandler(async (req, res) => {
 });
 
 export const createExpense = asyncHandler(async (req, res) => {
-  const userRole = req.admin ? "admin" : (req.employee ? "employee" : "admin");
-  const userId = req.admin?._id || req.employee?._id || null;
+  const role = (req.user?.role || "").toLowerCase();
+  const userRole = role === "employee" ? "employee" : "admin";
+  const userId = req.employee?._id || req.admin?._id || req.user?.id || req.user?._id || null;
 
   const expense = await ExpenseService.createExpense(req.body, userRole, userId);
   return res.status(201).json({
@@ -81,7 +82,7 @@ export const getClientExpenses = asyncHandler(async (req, res) => {
 });
 
 export const getMyExpenses = asyncHandler(async (req, res) => {
-  const employeeId = req.employee?._id || req.user?._id;
+  const employeeId = req.employee?._id || req.user?.id || req.user?._id;
   const { categoryId, status, startDate, endDate } = req.query;
   const expenses = await ExpenseService.getExpenses({
     employeeId,
@@ -94,7 +95,7 @@ export const getMyExpenses = asyncHandler(async (req, res) => {
 });
 
 export const submitMyExpense = asyncHandler(async (req, res) => {
-  const employeeId = req.employee?._id || req.user?._id;
+  const employeeId = req.employee?._id || req.user?.id || req.user?._id;
   const expense = await ExpenseService.createExpense(req.body, "employee", employeeId);
   return res.status(201).json({
     message: "Expense submitted successfully for review",
@@ -115,6 +116,12 @@ export const deleteExpense = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Expense deleted successfully" });
 });
 
+export const deleteMyExpense = asyncHandler(async (req, res) => {
+  const employeeId = req.employee?._id || req.user?.id || req.user?._id;
+  await ExpenseService.deleteEmployeeExpense(req.params.id, employeeId);
+  return res.status(200).json({ message: "Expense claim deleted successfully" });
+});
+
 export default {
   getCategories,
   createCategory,
@@ -126,6 +133,7 @@ export default {
   getClientExpenses,
   getMyExpenses,
   submitMyExpense,
+  deleteMyExpense,
   updateExpense,
   deleteExpense,
 };

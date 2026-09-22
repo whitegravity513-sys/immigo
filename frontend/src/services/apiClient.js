@@ -8,10 +8,13 @@ import appConfig from "../config/appConfig.js";
 export const apiClient = axios.create({
   baseURL: appConfig.API_BASE_URL,
   withCredentials: true,
-  timeout: 30000,
+  timeout: 60000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
   },
 });
 
@@ -21,6 +24,10 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem(appConfig.STORAGE_KEYS.TOKEN);
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    // Prevent browser disk cache from reusing 304 responses across dev ports (5173 / 5174)
+    if (config.method?.toLowerCase() === "get") {
+      config.params = { ...(config.params || {}), _t: Date.now() };
     }
     return config;
   },

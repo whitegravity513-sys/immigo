@@ -63,6 +63,20 @@ export const deleteAdminDocument = asyncHandler(async (req, res) => {
   });
 });
 
+export const reviewAdminDocument = asyncHandler(async (req, res) => {
+  const { status, verificationNote } = req.body;
+  const adminId = req.user?._id || req.admin?._id || null;
+  const employee = await EmployeeService.reviewDocument(req.params.id, req.params.docId, {
+    status,
+    verificationNote,
+    adminId,
+  });
+  return res.status(200).json({
+    message: `Document ${status === "Verified" ? "approved" : "rejected"} successfully`,
+    employee,
+  });
+});
+
 export const getEmployeeHistory = asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
   const history = await EmployeeService.getEmployeeHistory(req.params.id, startDate, endDate);
@@ -97,6 +111,7 @@ export default {
   setLeaveBalance,
   uploadAdminDocument,
   deleteAdminDocument,
+  reviewAdminDocument,
   getEmployeeHistory,
   getEmployeeMonthlyDetails,
   getEmployeeNote,

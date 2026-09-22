@@ -1,4 +1,9 @@
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 dotenv.config();
 
 /**
@@ -18,7 +23,7 @@ export const env = {
   EMAIL_USER: process.env.SMTP_USER || process.env.EMAIL_USER || "",
   EMAIL_PASS: process.env.SMTP_PASS || process.env.EMAIL_PASS || "",
   EMAIL_FROM: process.env.EMAIL_FROM || "no-reply@vesta.in",
-  SUPERADMIN_NAME: process.env.SUPER_ADMIN_NAME || process.env.SUPERADMIN_NAME || "Super Admin",
+  SUPERADMIN_NAME: process.env.SUPER_ADMIN_NAME || process.env.SUPERADMIN_NAME || "Admin",
   SUPERADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL || process.env.SUPERADMIN_EMAIL || "superadmin@vesta.in",
   SUPERADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD || process.env.SUPERADMIN_PASSWORD || "SuperAdmin@2026!",
   ALLOWED_ORIGINS: [

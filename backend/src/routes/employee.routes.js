@@ -18,6 +18,7 @@ import {
 import {
   getMyExpenses,
   submitMyExpense,
+  deleteMyExpense,
   getCategories,
 } from "../controllers/expense.controller.js";
 import { getClients } from "../controllers/client.controller.js";
@@ -28,9 +29,19 @@ import {
 } from "../controllers/notification.controller.js";
 import { getEmployeeMeetings } from "../controllers/meeting.controller.js";
 import { getAnnouncements } from "../controllers/adminAnnouncement.controller.js";
+import {
+  saveTodayWorkLog,
+  getTodayWorkLog,
+  getMyWorkLogHistory,
+} from "../controllers/worklog.controller.js";
 import { verifyEmployee } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+
+router.use((req, res, next) => {
+  console.log(`[EMPLOYEE ROUTE] ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 router.get("/status", verifyEmployee, getEmployeeStatus);
 router.post("/check-in", verifyEmployee, checkIn);
@@ -53,6 +64,7 @@ router.delete("/documents/:docId", verifyEmployee, deleteMyDocument);
 // ─── EXPENSE SUBMISSION & TRACKING ───
 router.get("/expenses", verifyEmployee, getMyExpenses);
 router.post("/expenses", verifyEmployee, submitMyExpense);
+router.delete("/expenses/:id", verifyEmployee, deleteMyExpense);
 router.get("/expense-categories", verifyEmployee, getCategories);
 router.get("/clients", verifyEmployee, getClients);
 
@@ -63,5 +75,10 @@ router.put("/notifications/:id/read", verifyEmployee, markEmployeeNotificationAs
 
 // ─── MEETING ROUTES FOR EMPLOYEE ───
 router.get("/meetings", verifyEmployee, getEmployeeMeetings);
+
+// ─── DAILY WORK LOG ROUTES ───
+router.get("/worklog/today", verifyEmployee, getTodayWorkLog);
+router.post("/worklog", verifyEmployee, saveTodayWorkLog);
+router.get("/worklog/history", verifyEmployee, getMyWorkLogHistory);
 
 export default router;
