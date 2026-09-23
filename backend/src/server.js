@@ -16,6 +16,14 @@ const startServer = async () => {
   // Connect to database
   await connectDB();
 
+  // Ensure default employee VESTA-001 exists with valid credentials
+  try {
+    const { seedDefaultEmployee } = await import("./seed/employee.seed.js");
+    await seedDefaultEmployee(false);
+  } catch (err) {
+    logger.warn("Non-critical: default employee seed check skipped", err.message);
+  }
+
   const server = app.listen(PORT, () => {
     logger.info(`Vista Enterprise Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
     startCronJobs();

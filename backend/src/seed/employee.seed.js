@@ -4,24 +4,32 @@ import Employee from "../models/Employee.js";
 import { connectDB } from "../config/db.js";
 import { logger } from "../utils/logger.js";
 
-const seedDefaultEmployee = async () => {
+export const seedDefaultEmployee = async (exitOnComplete = true) => {
   try {
     await connectDB();
 
     const testEmployeeId = "VESTA-001";
     const testEmail = "employee@vesta.in";
-    const testPassword = "Password@123";
+    const testPassword = process.env.DEFAULT_EMPLOYEE_PASSWORD || "12345";
 
     const existingEmp = await Employee.findOne({
       $or: [{ employeeId: testEmployeeId }, { email: testEmail }],
     });
 
-    if (existingEmp) {
-      logger.info(`Test Employee [${testEmployeeId}] already exists.`);
-      process.exit(0);
-    }
-
     const hashedPassword = await bcrypt.hash(testPassword, 10);
+
+    if (existingEmp) {
+      existingEmp.password = hashedPassword;
+      existingEmp.status = "active";
+      if (!existingEmp.employeeId) existingEmp.employeeId = testEmployeeId;
+      await existingEmp.save();
+
+      logger.info(`✅ Default Employee [${testEmployeeId}] password updated to: ${testPassword}`);
+      if (exitOnComplete) {
+        process.exit(0);
+      }
+      return existingEmp;
+    }
 
     const emp = await Employee.create({
       employeeId: testEmployeeId,
@@ -39,11 +47,23 @@ const seedDefaultEmployee = async () => {
 - Email: ${emp.email}
 - Password: ${testPassword}
 - Name: ${emp.name}`);
-    process.exit(0);
+
+    if (exitOnComplete) {
+      process.exit(0);
+    }
+    return emp;
   } catch (err) {
     logger.error("Employee seeding failed:", err);
-    process.exit(1);
+    if (exitOnComplete) {
+      process.exit(1);
+    }
+    throw err;
   }
 };
 
-seedDefaultEmployee();
+// Auto-run if executed directly
+if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, "/")}` || process.argv[1]?.endsWith("employee.seed.js")) {
+  seedDefaultEmployee(true);
+}
+
+export default seedDefaultEmployee;
