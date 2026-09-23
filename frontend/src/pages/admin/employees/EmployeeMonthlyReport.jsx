@@ -222,17 +222,12 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
       {monthlyData && (
         <div className="space-y-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-slate-600 font-bold">Working Days</div>
-                <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">Post-DOJ</span>
-              </div>
+              <div className="text-sm text-slate-600 font-bold">Working Days</div>
               <div className="text-2xl font-bold text-slate-900 mt-0.5">{monthlyData.summary?.totalWorkingDays ?? 0} Days</div>
               <div className="text-[11px] text-slate-400 font-medium mt-1">
-                {monthlyData.workingDaysInMonth && monthlyData.workingDaysInMonth !== monthlyData.summary?.totalWorkingDays
-                  ? `Active from DOJ (Full Month: ${monthlyData.workingDaysInMonth} Days)`
-                  : "Excludes weekends & declared holidays"}
+                Excludes weekends & declared holidays
               </div>
             </div>
             <div className="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
@@ -243,14 +238,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <div className="text-sm text-slate-600 font-bold">Absent Days</div>
               <div className="text-2xl font-bold text-amber-600">{monthlyData.summary?.absentDays ?? 0}</div>
             </div>
-            <div className="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
-              <div className="text-sm text-slate-600 font-bold">Total Work Hours</div>
-              <div className="text-2xl font-bold text-purple-600">{monthlyData.summary?.totalWorkHours ?? "0h 0m"}</div>
-            </div>
           </div>
 
           {/* Additional Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl p-4 border border-cyan-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -267,15 +258,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                   <div className="text-3xl font-bold text-rose-700">{monthlyData.summary?.totalLeaveDays ?? 0}</div>
                 </div>
                 <CheckCircle className="w-8 h-8 text-rose-400 opacity-50" />
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-slate-600 font-bold mb-1">Avg Work Hours/Day</div>
-                  <div className="text-3xl font-bold text-orange-700">{monthlyData.summary?.averageWorkHoursPerDay ?? "0h 0m"}</div>
-                </div>
-                <Clock className="w-8 h-8 text-orange-400 opacity-50" />
               </div>
             </div>
           </div>
@@ -301,7 +283,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                     <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Status</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-In</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-Out</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Location / Where From</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Work Hours</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Break</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Notes</th>
@@ -315,7 +296,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                     const workMinutes = Math.floor((record.workSeconds % 3600) / 60);
                     const breakHours = Math.floor(record.breakSeconds / 3600);
                     const breakMinutes = Math.floor((record.breakSeconds % 3600) / 60);
-                    const checkInLoc = record.checkInLocation?.address || record.checkInLocation?.device || record.checkInAddress || (record.checkInTime ? "Office / Web" : "—");
 
                     const statusColors = {
                       Present: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -345,12 +325,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                         </td>
                         <td className="px-5 py-3.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkInTime)}</td>
                         <td className="px-5 py-3.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkOutTime)}</td>
-                        <td className="px-5 py-3.5 text-xs text-slate-600 max-w-[180px] truncate font-medium" title={checkInLoc}>
-                          <span className="inline-flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                            <span className="truncate">{checkInLoc}</span>
-                          </span>
-                        </td>
                         <td className="px-5 py-3.5 font-bold text-slate-900 text-xs">
                           {String(workHours).padStart(2, "0")}:{String(workMinutes).padStart(2, "0")}
                         </td>

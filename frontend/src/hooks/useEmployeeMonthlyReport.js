@@ -92,9 +92,7 @@ export const useEmployeeMonthlyReport = (token) => {
       { Metric: "Half Days", Value: monthlyData.summary?.halfDays ?? 0 },
       { Metric: "Absent Days", Value: monthlyData.summary?.absentDays ?? 0 },
       { Metric: "Leave Days", Value: monthlyData.summary?.totalLeaveDays ?? 0 },
-      { Metric: "Total Work Hours", Value: monthlyData.summary?.totalWorkHours ?? "0h 0m" },
-      { Metric: "Total Break Hours", Value: monthlyData.summary?.totalBreakHours ?? "0h 0m" },
-      { Metric: "Average Work Hours / Day", Value: monthlyData.summary?.averageWorkHoursPerDay ?? "0h 0m" }
+      { Metric: "Total Break Hours", Value: monthlyData.summary?.totalBreakHours ?? "0h 0m" }
     ];
 
     // 2. Daily Attendance Sheet

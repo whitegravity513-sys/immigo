@@ -58,7 +58,7 @@ export default function AttendanceSummarySection({
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr>
-                {["Employee", "Post-DOJ", "Full Day", "Half Day", "Absent", "Leaves Taken"].map(h => (
+                {["Employee", "Full Day", "Half Day", "Absent", "Leaves Taken"].map(h => (
                   <th key={h} className="px-4 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
                 ))}
               </tr>
@@ -81,23 +81,6 @@ export default function AttendanceSummarySection({
                       <div className="text-xs text-slate-500">{emp.employeeId || emp.employeeCode || "-"} • {emp.designation || "-"}</div>
                       {emp.status === "inactive" && <span className="text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 rounded-md uppercase mt-0.5 inline-block">Deactivated</span>}
                     </td>
-                    <td className="px-4 py-4 text-center">
-                      <div className="flex flex-col items-center justify-center">
-
-                        {emp.joiningDate && emp.summary?.totalMonthWorkingDays && emp.summary.totalMonthWorkingDays !== workingDays ? (
-                          <span
-                            className="text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded mt-0.5"
-                            title={`Joined: ${new Date(emp.joiningDate).toLocaleDateString("en-IN")}. Full month has ${emp.summary.totalMonthWorkingDays} working days.`}
-                          >
-                            DOJ: {new Date(emp.joiningDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} (Total: {emp.summary.totalMonthWorkingDays})
-                          </span>
-                        ) : (
-                          <span className="text-[9px] text-slate-400 font-medium">
-                            (Full Month)
-                          </span>
-                        )}
-                      </div>
-                    </td>
                     <td className="px-4 py-4 text-center"><span className="text-sm font-black text-emerald-600">{presentDays}</span></td>
                     <td className="px-4 py-4 text-center"><span className="text-sm font-black text-amber-600">{halfDays}</span></td>
                     <td className="px-4 py-4 text-center"><span className={`text-sm font-black ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>
@@ -107,7 +90,7 @@ export default function AttendanceSummarySection({
               })}
               {summaryData.length === 0 && !summaryLoading && (
                 <tr>
-                  <td colSpan="6">
+                  <td colSpan="5">
                     <div className="text-center py-12 text-slate-500 font-semibold text-sm">Click "Apply" to load summary.</div>
                   </td>
                 </tr>

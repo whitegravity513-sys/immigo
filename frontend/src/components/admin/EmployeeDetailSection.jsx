@@ -447,18 +447,13 @@ export default function EmployeeDetailSection({
                     <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${emp.status === "inactive" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
                       {emp.status ? emp.status.toUpperCase() : "ACTIVE"}
                     </span>
-                    {emp.role && (
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 uppercase">
-                        {emp.role}
-                      </span>
-                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 font-medium">
                     <EmployeeIdBadge id={emp.employeeId} />
                     <span>&bull;</span>
-                    <span className="font-semibold text-slate-800">{emp.designation || "Employee"}</span>
-                    <span>&bull;</span>
                     <span className="text-slate-500">{emp.department || "General Department"}</span>
+                    <span>&bull;</span>
+                    <span className="font-semibold text-slate-800">{emp.designation || "Employee"}</span>
                   </div>
                   <div className="text-sm text-slate-500 flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
                     <p><span className="text-slate-400 font-medium">Work Email:</span> <span className="font-semibold text-slate-700">{emp.email}</span></p>
@@ -545,7 +540,7 @@ export default function EmployeeDetailSection({
             </div>
 
             {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
               <div className="flex flex-col items-center bg-blue-50 rounded-xl py-3 border border-blue-100">
                 <span className="text-2xl font-black text-blue-700">{postDojWorkingDays}</span>
                 <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide mt-0.5">Working Days</span>
@@ -553,7 +548,6 @@ export default function EmployeeDetailSection({
               <div className="flex flex-col items-center bg-emerald-50 rounded-xl py-3 border border-emerald-100"><span className="text-2xl font-black text-emerald-600">{presentCount}</span><span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mt-0.5">Full Days</span></div>
               <div className="flex flex-col items-center bg-amber-50 rounded-xl py-3 border border-amber-100"><span className="text-2xl font-black text-amber-600">{halfDayCount}</span><span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mt-0.5">Half Days</span></div>
               <div className="flex flex-col items-center bg-rose-50 rounded-xl py-3 border border-rose-100"><span className="text-2xl font-black text-rose-600">{absentCount}</span><span className="text-[10px] font-bold text-rose-600 uppercase tracking-wide mt-0.5">Absent</span></div>
-              <div className="flex flex-col items-center bg-indigo-50 rounded-xl py-3 border border-indigo-100"><span className="text-2xl font-black text-indigo-700">{emp.documents?.length || 0}</span><span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wide mt-0.5">In Vault</span></div>
             </div>
           </div>
 
@@ -654,7 +648,7 @@ export default function EmployeeDetailSection({
               {employeeDetailView === "table" ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[600px]">
-                    <thead><tr>{["Date", "Status", "Check In", "Check Out", "Location / Where From", "Work Time", "Break", "Half Day?", "Checkout Note"].map(h => <th key={h} className="px-4 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100 whitespace-nowrap">{h}</th>)}</tr></thead>
+                    <thead><tr>{["Date", "Status", "Check In", "Check Out", "Work Time", "Break", "Half Day?", "Checkout Note"].map(h => <th key={h} className="px-4 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100 whitespace-nowrap">{h}</th>)}</tr></thead>
                     <tbody>
                       {attendance.map((a, idx) => {
                         const isBeforeJoining = joiningDateStr && a.date < joiningDateStr;
@@ -665,7 +659,6 @@ export default function EmployeeDetailSection({
                         }
                         const isHalfDay = a.halfSalaryDeduct || (workSec > 0 && workSec < 28800);
                         const hasTimes = Boolean(a.checkInTime && a.checkOutTime);
-                        const checkInLoc = a.checkInAddress || a.checkInDevice || (a.checkInLatitude ? `${a.checkInLatitude.toFixed(2)}, ${a.checkInLongitude?.toFixed(2)}` : (a.checkInTime ? "Office / Web" : "—"));
 
                         if (isBeforeJoining) {
                           return (
@@ -682,7 +675,6 @@ export default function EmployeeDetailSection({
                               <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
                               <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
                               <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
-                              <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
                             </tr>
                           );
                         }
@@ -693,12 +685,6 @@ export default function EmployeeDetailSection({
                             <td className="px-4 py-3.5"><span className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-lg border ${sColor(a.status)}`}>{a.status}</span></td>
                             <td className="px-4 py-3.5 text-xs font-semibold text-slate-600 whitespace-nowrap">{a.checkInTime ? formatTime(a.checkInTime) : <span className="text-slate-300">—</span>}</td>
                             <td className="px-4 py-3.5 text-xs font-semibold text-slate-600 whitespace-nowrap">{a.checkOutTime ? formatTime(a.checkOutTime) : <span className="text-slate-300">—</span>}</td>
-                            <td className="px-4 py-3.5 text-xs font-medium text-slate-600 max-w-[180px] truncate" title={checkInLoc}>
-                              <span className="inline-flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                                <span className="truncate">{checkInLoc}</span>
-                              </span>
-                            </td>
                             <td className="px-4 py-3.5"><span className={`text-xs font-black ${workSec > 0 && workSec < 28800 ? "text-amber-600 font-bold" : "text-slate-700"}`}>{fmtDur(workSec)}</span></td>
                             <td className="px-4 py-3.5 text-xs text-slate-500 font-semibold">{fmtDur(a.totalBreakSeconds)}</td>
                             <td className="px-4 py-3.5">
@@ -731,7 +717,7 @@ export default function EmployeeDetailSection({
                           </tr>
                         );
                       })}
-                      {attendance.length === 0 && <tr><td colSpan="9"><div className="text-center py-10 text-slate-500 font-semibold text-sm">No attendance records for this period.</div></td></tr>}
+                      {attendance.length === 0 && <tr><td colSpan="8"><div className="text-center py-10 text-slate-500 font-semibold text-sm">No attendance records for this period.</div></td></tr>}
                     </tbody>
                   </table>
                 </div>

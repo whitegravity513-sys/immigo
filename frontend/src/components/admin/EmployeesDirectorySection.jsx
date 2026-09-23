@@ -16,7 +16,7 @@ export default function EmployeesDirectorySection({
         <div>
           <h3 className="text-xl font-black text-slate-800 tracking-tight">Enterprise Workforce Directory</h3>
           <p className="text-xs text-slate-500 font-medium">
-            Manage employee profiles, contact details, designations, departments, documents, and leave balances
+            Manage employee profiles, contact details, designations, departments, and documents
           </p>
         </div>
         <button
@@ -39,7 +39,6 @@ export default function EmployeesDirectorySection({
                   "Designation / Role",
                   "Status",
                   "Joining Date",
-                  "Leave Balance",
                   "Actions",
                 ].map((h) => (
                   <th
@@ -75,7 +74,11 @@ export default function EmployeesDirectorySection({
                     className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0"
                   >
                     <td className="px-5 py-4 text-sm whitespace-nowrap">
-                      <EmployeeIdBadge id={emp.employeeId} />
+                      <EmployeeIdBadge
+                        id={emp.employeeId}
+                        onClick={() => openEmployeeDetail(emp._id, "employees")}
+                        title="Click to view employee profile details"
+                      />
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -121,13 +124,6 @@ export default function EmployeesDirectorySection({
                       {formatDate(emp.joiningDate)}
                     </td>
                     <td className="px-5 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                          {emp.leaveBalance ?? 18} days
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <button
                           className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors"
@@ -159,7 +155,7 @@ export default function EmployeesDirectorySection({
               })}
               {employees.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-slate-400 font-semibold text-sm">
+                  <td colSpan={7} className="text-center py-12 text-slate-400 font-semibold text-sm">
                     No registered employees in directory.
                   </td>
                 </tr>
