@@ -26,7 +26,7 @@ export default function BreaksSection({
   return (
     <div className="max-w-3xl mx-auto space-y-6">
 
-      {/* ── 1. SINGLE UNIFIED BREAK CARD ── */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ export default function BreaksSection({
           </div>
         </div>
 
-        {/* Big Timer Display */}
+        {}
         <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-2xl border border-sky-200 p-6 text-center">
           <div className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight text-sky-950 mb-1">
             {fmtDur(totalBreakSec)}
@@ -56,7 +56,7 @@ export default function BreaksSection({
           <div className="text-xs font-bold text-sky-700 uppercase tracking-wider">Total Break Time Used Today</div>
         </div>
 
-        {/* Single Break Action Button */}
+        {}
         {(isActive || isOnBreak) && !isCheckedOut && (
           <div className="flex gap-3">
             {!isOnBreak ? (
@@ -93,7 +93,7 @@ export default function BreaksSection({
         )}
       </div>
 
-      {/* ── 2. TODAY'S BREAK LOG ── */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export default function BreaksSection({
         )}
       </div>
 
-      {/* ── 3. BREAK TIPS ── */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6">
         <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
           <ShieldCheck size={16} className="text-blue-600" /> Break Best Practices

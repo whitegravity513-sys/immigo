@@ -1,9 +1,6 @@
 import Notification from "../models/Notification.js";
 import mongoose from "mongoose";
 
-/**
- * Enterprise Notification Service for Real-time HRMS & Admin Events
- */
 export class NotificationService {
   static async createNotification({
     type,
@@ -37,9 +34,6 @@ export class NotificationService {
     }
   }
 
-  /**
-   * Fetch admin-targeted notifications
-   */
   static async getNotifications(limit = 30) {
     const query = {
       $or: [
@@ -98,9 +92,6 @@ export class NotificationService {
     return { success: true };
   }
 
-  /**
-   * Fetch employee-targeted notifications
-   */
   static async getEmployeeNotifications(employeeId, limit = 30) {
     const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
       ? new mongoose.Types.ObjectId(employeeId.toString())
@@ -157,9 +148,6 @@ export class NotificationService {
     };
   }
 
-  /**
-   * Mark single notification as read for an employee
-   */
   static async markAsReadForEmployee(notificationId, employeeId) {
     const notification = await Notification.findById(notificationId);
     if (!notification) return null;
@@ -175,15 +163,11 @@ export class NotificationService {
     return { success: true };
   }
 
-  /**
-   * Mark all notifications as read for an employee
-   */
   static async markAllAsReadForEmployee(employeeId) {
     const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
       ? new mongoose.Types.ObjectId(employeeId.toString())
       : null;
 
-    // Mark specific notifications as read
     await Notification.updateMany(
       {
         $or: [
@@ -197,7 +181,6 @@ export class NotificationService {
       { $set: { read: true } }
     );
 
-    // Add employee to readBy for ALL broadcast notifications
     if (empObjId) {
       await Notification.updateMany(
         {

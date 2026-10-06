@@ -1,9 +1,6 @@
 import ProjectPayment from "../models/ProjectPayment.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Enterprise Project Payment Management Service
- */
 export class PaymentService {
   static formatPayment(payment) {
     if (!payment) return null;

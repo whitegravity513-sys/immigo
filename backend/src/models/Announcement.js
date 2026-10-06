@@ -12,7 +12,7 @@ const announcementSchema = new mongoose.Schema(
       required: true,
     },
     date: {
-      type: String, // Format: YYYY-MM-DD
+      type: String, 
       default: () => new Date().toISOString().split("T")[0],
       index: true,
     },

@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import apiClient from "../services/apiClient.js";
-
-const toLocalDateStr = (d) => {
-  if (!d) return "";
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+import { toLocalDateStr } from "../utils/formatters.js";
 
 export const useAdminDashboard = (user, token, navigate, location, view) => {
 const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -77,14 +70,12 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [pastAttendanceModal, setPastAttendanceModal] = useState(null);
   const [textModalData, setTextModalData] = useState(null);
 
-  // Expense tracker states
   const [expenses, setExpenses] = useState([]);
   const [expenseLoading, setExpenseLoading] = useState(false);
   const [expenseForm, setExpenseForm] = useState({ date: toLocalDateStr(new Date()), type: "Expense", amount: "", name: "", project: "", description: "" });
   const [editingExpense, setEditingExpense] = useState(null);
   const [expenseFilterDate, setExpenseFilterDate] = useState(null);
 
-  // Renewal states
   const [renewals, setRenewals] = useState([]);
   const [renewalAlerts, setRenewalAlerts] = useState({ expired: [], expiringSoon: [] });
   const [renewalLoading, setRenewalLoading] = useState(false);
@@ -113,7 +104,6 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     }
   }, [view, token, location.pathname]);
 
-  // Auto-refresh admin live tracker / workforce view
   useEffect(() => {
     if (token && (view === "live" || view === "dashboard" || view === "workforce")) {
       const iv = setInterval(() => fetchAdminReports(), 8000);
@@ -233,11 +223,9 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     setLoading(true);
     try {
       if (expenseForm._id) {
-        // Edit mode
         await apiClient.put(`/admin/expenses/${expenseForm._id}`, expenseForm);
         setSuccessMsg("Expense record updated successfully");
       } else {
-        // Create mode
         await apiClient.post("/admin/expenses", expenseForm);
         setSuccessMsg("Expense record saved successfully");
       }
@@ -357,7 +345,6 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     setTextModalData({ title, content });
   };
 
-
   const handleSetLeaveBalance = async () => {
     if (!inlineLeaveEdit) return;
     setInlineLeaveLoading(true);
@@ -455,7 +442,6 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     });
     setIsAddModalOpen(true);
 
-    // Fetch next sequential employee ID in background
     apiClient
       .get("/admin/employee/next-id")
       .then((r) => {
@@ -612,9 +598,6 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const formatDate = (ds) => { if (!ds) return "-"; return new Date(ds).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }); };
   const formatTime = (ts) => { if (!ts) return "-"; return new Date(ts).toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12: true }); };
   const navigateTo = (path) => { navigate(`/admin/dashboard/${path}`); setSidebarMobileOpen(false); };
-
-  // ── LIVE TRACKER ──────────────────────────────────────────────────────────
-  
 
   return {
     sidebarCollapsed,

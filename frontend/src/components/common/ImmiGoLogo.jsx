@@ -1,8 +1,5 @@
 import React from "react";
 
-/**
- * Reusable immiGo Logo Component
- */
 export function ImmiGoLogo({
   size = "md",
   theme = "dark",
@@ -98,9 +95,6 @@ export function ImmiGoLogo({
   );
 }
 
-/**
- * Compact Icon for Collapsed Sidebar
- */
 export function ImmiGoIcon({ size = "md", className = "" }) {
   return (
     <div
@@ -116,17 +110,10 @@ export function ImmiGoIcon({ size = "md", className = "" }) {
   );
 }
 
-/**
- * Watermark Logo for Dashboard Backgrounds ("dashbod ma logo bg ma ligh color ma dike")
- * Sits subtly in the viewport background without blocking interactions.
- */
 export function DashboardWatermark() {
   return null;
 }
 
-/**
- * Employee ID Badge Styled in the signature immiGo Brand Identity ("employe id logo jaisa bnao")
- */
 export function EmployeeIdBadge({ id, size = "md", className = "", onClick, title }) {
   if (id && /^[0-9a-fA-F]{24}$/.test(id)) {
     return null;

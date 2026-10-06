@@ -18,7 +18,7 @@ const refreshTokenSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // Automatic TTL cleanup after expiration
+      index: { expires: 0 }, 
     },
 
     revokedAt: {

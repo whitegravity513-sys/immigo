@@ -45,7 +45,7 @@ const otpSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // Automatic TTL cleanup in MongoDB
+      index: { expires: 0 }, 
     },
 
     lastSentAt: {
@@ -63,7 +63,6 @@ const otpSchema = new mongoose.Schema(
   }
 );
 
-// Compound index for quick lookup of active OTP for given email & purpose
 otpSchema.index({ email: 1, purpose: 1, isUsed: 1 });
 
 export const Otp = mongoose.model("Otp", otpSchema);

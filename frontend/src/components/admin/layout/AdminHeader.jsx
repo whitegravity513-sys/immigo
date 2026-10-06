@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   Menu,
   PanelLeftClose,
@@ -6,6 +7,7 @@ import {
   Shield,
   Sparkles,
   LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import NotificationBell from "../NotificationBell.jsx";
 
@@ -45,10 +47,10 @@ export const AdminHeader = ({
     <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center border-b border-blue-800/80 shadow-md">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
-        {/* Left: Toggle + Breadcrumb */}
+        {}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
 
-          {/* SIDEBAR TOGGLE */}
+          {}
           <button
             type="button"
             onClick={() => {
@@ -72,7 +74,7 @@ export const AdminHeader = ({
             </span>
           </button>
 
-          {/* Breadcrumb */}
+          {}
           <div className="flex flex-col justify-center min-w-0">
             <div className="flex items-center gap-2 truncate">
               <span className="hidden sm:flex items-end gap-0.5 select-none font-black text-lg tracking-tighter leading-none text-white">
@@ -89,26 +91,34 @@ export const AdminHeader = ({
             </div>
             <div className="hidden md:flex items-center gap-1.5 mt-0.5">
 
-
             </div>
           </div>
         </div>
 
-        {/* Right: Status + Notifications + Role Badge */}
+        {}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
+          {/* Switch to Admin Dashboard */}
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600 text-cyan-200 hover:text-white border border-cyan-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs"
+            title="Switch to Admin Dashboard"
+          >
+            <LayoutDashboard size={14} className="text-cyan-400" />
+            <span className="hidden sm:inline">Admin Dashboard</span>
+          </Link>
 
           <div className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-black text-cyan-300 uppercase tracking-widest">
             <Shield size={11} className="text-cyan-400" />
             <span>Admin</span>
           </div>
 
-          {/* Notifications */}
+          {}
           <div className="flex items-center">
             <NotificationBell className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs focus:outline-none" />
           </div>
 
-          {/* Sign Out Button in Header */}
+          {}
           {onLogout && (
             <button
               type="button"

@@ -55,16 +55,13 @@ export const getWorkingDays = (year, month, holidayDatesSet = new Set()) => {
     const dt = new Date(year, month - 1, d);
     const dayOfWeek = dt.getDay();
 
-    // Sunday - skip
     if (dayOfWeek === 0) continue;
 
-    // 2nd or 4th Saturday - skip
     if (dayOfWeek === 6) {
       const satCount = Math.ceil(d / 7);
       if (satCount === 2 || satCount === 4) continue;
     }
 
-    // Admin Holiday - skip
     if (holidayDatesSet.has(dateStr)) continue;
 
     days.push(dateStr);

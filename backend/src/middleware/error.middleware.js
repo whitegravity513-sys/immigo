@@ -1,13 +1,9 @@
 import { ApiError } from "../utils/apiError.js";
 import { logger } from "../utils/logger.js";
 
-/**
- * MNC Standard Centralized Error Handling Middleware
- */
 export const errorHandler = (err, req, res, next) => {
   let error = err;
 
-  // Handle Mongoose / DB Errors
   if (!(error instanceof ApiError)) {
     const statusCode =
       error.statusCode || (error.name === "ValidationError" || error.code === 11000 ? 400 : 500);
@@ -15,7 +11,6 @@ export const errorHandler = (err, req, res, next) => {
     let message = error.message || "Internal Server Error";
     let errors = [];
 
-    // Duplicate key error (e.g. unique email)
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue || {})[0] || "field";
       message = `An account with this ${field} already exists`;
@@ -32,7 +27,6 @@ export const errorHandler = (err, req, res, next) => {
     error = new ApiError(statusCode, message, errors, err.stack);
   }
 
-  // Log error
   if (error.statusCode >= 500) {
     logger.error(`[500 Server Error] ${req.method} ${req.originalUrl}:`, error);
   } else {

@@ -7,9 +7,6 @@ import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 import { saveBase64File } from "../utils/fileStorage.js";
 
-/**
- * Enterprise Expense Management Service
- */
 export class ExpenseService {
   static formatCategory(category) {
     if (!category) return null;
@@ -57,7 +54,6 @@ export class ExpenseService {
     };
   }
 
-  // --- Expense Categories ---
   static async getCategories() {
     const categories = await ExpenseCategory.find().sort({ createdAt: -1 }).lean();
     return categories.map((c) => this.formatCategory(c));
@@ -102,7 +98,6 @@ export class ExpenseService {
     return category;
   }
 
-  // --- Expenses ---
   static async getExpenses(filters = {}) {
     const { categoryId, clientId, employeeId, status, startDate, endDate } = filters;
     const query = {};
@@ -170,7 +165,6 @@ export class ExpenseService {
     }
 
     if (!targetCategoryId) {
-      // Default to General category if none provided
       let defaultCat = await ExpenseCategory.findOne({ name: "General" });
       if (!defaultCat) {
         defaultCat = await ExpenseCategory.create({ name: "General" });
@@ -186,7 +180,6 @@ export class ExpenseService {
     const isEmployee = userRole === "employee";
     const status = isEmployee ? "Pending" : (data.status || "Approved");
 
-    // Automatically store base64 receipts to disk for zero DB bloat
     const storedReceipt = receipt ? saveBase64File(receipt, "receipts", "receipt") : "";
 
     let finalEmployeeId = null;
@@ -213,7 +206,6 @@ export class ExpenseService {
 
     await expense.populate(["categoryId", "employeeId", "clientId"]);
 
-    // Send Live Admin Notification when employee submits an expense
     if (isEmployee) {
       try {
         const empName = expense.employeeId?.name
@@ -261,7 +253,6 @@ export class ExpenseService {
     await expense.save();
     await expense.populate(["categoryId", "employeeId", "clientId"]);
 
-    // Trigger Employee Live Notification
     try {
       if (expense.employeeId) {
         const empId = expense.employeeId._id || expense.employeeId;
@@ -341,7 +332,6 @@ export class ExpenseService {
     return expense;
   }
 
-  // Track Expense history according to Client
   static async getClientExpenseHistory(clientId) {
     if (!clientId) {
       throw new ApiError(400, "Client ID is required");

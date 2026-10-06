@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getInvoicesByProject, createInvoice, updateInvoice, deleteInvoice } from "../services/invoiceService";
 
 export const useInvoiceLogic = (project) => {
-  const [activeTab, setActiveTab] = useState("list"); // "list" | "create"
+  const [activeTab, setActiveTab] = useState("list"); 
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -13,7 +13,6 @@ export const useInvoiceLogic = (project) => {
   const [editingInvoiceId, setEditingInvoiceId] = useState(null);
   const [editingInvoiceNo, setEditingInvoiceNo] = useState("");
 
-  // Form State
   const clientNameVal = project?.client?.name || project?.clientName || "";
   const companyNameVal = project?.client?.companyName || project?.companyName || "";
 
@@ -30,14 +29,12 @@ export const useInvoiceLogic = (project) => {
   const [remark, setRemark] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("Unpaid");
 
-  // 3 Default Items
   const [items, setItems] = useState([
     { description: "", sacCode: "998314", amount: "" },
     { description: "", sacCode: "998314", amount: "" },
     { description: "", sacCode: "998314", amount: "" }
   ]);
 
-  // GST Rates
   const [igstRate, setIgstRate] = useState(0);
   const [cgstRate, setCgstRate] = useState(0);
   const [sgstRate, setSgstRate] = useState(0);
@@ -147,7 +144,6 @@ export const useInvoiceLogic = (project) => {
       setEditingInvoiceNo("");
       fetchInvoices();
 
-      // Reset form items
       resetForm();
     } catch (err) {
       console.error("Failed to create invoice:", err);
@@ -230,7 +226,6 @@ export const useInvoiceLogic = (project) => {
   });
 
   return {
-    // State
     activeTab, setActiveTab,
     invoices,
     loading, setLoading,
@@ -241,7 +236,6 @@ export const useInvoiceLogic = (project) => {
     editingInvoiceId, setEditingInvoiceId,
     editingInvoiceNo, setEditingInvoiceNo,
     
-    // Form fields
     clientNameVal, companyNameVal,
     formDate, setFormDate,
     supplyAddress, setSupplyAddress,
@@ -260,12 +254,10 @@ export const useInvoiceLogic = (project) => {
     cgstRate, setCgstRate,
     sgstRate, setSgstRate,
 
-    // Actions & Handlers
     handleItemChange, handleAddItemRow, handleRemoveItemRow,
     handleCreateInvoice, handleEditInvoice, handleDeleteInvoice,
     resetForm,
 
-    // Computed values
     filteredInvoices,
     subtotal, igstAmount, cgstAmount, sgstAmount, totalAmount
   };

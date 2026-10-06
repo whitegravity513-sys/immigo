@@ -1,5 +1,3 @@
-/* Premium HR Management System - Stylesheet */
-
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 
@@ -31,14 +29,14 @@ body {
   color: #f1f5f9;
 }
 
-/* Main layout wrapper */
+
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* Glass Header */
+
 .app-header {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -98,7 +96,7 @@ body {
   animation: pulse-active 1.8s infinite;
 }
 
-/* Auth Screens */
+
 .auth-wrapper {
   flex: 1;
   display: flex;
@@ -144,7 +142,7 @@ body {
   line-height: 1.5;
 }
 
-/* Auth Role Toggle */
+
 .role-toggle {
   display: flex;
   background: rgba(255, 255, 255, 0.02);
@@ -179,7 +177,7 @@ body {
   text-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
 }
 
-/* Common Form styling */
+
 .form-group {
   margin-bottom: 1.5rem;
   display: flex;
@@ -213,7 +211,7 @@ body {
   box-shadow: 0 0 15px var(--accent-cyan-glow);
 }
 
-/* Developer OTP Helper Banner */
+
 .dev-helper {
   background: rgba(6, 182, 212, 0.06);
   border: 1px dashed rgba(6, 182, 212, 0.25);
@@ -234,7 +232,7 @@ body {
   font-family: var(--font-heading);
 }
 
-/* General Buttons */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -310,7 +308,7 @@ body {
   box-shadow: 0 6px 25px rgba(245, 158, 11, 0.55);
 }
 
-/* Geolocation Link */
+
 .map-pin-link {
   display: inline-flex;
   align-items: center;
@@ -340,7 +338,7 @@ body {
   font-style: italic;
 }
 
-/* Error/Success Messages */
+
 .alert-msg {
   padding: 0.85rem 1.25rem;
   border-radius: 10px;
@@ -364,7 +362,7 @@ body {
   color: #a7f3d0;
 }
 
-/* Layout views */
+
 .main-content {
   flex: 1;
   padding: 2.5rem;
@@ -374,7 +372,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Admin Navigation Bar */
+
 .admin-nav {
   display: flex;
   gap: 1.5rem;
@@ -419,7 +417,7 @@ body {
   border-radius: 9999px;
 }
 
-/* Stat Cards Dashboard */
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -483,7 +481,7 @@ body {
   margin-top: 0.25rem;
 }
 
-/* Real-Time Live Break Tracker Widget */
+
 .active-breaks-card {
   background: rgba(17, 25, 40, 0.45);
   backdrop-filter: blur(12px);
@@ -569,7 +567,7 @@ body {
   text-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
 }
 
-/* Modern tables design */
+
 .table-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -637,7 +635,7 @@ body {
   border-bottom: none;
 }
 
-/* Status Badges */
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -702,7 +700,7 @@ body {
   color: #cbd5e1;
 }
 
-/* Pulsing Badge Animations */
+
 @keyframes pulse-active {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.3); opacity: 0.6; }
@@ -715,7 +713,7 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* Shift time table layouts */
+
 .shift-time-cell {
   display: flex;
   flex-direction: column;
@@ -748,7 +746,7 @@ body {
   color: #a5f3fc;
 }
 
-/* Directory creation & edit splits */
+
 .employee-layout {
   display: grid;
   grid-template-columns: 350px 1fr;
@@ -764,7 +762,7 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Employee Portal UI Card Layout */
+
 .employee-grid {
   display: grid;
   grid-template-columns: 420px 1fr;
@@ -772,7 +770,7 @@ body {
   align-items: flex-start;
 }
 
-/* Big Live Clock Timer card */
+
 .timer-box {
   background: rgba(255, 255, 255, 0.015);
   border: 1px solid var(--glass-border);
@@ -832,7 +830,7 @@ body {
   font-weight: 700;
 }
 
-/* Split button configuration grids */
+
 .actions-row-triple {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -887,7 +885,7 @@ body {
   font-weight: 600;
 }
 
-/* Breaks items detailed breakdown list inside tables */
+
 .breaks-details-list {
   font-size: 0.75rem;
   display: flex;
@@ -916,7 +914,7 @@ body {
   padding-bottom: 0;
 }
 
-/* Modals overlays styling */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1002,7 +1000,7 @@ body {
   color: #94a3b8;
 }
 
-/* Helper text colors */
+
 .text-cyan { color: #22d3ee; }
 .text-emerald { color: #34d399; }
 .text-amber { color: #fbbf24; }
@@ -1035,9 +1033,7 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ==========================================
-   HIGH-FIDELITY LIGHT ADMIN DASHBOARD STYLES
-   ========================================== */
+
 
 .admin-layout-container {
   display: flex;
@@ -1048,7 +1044,7 @@ body {
   color: #334155;
 }
 
-/* Sidebar styling matching mockup */
+
 .admin-sidebar {
   width: 260px;
   background: linear-gradient(180deg, #0251c9 0%, #0045b4 100%);
@@ -1068,7 +1064,7 @@ body {
   width: 70px;
 }
 
-/* Sidebar header */
+
 .admin-sidebar-header {
   padding: 1.5rem 1.25rem;
   display: flex;
@@ -1101,7 +1097,7 @@ body {
   letter-spacing: -0.25px;
 }
 
-/* Sidebar Menu Items */
+
 .admin-sidebar-menu {
   flex: 1;
   overflow-y: auto;
@@ -1111,7 +1107,7 @@ body {
   gap: 0.25rem;
 }
 
-/* Scrollbar for sidebar menu */
+
 .admin-sidebar-menu::-webkit-scrollbar {
   width: 4px;
 }
@@ -1167,13 +1163,13 @@ body {
   justify-content: center;
 }
 
-/* Collapse footer */
+
 .admin-sidebar-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.75rem;
 }
 
-/* Main content wrapper on the right */
+
 .admin-main-wrapper {
   flex: 1;
   display: flex;
@@ -1182,7 +1178,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Top bar style matching mockup */
+
 .admin-top-bar {
   height: 70px;
   background: white;
@@ -1249,14 +1245,14 @@ body {
   border-color: #94a3b8;
 }
 
-/* Light Theme Content Area */
+
 .admin-content-area {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
 }
 
-/* Admin Dashboard stats cards row */
+
 .admin-stats-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -1318,7 +1314,7 @@ body {
   margin-top: 0.25rem;
 }
 
-/* Light Table styling matching mockup */
+
 .admin-table-card {
   background: white;
   border: 1px solid #e2e8f0;
@@ -1382,7 +1378,7 @@ body {
   background: #f8fafc;
 }
 
-/* Active Breaks Card in Light Theme */
+
 .admin-breaks-card {
   background: white;
   border: 1px solid #fde68a;
@@ -1425,7 +1421,7 @@ body {
   font-size: 0.9rem;
 }
 
-/* Light Theme Badges */
+
 .admin-badge {
   display: inline-flex;
   align-items: center;
@@ -1462,7 +1458,7 @@ body {
 .admin-badge-absent { background: #fef2f2; border: 1px solid #fca5a5; color: #b91c1c; }
 .admin-badge-pending { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
 
-/* Light Theme Geotag Link */
+
 .admin-map-link {
   display: inline-flex;
   align-items: center;
@@ -1482,7 +1478,7 @@ body {
   color: #003bb0;
 }
 
-/* Light Theme breaks sublist inside table cell */
+
 .admin-breaks-sublist {
   font-size: 0.72rem;
   display: flex;
@@ -1509,7 +1505,7 @@ body {
   padding-bottom: 0;
 }
 
-/* Mock/Placeholder screens styling */
+
 .admin-mock-panel {
   display: flex;
   flex-direction: column;
@@ -1551,7 +1547,7 @@ body {
   margin: 0;
 }
 
-/* Light Theme overrides for ActiveBreakRow inside Admin Layout */
+
 .admin-layout-container .active-break-card-item {
   background: white;
   border: 1px solid #fde68a;
@@ -1610,16 +1606,16 @@ body {
   font-weight: 500;
 }
 
-/* Force dark text for select, inputs and DatePicker elements inside light dashboards */
+
 select, option, input, textarea {
-  color: #0f172a !important; /* text-slate-900 */
+  color: #0f172a !important; 
 }
-/* Except buttons or elements with text-white classes */
+
 button.text-white, button.bg-green-600, button.bg-rose-600, button.bg-emerald-600, button.bg-blue-600 {
   color: #ffffff !important;
 }
 
-/* React Datepicker Visibility Fixes */
+
 .react-datepicker {
   background-color: #ffffff !important;
   color: #0f172a !important;
@@ -1631,7 +1627,7 @@ button.text-white, button.bg-green-600, button.bg-rose-600, button.bg-emerald-60
   background-color: #f1f5f9 !important;
 }
 .react-datepicker__day--selected {
-  background-color: #22c55e !important; /* bg-green-500 */
+  background-color: #22c55e !important; 
   color: #ffffff !important;
 }
 .react-datepicker__header {
@@ -1642,11 +1638,9 @@ button.text-white, button.bg-green-600, button.bg-rose-600, button.bg-emerald-60
   color: #0f172a !important;
 }
 
-/* ==========================================================
-   ENTERPRISE RESPONSIVE DESIGN SYSTEM (ALL SCREENS & DESKTOPS)
-   ========================================================== */
 
-/* Clean Custom Scrollbar for all horizontal & vertical containers */
+
+
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
@@ -1670,7 +1664,7 @@ button.text-white, button.bg-green-600, button.bg-rose-600, button.bg-emerald-60
   background: rgba(100, 116, 139, 0.6);
 }
 
-/* Responsive Table Wrappers */
+
 .table-responsive-wrapper,
 .overflow-x-auto {
   width: 100%;
@@ -1685,7 +1679,7 @@ button.text-white, button.bg-green-600, button.bg-rose-600, button.bg-emerald-60
   width: 100%;
 }
 
-/* Base Responsive Layout Safety */
+
 .app-container,
 .admin-layout-container {
   max-width: 100vw;
@@ -1697,7 +1691,7 @@ main,
   min-width: 0;
 }
 
-/* Modal Responsive Centering and Sizing */
+
 .modal-overlay {
   padding: 1rem;
   display: flex;
@@ -1711,21 +1705,21 @@ main,
   width: 100%;
 }
 
-/* --- Ultra Large Desktops (>= 1536px) --- */
+
 @media (min-width: 1536px) {
   .dashboard-metrics-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   }
 }
 
-/* --- Large Desktops (1280px to 1535px) --- */
+
 @media (max-width: 1535px) and (min-width: 1280px) {
   .dashboard-metrics-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 }
 
-/* --- Standard Desktops & Laptops (1024px to 1279px) --- */
+
 @media (max-width: 1279px) {
   .dashboard-metrics-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -1741,7 +1735,7 @@ main,
   }
 }
 
-/* --- Small Desktops & Tablets Landscape (768px to 1023px) --- */
+
 @media (max-width: 1023px) {
   .dashboard-metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1765,7 +1759,7 @@ main,
   }
 }
 
-/* --- Tablets Portrait & Large Mobiles (640px to 767px) --- */
+
 @media (max-width: 767px) {
   .app-header {
     padding: 0.85rem 1rem !important;
@@ -1796,7 +1790,7 @@ main,
   }
 }
 
-/* --- Mobile Phones (< 640px) --- */
+
 @media (max-width: 639px) {
   .dashboard-metrics-grid {
     grid-template-columns: 1fr !important;
@@ -1829,4 +1823,3 @@ main,
     font-size: 2rem !important;
   }
 }
-

@@ -1,9 +1,6 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
 
-/**
- * Enterprise Security & Compliance Trust Badge.
- */
 export default function SecurityTrustBadge() {
   return (
     <div className="mt-6 flex items-center justify-between gap-2 p-3 bg-gradient-to-r from-blue-50/70 to-emerald-50/70 border border-slate-300 rounded-xl">

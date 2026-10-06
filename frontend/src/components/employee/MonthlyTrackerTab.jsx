@@ -18,17 +18,15 @@ export default function MonthlyTrackerTab({
 
   const todayStr = statusRecord?.date || new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 
-  // Past attendance records from monthlyData
   const rawPastRecords = (monthlyData?.dailyRecords || monthlyData?.records || [])
     .filter((r) => r.date < todayStr && r.status !== "Before Joining");
   
-  // Sort descending by date
   const pastRecords = [...rawPastRecords].sort((a, b) => (a.date < b.date ? 1 : -1));
   const visiblePastRecords = showMorePast ? pastRecords : pastRecords.slice(0, 4);
 
   return (
     <div className="space-y-6">
-      {/* Upcoming Holidays Banner */}
+      {}
       {holidays.length > 0 && (
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-4 sm:p-5 text-white shadow-md shadow-blue-600/10 flex items-center justify-between border border-blue-400/20">
           <div className="flex items-center gap-3.5">
@@ -52,7 +50,7 @@ export default function MonthlyTrackerTab({
         </div>
       )}
 
-      {/* Status + timers grid */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
@@ -113,7 +111,7 @@ export default function MonthlyTrackerTab({
         </div>
       )}
 
-      {/* Shift Detail Card */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
@@ -153,7 +151,7 @@ export default function MonthlyTrackerTab({
           ))}
         </div>
 
-        {/* Recent breaks log */}
+        {}
         {statusRecord?.breaks?.length > 0 && (
           <div className="mt-6">
             <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">Break Log</div>
@@ -221,7 +219,7 @@ export default function MonthlyTrackerTab({
         )}
       </div>
 
-      {/* ── PAST ATTENDANCE HISTORY SECTION ── */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

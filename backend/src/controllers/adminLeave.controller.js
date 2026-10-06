@@ -1,9 +1,6 @@
 import LeaveService from "../services/leave.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Admin Leave Controller
- */
 export const getLeaves = asyncHandler(async (req, res) => {
   const leaves = await LeaveService.getLeaves();
   return res.status(200).json(leaves);

@@ -2,10 +2,6 @@ import AdminAuthService from "../services/adminAuth.service.js";
 import { getCookieOptions, getClearCookieOptions } from "../config/security.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Admin Authentication Controller
- */
-
 export const adminLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const result = await AdminAuthService.login(email, password);

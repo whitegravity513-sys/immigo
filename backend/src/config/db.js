@@ -15,7 +15,6 @@ export const connectDB = async () => {
     throw new Error("MONGO_URI environment variable is not defined in .env");
   }
 
-  // Set connection event listeners once
   if (mongoose.connection.listenerCount("error") === 0) {
     mongoose.connection.on("error", (err) => {
       logger.error("MongoDB Runtime Connection Error:", err);
@@ -39,7 +38,7 @@ export const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(mongoUri, {
-      maxPoolSize: 10,           // Keep pool lean for Atlas free-tier / small apps
+      maxPoolSize: 10,           
       minPoolSize: 2,
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
@@ -47,7 +46,7 @@ export const connectDB = async () => {
       heartbeatFrequencyMS: 10000,
       retryWrites: true,
       retryReads: true,
-      autoIndex: false, // Explicitly disabled to prevent startup query blocking on Atlas
+      autoIndex: false, 
     });
 
     isConnected = true;

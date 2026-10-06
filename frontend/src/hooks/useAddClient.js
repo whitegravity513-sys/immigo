@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getClients, createClient, updateClient, deleteClient } from "../services/clientService";
 
 export const useAddClient = () => {
-  const [activeTab, setActiveTab] = useState("add"); // "add" | "list"
+  const [activeTab, setActiveTab] = useState("add"); 
   const [clients, setClients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);

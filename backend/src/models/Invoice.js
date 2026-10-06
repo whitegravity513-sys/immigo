@@ -46,7 +46,7 @@ const invoiceSchema = new mongoose.Schema(
       default: "",
     },
     items: {
-      type: String, // Stored as JSON string
+      type: String, 
       required: true,
     },
     projectId: {

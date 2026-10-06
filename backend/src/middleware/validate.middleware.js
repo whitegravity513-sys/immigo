@@ -1,9 +1,5 @@
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Enterprise Request Validation Runner Middleware
- * Executes an array of validator checks or validation functions.
- */
 export const validate = (validations) => {
   return async (req, res, next) => {
     try {

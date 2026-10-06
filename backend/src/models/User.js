@@ -81,7 +81,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Method to check if account is currently locked
 userSchema.methods.isLocked = function () {
   return !!(this.lockedUntil && this.lockedUntil > new Date());
 };

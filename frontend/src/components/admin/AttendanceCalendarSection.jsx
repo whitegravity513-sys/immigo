@@ -63,14 +63,13 @@ export default function AttendanceCalendarSection({
   const [errorMsg, setErrorMsg] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // "all", "active_present", "absent", "leave", "half_day"
+  const [statusFilter, setStatusFilter] = useState("all"); 
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
 
-  // Fetch Month Level Calendar Statistics
   const fetchMonthCalendar = useCallback(async () => {
     setMonthLoading(true);
     try {
@@ -83,7 +82,6 @@ export default function AttendanceCalendarSection({
     }
   }, [currentMonth, currentYear]);
 
-  // Fetch Selected Date Complete Workforce Attendance
   const fetchDateAttendance = useCallback(async (date) => {
     setDateLoading(true);
     setErrorMsg("");
@@ -108,7 +106,6 @@ export default function AttendanceCalendarSection({
     }
   }, [selectedDate, fetchDateAttendance, refreshTrigger]);
 
-  // Navigation handlers
   const handlePrevMonth = () => {
     if (currentMonth === 1) {
       setCurrentMonth(12);
@@ -134,14 +131,12 @@ export default function AttendanceCalendarSection({
     setSelectedDate(todayStr);
   };
 
-  // Build Calendar Matrix
-  const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay(); // 0 is Sunday
+  const firstDayIndex = new Date(currentYear, currentMonth - 1, 1).getDay(); 
   const totalDaysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   const leadingBlanks = Array.from({ length: firstDayIndex }, () => null);
   const calendarDays = Array.from({ length: totalDaysInMonth }, (_, i) => i + 1);
   const allGridCells = [...leadingBlanks, ...calendarDays];
 
-  // Map day data by date
   const dayStatsMap = useMemo(() => {
     const map = new Map();
     if (monthData?.days) {
@@ -152,7 +147,6 @@ export default function AttendanceCalendarSection({
     return map;
   }, [monthData]);
 
-  // Filtered Date Records
   const filteredRecords = useMemo(() => {
     return dateRecords.filter((rec) => {
       const name = String(rec.name || "").toLowerCase();
@@ -179,7 +173,6 @@ export default function AttendanceCalendarSection({
     });
   }, [dateRecords, searchQuery, statusFilter]);
 
-  // Statistics for selected date
   const dateMetrics = useMemo(() => {
     let presentCount = 0;
     let absentCount = 0;
@@ -214,7 +207,6 @@ export default function AttendanceCalendarSection({
     };
   }, [dateRecords]);
 
-  // Export to CSV for selected date
   const handleExportCSV = () => {
     if (!dateRecords.length) return;
 
@@ -264,7 +256,6 @@ export default function AttendanceCalendarSection({
     document.body.removeChild(link);
   };
 
-  // Formatted date string for header
   const formattedSelectedDate = useMemo(() => {
     try {
       const d = new Date(`${selectedDate}T00:00:00`);
@@ -281,7 +272,7 @@ export default function AttendanceCalendarSection({
 
   return (
     <div className="space-y-6 text-slate-800">
-      {/* ── TOP SECTION: CALENDAR CONTROLS & HEADER ── */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -302,7 +293,7 @@ export default function AttendanceCalendarSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Month & Year Jump Selectors */}
+            {}
             <select
               value={currentMonth}
               onChange={(e) => setCurrentMonth(Number(e.target.value))}
@@ -357,10 +348,10 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {/* ── INTERACTIVE MONTH CALENDAR GRID ── */}
+        {}
         <div className="overflow-x-auto pb-1">
           <div className="min-w-[700px]">
-            {/* Days of Week Header */}
+            {}
             <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-black uppercase tracking-wider text-slate-500">
               <span className="text-rose-600">Sun</span>
               <span>Mon</span>
@@ -371,7 +362,7 @@ export default function AttendanceCalendarSection({
               <span className="text-indigo-600">Sat</span>
             </div>
 
-            {/* Day Cells Grid */}
+            {}
             <div className="grid grid-cols-7 gap-2">
               {allGridCells.map((dayNum, idx) => {
                 if (dayNum === null) {
@@ -401,7 +392,7 @@ export default function AttendanceCalendarSection({
                         : "bg-white border-slate-200 hover:border-blue-300 hover:shadow-xs"
                     }`}
                   >
-                    {/* Date Number & Special Badge */}
+                    {}
                     <div className="flex items-center justify-between">
                       <span
                         className={`text-xs font-black rounded-lg w-6 h-6 flex items-center justify-center ${
@@ -430,7 +421,7 @@ export default function AttendanceCalendarSection({
                       ) : null}
                     </div>
 
-                    {/* Day Metrics Mini Summary */}
+                    {}
                     {stats ? (
                       <div className="space-y-0.5 text-[10px] font-bold">
                         {stats.presentCount > 0 ? (
@@ -468,9 +459,9 @@ export default function AttendanceCalendarSection({
         </div>
       </div>
 
-      {/* ── SELECTED DATE WORKFORCE SECTION ── */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-6">
-        {/* Date Header & Quick Picker */}
+        {}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2">
@@ -489,7 +480,7 @@ export default function AttendanceCalendarSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Native Date Input to quickly pick any date */}
+            {}
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
               <CalendarIcon size={15} className="text-slate-500" />
               <input
@@ -509,7 +500,7 @@ export default function AttendanceCalendarSection({
               />
             </div>
 
-            {/* Export to CSV Button */}
+            {}
             <button
               type="button"
               onClick={handleExportCSV}
@@ -523,7 +514,7 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {/* ── KPI METRIC CARDS FOR SELECTED DATE ── */}
+        {}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <div className="flex items-center justify-between text-slate-500 mb-1">
@@ -571,9 +562,9 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {/* ── FILTER TABS & SEARCH BAR ── */}
+        {}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          {/* Quick Filter Buttons */}
+          {}
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
             {[
               { id: "all", label: `All Staff (${dateRecords.length})` },
@@ -597,7 +588,7 @@ export default function AttendanceCalendarSection({
             ))}
           </div>
 
-          {/* Search Input */}
+          {}
           <div className="relative min-w-[240px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -610,7 +601,7 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {/* ── WORKFORCE ATTENDANCE TABLE ── */}
+        {}
         {dateLoading ? (
           <div className="py-16 text-center text-slate-500 font-medium text-sm space-y-2">
             <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -659,7 +650,7 @@ export default function AttendanceCalendarSection({
 
                   return (
                     <tr key={emp.id || emp.employeeId} className="hover:bg-slate-50/60 transition">
-                      {/* Employee Identification */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
@@ -685,7 +676,7 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {/* Work & Personal Emails */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="space-y-0.5 font-medium">
                           <div className="text-slate-700 truncate max-w-[220px]" title={emp.email}>
@@ -701,13 +692,13 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {/* Department / Role */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="font-semibold text-slate-700">{emp.department || "General"}</div>
                         <div className="text-[11px] text-slate-400">{emp.designation || "Employee"}</div>
                       </td>
 
-                      {/* Attendance Status Badge */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="inline-flex items-center gap-1.5">
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border ${statusBg}`}>
@@ -723,21 +714,21 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {/* Check In */}
+                      {}
                       <td className="px-4 py-3.5">
                         <span className="font-mono text-xs font-bold text-slate-800">
                           {emp.checkInTime ? formatTime12(emp.checkInTime) : "—"}
                         </span>
                       </td>
 
-                      {/* Check Out */}
+                      {}
                       <td className="px-4 py-3.5">
                         <span className="font-mono text-xs font-bold text-slate-800">
                           {emp.checkOutTime ? formatTime12(emp.checkOutTime) : "—"}
                         </span>
                       </td>
 
-                      {/* Duration & Breaks */}
+                      {}
                       <td className="px-4 py-3.5">
                         <div className="space-y-0.5">
                           <div className="font-mono font-bold text-blue-700">
@@ -749,7 +740,7 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {/* Actions: Admin Time Edit */}
+                      {}
                       <td className="px-4 py-3.5 text-right">
                         <button
                           type="button"

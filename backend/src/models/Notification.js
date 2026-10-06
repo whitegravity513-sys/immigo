@@ -32,25 +32,21 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    // Target audience: ADMIN, EMPLOYEE, or ALL
     targetRole: {
       type: String,
       enum: ["ADMIN", "EMPLOYEE", "ALL"],
       default: "ADMIN",
     },
-    // Target distribution: ALL or SPECIFIC
     targetType: {
       type: String,
       enum: ["ALL", "SPECIFIC"],
       default: "ALL",
     },
-    // Specific employee recipient (if targetType === "SPECIFIC")
     targetEmployeeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
       default: null,
     },
-    // Legacy / sender employee reference
     employeeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
@@ -60,12 +56,10 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // Read status for single recipient
     read: {
       type: Boolean,
       default: false,
     },
-    // For targetType === "ALL", track which employees have marked it as read
     readBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -90,7 +84,6 @@ const notificationSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for high performance notification queries
 notificationSchema.index({ createdAt: -1 });
 notificationSchema.index({ read: 1, createdAt: -1 });
 notificationSchema.index({ targetRole: 1, targetType: 1, createdAt: -1 });

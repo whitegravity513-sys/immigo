@@ -3,9 +3,6 @@ import Employee from "../models/Employee.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 
-/**
- * Enterprise Leave Management Service
- */
 export class LeaveService {
   static formatLeave(leave) {
     if (!leave) return null;
@@ -48,16 +45,13 @@ export class LeaveService {
     await leave.save();
     await leave.populate("employeeId", "id employeeId name email leaveBalance allocatedLeaves");
 
-    // Manage Leave Balance deduction/refund
     try {
       const emp = await Employee.findById(leave.employeeId._id || leave.employeeId);
       if (emp) {
         if (status === "Approved" && previousStatus !== "Approved") {
-          // Deduct leaves
           emp.leaveBalance = Math.max(0, (emp.leaveBalance || 0) - (leave.totalDays || 1));
           await emp.save();
         } else if (status === "Rejected" && previousStatus === "Approved") {
-          // Restore refunded leaves
           emp.leaveBalance = (emp.leaveBalance || 0) + (leave.totalDays || 1);
           await emp.save();
         }
@@ -66,7 +60,6 @@ export class LeaveService {
       console.warn("Leave balance sync warning:", e.message);
     }
 
-    // Send notification specifically to the employee
     try {
       const empId = leave.employeeId?._id || leave.employeeId;
       await NotificationService.createNotification({
@@ -79,7 +72,6 @@ export class LeaveService {
         metadata: { leaveId: leave._id, status },
       });
     } catch (e) {
-      // non-blocking
     }
 
     return this.formatLeave(leave);
@@ -113,7 +105,6 @@ export class LeaveService {
 
     await leave.populate("employeeId", "name employeeId");
 
-    // Trigger Admin Live Notification
     try {
       const empName = leave.employeeId?.name || "Employee";
       const empIdCode = leave.employeeId?.employeeId || "WG-EMP";
@@ -126,7 +117,6 @@ export class LeaveService {
         metadata: { employeeId: empIdCode, name: empName, leaveId: leave._id, leaveType, diffDays, reason },
       });
     } catch (e) {
-      // Non-blocking
     }
 
     return this.formatLeave(leave);

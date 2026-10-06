@@ -13,11 +13,6 @@ import {
 
 const router = express.Router();
 
-// ==========================================
-// Authentication Routes
-// ==========================================
-
-// Register
 router.post(
   "/register",
   authLimiter,
@@ -25,7 +20,6 @@ router.post(
   authController.register
 );
 
-// Login
 router.post(
   "/login",
   authLimiter,
@@ -33,37 +27,28 @@ router.post(
   authController.login
 );
 
-// Refresh Access Token
 router.post(
   "/refresh-token",
   authController.refreshToken
 );
 
-// Logout (Current Device)
 router.post(
   "/logout",
   authController.logout
 );
 
-// Logout (All Devices)
 router.post(
   "/logout-all",
   authenticate,
   authController.logoutAll
 );
 
-// Current User Profile
 router.get(
   "/me",
   authenticate,
   authController.getMe
 );
 
-// ==========================================
-// Email OTP Verification Routes
-// ==========================================
-
-// Verify Email via OTP
 router.post(
   "/verify-email",
   authLimiter,
@@ -71,7 +56,6 @@ router.post(
   authController.verifyEmail
 );
 
-// Resend Verification OTP
 router.post(
   "/resend-verification-otp",
   otpLimiter,
@@ -79,11 +63,6 @@ router.post(
   authController.resendVerificationOtp
 );
 
-// ==========================================
-// Password Management (OTP-Based)
-// ==========================================
-
-// Forgot Password - Send 6-Digit OTP to Email
 router.post(
   "/forgot-password-otp",
   otpLimiter,
@@ -91,7 +70,6 @@ router.post(
   passwordController.forgotPasswordOtp
 );
 
-// Reset Password with 6-Digit OTP
 router.post(
   "/reset-password-otp",
   authLimiter,

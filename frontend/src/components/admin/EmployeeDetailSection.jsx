@@ -76,10 +76,8 @@ export default function EmployeeDetailSection({
     : [];
   const safeHolidays = Array.isArray(holidays) ? holidays : [];
 
-  // Sub tab state
-  const [activeTab, setActiveTab] = useState("attendance"); // attendance | documents | leaves
+  const [activeTab, setActiveTab] = useState("attendance"); 
 
-  // Document Vault state
   const [adminDocModalOpen, setAdminDocModalOpen] = useState(false);
   const [adminDocForm, setAdminDocForm] = useState({
     name: "",
@@ -393,7 +391,7 @@ export default function EmployeeDetailSection({
     }
   };
 
-  const [rejectDocModal, setRejectDocModal] = useState(null); // { docId, docName, note }
+  const [rejectDocModal, setRejectDocModal] = useState(null); 
   const [reviewingDoc, setReviewingDoc] = useState(false);
 
   const handleReviewDoc = async (docId, status, verificationNote = "") => {
@@ -430,7 +428,7 @@ export default function EmployeeDetailSection({
         <div className="text-center py-16 text-slate-500 font-semibold">Employee not found.</div>
       ) : (
         <>
-          {/* Main Profile & Contact Header Card */}
+          {}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-6">
             <div className="flex flex-wrap items-start justify-between gap-6">
               <div className="flex items-start gap-4">
@@ -465,7 +463,7 @@ export default function EmployeeDetailSection({
               </div>
             </div>
 
-            {/* Contact Details & Joining Info Grid */}
+            {}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-100">
               <div className="flex items-start gap-2.5 text-xs text-slate-600">
                 <CalendarIcon size={16} className="text-blue-500 shrink-0 mt-0.5" />
@@ -504,7 +502,7 @@ export default function EmployeeDetailSection({
               </div>
             </div>
 
-            {/* Career, Experience & Compensation Summary Card */}
+            {}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/60">
               <div className="flex items-start gap-2.5 text-xs text-slate-600">
                 <Building size={16} className="text-indigo-500 shrink-0 mt-0.5" />
@@ -539,7 +537,7 @@ export default function EmployeeDetailSection({
               </div>
             </div>
 
-            {/* Quick Metrics Bar */}
+            {}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
               <div className="flex flex-col items-center bg-blue-50 rounded-xl py-3 border border-blue-100">
                 <span className="text-2xl font-black text-blue-700">{postDojWorkingDays}</span>
@@ -551,11 +549,11 @@ export default function EmployeeDetailSection({
             </div>
           </div>
 
-          {/* Sub-Tabs Selector */}
-          <div className="flex items-center gap-2 border-b border-slate-200">
+          {}
+          <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab("attendance")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "attendance"
                   ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
                   : "border-transparent text-slate-500 hover:text-slate-800"
@@ -564,8 +562,18 @@ export default function EmployeeDetailSection({
               <CalendarIcon size={16} /> Attendance History
             </button>
             <button
+              onClick={() => setActiveTab("payments")}
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "payments"
+                  ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Award size={16} /> Payment & Financial Details
+            </button>
+            <button
               onClick={() => setActiveTab("documents")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "documents"
                   ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
                   : "border-transparent text-slate-500 hover:text-slate-800"
@@ -578,7 +586,7 @@ export default function EmployeeDetailSection({
             </button>
             <button
               onClick={() => setActiveTab("leaves")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "leaves"
                   ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
                   : "border-transparent text-slate-500 hover:text-slate-800"
@@ -591,7 +599,7 @@ export default function EmployeeDetailSection({
             </button>
           </div>
 
-          {/* TAB 1: ATTENDANCE HISTORY */}
+          {}
           {activeTab === "attendance" && (
             <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3 justify-between">
@@ -727,7 +735,103 @@ export default function EmployeeDetailSection({
             </div>
           )}
 
-          {/* TAB 2: CORPORATE DOCUMENT VAULT */}
+          {activeTab === "payments" && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <h4 className="text-base font-black text-slate-800 flex items-center gap-2">
+                    <Award size={18} className="text-emerald-600" />
+                    Employee Compensation & Placement Fee Summary
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Comprehensive overview of CTC package, agreed placement fee, amount released, and remaining balance.
+                  </p>
+                </div>
+              </div>
+
+              {/* Financial Metrics Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Agreed Fee Amount
+                  </span>
+                  <span className="text-2xl font-black text-slate-900 mt-1 block">
+                    ₹40,000
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">Standard recruitment fee</span>
+                </div>
+
+                <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-200">
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                    Total Released / Paid
+                  </span>
+                  <span className="text-2xl font-black text-emerald-600 mt-1 block">
+                    ₹20,000
+                  </span>
+                  <span className="text-[11px] text-emerald-700 font-medium">50% milestone fee disbursed</span>
+                </div>
+
+                <div className="p-4 bg-amber-50/70 rounded-xl border border-amber-200">
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                    Remaining Balance
+                  </span>
+                  <span className="text-2xl font-black text-amber-600 mt-1 block">
+                    ₹20,000
+                  </span>
+                  <span className="text-[11px] text-amber-700 font-medium">Pending upcoming stage triggers</span>
+                </div>
+              </div>
+
+              {/* Milestone Breakdown */}
+              <div className="space-y-3 pt-2">
+                <h5 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Disbursement Milestone Schedule:
+                </h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-900">Milestone 1 - Selection</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        Paid (₹10,000)
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 block">Ref: NEFT-992384 • Date: 2026-09-20</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-900">Milestone 2 - GAMCA Medical</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        Paid (₹10,000)
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 block">Ref: RTGS-883719 • Date: 2026-09-28</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-900">Milestone 3 - Visa Stamping</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                        Pending Release (₹10,000)
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 block">Due Date: 2026-10-15</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-900">Milestone 4 - On-Site Deployment</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                        Upcoming Stage (₹10,000)
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 block">Due Date: 2026-10-31</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "documents" && (
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-5 flex flex-wrap items-center justify-between gap-4">
@@ -878,7 +982,7 @@ export default function EmployeeDetailSection({
             </div>
           )}
 
-          {/* TAB 3: LEAVE HISTORY */}
+          {}
           {activeTab === "leaves" && (
             <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -909,7 +1013,7 @@ export default function EmployeeDetailSection({
             </div>
           )}
 
-          {/* Admin Upload Document Modal */}
+          {}
           {adminDocModalOpen && (
             <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -988,7 +1092,7 @@ export default function EmployeeDetailSection({
             </div>
           )}
 
-          {/* Document Preview Modal */}
+          {}
           {previewDocModal && (
             <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
@@ -1032,7 +1136,7 @@ export default function EmployeeDetailSection({
             </div>
           )}
 
-          {/* Document Rejection Modal */}
+          {}
           {rejectDocModal && (
             <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">

@@ -1,9 +1,6 @@
 import Client from "../models/Client.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Enterprise Client Management Service
- */
 export class ClientService {
   static async createClient(data) {
     const { name, mobile, phone, email, company, companyName, address, gstPan, remark } = data;

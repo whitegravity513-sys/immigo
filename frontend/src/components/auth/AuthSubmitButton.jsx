@@ -1,9 +1,6 @@
 import React from "react";
 import { ArrowRight } from "lucide-react";
 
-/**
- * Enterprise submit button with gradient, loading spinner, and micro-animations.
- */
 export default function AuthSubmitButton({ loading, label }) {
   return (
     <button

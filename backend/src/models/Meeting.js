@@ -13,15 +13,15 @@ const meetingSchema = new mongoose.Schema(
       trim: true,
     },
     date: {
-      type: String, // Format: YYYY-MM-DD
+      type: String, 
       required: [true, "Meeting date is required"],
     },
     startTime: {
-      type: String, // Format: HH:mm
+      type: String, 
       required: [true, "Meeting start time is required"],
     },
     endTime: {
-      type: String, // Format: HH:mm
+      type: String, 
       default: "",
     },
     meetingLink: {

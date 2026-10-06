@@ -31,9 +31,6 @@ const computeStatus = (hExpiry, aExpiry) => {
   return "Active";
 };
 
-/**
- * Enterprise Service & AMC Renewal Management Service
- */
 export class RenewalService {
   static formatRenewal(renewal) {
     if (!renewal) return null;

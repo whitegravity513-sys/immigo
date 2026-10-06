@@ -1,9 +1,6 @@
 import HolidayService from "../services/holiday.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Holiday Controller
- */
 export const getHolidays = asyncHandler(async (req, res) => {
   const holidays = await HolidayService.getHolidays();
   return res.status(200).json(holidays);

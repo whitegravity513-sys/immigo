@@ -26,18 +26,15 @@ export default function LeaveManagementSection({
 }) {
   const [statusFilter, setStatusFilter] = useState("All");
 
-  // Calculate statistics
   const pendingCount = leaveHistory.filter((l) => l.status === "Pending").length;
   const approvedCount = leaveHistory.filter((l) => l.status === "Approved").length;
   const rejectedCount = leaveHistory.filter((l) => l.status === "Rejected").length;
 
-  // Filter list
   const filteredHistory = leaveHistory.filter((lv) => {
     if (statusFilter === "All") return true;
     return lv.status === statusFilter;
   });
 
-  // Calculate duration
   let leaveDurationDays = 0;
   if (leaveForm.startDate && leaveForm.endDate) {
     const start = new Date(leaveForm.startDate);
@@ -50,7 +47,7 @@ export default function LeaveManagementSection({
 
   return (
     <div className="space-y-6">
-      {/* ── Top KPI Cards ── */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
@@ -93,9 +90,9 @@ export default function LeaveManagementSection({
         </div>
       </div>
 
-      {/* ── Unified Layout: Form on Left, History Table on Right ── */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Apply for Leave Form (5 cols on lg) */}
+        {}
         <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 sticky top-24">
           <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-100">
             <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
@@ -108,7 +105,7 @@ export default function LeaveManagementSection({
           </div>
 
           <form onSubmit={handleLeaveSubmit} className="space-y-4">
-            {/* Leave Type Selector */}
+            {}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
                 <span>Leave Type *</span>
@@ -209,16 +206,16 @@ export default function LeaveManagementSection({
           </form>
         </div>
 
-        {/* Right Column: Leave Request History & Status (7 cols on lg) */}
+        {}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-          {/* Header & Status Filter Pills */}
+          {}
           <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-black text-slate-900">Leave Applications History</h3>
               <p className="text-[11px] text-slate-500 font-medium">Track your previous leave approvals and remarks</p>
             </div>
 
-            {/* Filter Tabs */}
+            {}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
               {["All", "Pending", "Approved", "Rejected"].map((st) => (
                 <button
@@ -237,7 +234,7 @@ export default function LeaveManagementSection({
             </div>
           </div>
 
-          {/* Table */}
+          {}
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

@@ -1,7 +1,3 @@
-/**
- * Enterprise NoSQL Injection & Request Sanitization Middleware (Express 5 Compatible)
- * Sanitizes req.body, req.query, and req.params in-place against malicious MongoDB operator injections.
- */
 
 function sanitizeInPlace(target) {
   if (!target || typeof target !== "object") return;
@@ -17,7 +13,6 @@ function sanitizeInPlace(target) {
 
   const keys = Object.keys(target);
   for (const key of keys) {
-    // Strip leading dollar signs ($) or keys with dots (.) that can manipulate mongo query operators
     if (key.startsWith("$") || key.includes(".")) {
       delete target[key];
       continue;

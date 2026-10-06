@@ -114,7 +114,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
         className="bg-white w-full max-w-3xl rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto print:shadow-none print:border-none print:my-0 print:max-w-full"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Action Bar (Hidden in Print) */}
+        {}
         <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white print:hidden">
           <div className="flex items-center gap-2.5">
             <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md text-xs font-mono font-bold">
@@ -147,12 +147,12 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
           </div>
         </div>
 
-        {/* Compact Formal Printable Sheet matching classic executive template in Black & White */}
+        {}
         <div className="printable-sheet p-6 sm:p-8 space-y-6 bg-white text-slate-800 print:space-y-5">
-          {/* Corporate Header */}
+          {}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-6 border-b-2 border-slate-800 pb-6">
 
-            {/* LEFT: Logo + Company Info — logo left-aligned with address below */}
+            {}
             <div className="text-slate-800 max-w-sm">
               <div className="flex items-center justify-start gap-3.5 mb-2">
                 <img src="/wg-logo.png" alt="VESTA Logo" className="h-12 w-12 object-contain shrink-0" />
@@ -165,7 +165,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
                   </p>
                 </div>
               </div>
-              {/* Address block — starts flush with logo left edge */}
+              {}
               <div className="text-[11px] text-slate-700 leading-relaxed font-medium pl-0">
                 <div>{adminAddr}</div>
                 <div>Phone: <span className="font-semibold">{adminPhone}</span></div>
@@ -178,7 +178,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
               </div>
             </div>
 
-            {/* RIGHT: Invoice stamp + number + date */}
+            {}
             <div className="flex flex-col justify-between h-full sm:text-right sm:ml-auto">
               <h2 className="text-3xl sm:text-4xl font-black tracking-widest text-slate-400 uppercase select-none sm:text-right">
                 INVOICE
@@ -202,9 +202,9 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             </div>
           </div>
 
-          {/* Client & Project Meta Columns (TO: and FOR:) */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-1 pb-2">
-            {/* TO Box */}
+            {}
             <div className="space-y-1 text-xs text-slate-800">
               <div className="font-black text-slate-900 uppercase tracking-wider text-xs pb-1 border-b border-slate-200">
                 BILL TO:
@@ -221,7 +221,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
               )}
             </div>
 
-            {/* FOR Box */}
+            {}
             <div className="text-xs text-slate-800 sm:border-l sm:border-slate-200 sm:pl-6">
               <div className="font-black text-slate-900 uppercase tracking-wider text-xs pb-1 border-b border-slate-200">
                 PROJECT DETAILS:
@@ -229,7 +229,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
               <div className="pt-2 space-y-1.5">
                 <div className="font-bold text-sm text-slate-900 leading-snug">{projectName}</div>
 
-                {/* Project Type Badge */}
+                {}
                 {(invoice.projectType || project?.projectType) && (
                   <div>
                     <span className="inline-block px-2 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-bold text-slate-700 uppercase tracking-wide">
@@ -238,7 +238,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
                   </div>
                 )}
 
-                {/* Reference ID */}
+                {}
                 <div className="flex items-center gap-2 text-slate-600">
                   <span>Ref. ID:</span>
                   <span className="font-mono font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-[10px]">
@@ -246,7 +246,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
                   </span>
                 </div>
 
-                {/* Invoice Date & Due Date */}
+                {}
                 <div className="grid grid-cols-2 gap-2 pt-1 text-[10px] text-slate-600">
                   <div>
                     <div className="font-bold text-slate-700 uppercase tracking-wide text-[9px]">Invoice Date</div>
@@ -260,7 +260,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
                   </div>
                 </div>
 
-                {/* Service tag */}
+                {}
                 <div className="text-slate-400 italic font-medium pt-0.5 text-[10px]">
                   Professional IT &amp; Software Services
                 </div>
@@ -268,7 +268,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             </div>
           </div>
 
-          {/* Line Items Table with crisp boxed headers */}
+          {}
           <div className="border-2 border-slate-800 rounded-lg overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -294,9 +294,9 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             </table>
           </div>
 
-          {/* Financial Totals & Terms */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 pt-2 items-stretch print:break-inside-avoid">
-            {/* Left: Bank Details */}
+            {}
             <div className="sm:col-span-7 space-y-3 text-xs text-slate-700">
               <div className="p-4 bg-slate-50/50 rounded-xl border border-slate-200 shadow-2xs space-y-3">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
@@ -330,14 +330,14 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
               )}
             </div>
 
-            {/* Right: Bordered Totals Box */}
+            {}
             <div className="sm:col-span-5 border-2 border-slate-800 rounded-lg p-5 pt-6 space-y-3 bg-white flex flex-col justify-end">
               <div className="flex justify-between text-xs text-slate-700 font-semibold py-1">
                 <span>SUBTOTAL:</span>
                 <span>₹{(Number(invoice.amount) || 0).toLocaleString("en-IN")}</span>
               </div>
 
-              {/* GST Breakdown */}
+              {}
               {(() => {
                 const subtotal = Number(invoice.amount) || 0;
                 const igstRate = Number(invoice.igstRate) || 0;
@@ -399,7 +399,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             </div>
           </div>
 
-          {/* Centered Bottom Message */}
+          {}
           <div className="pt-8 border-t border-slate-300 text-center space-y-4 print:break-inside-avoid">
             <div className="text-base font-black tracking-wide text-slate-900 uppercase">
               Thank you for your business!

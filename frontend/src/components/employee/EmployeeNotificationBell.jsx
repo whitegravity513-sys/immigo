@@ -38,7 +38,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         setNotifications(list);
         setUnreadCount(effectiveUnread);
 
-        // Detect new unread notification from admin
         if (initialFetchDone.current && list.length > 0) {
           const newest = list[0];
           const newestId = newest.id || newest._id;
@@ -55,7 +54,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         initialFetchDone.current = true;
       }
     } catch {
-      // Silent error for polling
     }
   };
 
@@ -65,7 +63,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
     return () => clearInterval(interval);
   }, [token]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -114,7 +111,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Button */}
+      {}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -129,10 +126,10 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         )}
       </button>
 
-      {/* Notification Dropdown */}
+      {}
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          {/* Header */}
+          {}
           <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell size={16} className="text-emerald-600" />
@@ -158,7 +155,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
             )}
           </div>
 
-          {/* List */}
+          {}
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
             {notifications.length === 0 ? (
               <div className="py-10 text-center text-slate-400">
@@ -221,7 +218,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                       {item.message}
                     </p>
 
-                    {/* Direct Meeting Link Button if applicable */}
+                    {}
                     {meetingLink && (
                       <div className="pt-1.5 flex items-center justify-between gap-2">
                         <a
@@ -251,7 +248,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
             )}
           </div>
 
-          {/* Footer */}
+          {}
           <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Updates automatically</span>
             <button

@@ -2,10 +2,6 @@ import { useState } from 'react';
 import apiClient from '../../services/apiClient.js';
 import { CheckCircle, AlertCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
 
-/**
- * Modal component for admin to edit an employee's check‑in / check‑out times.
- * Also allows admin to waive penalty absents applied due to < 7 day advance notice.
- */
 const formatHHMM = (val) => {
   if (!val) return '';
   if (typeof val === 'string' && /^\d{2}:\d{2}$/.test(val)) return val;
@@ -108,14 +104,14 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
         className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white">
           <h3 className="text-base font-black text-slate-800">Edit Attendance</h3>
           <button className="text-slate-500 text-xl cursor-pointer p-1" onClick={onClose}>×</button>
         </div>
 
         <div className="p-6 space-y-4">
-          {/* Penalty Alert Banner */}
+          {}
           {isPenalty && (
             <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
               <ShieldAlert size={18} className="text-rose-500 mt-0.5 shrink-0" />
@@ -145,7 +141,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
           )}
 
-          {/* Employee */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase">Employee</label>
             <input
@@ -156,7 +152,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             />
           </div>
 
-          {/* Date */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase">Date</label>
             <input
@@ -167,7 +163,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             />
           </div>
 
-          {/* Status */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase">Status</label>
             <select
@@ -184,7 +180,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </select>
           </div>
 
-          {/* Day Type (Full Day / Half Day) */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase">Day Type</label>
             <select
@@ -197,7 +193,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </select>
           </div>
 
-          {/* Check-In */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase">Check‑In Time</label>
             <input
@@ -208,7 +204,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             />
           </div>
 
-          {/* Check-Out */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-slate-500 uppercase">Check‑Out Time</label>
             <input
@@ -219,7 +215,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             />
           </div>
 
-          {/* Action Buttons */}
+          {}
           <div className="flex items-center gap-3 pt-2">
             <button
               className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl text-sm transition-colors disabled:opacity-50"
@@ -237,7 +233,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </button>
           </div>
 
-          {/* Waive Penalty Button - only shown if it's a penalty absent */}
+          {}
           {isPenalty && (
             <button
               className="w-full py-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"

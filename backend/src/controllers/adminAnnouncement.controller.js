@@ -23,7 +23,6 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
     createdBy: req.admin?._id || req.user?._id,
   });
 
-  // Broadcast to all employees
   try {
     NotificationService.createNotification({
       type: "ANNOUNCEMENT",
@@ -38,7 +37,6 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
       },
     });
   } catch (e) {
-    // Non-blocking
   }
 
   return res.status(201).json({

@@ -1,112 +1,149 @@
-import React, { useState, useEffect } from "react";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { adminLogin } from "../../services/authService";
-import AuthInputField from "./AuthInputField";
-import AuthSubmitButton from "./AuthSubmitButton";
-import AuthErrorMessage from "./AuthErrorMessage";
-import RememberForgotRow from "./RememberForgotRow";
+import { useState, useEffect } from "react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from "lucide-react";
+import { adminLogin } from "../../services/authService.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import AuthErrorMessage from "./AuthErrorMessage.jsx";
+import RememberForgotRow from "./RememberForgotRow.jsx";
 
-/**
- * Dedicated Admin Authentication Form.
- * Handles validation, password visibility toggling, CapsLock detection, and error lifecycles.
- */
-export default function AdminLoginForm({ onLoginSuccess, onSwitchToEmployee }) {
-  const [email, setEmail]       = useState("");
+export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
+  const { login } = useAuth();
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [capsLock, setCapsLock] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!error) return;
-    const t = setTimeout(() => setError(""), 5000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(timer);
   }, [error]);
+
+  const handleQuickFill = () => {
+    setIdentifier("admin@vista.com");
+    setPassword("SuperAdmin@Secure2026!");
+    setError("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
+
     try {
-      const data = await adminLogin(email.trim(), password);
+      const cleanId = identifier.trim();
+      const adminEmail =
+        cleanId.toLowerCase() === "admin" || cleanId.toLowerCase() === "superadmin"
+          ? "admin@vista.com"
+          : cleanId;
+
+      const data = await adminLogin(adminEmail, password);
       const token = data?.accessToken || data?.token;
-      if (token && onLoginSuccess) {
-        onLoginSuccess(token, { ...data.admin, role: "admin" }, "admin");
+
+      if (token) {
+        const adminData = { ...(data.admin || {}), role: "admin" };
+        login(token, adminData, "admin");
+        if (onLoginSuccess) {
+          onLoginSuccess(token, adminData, "admin");
+        }
       } else {
-        setError("Admin authentication failed. Please verify credentials.");
+        setError("Admin authentication failed. Please verify your credentials.");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid admin email or password.");
+      console.error("Admin login error:", err);
+      if (err?.code === "ERR_NETWORK" || !err?.response) {
+        setError("Backend server not responding. Please ensure backend is running on http://localhost:5000");
+      } else {
+        setError(err.response?.data?.message || "Invalid admin credentials. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      {}
+      <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
+        <span className="truncate mr-2">
+          Admin: <span className="font-bold text-[#1877f2]">admin@vista.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+        </span>
+        <button
+          type="button"
+          onClick={handleQuickFill}
+          className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
+        >
+          Quick Fill
+        </button>
+      </div>
+
       <AuthErrorMessage msg={error} />
 
-      <AuthInputField
-        id="admin-email"
-        label="Admin Official Email"
-        icon={<Mail size={16} />}
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="admin@company.com"
-        required
-        autoFocus
-        autoComplete="email"
-      />
-
-      <AuthInputField
-        id="admin-password"
-        label="Password"
-        icon={<Lock size={16} />}
-        type={showPass ? "text" : "password"}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Enter secure password"
-        required
-        autoComplete="current-password"
-        onCapsLockChange={setCapsLock}
-        rightElement={
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => setShowPass((p) => !p)}
-            className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-            title={showPass ? "Hide password" : "Show password"}
-          >
-            {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        }
-      />
-
-      {capsLock && (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[11px] font-semibold">
-          <span>⚠️</span>
-          <span>Caps Lock is ON</span>
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1">
+          Admin Official Email
+        </label>
+        <div className="relative">
+          <Mail size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            required
+            autoFocus
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="admin@vista.com or 'admin'"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+          />
         </div>
-      )}
+      </div>
 
-      <RememberForgotRow />
-
-      <AuthSubmitButton loading={loading} label="Sign In to Admin Portal" />
-
-      <div className="pt-2 text-center">
-        <p className="text-xs text-slate-500 font-medium">
-          Not an Administrator?{" "}
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1">
+          Password
+        </label>
+        <div className="relative">
+          <Lock size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
+          <input
+            type={showPassword ? "text" : "password"}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter secure password"
+            className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+          />
           <button
             type="button"
-            onClick={onSwitchToEmployee}
-            className="text-blue-600 hover:text-blue-800 font-bold hover:underline cursor-pointer border-none bg-transparent"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            title={showPassword ? "Hide password" : "Show password"}
           >
-            Employee Sign In &rarr;
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
-        </p>
+        </div>
       </div>
+
+      <RememberForgotRow
+        keepSignedIn={keepSignedIn}
+        setKeepSignedIn={setKeepSignedIn}
+        onForgotPassword={onForgotPassword}
+      />
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3 bg-[#1877f2] hover:bg-blue-700 active:scale-[0.99] text-white font-bold rounded-xl text-sm shadow-md shadow-blue-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 mt-2 disabled:opacity-60"
+      >
+        {loading ? (
+          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        ) : (
+          <>
+            <LogIn size={15} />
+            <span>Sign In to Admin Portal</span>
+            <ArrowRight size={15} />
+          </>
+        )}
+      </button>
     </form>
   );
 }

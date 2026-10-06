@@ -18,18 +18,13 @@ import path from "path";
 
 const app = express();
 
-// Serve uploaded documents, photos, and receipts statically
 app.use("/uploads", cors(corsOptions), express.static(path.join(process.cwd(), "uploads")));
 
-// High-speed response compression (Gzip / Deflate)
 app.use(compression({
-  threshold: 1024, // compress responses over 1KB
+  threshold: 1024, 
   level: 6,
 }));
 
-// ==========================================
-// Security Middlewares (MNC & Enterprise Grade)
-// ==========================================
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -39,24 +34,18 @@ app.use(
 );
 app.disable("x-powered-by");
 
-// Global CORS Middleware
 app.use(cors(corsOptions));
 
-// Body & Cookie Parsers with Payload Limits
 app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Enterprise NoSQL Query Injection & Input Sanitization
 app.use(sanitizeRequests);
 
-// Disable ETags to prevent browser from reusing 304 responses with cached CORS headers
 app.set("etag", false);
 
-// General API Rate Limiter
 app.use("/api", apiLimiter);
 
-// Cache control headers: APIs are live and must never be 304 cached across different dev origins
 app.use("/api", (req, res, next) => {
   res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
   res.header("Pragma", "no-cache");
@@ -66,9 +55,6 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
-// ==========================================
-// Health & Diagnostic Routes
-// ==========================================
 app.get("/api/health", (req, res) => {
   return ApiResponse.send(res, 200, "Vista HRMS & Enterprise API is running smoothly", {
     uptime: process.uptime(),
@@ -85,21 +71,12 @@ app.get("/", (req, res) => {
   });
 });
 
-// ==========================================
-// Master Application Routes (/api)
-// ==========================================
 app.use("/api", apiRouter);
 
-// ==========================================
-// 404 Not Found Handler
-// ==========================================
 app.use((req, res, next) => {
   next(new ApiError(404, `Route ${req.method} ${req.originalUrl} not found`));
 });
 
-// ==========================================
-// Centralized Error Handler (Last Middleware)
-// ==========================================
 app.use(errorHandler);
 
 export default app;

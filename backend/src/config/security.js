@@ -1,8 +1,5 @@
 import env from "./env.js";
 
-/**
- * Enterprise Security Configuration (MNC Grade)
- */
 export const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
@@ -16,7 +13,6 @@ export const corsOptions = {
     ) {
       return callback(null, true);
     }
-    // Allow by default for cloud deployments
     return callback(null, true);
   },
   credentials: true,
@@ -47,7 +43,7 @@ export const getCookieOptions = (req) => {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge: 30 * 24 * 60 * 60 * 1000, 
   };
 
   if (isProd && req?.hostname?.endsWith("vesta.in")) {

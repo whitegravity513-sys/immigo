@@ -4,23 +4,17 @@ import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from ".
 import { hashToken } from "../utils/crypto.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Standard cookie configuration for refresh tokens
- */
 export const getRefreshTokenCookieOptions = () => {
   const isProduction = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000, 
     path: "/api/auth",
   };
 };
 
-/**
- * Create a new user session with access and refresh tokens
- */
 export const createSession = async (user, req = {}) => {
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
@@ -46,9 +40,6 @@ export const createSession = async (user, req = {}) => {
   };
 };
 
-/**
- * Refresh token rotation: verify, invalidate old token, issue new pair
- */
 export const rotateRefreshToken = async (rawRefreshToken, req = {}) => {
   if (!rawRefreshToken) {
     throw new ApiError(401, "Refresh token is required");
@@ -80,17 +71,12 @@ export const rotateRefreshToken = async (rawRefreshToken, req = {}) => {
     throw new ApiError(401, "Session invalidated due to security event");
   }
 
-  // Revoke old token
   storedToken.revokedAt = new Date();
   await storedToken.save();
 
-  // Create new session (token rotation)
   return createSession(user, req);
 };
 
-/**
- * Revoke specific refresh token on logout
- */
 export const revokeRefreshToken = async (rawRefreshToken) => {
   if (!rawRefreshToken) return;
   const tokenHash = hashToken(rawRefreshToken);
@@ -100,9 +86,6 @@ export const revokeRefreshToken = async (rawRefreshToken) => {
   );
 };
 
-/**
- * Revoke all sessions for a user (Logout from all devices / Password change)
- */
 export const revokeAllSessions = async (userId) => {
   await User.findByIdAndUpdate(userId, {
     $inc: { tokenVersion: 1 },

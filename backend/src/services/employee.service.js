@@ -15,9 +15,6 @@ const cleanObjectId = (id) => {
   return str;
 };
 
-/**
- * Enterprise Employee Management & Directory Service
- */
 export class EmployeeService {
   static formatEmployee(employee) {
     if (!employee) return null;
@@ -283,7 +280,6 @@ export class EmployeeService {
     return this.formatEmployee(emp);
   }
 
-  // --- Document Vault & Self-Service Methods ---
   static async getEmployeeProfile(id) {
     const cleanId = cleanObjectId(id);
     if (!cleanId) {
@@ -329,7 +325,6 @@ export class EmployeeService {
       throw new ApiError(404, "Employee not found");
     }
 
-    // Save base64 image to server storage for high-speed delivery and zero DB bloat
     const storedPhotoUrl = saveBase64File(profileImage, "profiles", "photo.png");
     emp.profileImage = storedPhotoUrl;
     await emp.save();
@@ -355,7 +350,6 @@ export class EmployeeService {
       emp.documents = [];
     }
 
-    // Save base64 document (PDF/Image) to disk for instant performance and no Mongo size limit
     const storedDocUrl = saveBase64File(url, "documents", name);
 
     const newDoc = {
@@ -689,7 +683,6 @@ export class EmployeeService {
     }));
   }
 
-  // --- Profile & Document Vault Self-Service ---
   static async getEmployeeProfile(id) {
     const cleanId = cleanObjectId(id) || id;
     const emp = await Employee.findById(cleanId).select("-password").lean();
@@ -754,7 +747,6 @@ export class EmployeeService {
       throw new ApiError(400, "Document file content or URL is required");
     }
 
-    // Save Base64 to disk instantly, store lightweight relative URL in DB
     const docUrl = saveBase64File(rawFile, "documents", docName);
 
     const emp = await Employee.findById(cleanId).select("+documents");
@@ -785,7 +777,6 @@ export class EmployeeService {
 
     console.log("6. Document saved successfully");
 
-    // Send Live Admin Notification when employee uploads compliance document
     if (uploadedBy === "Employee") {
       try {
         await NotificationService.createNotification({
@@ -839,7 +830,6 @@ export class EmployeeService {
 
     await emp.save();
 
-    // Send Real-time Notification to Employee on HR verification / rejection
     try {
       const isApproved = status === "Verified";
       await NotificationService.createNotification({

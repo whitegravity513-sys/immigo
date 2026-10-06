@@ -175,7 +175,6 @@ const employeeSchema = new mongoose.Schema(
   }
 );
 
-// High-performance database indexes for instant query resolution
 employeeSchema.index({ status: 1 });
 employeeSchema.index({ name: 1 });
 employeeSchema.index({ joiningDate: 1 });

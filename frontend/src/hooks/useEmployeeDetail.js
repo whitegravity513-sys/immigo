@@ -46,7 +46,6 @@ export const useEmployeeDetail = (id) => {
       setLoading(false);
     };
     loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleDateChange = (date) => {

@@ -30,16 +30,16 @@ export default function AdminUpdateToast({ notification, onClose, onView }) {
   return (
     <div className="fixed top-5 right-5 z-[9999] max-w-sm sm:max-w-md w-full animate-in slide-in-from-top-4 fade-in duration-300">
       <div className="bg-white rounded-2xl shadow-2xl border-2 border-blue-600/30 p-4 relative overflow-hidden backdrop-blur-md">
-        {/* Top accent line */}
+        {}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500" />
 
         <div className="flex items-start gap-3 mt-1">
-          {/* Icon */}
+          {}
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-600/20">
             <Bell size={18} className="animate-bounce" />
           </div>
 
-          {/* Content */}
+          {}
           <div className="flex-1 min-w-0 pr-6">
             <div className="flex items-center gap-2 mb-1">
               <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${badge.bg}`}>
@@ -56,7 +56,7 @@ export default function AdminUpdateToast({ notification, onClose, onView }) {
               {notification.message}
             </p>
 
-            {/* Actions */}
+            {}
             <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100">
               <button
                 type="button"
@@ -79,7 +79,7 @@ export default function AdminUpdateToast({ notification, onClose, onView }) {
             </div>
           </div>
 
-          {/* Close X */}
+          {}
           <button
             type="button"
             onClick={onClose}

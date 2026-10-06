@@ -30,7 +30,6 @@ export default function NotificationBell({ className }) {
         setUnreadCount(res.data.unreadCount || 0);
       }
     } catch (err) {
-      // Silent error for polling
     }
   };
 
@@ -40,7 +39,6 @@ export default function NotificationBell({ className }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -147,7 +145,7 @@ export default function NotificationBell({ className }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Button */}
+      {}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -162,10 +160,10 @@ export default function NotificationBell({ className }) {
         )}
       </button>
 
-      {/* Notification Dropdown Panel */}
+      {}
       {isOpen && (
         <div className="absolute right-0 mt-3 w-84 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          {/* Header */}
+          {}
           <div className="px-4 py-3.5 bg-slate-50 border-b border-slate-200 text-slate-900 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell size={17} className="text-indigo-600" />
@@ -199,7 +197,7 @@ export default function NotificationBell({ className }) {
             </div>
           </div>
 
-          {/* List of Notifications */}
+          {}
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
             {notifications.length === 0 ? (
               <div className="py-10 text-center text-slate-400">
@@ -259,7 +257,7 @@ export default function NotificationBell({ className }) {
             )}
           </div>
 
-          {/* Footer */}
+          {}
           <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Auto-updates in real-time</span>
             <button

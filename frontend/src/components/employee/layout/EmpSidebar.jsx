@@ -56,7 +56,7 @@ export default function EmpSidebar({
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
@@ -64,12 +64,12 @@ export default function EmpSidebar({
         />
       )}
 
-      {/* Sidebar Container */}
+      {}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-64 bg-slate-100 border-r border-slate-300 text-slate-800 shadow-xl transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
       >
-        {/* Brand Header — Blue Header matching Dashboard Topbar */}
+        {}
         <div className="h-[68px] min-h-[68px] px-5 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2">
             <ImmiGoLogo size="sm" subtitle="Workforce Suite" theme="light" />
@@ -82,10 +82,9 @@ export default function EmpSidebar({
           </button>
         </div>
 
-        {/* User Card */}
+        {}
 
-
-        {/* Nav Items List */}
+        {}
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
           {navSections.map((section, idx) => (
             <div key={idx}>
@@ -134,9 +133,8 @@ export default function EmpSidebar({
           ))}
         </nav>
 
-        {/* Sidebar Footer — Blue matching Dashboard Footer */}
+        {}
         <div className="h-[48px] min-h-[48px] px-5 border border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-md">
-
 
         </div>
       </aside>

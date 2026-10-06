@@ -8,4 +8,8 @@ export { default as EmployeeMeetingsTab } from "./EmployeeMeetingsTab.jsx";
 export { default as EmployeeNotificationBell } from "./EmployeeNotificationBell.jsx";
 export { default as EmployeeProfileDocsTab } from "./EmployeeProfileDocsTab.jsx";
 export { default as LeaveHistorySection } from "./LeaveHistorySection.jsx";
+export { default as LeaveManagementSection } from "./LeaveManagementSection.jsx";
 export { default as MonthlyTrackerTab } from "./MonthlyTrackerTab.jsx";
+export { default as EmpHomeOverview } from "./dashboard/EmpHomeOverview.jsx";
+export { default as HolidayAnnouncementModals } from "./dashboard/HolidayAnnouncementModals.jsx";
+export { default as AdminUpdateToast } from "./notifications/AdminUpdateToast.jsx";

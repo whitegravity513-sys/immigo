@@ -1,9 +1,6 @@
 import AttendanceService from "../services/attendance.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Admin Attendance Controller
- */
 export const getAttendanceReport = asyncHandler(async (req, res) => {
   const { date } = req.query;
   const report = await AttendanceService.getAttendanceReport(date);

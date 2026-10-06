@@ -10,8 +10,7 @@ export default function LeaveHistorySection({
   return (
     <div className="space-y-6">
 
-
-      {/* Table */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <h3 className="text-base font-black text-slate-800">Leave Request History</h3>

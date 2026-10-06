@@ -4,7 +4,7 @@ import { getProjectById, updateProject } from "../services/projectService";
 export const useProjectDetail = (initialProject, onUpdate) => {
   const [project, setProject] = useState(initialProject);
   const [paymentSummary, setPaymentSummary] = useState(null);
-  const [currentSubView, setCurrentSubView] = useState("overview"); // "overview" | "invoice" | "payments"
+  const [currentSubView, setCurrentSubView] = useState("overview"); 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");

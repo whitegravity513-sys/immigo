@@ -1,10 +1,6 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
 
-/**
- * Enterprise Unified App Footer for both Admin & Employee Portals.
- * Provides identical visual theme, responsive layout, status badge, and security branding.
- */
 export default function AppFooter({
   role = "admin",
   navItems = [],
@@ -37,7 +33,7 @@ export default function AppFooter({
   return (
     <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
       <div className="w-full max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
-        {/* Left: Brand + Status Pill */}
+        {}
         <div className="flex items-center gap-3">
           <div className="flex items-end gap-0.5 select-none font-black text-sm tracking-tight leading-none text-white">
             <span>immi</span>
@@ -50,16 +46,15 @@ export default function AppFooter({
             </span>
           </div>
 
-
         </div>
 
-
-
-        {/* Right: Security Badge & Version */}
+        {/* Right Info & Branding */}
         <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-white font-medium">
-
           <span>&copy; {currentYear} immiGo</span>
-
+          <span className="text-blue-400">•</span>
+          <span className="font-semibold text-cyan-300 tracking-wide">
+            Designed by White Gravity Web Solutions
+          </span>
         </div>
       </div>
     </footer>

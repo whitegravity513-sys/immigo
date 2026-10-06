@@ -14,9 +14,6 @@ import {
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 
-/**
- * Enterprise Attendance & Timesheet Processing Service
- */
 export class AttendanceService {
   static formatAttendance(record) {
     if (!record) return null;
@@ -27,7 +24,6 @@ export class AttendanceService {
     };
   }
 
-  // --- Lifetime Attendance Summary since Joining Date ---
   static async getLifetimeAttendanceStats(employeeId, empDoc = null) {
     try {
       const emp = empDoc || (await Employee.findById(employeeId).select("joiningDate createdAt").lean());
@@ -90,7 +86,6 @@ export class AttendanceService {
         }
       });
 
-      // Calculate working days & leaves since joining date
       let cur = new Date(`${joiningDateStr}T00:00:00`);
       const todayDate = new Date(`${todayStr}T00:00:00`);
       let applicableWorkingDays = 0;
@@ -98,7 +93,7 @@ export class AttendanceService {
 
       while (cur <= todayDate) {
         const dStr = cur.toISOString().split("T")[0];
-        const dayOfWeek = cur.getDay(); // 0 is Sunday, 6 is Saturday
+        const dayOfWeek = cur.getDay(); 
         const dayOfMonth = cur.getDate();
         const satCount = Math.ceil(dayOfMonth / 7);
         const isOffSat = dayOfWeek === 6 && (satCount === 2 || satCount === 4);
@@ -138,7 +133,6 @@ export class AttendanceService {
     }
   }
 
-  // --- Employee Self Service ---
   static async getEmployeeStatus(employeeId) {
     const today = getTodayDateString();
     const [record, emp, holiday] = await Promise.all([
@@ -219,7 +213,6 @@ export class AttendanceService {
 
     const today = getTodayDateString();
 
-    // Business Policy: If today is a declared holiday, clock-in is disabled and attendance is not required
     const todayHoliday = await Holiday.findOne({ date: today }).lean();
     if (todayHoliday) {
       throw new ApiError(
@@ -231,7 +224,6 @@ export class AttendanceService {
     let record = await Attendance.findOne({ employeeId, date: today });
     const now = new Date();
 
-    // Business Policy: If employee has already checked out today, lock re-checking in until next date
     if (record && record.checkOutTime) {
       throw new ApiError(
         400,
@@ -251,7 +243,6 @@ export class AttendanceService {
         checkInDevice: location.device || "Browser",
       });
     } else {
-      // If was on break, auto-close current open break
       if (record.status === "On Break" && record.breaks?.length > 0) {
         const currentBreak = record.breaks[record.breaks.length - 1];
         if (currentBreak && !currentBreak.endTime) {
@@ -276,7 +267,6 @@ export class AttendanceService {
 
     await record.save();
 
-    // Trigger Admin Live Notification
     try {
       const empName = emp?.name || "Employee";
       const empIdCode = emp?.employeeId || "WG-EMP";
@@ -291,7 +281,6 @@ export class AttendanceService {
         metadata: { employeeId: empIdCode, name: empName, date: today, time: now, location },
       });
     } catch (e) {
-      // Non-blocking notification
     }
 
     return await this.getEmployeeStatus(employeeId);
@@ -307,7 +296,6 @@ export class AttendanceService {
     }
 
     if (!record) {
-      // Auto check-in if not checked in yet
       record = new Attendance({
         employeeId,
         date: today,
@@ -320,12 +308,10 @@ export class AttendanceService {
     }
 
     if (record.status === "On Break") {
-      // Already on break, return status smoothly
       return await this.getEmployeeStatus(employeeId);
     }
 
     const breakStart = new Date();
-    // Policy: Employees only have general Break (no Lunch break)
     const normalizedType = "Break";
     if (!record.breaks) record.breaks = [];
     record.breaks.push({
@@ -336,7 +322,6 @@ export class AttendanceService {
     record.status = "On Break";
     await record.save();
 
-    // Trigger Admin Live Notification
     try {
       const emp = await Employee.findById(employeeId).select("name employeeId");
       const empIdCode = emp?.employeeId || "WG-EMP";
@@ -352,7 +337,6 @@ export class AttendanceService {
         metadata: { employeeId: empIdCode, name: empName, breakType: normalizedType, startTime: breakStart },
       });
     } catch (e) {
-      // Non-blocking
     }
 
     return await this.getEmployeeStatus(employeeId);
@@ -389,7 +373,6 @@ export class AttendanceService {
     record.status = "Active";
     await record.save();
 
-    // Trigger Admin Live Notification
     try {
       const emp = await Employee.findById(employeeId).select("name employeeId");
       const empIdCode = emp?.employeeId || "WG-EMP";
@@ -404,7 +387,6 @@ export class AttendanceService {
         metadata: { employeeId: empIdCode, name: empName },
       });
     } catch (e) {
-      // Non-blocking
     }
 
     return await this.getEmployeeStatus(employeeId);
@@ -435,7 +417,6 @@ export class AttendanceService {
       });
       await record.save();
     } else {
-      // Auto end open break if still on break
       if (record.status === "On Break" && record.breaks?.length > 0) {
         const currentBreak = record.breaks[record.breaks.length - 1];
         if (currentBreak && !currentBreak.endTime) {
@@ -471,7 +452,6 @@ export class AttendanceService {
       await record.save();
     }
 
-    // Trigger Admin Live Notification
     try {
       const emp = await Employee.findById(employeeId).select("name employeeId");
       const empIdCode = emp?.employeeId || "WG-EMP";
@@ -489,13 +469,11 @@ export class AttendanceService {
         metadata: { employeeId: empIdCode, name: empName, date: today, time: now, checkOutNote, totalWorkSeconds: record.totalWorkSeconds },
       });
     } catch (e) {
-      // Non-blocking
     }
 
     return await this.getEmployeeStatus(employeeId);
   }
 
-  // --- Admin Attendance Reporting & Management ---
   static async getAttendanceReport(targetDate = null) {
     const queryDate = targetDate || getTodayDateString();
     const queryDateObj = new Date(`${queryDate}T00:00:00`);
@@ -710,7 +688,6 @@ export class AttendanceService {
       const isHoliday = holidayMap.has(dateStr);
       const holidayTitle = isHoliday ? holidayMap.get(dateStr) : null;
 
-      // Filter employees who had joined by dateStr and had not left
       const eligibleEmployees = employees.filter((emp) => {
         if (!emp.joiningDate) return true;
         const jd = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(emp.joiningDate));
@@ -742,7 +719,6 @@ export class AttendanceService {
         }
       });
 
-      // Count leaves for this day
       let leaveCount = 0;
       eligibleEmployees.forEach((emp) => {
         const hasRec = dayRecords.some((r) => r.employeeId?.toString() === emp._id.toString() && r.checkInTime);
@@ -819,7 +795,6 @@ export class AttendanceService {
       throw new ApiError(404, "Employee not found");
     }
 
-    // Business Rule: joing date ka badd hi attendence lage
     if (emp.joiningDate) {
       const joiningDateStr = new Date(emp.joiningDate).toISOString().split("T")[0];
       if (date < joiningDateStr) {
@@ -863,7 +838,6 @@ export class AttendanceService {
 
     await record.save();
 
-    // Trigger Employee Live Notification
     try {
       NotificationService.createNotification({
         type: "ATTENDANCE_UPDATE",
@@ -875,7 +849,6 @@ export class AttendanceService {
         metadata: { date, status: record.status },
       });
     } catch (e) {
-      // Non-blocking
     }
 
     return this.formatAttendance(record);
@@ -925,7 +898,6 @@ export class AttendanceService {
         } catch {}
       }
 
-      // Applicable working days: strictly days on or after joiningDate, excluding weekends & holidays
       const applicableWorkingDays = workingDays.filter((d) => !joiningDateStr || d >= joiningDateStr);
       const pastApplicableWorkingDays = applicableWorkingDays.filter((d) => d <= todayStr);
 

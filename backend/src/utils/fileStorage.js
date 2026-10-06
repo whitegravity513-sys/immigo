@@ -2,10 +2,8 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
-// Root upload directory inside backend
 const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
 
-// Ensure upload folders exist
 const SUBDIRS = ["profiles", "documents", "receipts"];
 for (const dir of SUBDIRS) {
   const fullPath = path.join(UPLOAD_ROOT, dir);
@@ -14,20 +12,13 @@ for (const dir of SUBDIRS) {
   }
 }
 
-/**
- * Save Base64 Data URL or raw Base64 string to disk.
- * Returns the public relative URL (e.g. /uploads/documents/doc-xxxx.pdf)
- * If already a normal URL (e.g. http://... or /uploads/...), returns as is.
- */
 export function saveBase64File(dataUrl, subDir = "documents", originalName = "") {
   if (!dataUrl || typeof dataUrl !== "string") return "";
 
-  // If already a URL or path, no need to convert
   if (dataUrl.startsWith("http://") || dataUrl.startsWith("https://") || dataUrl.startsWith("/uploads/")) {
     return dataUrl;
   }
 
-  // Check if it's a data URL: data:[<mediatype>];base64,<data>
   const match = dataUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
   let mimeType = "application/octet-stream";
   let base64Data = dataUrl;
@@ -37,7 +28,6 @@ export function saveBase64File(dataUrl, subDir = "documents", originalName = "")
     base64Data = match[2];
   }
 
-  // Determine file extension
   let ext = ".bin";
   if (mimeType.includes("pdf")) ext = ".pdf";
   else if (mimeType.includes("png")) ext = ".png";

@@ -1,9 +1,6 @@
 import PaymentService from "../services/payment.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Project Payment Controller
- */
 export const createProjectPayment = asyncHandler(async (req, res) => {
   const payment = await PaymentService.createProjectPayment(req.body);
   return res.status(201).json({ message: "Payment added successfully!", payment });

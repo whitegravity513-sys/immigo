@@ -7,9 +7,6 @@ import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 
-/**
- * Enterprise Token Extractor
- */
 export const extractToken = (req) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -21,9 +18,6 @@ export const extractToken = (req) => {
   return null;
 };
 
-/**
- * Standard token verification helper
- */
 export const verifyToken = (req, res, next) => {
   const token = extractToken(req);
   if (!token) {
@@ -39,9 +33,6 @@ export const verifyToken = (req, res, next) => {
   }
 };
 
-/**
- * Admin Authentication Middleware
- */
 export const verifyAdmin = (req, res, next) => {
   verifyToken(req, res, async () => {
     if (!req.user || (req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN")) {
@@ -51,9 +42,6 @@ export const verifyAdmin = (req, res, next) => {
   });
 };
 
-/**
- * Employee Authentication Middleware
- */
 export const verifyEmployee = (req, res, next) => {
   verifyToken(req, res, async () => {
     const role = (req.user?.role || "").toLowerCase();
@@ -76,9 +64,6 @@ export const verifyEmployee = (req, res, next) => {
   });
 };
 
-/**
- * Vista Core Enterprise User Authentication Middleware (Token Version / Session check)
- */
 export const authenticate = asyncHandler(async (req, res, next) => {
   const token = extractToken(req);
 
@@ -102,7 +87,6 @@ export const authenticate = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, "User is no longer active or does not exist");
   }
 
-  // Token version check (for immediate global logout invalidation)
   if (decoded.tokenVersion !== undefined && user.tokenVersion !== decoded.tokenVersion) {
     throw new ApiError(401, "Session has been invalidated. Please login again.");
   }
@@ -111,9 +95,6 @@ export const authenticate = asyncHandler(async (req, res, next) => {
   next();
 });
 
-/**
- * RBAC: Role-based Authorization Middleware
- */
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user || !allowedRoles.includes(req.user.role)) {

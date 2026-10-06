@@ -3,9 +3,6 @@ import Attendance from "../models/Attendance.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 
-/**
- * Enterprise Holiday Management Service
- */
 export class HolidayService {
   static formatHoliday(holiday) {
     if (!holiday) return null;
@@ -39,7 +36,6 @@ export class HolidayService {
       });
     }
 
-    // Policy: Update any existing attendance records for this date so employees are not penalized/absent
     try {
       await Attendance.updateMany(
         { date },
@@ -57,7 +53,6 @@ export class HolidayService {
       console.error("Error updating attendance for declared holiday:", attErr);
     }
 
-    // Broadcast official notification to all employees
     try {
       await NotificationService.createNotification({
         type: "HOLIDAY_ANNOUNCEMENT",

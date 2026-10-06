@@ -5,7 +5,6 @@ const isValidEmail = (email) => {
 };
 
 const isStrongPassword = (password) => {
-  // At least 8 characters
   return typeof password === "string" && password.length >= 8;
 };
 

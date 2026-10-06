@@ -26,7 +26,7 @@ const renewalSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      default: "Active", // "Active", "Expiring Soon", "Expired"
+      default: "Active", 
     },
     notes: {
       type: String,

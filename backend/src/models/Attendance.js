@@ -53,7 +53,7 @@ const attendanceSchema = new mongoose.Schema(
       index: true,
     },
     date: {
-      type: String, // Format: YYYY-MM-DD
+      type: String, 
       required: true,
       index: true,
     },

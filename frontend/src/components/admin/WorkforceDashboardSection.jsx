@@ -52,7 +52,6 @@ export default function WorkforceDashboardSection({
   const [dateAttendance, setDateAttendance] = useState(null);
   const [loadingDateAttendance, setLoadingDateAttendance] = useState(false);
 
-  // Modal to show staff list when clicking Total Staff, Present, On Leave, Absent
   const [metricModal, setMetricModal] = useState(null);
   const [metricModalSearch, setMetricModalSearch] = useState("");
 
@@ -117,7 +116,6 @@ export default function WorkforceDashboardSection({
     });
   }, [metricModal, metricModalSearch]);
 
-  // Fetch employee daily work logs for the selected date
   const fetchWorkLogs = async (targetDate = selectedDate) => {
     setLoadingLogs(true);
     try {
@@ -132,7 +130,6 @@ export default function WorkforceDashboardSection({
     }
   };
 
-  // Fetch attendance report for a specific date (today or past dates)
   const fetchDateAttendance = async (dateToFetch) => {
     setLoadingDateAttendance(true);
     try {
@@ -147,27 +144,23 @@ export default function WorkforceDashboardSection({
     }
   };
 
-  // When selectedDate changes, fetch appropriate records
   useEffect(() => {
     if (selectedDate !== todayDate) {
       fetchDateAttendance(selectedDate);
     } else {
-      setDateAttendance(null); // Fallback to live attendanceReport from props
+      setDateAttendance(null); 
     }
     fetchWorkLogs(selectedDate);
   }, [selectedDate, todayDate]);
 
-  // Current active attendance list for display
   const currentAttendanceList =
     selectedDate === todayDate && !dateAttendance ? attendanceReport : dateAttendance || attendanceReport;
 
-  // Date manipulation helpers
   const handleDateChange = (newDate) => {
     if (!newDate) return;
     setSelectedDate(newDate);
   };
 
-  // Format date display (e.g., "Saturday, 19 Sept 2026")
   const formattedSelectedDateDisplay = useMemo(() => {
     try {
       const [y, m, d] = selectedDate.split("-").map(Number);
@@ -183,7 +176,6 @@ export default function WorkforceDashboardSection({
     }
   }, [selectedDate]);
 
-  // Comprehensive helper to determine attendance status cleanly
   const getAttendanceInfo = (rep) => {
     const isCheckedOut =
       rep.status === "Checked Out" ||
@@ -224,7 +216,6 @@ export default function WorkforceDashboardSection({
     return { label, badgeClass, icon, isPresent, isOnLeave, isAbsent: !isPresent && !isOnLeave };
   };
 
-  // KPIs for the selected date (Streamlined to 4 crisp cards)
   const totalEmployeesCount = employees.length || currentAttendanceList.length || 0;
   const presentCount = currentAttendanceList.filter((r) => getAttendanceInfo(r).isPresent).length;
   const onLeaveCount = currentAttendanceList.filter((r) => getAttendanceInfo(r).isOnLeave).length;
@@ -232,10 +223,8 @@ export default function WorkforceDashboardSection({
 
   const pendingLeaves = leavesReport.filter((l) => l.status === "Pending");
 
-  // Extract departments
   const departments = ["All", ...new Set(employees.map((e) => e.department).filter(Boolean))];
 
-  // Filtered work logs
   const filteredLogs = workLogs.filter((item) => {
     const name = item.employee?.name || "";
     const dept = item.employee?.department || "";
@@ -261,9 +250,8 @@ export default function WorkforceDashboardSection({
   };
 
   const [liveSearch, setLiveSearch] = useState("");
-  const [liveStatusFilter, setLiveStatusFilter] = useState("All"); // "All" | "Present" | "On Leave" | "Absent"
+  const [liveStatusFilter, setLiveStatusFilter] = useState("All"); 
 
-  // Filtered attendance records for Shift Tracker
   const filteredAttendance = currentAttendanceList.filter((rep) => {
     const safeName =
       typeof rep?.name === "string"
@@ -297,7 +285,6 @@ export default function WorkforceDashboardSection({
     return matchSearch && matchStatus;
   });
 
-  // Export filtered attendance records to CSV for selected date
   const handleExportCSV = () => {
     const headers = [
       "Employee Name",
@@ -363,7 +350,7 @@ export default function WorkforceDashboardSection({
 
   return (
     <div className="space-y-5 text-slate-800">
-      {/* ── 1. TOP HEADER & QUICK ACTIONS ── */}
+      {}
       {isFullRegisterPage ? (
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -471,9 +458,9 @@ export default function WorkforceDashboardSection({
         </div>
       )}
 
-      {/* ── 2. STREAMLINED 4-METRIC STRIP ── */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Total Staff */}
+        {}
         <div
           onClick={() => openMetricListModal("total")}
           className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-blue-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
@@ -492,7 +479,7 @@ export default function WorkforceDashboardSection({
           </div>
         </div>
 
-        {/* Present on Date */}
+        {}
         <div
           onClick={() => openMetricListModal("present")}
           className="bg-white rounded-xl border border-emerald-200/80 bg-emerald-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-emerald-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
@@ -511,7 +498,7 @@ export default function WorkforceDashboardSection({
           </div>
         </div>
 
-        {/* On Leave */}
+        {}
         <div
           onClick={() => openMetricListModal("leave")}
           className="bg-white rounded-xl border border-purple-200/80 bg-purple-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-purple-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
@@ -530,7 +517,7 @@ export default function WorkforceDashboardSection({
           </div>
         </div>
 
-        {/* Absent */}
+        {}
         <div
           onClick={() => openMetricListModal("absent")}
           className="bg-white rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-rose-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
@@ -550,12 +537,12 @@ export default function WorkforceDashboardSection({
         </div>
       </div>
 
-      {/* ── 3. MAIN ATTENDANCE TRACKER SECTION ── */}
+      {}
       {isFullRegisterPage && (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        {/* Header: Title + Calendar Date Picker */}
+        {}
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/20 flex flex-col xl:flex-row xl:items-center justify-between gap-3.5">
-          {/* Left: Title + Compact Calendar */}
+          {}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold shrink-0">
@@ -573,7 +560,7 @@ export default function WorkforceDashboardSection({
               </div>
             </div>
 
-            {/* Compact Calendar & Date Picker Widget (Past dates & Today only) */}
+            {}
             <div className="flex items-center gap-1.5 bg-slate-100/90 border border-slate-200/90 rounded-xl p-1 text-xs flex-wrap sm:flex-nowrap">
               <div className="flex items-center gap-1 px-2 py-1 bg-white rounded-lg shadow-2xs border border-slate-200/80 shrink-0">
                 <Calendar size={13} className="text-blue-600 shrink-0" />
@@ -606,9 +593,9 @@ export default function WorkforceDashboardSection({
             </div>
           </div>
 
-          {/* Right: Search + Export CSV */}
+          {}
           <div className="flex flex-col md:flex-row md:items-center gap-2.5 w-full xl:w-auto">
-            {/* Search */}
+            {}
             <div className="relative w-full md:w-auto">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -620,7 +607,7 @@ export default function WorkforceDashboardSection({
               />
             </div>
 
-            {/* Action Buttons Row */}
+            {}
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
@@ -635,7 +622,7 @@ export default function WorkforceDashboardSection({
           </div>
         </div>
 
-        {/* ── 1. MOBILE & TABLET ATTENDANCE CARDS (< lg) ── */}
+        {}
         <div className="block lg:hidden p-3 sm:p-4 space-y-3">
           {displayedAttendance.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -666,7 +653,7 @@ export default function WorkforceDashboardSection({
                   key={`card-${rep.employeeId || rep._id || actualEmpId}`}
                   className="p-3.5 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white shadow-2xs space-y-3 transition-all"
                 >
-                  {/* Top: Employee Avatar, Name, Code & Status */}
+                  {}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
@@ -698,7 +685,7 @@ export default function WorkforceDashboardSection({
                     </span>
                   </div>
 
-                  {/* Timing & Work Metrics Grid */}
+                  {}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Check In</span>
@@ -729,7 +716,7 @@ export default function WorkforceDashboardSection({
                     </div>
                   </div>
 
-                  {/* Emails */}
+                  {}
                   {(rep.email || rep.personalEmail) && (
                     <div className="space-y-1 text-[11px] text-slate-500 pt-1 border-t border-slate-100">
                       {rep.email && (
@@ -747,7 +734,7 @@ export default function WorkforceDashboardSection({
                     </div>
                   )}
 
-                  {/* Action Buttons */}
+                  {}
                   <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
                     <button
                       type="button"
@@ -778,7 +765,7 @@ export default function WorkforceDashboardSection({
           )}
         </div>
 
-        {/* ── 2. DESKTOP ATTENDANCE TABLE (≥ lg) ── */}
+        {}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -823,7 +810,7 @@ export default function WorkforceDashboardSection({
                       key={rep.employeeId || rep._id || actualEmpId}
                       className="hover:bg-blue-50/20 transition-colors"
                     >
-                      {/* Employee name, code, company email & personal email */}
+                      {}
                       <td className="px-4 py-3">
                         <div className="flex items-start gap-2.5">
                           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
@@ -840,7 +827,7 @@ export default function WorkforceDashboardSection({
                               />
                             </div>
 
-                            {/* Company Email */}
+                            {}
                             {rep.email && (
                               <div className="text-[11px] text-slate-600 font-medium flex items-center gap-1 mt-0.5 truncate">
                                 <Mail size={11} className="text-slate-400 shrink-0" />
@@ -848,7 +835,7 @@ export default function WorkforceDashboardSection({
                               </div>
                             )}
 
-                            {/* Personal Email */}
+                            {}
                             {rep.personalEmail && (
                               <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5 truncate">
                                 <User size={10} className="text-slate-400 shrink-0" />
@@ -859,7 +846,7 @@ export default function WorkforceDashboardSection({
                         </div>
                       </td>
 
-                      {/* Department & Role */}
+                      {}
                       <td className="px-3 py-3">
                         <div className="font-semibold text-slate-800 text-xs">
                           {rep.department || "General"}
@@ -872,7 +859,7 @@ export default function WorkforceDashboardSection({
                         </div>
                       </td>
 
-                      {/* Attendance Status (Always renders clear badge) */}
+                      {}
                       <td className="px-3 py-3">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider ${info.badgeClass}`}
@@ -882,17 +869,17 @@ export default function WorkforceDashboardSection({
                         </span>
                       </td>
 
-                      {/* Check In Time */}
+                      {}
                       <td className="px-3 py-3 font-mono font-bold text-slate-700 text-xs">
                         {formatTime(rep.checkInTime)}
                       </td>
 
-                      {/* Check Out Time */}
+                      {}
                       <td className="px-3 py-3 font-mono font-bold text-slate-700 text-xs">
                         {formatTime(rep.checkOutTime)}
                       </td>
 
-                      {/* Breaks Used */}
+                      {}
                       <td className="px-3 py-3 font-mono text-slate-600 text-xs">
                         {rep.totalBreakSeconds ? (
                           <span className={rep.totalBreakSeconds > 3600 ? "text-rose-600 font-bold" : ""}>
@@ -903,15 +890,15 @@ export default function WorkforceDashboardSection({
                         )}
                       </td>
 
-                      {/* Net Work Time */}
+                      {}
                       <td className="px-3 py-3 font-mono font-bold text-blue-900 text-xs">
                         {workDurStr}
                       </td>
 
-                      {/* Action buttons: Edit Time & View Profile */}
+                      {}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* Admin Edit Time Button */}
+                          {}
                           <button
                             type="button"
                             onClick={() => {
@@ -927,7 +914,7 @@ export default function WorkforceDashboardSection({
                             <span>Edit Time</span>
                           </button>
 
-                          {/* Profile Button */}
+                          {}
                           <button
                             type="button"
                             onClick={() => openEmployeeDetail(actualEmpId)}
@@ -947,7 +934,7 @@ export default function WorkforceDashboardSection({
           </table>
         </div>
 
-        {/* Footer: Preview banner with "See All" button on Dashboard, or full count with Back button */}
+        {}
         {!isFullRegisterPage ? (
           <div className="p-3.5 sm:p-4 bg-slate-50/90 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="text-xs text-slate-600 font-medium">
@@ -982,7 +969,7 @@ export default function WorkforceDashboardSection({
       </div>
       )}
 
-      {/* ── 4. WORKFORCE OPERATIONS (Leave Applications) ── */}
+      {}
       {!isFullRegisterPage && (
         <div className="w-full space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
@@ -1013,7 +1000,7 @@ export default function WorkforceDashboardSection({
               </button>
             </div>
 
-            {/* List of Leave Applications */}
+            {}
             <div className="p-3 sm:p-4 space-y-3 max-h-[460px] overflow-y-auto pr-1">
               {pendingLeaves.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -1117,7 +1104,7 @@ export default function WorkforceDashboardSection({
         </div>
       )}
 
-      {/* ── MODAL: STAFF LIST BY METRIC (TOTAL, PRESENT, LEAVE, ABSENT) ── */}
+      {}
       {metricModal && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
@@ -1127,7 +1114,7 @@ export default function WorkforceDashboardSection({
             className="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            {}
             <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/30 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-white shadow-2xs border border-slate-200/80 flex items-center justify-center font-bold shrink-0">
@@ -1156,7 +1143,7 @@ export default function WorkforceDashboardSection({
               </button>
             </div>
 
-            {/* Search Filter in Modal */}
+            {}
             <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/50">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1171,7 +1158,7 @@ export default function WorkforceDashboardSection({
               </div>
             </div>
 
-            {/* Modal Body / Staff List */}
+            {}
             <div className="p-3 sm:p-4 overflow-y-auto space-y-2.5 flex-1 divide-y divide-slate-100/80">
               {modalFilteredList.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -1266,7 +1253,7 @@ export default function WorkforceDashboardSection({
               )}
             </div>
 
-            {/* Modal Footer */}
+            {}
             <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Showing {modalFilteredList.length} of {metricModal.list.length} records</span>
               <button

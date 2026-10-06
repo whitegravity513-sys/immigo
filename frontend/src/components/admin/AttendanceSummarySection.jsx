@@ -9,13 +9,9 @@ export default function AttendanceSummarySection({
   summaryData = [],
   fetchSummary,
   openEmployeeDetail,
-  // eslint-disable-next-line no-unused-vars
   inlineLeaveEdit,
-  // eslint-disable-next-line no-unused-vars
   setInlineLeaveEdit,
-  // eslint-disable-next-line no-unused-vars
   inlineLeaveLoading,
-  // eslint-disable-next-line no-unused-vars
   handleSetLeaveBalance
 }) {
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

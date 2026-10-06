@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { useEmployeeMonthlyReport } from "../../../hooks/useEmployeeMonthlyReport";
 
-// Custom DatePicker styles to fix visibility
 const datePickerStyles = `
   .react-datepicker-wrapper {
     width: 100%;
@@ -106,7 +105,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={onGoBack}
@@ -117,7 +116,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         <h1 className="text-3xl font-bold text-slate-900">Employee Monthly Report</h1>
       </div>
 
-      {/* Messages */}
+      {}
       {errorMsg && (
         <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700">
           <AlertCircle className="w-5 h-5" />
@@ -131,10 +130,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         </div>
       )}
 
-      {/* Selection Section */}
+      {}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Employee Search */}
+          {}
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">Select Employee</label>
             <div className="relative">
@@ -176,7 +175,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             )}
           </div>
 
-          {/* Month Picker */}
+          {}
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">Select Month</label>
             <DatePicker
@@ -195,7 +194,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             )}
           </div>
 
-          {/* Action Buttons */}
+          {}
           <div className="flex items-end gap-2">
             <button
               onClick={fetchMonthlyReport}
@@ -218,10 +217,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         </div>
       </div>
 
-      {/* Report Section */}
+      {}
       {monthlyData && (
         <div className="space-y-6">
-          {/* Summary Cards */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
               <div className="text-sm text-slate-600 font-bold">Working Days</div>
@@ -240,7 +239,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {/* Additional Summary Cards */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl p-4 border border-cyan-200">
               <div className="flex items-center justify-between">
@@ -262,7 +261,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {/* Daily Records Table */}
+          {}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -342,7 +341,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {/* Leaves Table */}
+          {}
           {monthlyData.leaves.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-rose-600 to-rose-700 px-6 py-4">

@@ -3,16 +3,10 @@ import Employee from "../models/Employee.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Get IST date string in YYYY-MM-DD
- */
 const getISTDate = () => {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 };
 
-/**
- * Save or update employee's daily work log for today
- */
 export const saveTodayWorkLog = asyncHandler(async (req, res) => {
   const employeeId = req.user.id || req.user._id;
   const { logText, date } = req.body;
@@ -46,9 +40,6 @@ export const saveTodayWorkLog = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get logged-in employee's work log for today
- */
 export const getTodayWorkLog = asyncHandler(async (req, res) => {
   const employeeId = req.user.id || req.user._id;
   const targetDate = req.query.date || getISTDate();
@@ -65,9 +56,6 @@ export const getTodayWorkLog = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get logged-in employee's recent work log history
- */
 export const getMyWorkLogHistory = asyncHandler(async (req, res) => {
   const employeeId = req.user.id || req.user._id;
 
@@ -82,9 +70,6 @@ export const getMyWorkLogHistory = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Admin / Team Lead: View work logs of all employees for a date or department
- */
 export const getAdminWorkLogs = asyncHandler(async (req, res) => {
   const { date, department, employeeId } = req.query;
   const targetDate = date || getISTDate();

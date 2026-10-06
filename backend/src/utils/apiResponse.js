@@ -1,6 +1,3 @@
-/**
- * MNC Standard API Response Wrapper
- */
 export class ApiResponse {
   constructor(statusCode, message = "Success", data = null) {
     this.success = statusCode < 400;

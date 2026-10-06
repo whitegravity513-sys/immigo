@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 const isDev = process.env.NODE_ENV !== "production";
 
 export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000, 
   max: isDev ? 10000 : 2000,
   standardHeaders: true,
   legacyHeaders: false,
@@ -15,8 +15,8 @@ export const apiLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDev ? 500 : 30, // 30 in prod, 500 in dev
+  windowMs: 15 * 60 * 1000, 
+  max: isDev ? 500 : 30, 
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -27,7 +27,7 @@ export const authLimiter = rateLimit({
 });
 
 export const otpLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000, 
   max: isDev ? 100 : 10,
   standardHeaders: true,
   legacyHeaders: false,

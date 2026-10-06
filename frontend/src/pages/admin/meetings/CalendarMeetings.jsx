@@ -25,21 +25,19 @@ import {
 
 export default function CalendarMeetings() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState("calendar"); // "calendar" | "list"
+  const [viewMode, setViewMode] = useState("calendar"); 
   const [meetings, setMeetings] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", message: "" });
-  const [filterType, setFilterType] = useState("all"); // "all" | "upcoming" | "today" | "past"
+  const [filterType, setFilterType] = useState("all"); 
 
-  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState(null);
   const [selectedDayMeetings, setSelectedDayMeetings] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
-  // Form State
   const initialFormState = {
     title: "",
     description: "",
@@ -48,16 +46,15 @@ export default function CalendarMeetings() {
     endTime: "12:00",
     meetingLink: "",
     platform: "Google Meet",
-    targetType: "ALL", // "ALL" | "SPECIFIC"
+    targetType: "ALL", 
     targetEmployees: [],
   };
   const [formData, setFormData] = useState(initialFormState);
   const [empSearch, setEmpSearch] = useState("");
 
   const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth(); // 0-indexed
+  const currentMonth = currentDate.getMonth(); 
 
-  // Fetch Meetings
   const fetchMeetings = async () => {
     setLoading(true);
     try {
@@ -71,7 +68,6 @@ export default function CalendarMeetings() {
     }
   };
 
-  // Fetch Employees for Target Selection
   const fetchEmployees = async () => {
     try {
       const res = await apiClient.get("/admin/employee/list");
@@ -91,9 +87,8 @@ export default function CalendarMeetings() {
     setTimeout(() => setFeedback({ type: "", message: "" }), 5000);
   };
 
-  // Calendar Helpers
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay(); // 0 is Sunday
+  const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay(); 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -111,7 +106,6 @@ export default function CalendarMeetings() {
     setCurrentDate(new Date());
   };
 
-  // Filtered Meetings
   const todayStr = new Date().toISOString().split("T")[0];
 
   const filteredMeetings = useMemo(() => {
@@ -123,7 +117,6 @@ export default function CalendarMeetings() {
     });
   }, [meetings, filterType, todayStr]);
 
-  // Open Create Modal
   const handleOpenCreateModal = (prefilledDate = null) => {
     const today = new Date().toISOString().split("T")[0];
     const targetDate = prefilledDate && prefilledDate < today ? today : (prefilledDate || today);
@@ -136,7 +129,6 @@ export default function CalendarMeetings() {
     setIsModalOpen(true);
   };
 
-  // Open Edit Modal
   const handleOpenEditModal = (meeting) => {
     setEditingMeeting(meeting);
     setFormData({
@@ -156,7 +148,6 @@ export default function CalendarMeetings() {
     setIsModalOpen(true);
   };
 
-  // Submit Meeting (Create or Update)
   const handleSubmitMeeting = async (e) => {
     e.preventDefault();
 
@@ -197,7 +188,6 @@ export default function CalendarMeetings() {
     }
   };
 
-  // Delete Meeting
   const handleDeleteMeeting = async (id, title) => {
     if (!window.confirm(`Are you sure you want to cancel & delete the meeting "${title}"? A cancellation alert will be sent.`)) {
       return;
@@ -245,7 +235,7 @@ export default function CalendarMeetings() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner & Header */}
+      {}
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -262,7 +252,7 @@ export default function CalendarMeetings() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* View Mode Toggle */}
+          {}
           <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
             <button
               onClick={() => setViewMode("calendar")}
@@ -292,7 +282,7 @@ export default function CalendarMeetings() {
         </div>
       </div>
 
-      {/* Feedback Toast */}
+      {}
       {feedback.message && (
         <div
           className={`p-4 rounded-2xl flex items-center gap-3 text-sm font-semibold border ${
@@ -310,10 +300,10 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {/* CALENDAR VIEW */}
+      {}
       {viewMode === "calendar" && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          {/* Calendar Header Controls */}
+          {}
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/60">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-black text-slate-800">
@@ -345,7 +335,7 @@ export default function CalendarMeetings() {
             </div>
           </div>
 
-          {/* Days Grid Header */}
+          {}
           <div className="grid grid-cols-7 border-b-2 border-slate-300 text-center py-2 bg-slate-100 text-[11px] font-extrabold text-slate-800 uppercase tracking-wider">
             <span>Sun</span>
             <span>Mon</span>
@@ -356,14 +346,14 @@ export default function CalendarMeetings() {
             <span>Sat</span>
           </div>
 
-          {/* Calendar Cells */}
+          {}
           <div className="grid grid-cols-7 divide-x divide-y divide-slate-300" style={{border: "1px solid #cbd5e1"}}>
-            {/* Blank cells for offset */}
+            {}
             {Array.from({ length: firstDayIndex }).map((_, i) => (
               <div key={`blank-${i}`} className="min-h-[72px] bg-slate-50 p-1 border-r border-slate-300" />
             ))}
 
-            {/* Month Days */}
+            {}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const dayNum = i + 1;
               const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(
@@ -371,7 +361,6 @@ export default function CalendarMeetings() {
               ).padStart(2, "0")}`;
               const isToday = dateStr === todayStr;
 
-              // Find meetings on this date
               const dayMeetings = meetings.filter((m) => m.date === dateStr);
 
               return (
@@ -381,7 +370,7 @@ export default function CalendarMeetings() {
                     isToday ? "bg-indigo-50" : "bg-white"
                   }`}
                 >
-                  {/* Day number row */}
+                  {}
                   <div className="flex items-center justify-between mb-1">
                     <span
                       className={`text-[12px] font-extrabold inline-flex items-center justify-center w-5 h-5 rounded-full ${
@@ -393,7 +382,7 @@ export default function CalendarMeetings() {
                       {dayNum}
                     </span>
 
-                    {/* Schedule + button: only for today or future dates */}
+                    {}
                     {dateStr >= todayStr ? (
                       <button
                         onClick={() => handleOpenCreateModal(dateStr)}
@@ -409,7 +398,7 @@ export default function CalendarMeetings() {
                     )}
                   </div>
 
-                  {/* Meeting Chips */}
+                  {}
                   <div className="flex-1 space-y-0.5 overflow-hidden">
                     {dayMeetings.slice(0, 2).map((m) => (
                       <div
@@ -442,7 +431,7 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {/* LIST VIEW / SCHEDULE CARDS */}
+      {}
       {(viewMode === "list" || selectedDayMeetings) && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -478,7 +467,7 @@ export default function CalendarMeetings() {
             )}
           </div>
 
-          {/* Cards List */}
+          {}
           {loading ? (
             <div className="py-12 text-center text-slate-400">
               <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -502,7 +491,7 @@ export default function CalendarMeetings() {
                     className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-md transition-all flex flex-col justify-between gap-3"
                   >
                     <div>
-                      {/* Header tags */}
+                      {}
                       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
@@ -530,7 +519,7 @@ export default function CalendarMeetings() {
                         </span>
                       </div>
 
-                      {/* Title & Timing */}
+                      {}
                       <h3 className="font-extrabold text-slate-900 text-base leading-snug mb-1">
                         {meeting.title}
                       </h3>
@@ -553,7 +542,7 @@ export default function CalendarMeetings() {
                         </div>
                       </div>
 
-                      {/* Specific employee names if any */}
+                      {}
                       {meeting.targetType === "SPECIFIC" && Array.isArray(meeting.targetEmployees) && (
                         <div className="mb-3">
                           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -573,10 +562,10 @@ export default function CalendarMeetings() {
                       )}
                     </div>
 
-                    {/* Action Bar */}
+                    {}
                     <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2">
-                        {/* Direct Join Button */}
+                        {}
                         <a
                           href={meeting.meetingLink}
                           target="_blank"
@@ -587,7 +576,7 @@ export default function CalendarMeetings() {
                           <span>Join Meeting</span>
                         </a>
 
-                        {/* Copy Link */}
+                        {}
                         <button
                           type="button"
                           onClick={() => handleCopyLink(meeting.meetingLink, meeting._id || meeting.id)}
@@ -635,7 +624,7 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {/* SCHEDULE / EDIT MEETING MODAL */}
+      {}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
@@ -645,7 +634,7 @@ export default function CalendarMeetings() {
             className="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
+            {}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
                 <Video size={18} className="text-indigo-600" />
@@ -662,9 +651,9 @@ export default function CalendarMeetings() {
               </button>
             </div>
 
-            {/* Modal Form */}
+            {}
             <form onSubmit={handleSubmitMeeting} className="p-6 overflow-y-auto space-y-4 custom-scrollbar">
-              {/* Meeting Title */}
+              {}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Meeting Title *
@@ -679,7 +668,7 @@ export default function CalendarMeetings() {
                 />
               </div>
 
-              {/* Platform & Meeting Link */}
+              {}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -715,7 +704,7 @@ export default function CalendarMeetings() {
                 </div>
               </div>
 
-              {/* Date, Start Time, End Time */}
+              {}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -757,7 +746,7 @@ export default function CalendarMeetings() {
                 </div>
               </div>
 
-              {/* Target Audience: All vs Specific */}
+              {}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                   Notify & Invite Audience *
@@ -796,7 +785,7 @@ export default function CalendarMeetings() {
                   </button>
                 </div>
 
-                {/* Specific Employee Multi-Selection */}
+                {}
                 {formData.targetType === "SPECIFIC" && (
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 mt-2">
                     <div className="flex items-center justify-between gap-2">
@@ -863,7 +852,7 @@ export default function CalendarMeetings() {
                 )}
               </div>
 
-              {/* Description / Agenda */}
+              {}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Agenda / Notes (Optional)
@@ -877,7 +866,7 @@ export default function CalendarMeetings() {
                 />
               </div>
 
-              {/* Action Buttons */}
+              {}
               <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="submit"

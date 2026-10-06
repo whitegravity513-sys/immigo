@@ -1,9 +1,6 @@
 import Invoice from "../models/Invoice.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Enterprise Invoice Management Service
- */
 export class InvoiceService {
   static formatInvoice(invoice) {
     if (!invoice) return null;

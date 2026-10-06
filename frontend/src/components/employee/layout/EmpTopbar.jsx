@@ -27,7 +27,6 @@ export default function EmpTopbar({
   const [searchQuery, setSearchQuery] = useState("");
   const profileRef = useRef(null);
 
-  // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -45,7 +44,6 @@ export default function EmpTopbar({
     year: "numeric",
   });
 
-  // Map view key to readable titles
   const viewTitles = {
     home: { title: "Employee Workspace", subtitle: "Overview & Daily Operations" },
     tracker: { title: "Live Work Tracker", subtitle: "Real-time activity & monthly overview" },
@@ -68,7 +66,7 @@ export default function EmpTopbar({
 
   return (
     <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4 shadow-md">
-      {/* Left: Mobile Toggle & Page Title */}
+      {}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -79,23 +77,18 @@ export default function EmpTopbar({
           <Menu size={20} />
         </button>
 
-
       </div>
-
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
-
-
-
-        {/* Real-time Notifications */}
+        {}
         <EmployeeNotificationBell
           token={token}
           onNewNotification={onNewNotification}
           className="relative p-2 rounded-xl text-white hover:bg-blue-800/60 transition-colors cursor-pointer border border-blue-700/60 bg-blue-900/40 shadow-xs"
         />
 
-        {/* Profile Dropdown */}
+        {}
         <div className="relative" ref={profileRef}>
           <button
             type="button"
@@ -125,7 +118,7 @@ export default function EmpTopbar({
             <ChevronDown size={14} className="text-white" />
           </button>
 
-          {/* Dropdown Menu */}
+          {}
           {profileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
               <div className="px-4 py-2 border-b border-slate-100">

@@ -1,27 +1,22 @@
-import React from "react";
-
-/**
- * Remember me checkbox and Forgot Password link row.
- */
-export default function RememberForgotRow() {
+export default function RememberForgotRow({ keepSignedIn = true, setKeepSignedIn, onForgotPassword }) {
   return (
-    <div className="flex items-center justify-between pt-0.5">
-      <label className="flex items-center gap-2 cursor-pointer select-none group">
+    <div className="flex items-center justify-between text-xs pt-0.5">
+      <label className="flex items-center gap-2 cursor-pointer text-slate-600 font-medium select-none">
         <input
           type="checkbox"
-          defaultChecked
-          className="accent-blue-600 w-3.5 h-3.5 rounded cursor-pointer"
+          checked={keepSignedIn}
+          onChange={(e) => setKeepSignedIn && setKeepSignedIn(e.target.checked)}
+          className="w-4 h-4 rounded text-[#1877f2] focus:ring-blue-500 border-slate-300 accent-[#1877f2] cursor-pointer"
         />
-        <span className="text-xs text-slate-600 font-medium group-hover:text-slate-800 transition-colors">
-          Keep me signed in
-        </span>
+        <span>Keep me signed in</span>
       </label>
-      <a
-        href="#"
-        className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+      <button
+        type="button"
+        onClick={onForgotPassword}
+        className="text-[#1877f2] hover:underline font-semibold cursor-pointer bg-transparent border-none p-0"
       >
         Forgot Password?
-      </a>
+      </button>
     </div>
   );
 }

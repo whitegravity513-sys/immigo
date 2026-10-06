@@ -1,9 +1,6 @@
 import RenewalService from "../services/renewal.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Renewal Controller
- */
 export const createRenewal = asyncHandler(async (req, res) => {
   const renewal = await RenewalService.createRenewal(req.body);
   return res.status(201).json({ message: "Renewal created successfully", renewal });

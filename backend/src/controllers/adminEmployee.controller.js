@@ -1,9 +1,6 @@
 import EmployeeService from "../services/employee.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Admin Employee Controller
- */
 export const createEmployee = asyncHandler(async (req, res) => {
   const newEmployee = await EmployeeService.createEmployee(req.body);
   return res.status(201).json({

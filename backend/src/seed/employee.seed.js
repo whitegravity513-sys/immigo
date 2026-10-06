@@ -61,7 +61,6 @@ export const seedDefaultEmployee = async (exitOnComplete = true) => {
   }
 };
 
-// Auto-run if executed directly
 if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, "/")}` || process.argv[1]?.endsWith("employee.seed.js")) {
   seedDefaultEmployee(true);
 }

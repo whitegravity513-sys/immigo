@@ -1,10 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   X,
   ChevronRight,
   ChevronDown,
   TrendingUp,
   ShieldCheck,
+  ArrowLeft,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 
@@ -30,7 +32,7 @@ export const AdminSidebar = ({
 }) => {
   return (
     <>
-      {/* Mobile Backdrop */}
+      {}
       {sidebarMobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden"
@@ -39,14 +41,14 @@ export const AdminSidebar = ({
         />
       )}
 
-      {/* Sidebar */}
+      {}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)]
           ${sidebarCollapsed ? "w-[72px]" : "w-[240px]"}
           ${sidebarMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Integrated Brand Header */}
+        {}
         <div className={`h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <div className="flex items-center gap-2.5 min-w-0">
             {sidebarCollapsed ? (
@@ -62,26 +64,25 @@ export const AdminSidebar = ({
           )}
         </div>
 
-        {/* User Info chip (top) */}
-        {!sidebarCollapsed && (
-          <div className="mx-3 mt-3 px-3 py-2 bg-white/90 border border-blue-200/80 rounded-xl flex items-center gap-2.5 shadow-2xs">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
-              {String((typeof user?.name === 'string' ? user.name : user?.name?.first) || user?.email || "A").charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-bold text-slate-800 text-[12px] truncate leading-tight">{(typeof user?.name === 'string' ? user.name : (user?.name?.first ? `${user.name.first} ${user.name.last}` : String(user?.name || ""))) || user?.email?.split("@")[0] || "Administrator"}</div>
-              <div className="text-[10px] text-slate-500 font-semibold truncate flex items-center gap-1">
-                Admin <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5"></span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
+        {}
+        {/* Main Admin Return Button & Menu */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
+          <div className="mb-2.5">
+            <Link
+              to="/admin/dashboard"
+              className={`w-full flex items-center gap-2 px-2.5 py-2 text-[11px] font-bold text-blue-800 bg-white/90 hover:bg-white hover:text-blue-900 border border-blue-200/80 rounded-xl transition-colors shadow-2xs ${
+                sidebarCollapsed ? "justify-center" : ""
+              }`}
+              title="Return to Main Admin Dashboard"
+            >
+              <ArrowLeft size={13} className="shrink-0 text-blue-600" />
+              {!sidebarCollapsed && <span className="truncate">Main Admin Dashboard</span>}
+            </Link>
+          </div>
+
           {!sidebarCollapsed && (
             <p className="text-[11px] font-extrabold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
-              Main Menu
+              HR Management
             </p>
           )}
 
@@ -92,15 +93,23 @@ export const AdminSidebar = ({
                   ? view === "workforce" || view === "employees" || view === "live" || view === "leaves" ||
                   view === "summary" || view === "holidays" || view === "monthly-report" ||
                   view === "employee-detail"
+                  : item.key === "client-group"
+                  ? typeof view === "string" && view.startsWith("client")
                   : typeof view === "string" && view.startsWith("expense");
 
               const isMenuOpen =
                 item.key === "employee-group"
                   ? Boolean(employeeMenuOpen ?? true)
+                  : item.key === "client-group"
+                  ? Boolean(clientMenuOpen ?? true)
                   : Boolean(expenseMenuOpen ?? true);
 
               const setMenuOpen =
-                item.key === "employee-group" ? setEmployeeMenuOpen : setExpenseMenuOpen;
+                item.key === "employee-group"
+                  ? setEmployeeMenuOpen
+                  : item.key === "client-group"
+                  ? setClientMenuOpen
+                  : setExpenseMenuOpen;
 
               return (
                 <div key={item.key} className="space-y-0.5">
@@ -170,8 +179,10 @@ export const AdminSidebar = ({
             }
 
             const isActive =
-              ((view === "live" || view === "dashboard") && (item.key === "live" || item.key === "dashboard")) ||
-              view === item.key;
+              ((view === "live" || view === "dashboard" || view === "workforce") &&
+                (item.key === "live" || item.key === "dashboard" || item.key === "workforce")) ||
+              view === item.key ||
+              (item.key === "employees" && view === "employee-detail");
 
             return (
               <button
@@ -201,11 +212,10 @@ export const AdminSidebar = ({
           })}
         </div>
 
-        {/* Bottom Sidebar Footer — exactly aligned with dashboard footer (h-[48px] min-h-[48px]) */}
+        {}
         <div className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           {!sidebarCollapsed ? (
             <>
-
 
             </>
           ) : (

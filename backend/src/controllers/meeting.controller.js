@@ -5,11 +5,6 @@ import NotificationService from "../services/notification.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Enterprise Meeting & Scheduling Controller
- */
-
-// ── Admin: Create Meeting ──
 export const createMeeting = asyncHandler(async (req, res) => {
   const {
     title,
@@ -27,7 +22,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Title, Date, Start Time, and Meeting Link are required");
   }
 
-  // Business Rule: calender ma meating uss date ya uske a bad dki date ma ho na ki usse phele add kene ka
   const todayStr = new Date().toISOString().split("T")[0];
   if (date < todayStr) {
     throw new ApiError(
@@ -36,7 +30,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     );
   }
 
-  // Create meeting record
   const meeting = await Meeting.create({
     title: title.trim(),
     description: description ? description.trim() : "",
@@ -51,10 +44,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
     createdByName: req.user?.name || "Admin",
   });
 
-  // Populate target employees for response
   await meeting.populate("targetEmployees", "name employeeId email designation");
 
-  // Automatically dispatch notification(s)
   const meetingMetadata = {
     meetingId: meeting._id.toString(),
     meetingLink: meeting.meetingLink,
@@ -96,7 +87,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// ── Admin: Get All Meetings ──
 export const getAdminMeetings = asyncHandler(async (req, res) => {
   const { month, year, date, status } = req.query;
   const filter = {};
@@ -121,7 +111,6 @@ export const getAdminMeetings = asyncHandler(async (req, res) => {
   return res.status(200).json(meetings);
 });
 
-// ── Admin: Update Meeting ──
 export const updateMeeting = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const {
@@ -210,7 +199,6 @@ export const updateMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// ── Admin: Delete Meeting ──
 export const deleteMeeting = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const meeting = await Meeting.findByIdAndDelete(id);
@@ -219,7 +207,6 @@ export const deleteMeeting = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Meeting not found");
   }
 
-  // Send cancellation notification
   if (meeting.targetType === "ALL") {
     await NotificationService.createNotification({
       type: "UPDATE",
@@ -246,7 +233,6 @@ export const deleteMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// ── Admin: Send Direct Broadcast / Update Notification ──
 export const sendBroadcastNotification = asyncHandler(async (req, res) => {
   const { title, message, targetType = "ALL", targetEmployeeId = null, type = "ANNOUNCEMENT" } = req.body;
 
@@ -269,7 +255,6 @@ export const sendBroadcastNotification = asyncHandler(async (req, res) => {
   });
 });
 
-// ── Employee: Get Assigned & Company Meetings ──
 export const getEmployeeMeetings = asyncHandler(async (req, res) => {
   const employeeId = req.user?.id || req.user?._id;
   const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)

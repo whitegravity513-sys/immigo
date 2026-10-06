@@ -45,29 +45,25 @@ export default function ExpensesSection({
   openTextModal,
   fetchExpenses,
 }) {
-  const [activeTab, setActiveTab] = useState("company"); // "company" | "claims" | "clients"
+  const [activeTab, setActiveTab] = useState("company"); 
   const [clients, setClients] = useState([]);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [clientExpenseData, setClientExpenseData] = useState(null);
   const [clientLoading, setClientLoading] = useState(false);
 
-  // Review Modal State
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState(null);
-  const [reviewAction, setReviewAction] = useState("Approved"); // "Approved" | "Rejected"
+  const [reviewAction, setReviewAction] = useState("Approved"); 
   const [adminRemark, setAdminRemark] = useState("");
   const [reviewing, setReviewing] = useState(false);
 
-  // Receipt Modal State
   const [receiptModalUrl, setReceiptModalUrl] = useState(null);
 
-  // Local state for bill receipt when adding corporate expense
   const [corporateReceipt, setCorporateReceipt] = useState("");
   const [corporateReceiptName, setCorporateReceiptName] = useState("");
 
-  // Segregation filter & employee list state
-  const [expenseTargetFilter, setExpenseTargetFilter] = useState("all"); // "all" | "company" | "client" | "employee"
-  const [expenseTargetType, setExpenseTargetType] = useState("company"); // "company" | "client" | "employee"
+  const [expenseTargetFilter, setExpenseTargetFilter] = useState("all"); 
+  const [expenseTargetType, setExpenseTargetType] = useState("company"); 
   const [employeeList, setEmployeeList] = useState([]);
 
   useEffect(() => {
@@ -83,7 +79,6 @@ export default function ExpensesSection({
     loadEmployees();
   }, []);
 
-  // Fetch clients for dropdown selection
   useEffect(() => {
     async function loadClients() {
       try {
@@ -98,7 +93,6 @@ export default function ExpensesSection({
     loadClients();
   }, []);
 
-  // Fetch client expense history when client selected
   useEffect(() => {
     if (!selectedClientId) {
       setClientExpenseData(null);
@@ -118,7 +112,6 @@ export default function ExpensesSection({
     fetchClientExpenses();
   }, [selectedClientId]);
 
-  // Handle Review Submission
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!selectedClaim?._id) return;
@@ -143,7 +136,6 @@ export default function ExpensesSection({
     }
   };
 
-  // Defensive fallbacks
   const safeExpenses = Array.isArray(expenses)
     ? expenses
     : (expenses?.data && Array.isArray(expenses.data) ? expenses.data : []);
@@ -154,15 +146,10 @@ export default function ExpensesSection({
       ? clients.clients
       : (Array.isArray(clients?.data) ? clients.data : []));
 
-  // Employee claims filter
   const employeeClaims = safeExpenses.filter(e => e && (e.employee || e.employeeId));
   const pendingClaims = employeeClaims.filter(e => e.status === "Pending");
   const approvedClaims = employeeClaims.filter(e => e.status === "Approved");
 
-  // Tri-fold segregation:
-  // 1. Client Expenses (Client Hospitality & Project Expenses)
-  // 2. Employee Expenses (Claims & Allowances)
-  // 3. Company Expenses (Overhead & Operations)
   const clientExpenses = safeExpenses.filter(e => e && (e.client || e.clientId));
   const employeeExpenses = safeExpenses.filter(e => e && (e.employee || e.employeeId));
   const companyExpenses = safeExpenses.filter(e => e && !e.client && !e.clientId && !e.employee && !e.employeeId);
@@ -222,7 +209,7 @@ export default function ExpensesSection({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 className="text-xl font-black text-slate-800 tracking-tight">Corporate Expense & Claims Hub</h3>
@@ -232,7 +219,7 @@ export default function ExpensesSection({
         </div>
       </div>
 
-      {/* Metric Cards: Segregated into Company, Client, and Employee */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div
           onClick={() => setExpenseTargetFilter(expenseTargetFilter === "company" ? "all" : "company")}
@@ -295,7 +282,7 @@ export default function ExpensesSection({
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
+      {}
       <div className="flex items-center gap-2 border-b border-slate-200">
         <button
           onClick={() => setActiveTab("company")}
@@ -324,10 +311,10 @@ export default function ExpensesSection({
         </button>
       </div>
 
-      {/* TAB 1: COMPANY TRANSACTIONS */}
+      {}
       {activeTab === "company" && (
         <div className="space-y-6">
-          {/* Categorized Filter Bar */}
+          {}
           <div className="flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Classification:</span>
@@ -390,7 +377,7 @@ export default function ExpensesSection({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Form */}
+            {}
             <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4 sm:p-5 h-fit lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
@@ -422,7 +409,7 @@ export default function ExpensesSection({
               </div>
 
               <form onSubmit={handleExpenseSubmit} className="space-y-2.5 text-left">
-                {/* Row 1: Date & Type */}
+                {}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date *</label>
@@ -450,7 +437,7 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {/* Row 2: Amount & Payee */}
+                {}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Amount (₹) *</label>
@@ -478,7 +465,7 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {/* Expense Classification Target Selector */}
+                {}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Classification *</label>
                   <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg">
@@ -521,7 +508,7 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {/* Conditional Client Selector */}
+                {}
                 {expenseTargetType === "client" && (
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Client (Project / Visit) *</label>
@@ -539,7 +526,7 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                {/* Conditional Employee Selector */}
+                {}
                 {expenseTargetType === "employee" && (
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Employee (Benefit / Claim) *</label>
@@ -559,7 +546,7 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                {/* Row 3: Project Ref & Receipt */}
+                {}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Project Ref</label>
@@ -584,7 +571,7 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {/* Row 4: Notes */}
+                {}
                 <div className="flex flex-col gap-0.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Notes</label>
                   <textarea
@@ -606,7 +593,7 @@ export default function ExpensesSection({
               </form>
             </div>
 
-            {/* List */}
+            {}
             <div className="lg:col-span-2 space-y-4">
               {expenseLoading ? (
                 <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm">
@@ -639,7 +626,7 @@ export default function ExpensesSection({
                                   {rec.type || "Expense"}
                                 </span>
 
-                                {/* Prominent Tag: Company vs Client vs Employee */}
+                                {}
                                 {rec.client ? (
                                   <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
                                     🤝 Client: {rec.client.name || rec.client.companyName || "Client"}
@@ -717,7 +704,7 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {/* TAB 2: EMPLOYEE CLAIMS REVIEW */}
+      {}
       {activeTab === "claims" && (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -844,7 +831,7 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {/* Review Claim Modal */}
+      {}
       {reviewModalOpen && selectedClaim && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -899,7 +886,7 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {/* Bill Receipt Preview Modal */}
+      {}
       {receiptModalUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">

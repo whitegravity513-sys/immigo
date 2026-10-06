@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import { logger } from "../utils/logger.js";
 
-// Initialize Transporter
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = Number(process.env.SMTP_PORT || 587);
@@ -27,9 +26,6 @@ const createTransporter = () => {
 
 const transporter = createTransporter();
 
-/**
- * Generate a modern, MNC-grade HTML Email Template for OTP
- */
 const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinutes = 10 }) => {
   return `
 <!DOCTYPE html>
@@ -138,9 +134,6 @@ const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinu
   `;
 };
 
-/**
- * Send OTP Email
- */
 export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
   let purposeTitle = "Your Verification Code";
   if (purpose === "PASSWORD_RESET") {
@@ -167,7 +160,6 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
     text: `Your Vista Security verification code for ${purposeTitle} is: ${otp}. It will expire in ${expiryMinutes} minutes.`,
   };
 
-  // Always log OTP for development convenience
   logger.info(`[OTP DISPATCH] Destination: ${to} | Purpose: ${purpose} | OTP: ${otp}`);
 
   if (!transporter) {
@@ -181,7 +173,6 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     logger.error("Failed to send email via SMTP:", error);
-    // Even if SMTP fails in local dev, log OTP so developer/user workflow isn't blocked
     return { success: false, error: error.message };
   }
 };

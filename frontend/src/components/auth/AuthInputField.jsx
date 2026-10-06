@@ -1,9 +1,5 @@
 import React, { useState } from "react";
 
-/**
- * Enterprise standard InputField with active focus styling,
- * icon accentuation, and support for CapsLock notification.
- */
 export default function AuthInputField({
   label,
   icon,

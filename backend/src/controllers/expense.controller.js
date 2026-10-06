@@ -1,11 +1,6 @@
 import ExpenseService from "../services/expense.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Expense Management Controller
- */
-
-// --- Expense Categories ---
 export const getCategories = asyncHandler(async (req, res) => {
   const categories = await ExpenseService.getCategories();
   return res.status(200).json(categories);
@@ -34,7 +29,6 @@ export const deleteCategory = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Category deleted successfully" });
 });
 
-// --- Expenses ---
 export const getExpenses = asyncHandler(async (req, res) => {
   const { categoryId, clientId, employeeId, status, startDate, endDate } = req.query;
   const expenses = await ExpenseService.getExpenses({

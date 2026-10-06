@@ -6,9 +6,6 @@ import { requestAndSendOtp, verifyOtp } from "./otp.service.js";
 import { createSession, revokeAllSessions } from "./token.service.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Register a new user
- */
 export const register = async ({ name, email, password, role = ROLES.USER, ipAddress = null }) => {
   const normalizedEmail = email.trim().toLowerCase();
 
@@ -28,7 +25,6 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
     isEmailVerified: false,
   });
 
-  // Automatically trigger email verification OTP
   try {
     await requestAndSendOtp({
       email: normalizedEmail,
@@ -37,7 +33,6 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
       ipAddress,
     });
   } catch (error) {
-    // Non-blocking for registration flow
   }
 
   return {
@@ -49,9 +44,6 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
   };
 };
 
-/**
- * Login user with account lock protection
- */
 export const login = async ({ email, password, ipAddress = null, userAgent = null, req = {} }) => {
   const normalizedEmail = email?.trim().toLowerCase();
 
@@ -61,7 +53,6 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
 
   const user = await User.findOne({ email: normalizedEmail }).select("+passwordHash");
 
-  // Prevent user enumeration: generic error
   if (!user) {
     throw new ApiError(401, "Invalid email or password");
   }
@@ -70,7 +61,6 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
     throw new ApiError(403, "Your account has been deactivated. Please contact support.");
   }
 
-  // Account lockout check
   if (user.isLocked()) {
     const remainingTime = Math.ceil((user.lockedUntil.getTime() - Date.now()) / (60 * 1000));
     throw new ApiError(
@@ -84,7 +74,6 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
   if (!isPasswordValid) {
     user.failedLoginAttempts += 1;
 
-    // Lock account after 5 consecutive failed attempts for 15 minutes
     if (user.failedLoginAttempts >= 5) {
       user.lockedUntil = new Date(Date.now() + 15 * 60 * 1000);
     }
@@ -93,14 +82,12 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
     throw new ApiError(401, "Invalid email or password");
   }
 
-  // Reset lock & update last login
   user.failedLoginAttempts = 0;
   user.lockedUntil = null;
   user.lastLoginAt = new Date();
   user.lastLoginIp = ipAddress;
   await user.save();
 
-  // Create JWT session
   const session = await createSession(user, req);
 
   return {
@@ -115,9 +102,6 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
   };
 };
 
-/**
- * Send Password Reset OTP
- */
 export const forgotPasswordOtp = async ({ email, ipAddress = null }) => {
   const normalizedEmail = email?.trim().toLowerCase();
   if (!normalizedEmail) {
@@ -126,7 +110,6 @@ export const forgotPasswordOtp = async ({ email, ipAddress = null }) => {
 
   const user = await User.findOne({ email: normalizedEmail });
 
-  // Security Best Practice: Don't disclose if user exists
   if (!user) {
     return {
       message: "If an account with this email exists, a 6-digit OTP verification code has been sent.",
@@ -145,9 +128,6 @@ export const forgotPasswordOtp = async ({ email, ipAddress = null }) => {
   };
 };
 
-/**
- * Verify OTP and Reset Password
- */
 export const resetPasswordWithOtp = async ({ email, otp, newPassword }) => {
   const normalizedEmail = email?.trim().toLowerCase();
 
@@ -164,14 +144,12 @@ export const resetPasswordWithOtp = async ({ email, otp, newPassword }) => {
     throw new ApiError(400, "Invalid password reset request");
   }
 
-  // Verify OTP
   await verifyOtp({
     email: normalizedEmail,
     otp,
     purpose: OTP_PURPOSES.PASSWORD_RESET,
   });
 
-  // Hash new password
   const passwordHash = await hashPassword(newPassword);
 
   user.passwordHash = passwordHash;
@@ -180,7 +158,6 @@ export const resetPasswordWithOtp = async ({ email, otp, newPassword }) => {
   user.lockedUntil = null;
   await user.save();
 
-  // Invalidate all existing sessions for security
   await revokeAllSessions(user._id);
 
   return {
@@ -188,9 +165,6 @@ export const resetPasswordWithOtp = async ({ email, otp, newPassword }) => {
   };
 };
 
-/**
- * Verify Email with OTP
- */
 export const verifyEmailWithOtp = async ({ email, otp }) => {
   const normalizedEmail = email?.trim().toLowerCase();
 

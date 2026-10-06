@@ -4,9 +4,6 @@ import HolidayService from "../services/holiday.service.js";
 import EmployeeService from "../services/employee.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Employee Portal Controller
- */
 export const getEmployeeStatus = asyncHandler(async (req, res) => {
   const status = await AttendanceService.getEmployeeStatus(req.user.id || req.user._id);
   return res.status(200).json(status);
@@ -80,7 +77,6 @@ export const getMyMonthlyDetails = asyncHandler(async (req, res) => {
   return res.status(200).json(details);
 });
 
-// --- Employee Self-Service Profile & Document Vault Handlers ---
 export const getMyProfile = asyncHandler(async (req, res) => {
   const profile = await EmployeeService.getEmployeeProfile(req.user.id || req.user._id);
   return res.status(200).json(profile);

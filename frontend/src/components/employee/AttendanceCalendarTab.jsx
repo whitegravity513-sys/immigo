@@ -43,7 +43,7 @@ export default function AttendanceCalendarTab({
 
   return (
     <div className="space-y-6">
-      {/* Lifetime Attendance Since Joining Date */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {

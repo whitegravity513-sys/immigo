@@ -8,9 +8,6 @@ const OTP_EXPIRY_MINUTES = Number(process.env.OTP_EXPIRY_MINUTES || 10);
 const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 3);
 const OTP_RESEND_COOLDOWN_SECONDS = Number(process.env.OTP_RESEND_COOLDOWN_SECONDS || 60);
 
-/**
- * Generate and dispatch an OTP to the given email
- */
 export const requestAndSendOtp = async ({
   email,
   purpose,
@@ -23,7 +20,6 @@ export const requestAndSendOtp = async ({
 
   const normalizedEmail = email.trim().toLowerCase();
 
-  // 1. Check for active OTP to enforce resend cooldown
   const latestOtp = await Otp.findOne({
     email: normalizedEmail,
     purpose,
@@ -44,17 +40,14 @@ export const requestAndSendOtp = async ({
       );
     }
 
-    // Invalidate previous OTP
     await Otp.deleteMany({ email: normalizedEmail, purpose });
   }
 
-  // 2. Generate secure 6-digit OTP
   const rawOtp = generateOtp(6);
   const otpHash = hashToken(rawOtp);
 
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-  // 3. Save OTP record
   await Otp.create({
     email: normalizedEmail,
     otpHash,
@@ -65,7 +58,6 @@ export const requestAndSendOtp = async ({
     ipAddress,
   });
 
-  // 4. Send email
   await sendOtpEmail({
     to: normalizedEmail,
     otp: rawOtp,
@@ -80,9 +72,6 @@ export const requestAndSendOtp = async ({
   };
 };
 
-/**
- * Verify provided OTP against database records
- */
 export const verifyOtp = async ({ email, otp, purpose }) => {
   if (!email || !otp || !purpose) {
     throw new ApiError(400, "Email, OTP, and purpose are required for verification");
@@ -100,13 +89,11 @@ export const verifyOtp = async ({ email, otp, purpose }) => {
     throw new ApiError(400, "No active OTP found or OTP has expired. Please request a new one.");
   }
 
-  // Check if expired
   if (otpRecord.expiresAt < new Date()) {
     await Otp.deleteOne({ _id: otpRecord._id });
     throw new ApiError(400, "OTP has expired. Please request a new one.");
   }
 
-  // Check attempt limit
   if (otpRecord.attempts >= otpRecord.maxAttempts) {
     await Otp.deleteOne({ _id: otpRecord._id });
     throw new ApiError(
@@ -115,7 +102,6 @@ export const verifyOtp = async ({ email, otp, purpose }) => {
     );
   }
 
-  // Compute provided OTP hash & compare
   const providedOtpHash = hashToken(otp.trim());
   const isMatch = timingSafeCompare(providedOtpHash, otpRecord.otpHash);
 
@@ -138,11 +124,9 @@ export const verifyOtp = async ({ email, otp, purpose }) => {
     );
   }
 
-  // OTP is valid - mark as used and clean up
   otpRecord.isUsed = true;
   await otpRecord.save();
 
-  // Delete all used/expired OTPs for this email and purpose
   await Otp.deleteMany({
     email: normalizedEmail,
     purpose,

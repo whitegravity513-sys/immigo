@@ -1,9 +1,6 @@
 import InvoiceService from "../services/invoice.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Invoice Controller
- */
 export const createInvoice = asyncHandler(async (req, res) => {
   const invoice = await InvoiceService.createInvoice(req.body);
   return res.status(201).json({ message: "Invoice created successfully!", invoice });

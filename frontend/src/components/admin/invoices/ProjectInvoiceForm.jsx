@@ -2,7 +2,7 @@ import React from "react";
 import { Plus, Building2 } from "lucide-react";
 
 export default function ProjectInvoiceForm({
-  logic, // The returned object from useInvoiceLogic
+  logic, 
   project
 }) {
   const {
@@ -154,7 +154,7 @@ export default function ProjectInvoiceForm({
         </div>
       </div>
 
-      {/* Our Agency / Company Details - Compact Collapsible */}
+      {}
       <div className="bg-slate-50 rounded-2xl border border-slate-200/80 shadow-xs p-4">
         <details>
           <summary className="cursor-pointer flex items-center gap-2 text-sm font-black text-slate-700 select-none">
@@ -192,7 +192,7 @@ export default function ProjectInvoiceForm({
         </details>
       </div>
 
-      {/* Items Section */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
@@ -269,7 +269,7 @@ export default function ProjectInvoiceForm({
         </div>
       </div>
 
-      {/* GST Tax & Total Calculation */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
         <h3 className="text-base font-black text-slate-800 border-b border-slate-100 pb-3">
           GST Calculation & Total

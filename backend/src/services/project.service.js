@@ -1,9 +1,6 @@
 import Project from "../models/Project.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Enterprise Project Management Service
- */
 export class ProjectService {
   static formatProject(project) {
     if (!project) return null;

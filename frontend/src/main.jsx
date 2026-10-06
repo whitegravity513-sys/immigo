@@ -1,19 +1,19 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import './index.css'
-import App from './App.jsx'
-import apiClient from './services/apiClient.js'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { UIProvider } from "./context/UIContext.jsx";
+import App from "./App.jsx";
+import "./index.css";
 
-// Bulletproof failsafe for cached client bundles
-if (typeof window !== 'undefined') {
-  window.axios = apiClient;
-}
-
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <UIProvider>
+          <App />
+        </UIProvider>
+      </AuthProvider>
     </BrowserRouter>
-  </StrictMode>,
-)
+  </StrictMode>
+);

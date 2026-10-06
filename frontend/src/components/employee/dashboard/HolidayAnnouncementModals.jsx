@@ -23,12 +23,10 @@ export default function HolidayAnnouncementModals({
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [currentAnnouncement, setCurrentAnnouncement] = useState(null);
 
-  // Today's date string for unique daily dismissal
   const todayDateStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
   }).format(new Date());
 
-  // ── 1. Holiday Popup Trigger ──
   useEffect(() => {
     if (isHolidayToday && todayHoliday) {
       const dismissedKey = `immigo_holiday_popup_dismissed_${todayDateStr}`;
@@ -44,11 +42,9 @@ export default function HolidayAnnouncementModals({
     setShowHolidayModal(false);
   };
 
-  // ── 2. Announcement Popup Trigger ──
   useEffect(() => {
     if (!announcements || announcements.length === 0) return;
 
-    // Find the latest announcement that hasn't been acknowledged/seen
     const unread = announcements.find((a) => {
       const aId = a._id || a.id;
       return !localStorage.getItem(`immigo_announcement_seen_${aId}`);
@@ -56,7 +52,6 @@ export default function HolidayAnnouncementModals({
 
     if (unread) {
       setCurrentAnnouncement(unread);
-      // If holiday modal is open, announcement will wait or appear once holiday is closed
       if (!showHolidayModal) {
         setShowAnnouncementModal(true);
       }
@@ -94,13 +89,11 @@ export default function HolidayAnnouncementModals({
 
   return (
     <>
-      {/* ═══════════════════════════════════════════════════════
-          1. FESTIVE HOLIDAY POPUP MODAL
-      ═══════════════════════════════════════════════════════ */}
+      {}
       {showHolidayModal && todayHoliday && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-indigo-100 overflow-hidden relative animate-in zoom-in-95 duration-200 text-left">
-            {/* Top Festive Header Banner */}
+            {}
             <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 p-6 text-white text-center relative overflow-hidden">
               <button
                 type="button"
@@ -111,7 +104,7 @@ export default function HolidayAnnouncementModals({
                 <X size={18} />
               </button>
 
-              {/* Glowing festive decoration */}
+              {}
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
 
@@ -136,7 +129,7 @@ export default function HolidayAnnouncementModals({
               </div>
             </div>
 
-            {/* Modal Body */}
+            {}
             <div className="p-6 space-y-4">
               <div className="p-4 bg-gradient-to-br from-amber-50/70 to-orange-50/60 rounded-2xl border border-amber-200/80">
                 <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
@@ -160,7 +153,7 @@ export default function HolidayAnnouncementModals({
                 </div>
               </div>
 
-              {/* Modal Actions */}
+              {}
               <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
                 <button
                   type="button"
@@ -176,13 +169,11 @@ export default function HolidayAnnouncementModals({
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════
-          2. CORPORATE ANNOUNCEMENT POPUP MODAL
-      ═══════════════════════════════════════════════════════ */}
+      {}
       {showAnnouncementModal && !showHolidayModal && currentAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-blue-100 overflow-hidden relative animate-in zoom-in-95 duration-200 text-left">
-            {/* Header */}
+            {}
             <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 p-5 text-white flex items-center justify-between border-b border-blue-800/80">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-600/60 border border-blue-400/40 text-white flex items-center justify-center shadow-xs">
@@ -208,9 +199,9 @@ export default function HolidayAnnouncementModals({
               </button>
             </div>
 
-            {/* Content */}
+            {}
             <div className="p-6 space-y-4">
-              {/* Badges & Date */}
+              {}
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
@@ -231,19 +222,19 @@ export default function HolidayAnnouncementModals({
                 </span>
               </div>
 
-              {/* Title */}
+              {}
               <h4 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">
                 {currentAnnouncement.title}
               </h4>
 
-              {/* Message Body */}
+              {}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 max-h-64 overflow-y-auto custom-scrollbar">
                 <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
                   {currentAnnouncement.message}
                 </p>
               </div>
 
-              {/* Actions */}
+              {}
               <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
                 <button
                   type="button"

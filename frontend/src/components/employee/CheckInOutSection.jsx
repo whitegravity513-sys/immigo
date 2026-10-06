@@ -35,7 +35,7 @@ export default function CheckInOutSection({
 
   return (
     <div className="max-w-4xl mx-auto space-y-5 text-slate-800">
-      {/* Holiday / Off Day Alert */}
+      {}
       {isHolidayToday && (
         <div className="p-4 bg-indigo-50/80 border border-indigo-200 text-indigo-950 rounded-2xl text-xs font-semibold flex items-center gap-3 shadow-xs">
           <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
@@ -55,9 +55,9 @@ export default function CheckInOutSection({
         </div>
       )}
 
-      {/* ── MAIN ATTENDANCE CARD ── */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: Check In/Out Terminal (7 cols) */}
+        {}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function CheckInOutSection({
             </div>
           </div>
 
-          {/* Big Work Timer Display */}
+          {}
           <div className="text-center py-5 bg-blue-50/50 rounded-xl border border-blue-100/80">
             <div className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-blue-950 mb-1">
               {fmtDur(workSeconds)}
@@ -97,7 +97,7 @@ export default function CheckInOutSection({
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {}
           <div>
             {isHolidayToday ? (
               <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-200 text-center space-y-1.5">
@@ -130,7 +130,7 @@ export default function CheckInOutSection({
 
             {(status === "Active" || status === "On Break") && (
               <div className="space-y-3">
-                {/* Break Controls directly next to Check In/Out */}
+                {}
                 <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Coffee size={16} className="text-amber-700" />
@@ -213,7 +213,7 @@ export default function CheckInOutSection({
           </div>
         </div>
 
-        {/* Right Column: Shift Summary Details (5 cols) */}
+        {}
         <div className="lg:col-span-5 space-y-3">
           <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">

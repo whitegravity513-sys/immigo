@@ -8,7 +8,7 @@ const holidaySchema = new mongoose.Schema(
       trim: true,
     },
     date: {
-      type: String, // Format: YYYY-MM-DD
+      type: String, 
       required: true,
       unique: true,
       index: true,

@@ -4,23 +4,20 @@ import NotificationService from "../services/notification.service.js";
 import { logger } from "./logger.js";
 
 const NINE_HOURS_MS = 9 * 60 * 60 * 1000;
-const NINE_HOURS_SECONDS = 9 * 60 * 60; // 32400
+const NINE_HOURS_SECONDS = 9 * 60 * 60; 
 
 export const startCronJobs = () => {
-  // Run every 5 minutes
   setInterval(async () => {
     try {
       const now = new Date();
       const cutoffTime = new Date(now.getTime() - NINE_HOURS_MS);
 
-      // Find open attendances checked in more than 9 hours ago
       const overdueAttendances = await Attendance.find({
         status: { $in: ["Present", "On Break"] },
         checkInTime: { $lte: cutoffTime },
       }).populate("employeeId", "name employeeId");
 
       for (const record of overdueAttendances) {
-        // Auto end open break if still on break
         if (record.status === "On Break") {
           const currentBreak = record.breaks[record.breaks.length - 1];
           if (currentBreak && !currentBreak.endTime) {
@@ -51,7 +48,6 @@ export const startCronJobs = () => {
 
         await record.save();
 
-        // Notify Admin
         const empName = record.employeeId?.name || "Employee";
         const empCode = record.employeeId?.employeeId || "EMP";
         
@@ -68,5 +64,5 @@ export const startCronJobs = () => {
     } catch (err) {
       logger.error("Error in auto-checkout cron job:", err);
     }
-  }, 5 * 60 * 1000); // 5 minutes
+  }, 5 * 60 * 1000); 
 };

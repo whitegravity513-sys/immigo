@@ -76,7 +76,7 @@ export default function LiveAttendanceSection({
 
   return (
     <div className="space-y-5">
-      {/* ── Top Stat Cards (Compact & Defined) ── */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={<Users size={18} />} color="bg-blue-50 text-blue-600" val={attendanceReport.length} label="Total Workforce" />
         <StatCard icon={<UserCheck size={18} />} color="bg-emerald-50 text-emerald-600" val={attendanceReport.filter(r => r.status === "Active" || r.status === "On Break").length} label="Active Now" />
@@ -84,7 +84,7 @@ export default function LiveAttendanceSection({
         <StatCard icon={<ShieldCheck size={18} />} color="bg-rose-50 text-rose-600" val={attendanceReport.filter(r => r.status === "Absent").length} label="Absent Today" />
       </div>
 
-      {/* ── Active Break Tracker (Compact) ── */}
+      {}
       {attendanceReport.filter(r => r.status === "On Break").length > 0 && (
         <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-xs">
           <h4 className="flex items-center gap-1.5 text-amber-800 font-black text-xs mb-3 uppercase tracking-wider">
@@ -98,9 +98,9 @@ export default function LiveAttendanceSection({
         </div>
       )}
 
-      {/* ── Shift Activity Table (Compact, Space-Efficient Rows with Darker Borders) ── */}
+      {}
       <div className="bg-white rounded-xl border-2 border-slate-300 shadow-xs overflow-hidden">
-        {/* Table Filter / Control Bar */}
+        {}
         <div className="px-4 py-3 border-b border-slate-300 bg-slate-50/70 flex flex-wrap items-center gap-3 justify-between">
           <div className="flex flex-col">
             <h3 className="text-sm font-black text-slate-900 tracking-tight">Shift Activity Log</h3>
@@ -133,7 +133,7 @@ export default function LiveAttendanceSection({
           </div>
         </div>
 
-        {/* Compact Table */}
+        {}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[750px]">
             <thead>
@@ -148,7 +148,7 @@ export default function LiveAttendanceSection({
             <tbody className="divide-y divide-slate-200">
               {attendanceReport.map(rep => (
                 <tr key={rep.employeeId} className="hover:bg-blue-50/40 transition-colors">
-                  {/* Employee Info: Compact 2 lines */}
+                  {}
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     {(() => {
                       const actualEmpId = rep.employeeId || (typeof rep._id === 'string' ? rep._id.replace(/^virtual-/, '') : rep._id);
@@ -172,7 +172,7 @@ export default function LiveAttendanceSection({
                     </div>
                   </td>
 
-                  {/* Check-In: Time + Tiny Map Link */}
+                  {}
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       <span className="font-extrabold text-slate-800 tabular-nums text-xs">
@@ -192,7 +192,7 @@ export default function LiveAttendanceSection({
                     </div>
                   </td>
 
-                  {/* Check-Out: Time + Tiny Map Link */}
+                  {}
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       <span className="font-extrabold text-slate-800 tabular-nums text-xs">
@@ -212,7 +212,7 @@ export default function LiveAttendanceSection({
                     </div>
                   </td>
 
-                  {/* Check-Out Note: Compact Truncated */}
+                  {}
                   <td className="px-3 py-2 text-xs max-w-[130px]">
                     {rep.checkOutNote ? (
                       <span className="truncate block text-[11px] font-medium text-slate-700 bg-amber-50/70 border border-amber-200 px-1.5 py-0.5 rounded" title={rep.checkOutNote}>
@@ -223,17 +223,17 @@ export default function LiveAttendanceSection({
                     )}
                   </td>
 
-                  {/* Lunch Break */}
+                  {}
                   <td className="px-3 py-2 text-xs font-extrabold text-amber-700 tabular-nums whitespace-nowrap">
                     {formatDuration(rep.lunchBreakSeconds)}
                   </td>
 
-                  {/* Short Break */}
+                  {}
                   <td className="px-3 py-2 text-xs font-extrabold text-cyan-700 tabular-nums whitespace-nowrap">
                     {formatDuration(rep.otherBreakSeconds)}
                   </td>
 
-                  {/* Total Break */}
+                  {}
                   <td className="px-3 py-2 text-xs tabular-nums whitespace-nowrap">
                     <span className={`font-extrabold ${(rep.lunchBreakSeconds + rep.otherBreakSeconds) > 3600 ? "text-rose-600 font-black" : "text-slate-800"}`}>
                       {formatDuration(rep.lunchBreakSeconds + rep.otherBreakSeconds)}
@@ -243,12 +243,12 @@ export default function LiveAttendanceSection({
                     )}
                   </td>
 
-                  {/* Net Work Duration */}
+                  {}
                   <td className="px-3 py-2 text-xs font-black text-slate-900 tabular-nums whitespace-nowrap">
                     {formatDuration(rep.totalWorkSeconds || 0)}
                   </td>
 
-                  {/* Status & Compliance Badge */}
+                  {}
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black rounded-md border ${
@@ -274,7 +274,7 @@ export default function LiveAttendanceSection({
                     </div>
                   </td>
 
-                  {/* Edit Action Button */}
+                  {}
                   <td className="px-2 py-2 text-xs text-right whitespace-nowrap">
                     <button
                       onClick={() => {

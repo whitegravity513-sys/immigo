@@ -79,7 +79,6 @@ export const useEmployeeMonthlyReport = (token) => {
   const downloadReport = () => {
     if (!monthlyData) return;
 
-    // 1. Summary Sheet
     const summaryRows = [
       { Metric: "Employee ID", Value: monthlyData.employee.employeeId },
       { Metric: "Name", Value: monthlyData.employee.name },
@@ -95,7 +94,6 @@ export const useEmployeeMonthlyReport = (token) => {
       { Metric: "Total Break Hours", Value: monthlyData.summary?.totalBreakHours ?? "0h 0m" }
     ];
 
-    // 2. Daily Attendance Sheet
     const dailyRows = (monthlyData.dailyRecords || []).map((record, idx) => {
       const wSec = record.workSeconds || record.totalWorkSeconds || 0;
       const bSec = record.breakSeconds || record.totalBreakSeconds || 0;
@@ -115,7 +113,6 @@ export const useEmployeeMonthlyReport = (token) => {
       };
     });
 
-    // 3. Leaves Sheet
     const leaveRows = (monthlyData.leaves || []).map((leave, idx) => ({
       "S.No": idx + 1,
       "Leave Type": leave.leaveType || "",

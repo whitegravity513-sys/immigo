@@ -1,9 +1,6 @@
 import ProjectService from "../services/project.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Project Controller
- */
 export const createProject = asyncHandler(async (req, res) => {
   const project = await ProjectService.createProject(req.body);
   return res.status(201).json({ message: "Project created successfully!", project });

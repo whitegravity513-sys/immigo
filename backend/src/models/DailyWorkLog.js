@@ -8,7 +8,7 @@ const dailyWorkLogSchema = new mongoose.Schema(
       required: true,
     },
     date: {
-      type: String, // "YYYY-MM-DD" in IST
+      type: String, 
       required: true,
     },
     logText: {
@@ -29,7 +29,6 @@ const dailyWorkLogSchema = new mongoose.Schema(
   { timestamps: false }
 );
 
-// One log per employee per day
 dailyWorkLogSchema.index({ employee: 1, date: 1 }, { unique: true });
 
 export default mongoose.model("DailyWorkLog", dailyWorkLogSchema);

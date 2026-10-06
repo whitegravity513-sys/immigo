@@ -1,13 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { apiClient } from "../../services/apiClient.js";
-import {
-  Clock, Coffee, Calendar, FileText, Eye, LogOut, AlertCircle,
-  CheckCircle, Play, FileUp, Award, Menu, X, ArrowRightFromLine,
-  ArrowLeftFromLine, Timer, Sandwich, Pause, LogIn, Video, ExternalLink, ChevronRight,
-  IndianRupee, User, ShieldCheck,
-} from "lucide-react";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 import CheckInOutSection from "../../components/employee/CheckInOutSection.jsx";
 import BreaksSection from "../../components/employee/BreaksSection.jsx";
@@ -21,51 +13,19 @@ import EmployeeMeetingsTab from "../../components/employee/EmployeeMeetingsTab.j
 import EmployeeAnnouncementsTab from "../../components/employee/EmployeeAnnouncementsTab.jsx";
 import EmployeeProfileDocsTab from "../../components/employee/EmployeeProfileDocsTab.jsx";
 import EmployeeExpensesTab from "../../components/employee/EmployeeExpensesTab.jsx";
-import { ImmiGoLogo, DashboardWatermark, EmployeeIdBadge } from "../../components/common/ImmiGoLogo.jsx";
-import AppFooter from "../../components/common/AppFooter.jsx";
-import EmpSidebar from "../../components/employee/layout/EmpSidebar.jsx";
-import EmpTopbar from "../../components/employee/layout/EmpTopbar.jsx";
+import { EmployeeLayout } from "../../layouts";
+import DocPreviewModal from "../../components/admin/modals/DocPreviewModal.jsx";
 import EmpHomeOverview from "../../components/employee/dashboard/EmpHomeOverview.jsx";
-import HolidayAnnouncementModals from "../../components/employee/dashboard/HolidayAnnouncementModals.jsx";
-import AdminUpdateToast from "../../components/employee/notifications/AdminUpdateToast.jsx";
+import {
+  formatDuration as fmtDur,
+  formatDate as fmtDate,
+  formatTime as fmtTime,
+  getIndiaDateString,
+  getDateKey,
+  isDateInLeaveRange,
+} from "../../utils/formatters.js";
 
-/* ─────────────────────────── helpers ─────────────────────────── */
-const fmtDur = (s) => {
-  if (!s || s < 0) s = 0;
-  s = Math.floor(s);
-  return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60]
-    .map((v) => String(v).padStart(2, "0"))
-    .join(":");
-};
-const fmtDate = (d) => {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-};
-const fmtTime = (d) => {
-  if (!d) return "—";
-  return new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-};
-const getIndiaDateString = () => {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
-};
-const getDateKey = (dateValue) => {
-  const d = dateValue instanceof Date ? dateValue : new Date(dateValue);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-const isDateInLeaveRange = (dateKey, leave) => {
-  if (!leave?.startDate || !leave?.endDate) return false;
-  const start = new Date(leave.startDate);
-  const end = new Date(leave.endDate);
-  const current = new Date(`${dateKey}T00:00:00`);
-  return current >= start && current <= end;
-};
-
-/* ─────────────────────────── component ─────────────────────────── */
 export default function EmployeeDashboard({ user, token, onLogout }) {
-  // ── user profile sync state ──
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("user") || "null");
@@ -101,7 +61,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     return () => window.removeEventListener("user-updated", onUserUpdated);
   }, []);
 
-  // ── Sync fresh profile info and documents compliance on mount ──
   const [employeeProfile, setEmployeeProfile] = useState(null);
 
   const fetchProfile = async () => {
@@ -124,7 +83,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     fetchProfile();
   }, [token]);
 
-  // Mandatory compliance required documents
   const REQUIRED_DOC_TYPES = [
     "Resume / CV",
     "Aadhaar / National ID",
@@ -146,14 +104,11 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     rejectedDocs,
   };
 
-  // ── nav state ──
-  const [view, setView] = useState("home");     // home | tracker | checkinout | breaks | apply-leave | leave-history | meetings
+  const [view, setView] = useState("home");     
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ── today's meetings (for banner) ──
   const [todayMeetings, setTodayMeetings] = useState([]);
 
-  // ── live admin update notification popup state ──
   const [liveAdminNotification, setLiveAdminNotification] = useState(null);
 
   useEffect(() => {
@@ -169,13 +124,11 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     return () => window.removeEventListener("new-admin-notification", handleNewAdminNotif);
   }, []);
 
-  // ── ui feedback ──
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // ── data ──
   const [statusRecord, setStatusRecord] = useState(null);
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [holidays, setHolidays] = useState([]);
@@ -195,17 +148,14 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth() + 1);
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
 
-  // ── live timers ──
   const [workSeconds, setWorkSeconds] = useState(0);
   const [lunchSeconds, setLunchSeconds] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
   const timerRef = useRef(null);
 
-  /* ── auto-clear notifications ── */
   useEffect(() => { if (errorMsg) { const t = setTimeout(() => setErrorMsg(""), 6000); return () => clearTimeout(t); } }, [errorMsg]);
   useEffect(() => { if (successMsg) { const t = setTimeout(() => setSuccessMsg(""), 6000); return () => clearTimeout(t); } }, [successMsg]);
 
-  /* ── optimized background sync (eliminates excessive loading lag) ── */
   useEffect(() => {
     if (!token) return;
     fetchAll();
@@ -215,14 +165,12 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     return () => clearInterval(iv);
   }, [token]);
 
-  // Only fetch monthly attendance when viewing calendar or tracker tab
   useEffect(() => {
     if (token && (view === "calendar" || view === "tracker")) {
       fetchMonthlyAttendance(calendarMonth, calendarYear);
     }
   }, [token, view, calendarMonth, calendarYear]);
 
-  // ── fetch today's meetings for tabs ──
   useEffect(() => {
     if (!token) return;
     const todayStr = new Date().toISOString().split("T")[0];
@@ -271,7 +219,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     }
   }
 
-  /* ── live timer ── */
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (!statusRecord) return;
@@ -324,7 +271,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     };
   }, [statusRecord]);
 
-  /* ── location / device utils ── */
   const getDevice = () => {
     const ua = navigator.userAgent;
     const os = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iOS" : /Win/i.test(ua) ? "Windows" : /Mac/i.test(ua) ? "MacOS" : "Linux";
@@ -370,7 +316,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     }
   });
 
-  /* ── actions ── */
   const apiCall = async (fn) => {
     setLoading(true);
     setErrorMsg("");
@@ -445,7 +390,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     });
   };
 
-  /* ── derived ── */
   const status = initialLoading && !statusRecord ? "Syncing..." : (statusRecord?.status || "Absent");
   const leaveBalance = statusRecord?.leaveBalance ?? 0;
 
@@ -471,7 +415,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const isWeeklyOffToday = isSundayToday || isOffSatToday;
   const weeklyOffReason = isSundayToday ? "Sunday Off" : isOffSatToday ? "2nd/4th Saturday Off" : "";
 
-  /* ── status colours ── */
   const statusColor = {
     Active: "bg-emerald-500", "On Break": "bg-sky-500",
     "Checked Out": "bg-slate-400", Absent: "bg-rose-500",
@@ -479,72 +422,27 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     "Syncing...": "bg-sky-500 animate-pulse",
   }[status] || "bg-slate-400";
 
-  /* ══════════════════════════ SHELL ══════════════════════════ */
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans relative overflow-x-hidden">
-      {/* Light Background Watermark Logo */}
-      <DashboardWatermark />
-
-      {/* Holiday & Announcement Pop-up Modals */}
-      <HolidayAnnouncementModals
-        todayHoliday={todayHoliday}
-        isHolidayToday={isHolidayToday}
-        announcements={announcements}
-        onViewAnnouncements={() => setView("announcements")}
-        onViewCalendar={() => setView("calendar")}
-      />
-
-      {/* Real-time Admin Update Floating Pop-up Alert */}
-      {liveAdminNotification && (
-        <AdminUpdateToast
-          notification={liveAdminNotification}
-          onClose={() => setLiveAdminNotification(null)}
-          onView={(n) => {
-            setLiveAdminNotification(null);
-            if (n?.type === "LEAVE_UPDATE") setView("leaves");
-            else if (n?.type === "EXPENSE_UPDATE") setView("expenses");
-            else if (n?.type === "DOCUMENT_UPDATE") setView("profile-docs");
-            else if (n?.type === "ANNOUNCEMENT") setView("announcements");
-            else if (n?.type === "MEETING") setView("meetings");
-            else if (n?.type === "ATTENDANCE_UPDATE") setView("calendar");
-            else setView("home");
-          }}
-        />
-      )}
-
-      {/* Enterprise Dark Navy Sidebar */}
-      <EmpSidebar
+    <>
+      <EmployeeLayout
+        user={currentUser}
         view={view}
         setView={setView}
         onLogout={onLogout}
-        user={currentUser}
+        token={token}
         status={status}
         statusColor={statusColor}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-        {/* Enterprise White Topbar */}
-        <EmpTopbar
-          view={view}
-          setView={setView}
-          onLogout={onLogout}
-          user={currentUser}
-          token={token}
-          status={status}
-          statusColor={statusColor}
-          setSidebarOpen={setSidebarOpen}
-          onNewNotification={(n) => setLiveAdminNotification(n)}
-        />
-
-        {/* Main Body View */}
-        <main className="flex-1 p-3.5 sm:p-5 max-w-7xl w-full mx-auto">
-          {errorMsg && <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mb-3"><AlertCircle size={15} className="shrink-0" /><span>{errorMsg}</span></div>}
-          {successMsg && <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold mb-3"><CheckCircle size={15} className="shrink-0" /><span>{successMsg}</span></div>}
-
-          {/* ── 0. Home Dashboard Overview (Clean Single Unified Dashboard) ── */}
+        liveAdminNotification={liveAdminNotification}
+        setLiveAdminNotification={setLiveAdminNotification}
+        todayHoliday={todayHoliday}
+        isHolidayToday={isHolidayToday}
+        announcements={announcements}
+        errorMsg={errorMsg}
+        successMsg={successMsg}
+      >
+        {}
           {(view === "home" || view === "tracker") && (
             <EmpHomeOverview
               user={currentUser}
@@ -682,31 +580,9 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           {view === "meetings" && (
             <EmployeeMeetingsTab token={token} initialMeetings={todayMeetings} />
           )}
-        </main>
+      </EmployeeLayout>
 
-        {/* Unified App Footer */}
-        <AppFooter
-          role="employee"
-          onNavigate={(key) => setView(key)}
-        />
-      </div>
-
-      {/* Document preview modal */}
-      {previewDoc && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" onClick={() => setPreviewDoc(null)}>
-          <div className="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-base font-black text-slate-800">Supporting Document</h3>
-              <button className="text-slate-400 hover:text-slate-700 text-xl cursor-pointer p-1" onClick={() => setPreviewDoc(null)}>×</button>
-            </div>
-            <div className="p-6 flex justify-center items-center">
-              {previewDoc.startsWith("data:image/") ? <img src={previewDoc} className="max-h-[450px] w-auto object-contain rounded-lg shadow-sm" alt="Doc" />
-                : previewDoc.startsWith("data:application/pdf") ? <iframe src={previewDoc} style={{ width: "100%", height: "450px", border: "none", borderRadius: "8px" }} />
-                  : <div className="text-center py-8"><FileText size={48} className="mb-4 text-blue-600 mx-auto" /><a href={previewDoc} download="attachment" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold inline-block cursor-pointer">Download</a></div>}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <DocPreviewModal previewDoc={previewDoc} onClose={() => setPreviewDoc(null)} />
+    </>
   );
 }

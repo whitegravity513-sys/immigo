@@ -7,9 +7,6 @@ import { requestAndSendOtp } from "../services/otp.service.js";
 import { User } from "../models/User.js";
 import { ApiError } from "../utils/apiError.js";
 
-/**
- * Register User Controller
- */
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, role } = req.body;
   const ipAddress = req.ip || req.connection?.remoteAddress;
@@ -30,9 +27,6 @@ export const register = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * Login User Controller
- */
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const ipAddress = req.ip || req.connection?.remoteAddress;
@@ -46,7 +40,6 @@ export const login = asyncHandler(async (req, res) => {
     req,
   });
 
-  // Set secure refresh token cookie
   res.cookie(
     "refreshToken",
     result.refreshToken,
@@ -59,9 +52,6 @@ export const login = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Refresh Access Token Controller
- */
 export const refreshToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies?.refreshToken || req.body?.refreshToken;
@@ -75,7 +65,6 @@ export const refreshToken = asyncHandler(async (req, res) => {
     req,
   });
 
-  // Rotate cookie
   res.cookie(
     "refreshToken",
     result.newRefreshToken,
@@ -87,9 +76,6 @@ export const refreshToken = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Logout User Controller (Current Device)
- */
 export const logout = asyncHandler(async (req, res) => {
   const incomingRefreshToken =
     req.cookies?.refreshToken || req.body?.refreshToken;
@@ -98,7 +84,6 @@ export const logout = asyncHandler(async (req, res) => {
     await authService.logout({ incomingRefreshToken });
   }
 
-  // Clear cookie
   res.clearCookie(
     "refreshToken",
     tokenService.getClearRefreshTokenCookieOptions()
@@ -107,9 +92,6 @@ export const logout = asyncHandler(async (req, res) => {
   return ApiResponse.send(res, 200, "Logged out successfully");
 });
 
-/**
- * Logout User from All Devices Controller
- */
 export const logoutAll = asyncHandler(async (req, res) => {
   await authService.logoutAll(req.user._id);
 
@@ -121,18 +103,12 @@ export const logoutAll = asyncHandler(async (req, res) => {
   return ApiResponse.send(res, 200, "Logged out from all devices successfully");
 });
 
-/**
- * Get Current Logged-in User Profile Controller
- */
 export const getMe = asyncHandler(async (req, res) => {
   return ApiResponse.send(res, 200, "Profile retrieved successfully", {
     user: req.user,
   });
 });
 
-/**
- * Verify Email via 6-digit OTP Controller
- */
 export const verifyEmail = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
 
@@ -146,9 +122,6 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * Resend Verification OTP Controller
- */
 export const resendVerificationOtp = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const ipAddress = req.ip || req.connection?.remoteAddress;

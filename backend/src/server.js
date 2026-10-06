@@ -6,17 +6,14 @@ import { startCronJobs } from "./utils/cronJobs.js";
 
 const PORT = env.PORT || process.env.PORT || 5000;
 
-// Catch unhandled exceptions
 process.on("uncaughtException", (error) => {
   logger.error("UNCAUGHT EXCEPTION! Shutting down...", error);
   process.exit(1);
 });
 
 const startServer = async () => {
-  // Connect to database
   await connectDB();
 
-  // Ensure default employee VESTA-001 exists with valid credentials
   try {
     const { seedDefaultEmployee } = await import("./seed/employee.seed.js");
     await seedDefaultEmployee(false);
@@ -29,7 +26,6 @@ const startServer = async () => {
     startCronJobs();
   });
 
-  // Catch unhandled promise rejections
   process.on("unhandledRejection", (error) => {
     logger.error("UNHANDLED REJECTION! Shutting down gracefully...", error);
     server.close(() => {
@@ -37,7 +33,6 @@ const startServer = async () => {
     });
   });
 
-  // Graceful shutdown signals
   const gracefulShutdown = (signal) => {
     logger.info(`${signal} received. Closing HTTP server gracefully...`);
     server.close(() => {

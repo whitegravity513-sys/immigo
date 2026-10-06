@@ -1,9 +1,6 @@
 import React from "react";
 import { AlertCircle } from "lucide-react";
 
-/**
- * Shared error message banner for authentication forms.
- */
 export default function AuthErrorMessage({ msg }) {
   if (!msg) return null;
   return (

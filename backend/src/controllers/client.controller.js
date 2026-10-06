@@ -1,9 +1,6 @@
 import ClientService from "../services/client.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Enterprise Client Controller
- */
 export const createClient = asyncHandler(async (req, res) => {
   const client = await ClientService.createClient(req.body);
   return res.status(201).json({ message: "Client saved successfully!", client });
