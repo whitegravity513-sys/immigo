@@ -131,6 +131,20 @@ export default function EditEmployeeModal({
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Monthly Salary (₹)
+              </label>
+              <input
+                type="number"
+                min="0"
+                placeholder="e.g. 30000"
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                value={editForm.monthlySalary || ""}
+                onChange={(e) => setEditForm({ ...editForm, monthlySalary: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Residential Address
               </label>
               <input

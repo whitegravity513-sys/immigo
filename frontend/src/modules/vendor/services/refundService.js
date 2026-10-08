@@ -1,6 +1,6 @@
 // Dedicated Refund Management Service Layer
-const REFUNDS_STORAGE_KEY = "immigo_crm_refunds_v1";
-const APPLICATIONS_STORAGE_KEY = "immigo_crm_applications_v1";
+const REFUNDS_STORAGE_KEY = "immigo_crm_refunds_v3";
+const APPLICATIONS_STORAGE_KEY = "immigo_crm_applications_v3";
 
 const delay = (ms = 50) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -96,6 +96,45 @@ export const refundService = {
     return newRefund;
   },
 
+  // Vendor requests refund
+  requestRefund: async ({
+    applicationId,
+    candidateId,
+    candidateName,
+    vendorId,
+    vendorName,
+    projectName,
+    reason,
+    documentPath = "",
+  }) => {
+    await delay(100);
+    const refunds = loadData(REFUNDS_STORAGE_KEY, INITIAL_REFUNDS);
+    
+    // Check if refund already exists
+    if (refunds.some(r => r.applicationId === applicationId)) {
+      throw new Error("Refund request already exists for this application.");
+    }
+
+    const newRefund = {
+      id: `RFD-${Date.now().toString().slice(-6)}`,
+      applicationId,
+      candidateId,
+      candidateName,
+      vendorId,
+      vendorName,
+      projectName,
+      refundReason: reason,
+      refundDocument: documentPath,
+      refundStatus: "Pending Admin Approval",
+      refundDate: new Date().toISOString().split("T")[0],
+      requestedBy: "Vendor",
+    };
+
+    refunds.unshift(newRefund);
+    saveData(REFUNDS_STORAGE_KEY, refunds);
+    return newRefund;
+  },
+
   // Process/Complete refund status
   updateRefundStatus: async (refundId, status, paymentRef = "") => {
     await delay(80);
@@ -107,6 +146,18 @@ export const refundService = {
     if (paymentRef) refunds[idx].paymentRef = paymentRef;
     refunds[idx].updatedAt = new Date().toISOString();
 
+    saveData(REFUNDS_STORAGE_KEY, refunds);
+    return refunds[idx];
+  },
+
+  // Generic update for editing after completion
+  updateRefund: async (refundId, updates) => {
+    await delay(80);
+    const refunds = loadData(REFUNDS_STORAGE_KEY, INITIAL_REFUNDS);
+    const idx = refunds.findIndex((r) => r.id === refundId);
+    if (idx === -1) throw new Error("Refund record not found");
+
+    refunds[idx] = { ...refunds[idx], ...updates, updatedAt: new Date().toISOString() };
     saveData(REFUNDS_STORAGE_KEY, refunds);
     return refunds[idx];
   },

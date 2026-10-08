@@ -92,8 +92,8 @@ export default function AdminVendorDashboard() {
         {/* Pending & Overdue Payments */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Payments</span>
-          <div className="text-2xl font-black text-slate-900 mt-1">₹{(stats.pendingPayments || 850000).toLocaleString()}</div>
-          <span className="text-[11px] text-rose-600 font-semibold block">Overdue: ₹{(stats.overduePayments || 120000).toLocaleString()}</span>
+          <div className="text-2xl font-black text-slate-900 mt-1">₹{(stats.pendingPayments || 0).toLocaleString()}</div>
+          <span className="text-[11px] text-rose-600 font-semibold block">Overdue: ₹{(stats.overduePayments || 0).toLocaleString()}</span>
         </div>
       </div>
 
@@ -160,7 +160,7 @@ export default function AdminVendorDashboard() {
             </Link>
 
             <Link
-              to="/admin/vendor/processing"
+              to="/admin/vendor/candidates?tab=Selected"
               className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-300 transition block"
             >
               <Clock className="w-5 h-5 text-emerald-600 mb-2" />

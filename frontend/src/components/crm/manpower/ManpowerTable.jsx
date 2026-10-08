@@ -1,50 +1,81 @@
 import React, { useState } from "react";
-import { Plus, Trash2, Edit2, Users, AlertCircle } from "lucide-react";
-import AddPositionModal from "./AddPositionModal.jsx";
+import { Plus, Trash2, Users } from "lucide-react";
 import ConfirmDialog from "../ui/ConfirmDialog.jsx";
+
+const QUALIFICATION_OPTIONS = [
+  "Any",
+  "8th Pass",
+  "10th Pass (Matric)",
+  "12th Pass (Intermediate)",
+  "ITI / Trade Certificate",
+  "Diploma",
+  "Graduate (B.A / B.Sc / B.Com)",
+  "B.Tech / B.E",
+  "M.Tech / M.E",
+  "MBA / PGDM",
+  "Other",
+];
 
 export function ManpowerTable({
   positions = [],
-  onChange = () => {},
+  onChange = () => { },
   readOnly = false,
   currencyDefault = "AED",
 }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPosition, setEditingPosition] = useState(null);
   const [deleteIndex, setDeleteIndex] = useState(null);
+
+  const [inlineForm, setInlineForm] = useState({
+    position: "",
+    quantity: "",
+    minAge: "",
+    maxAge: "",
+    qualification: "",
+    otherQualification: "",
+    experienceYears: "",
+    lastCompany: "",
+  });
 
   // Compute total manpower dynamically
   const totalRequiredManpower = positions.reduce((acc, pos) => {
     return acc + (Number(pos.quantity) || 0);
   }, 0);
 
-  const handleOpenAdd = () => {
-    setEditingPosition(null);
-    setIsModalOpen(true);
+  const handleInlineChange = (e) => {
+    const { name, value } = e.target;
+    setInlineForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleOpenEdit = (pos, index) => {
-    setEditingPosition({ ...pos, index });
-    setIsModalOpen(true);
-  };
+  const handleAddInline = () => {
+    if (!inlineForm.position.trim()) return alert("Position name is required.");
+    const qty = Number(inlineForm.quantity);
+    if (!inlineForm.quantity || isNaN(qty) || qty <= 0) return alert("Valid quantity is required.");
 
-  const handleSavePosition = (posData) => {
-    if (editingPosition !== null && editingPosition.index !== undefined) {
-      // Update existing item
-      const updated = [...positions];
-      updated[editingPosition.index] = {
-        ...posData,
-        id: editingPosition.id || posData.id,
-      };
-      onChange(updated);
-    } else {
-      // Add new item
-      const newItem = {
-        ...posData,
-        id: posData.id || `pos-${Date.now()}`,
-      };
-      onChange([...positions, newItem]);
-    }
+    const newItem = {
+      id: `pos-${Date.now()}`,
+      position: inlineForm.position,
+      quantity: qty,
+      minAge: inlineForm.minAge || "",
+      maxAge: inlineForm.maxAge || "",
+      qualification: inlineForm.qualification === "Other"
+        ? inlineForm.otherQualification.trim() || "Other"
+        : inlineForm.qualification || "",
+      experienceYears: inlineForm.experienceYears || "",
+      lastCompany: inlineForm.lastCompany || "",
+    };
+
+    onChange([...positions, newItem]);
+
+    // Reset inline form
+    setInlineForm({
+      position: "",
+      quantity: "",
+      minAge: "",
+      maxAge: "",
+      qualification: "",
+      otherQualification: "",
+      experienceYears: "",
+      lastCompany: "",
+    });
   };
 
   const handleConfirmDelete = () => {
@@ -58,25 +89,123 @@ export function ManpowerTable({
   return (
     <div className="space-y-4">
       {/* Top action row */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Positions Listed:
+        </span>
+        <span className="px-2.5 py-0.5 text-xs font-bold bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+          {positions.length} Trades
+        </span>
+      </div>
+
       {!readOnly && (
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Positions Listed:
-            </span>
-            <span className="px-2.5 py-0.5 text-xs font-bold bg-blue-50 text-blue-700 rounded-full border border-blue-200">
-              {positions.length} Trades
-            </span>
+        <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm">
+          {/* Row 1: Position + Quantity */}
+          <div className="flex flex-col sm:flex-row items-end gap-3 mb-3">
+            <div className="flex-1 w-full">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Position Name <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                name="position"
+                value={inlineForm.position}
+                onChange={handleInlineChange}
+                placeholder="e.g. Electrician, Mason, Welder"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="w-full sm:w-28">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Quantity <span className="text-red-500">*</span></label>
+              <input
+                type="number"
+                name="quantity"
+                min="1"
+                value={inlineForm.quantity}
+                onChange={handleInlineChange}
+                placeholder="Qty"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenAdd}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
-          >
-            <Plus size={15} />
-            <span>Add Position</span>
-          </button>
+          {/* Row 2: Age Range + Qualification */}
+          <div className="flex flex-col sm:flex-row items-end gap-3">
+            <div className="w-full sm:w-28">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min Age</label>
+              <input
+                type="number"
+                name="minAge"
+                min="18"
+                max="65"
+                value={inlineForm.minAge}
+                onChange={handleInlineChange}
+                placeholder="e.g. 22"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="w-full sm:w-28">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Max Age</label>
+              <input
+                type="number"
+                name="maxAge"
+                min="18"
+                max="65"
+                value={inlineForm.maxAge}
+                onChange={handleInlineChange}
+                placeholder="e.g. 45"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="flex-1 w-full">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min. Qualification</label>
+              <select
+                name="qualification"
+                value={inlineForm.qualification}
+                onChange={handleInlineChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              >
+                <option value="">-- Select Qualification --</option>
+                {QUALIFICATION_OPTIONS.map((q) => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
+              {inlineForm.qualification === "Other" && (
+                <textarea
+                  name="otherQualification"
+                  value={inlineForm.otherQualification}
+                  onChange={handleInlineChange}
+                  placeholder="Describe qualification requirement..."
+                  rows={2}
+                  className="w-full mt-2 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleAddInline}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 h-[38px]"
+            >
+              <Plus size={16} />
+              <span>Add</span>
+            </button>
+          </div>
+
+          {/* Row 3: Experience + Last Company */}
+          <div className="flex flex-col sm:flex-row items-end gap-3 mt-3">
+            <div className="w-full sm:w-40">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min. Experience (Yrs)</label>
+              <input
+                type="number"
+                name="experienceYears"
+                min="0"
+                max="40"
+                value={inlineForm.experienceYears}
+                onChange={handleInlineChange}
+                placeholder="e.g. 3"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+
+          </div>
         </div>
       )}
 
@@ -89,171 +218,73 @@ export function ManpowerTable({
             </div>
             <h4 className="text-sm font-bold text-gray-800">No Positions Defined Yet</h4>
             <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
-              Add at least one trade position with headcount requirement to complete the manpower plan.
+              Add at least one trade position above to complete the manpower plan.
             </p>
-            {!readOnly && (
-              <button
-                type="button"
-                onClick={handleOpenAdd}
-                className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
-              >
-                <Plus size={14} />
-                <span>Add First Position</span>
-              </button>
-            )}
           </div>
         ) : (
-          <>
-            {/* Mobile Cards View (Visible on small screens) */}
-            <div className="sm:hidden divide-y divide-gray-100">
-              {positions.map((pos, idx) => (
-                <div key={pos.id || idx} className="p-4 space-y-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4">Position</th>
+                  <th className="py-3 px-4 text-center">Qty</th>
+                  <th className="py-3 px-4 text-center">Age Range</th>
+                  <th className="py-3 px-4">Min. Qualification</th>
+                  <th className="py-3 px-4 text-center">Exp. (Yrs)</th>
+
+                  {!readOnly && <th className="py-3 px-4 text-center">Remove</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {positions.map((pos, idx) => (
+                  <tr
+                    key={pos.id || idx}
+                    className="hover:bg-blue-50/40 transition-colors duration-100"
+                  >
+                    <td className="py-3 px-4 font-semibold text-gray-900">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                        <h4 className="text-xs font-bold text-gray-900">{pos.position}</h4>
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                        <span>{pos.position}</span>
                       </div>
-                      {pos.gender && pos.gender !== "Any" && (
-                        <span className="text-[10px] text-gray-400 font-normal ml-4">
-                          Prefers: {pos.gender}
-                        </span>
-                      )}
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-extrabold text-xs border border-blue-100">
-                      {pos.quantity} Qty
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-600 bg-gray-50/70 p-2.5 rounded-lg border border-gray-100">
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Experience</span>
-                      <span className="font-semibold text-gray-800">{pos.experience || "—"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Salary</span>
-                      <span className="font-semibold text-gray-800">
-                        {pos.salary ? `${pos.currency || currencyDefault} ${Number(pos.salary).toLocaleString()}` : "Negotiable"}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="inline-flex items-center justify-center min-w-7 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
+                        {pos.quantity}
                       </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Qualification</span>
-                      <span className="font-semibold text-gray-800 truncate block">{pos.qualification || "—"}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Age Range</span>
-                      <span className="font-semibold text-gray-800">
-                        {pos.minAge && pos.maxAge ? `${pos.minAge}-${pos.maxAge} Yrs` : "—"}
-                      </span>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="py-3 px-4 text-center text-gray-600 font-medium">
+                      {pos.minAge || pos.maxAge
+                        ? `${pos.minAge || "—"} – ${pos.maxAge || "—"} yrs`
+                        : <span className="text-gray-300">—</span>
+                      }
+                    </td>
+                    <td className="py-3 px-4 text-gray-700 font-medium">
+                      {pos.qualification || <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="py-3 px-4 text-center text-gray-600 font-medium">
+                      {pos.experienceYears ? `${pos.experienceYears} yr${Number(pos.experienceYears) !== 1 ? 's' : ''}` : <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 font-medium max-w-[140px] truncate">
+                      {pos.lastCompany || <span className="text-gray-300">—</span>}
+                    </td>
 
-                  {!readOnly && (
-                    <div className="flex items-center justify-end gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(pos, idx)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
-                      >
-                        <Edit2 size={12} />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteIndex(idx)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors cursor-pointer"
-                      >
-                        <Trash2 size={12} />
-                        <span>Remove</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Table View (Hidden on mobile) */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
-                    <th className="py-3 px-4">Position</th>
-                    <th className="py-3 px-4 text-center">Quantity</th>
-                    <th className="py-3 px-4">Experience</th>
-                    <th className="py-3 px-4">Qualification</th>
-                    <th className="py-3 px-4 text-center">Age Range</th>
-                    <th className="py-3 px-4 text-right">Salary</th>
-                    <th className="py-3 px-4">Currency</th>
-                    {!readOnly && <th className="py-3 px-4 text-center">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {positions.map((pos, idx) => (
-                    <tr
-                      key={pos.id || idx}
-                      className="hover:bg-blue-50/40 transition-colors duration-100"
-                    >
-                      <td className="py-3 px-4 font-semibold text-gray-900">
-                        <div className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                          <span>{pos.position}</span>
-                        </div>
-                        {pos.gender && pos.gender !== "Any" && (
-                          <span className="inline-block mt-0.5 text-[10px] text-gray-400 font-normal">
-                            Prefers: {pos.gender}
-                          </span>
-                        )}
-                      </td>
+                    {!readOnly && (
                       <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center justify-center min-w-7 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
-                          {pos.quantity}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteIndex(idx)}
+                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                          title="Remove Position"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </td>
-                      <td className="py-3 px-4 text-gray-600 font-medium">
-                        {pos.experience || "—"}
-                      </td>
-                      <td className="py-3 px-4 text-gray-600 font-medium max-w-[180px] truncate" title={pos.qualification}>
-                        {pos.qualification || "—"}
-                      </td>
-                      <td className="py-3 px-4 text-center text-gray-600">
-                        {pos.minAge && pos.maxAge ? `${pos.minAge} - ${pos.maxAge} Yrs` : "—"}
-                      </td>
-                      <td className="py-3 px-4 text-right font-semibold text-gray-900">
-                        {pos.salary ? Number(pos.salary).toLocaleString() : "Negotiable"}
-                      </td>
-                      <td className="py-3 px-4 font-medium text-gray-600">
-                        <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[11px] font-mono text-gray-700">
-                          {pos.currency || currencyDefault}
-                        </span>
-                      </td>
-                      {!readOnly && (
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEdit(pos, idx)}
-                              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                              title="Edit Position"
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteIndex(idx)}
-                              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                              title="Remove Position"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* Automatic Total Bar at Bottom */}
@@ -274,25 +305,12 @@ export function ManpowerTable({
         </div>
       </div>
 
-      {/* Add / Edit Position Modal */}
-      <AddPositionModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingPosition(null);
-        }}
-        onSave={handleSavePosition}
-        initialData={editingPosition}
-        currencyDefault={currencyDefault}
-      />
-
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={deleteIndex !== null}
         onClose={() => setDeleteIndex(null)}
         onConfirm={handleConfirmDelete}
         title="Remove Position"
-        message={`Are you sure you want to remove "${positions[deleteIndex]?.position}" from this manpower requirement? This will recalculate the total requirement.`}
+        message={`Are you sure you want to remove this position?`}
         confirmText="Remove"
         variant="danger"
       />

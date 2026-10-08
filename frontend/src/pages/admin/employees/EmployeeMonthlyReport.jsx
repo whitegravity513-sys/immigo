@@ -261,7 +261,48 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {}
+          {/* Salary Calculation Section */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Coffee className="w-5 h-5" />
+                Salary Calculation
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div>
+                  <div className="text-sm text-slate-500 font-bold mb-1">Monthly Base Salary</div>
+                  <div className="text-2xl font-black text-slate-800">
+                    ₹{monthlyData.summary?.monthlySalary?.toLocaleString() ?? 0}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-slate-500 font-bold mb-1">Per Day Salary</div>
+                  <div className="text-2xl font-black text-slate-800">
+                    ₹{Math.round(monthlyData.summary?.perDaySalary ?? 0).toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-slate-500 font-bold mb-1">Total Paid Days</div>
+                  <div className="text-2xl font-black text-blue-600">
+                    {monthlyData.summary?.paidDays ?? 0}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-bold mt-1">
+                    Present + Leaves + Holidays + Weekends
+                  </div>
+                </div>
+                <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+                  <div className="text-sm text-emerald-600 font-bold mb-1">Final Payable Salary</div>
+                  <div className="text-3xl font-black text-emerald-700">
+                    ₹{monthlyData.summary?.earnedSalary?.toLocaleString() ?? 0}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Attendance Details */}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">

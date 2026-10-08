@@ -480,6 +480,21 @@ export const RegisterEmployeeModal = ({
                     className="w-full bg-white border border-blue-300 rounded-xl px-3 py-2 text-xs font-bold text-blue-700 placeholder-slate-400 focus:outline-none focus:border-blue-600"
                   />
                 </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600">Monthly Salary (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    placeholder="e.g. 30000"
+                    value={employeeForm.monthlySalary || ""}
+                    onChange={(e) =>
+                      setEmployeeForm({ ...employeeForm, monthlySalary: Number(e.target.value) })
+                    }
+                    className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
               </div>
             </div>
 

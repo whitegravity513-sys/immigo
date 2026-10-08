@@ -26,6 +26,20 @@ const clientSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    directorName: {
+      type: String,
+      default: "",
+    },
+    directorEmail: {
+      type: String,
+      lowercase: true,
+      trim: true,
+      required: true,
+    },
+    directorMobile: {
+      type: String,
+      default: "",
+    },
     gstPan: {
       type: String,
       default: "",

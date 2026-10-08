@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   Calendar,
   Globe,
+  CreditCard,
 } from "lucide-react";
 import FormSection from "../ui/FormSection.jsx";
 import InputField from "../ui/InputField.jsx";
@@ -21,9 +22,11 @@ import SelectField from "../ui/SelectField.jsx";
 import TextareaField from "../ui/TextareaField.jsx";
 import CountrySelectField from "../ui/CountrySelectField.jsx";
 import ManpowerTable from "../manpower/ManpowerTable.jsx";
+import ProjectMilestoneBuilder from "./ProjectMilestoneBuilder.jsx";
 import DocumentsList from "../documents/DocumentsList.jsx";
 import { useCrmToast } from "../layout/CrmLayout.jsx";
 import crmClientService from "../../../services/crmClientService.js";
+import { crmVendorService } from "../../../services/crmVendorService.js";
 
 const PROJECT_TYPES = [
   "Construction",
@@ -65,6 +68,11 @@ export function ProjectForm({
   const [loadingClients, setLoadingClients] = useState(true);
   const [selectedClient, setSelectedClient] = useState(null);
 
+  // Vendor assignment
+  const [allVendors, setAllVendors] = useState([]);
+  const [vendorSearchTerm, setVendorSearchTerm] = useState("");
+  const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
+
   const [formData, setFormData] = useState({
     clientId: preSelectedClientId || "",
     projectName: "",
@@ -96,13 +104,47 @@ export function ProjectForm({
       (initialData?.manpowerRequirements?.reduce(
         (sum, p) => sum + (Number(p.quantity) || 0),
         0
-      )) ||
-      25,
+      )) || 0,
     workforceNotes: initialData?.workforceNotes || "",
     documents: initialData?.documents || [],
+    manpowerRequirements: initialData?.manpowerRequirements || [],
+
+    // Vendor Assignment
+    vendorVisibility: (initialData?.vendorAssignmentType === "Specific Vendor") ? "specific" : "all",
+    assignedVendorIds: initialData?.assignedVendors || [],
+
+    // Default Milestones / Workflow
+    paymentMilestones: initialData?.paymentMilestones || [
+      {
+        id: `m${Date.now()}-1`,
+        name: "Candidate Selection & Documentation",
+        paymentAmount: "50000",
+        stages: [
+          { id: `s${Date.now()}-1`, name: "Candidate Selection" },
+          { id: `s${Date.now()}-2`, name: "Document Verification" },
+          { id: `s${Date.now()}-3`, name: "Medical Check" },
+        ]
+      }
+    ]
   });
 
   const [errors, setErrors] = useState({});
+
+  // Compute headcount automatically from positions
+  useEffect(() => {
+    const total = formData.manpowerRequirements.reduce(
+      (sum, p) => sum + (Number(p.quantity) || 0),
+      0
+    );
+    setFormData((prev) => ({ ...prev, totalHeadcount: total }));
+  }, [formData.manpowerRequirements]);
+
+  // Fetch vendors for assignment dropdown
+  useEffect(() => {
+    crmVendorService.getVendors({ status: "Approved" }).then((vendors) => {
+      setAllVendors(vendors || []);
+    }).catch(() => { });
+  }, []);
 
   // Fetch all existing clients for selection
   useEffect(() => {
@@ -203,19 +245,12 @@ export function ProjectForm({
     e?.preventDefault();
     if (!asDraft && !validate()) return;
 
-    const headcountNum = Number(formData.totalHeadcount) || 1;
     const payload = {
       ...formData,
-      totalHeadcount: headcountNum,
-      totalManpower: headcountNum,
-      manpowerRequirements: [
-        {
-          id: "mpr-1",
-          position: formData.workforceNotes?.trim() || "Required Workforce",
-          quantity: headcountNum,
-        },
-      ],
+      totalManpower: formData.totalHeadcount,
       status: asDraft ? "Draft" : formData.status || "Active",
+      vendorAssignmentType: formData.vendorVisibility === 'specific' ? "Specific Vendor" : "All Vendors",
+      assignedVendors: formData.assignedVendorIds || [],
     };
 
     onSubmit(payload, formData.clientId, asDraft);
@@ -294,11 +329,10 @@ export function ProjectForm({
                   <select
                     value={formData.clientId}
                     onChange={handleClientChange}
-                    className={`w-full appearance-none text-sm rounded-lg border py-2.5 px-3.5 bg-white text-gray-900 cursor-pointer ${
-                      errors.clientId
+                    className={`w-full appearance-none text-sm rounded-lg border py-2.5 px-3.5 bg-white text-gray-900 cursor-pointer ${errors.clientId
                         ? "border-red-400 focus:border-red-500 ring-2 ring-red-500/20"
                         : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
-                    }`}
+                      }`}
                   >
                     <option value="" disabled>
                       -- Select an existing client --
@@ -380,11 +414,12 @@ export function ProjectForm({
               options={PROJECT_TYPES}
             />
 
-            <CountrySelectField
+            <InputField
               label="Project Country"
               name="country"
               value={formData.country}
               onChange={handleFieldChange}
+              placeholder="e.g. UAE"
               required
               error={errors.country}
             />
@@ -442,35 +477,21 @@ export function ProjectForm({
         {/* SECTION 3: MANPOWER REQUIREMENTS */}
         <FormSection
           id="manpower-requirements"
-          title="Manpower Headcount"
-          subtitle="Specify the total number of employees required for this project."
+          title="Manpower Headcount & Positions"
+          subtitle="Specify the positions and the number of employees required for this project."
           icon={Users}
-          badge={`${totalHeadcount} Total Headcount`}
+          badge={`${formData.totalHeadcount} Total Headcount`}
         >
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <InputField
-                label="Required Number of Employees / Headcount"
-                name="totalHeadcount"
-                type="number"
-                min="1"
-                value={formData.totalHeadcount}
-                onChange={handleFieldChange}
-                placeholder="e.g. 25"
-                required
-                error={errors.totalHeadcount}
-                helperText="Enter the total number of employees needed"
-              />
-
-              <InputField
-                label="Workforce Category / Notes (Optional)"
-                name="workforceNotes"
-                value={formData.workforceNotes || ""}
-                onChange={handleFieldChange}
-                placeholder="e.g. Construction crew, technicians, etc."
-                helperText="Optional brief note on required workforce"
-              />
-            </div>
+            <ManpowerTable
+              positions={formData.manpowerRequirements}
+              onChange={(updatedPositions) => {
+                setFormData(prev => ({ ...prev, manpowerRequirements: updatedPositions }));
+              }}
+            />
+            {errors.totalHeadcount && (
+              <p className="text-xs text-red-600 font-medium">{errors.totalHeadcount}</p>
+            )}
           </div>
         </FormSection>
 
@@ -488,11 +509,10 @@ export function ProjectForm({
                 return (
                   <label
                     key={benefit}
-                    className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all duration-150 select-none break-words ${
-                      checked
+                    className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all duration-150 select-none break-words ${checked
                         ? "bg-blue-50/80 border-blue-300 text-blue-900 shadow-2xs"
                         : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                    }`}
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -562,7 +582,7 @@ export function ProjectForm({
             />
 
             <TextareaField
-              label="Other Instructions / Client Notes"
+              label="Description"
               name="otherInstructions"
               value={formData.additionalRequirements.otherInstructions}
               onChange={handleRequirementsChange}
@@ -573,7 +593,176 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 6: PROJECT COMPLIANCE & LEGAL DOCUMENTS (Hidden for now) */}
+        {/* SECTION 7: PAYMENT MILESTONES */}
+        <FormSection
+          id="payment-milestones"
+          title="Candidate Selection Payment Milestones & Stages"
+          subtitle="Configure default payment milestones and their respective processing stages."
+          icon={CreditCard}
+        >
+          <div className="bg-gray-50/50 rounded-xl border border-gray-200 p-4">
+            <ProjectMilestoneBuilder 
+              milestones={formData.paymentMilestones}
+              onChange={(milestones) => setFormData(prev => ({ ...prev, paymentMilestones: milestones }))}
+            />
+          </div>
+        </FormSection>
+
+        {/* SECTION 8: VENDOR ASSIGNMENT */}
+        <FormSection
+          id="vendor-assignment"
+          title="Vendor / Agency Assignment"
+          subtitle="Control which vendor agencies can view and submit candidates for this project."
+          icon={Globe}
+        >
+          <div className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Project Visibility for Vendors
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'all' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'all' ? '#eff6ff' : '#ffffff' }}>
+                    <input
+                      type="radio"
+                      name="vendorVisibility"
+                      value="all"
+                      checked={formData.vendorVisibility === 'all'}
+                      onChange={handleFieldChange}
+                      className="mt-0.5 text-blue-600 cursor-pointer shrink-0"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">All Approved Vendors</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">All vendors with Approved status can view and submit candidates to this project.</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'specific' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'specific' ? '#eff6ff' : '#ffffff' }}>
+                    <input
+                      type="radio"
+                      name="vendorVisibility"
+                      value="specific"
+                      checked={formData.vendorVisibility === 'specific'}
+                      onChange={handleFieldChange}
+                      className="mt-0.5 text-blue-600 cursor-pointer shrink-0"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-gray-900">Specific Vendors Only</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">Only the vendors you select below can see and submit candidates for this project.</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Specific Vendor Multi-Select */}
+              {formData.vendorVisibility === 'specific' && (
+                <div className="mt-4 border-t border-slate-200 pt-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Select Assigned Vendors
+                      <span className="ml-1.5 text-[10px] text-gray-400 font-medium">({allVendors.length} total)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Search vendors..."
+                      value={vendorSearchTerm}
+                      onChange={(e) => {
+                        setVendorSearchTerm(e.target.value);
+                        setVendorCurrentPage(1);
+                      }}
+                      className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 w-full sm:w-48"
+                    />
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    {(() => {
+                      const filteredVendors = allVendors.filter(v => 
+                        (v.companyName || "").toLowerCase().includes((vendorSearchTerm || "").toLowerCase()) ||
+                        (v.id || "").toLowerCase().includes((vendorSearchTerm || "").toLowerCase()) ||
+                        (v.city || "").toLowerCase().includes((vendorSearchTerm || "").toLowerCase())
+                      );
+                      
+                      const VENDORS_PER_PAGE = 4;
+                      const totalPages = Math.max(1, Math.ceil(filteredVendors.length / VENDORS_PER_PAGE));
+                      const paginatedVendors = filteredVendors.slice((vendorCurrentPage - 1) * VENDORS_PER_PAGE, vendorCurrentPage * VENDORS_PER_PAGE);
+
+                      return (
+                        <>
+                          {paginatedVendors.length === 0 ? (
+                            <p className="text-xs text-gray-400 italic p-3">No vendors match your search.</p>
+                          ) : (
+                            <div className="min-h-[160px]">
+                              {paginatedVendors.map((vendor) => {
+                                const selected = (formData.assignedVendorIds || []).includes(vendor.id);
+                                return (
+                                  <label
+                                    key={vendor.id}
+                                    className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors ${selected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selected}
+                                      onChange={() => {
+                                        setFormData((prev) => {
+                                          const existing = prev.assignedVendorIds || [];
+                                          const updated = existing.includes(vendor.id)
+                                            ? existing.filter((id) => id !== vendor.id)
+                                            : [...existing, vendor.id];
+                                          return { ...prev, assignedVendorIds: updated };
+                                        });
+                                      }}
+                                      className="w-3.5 h-3.5 rounded text-blue-600 cursor-pointer shrink-0"
+                                    />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-semibold text-gray-900 truncate">{vendor.companyName}</p>
+                                      <p className="text-[10px] text-gray-400 truncate">{vendor.id} · {vendor.city || "N/A"}, {vendor.country || "N/A"}</p>
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
+                          {/* Pagination Controls */}
+                          {filteredVendors.length > 0 && (
+                            <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
+                              <span className="text-[10px] text-gray-500 font-medium">
+                                Showing {(vendorCurrentPage - 1) * VENDORS_PER_PAGE + 1} to {Math.min(vendorCurrentPage * VENDORS_PER_PAGE, filteredVendors.length)} of {filteredVendors.length}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setVendorCurrentPage(p => Math.max(1, p - 1))}
+                                  disabled={vendorCurrentPage === 1}
+                                  className="px-2 py-1 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 rounded disabled:opacity-50 hover:bg-gray-50"
+                                >
+                                  Prev
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setVendorCurrentPage(p => Math.min(totalPages, p + 1))}
+                                  disabled={vendorCurrentPage === totalPages}
+                                  className="px-2 py-1 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 rounded disabled:opacity-50 hover:bg-gray-50"
+                                >
+                                  Next
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                  {(formData.assignedVendorIds || []).length > 0 && (
+                    <p className="text-[10px] text-blue-700 mt-2 font-semibold">
+                      {(formData.assignedVendorIds || []).length} vendor{(formData.assignedVendorIds || []).length > 1 ? 's' : ''} currently selected.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </FormSection>
 
         {/* Bottom Submission Bar */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">

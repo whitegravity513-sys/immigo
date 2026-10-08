@@ -24,6 +24,7 @@ import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import crmClientService, {
   calculateProjectManpower,
 } from "../../services/crmClientService.js";
+import crmVendorService from "../../services/crmVendorService.js";
 import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
 
@@ -32,18 +33,26 @@ export function MainAdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState({
-    totalEmployees: 248,
-    newEmployeesThisMonth: 18,
-    presentToday: 182,
-    onLeaveToday: 9,
-    pendingLeaves: 5,
-    pendingDocuments: 12,
-    totalClients: 32,
-    activeClients: 26,
-    totalProjects: 76,
-    activeProjects: 42,
-    totalRequiredManpower: 1280,
-    activeRequirements: 24,
+    totalEmployees: 0,
+    newEmployeesThisMonth: 0,
+    presentToday: 0,
+    onLeaveToday: 0,
+    pendingLeaves: 0,
+    pendingDocuments: 0,
+    totalClients: 0,
+    activeClients: 0,
+    totalProjects: 0,
+    activeProjects: 0,
+    totalRequiredManpower: 0,
+    activeRequirements: 0,
+    totalVendors: 0,
+    pendingVendors: 0,
+    totalCandidates: 0,
+    pendingCandidates: 0,
+    selectedCandidates: 0,
+    inProcessing: 0,
+    pendingPayments: 0,
+    deployedCandidates: 0,
   });
 
   const [projectsList, setProjectsList] = useState([]);
@@ -55,12 +64,13 @@ export function MainAdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [crmRes, clientsRes, empRes, attRes, leavesRes] = await Promise.allSettled([
+      const [crmRes, clientsRes, empRes, attRes, leavesRes, vendorRes] = await Promise.allSettled([
         crmClientService.getDashboardStats(),
         crmClientService.getClients({ limit: 50 }),
         employeeService.getEmployees(),
         apiClient.get("/admin/attendance"),
         apiClient.get("/admin/leaves"),
+        crmVendorService.getAdminVendorOverviewStats(),
       ]);
 
       let allProjects = [];
@@ -77,11 +87,11 @@ export function MainAdminDashboard() {
               projectType: p.projectType,
               clientName: c.companyName,
               clientId: c.id,
-              country: p.country || c.country || "UAE",
-              location: p.location || c.city || "Dubai",
-              requiredManpower: calculateProjectManpower(p) || 120,
-              status: p.status || "Active",
-              createdAt: p.startDate || c.createdAt || "2026-09-15",
+              country: p.country || c.country || "",
+              location: p.location || c.city || "",
+              requiredManpower: calculateProjectManpower(p) || 0,
+              status: p.status || "Pending",
+              createdAt: p.startDate || c.createdAt || "",
             });
           });
         });
@@ -127,6 +137,18 @@ export function MainAdminDashboard() {
           if (pending > 0) updated.pendingLeaves = pending;
         }
 
+        if (vendorRes.status === "fulfilled" && vendorRes.value) {
+          const v = vendorRes.value;
+          updated.totalVendors = v.totalVendors;
+          updated.pendingVendors = v.pendingVendors;
+          updated.totalCandidates = v.totalCandidates;
+          updated.pendingCandidates = v.pendingCandidates;
+          updated.selectedCandidates = v.selectedCandidates;
+          updated.inProcessing = v.inProcessing;
+          updated.pendingPayments = v.pendingPayments;
+          updated.deployedCandidates = v.deployedCandidates || 0;
+        }
+
         return updated;
       });
     } catch (err) {
@@ -140,7 +162,7 @@ export function MainAdminDashboard() {
   const summaryCards = [
     {
       title: "Total HR",
-      value: stats.totalEmployees ? Math.round(stats.totalEmployees * 0.1) || 18 : 18,
+      value: stats.totalEmployees || 0,
       subtitle: "HR Officers & Personnel",
       trend: "+2 this month",
       icon: UserCheck,
@@ -149,7 +171,7 @@ export function MainAdminDashboard() {
     },
     {
       title: "Total Clients",
-      value: stats.totalClients || 32,
+      value: stats.totalClients || 0,
       subtitle: "Active Client Accounts",
       trend: "+4 active",
       icon: Building2,
@@ -158,16 +180,16 @@ export function MainAdminDashboard() {
     },
     {
       title: "Total Vendors",
-      value: "16",
+      value: stats.totalVendors || 0,
       subtitle: "Registered Agencies",
-      trend: "3 pending review",
+      trend: stats.pendingVendors > 0 ? `${stats.pendingVendors} pending review` : "All approved",
       icon: Briefcase,
       badgeBg: "bg-amber-50 text-amber-800 border-amber-200",
       to: "/admin/vendor/vendors",
     },
     {
       title: "Total Projects",
-      value: stats.totalProjects || 48,
+      value: stats.totalProjects || 0,
       subtitle: "Active Site Demands",
       trend: "+6 new projects",
       icon: FolderKanban,
@@ -176,7 +198,7 @@ export function MainAdminDashboard() {
     },
     {
       title: "Total Candidates",
-      value: "342",
+      value: stats.totalCandidates || 0,
       subtitle: "Candidate Roster Pool",
       trend: "+24 this week",
       icon: Users,
@@ -185,7 +207,7 @@ export function MainAdminDashboard() {
     },
     {
       title: "Shortlisted Candidates",
-      value: "28",
+      value: stats.pendingCandidates || 0,
       subtitle: "Under Document Review",
       trend: "Ready for interview",
       icon: Clock,
@@ -194,7 +216,7 @@ export function MainAdminDashboard() {
     },
     {
       title: "Interview Scheduled",
-      value: "19",
+      value: stats.selectedCandidates || 0,
       subtitle: "Upcoming Client Interviews",
       trend: "8 today",
       icon: Calendar,
@@ -203,7 +225,7 @@ export function MainAdminDashboard() {
     },
     {
       title: "Selected Candidates",
-      value: "42",
+      value: stats.selectedCandidates || 0,
       subtitle: "Client Selection Cleared",
       trend: "In processing pipeline",
       icon: CheckCircle2,
@@ -212,7 +234,7 @@ export function MainAdminDashboard() {
     },
     {
       title: "Pending Payments",
-      value: "₹12.4L",
+      value: stats.pendingPayments ? `₹${(stats.pendingPayments / 100000).toFixed(1)}L` : "₹0",
       subtitle: "Milestone Fee Pipeline",
       trend: "Due this milestone",
       icon: TrendingUp,
@@ -221,439 +243,214 @@ export function MainAdminDashboard() {
     },
     {
       title: "Candidates Joined",
-      value: "36",
+      value: stats.deployedCandidates || 0,
       subtitle: "Successfully Deployed",
       trend: "100% verified",
       icon: Award,
       badgeBg: "bg-green-50 text-green-800 border-green-200",
-      to: "/admin/vendor/processing?status=Completed",
+      to: "/admin/vendor/candidates?tab=Selected",
     },
   ];
 
-  const recentActivityItems = [
-    {
-      id: "act-1",
-      title: "New vendor registration",
-      desc: "ABC Manpower submitted registration",
-      time: "10 mins ago",
-      type: "vendor",
-    },
-    {
-      id: "act-2",
-      title: "New candidate submission",
-      desc: "Rahul Kumar submitted for Electrician requirement",
-      time: "25 mins ago",
-      type: "submission",
-    },
-    {
-      id: "act-3",
-      title: "Candidate selected",
-      desc: "Amit Sharma selected for Dubai Construction Project",
-      time: "1 hour ago",
-      type: "selected",
-    },
-    {
-      id: "act-4",
-      title: "Milestone payment",
-      desc: "Milestone 2 payment completed for Rahul Kumar",
-      time: "2 hours ago",
-      type: "payment",
-    },
-  ];
 
   return (
-    <AdminMasterLayout title="Admin Dashboard" subtitle="Overall company-level operational overview">
-      <div className="space-y-6 font-sans">
-        {/* 10 Color-Coded Summary Cards */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-              Operational Key Metrics & Summaries
-            </h2>
-            <span className="text-[11px] text-slate-400 font-medium">Real-time status metrics</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-            {summaryCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <Link
-                  key={card.title}
-                  to={card.to}
-                  className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all duration-150 block text-left group"
-                >
-                  <div className="flex items-center justify-between gap-1 mb-2">
-                    <span className={`p-2 rounded-lg border font-bold ${card.badgeBg}`}>
-                      <Icon size={16} />
-                    </span>
-                    <ArrowRight size={13} className="text-slate-300 group-hover:text-slate-700 transition-colors" />
-                  </div>
-
-                  <p className="text-[11px] font-bold text-slate-600 truncate">
-                    {card.title}
-                  </p>
-                  <p className="text-2xl font-black text-slate-900 tracking-tight mt-1 leading-none">
-                    {card.value}
-                  </p>
-                  <div className="flex items-center justify-between text-[10px] mt-2 pt-1 border-t border-slate-100">
-                    <span className="text-slate-400 truncate max-w-[100px]">{card.subtitle}</span>
-                    <span className="font-semibold text-emerald-700 shrink-0">{card.trend}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+    <AdminMasterLayout title="Overview" subtitle="Real-time Operational Command Center">
+      <div className="relative font-sans pb-12">
+        {/* Animated Background */}
+        <div className="absolute inset-0 z-0 overflow-hidden rounded-3xl pointer-events-none">
+          <div className="absolute inset-0 bg-slate-50/50 backdrop-blur-[2px]"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/40 rounded-full blur-3xl orb-blue"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[35%] h-[35%] bg-purple-200/40 rounded-full blur-3xl orb-cyan"></div>
+          <div className="absolute top-[30%] right-[10%] w-[25%] h-[25%] bg-blue-200/30 rounded-full blur-3xl orb-orange"></div>
         </div>
 
-        {/* Compact Recent Activity Section */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
-          <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
-            <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-700">
-              Recent Activity
-            </h3>
-            <span className="text-[11px] text-gray-400">Real-time updates</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {recentActivityItems.map((item) => (
-              <div key={item.id} className="p-3 rounded-lg bg-gray-50/80 border border-gray-100 text-xs flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-gray-900 text-xs truncate">{item.title}</span>
-                    <span className="text-[10px] text-gray-400">{item.time}</span>
-                  </div>
-                  <p className="text-[11px] text-gray-600 leading-snug">{item.desc}</p>
+        <div className="relative z-10 space-y-8">
+          
+          {/* Main Stats Header */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div className="lg:col-span-1 p-6 rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 flex flex-col justify-between overflow-hidden relative">
+              <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+              <div>
+                <h2 className="text-sm font-bold text-indigo-100 uppercase tracking-widest mb-1">Company Workforce</h2>
+                <div className="text-4xl font-black mt-2">{stats.totalEmployees}</div>
+                <div className="text-xs text-indigo-200 mt-2 font-medium bg-white/10 inline-block px-3 py-1 rounded-full">
+                  +{stats.newEmployeesThisMonth} new this month
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Section 4: Projects Overview Table */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-          <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-                  <FolderKanban size={16} />
+              <Link to="/admin/dashboard/workforce" className="mt-6 flex items-center justify-between text-sm font-bold hover:text-white group">
+                <span>View HR Dashboard</span>
+                <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-colors">
+                  <ArrowRight size={14} />
                 </span>
-                <h3 className="text-sm sm:text-base font-bold text-gray-900">
-                  Projects Overview
+              </Link>
+            </div>
+
+            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {summaryCards.slice(1, 7).map((card) => {
+                const Icon = card.icon;
+                return (
+                  <Link
+                    key={card.title}
+                    to={card.to}
+                    className="p-5 bg-white/80 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden"
+                  >
+                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <Icon size={80} />
+                    </div>
+                    <div className="flex items-center justify-between gap-1 mb-4 relative z-10">
+                      <span className={`p-2.5 rounded-xl bg-white shadow-sm border font-bold ${card.badgeBg}`}>
+                        <Icon size={18} />
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400 group-hover:text-indigo-500 transition-colors bg-slate-50 px-2 py-1 rounded-full border border-slate-100">
+                        {card.trend}
+                      </span>
+                    </div>
+
+                    <div className="relative z-10">
+                      <p className="text-3xl font-black text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
+                        {card.value}
+                      </p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        {card.title}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Quick Actions & Recent Activity - Left Column */}
+            <div className="lg:col-span-1 space-y-6">
+              
+              <div className="p-6 bg-white/70 backdrop-blur-xl rounded-3xl border border-white shadow-sm">
+                <h3 className="text-sm font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                  <Activity size={18} className="text-indigo-500" /> Recent Operations Activity
                 </h3>
-              </div>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Overseas deployment sites, manpower demand counts, and execution status.
-              </p>
-            </div>
-
-            <Link
-              to="/client/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              <span>View All Client Projects</span>
-              <ArrowRight size={13} />
-            </Link>
-          </div>
-
-          {projectsList.length === 0 ? (
-            <div className="p-8 text-center text-xs text-gray-500">
-              No projects registered yet. Create a client first, then add projects under that client.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
-                    <th className="py-3 px-4 sm:px-6">Project Name</th>
-                    <th className="py-3 px-4">Client Company</th>
-                    <th className="py-3 px-4">Country</th>
-                    <th className="py-3 px-4 text-center">Required Manpower</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Created Date</th>
-                    <th className="py-3 px-4 sm:px-6 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {projectsList.slice(0, 8).map((proj) => (
-                    <tr key={proj.id} className="hover:bg-blue-50/30 transition-colors">
-                      <td className="py-3.5 px-4 sm:px-6 font-bold text-gray-900">
-                        <Link
-                          to={`/client/clients/${proj.clientId}/projects/${proj.id}`}
-                          className="hover:text-blue-600 block"
-                        >
-                          {proj.projectName}
-                        </Link>
-                        <span className="text-[11px] text-gray-400 font-normal">
-                          {proj.projectType} • {proj.location}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 font-semibold text-gray-700">
-                        <Link
-                          to={`/client/clients/${proj.clientId}`}
-                          className="hover:text-blue-600"
-                        >
-                          {proj.clientName}
-                        </Link>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 text-gray-700 font-medium">
-                          <MapPin size={11} className="text-gray-400" />
-                          <span>{proj.country}</span>
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-black text-xs border border-blue-200/60">
-                          {proj.requiredManpower} Persons
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <StatusBadge status={proj.status} size="sm" />
-                      </td>
-
-                      <td className="py-3.5 px-4 text-gray-400 text-[11px]">
-                        {proj.createdAt}
-                      </td>
-
-                      <td className="py-3.5 px-4 sm:px-6 text-right">
-                        <Link
-                          to={`/client/clients/${proj.clientId}/projects/${proj.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-700 border border-gray-200 rounded-lg text-xs font-semibold transition-colors"
-                        >
-                          <span>View Details</span>
-                          <ArrowRight size={12} />
-                        </Link>
-                      </td>
-                    </tr>
+                <div className="space-y-4">
+                  {(stats.recentActivity || []).map((item, i) => (
+                    <div key={item.id} className="flex gap-3 relative">
+                      {i !== (stats.recentActivity || []).length - 1 && (
+                        <div className="absolute left-[11px] top-7 bottom-[-16px] w-0.5 bg-slate-100"></div>
+                      )}
+                      <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 z-10 mt-0.5">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800">{item.title}</h4>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{item.description}</p>
+                        <span className="text-[9px] font-bold text-slate-400 mt-1 block">{item.time}</span>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  {(!stats.recentActivity || stats.recentActivity.length === 0) && (
+                    <p className="text-xs text-slate-500 text-center py-4">No recent activity.</p>
+                  )}
+                </div>
+              </div>
 
-        {/* Dedicated Module Overviews: HR, Client, and Vendor Management */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* HR Overview (All employee workforce functionality is accessed here) */}
-          <div className="p-5 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col justify-between hover:border-blue-300 transition-colors">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-                    <Users size={18} />
-                  </span>
+              <div className="p-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl text-white shadow-xl relative overflow-hidden">
+                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                <h3 className="text-sm font-bold text-white mb-2">Manpower Requirements</h3>
+                <div className="flex items-end gap-2 mb-6">
+                  <span className="text-4xl font-black text-white">{stats.totalRequiredManpower}</span>
+                  <span className="text-xs text-slate-300 font-medium mb-1">Total Positions</span>
+                </div>
+                
+                <div className="space-y-3">
+                  <Link to="/client/clients/new" className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/10">
+                    <span className="text-xs font-bold">Onboard New Client</span>
+                    <Plus size={14} />
+                  </Link>
+                  <Link to="/client/projects/new" className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/10">
+                    <span className="text-xs font-bold">Create New Project</span>
+                    <Plus size={14} />
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Active Projects & Pipelines - Right 2 Columns */}
+            <div className="lg:col-span-2 space-y-6">
+              
+              <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-sm overflow-hidden flex flex-col h-full">
+                <div className="p-6 border-b border-slate-100/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900 leading-tight">
-                      Human Resources & Workforce
+                    <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+                      <FolderKanban size={20} className="text-indigo-600" />
+                      Active Projects Pipeline
                     </h3>
-                    <p className="text-[11px] text-gray-400">
-                      Employees, attendance, leaves, and staff onboarding
-                    </p>
+                    <p className="text-xs text-slate-500 mt-1">Live tracking of manpower deployment demands</p>
                   </div>
+                  <Link
+                    to="/client/projects"
+                    className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shrink-0"
+                  >
+                    View All Projects <ArrowRight size={14} />
+                  </Link>
                 </div>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-                  HR Module
-                </span>
-              </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 py-3 border-y border-gray-100 text-xs">
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Total Employees</span>
-                  <span className="font-black text-gray-900 text-base">{stats.totalEmployees}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Present Today</span>
-                  <span className="font-black text-emerald-600 text-base">{stats.presentToday}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">On Leave Today</span>
-                  <span className="font-black text-purple-600 text-base">{stats.onLeaveToday}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">New This Month</span>
-                  <span className="font-black text-blue-600 text-base">+{stats.newEmployeesThisMonth}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Pending Leaves</span>
-                  <span className="font-black text-rose-600 text-base">{stats.pendingLeaves}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Pending Documents</span>
-                  <span className="font-black text-amber-600 text-base">{stats.pendingDocuments}</span>
-                </div>
-              </div>
-            </div>
-
-            <Link
-              to="/admin/dashboard/workforce"
-              className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
-            >
-              <span>View HR Dashboard</span>
-              <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          {/* Client Overview */}
-          <div className="p-5 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col justify-between hover:border-emerald-300 transition-colors">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-                    <Building2 size={18} />
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 leading-tight">
-                      Client Management
-                    </h3>
-                    <p className="text-[11px] text-gray-400">
-                      Overseas clients, contracts, and deployment sites
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                  Client Module
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 py-3 border-y border-gray-100 text-xs">
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Total Clients</span>
-                  <span className="font-black text-gray-900 text-base">{stats.totalClients}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Active Clients</span>
-                  <span className="font-black text-emerald-600 text-base">{stats.activeClients}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Total Projects</span>
-                  <span className="font-black text-blue-600 text-base">{stats.totalProjects}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100 sm:col-span-2">
-                  <span className="text-[10px] text-gray-400 block font-medium">Required Manpower</span>
-                  <span className="font-black text-purple-600 text-base">{stats.totalRequiredManpower} Persons</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Requirements</span>
-                  <span className="font-black text-amber-600 text-base">{stats.activeRequirements}</span>
+                <div className="flex-1 overflow-x-auto p-2">
+                  {projectsList.length === 0 ? (
+                    <div className="p-12 text-center text-xs font-medium text-slate-500 flex flex-col items-center">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                        <FolderKanban size={24} className="text-slate-300" />
+                      </div>
+                      No active projects.
+                    </div>
+                  ) : (
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                          <th className="py-4 px-4">Project</th>
+                          <th className="py-4 px-4">Client</th>
+                          <th className="py-4 px-4 text-center">Positions</th>
+                          <th className="py-4 px-4">Status</th>
+                          <th className="py-4 px-4 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100/50">
+                        {projectsList.slice(0, 7).map((proj) => (
+                          <tr key={proj.id} className="hover:bg-slate-50/80 transition-colors group">
+                            <td className="py-3 px-4">
+                              <span className="font-extrabold text-slate-800 block group-hover:text-indigo-600 transition-colors">
+                                {proj.projectName}
+                              </span>
+                              <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <MapPin size={10} className="text-slate-400" /> {proj.country}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 font-bold text-slate-600">
+                              {proj.clientName}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="inline-flex items-center px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-[10px]">
+                                {proj.requiredManpower} Reqs
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <StatusBadge status={proj.status} size="sm" />
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <Link
+                                to={`/client/clients/${proj.clientId}/projects/${proj.id}`}
+                                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-colors ml-auto shadow-2xs"
+                              >
+                                <ArrowRight size={14} />
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
+              
             </div>
-
-            <div className="mt-4 flex items-center gap-2">
-              <Link
-                to="/client/clients/new"
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors cursor-pointer"
-              >
-                <Plus size={14} />
-                <span>Add Client</span>
-              </Link>
-
-              <Link
-                to="/client/dashboard"
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-500/25 transition-colors cursor-pointer"
-              >
-                <span>View Dashboard</span>
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Vendor Overview */}
-          <div className="p-5 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col justify-between hover:border-indigo-300 transition-colors">
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
-                    <Briefcase size={18} />
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 leading-tight">
-                      Vendor & Manpower Supply
-                    </h3>
-                    <p className="text-[11px] text-gray-400">
-                      Agency verification, candidate roster, and deployments
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
-                  Vendor Module
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 py-3 border-y border-gray-100 text-xs">
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Registered Agencies</span>
-                  <span className="font-black text-gray-900 text-base">3</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Pending Review</span>
-                  <span className="font-black text-amber-600 text-base">1 New</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Candidate Pool</span>
-                  <span className="font-black text-blue-600 text-base">128+</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100 sm:col-span-2">
-                  <span className="text-[10px] text-gray-400 block font-medium">Milestone Tracking</span>
-                  <span className="font-black text-emerald-600 text-base">8-Stage Stepper</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-gray-50/70 border border-gray-100">
-                  <span className="text-[10px] text-gray-400 block font-medium">Disbursements</span>
-                  <span className="font-black text-purple-600 text-base">Active</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center gap-2">
-              <Link
-                to="/admin/vendors"
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm shadow-indigo-500/25 transition-colors cursor-pointer"
-              >
-                <span>Manage Vendors & Candidates</span>
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Clients Snapshot */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-gray-900">Recent Clients</h3>
-              <p className="text-[11px] text-gray-400">Newly registered overseas organizations</p>
-            </div>
-            <Link
-              to="/client/clients"
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              <span>All Clients</span>
-              <ArrowRight size={12} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {recentClients.map((client) => (
-              <Link
-                key={client.id}
-                to={`/client/clients/${client.id}`}
-                className="p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-blue-50/40 hover:border-blue-200 transition-all block group"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-extrabold text-xs text-gray-900 group-hover:text-blue-600 truncate">
-                    {client.companyName}
-                  </span>
-                  <StatusBadge status={client.status} size="xs" />
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-gray-500">
-                  <span>{client.country}</span>
-                  <span className="font-bold text-gray-700">{client.projects?.length || 0} Projects</span>
-                </div>
-              </Link>
-            ))}
           </div>
         </div>
       </div>

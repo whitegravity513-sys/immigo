@@ -259,7 +259,7 @@ export default function Applications() {
                   <th className="py-3.5 px-4">Position</th>
                   <th className="py-3.5 px-4">Submitted Date</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Processing / Details</th>
+
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -320,61 +320,14 @@ export default function Applications() {
                         {getStatusBadge(app.status)}
                       </td>
 
-                      {/* Details / Rejection Reason / Processing / Interview */}
-                      <td className="py-4 px-4">
-                        {isRejected ? (
-                          <div className="max-w-[200px] text-xs text-rose-700 bg-rose-50/60 p-2 rounded-lg border border-rose-100">
-                            <span className="font-bold block text-[10px] uppercase tracking-wider text-rose-500">
-                              Reason:
-                            </span>
-                            <span className="line-clamp-2">
-                              {app.rejectionReason || "Criteria not met. Candidate available in pool."}
-                            </span>
-                          </div>
-                        ) : (app.status === "Interview" || app.interviewDetails) ? (
-                          <div className="max-w-[210px] text-xs bg-purple-50 p-2.5 rounded-xl border border-purple-200 text-purple-900 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-[10px] uppercase text-purple-700">Interview Scheduled</span>
-                              <span className="text-[10px] font-semibold text-purple-600 truncate max-w-[90px]">{app.interviewDetails?.dateTime || "Upcoming"}</span>
-                            </div>
-                            {app.interviewDetails?.meetingUrl && (
-                              <a
-                                href={app.interviewDetails.meetingUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-2 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] inline-flex items-center gap-1 transition shadow-2xs mt-1"
-                              >
-                                <ExternalLink size={12} />
-                                <span>Join Zoom / Meeting</span>
-                              </a>
-                            )}
-                          </div>
-                        ) : isSelected && app.processing ? (
-                          <div className="max-w-[190px]">
-                            <div className="flex items-center justify-between text-[11px] mb-1">
-                              <span className="text-slate-500 truncate">{currentStageName}</span>
-                              <span className="font-semibold text-indigo-600 ml-1">
-                                {stageIndex + 1}/8
-                              </span>
-                            </div>
-                            <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${((stageIndex + 1) / 8) * 100}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400 italic">Under review</span>
-                        )}
-                      </td>
+
 
                       {/* Actions */}
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {isSelected && (
                             <Link
-                              to={`/vendor/processing?appId=${app.id}`}
+                              to={`/vendor/candidates?candidateId=${app.candidateId}`}
                               className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs transition inline-flex items-center gap-1"
                               title="Track 8-Stage Processing Timeline"
                             >

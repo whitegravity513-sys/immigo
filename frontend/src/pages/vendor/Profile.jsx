@@ -257,9 +257,8 @@ export default function Profile() {
               <input
                 type="text"
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                required
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                disabled
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm font-medium"
               />
             </div>
 
@@ -270,9 +269,8 @@ export default function Profile() {
               <input
                 type="url"
                 value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                disabled
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm font-medium"
               />
             </div>
 
@@ -313,8 +311,8 @@ export default function Profile() {
                 <input
                   type="text"
                   value={contactPersonName}
-                  onChange={(e) => setContactPersonName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  disabled
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm"
                 />
               </div>
 
@@ -347,8 +345,8 @@ export default function Profile() {
               <input
                 type="text"
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                disabled
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm"
               />
             </div>
 
@@ -357,8 +355,8 @@ export default function Profile() {
               <input
                 type="text"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                disabled
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm"
               />
             </div>
 
@@ -367,8 +365,8 @@ export default function Profile() {
               <input
                 type="text"
                 value={state}
-                onChange={(e) => setState(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                disabled
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm"
               />
             </div>
 
@@ -377,8 +375,8 @@ export default function Profile() {
               <input
                 type="text"
                 value={specialization}
-                onChange={(e) => setSpecialization(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                disabled
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed text-sm"
               />
             </div>
           </div>

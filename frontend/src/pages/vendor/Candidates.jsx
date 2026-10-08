@@ -279,7 +279,7 @@ export function Candidates() {
                     <th className="py-3 px-4">Availability & Reusability</th>
                     <th className="py-3 px-4">Experience & Qual.</th>
                     <th className="py-3 px-4">Skills & Tags</th>
-                    <th className="py-3 px-4">Country & Salary</th>
+                    <th className="py-3 px-4">Pref. Country</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -289,11 +289,17 @@ export function Candidates() {
                       {/* Candidate Identity */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={c.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"}
-                            alt={c.fullName}
-                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0"
-                          />
+                          {c.photo ? (
+                            <img
+                              src={c.photo}
+                              alt={c.fullName}
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                              {c.fullName ? c.fullName.slice(0, 2).toUpperCase() : "CD"}
+                            </div>
+                          )}
                           <div className="min-w-0">
                             <Link
                               to={`/vendor/candidates/${c.id}`}
@@ -388,15 +394,12 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      {/* Preferred Country & Salary */}
+                      {/* Preferred Country */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1 font-medium text-slate-700">
                           <MapPin size={12} className="text-blue-500" />
                           <span>{c.preferredCountry || "Gulf"}</span>
                         </div>
-                        <span className="text-[11px] font-semibold text-slate-500 block mt-0.5">
-                          {c.salaryCurrency || "AED"} {c.expectedSalary || "1800"}/mo
-                        </span>
                       </td>
 
                       {/* Actions */}

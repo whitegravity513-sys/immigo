@@ -16,6 +16,13 @@ import {
   MapPin,
   Calendar,
   Sparkles,
+  Eye,
+  Briefcase,
+  FileText,
+  X,
+  Check,
+  ShieldCheck,
+  Globe,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 
@@ -64,7 +71,7 @@ export function VendorDashboard() {
   const CARDS = [
     {
       title: "Total Candidates",
-      value: stats?.totalCandidates ?? 128,
+      value: stats?.totalCandidates ?? 0,
       subtitle: "In your candidate pool",
       icon: Users,
       color: "blue",
@@ -72,7 +79,7 @@ export function VendorDashboard() {
     },
     {
       title: "Submitted",
-      value: stats?.submitted ?? 56,
+      value: stats?.submitted ?? 0,
       subtitle: "To client projects",
       icon: Send,
       color: "indigo",
@@ -80,7 +87,7 @@ export function VendorDashboard() {
     },
     {
       title: "Under Review",
-      value: stats?.underReview ?? 10,
+      value: stats?.underReview ?? 0,
       subtitle: "Awaiting client review",
       icon: Clock,
       color: "amber",
@@ -88,7 +95,7 @@ export function VendorDashboard() {
     },
     {
       title: "Selected",
-      value: stats?.selected ?? 21,
+      value: stats?.selected ?? 0,
       subtitle: "Hired for deployment",
       icon: CheckCircle2,
       color: "emerald",
@@ -96,7 +103,7 @@ export function VendorDashboard() {
     },
     {
       title: "Rejected",
-      value: stats?.rejected ?? 31,
+      value: stats?.rejected ?? 0,
       subtitle: "Reusable for other projects",
       icon: XCircle,
       color: "rose",
@@ -104,15 +111,15 @@ export function VendorDashboard() {
     },
     {
       title: "In Processing",
-      value: stats?.inProcessing ?? 14,
+      value: stats?.inProcessing ?? 0,
       subtitle: "Visa, medical & travel",
       icon: GitCommit,
       color: "purple",
-      to: "/vendor/processing",
+      to: "/vendor/candidates?tab=selected",
     },
     {
       title: "Completed",
-      value: stats?.completed ?? 7,
+      value: stats?.completed ?? 0,
       subtitle: "Deployed on site",
       icon: Award,
       color: "teal",
@@ -120,18 +127,98 @@ export function VendorDashboard() {
     },
   ];
 
+  // File Upload Logic
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Only PDF files are allowed.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size must be less than 2MB.");
+      return;
+    }
+
+    // Simulate upload and update vendor
+    try {
+      const updated = await crmVendorService.updateVendorDocuments(vendor.id, true);
+      // Reload page to reflect changes
+      window.location.reload();
+    } catch (err) {
+      alert("Failed to upload document.");
+    }
+  };
+
+  if (vendor?.status === "Pending") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6">
+          <Clock size={40} />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 mb-2">Account Pending Approval</h2>
+        <p className="text-slate-500 max-w-md">
+          Your vendor account registration is currently under review by our administration team. 
+          You will gain full access to the dashboard once your account is verified and approved.
+        </p>
+      </div>
+    );
+  }
+
+  if (vendor?.status === "Approved" && !vendor.documentsUploaded) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
+              Approved
+            </span>
+          </div>
+          <h2 className="text-base sm:text-lg font-black tracking-tight mt-1">
+            Welcome, {vendor?.companyName}
+          </h2>
+        </div>
+
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center max-w-3xl mx-auto mt-10">
+          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-rose-900 mb-2">Action Required: Upload Documents</h3>
+          <p className="text-rose-700 text-sm mb-6 max-w-md mx-auto">
+            To unlock your dashboard and start submitting candidates, you must upload your required KYC documents (Bank Details, PAN, etc.) as a single PDF.
+            <br/><br/>
+            <span className="font-bold">Max File Size: 2MB | Format: PDF</span>
+          </p>
+          
+          <label className="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer transition-colors">
+            <FileText size={18} />
+            <span>Select & Upload PDF</span>
+            <input 
+              type="file" 
+              accept="application/pdf" 
+              className="hidden" 
+              onChange={handleFileUpload}
+            />
+          </label>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 border border-blue-800/60">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-500/20 text-cyan-300 text-[10px] font-bold border border-cyan-400/20">
-              Verified Manpower Partner
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
+              Approved Partner
             </span>
           </div>
           <h2 className="text-base sm:text-lg font-black tracking-tight mt-1">
-            Welcome, {vendor?.companyName || "ABC Manpower Consultants"}
+            Welcome, {vendor?.companyName || vendor?.contactPersonName || "Vendor Partner"}
           </h2>
           <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 max-w-xl leading-snug">
             Manage your candidates, submit profiles to verified overseas employer projects, and track deployment milestones & payments.
@@ -183,105 +270,117 @@ export function VendorDashboard() {
         })}
       </div>
 
-      {/* Recent Candidate Activity (Section 7) */}
+      {/* Active Available Projects */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-              Recent Candidate Activity
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <FolderKanban size={16} className="text-blue-600" />
+              My Assigned Projects
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Live status updates for recent candidate project submissions.
+              Active projects accepting candidate submissions.
             </p>
           </div>
-          <Link
-            to="/vendor/applications"
-            className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
-          >
-            <span>View All</span>
-            <ArrowRight size={13} />
-          </Link>
         </div>
 
-        {/* Table view */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
               <tr>
-                <th className="py-3 px-4">Candidate Name</th>
-                <th className="py-3 px-4">Position</th>
-                <th className="py-3 px-4">Project</th>
+                <th className="py-3 px-4">Project Name</th>
+                <th className="py-3 px-4">Client</th>
                 <th className="py-3 px-4">Country</th>
-                <th className="py-3 px-4">Submitted Date</th>
-                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Trades / Roles</th>
+                <th className="py-3 px-4">Headcount Req.</th>
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(stats?.recentActivity || []).slice(0, 5).map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3 px-4 font-bold text-slate-900">
-                    <Link
-                      to={`/vendor/candidates/${row.candidateId}`}
-                      className="hover:text-blue-600 hover:underline"
-                    >
-                      {row.candidateName}
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4 text-slate-700 font-medium">
-                    {row.position}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate">
-                    {row.projectName}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin size={12} className="text-blue-500" />
-                      <span>{row.country}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-500">
-                    {row.submittedAt ? new Date(row.submittedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${getStatusBadge(
-                        row.status
-                      )}`}
-                    >
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
-                    <Link
-                      to={`/vendor/candidates/${row.candidateId}`}
-                      className="inline-flex items-center px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-[11px] transition-colors"
-                    >
-                      View
-                    </Link>
-                    {row.status === "Selected" && (
-                      <Link
-                        to="/vendor/processing"
-                        className="inline-flex items-center px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold text-[11px] transition-colors"
-                      >
-                        Track
-                      </Link>
-                    )}
+              {stats?.availableProjects && stats.availableProjects.length > 0 ? (
+                stats.availableProjects.map((proj) => {
+                  const trades = proj.manpowerRequirements || [];
+                  return (
+                    <tr key={proj.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-3 px-4 font-bold text-slate-900 truncate max-w-[200px]">
+                        <Link
+                          to={`/vendor/projects/${proj.id}`}
+                          className="hover:text-blue-600 hover:underline text-left font-bold transition-colors block truncate"
+                        >
+                          {proj.projectName}
+                        </Link>
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 truncate max-w-[150px]">
+                        {proj.clientName}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">
+                        <div className="flex items-center gap-1">
+                          <MapPin size={12} className="text-blue-500 shrink-0" />
+                          <span>{proj.country}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        {trades.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
+                            {trades.slice(0, 2).map((t, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70"
+                              >
+                                {t.position || t.positionTitle || "Role"}
+                                {t.quantity ? ` (${t.quantity})` : ""}
+                              </span>
+                            ))}
+                            {trades.length > 2 && (
+                              <Link
+                                to={`/vendor/projects/${proj.id}`}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 transition-colors"
+                              >
+                                +{trades.length - 2} more
+                              </Link>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">General / All Trades</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 font-semibold">
+                        <span className="inline-flex items-center gap-1">
+                          <Users size={12} className="text-slate-400" />
+                          <span>{proj.totalHeadcount || "N/A"}</span>
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            to={`/vendor/projects/${proj.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition-colors"
+                            title="View Full Project Details (New Page)"
+                          >
+                            <Eye size={12} className="text-slate-500" />
+                            <span>View</span>
+                          </Link>
+                          <Link
+                            to={`/vendor/submit-candidate?project=${proj.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-2xs transition-colors"
+                          >
+                            <Send size={11} />
+                            <span>Submit</span>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="6" className="py-6 text-center text-slate-500 italic text-xs">
+                    No active projects assigned to you at the moment.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
-        </div>
-
-        {/* See All Candidates Footer Bar */}
-        <div className="p-3 bg-slate-50/80 border-t border-slate-200/80 text-center">
-          <Link
-            to="/vendor/applications"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition"
-          >
-            <span>See All Candidate Submissions & Roster →</span>
-          </Link>
         </div>
       </div>
     </div>

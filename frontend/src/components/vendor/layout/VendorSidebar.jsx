@@ -15,20 +15,11 @@ import {
   LogOut,
   X,
   Building2,
+  ArrowRightLeft,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.jsx";
 
-const NAV_ITEMS = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
-  { label: "Candidates", icon: Users, path: "/vendor/candidates" },
-  { label: "Submit Candidate", icon: Send, path: "/vendor/submit-candidate" },
-  { label: "Applications", icon: FileCheck, path: "/vendor/applications" },
-  { label: "Selected Candidates", icon: CheckCircle2, path: "/vendor/selected", badge: "Selected" },
-  { label: "Rejected Candidates", icon: XCircle, path: "/vendor/rejected" },
-  { label: "Processing", icon: GitCommit, path: "/vendor/processing" },
-  { label: "Payments", icon: CreditCard, path: "/vendor/payments" },
-  { label: "Profile", icon: UserCheck, path: "/vendor/profile" },
-];
+import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
 
 export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
   const { logout } = useAuth();
@@ -42,6 +33,10 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
   const vendorName = vendor?.companyName || "Vendor Partner";
   const vendorId = vendor?.id || "VND-1001";
   const vendorLogo = vendor?.profileImage || vendor?.logo || vendor?.avatar || "";
+
+  const [candidatesMenuOpen, setCandidatesMenuOpen] = React.useState(true);
+  const [paymentsMenuOpen, setPaymentsMenuOpen] = React.useState(false);
+  const [projectsMenuOpen, setProjectsMenuOpen] = React.useState(true);
 
   const renderContent = () => (
     <div className="flex flex-col h-full bg-[#F3F7FC] text-slate-800 font-sans border-r border-blue-200/80">
@@ -100,34 +95,42 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
       {/* Navigation Items */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-          Recruitment & Operations
+        <NavLink to="/vendor/dashboard" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+          <LayoutDashboard size={16} /> <span>Dashboard</span>
+        </NavLink>
+
+
+
+        {/* CANDIDATES GROUP */}
+        <div className="space-y-0.5">
+          <button type="button" onClick={() => setCandidatesMenuOpen(!candidatesMenuOpen)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${window.location.pathname.includes('/candidates') || window.location.pathname.includes('/selected') || window.location.pathname.includes('/rejected') ? "bg-blue-600 text-white shadow-md" : "text-slate-700 hover:bg-blue-100/70"}`}>
+            <div className="flex items-center gap-2.5"><Users size={16} className={window.location.pathname.includes('/candidates') ? "text-white" : "text-slate-500"} /> <span>Candidates</span></div>
+            {candidatesMenuOpen ? <ChevronDown size={14} className={window.location.pathname.includes('/candidates') ? "text-white/80" : "text-slate-400"} /> : <ChevronRight size={14} className={window.location.pathname.includes('/candidates') ? "text-white/80" : "text-slate-400"} />}
+          </button>
+          {candidatesMenuOpen && (
+            <div className="ml-4 pl-3 border-l-2 border-blue-200/80 space-y-0.5 my-1">
+              <NavLink to="/vendor/candidates" end className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>My Candidates</NavLink>
+              <NavLink to="/vendor/candidates/assign" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Assign Candidate</NavLink>
+              <NavLink to="/vendor/selected" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Selected</NavLink>
+              <NavLink to="/vendor/rejected" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Rejected / Hold</NavLink>
+            </div>
+          )}
         </div>
 
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => {
-                if (window.innerWidth < 1024) setMobileOpen(false);
-              }}
-              className={({ isActive }) =>
-                `flex items-center justify-between px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-md font-extrabold"
-                    : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"
-                }`
-              }
-            >
-              <div className="flex items-center gap-2.5">
-                <Icon size={16} />
-                <span>{item.label}</span>
-              </div>
-            </NavLink>
-          );
-        })}
+        {/* PAYMENTS & REFUNDS DIRECT LINKS */}
+        <NavLink to="/vendor/payments" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+          <CreditCard size={16} className={window.location.pathname.includes('/payments') ? "text-white" : "text-slate-500"} /> <span>Payments</span>
+        </NavLink>
+        <NavLink to="/vendor/refunds" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+          <RotateCcw size={16} className={window.location.pathname.includes('/refunds') ? "text-white" : "text-slate-500"} /> <span>Refunds</span>
+        </NavLink>
+
+        <NavLink to="/vendor/documents" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+          <FileCheck size={16} className={window.location.pathname.includes('/documents') ? "text-white" : "text-slate-500"} /> <span>Documents / MOU</span>
+        </NavLink>
+        <NavLink to="/vendor/profile" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+          <UserCheck size={16} className={window.location.pathname.includes('/profile') ? "text-white" : "text-slate-500"} /> <span>Profile</span>
+        </NavLink>
       </nav>
 
       {/* Logout button at bottom - aligned with AppFooter */}
@@ -161,9 +164,8 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
       {/* Mobile slide-over drawer */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-in-out lg:hidden ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-in-out lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {renderContent()}
       </div>

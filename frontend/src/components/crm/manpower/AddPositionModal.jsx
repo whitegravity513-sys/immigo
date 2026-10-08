@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { X, Briefcase, Plus, Check } from "lucide-react";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
-import CurrencySelectField from "../ui/CurrencySelectField.jsx";
 const GENDERS = ["Any", "Male", "Female"];
 const QUALIFICATIONS = [
   "BE / B.Tech Civil",
@@ -149,7 +148,7 @@ export function AddPositionModal({
 
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-200">
-          <form onSubmit={handleSubmit}>
+          <div>
             {/* Modal Header */}
             <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -202,24 +201,28 @@ export function AddPositionModal({
                   helperText="Total headcount required for this trade"
                 />
 
-                <div className="grid grid-cols-2 gap-2">
-                  <InputField
-                    label="Salary"
-                    name="salary"
-                    type="number"
-                    min="0"
-                    value={formData.salary}
-                    onChange={handleChange}
-                    placeholder="e.g. 1800"
-                    error={errors.salary}
-                  />
-
-                  <CurrencySelectField
-                    label="Currency"
-                    name="currency"
-                    value={formData.currency}
-                    onChange={handleChange}
-                  />
+                <div className="flex gap-2">
+                  <div className="w-1/3">
+                    <SelectField
+                      label="Currency"
+                      name="currency"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      options={["AED", "SAR", "QAR", "OMR", "BHD", "KWD", "USD", "INR", "NPR"]}
+                    />
+                  </div>
+                  <div className="w-2/3">
+                    <InputField
+                      label="Basic Salary (Monthly)"
+                      name="salary"
+                      type="number"
+                      min="0"
+                      value={formData.salary}
+                      onChange={handleChange}
+                      placeholder="e.g. 1500"
+                      error={errors.salary}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -301,14 +304,15 @@ export function AddPositionModal({
                 Cancel
               </button>
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs focus:outline-none focus:ring-2 focus:ring-blue-600/30 transition-colors cursor-pointer"
               >
                 {initialData ? <Check size={16} /> : <Plus size={16} />}
                 <span>{initialData ? "Update Position" : "Add Position"}</span>
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

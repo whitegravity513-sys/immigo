@@ -9,15 +9,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import { crmClientService } from "../../../services/crmClientService";
 
 export default function AdminRejectedCandidates() {
   const [rejectedApps, setRejectedApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    loadRejected();
-  }, []);
 
   const loadRejected = async () => {
     try {
@@ -31,6 +28,10 @@ export default function AdminRejectedCandidates() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadRejected();
+  }, []);
 
   const filtered = rejectedApps.filter((app) => {
     if (!searchQuery.trim()) return true;
@@ -122,7 +123,7 @@ export default function AdminRejectedCandidates() {
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
-                          to={`/vendor/candidates/submit?candidateId=${app.candidateId}`}
+                          to={`/admin/vendor/reassign?appId=${app.id}`}
                           className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition inline-flex items-center gap-1 cursor-pointer"
                           title="Submit to Another Project"
                         >

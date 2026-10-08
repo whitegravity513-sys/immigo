@@ -60,9 +60,9 @@ export class EmployeeService {
       allocatedLeaves,
       leaveBalance,
       profileImage,
-      previousCompany,
       previousPackage,
       currentPackage,
+      monthlySalary,
       experience,
       documents,
     } = data;
@@ -156,6 +156,7 @@ export class EmployeeService {
       previousCompany: previousCompany ? previousCompany.trim() : "",
       previousPackage: previousPackage ? previousPackage.trim() : "",
       currentPackage: currentPackage ? currentPackage.trim() : "",
+      monthlySalary: monthlySalary ? Number(monthlySalary) : 0,
       experience: experience ? experience.trim() : "",
       emergencyContact: emergencyContact || { name: "", phone: "", relation: "" },
       joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
@@ -226,6 +227,7 @@ export class EmployeeService {
     if (previousCompany !== undefined) emp.previousCompany = previousCompany ? previousCompany.trim() : "";
     if (previousPackage !== undefined) emp.previousPackage = previousPackage ? previousPackage.trim() : "";
     if (currentPackage !== undefined) emp.currentPackage = currentPackage ? currentPackage.trim() : "";
+    if (monthlySalary !== undefined) emp.monthlySalary = Number(monthlySalary);
     if (experience !== undefined) emp.experience = experience ? experience.trim() : "";
     if (emergencyContact !== undefined) emp.emergencyContact = emergencyContact;
     if (joiningDate) emp.joiningDate = new Date(joiningDate);
@@ -621,6 +623,21 @@ export class EmployeeService {
       };
     });
 
+    const monthlySalary = emp.monthlySalary || 0;
+    const totalDaysInMonth = endDay;
+    const perDaySalary = totalDaysInMonth > 0 ? (monthlySalary / totalDaysInMonth) : 0;
+    
+    let holidayCount = 0;
+    let weeklyOffCount = 0;
+    dailyRecords.forEach(r => {
+      if (r.status === "Holiday") holidayCount++;
+      if (r.status === "Weekly Off") weeklyOffCount++;
+    });
+
+    // Final payable calculation
+    const paidDays = presentCount + (halfDayCount * 0.5) + totalLeaveDays + holidayCount + weeklyOffCount;
+    const earnedSalary = Math.round(paidDays * perDaySalary);
+
     const empObj = typeof emp.toObject === "function" ? emp.toObject() : emp;
     return {
       employee: {
@@ -646,6 +663,10 @@ export class EmployeeService {
         totalWorkHours: fmtHours(totalWorkSecondsAll),
         totalBreakHours: fmtHours(totalBreakSecondsAll),
         averageWorkHoursPerDay: fmtHours(avgSecondsPerDay),
+        monthlySalary: monthlySalary,
+        perDaySalary: perDaySalary,
+        earnedSalary: earnedSalary,
+        paidDays: paidDays,
       },
       leaves: formattedLeaves,
       dailyRecords: dailyRecords.reverse(),

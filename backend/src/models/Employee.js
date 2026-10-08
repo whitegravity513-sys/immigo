@@ -107,6 +107,10 @@ const employeeSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    monthlySalary: {
+      type: Number,
+      default: 0,
+    },
     experience: {
       type: String,
       default: "",

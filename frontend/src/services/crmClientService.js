@@ -1,7 +1,7 @@
 // Service layer for Foreign Manpower Supply Client Management CRM
 import { initialClients } from "../data/mockClients.js";
 
-const STORAGE_KEY = "crm_clients_data_v1";
+const STORAGE_KEY = "crm_clients_data_v3";
 
 // Internal helper to get all clients from localStorage or initialize with mock data
 const loadClientsFromStorage = () => {
@@ -16,9 +16,8 @@ const loadClientsFromStorage = () => {
   } catch (err) {
     console.error("Error reading clients from storage:", err);
   }
-  // Initialize with initialClients
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(initialClients));
-  return initialClients;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+  return [];
 };
 
 // Internal helper to save clients

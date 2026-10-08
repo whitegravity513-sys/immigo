@@ -21,8 +21,11 @@ import {
   ExternalLink,
   X,
   Camera,
+  User,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
+import refundService from "../../modules/vendor/services/refundService.js";
+import CandidateProcessTimeline from "../../components/crm/vendor/CandidateProcessTimeline.jsx";
 
 export function CandidateDetails() {
   const { id } = useParams();
@@ -31,6 +34,9 @@ export function CandidateDetails() {
   const [loading, setLoading] = useState(true);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [updatingPhoto, setUpdatingPhoto] = useState(false);
+  const [refundModal, setRefundModal] = useState(null);
+  const [refundForm, setRefundForm] = useState({ reason: "", documentPath: "" });
+  const [refundSubmitting, setRefundSubmitting] = useState(false);
 
   useEffect(() => {
     loadCandidate();
@@ -71,6 +77,32 @@ export function CandidateDetails() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRequestRefund = async () => {
+    if (!refundForm.reason.trim()) {
+      alert("Please provide a reason for the refund.");
+      return;
+    }
+    setRefundSubmitting(true);
+    try {
+      await refundService.requestRefund({
+        applicationId: refundModal.app.id,
+        candidateId: candidate.id,
+        candidateName: candidate.fullName,
+        vendorId: candidate.vendorId,
+        projectName: refundModal.app.projectName,
+        reason: refundForm.reason,
+        documentPath: refundForm.documentPath || "",
+      });
+      alert("Refund request submitted successfully!");
+      setRefundModal(null);
+      setRefundForm({ reason: "", documentPath: "" });
+    } catch (err) {
+      alert(err.message || "Failed to submit refund request.");
+    } finally {
+      setRefundSubmitting(false);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -144,14 +176,17 @@ export function CandidateDetails() {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative group shrink-0">
-            <img
-              src={
-                candidate.photo ||
-                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
-              }
-              alt={candidate.fullName}
-              className="w-24 h-24 rounded-2xl object-cover border border-slate-200 shadow-sm"
-            />
+            {candidate.photo ? (
+              <img
+                src={candidate.photo}
+                alt={candidate.fullName}
+                className="w-24 h-24 rounded-2xl object-cover border border-slate-200 shadow-sm"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-slate-400">
+                <User size={32} />
+              </div>
+            )}
             <label className="absolute inset-0 rounded-2xl bg-slate-900/50 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-[10px] font-bold cursor-pointer backdrop-blur-xs">
               <Camera size={20} className="mb-0.5" />
               <span>{updatingPhoto ? "Uploading..." : "Change Photo"}</span>
@@ -285,12 +320,6 @@ export function CandidateDetails() {
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Previous Company:</span>
               <span className="font-semibold text-slate-800">{candidate.previousCompany || "—"}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Expected Monthly Salary:</span>
-              <span className="font-bold text-emerald-700">
-                {candidate.salaryCurrency || "AED"} {candidate.expectedSalary || "1800"}
-              </span>
             </div>
             <div className="pt-1">
               <span className="text-slate-400 block mb-1">Key Skills:</span>
@@ -434,6 +463,15 @@ export function CandidateDetails() {
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
+                {paidAmount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setRefundModal({ app: selectedAppWithPlan })}
+                    className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                  >
+                    Request Refund
+                  </button>
+                )}
                 <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold">
                   Progress: {progressPct}% Released
                 </span>
@@ -587,17 +625,11 @@ export function CandidateDetails() {
                   )}
 
                   {/* If Selected, show processing milestone prompt */}
-                  {app.status === "Selected" && (
-                    <div className="mt-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-[11px] flex items-center justify-between">
-                      <span>Selection confirmed on {app.selectionDate ? new Date(app.selectionDate).toLocaleDateString("en-GB") : "Recently"}. Processing timeline active.</span>
-                      <Link
-                        to="/vendor/processing"
-                        className="font-bold text-emerald-900 underline ml-2 shrink-0"
-                      >
-                        View Timeline →
-                      </Link>
+                  {app.status === "Selected" || app.status === "Processing" || app.status === "Completed" ? (
+                    <div className="mt-1.5 pt-3 border-t border-slate-100">
+                      <CandidateProcessTimeline application={app} isAdmin={false} onUpdate={loadCandidate} />
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
@@ -687,6 +719,67 @@ export function CandidateDetails() {
               >
                 Close Preview
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refund Request Modal */}
+      {refundModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <h3 className="text-lg font-black text-slate-900 mb-2">Request Refund</h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Submit a refund request for candidate <strong>{candidate.fullName}</strong>. Admin will review this request.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Reason for Refund <span className="text-rose-500">*</span></label>
+                <textarea
+                  value={refundForm.reason}
+                  onChange={(e) => setRefundForm({ ...refundForm, reason: e.target.value })}
+                  placeholder="e.g. Candidate failed medical after deployment, absconded..."
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Supporting Document (Optional)</label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      if (file.type !== "application/pdf") return alert("Only PDF files allowed.");
+                      if (file.size > 2 * 1024 * 1024) return alert("File must be under 2MB.");
+                      setRefundForm({ ...refundForm, documentPath: file.name });
+                    }
+                  }}
+                  className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+                {refundForm.documentPath && <p className="text-[10px] text-emerald-600 mt-1">Attached: {refundForm.documentPath}</p>}
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRefundModal(null);
+                    setRefundForm({ reason: "", documentPath: "" });
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRequestRefund}
+                  disabled={refundSubmitting}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors disabled:opacity-60"
+                >
+                  {refundSubmitting ? "Submitting..." : "Submit Request"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

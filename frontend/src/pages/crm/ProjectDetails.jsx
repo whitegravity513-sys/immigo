@@ -99,15 +99,22 @@ export function ProjectDetails() {
 
   return (
     <div className="space-y-6">
-      {/* Back button */}
-      <div>
+      {/* Attractive Back Navigation & Breadcrumbs */}
+      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
         <Link
           to="/client/projects"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 rounded-lg transition-colors"
         >
-          <ArrowLeft size={14} />
-          <span>Back to All Projects</span>
+          <ArrowLeft size={16} />
+          <span>Back to Project Management</span>
         </Link>
+        <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-500">
+          <Link to="/client/dashboard" className="hover:text-blue-600 transition-colors">Dashboard</Link>
+          <span className="text-gray-300">/</span>
+          <Link to="/client/projects" className="hover:text-blue-600 transition-colors">Projects</Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-900 font-bold">Project Details</span>
+        </div>
       </div>
 
       {/* Project Header */}

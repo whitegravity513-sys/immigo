@@ -23,6 +23,7 @@ import {
   Search,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import CandidateProcessTimeline from "../../../components/crm/vendor/CandidateProcessTimeline";
 
 export default function AdminProcessingList() {
   const [searchParams] = useSearchParams();
@@ -61,32 +62,10 @@ export default function AdminProcessingList() {
     }
   };
 
-  const stageMeta = [
-    { key: "selected", name: "1. Candidate Selected", icon: UserCheck, desc: "Client selection confirmed" },
-    { key: "docs_pending", name: "2. Documents Pending", icon: Clock, desc: "Gathering attested documents & police clearance" },
-    { key: "docs_verified", name: "3. Documents Verified", icon: FileCheck, desc: "Embassy attestation & MOFA validation" },
-    { key: "medical", name: "4. Medical (GAMCA)", icon: Stethoscope, desc: "GAMCA Fit certificate issued" },
-    { key: "visa", name: "5. Visa Processing", icon: Building, desc: "Work / Residence visa stamped" },
-    { key: "ticket", name: "6. Ticket / Travel", icon: Plane, desc: "Flight ticket issued" },
-    { key: "deployed", name: "7. Deployed on Site", icon: Building2, desc: "Arrived & mobilized on site camp" },
-    { key: "completed", name: "8. Processing Completed", icon: CheckCircle2, desc: "Deployment phase fully completed" },
-  ];
+  // Remove old fixed stageMeta and old update stage handlers since we're using the new Timeline
 
-  const handleUpdateStage = async () => {
-    if (!selectedApp) return;
-    try {
-      const updated = await crmVendorService.updateProcessingStage(
-        selectedApp.id,
-        Number(targetStageIdx),
-        stageRemarks
-      );
-      setShowStageModal(false);
-      setStageRemarks("");
-      setSelectedApp({ ...selectedApp, ...updated });
-      loadData();
-    } catch (err) {
-      alert(err.message);
-    }
+  const handleTimelineUpdate = () => {
+    loadData();
   };
 
   const filteredApps = applications.filter((app) => {
@@ -153,184 +132,31 @@ export default function AdminProcessingList() {
                 </p>
               </div>
             </div>
-
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setTargetStageIdx(Math.min(7, currentStageIndex + 1));
-                  setStageRemarks("");
-                  setShowStageModal(true);
-                }}
-                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-2 cursor-pointer"
-              >
-                <Edit3 size={15} />
-                <span>Update Deployment Stage</span>
-              </button>
             </div>
           </div>
-
-          {/* Stepper Overview Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 text-center">
-            {stageMeta.map((sm, idx) => {
-              const isDone = idx < currentStageIndex || stages[idx]?.status === "completed";
-              const isCurrent = idx === currentStageIndex && stages[idx]?.status !== "completed";
-
-              return (
-                <div
-                  key={sm.key}
-                  onClick={() => {
-                    setTargetStageIdx(idx);
-                    setShowStageModal(true);
-                  }}
-                  className={`p-2.5 rounded-xl border text-xs cursor-pointer transition ${
-                    isCurrent
-                      ? "bg-indigo-600 text-white border-indigo-600 font-bold shadow-xs"
-                      : isDone
-                      ? "bg-emerald-50 text-emerald-800 border-emerald-200 font-semibold"
-                      : "bg-slate-50 text-slate-500 border-slate-200"
-                  }`}
-                >
-                  <span className="text-[10px] block font-mono">Stage {idx + 1}</span>
-                  <span className="truncate block font-bold text-[11px] mt-0.5">{sm.name.split(". ")[1]}</span>
-                </div>
-              );
-            })}
-          </div>
+          {/* Stepper Overview Bar removed as it is replaced by CandidateProcessTimeline */}
         </div>
 
-        {/* 8-STAGE INTERACTIVE MOBILIZATION TIMELINE */}
+        {/* CANDIDATE PROCESS TIMELINE */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Clock size={18} className="text-indigo-600" />
-              <span>Full 8-Stage Deployment Mobilization Stepper</span>
+              <span>Project-wise Candidate Processing Timeline</span>
             </h2>
-            <span className="text-xs text-slate-400 font-medium">Click any stage to update status & remarks</span>
+            <span className="text-xs text-slate-400 font-medium">Approve stages & payments</span>
           </div>
 
-          <div className="space-y-3">
-            {stageMeta.map((meta, idx) => {
-              const isDone = idx < currentStageIndex || stages[idx]?.status === "completed";
-              const isCurrent = idx === currentStageIndex && stages[idx]?.status !== "completed";
-              const stgData = stages[idx] || {};
-
-              return (
-                <div
-                  key={meta.key}
-                  className={`p-4 rounded-2xl border transition flex items-start justify-between gap-4 ${
-                    isCurrent
-                      ? "bg-indigo-50/70 border-indigo-300 shadow-xs"
-                      : isDone
-                      ? "bg-emerald-50/30 border-emerald-200"
-                      : "bg-slate-50/50 border-slate-200 opacity-70"
-                  }`}
-                >
-                  <div className="flex items-start gap-3.5 flex-1">
-                    <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
-                        isDone
-                          ? "bg-emerald-600 text-white"
-                          : isCurrent
-                          ? "bg-indigo-600 text-white ring-4 ring-indigo-100"
-                          : "bg-slate-200 text-slate-500"
-                      }`}
-                    >
-                      {isDone ? <Check size={16} /> : idx + 1}
-                    </div>
-
-                    <div>
-                      <h3 className={`text-xs font-bold ${isCurrent ? "text-indigo-950" : "text-slate-900"}`}>
-                        {meta.name}
-                      </h3>
-                      <p className="text-[11px] text-slate-500 mt-0.5">{meta.desc}</p>
-
-                      {stgData.note && (
-                        <div className="mt-2 p-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 font-semibold shadow-2xs">
-                          <strong>Admin Remark:</strong> {stgData.note}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[11px] font-mono font-semibold text-slate-500">
-                      {stgData.date || "Pending"}
-                    </span>
-
-                    <button
-                      onClick={() => {
-                        setTargetStageIdx(idx);
-                        setStageRemarks(stgData.note || "");
-                        setShowStageModal(true);
-                      }}
-                      className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer flex items-center gap-1"
-                    >
-                      <Edit3 size={13} />
-                      <span>Update Stage</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <CandidateProcessTimeline 
+            application={selectedApp} 
+            isAdmin={true} 
+            onUpdate={handleTimelineUpdate} 
+          />
         </div>
 
-        {/* STAGE UPDATE MODAL */}
-        {showStageModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-              <h3 className="text-base font-bold text-slate-900">Update Processing Stage</h3>
-              <p className="text-xs text-slate-500">
-                Candidate: <strong>{selectedApp.candidateName}</strong> ({selectedApp.position})
-              </p>
+        {/* STAGE UPDATE MODAL removed */}
 
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Select Stage:</label>
-                  <select
-                    value={targetStageIdx}
-                    onChange={(e) => setTargetStageIdx(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs"
-                  >
-                    {stageMeta.map((m, idx) => (
-                      <option key={m.key} value={idx}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Operational Remarks / Note:</label>
-                  <input
-                    type="text"
-                    value={stageRemarks}
-                    onChange={(e) => setStageRemarks(e.target.value)}
-                    placeholder="e.g. Medical GAMCA fit certificate verified and issued..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-indigo-600 text-xs font-semibold"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowStageModal(false)}
-                  className="py-2 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleUpdateStage}
-                  className="py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer"
-                >
-                  Save Stage Update
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -397,9 +223,6 @@ export default function AdminProcessingList() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredApps.map((app) => {
-                  const stageIdx = app.processing?.currentStageIndex ?? 0;
-                  const stageName = stageMeta[stageIdx]?.name || "1. Selected";
-
                   return (
                     <tr
                       key={app.id}
@@ -419,7 +242,7 @@ export default function AdminProcessingList() {
                       <td className="py-4 px-4">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
                           <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                          {stageName} ({stageIdx + 1}/8)
+                          Processing
                         </span>
                       </td>
 
@@ -429,7 +252,7 @@ export default function AdminProcessingList() {
                           className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer ml-auto"
                         >
                           <Edit3 size={14} />
-                          <span>Update Status (Full Page)</span>
+                          <span>View Timeline</span>
                         </button>
                       </td>
                     </tr>

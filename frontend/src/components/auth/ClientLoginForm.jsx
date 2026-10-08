@@ -33,7 +33,7 @@ export default function ClientLoginForm({ onLoginSuccess, onForgotPassword }) {
 
     try {
       const cleanId = identifier.trim();
-      const clientsData = JSON.parse(localStorage.getItem("immigo_crm_clients_v1") || "[]");
+      const clientsData = JSON.parse(localStorage.getItem("crm_clients_data_v2") || "[]");
       const client = clientsData.find(
         (c) =>
           c.email?.toLowerCase() === cleanId.toLowerCase() ||

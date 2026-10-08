@@ -30,6 +30,7 @@ const CrmEditClient = lazy(() => import("../pages/crm/EditClient.jsx"));
 const CrmProjectDetails = lazy(() => import("../pages/crm/ProjectDetails.jsx"));
 const CrmProjects = lazy(() => import("../pages/crm/Projects.jsx"));
 const CrmAddProject = lazy(() => import("../pages/crm/AddProject.jsx"));
+const CrmEditProject = lazy(() => import("../pages/crm/EditProject.jsx"));
 
 // 5. Vendor Module
 const VendorLogin = lazy(() => import("../pages/vendor/VendorLogin.jsx"));
@@ -44,9 +45,15 @@ const VendorApplications = lazy(() => import("../pages/vendor/Applications.jsx")
 const VendorSelectedCandidates = lazy(() => import("../pages/vendor/SelectedCandidates.jsx"));
 const VendorRejectedCandidates = lazy(() => import("../pages/vendor/RejectedCandidates.jsx"));
 const VendorProcessingTimeline = lazy(() => import("../pages/vendor/ProcessingTimeline.jsx"));
+const VendorProcessingDetails = lazy(() => import("../pages/vendor/VendorProcessingDetails.jsx"));
 const VendorPayments = lazy(() => import("../pages/vendor/Payments.jsx"));
+const VendorPaymentHistory = lazy(() => import("../pages/vendor/PaymentHistory.jsx"));
 const VendorDocuments = lazy(() => import("../pages/vendor/Documents.jsx"));
 const VendorProfile = lazy(() => import("../pages/vendor/Profile.jsx"));
+const VendorProjectDetails = lazy(() => import("../pages/vendor/VendorProjectDetails.jsx"));
+const VendorEditCandidate = lazy(() => import("../pages/vendor/EditCandidate.jsx"));
+const VendorRefunds = lazy(() => import("../pages/vendor/VendorRefunds.jsx"));
+const VendorNewRefund = lazy(() => import("../pages/vendor/VendorNewRefund.jsx"));
 
 // Admin Vendor Management Module
 const VendorManagementLayout = lazy(() => import("../components/admin/layout/VendorManagementLayout.jsx"));
@@ -56,8 +63,11 @@ const AdminCandidatesList = lazy(() => import("../pages/admin/vendor/AdminCandid
 const AdminSubmissionsList = lazy(() => import("../pages/admin/vendor/AdminSubmissionsList.jsx"));
 const AdminSelectedCandidates = lazy(() => import("../pages/admin/vendor/AdminSelectedCandidates.jsx"));
 const AdminRejectedCandidates = lazy(() => import("../pages/admin/vendor/AdminRejectedCandidates.jsx"));
+const AdminReassignCandidate = lazy(() => import("../pages/admin/vendor/AdminReassignCandidate.jsx"));
+const AdminCandidateMilestones = lazy(() => import("../pages/admin/vendor/AdminCandidateMilestones.jsx"));
 const AdminProcessingList = lazy(() => import("../pages/admin/vendor/AdminProcessingList.jsx"));
 const AdminPaymentsList = lazy(() => import("../pages/admin/vendor/AdminPaymentsList.jsx"));
+const AdminPaymentHistory = lazy(() => import("../pages/admin/vendor/AdminPaymentHistory.jsx"));
 const AdminMilestonesList = lazy(() => import("../pages/admin/vendor/AdminMilestonesList.jsx"));
 const AdminDocumentsList = lazy(() => import("../pages/admin/vendor/AdminDocumentsList.jsx"));
 const AdminRefundsList = lazy(() => import("../pages/admin/vendor/AdminRefundsList.jsx"));
@@ -254,6 +264,20 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/client/clients/:clientId/projects/:projectId/edit"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ProjectLayout
+                title="Edit Project"
+                subtitle="Modify project and manpower allocations."
+                breadcrumbs={[{ label: "Projects", to: "/client/projects" }, { label: "Edit Project" }]}
+              >
+                <CrmEditProject />
+              </ProjectLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/client/projects/:projectId"
           element={
             <ProtectedRoute allowedRole="admin">
@@ -397,10 +421,13 @@ export default function AppRoutes() {
           <Route path="submissions" element={<AdminSubmissionsList />} />
           <Route path="selected" element={<AdminSelectedCandidates />} />
           <Route path="rejected" element={<AdminRejectedCandidates />} />
+          <Route path="reassign" element={<AdminReassignCandidate />} />
           <Route path="processing" element={<AdminProcessingList />} />
           <Route path="payments" element={<AdminPaymentsList />} />
+          <Route path="payments/:appId" element={<AdminPaymentHistory />} />
           <Route path="refunds" element={<AdminRefundsList />} />
           <Route path="milestones" element={<AdminMilestonesList />} />
+          <Route path="milestones-manage" element={<AdminCandidateMilestones />} />
           <Route path="documents" element={<AdminDocumentsList />} />
         </Route>
 
@@ -417,17 +444,25 @@ export default function AppRoutes() {
         >
           <Route index element={<Navigate to="/vendor/dashboard" replace />} />
           <Route path="dashboard" element={<VendorDashboard />} />
+          <Route path="projects/:id" element={<VendorProjectDetails />} />
           <Route path="candidates" element={<VendorCandidates />} />
           <Route path="candidates/add" element={<VendorAddCandidate />} />
           <Route path="candidates/new" element={<VendorAddCandidate />} />
+          <Route path="candidates/assign" element={<VendorSubmitCandidate />} />
+          <Route path="assign-candidate" element={<VendorSubmitCandidate />} />
           <Route path="candidates/submit" element={<VendorSubmitCandidate />} />
           <Route path="submit-candidate" element={<VendorSubmitCandidate />} />
           <Route path="candidates/:id" element={<VendorCandidateDetails />} />
+          <Route path="candidates/edit/:id" element={<VendorEditCandidate />} />
           <Route path="applications" element={<VendorApplications />} />
           <Route path="selected" element={<VendorSelectedCandidates />} />
           <Route path="rejected" element={<VendorRejectedCandidates />} />
           <Route path="processing" element={<VendorProcessingTimeline />} />
+          <Route path="processing/:appId" element={<VendorProcessingDetails />} />
           <Route path="payments" element={<VendorPayments />} />
+          <Route path="payments/:appId" element={<VendorPaymentHistory />} />
+          <Route path="refunds" element={<VendorRefunds />} />
+          <Route path="refunds/new" element={<VendorNewRefund />} />
           <Route path="documents" element={<VendorDocuments />} />
           <Route path="profile" element={<VendorProfile />} />
         </Route>

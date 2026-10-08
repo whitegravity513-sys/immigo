@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Building2,
   Search,
@@ -80,8 +81,35 @@ export default function AdminVendorsList() {
     panDocName: "",
   });
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Filters State for All Vendors Table
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const tabParam = new URLSearchParams(window.location.search).get("tab");
+    if (tabParam === "pending") return "Pending Verification";
+    if (tabParam === "mou") return "MOU Pending";
+    if (tabParam === "approved") return "Approved";
+    if (tabParam === "rejected") return "Rejected";
+    if (tabParam === "suspended") return "Suspended";
+    return "All";
+  });
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "pending") {
+      setStatusFilter("Pending Verification");
+    } else if (tabParam === "mou") {
+      setStatusFilter("MOU Pending");
+    } else if (tabParam === "approved") {
+      setStatusFilter("Approved");
+    } else if (tabParam === "rejected") {
+      setStatusFilter("Rejected");
+    } else if (tabParam === "suspended") {
+      setStatusFilter("Suspended");
+    } else if (tabParam === "all") {
+      setStatusFilter("All");
+    }
+  }, [searchParams]);
   const [searchQuery, setSearchQuery] = useState("");
   const [stateFilter, setStateFilter] = useState("All");
   const [cityFilter, setCityFilter] = useState("All");
@@ -295,8 +323,22 @@ export default function AdminVendorsList() {
       if (selectedVendor && selectedVendor.id === vendorId) {
         setSelectedVendor((prev) => ({ ...prev, status: "Approved" }));
       }
+      alert("Vendor approved successfully. Verification link and login credentials have been sent to their registered email.");
     } catch (err) {
       alert(err.message);
+    }
+  };
+
+  const handleVerifyMOU = async (vendorId) => {
+    try {
+      await crmVendorService.signOrVerifyMOU(vendorId, "Approved");
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({ ...prev, mouSigned: true, mouStatus: "Approved" }));
+      }
+      alert("Vendor MOU verified and approved successfully!");
+    } catch (err) {
+      alert(err.message || "Failed to verify MOU");
     }
   };
 
@@ -492,6 +534,12 @@ export default function AdminVendorsList() {
   const filteredVendors = vendors.filter((v) => {
     if (statusFilter === "Pending Verification") {
       if (v.status !== "Pending") return false;
+    } else if (statusFilter === "MOU Pending") {
+      const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected";
+      if (!isMouPending) return false;
+    } else if (statusFilter === "Approved") {
+      const isMouComplete = v.mouSigned === true || v.mouStatus === "Approved";
+      if (v.status !== "Approved" || !isMouComplete) return false;
     } else if (statusFilter !== "All" && v.status !== statusFilter) {
       return false;
     }
@@ -1148,11 +1196,8 @@ export default function AdminVendorsList() {
               <div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Statutory Documents Vault
-                  </h1>
-                  <span className="font-mono text-xs font-extrabold px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg">
                     {selectedVendor.companyName}
-                  </span>
+                  </h1>
                   {getStatusBadge(selectedVendor.status)}
                 </div>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
@@ -1591,25 +1636,37 @@ export default function AdminVendorsList() {
 
           {/* Status Filter Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
-            {["All", "Pending Verification", "Approved", "Rejected", "Suspended"].map((tab) => {
+            {[
+              { id: "All", label: "All Vendors", tabKey: "all" },
+              { id: "Pending Verification", label: "Pending Verification", tabKey: "pending" },
+              { id: "MOU Pending", label: "MOU Pending", tabKey: "mou" },
+              { id: "Approved", label: "Approved Vendors", tabKey: "approved" },
+              { id: "Rejected", label: "Rejected", tabKey: "rejected" },
+              { id: "Suspended", label: "Suspended", tabKey: "suspended" },
+            ].map((tab) => {
               const count = vendors.filter((v) => {
-                if (tab === "Pending Verification") return v.status === "Pending";
-                if (tab === "All") return true;
-                return v.status === tab;
+                if (tab.id === "Pending Verification") return v.status === "Pending";
+                if (tab.id === "MOU Pending") return (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected";
+                if (tab.id === "Approved") return v.status === "Approved" && (v.mouSigned || v.mouStatus === "Approved");
+                if (tab.id === "All") return true;
+                return v.status === tab.id;
               }).length;
 
-              const isTabActive = statusFilter === tab;
+              const isTabActive = statusFilter === tab.id;
               return (
                 <button
-                  key={tab}
-                  onClick={() => setStatusFilter(tab)}
+                  key={tab.id}
+                  onClick={() => {
+                    setStatusFilter(tab.id);
+                    setSearchParams(tab.tabKey === "all" ? {} : { tab: tab.tabKey });
+                  }}
                   className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                     isTabActive
                       ? "bg-slate-900 text-white shadow-xs"
                       : "text-slate-600 hover:bg-slate-100 bg-slate-50"
                   }`}
                 >
-                  <span>{tab}</span>
+                  <span>{tab.label}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                       isTabActive ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
@@ -2162,7 +2219,7 @@ export default function AdminVendorsList() {
                   <div>
                     <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                       <span>Trade License / Reg Cert Doc</span>
-                      <span className="text-[10px] text-slate-400 font-normal">PDF, JPG, PNG</span>
+                      <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -2177,11 +2234,15 @@ export default function AdminVendorsList() {
                         <span>Upload</span>
                         <input
                           type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".pdf"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.type !== "application/pdf") {
+                                alert("Please upload a PDF file.");
+                                return;
+                              }
                               setNewVendorForm((prev) => ({ ...prev, tradeLicenseDocName: file.name }));
                             }
                           }}
@@ -2193,7 +2254,7 @@ export default function AdminVendorsList() {
                   <div>
                     <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                       <span>Recruitment License Document</span>
-                      <span className="text-[10px] text-slate-400 font-normal">PDF, JPG, PNG</span>
+                      <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -2208,11 +2269,15 @@ export default function AdminVendorsList() {
                         <span>Upload</span>
                         <input
                           type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".pdf"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.type !== "application/pdf") {
+                                alert("Please upload a PDF file.");
+                                return;
+                              }
                               setNewVendorForm((prev) => ({ ...prev, recruitmentLicenseDocName: file.name }));
                             }
                           }}
@@ -2226,7 +2291,7 @@ export default function AdminVendorsList() {
                   <div>
                     <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                       <span>GST Certificate Document</span>
-                      <span className="text-[10px] text-slate-400 font-normal">PDF, JPG, PNG</span>
+                      <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -2241,11 +2306,15 @@ export default function AdminVendorsList() {
                         <span>Upload</span>
                         <input
                           type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".pdf"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.type !== "application/pdf") {
+                                alert("Please upload a PDF file.");
+                                return;
+                              }
                               setNewVendorForm((prev) => ({ ...prev, gstDocName: file.name }));
                             }
                           }}
@@ -2256,12 +2325,13 @@ export default function AdminVendorsList() {
 
                   <div>
                     <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                      <span>PAN Card Copy Document</span>
-                      <span className="text-[10px] text-slate-400 font-normal">PDF, JPG, PNG</span>
+                      <span>PAN Card Copy Document <span className="text-rose-500">*</span></span>
+                      <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
                     </label>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
+                        required
                         value={newVendorForm.panDocName}
                         onChange={(e) => setNewVendorForm({ ...newVendorForm, panDocName: e.target.value })}
                         placeholder="PAN_Card_Copy.pdf"
@@ -2272,11 +2342,15 @@ export default function AdminVendorsList() {
                         <span>Upload</span>
                         <input
                           type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".pdf"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.type !== "application/pdf") {
+                                alert("Please upload a PDF file.");
+                                return;
+                              }
                               setNewVendorForm((prev) => ({ ...prev, panDocName: file.name }));
                             }
                           }}

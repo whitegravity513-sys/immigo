@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Users,
   Search,
@@ -26,17 +27,88 @@ import {
   Milestone,
   MoreVertical,
   Edit2,
+  X,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 
+const DownloadModal = ({ isOpen, onClose, onDownload }) => {
+  const [status, setStatus] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const allColumns = [
+    "Candidate Name", "Vendor", "Position", "Status", "Experience", 
+    "Destination", "Email", "Phone", "Passport Number", "Nationality", 
+    "Qualification", "Medical Status", "Skills", "Date Added"
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-slate-100">
+          <h3 className="font-bold text-slate-900">Download Candidate Data</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+        </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Status Filter</label>
+            <select value={status} onChange={e => setStatus(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500">
+              <option value="All">All Statuses</option>
+              <option value="Interview">Interview</option>
+              <option value="Selected">Selected</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">From Date</label>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">To Date</label>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+        </div>
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AdminCandidatesList() {
+  const [searchParams] = useSearchParams();
   const [candidates, setCandidates] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [clients, setClients] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Status Filter Tabs
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = new URLSearchParams(window.location.search).get("tab");
+    if (tabParam) {
+      const cap = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
+      if (["All", "Shortlisted", "Interview", "Selected", "Rejected"].includes(cap)) return cap;
+    }
+    return "All";
+  });
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam) {
+      const cap = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
+      if (["All", "Shortlisted", "Interview", "Selected", "Rejected"].includes(cap)) {
+        setActiveTab(cap);
+      }
+    }
+  }, [searchParams]);
+  
+  // Download Modal
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
 
   // Multi-Filter Dropdowns
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,6 +152,10 @@ export default function AdminCandidatesList() {
       const cData = await crmVendorService.getCandidates();
       const vData = await crmVendorService.getVendors();
       const aData = await crmVendorService.getApplications();
+      // Need clients for Assign Project
+      import("../../../services/crmClientService.js").then((mod) => {
+        mod.crmClientService.getClients().then(res => setClients(res.clients || []));
+      });
       setCandidates(cData || []);
       setVendors(vData || []);
       setApplications(aData || []);
@@ -164,16 +240,36 @@ export default function AdminCandidatesList() {
 
   // ─── Candidate Application Actions (Admin Review Workflow) ───────────────────
 
-  // Shortlist an application
-  const handleShortlist = async (app) => {
-    setActionLoading(app.id + "_shortlist");
+  // Assign to Project Modal
+  const [assignProjectModal, setAssignProjectModal] = useState(null); // { candidate }
+  const [assignForm, setAssignForm] = useState({ clientId: "", projectId: "", position: "" });
+  const [assignLoading, setAssignLoading] = useState(false);
+
+  const handleOpenAssignProject = (cand) => {
+    setAssignProjectModal({ candidate: cand });
+    setAssignForm({ clientId: "", projectId: "", position: "" });
+  };
+
+  const handleAssignProject = async () => {
+    if (!assignForm.projectId || !assignForm.position) {
+      alert("Please select a project and position.");
+      return;
+    }
+    setAssignLoading(true);
     try {
-      await crmVendorService.updateApplicationStatus(app.id, "Shortlisted");
+      await crmVendorService.submitCandidateToProject({
+        vendorId: assignProjectModal.candidate.vendorId,
+        candidateId: assignProjectModal.candidate.id,
+        clientId: assignForm.clientId,
+        projectId: assignForm.projectId,
+        position: assignForm.position,
+      });
+      setAssignProjectModal(null);
       await refreshCandidateView();
     } catch (err) {
       alert(err.message);
     } finally {
-      setActionLoading(null);
+      setAssignLoading(false);
     }
   };
 
@@ -266,6 +362,25 @@ export default function AdminCandidatesList() {
     }
   };
 
+  const handleReuseCandidate = async (candidateId) => {
+    const candApps = applications.filter((a) => a.candidateId === candidateId);
+    const rejectedApp = candApps.find((a) => a.status === "Rejected");
+    if (!rejectedApp) return;
+
+    if (!window.confirm("Reuse this candidate? They will be moved back to the Submitted status for review.")) return;
+
+    setActionLoading(candidateId + "_reuse");
+    try {
+      await crmVendorService.updateApplicationStatus(rejectedApp.id, "Submitted", { rejectionReason: "", remark: "Candidate Reused" });
+      await refreshCandidateView();
+      await loadData();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Add Custom Milestone
   const handleOpenMilestoneModal = (app) => {
     setMilestoneModal({ application: app });
@@ -306,19 +421,25 @@ export default function AdminCandidatesList() {
     const candApps = applications.filter((a) => a.candidateId === candId);
     if (candApps.length === 0) return "Candidate Pool";
     if (candApps.some((a) => a.status === "Selected")) return "Selected";
-    if (candApps.some((a) => a.status === "Shortlisted")) return "Shortlisted";
     if (candApps.some((a) => a.status === "Interview")) return "Interview";
+    if (candApps.some((a) => a.status === "Shortlisted")) return "Shortlisted";
     if (candApps.some((a) => a.status === "On Hold")) return "On Hold";
     if (candApps.some((a) => a.status === "Under Review" || a.status === "Submitted")) return "Under Review";
     if (candApps.every((a) => a.status === "Rejected")) return "Rejected";
     return "Pending";
   };
 
+  const countAll = candidates.length;
+  const countShortlisted = candidates.filter(c => getCandidateOverallStatus(c.id) === "Shortlisted").length;
+  const countInterview = candidates.filter(c => getCandidateOverallStatus(c.id) === "Interview").length;
+  const countSelected = candidates.filter(c => getCandidateOverallStatus(c.id) === "Selected").length;
+  const countRejected = candidates.filter(c => getCandidateOverallStatus(c.id) === "Rejected").length;
+
   const statusBadgeClass = (status) => {
     const map = {
       "Selected": "bg-emerald-100 text-emerald-800 border border-emerald-200",
-      "Shortlisted": "bg-indigo-100 text-indigo-800 border border-indigo-200",
       "Interview": "bg-purple-100 text-purple-800 border border-purple-200",
+      "Shortlisted": "bg-indigo-100 text-indigo-800 border border-indigo-200",
       "On Hold": "bg-amber-100 text-amber-800 border border-amber-200",
       "Rejected": "bg-rose-100 text-rose-800 border border-rose-200",
       "Under Review": "bg-blue-100 text-blue-800 border border-blue-200",
@@ -336,10 +457,14 @@ export default function AdminCandidatesList() {
   const filteredCandidates = candidates.filter((c) => {
     const overallStatus = getCandidateOverallStatus(c.id);
 
-    if (activeTab === "Shortlisted & Selected") {
-      if (overallStatus !== "Shortlisted" && overallStatus !== "Selected" && overallStatus !== "Interview") return false;
-    } else if (activeTab === "Candidate Pool") {
-      if (overallStatus === "Selected" || overallStatus === "Shortlisted" || overallStatus === "Interview") return false;
+    if (activeTab === "Selected") {
+      if (overallStatus !== "Selected") return false;
+    } else if (activeTab === "Interview") {
+      if (overallStatus !== "Interview") return false;
+    } else if (activeTab === "Shortlisted") {
+      if (overallStatus !== "Shortlisted") return false;
+    } else if (activeTab === "Rejected") {
+      if (overallStatus !== "Rejected") return false;
     }
 
     if (positionFilter !== "All" && c.currentPosition !== positionFilter) return false;
@@ -361,15 +486,57 @@ export default function AdminCandidatesList() {
     return true;
   });
 
-  const countAll = candidates.length;
-  const countShortlistedSelected = candidates.filter((c) => {
-    const s = getCandidateOverallStatus(c.id);
-    return s === "Shortlisted" || s === "Selected" || s === "Interview";
-  }).length;
-  const countPool = candidates.filter((c) => {
-    const s = getCandidateOverallStatus(c.id);
-    return s !== "Shortlisted" && s !== "Selected" && s !== "Interview";
-  }).length;
+  const handleDownloadExcel = (filters) => {
+    let data = [...candidates];
+    
+    // Filter by status
+    if (filters.status !== "All") {
+      data = data.filter(c => getCandidateOverallStatus(c.id) === filters.status);
+    }
+    
+    // Filter by date
+    if (filters.dateFrom) {
+      data = data.filter(c => new Date(c.createdAt || Date.now()) >= new Date(filters.dateFrom));
+    }
+    if (filters.dateTo) {
+      data = data.filter(c => new Date(c.createdAt || Date.now()) <= new Date(filters.dateTo));
+    }
+
+    // Build CSV
+    const headers = filters.columns;
+    let csv = headers.join(",") + "\n";
+    data.forEach(c => {
+      const row = headers.map(col => {
+        let val = "";
+        if (col === "Candidate Name") val = c.fullName;
+        if (col === "Vendor") val = getVendorName(c.vendorId);
+        if (col === "Position") val = c.currentPosition;
+        if (col === "Status") val = getCandidateOverallStatus(c.id);
+        if (col === "Experience") val = c.experienceYears;
+        if (col === "Destination") val = c.preferredCountry;
+        if (col === "Email") val = c.email || "";
+        if (col === "Phone") val = c.phone || "";
+        if (col === "Passport Number") val = c.passportNumber || "";
+        if (col === "Nationality") val = c.nationality || "";
+        if (col === "Qualification") val = c.qualification || "";
+        if (col === "Medical Status") val = c.medicalStatus || "";
+        if (col === "Skills") val = (c.skills || []).join("; ");
+        if (col === "Date Added") val = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "";
+        
+        return `"${(val || '').toString().replace(/"/g, '""')}"`;
+      });
+      csv += row.join(",") + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Candidates_Export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    setDownloadModalOpen(false);
+  };
 
   // =========================================================================
   // VIEW 2: FULL CANDIDATE DETAIL PAGE
@@ -430,6 +597,13 @@ export default function AdminCandidatesList() {
               <span className="px-3 py-2 bg-blue-50 text-blue-800 text-xs font-bold rounded-xl border border-blue-200">
                 {submissionHistory.length} Project Application{submissionHistory.length !== 1 ? "s" : ""}
               </span>
+              <button
+                onClick={() => handleOpenAssignProject(selectedCandidate)}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Briefcase size={14} />
+                Assign Project
+              </button>
             </div>
           </div>
 
@@ -692,18 +866,6 @@ export default function AdminCandidatesList() {
                       {/* ── Admin Action Buttons ─── */}
                       {!isSelected && !isRejected && (
                         <div className="mt-4 pt-4 border-t border-slate-200/60 flex flex-wrap gap-2">
-                          {/* Shortlist */}
-                          {!isShortlisted && !isInterview && (
-                            <button
-                              onClick={() => handleShortlist(sub)}
-                              disabled={actionLoading === sub.id + "_shortlist"}
-                              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
-                            >
-                              <Star size={12} />
-                              <span>{actionLoading === sub.id + "_shortlist" ? "Shortlisting..." : "Shortlist"}</span>
-                            </button>
-                          )}
-
                           {/* On Hold */}
                           {!isOnHold && (
                             <button
@@ -1053,6 +1215,13 @@ export default function AdminCandidatesList() {
           <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold">
             Total Candidates: {candidates.length}
           </span>
+          <button
+            onClick={() => setDownloadModalOpen(true)}
+            className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <Download size={14} />
+            <span>Download Data</span>
+          </button>
         </div>
       </div>
 
@@ -1060,47 +1229,33 @@ export default function AdminCandidatesList() {
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
         {/* Tab Selection */}
         <div className="flex items-center gap-2 border-b border-slate-100 pb-3 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setActiveTab("All")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === "All" ? "bg-slate-900 text-white shadow-xs" : "bg-slate-50 text-slate-700 hover:bg-slate-100"
-            }`}
-          >
-            <span>All Candidates</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === "All" ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"}`}>
-              {countAll}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("Shortlisted & Selected")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === "Shortlisted & Selected"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200/70"
-            }`}
-          >
-            <UserCheck size={14} />
-            <span>Shortlisted & Selected</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === "Shortlisted & Selected" ? "bg-white/20 text-white" : "bg-emerald-200 text-emerald-900"}`}>
-              {countShortlistedSelected}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("Candidate Pool")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === "Candidate Pool"
-                ? "bg-amber-600 text-white shadow-xs"
-                : "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200/70"
-            }`}
-          >
-            <Users size={14} />
-            <span>Candidate Pool</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === "Candidate Pool" ? "bg-white/20 text-white" : "bg-amber-200 text-amber-900"}`}>
-              {countPool}
-            </span>
-          </button>
+          {[
+            { id: "All", label: "All Candidates", count: countAll, icon: Users },
+            { id: "Shortlisted", label: "Shortlisted", count: countShortlisted, icon: UserCheck },
+            { id: "Interview", label: "Interview", count: countInterview, icon: Video },
+            { id: "Selected", label: "Selected", count: countSelected, icon: CheckCircle2 },
+            { id: "Rejected", label: "Rejected", count: countRejected, icon: XCircle },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  isActive
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <Icon size={14} />
+                <span>{tab.label}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${isActive ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Multi-Filter Bar */}
@@ -1222,22 +1377,123 @@ export default function AdminCandidatesList() {
                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-block ${statusBadgeClass(overallStatus)}`}>
                           {overallStatus}
                         </span>
+                        {overallStatus === "Rejected" && (() => {
+                          const candApps = applications.filter(a => a.candidateId === c.id);
+                          const rejectedApp = [...candApps].reverse().find(a => a.status === "Rejected");
+                          if (rejectedApp) {
+                            const reasonStr = typeof rejectedApp.rejectionReason === 'string' ? rejectedApp.rejectionReason : (rejectedApp.rejectionReason?.rejectionReason || "Not specified");
+                            return (
+                               <div className="text-[10px] text-rose-600 mt-2 font-medium bg-rose-50/50 p-1.5 rounded-lg border border-rose-100">
+                                 <span className="block font-bold">Stage: {rejectedApp.rejectionStage || "Verification"}</span>
+                                 Reason: {reasonStr}
+                               </div>
+                            )
+                          }
+                          return null;
+                        })()}
                       </td>
 
                       <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => handleViewCandidate(c)}
-                          className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Eye size={14} />
-                          <span>Review</span>
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {overallStatus === "Rejected" && (
+                            <button
+                               onClick={() => handleReuseCandidate(c.id)}
+                               disabled={actionLoading === c.id + "_reuse"}
+                               className="px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 font-bold text-[11px] shadow-2xs transition inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                            >
+                               <span>{actionLoading === c.id + "_reuse" ? "..." : "Reuse"}</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleViewCandidate(c)}
+                            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Eye size={14} />
+                            <span>Review</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Download Modal */}
+      <DownloadModal
+        isOpen={downloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+        onDownload={handleDownloadExcel}
+      />
+
+      {/* Assign Project Modal */}
+      {assignProjectModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900">Assign Project to Candidate</h3>
+                <p className="text-xs text-slate-500 mt-1">Assign {assignProjectModal.candidate.fullName} to an available project.</p>
+              </div>
+              <button onClick={() => setAssignProjectModal(null)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer text-lg">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Target Client & Project *</label>
+                <select
+                  value={assignForm.projectId}
+                  onChange={(e) => {
+                    const projId = e.target.value;
+                    let cId = "";
+                    let defaultPos = "";
+                    for (const c of clients) {
+                      const proj = c.projects?.find(p => String(p.id) === String(projId));
+                      if (proj) {
+                        cId = c.id;
+                        if (proj.manpowerRequirements?.length > 0) {
+                          defaultPos = proj.manpowerRequirements[0].position || proj.manpowerRequirements[0].positionTitle;
+                        }
+                        break;
+                      }
+                    }
+                    setAssignForm({ ...assignForm, projectId: projId, clientId: cId, position: defaultPos });
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:outline-none"
+                >
+                  <option value="">-- Select Project --</option>
+                  {clients.map(c => c.projects?.map(p => (
+                    <option key={p.id} value={p.id}>{c.companyName} - {p.projectName}</option>
+                  )))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Target Trade / Position *</label>
+                <input
+                  type="text"
+                  value={assignForm.position}
+                  onChange={(e) => setAssignForm({ ...assignForm, position: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:outline-none"
+                  placeholder="e.g. Electrician, Heavy Driver"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setAssignProjectModal(null)} className="py-2 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
+              <button
+                type="button"
+                onClick={handleAssignProject}
+                disabled={assignLoading || !assignForm.projectId || !assignForm.position}
+                className="py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {assignLoading ? "Assigning..." : "Confirm Assignment"}
+              </button>
+            </div>
           </div>
         </div>
       )}

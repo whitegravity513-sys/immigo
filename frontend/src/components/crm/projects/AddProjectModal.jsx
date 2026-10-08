@@ -12,6 +12,7 @@ import {
   Plus,
   Trash2,
   Sliders,
+  Globe,
 } from "lucide-react";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
@@ -19,6 +20,7 @@ import TextareaField from "../ui/TextareaField.jsx";
 import CountrySelectField from "../ui/CountrySelectField.jsx";
 import ManpowerTable from "../manpower/ManpowerTable.jsx";
 import DocumentsList from "../documents/DocumentsList.jsx";
+import { crmVendorService } from "../../../services/crmVendorService.js";
 
 const PROJECT_TYPES = [
   "Construction",
@@ -129,9 +131,23 @@ export function AddProjectModal({
       totalFeePerCandidate: 40000,
       milestones: generatePresetMilestones(4, 40000),
     },
+    vendorVisibility: "all",
+    assignedVendorIds: [],
   });
 
   const [errors, setErrors] = useState({});
+
+  // Vendor Assignment State
+  const [allVendors, setAllVendors] = useState([]);
+  const [vendorSearchTerm, setVendorSearchTerm] = useState("");
+  const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
+
+  // Fetch vendors
+  useEffect(() => {
+    crmVendorService.getVendors({ status: "Approved" }).then((vendors) => {
+      setAllVendors(vendors || []);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -184,9 +200,13 @@ export function AddProjectModal({
             totalFeePerCandidate: 40000,
             milestones: generatePresetMilestones(4, 40000),
           },
+          vendorVisibility: "all",
+          assignedVendorIds: [],
         });
       }
       setErrors({});
+      setVendorSearchTerm("");
+      setVendorCurrentPage(1);
     }
   }, [isOpen, client, clientCountry, projectToEdit]);
 
@@ -432,15 +452,6 @@ export function AddProjectModal({
                     error={errors.totalHeadcount}
                     helperText="Enter the total number of employees needed"
                   />
-
-                  <InputField
-                    label="Workforce Category / Notes (Optional)"
-                    name="workforceNotes"
-                    value={formData.workforceNotes || ""}
-                    onChange={handleChange}
-                    placeholder="e.g. Construction crew, technicians"
-                    helperText="Optional brief note on workforce type"
-                  />
                 </div>
               </div>
 
@@ -485,6 +496,155 @@ export function AddProjectModal({
                     rows={2}
                   />
                 )}
+              </div>
+
+              {/* Vendor Assignment Section */}
+              <div className="space-y-3 pt-4 border-t border-gray-100">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                  <Globe size={15} className="text-blue-600" />
+                  <span>Vendor / Agency Assignment</span>
+                </h4>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Project Visibility for Vendors
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'all' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'all' ? '#eff6ff' : '#ffffff' }}>
+                      <input
+                        type="radio"
+                        name="vendorVisibility"
+                        value="all"
+                        checked={formData.vendorVisibility === 'all'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, vendorVisibility: 'all' }))}
+                        className="mt-0.5 text-blue-600 cursor-pointer shrink-0"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">All Approved Vendors</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">All vendors with Approved status can view and submit candidates to this project.</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'specific' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'specific' ? '#eff6ff' : '#ffffff' }}>
+                      <input
+                        type="radio"
+                        name="vendorVisibility"
+                        value="specific"
+                        checked={formData.vendorVisibility === 'specific'}
+                        onChange={(e) => setFormData(prev => ({ ...prev, vendorVisibility: 'specific' }))}
+                        className="mt-0.5 text-blue-600 cursor-pointer shrink-0"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-gray-900">Specific Vendors Only</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">Only the vendors you select below can see and submit candidates for this project.</p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {formData.vendorVisibility === 'specific' && (
+                    <div className="mt-4 border-t border-slate-200 pt-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <label className="block text-xs font-semibold text-gray-700">
+                          Select Assigned Vendors
+                          <span className="ml-1.5 text-[10px] text-gray-400 font-medium">({allVendors.length} total)</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Search vendors..."
+                          value={vendorSearchTerm}
+                          onChange={(e) => {
+                            setVendorSearchTerm(e.target.value);
+                            setVendorCurrentPage(1);
+                          }}
+                          className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 w-full sm:w-48"
+                        />
+                      </div>
+                      
+                      <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                        {(() => {
+                          const filteredVendors = allVendors.filter(v => 
+                            (v.companyName || "").toLowerCase().includes((vendorSearchTerm || "").toLowerCase()) ||
+                            (v.id || "").toLowerCase().includes((vendorSearchTerm || "").toLowerCase()) ||
+                            (v.city || "").toLowerCase().includes((vendorSearchTerm || "").toLowerCase())
+                          );
+                          
+                          const VENDORS_PER_PAGE = 4;
+                          const totalPages = Math.max(1, Math.ceil(filteredVendors.length / VENDORS_PER_PAGE));
+                          const paginatedVendors = filteredVendors.slice((vendorCurrentPage - 1) * VENDORS_PER_PAGE, vendorCurrentPage * VENDORS_PER_PAGE);
+
+                          return (
+                            <>
+                              {paginatedVendors.length === 0 ? (
+                                <p className="text-xs text-gray-400 italic p-3">No vendors match your search.</p>
+                              ) : (
+                                <div className="min-h-[160px]">
+                                  {paginatedVendors.map((vendor) => {
+                                    const selected = (formData.assignedVendorIds || []).includes(vendor.id);
+                                    return (
+                                      <label
+                                        key={vendor.id}
+                                        className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors ${selected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selected}
+                                          onChange={() => {
+                                            setFormData((prev) => {
+                                              const existing = prev.assignedVendorIds || [];
+                                              const updated = existing.includes(vendor.id)
+                                                ? existing.filter((id) => id !== vendor.id)
+                                                : [...existing, vendor.id];
+                                              return { ...prev, assignedVendorIds: updated };
+                                            });
+                                          }}
+                                          className="w-3.5 h-3.5 rounded text-blue-600 cursor-pointer shrink-0"
+                                        />
+                                        <div className="min-w-0">
+                                          <p className="text-xs font-semibold text-gray-900 truncate">{vendor.companyName}</p>
+                                          <p className="text-[10px] text-gray-400 truncate">{vendor.id} · {vendor.city || "N/A"}, {vendor.country || "N/A"}</p>
+                                        </div>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              
+                              {filteredVendors.length > 0 && (
+                                <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
+                                  <span className="text-[10px] text-gray-500 font-medium">
+                                    Showing {(vendorCurrentPage - 1) * VENDORS_PER_PAGE + 1} to {Math.min(vendorCurrentPage * VENDORS_PER_PAGE, filteredVendors.length)} of {filteredVendors.length}
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setVendorCurrentPage(p => Math.max(1, p - 1))}
+                                      disabled={vendorCurrentPage === 1}
+                                      className="px-2 py-1 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 rounded disabled:opacity-50 hover:bg-gray-50"
+                                    >
+                                      Prev
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setVendorCurrentPage(p => Math.min(totalPages, p + 1))}
+                                      disabled={vendorCurrentPage === totalPages}
+                                      className="px-2 py-1 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 rounded disabled:opacity-50 hover:bg-gray-50"
+                                    >
+                                      Next
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                      {(formData.assignedVendorIds || []).length > 0 && (
+                        <p className="text-[10px] text-blue-700 mt-2 font-semibold">
+                          {(formData.assignedVendorIds || []).length} vendor{(formData.assignedVendorIds || []).length > 1 ? 's' : ''} currently selected.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Selection Milestone Payment Plan Section */}

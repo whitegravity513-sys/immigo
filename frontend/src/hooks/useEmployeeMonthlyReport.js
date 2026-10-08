@@ -91,7 +91,12 @@ export const useEmployeeMonthlyReport = (token) => {
       { Metric: "Half Days", Value: monthlyData.summary?.halfDays ?? 0 },
       { Metric: "Absent Days", Value: monthlyData.summary?.absentDays ?? 0 },
       { Metric: "Leave Days", Value: monthlyData.summary?.totalLeaveDays ?? 0 },
-      { Metric: "Total Break Hours", Value: monthlyData.summary?.totalBreakHours ?? "0h 0m" }
+      { Metric: "Total Break Hours", Value: monthlyData.summary?.totalBreakHours ?? "0h 0m" },
+      { Metric: "", Value: "" },
+      { Metric: "Monthly Base Salary", Value: `Rs. ${monthlyData.summary?.monthlySalary ?? 0}` },
+      { Metric: "Per Day Salary", Value: `Rs. ${Math.round(monthlyData.summary?.perDaySalary ?? 0)}` },
+      { Metric: "Total Paid Days", Value: monthlyData.summary?.paidDays ?? 0 },
+      { Metric: "Final Payable Salary", Value: `Rs. ${monthlyData.summary?.earnedSalary ?? 0}` }
     ];
 
     const dailyRows = (monthlyData.dailyRecords || []).map((record, idx) => {

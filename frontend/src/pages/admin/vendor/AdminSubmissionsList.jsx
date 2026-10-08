@@ -8,6 +8,7 @@ import {
   Sparkles,
   Building2,
   ArrowRight,
+  ArrowLeft,
   Eye,
   FileText,
   Calendar,
@@ -46,7 +47,7 @@ export default function AdminSubmissionsList() {
     try {
       setLoading(true);
       const data = await crmVendorService.getApplications();
-      setSubmissions(data || []);
+      setSubmissions((data || []).filter(sub => sub.status !== "Rejected"));
     } catch (err) {
       console.error("Failed to load candidate submissions:", err);
     } finally {
@@ -193,8 +194,12 @@ export default function AdminSubmissionsList() {
     }
   };
 
+  const isFinalized = reviewSub && ["Selected", "Rejected", "Processing", "Completed"].includes(reviewSub.status);
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans">
+      {!reviewSub ? (
+        <>
       {/* Header */}
       <div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Candidate Submissions & Verification</h1>
@@ -205,7 +210,7 @@ export default function AdminSubmissionsList() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
-        {["All", "Submitted", "Shortlisted", "Interview Scheduled", "Selected", "Rejected", "Completed"].map((tab) => {
+        {["All", "Submitted", "Shortlisted", "Interview Scheduled", "Selected", "Completed"].map((tab) => {
           const count = submissions.filter((s) => (tab === "All" ? true : s.status === tab)).length;
           return (
             <button
@@ -296,11 +301,21 @@ export default function AdminSubmissionsList() {
           </div>
         </div>
       )}
-
-      {/* Full Review & Action Modal */}
-      {reviewSub && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-5 my-auto max-h-[90vh] overflow-y-auto">
+        </>
+      ) : (
+        <div className="max-w-4xl mx-auto space-y-6 pb-10">
+          <div className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setReviewSub(null)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Submissions</span>
+            </button>
+          </div>
+          
+          <div className="bg-white rounded-2xl w-full p-5 sm:p-6 shadow-2xs border border-slate-200 space-y-5">
             {/* Header */}
             <div className="flex items-start justify-between border-b border-slate-100 pb-3.5">
               <div>
@@ -314,14 +329,6 @@ export default function AdminSubmissionsList() {
                   Project: {reviewSub.projectName} ({reviewSub.clientName}) • Vendor: {reviewSub.vendorId}
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setReviewSub(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
-              >
-                <X size={18} />
-              </button>
             </div>
 
             {/* Document Verification Section */}
@@ -403,13 +410,15 @@ export default function AdminSubmissionsList() {
                   value={shortlistRemark}
                   onChange={(e) => setShortlistRemark(e.target.value)}
                   placeholder="e.g. Documents verified. Candidate fit for client interview."
-                  className="w-full p-2.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  disabled={isFinalized}
+                  className="w-full p-2.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
 
                 <button
                   type="button"
                   onClick={handleShortlistSubmit}
-                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                  disabled={isFinalized}
+                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Shortlist Candidate
                 </button>
@@ -436,7 +445,8 @@ export default function AdminSubmissionsList() {
                       type="date"
                       value={interviewDate}
                       onChange={(e) => setInterviewDate(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs"
+                      disabled={isFinalized}
+                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -446,7 +456,8 @@ export default function AdminSubmissionsList() {
                       value={interviewTime}
                       onChange={(e) => setInterviewTime(e.target.value)}
                       placeholder="e.g. 10:30 AM"
-                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs"
+                      disabled={isFinalized}
+                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -456,7 +467,8 @@ export default function AdminSubmissionsList() {
                       value={interviewLocation}
                       onChange={(e) => setInterviewLocation(e.target.value)}
                       placeholder="e.g. Video Call / Client Office"
-                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs"
+                      disabled={isFinalized}
+                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -466,13 +478,15 @@ export default function AdminSubmissionsList() {
                   value={interviewRemarks}
                   onChange={(e) => setInterviewRemarks(e.target.value)}
                   placeholder="Interview instructions or remarks for candidate & vendor..."
-                  className="w-full p-2.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  disabled={isFinalized}
+                  className="w-full p-2.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
 
                 <button
                   type="button"
                   onClick={handleScheduleInterviewSubmit}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                  disabled={isFinalized}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirm Interview Schedule
                 </button>
@@ -496,7 +510,8 @@ export default function AdminSubmissionsList() {
                     <button
                       type="button"
                       onClick={handleSelectSubmit}
-                      className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                      disabled={isFinalized}
+                      className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Mark as Selected 🎉
                     </button>
@@ -512,12 +527,14 @@ export default function AdminSubmissionsList() {
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
                       placeholder="Rejection reason..."
-                      className="w-full p-2 rounded-lg border border-rose-300 bg-white text-xs"
+                      disabled={isFinalized}
+                      className="w-full p-2 rounded-lg border border-rose-300 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                       type="button"
                       onClick={handleRejectSubmit}
-                      className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                      disabled={isFinalized}
+                      className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Mark as Rejected
                     </button>

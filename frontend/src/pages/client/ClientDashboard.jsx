@@ -44,8 +44,8 @@ export function ClientDashboard() {
     }
   };
 
-  const totalClients = stats?.totalClients || clients.length || 32;
-  const activeClients = stats?.activeClients || 26;
+  const totalClients = stats?.totalClients || clients.length || 0;
+  const activeClients = stats?.activeClients || 0;
   const inactiveClients = Math.max(0, totalClients - activeClients);
 
   const clientCards = [

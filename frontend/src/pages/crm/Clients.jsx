@@ -437,7 +437,7 @@ export function Clients() {
                                     type="button"
                                     onClick={() => {
                                       setOpenMenuId(null);
-                                      setAddProjectTargetClient(client);
+                                      navigate(`/client/projects/new`, { state: { clientId: client.id } });
                                     }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-blue-700 hover:bg-blue-50 text-left transition-colors cursor-pointer font-semibold"
                                   >

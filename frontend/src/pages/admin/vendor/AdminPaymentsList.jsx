@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   CreditCard,
   Search,
@@ -18,7 +19,6 @@ export default function AdminPaymentsList() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTxnHistoryApp, setSelectedTxnHistoryApp] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -30,7 +30,7 @@ export default function AdminPaymentsList() {
       const data = await crmVendorService.getApplications();
       // Payments view applies to selected candidates with payment plans
       const filtered = (data || []).filter(
-        (a) => (a.status === "Selected" || a.status === "Completed" || a.paymentPlan) && a.paymentPlan
+        (a) => (a.status === "Selected" || a.status === "Completed") && a.processMilestones
       );
       setApplications(filtered);
     } catch (err) {
@@ -45,12 +45,14 @@ export default function AdminPaymentsList() {
   let totalPaidOverall = 0;
 
   applications.forEach((app) => {
-    const total = Number(app.paymentPlan?.totalAmount || 40000);
+    const milestones = app.processMilestones || [];
+    let total = 0;
+    milestones.forEach(m => total += (Number(m.paymentAmount) || 0));
     totalPaymentOverall += total;
-    const milestones = app.paymentPlan?.milestones || [];
+    
     milestones.forEach((m) => {
-      const amt = Number(m.amount) || 0;
-      if (m.status === "Paid") totalPaidOverall += amt;
+      const amt = Number(m.paymentAmount) || 0;
+      if (m.paymentStatus === "Approved") totalPaidOverall += amt;
     });
   });
 
@@ -146,14 +148,14 @@ export default function AdminPaymentsList() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredApps.map((app) => {
-                  const total = Number(app.paymentPlan?.totalAmount || 40000);
-                  const milestones = app.paymentPlan?.milestones || [];
-                  const paid = milestones.filter((m) => m.status === "Paid").reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+                  const milestones = app.processMilestones || [];
+                  const total = milestones.reduce((acc, m) => acc + (Number(m.paymentAmount) || 0), 0);
+                  const paid = milestones.filter((m) => m.paymentStatus === "Approved").reduce((acc, m) => acc + (Number(m.paymentAmount) || 0), 0);
                   const remaining = Math.max(0, total - paid);
 
                   let statusLabel = "Unpaid";
                   let statusBg = "bg-slate-100 text-slate-700";
-                  if (paid === total) {
+                  if (paid === total && total > 0) {
                     statusLabel = "Fully Paid";
                     statusBg = "bg-emerald-100 text-emerald-800";
                   } else if (paid > 0) {
@@ -175,13 +177,13 @@ export default function AdminPaymentsList() {
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <button
-                          onClick={() => setSelectedTxnHistoryApp(app)}
+                        <Link
+                          to={`/admin/vendor/payments/${app.id}`}
                           className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs transition inline-flex items-center gap-1 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>History</span>
-                        </button>
+                        </Link>
                       </td>
                     </tr>
                   );
@@ -192,65 +194,6 @@ export default function AdminPaymentsList() {
         </div>
       )}
 
-      {/* Transaction History Modal */}
-      {selectedTxnHistoryApp && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto space-y-4">
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">Payment Audit Trail</span>
-                <h3 className="text-lg font-bold text-slate-900">{selectedTxnHistoryApp.candidateName}</h3>
-                <p className="text-xs text-slate-500">Project: {selectedTxnHistoryApp.projectName} • Vendor: {selectedTxnHistoryApp.vendorId}</p>
-              </div>
-              <button
-                onClick={() => setSelectedTxnHistoryApp(null)}
-                className="px-3 py-1 rounded text-slate-400 hover:text-slate-800 text-xs font-bold"
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Milestone Disbursement Logs:</h4>
-              <div className="space-y-2">
-                {selectedTxnHistoryApp.paymentPlan?.milestones?.map((m) => (
-                  <div key={m.id} className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-slate-900 block">{m.name}</span>
-                      <span className="text-[11px] text-slate-500">
-                        Amount: <strong className="text-slate-900">₹{Number(m.amount).toLocaleString()}</strong> • Status: <span className={m.status === "Paid" ? "text-emerald-600 font-bold" : "text-amber-600"}>{m.status}</span>
-                      </span>
-                      {m.paymentRef && (
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                          Ref: {m.paymentRef} • Paid Date: {m.paidDate || "2026-09-20"}
-                        </div>
-                      )}
-                    </div>
-                    {m.status === "Paid" ? (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                        Paid
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                        Pending
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
-              <button
-                onClick={() => setSelectedTxnHistoryApp(null)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold text-xs"
-              >
-                Close Audit Log
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

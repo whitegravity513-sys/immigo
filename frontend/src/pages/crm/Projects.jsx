@@ -24,7 +24,6 @@ import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 import crmClientService from "../../services/crmClientService.js";
-import { AddProjectModal } from "../../components/crm/projects/AddProjectModal.jsx";
 
 export function Projects() {
   const navigate = useNavigate();
@@ -40,9 +39,7 @@ export function Projects() {
   const [countryFilter, setCountryFilter] = useState("All");
   const [clientFilter, setClientFilter] = useState("All");
 
-  // Edit Project Modal State
-  const [editingProject, setEditingProject] = useState(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // Edit Project Modal State (Removed)
 
   useEffect(() => {
     const s = searchParams.get("status");
@@ -94,20 +91,7 @@ export function Projects() {
   };
 
   const handleEditProject = (proj) => {
-    setEditingProject(proj);
-    setIsEditModalOpen(true);
-  };
-
-  const handleSaveEditedProject = async (updatedData) => {
-    try {
-      await crmClientService.updateProject(editingProject.clientId, editingProject.id, updatedData);
-      showToast("Project details updated successfully!", "success");
-      setIsEditModalOpen(false);
-      setEditingProject(null);
-      fetchProjects();
-    } catch (err) {
-      alert(err.message || "Failed to update project");
-    }
+    navigate(`/client/clients/${proj.clientId}/projects/${proj.id}/edit`);
   };
 
   // Metrics
@@ -454,18 +438,6 @@ export function Projects() {
         )}
       </div>
 
-      {/* Edit Project Modal */}
-      {isEditModalOpen && (
-        <AddProjectModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEditingProject(null);
-          }}
-          onSave={handleSaveEditedProject}
-          projectToEdit={editingProject}
-        />
-      )}
     </div>
   );
 }

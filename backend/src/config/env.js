@@ -22,6 +22,8 @@ export const env = {
   SUPERADMIN_NAME: process.env.SUPER_ADMIN_NAME || process.env.SUPERADMIN_NAME || "Admin",
   SUPERADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL || process.env.SUPERADMIN_EMAIL || "superadmin@vesta.in",
   SUPERADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD || process.env.SUPERADMIN_PASSWORD || "SuperAdmin@2026!",
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || "",
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || "",
   ALLOWED_ORIGINS: [
     "https://crm.vesta.in",
     "https://vesta.in",

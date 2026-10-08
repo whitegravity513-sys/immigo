@@ -16,6 +16,7 @@ import {
   Calendar,
   Clock,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   CheckCircle,
   FileCheck,
@@ -138,6 +139,24 @@ export function ClientDetails() {
 
   return (
     <div className="space-y-6">
+      {/* Attractive Back Navigation & Breadcrumbs */}
+      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
+        <Link
+          to="/client/clients"
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 rounded-lg transition-colors"
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Client Management</span>
+        </Link>
+        <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-500">
+          <Link to="/client/dashboard" className="hover:text-blue-600 transition-colors">Dashboard</Link>
+          <span className="text-gray-300">/</span>
+          <Link to="/client/clients" className="hover:text-blue-600 transition-colors">Clients</Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-900 font-bold">Client Details</span>
+        </div>
+      </div>
+
       {/* Client Header Card */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

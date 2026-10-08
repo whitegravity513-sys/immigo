@@ -30,6 +30,14 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null);
   const [leaveActionRemark, setLeaveActionRemark] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const openAddEmployeeModal = () => {
+    const nextIdNumber = employees.length + 1;
+    const yearMonth = new Date().toISOString().slice(2,7).replace('-',''); // e.g., 2610
+    const dynamicId = `EMP-${yearMonth}-${String(nextIdNumber).padStart(4, "0")}`;
+    
+    setEmployeeForm(prev => ({ ...prev, employeeId: dynamicId }));
+    setIsAddModalOpen(true);
+  };
   const [employeeForm, setEmployeeForm] = useState({
     name: "",
     email: "",
@@ -421,6 +429,10 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleOpenAddModal = () => {
     setErrorMsg("");
+    const nextIdNumber = employees.length + 1;
+    const yearMonth = new Date().toISOString().slice(2,7).replace('-','');
+    const dynamicId = `EMP-${yearMonth}-${String(nextIdNumber).padStart(4, "0")}`;
+
     setEmployeeForm({
       name: "",
       email: "",
@@ -436,7 +448,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       currentPackage: "",
       experience: "",
       joiningDate: new Date().toISOString().split("T")[0],
-      employeeId: "",
+      employeeId: dynamicId,
       profileImage: "",
       documents: [],
     });

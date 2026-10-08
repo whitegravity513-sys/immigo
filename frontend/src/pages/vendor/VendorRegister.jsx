@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
@@ -11,35 +11,15 @@ import {
   Clock,
   Lock,
   UploadCloud,
+  AlertCircle,
+  X,
+  FileText,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import AuthHeader from "../../components/auth/AuthHeader.jsx";
 import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
 import globePinIllustration from "../../assets/immigo-globe-pin.jpg";
-
-// Indian States and Cities Mapping
-const INDIAN_STATES_AND_CITIES = {
-  "Uttar Pradesh": ["Noida", "Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Prayagraj", "Meerut", "Gorakhpur"],
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Navi Mumbai", "Aurangabad", "Solapur"],
-  "Delhi": ["New Delhi", "North Delhi", "South Delhi", "East Delhi", "West Delhi", "Central Delhi"],
-  "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi", "Belagavi", "Davangere"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli"],
-  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar"],
-  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
-  "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Asansol", "Siliguri", "Kharagpur"],
-  "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Kannur"],
-  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer", "Bikaner"],
-  "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali"],
-  "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal", "Hisar"],
-  "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia"],
-  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur", "Ujjain"],
-  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur"],
-  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Tirupati"],
-  "Assam": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat"],
-  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro"],
-  "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee", "Haldwani"],
-};
 
 const BUSINESS_TYPES = [
   "Proprietorship",
@@ -74,23 +54,9 @@ const COUNTRIES_SERVED_OPTIONS = [
   "Other",
 ];
 
-const REQUIRED_DOCUMENTS = [
-  { key: "gstCertificate", label: "GST Certificate", required: true },
-  { key: "panCard", label: "PAN Card", required: true },
-  { key: "registrationCertificate", label: "Registration Cert", required: true },
-  { key: "recruitmentLicense", label: "Recruitment License", required: true },
-  { key: "addressProof", label: "Address Proof", required: true },
-  { key: "authorizedPersonId", label: "Authorized ID", required: true },
-];
-
-const FORM_STEPS = [
-  { id: 1, name: "Page 1: Profile", subtitle: "Agency Details, Location & Contact Person" },
-  { id: 2, name: "Page 2: Documents", subtitle: "Specializations & Statutory Uploads" },
-  { id: 3, name: "Page 3: Account", subtitle: "Credentials & Verification Agreement" },
-];
+// Registration no longer requires documents initially.
 
 export function VendorRegister() {
-  const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -102,8 +68,8 @@ export function VendorRegister() {
     website: "",
 
     country: "India",
-    state: "Maharashtra",
-    city: "Mumbai",
+    state: "",
+    city: "",
     area: "",
     pinCode: "",
     address: "",
@@ -116,7 +82,9 @@ export function VendorRegister() {
     alternateEmail: "",
 
     specializations: ["Construction", "Electrical"],
+    otherSpecialization: "",
     countriesServed: ["UAE", "Saudi Arabia"],
+    otherCountryServed: "",
     experienceYears: "5",
     availableCandidates: "",
     monthlyCapacity: "",
@@ -128,7 +96,6 @@ export function VendorRegister() {
     declarationConfirmed: false,
   });
 
-  const [uploadedDocs, setUploadedDocs] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
@@ -139,12 +106,11 @@ export function VendorRegister() {
     const { name, value, type, checked } = e.target;
     const newVal = type === "checkbox" ? checked : value;
 
-    if (name === "state") {
-      const defaultCity = INDIAN_STATES_AND_CITIES[newVal]?.[0] || "";
+    if (name === "email") {
       setFormData((prev) => ({
         ...prev,
-        state: newVal,
-        city: defaultCity,
+        email: newVal,
+        loginEmail: prev.loginEmail === prev.email || !prev.loginEmail ? newVal : prev.loginEmail,
       }));
     } else {
       setFormData((prev) => ({
@@ -183,60 +149,21 @@ export function VendorRegister() {
     });
   };
 
-  const handleFileUpload = (docKey, docLabel, file) => {
-    if (!file) return;
-
-    const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
-    if (!allowedTypes.includes(file.type)) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [docKey]: "PDF, JPG, JPEG, and PNG only.",
-      }));
-      return;
-    }
-
-    const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2);
-    setUploadedDocs((prev) => ({
-      ...prev,
-      [docKey]: {
-        name: docLabel,
-        fileName: file.name,
-        size: `${fileSizeMb} MB`,
-        progress: 100,
-        status: "Uploaded",
-      },
-    }));
-
-    if (fieldErrors[docKey]) {
-      setFieldErrors((prev) => {
-        const copy = { ...prev };
-        delete copy[docKey];
-        return copy;
-      });
-    }
-  };
-
-  const handleRemoveDocument = (docKey) => {
-    setUploadedDocs((prev) => {
-      const copy = { ...prev };
-      delete copy[docKey];
-      return copy;
-    });
-  };
 
   // Email & Phone Validation Helpers
   const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email || "").trim());
   };
 
   const isValidPhone = (phone) => {
     const digitsOnly = (phone || "").replace(/[\s\-\(\)\+]/g, "");
-    return /^\d{10,15}$/.test(digitsOnly);
+    return /^\d{7,15}$/.test(digitsOnly);
   };
 
-  // Step 1 Validation
-  const validateStep1 = () => {
+  const validateForm = () => {
     const errors = {};
+    
+    // Step 1
     if (!formData.companyName.trim()) errors.companyName = "Company Name required.";
     if (!formData.businessType) errors.businessType = "Business Type required.";
     if (!formData.country) errors.country = "Country required.";
@@ -244,24 +171,22 @@ export function VendorRegister() {
     if (!formData.city) errors.city = "City required.";
     if (!formData.pinCode.trim()) {
       errors.pinCode = "PIN Code required.";
-    } else if (!/^\d{6}$/.test(formData.pinCode.trim())) {
-      errors.pinCode = "Must be 6 digits.";
+    } else if (!/^\d{4,10}$/.test(formData.pinCode.trim())) {
+      errors.pinCode = "Enter a valid PIN / Postal Code (4–10 digits).";
     }
     if (!formData.address.trim()) errors.address = "Full Address required.";
     if (!formData.contactPersonName.trim()) errors.contactPersonName = "Contact Name required.";
 
-    // Strict Mobile Number Validation
     if (!formData.mobile.trim()) {
       errors.mobile = "Mobile Number required.";
     } else if (!isValidPhone(formData.mobile)) {
-      errors.mobile = "Enter a valid 10 to 15 digit mobile number.";
+      errors.mobile = "Enter a valid 7 to 15 digit mobile number (digits only).";
     }
 
     if (formData.alternateMobile.trim() && !isValidPhone(formData.alternateMobile)) {
       errors.alternateMobile = "Enter a valid mobile number.";
     }
 
-    // Strict Email Address Validation
     if (!formData.email.trim()) {
       errors.email = "Email Address required.";
     } else if (!isValidEmail(formData.email)) {
@@ -272,26 +197,9 @@ export function VendorRegister() {
       errors.alternateEmail = "Enter a valid email address.";
     }
 
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
 
-  // Step 2 Validation (Statutory Documents)
-  const validateStep2 = () => {
-    const errors = {};
-    REQUIRED_DOCUMENTS.forEach((doc) => {
-      if (!uploadedDocs[doc.key]) {
-        errors[doc.key] = `Upload ${doc.label}.`;
-      }
-    });
 
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // Step 3 Validation
-  const validateStep3 = () => {
-    const errors = {};
+    // Step 3
     if (!formData.loginEmail.trim()) {
       errors.loginEmail = "Login Email is required.";
     } else if (!isValidEmail(formData.loginEmail)) {
@@ -316,34 +224,18 @@ export function VendorRegister() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleNextStep = () => {
-    setGeneralError("");
-    if (currentStep === 1) {
-      if (validateStep1()) setCurrentStep(2);
-      else setGeneralError("Please fill all required fields in Page 1 before proceeding.");
-    } else if (currentStep === 2) {
-      if (validateStep2()) setCurrentStep(3);
-      else setGeneralError("Please select specializations and upload required documents before proceeding.");
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGeneralError("");
 
-    if (!validateStep3()) {
-      setGeneralError("Please resolve validation errors in Page 3.");
+    if (!validateForm()) {
+      setGeneralError("Please resolve validation errors before submitting.");
       return;
     }
 
     setLoading(true);
     try {
-      const docList = Object.keys(uploadedDocs).map((key) => ({
-        name: uploadedDocs[key].name,
-        fileName: uploadedDocs[key].fileName,
-        size: uploadedDocs[key].size,
-        type: key.includes("License") ? "License" : "Registration",
-      }));
+
 
       const payload = {
         companyName: formData.companyName.trim(),
@@ -354,15 +246,19 @@ export function VendorRegister() {
         country: formData.country,
         state: formData.state,
         city: formData.city,
-        address: `${formData.address.trim()}, ${formData.area || ""}`,
+        address: `${formData.address.trim()}${formData.area ? ", " + formData.area : ""}`,
         contactPersonName: formData.contactPersonName.trim(),
         contactPersonEmail: formData.email.trim(),
         contactPersonPhone: formData.mobile.trim(),
         businessType: formData.businessType,
-        specialization: formData.specializations.join(", "),
-        countriesServed: formData.countriesServed,
+        specialization: formData.specializations.map(s => s === "Other" && formData.otherSpecialization.trim() ? formData.otherSpecialization.trim() : s).join(", "),
+        countriesServed: formData.countriesServed.map(c => c === "Other" && formData.otherCountryServed.trim() ? formData.otherCountryServed.trim() : c),
         experienceYears: formData.experienceYears || "5",
-        documents: docList,
+        gstin: formData.gstin.trim(),
+        pan: formData.pan.trim(),
+        documents: [],
+        // Registration status must be "Pending" for admin verification
+        status: "Pending",
       };
 
       const result = await crmVendorService.registerVendor(payload);
@@ -370,11 +266,12 @@ export function VendorRegister() {
       setSuccessSubmitted(true);
     } catch (err) {
       console.error("Vendor registration error:", err);
-      setGeneralError(err.message || "Failed to submit vendor registration.");
+      setGeneralError(err.message || "Failed to submit vendor registration. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-50">
@@ -397,7 +294,7 @@ export function VendorRegister() {
                 Vendor Recruitment Agency Registration
               </h1>
               <p className="text-xs text-slate-500 font-medium">
-                Complete the 3-step verification form below. Access is enabled upon Admin verification.
+                Complete the 2-step verification form below. Access is enabled upon Admin verification.
               </p>
             </div>
 
@@ -410,40 +307,6 @@ export function VendorRegister() {
                 <span>Already Registered? Sign In</span>
               </Link>
             </div>
-          </div>
-
-          {/* 3 STEP WIZARD PROGRESS HEADER */}
-          <div className="grid grid-cols-3 gap-2 mb-3 bg-[#f1f5f9] p-1 rounded-xl border border-slate-200/80">
-            {FORM_STEPS.map((st) => {
-              const active = currentStep === st.id;
-              const completed = currentStep > st.id;
-              return (
-                <button
-                  key={st.id}
-                  type="button"
-                  onClick={() => {
-                    if (st.id < currentStep) setCurrentStep(st.id);
-                  }}
-                  className={`flex items-center justify-center gap-2 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
-                    active
-                      ? "bg-[#1877f2] text-white shadow-md shadow-blue-500/25 font-black"
-                      : completed
-                      ? "bg-blue-100 text-blue-900 font-bold"
-                      : "text-slate-500 hover:text-slate-800 bg-transparent"
-                  }`}
-                >
-                  <span className={`w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 ${
-                    active ? "bg-white text-[#1877f2]" : completed ? "bg-blue-600 text-white" : "bg-slate-300 text-slate-700"
-                  }`}>
-                    {completed ? "✓" : st.id}
-                  </span>
-                  <div className="text-left truncate">
-                    <div className="truncate font-black text-xs">{st.name}</div>
-                    <div className="text-[9px] font-medium opacity-80 truncate hidden sm:block">{st.subtitle}</div>
-                  </div>
-                </button>
-              );
-            })}
           </div>
 
           {generalError && (
@@ -468,42 +331,60 @@ export function VendorRegister() {
 
           {/* Success State */}
           {successSubmitted ? (
-            <div className="text-center py-6 space-y-4">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
-                <CheckCircle2 size={36} />
+            <div className="text-center py-8 px-4 sm:px-6 space-y-5">
+              <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 text-white rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
+                <CheckCircle2 size={36} className="stroke-[2.5]" />
               </div>
-              <div>
-                <h3 className="text-xl font-black text-slate-900">Registration Submitted Successfully!</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Your vendor registration application <span className="font-bold text-[#1877f2]">[{submittedVendor?.id || "VND-NEW"}]</span> is now recorded.
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Registration Submitted Successfully!
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                  Your vendor registration application{" "}
+                  <span className="font-bold text-[#1877f2] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                    {submittedVendor?.id || "VND-NEW"}
+                  </span>{" "}
+                  is now under admin review.
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-left max-w-lg mx-auto space-y-1.5 font-mono text-slate-800 shadow-2xs">
-                <div className="flex justify-between"><span className="text-slate-500">Company / Agency Name:</span> <span className="font-bold">{formData.companyName}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Registered Username/Email:</span> <span className="font-bold text-[#1877f2]">{formData.loginEmail || formData.email}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Account Status:</span> <span className="font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded">Pending Admin Verification</span></div>
+              <div className="bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-200 text-xs sm:text-sm text-left max-w-lg mx-auto space-y-2.5 font-sans text-slate-800 shadow-xs">
+                <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
+                  <span className="text-slate-500 font-medium">Company / Agency Name:</span>
+                  <span className="font-bold text-slate-900">{formData.companyName}</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-slate-200/60">
+                  <span className="text-slate-500 font-medium">Registered Login Email:</span>
+                  <span className="font-bold text-[#1877f2]">{formData.loginEmail || formData.email}</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-slate-500 font-medium">Account Status:</span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Pending Admin Verification
+                  </span>
+                </div>
               </div>
 
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl max-w-lg mx-auto text-xs text-blue-900 font-medium">
-                🔒 You cannot sign in immediately. Admin will inspect your uploaded statutory documents (RA License, GST, PAN). You will be able to log in once your account status is updated to <b>Approved</b>.
+              <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl max-w-lg mx-auto text-xs text-blue-900 font-medium leading-relaxed">
+                🔒 You cannot sign in immediately. Admin will inspect your registration and verify your details. Once approved, you will receive login confirmation via email to access your dashboard and upload required compliance documents.
               </div>
 
-              <div className="pt-1">
+              <div className="pt-2">
                 <Link
                   to="/vendor/login"
-                  className="px-6 py-2.5 bg-[#1877f2] hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md inline-flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#1877f2] hover:bg-blue-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2"
                 >
                   <span>Go to Vendor Login Page</span>
-                  <ArrowRight size={15} />
+                  <ArrowRight size={16} />
                 </Link>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {/* PAGE 1: AGENCY & CONTACT PROFILE (COMPACT GRID FIT) */}
-              {currentStep === 1 && (
-                <div className="space-y-2.5">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* PAGE 1: AGENCY & CONTACT PROFILE */}
+              <div className="space-y-2.5 bg-white p-4 rounded-xl border border-slate-200">
+                <h3 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-2 mb-3">1. Agency Details</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <div className="sm:col-span-2">
                       <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
@@ -519,6 +400,7 @@ export function VendorRegister() {
                           fieldErrors.companyName ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
                         }`}
                       />
+                      {fieldErrors.companyName && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.companyName}</p>}
                     </div>
 
                     <div>
@@ -548,49 +430,107 @@ export function VendorRegister() {
                         className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
                       />
                     </div>
-
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Country</label>
-                      <select
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Est. Year</label>
+                      <input
+                        type="text"
+                        name="establishmentYear"
+                        value={formData.establishmentYear}
+                        onChange={handleInputChange}
+                        placeholder="2010"
+                        maxLength={4}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">GSTIN</label>
+                      <input
+                        type="text"
+                        name="gstin"
+                        value={formData.gstin}
+                        onChange={handleInputChange}
+                        placeholder="27AABCA1234C1Z1"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">PAN Number</label>
+                      <input
+                        type="text"
+                        name="pan"
+                        value={formData.pan}
+                        onChange={(e) => {
+                          const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+                          setFormData((prev) => ({ ...prev, pan: val }));
+                        }}
+                        placeholder="ABCDE1234F"
+                        maxLength={10}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Country <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
                         name="country"
                         value={formData.country}
                         onChange={handleInputChange}
-                        className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
-                      >
-                        <option value="India">India</option>
-                        <option value="Nepal">Nepal</option>
-                        <option value="Bangladesh">Bangladesh</option>
-                        <option value="Sri Lanka">Sri Lanka</option>
-                        <option value="Philippines">Philippines</option>
-                      </select>
+                        placeholder="e.g. India"
+                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800 ${
+                          fieldErrors.country ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
+                      />
+                      {fieldErrors.country && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.country}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">State</label>
-                      <select
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">State <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
                         name="state"
                         value={formData.state}
                         onChange={handleInputChange}
-                        className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
-                      >
-                        {Object.keys(INDIAN_STATES_AND_CITIES).map((st) => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </select>
+                        placeholder="e.g. Maharashtra"
+                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800 ${
+                          fieldErrors.state ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
+                      />
+                      {fieldErrors.state && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.state}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">City</label>
-                      <select
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">City <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
-                        className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800"
-                      >
-                        {(INDIAN_STATES_AND_CITIES[formData.state] || ["Mumbai"]).map((ct) => (
-                          <option key={ct} value={ct}>{ct}</option>
-                        ))}
-                      </select>
+                        placeholder="e.g. Mumbai"
+                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] bg-white text-slate-800 ${
+                          fieldErrors.city ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
+                      />
+                      {fieldErrors.city && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.city}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">PIN Code <span className="text-rose-500">*</span></label>
+                      <input
+                        type="text"
+                        name="pinCode"
+                        maxLength={10}
+                        value={formData.pinCode}
+                        onChange={handleInputChange}
+                        placeholder="400013"
+                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                          fieldErrors.pinCode ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
+                      />
+                      {fieldErrors.pinCode && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.pinCode}</p>}
                     </div>
                   </div>
 
@@ -607,23 +547,22 @@ export function VendorRegister() {
                           fieldErrors.address ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
                         }`}
                       />
+                      {fieldErrors.address && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.address}</p>}
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">PIN Code <span className="text-rose-500">*</span></label>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Area / Locality</label>
                       <input
                         type="text"
-                        name="pinCode"
-                        maxLength={6}
-                        value={formData.pinCode}
+                        name="area"
+                        value={formData.area}
                         onChange={handleInputChange}
-                        placeholder="400013"
-                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
-                          fieldErrors.pinCode ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
-                        }`}
+                        placeholder="Lower Parel"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
                       />
                     </div>
                   </div>
 
+                  {/* Contact Person */}
                   <div className="pt-2 border-t border-slate-100">
                     <h4 className="text-[10px] font-extrabold text-slate-900 uppercase tracking-wider mb-1.5">Authorized Contact Person Details</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -635,8 +574,11 @@ export function VendorRegister() {
                           value={formData.contactPersonName}
                           onChange={handleInputChange}
                           placeholder="Rajesh Varma"
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                          className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                            fieldErrors.contactPersonName ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                          }`}
                         />
+                        {fieldErrors.contactPersonName && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.contactPersonName}</p>}
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Mobile Number <span className="text-rose-500">*</span></label>
@@ -646,8 +588,11 @@ export function VendorRegister() {
                           value={formData.mobile}
                           onChange={handleInputChange}
                           placeholder="+91 98200 12345"
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                          className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                            fieldErrors.mobile ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                          }`}
                         />
+                        {fieldErrors.mobile && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.mobile}</p>}
                       </div>
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Official Email <span className="text-rose-500">*</span></label>
@@ -657,137 +602,105 @@ export function VendorRegister() {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="r.varma@abcmanpower.com"
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                          className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                            fieldErrors.email ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                          }`}
                         />
+                        {fieldErrors.email && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.email}</p>}
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleNextStep}
-                      className="px-5 py-2.5 bg-[#1877f2] hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md inline-flex items-center gap-2 cursor-pointer"
-                    >
-                      <span>Next: Specializations & Documents</span>
-                      <ArrowRight size={15} />
-                    </button>
-                  </div>
                 </div>
-              )}
 
-              {/* PAGE 2: MANDATORY STATUTORY DOCUMENTS UPLOAD */}
-              {currentStep === 2 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div>
-                      <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                        <UploadCloud className="text-[#1877f2]" size={18} />
-                        <span>Mandatory Statutory Documents Upload</span>
-                      </h3>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        Upload clean copies of your agency registration, RA recruitment license, GST & ID proofs (PDF, JPG, PNG).
-                      </p>
-                    </div>
-                    <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-                      Step 2 of 3
-                    </span>
-                  </div>
+              {/* PAGE 2: SPECIALIZATIONS */}
+              <div className="space-y-4 bg-white p-4 rounded-xl border border-slate-200">
+                <h3 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-2 mb-3 flex items-center gap-2">
+                  <UploadCloud className="text-[#1877f2]" size={16} />
+                  2. Specializations
+                </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-1">
-                    {REQUIRED_DOCUMENTS.map((doc) => {
-                      const uploaded = uploadedDocs[doc.key];
-                      return (
-                        <div
-                          key={doc.key}
-                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
-                            uploaded
-                              ? "bg-emerald-50/60 border-emerald-300 shadow-2xs"
-                              : "bg-slate-50/80 border-slate-200 hover:border-blue-400 hover:bg-white shadow-2xs"
+                  {/* Specializations */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                      Trade Specializations <span className="text-slate-400">(select all that apply)</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {SPECIALIZATION_OPTIONS.map((sp) => (
+                        <button
+                          key={sp}
+                          type="button"
+                          onClick={() => toggleSpecialization(sp)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                            formData.specializations.includes(sp)
+                              ? "bg-blue-600 text-white border-blue-600"
+                              : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-400"
                           }`}
                         >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                                <span>{doc.label}</span>
-                                {doc.required && <span className="text-rose-500">*</span>}
-                              </h4>
-                              <p className="text-[10px] text-slate-500 mt-0.5 font-medium">
-                                Official verification document
-                              </p>
-                            </div>
-
-                            {uploaded ? (
-                              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                                <Check size={11} /> Uploaded
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider shrink-0">
-                                Required
-                              </span>
-                            )}
-                          </div>
-
-                          {uploaded ? (
-                            <div className="flex items-center justify-between bg-white p-2.5 border border-emerald-200 rounded-xl text-xs">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <UploadCloud size={16} className="text-emerald-600 shrink-0" />
-                                <span className="font-mono text-slate-800 truncate text-[11px] font-semibold">
-                                  {uploaded.fileName}
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveDocument(doc.key)}
-                                className="text-rose-600 hover:text-rose-800 font-bold ml-2 cursor-pointer shrink-0 text-xs px-2 py-0.5 rounded-lg hover:bg-rose-50"
-                              >
-                                Remove ✕
-                              </button>
-                            </div>
-                          ) : (
-                            <label className="block w-full text-center py-4 bg-white border border-dashed border-slate-300 hover:border-[#1877f2] rounded-xl text-xs font-bold text-[#1877f2] cursor-pointer transition-all hover:shadow-xs group">
-                              <div className="flex flex-col items-center justify-center gap-1">
-                                <UploadCloud size={20} className="text-[#1877f2] group-hover:scale-110 transition-transform" />
-                                <span>Click to Upload {doc.label}</span>
-                                <span className="text-[10px] font-normal text-slate-400">PDF, JPG, JPEG, PNG (Max 10MB)</span>
-                              </div>
-                              <input
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                onChange={(e) => handleFileUpload(doc.key, doc.label, e.target.files[0])}
-                                className="hidden"
-                              />
-                            </label>
-                          )}
-                        </div>
-                      );
-                    })}
+                          {sp}
+                        </button>
+                      ))}
+                    </div>
+                    {formData.specializations.includes("Other") && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          name="otherSpecialization"
+                          value={formData.otherSpecialization}
+                          onChange={handleInputChange}
+                          placeholder="Please specify your specialization..."
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(1)}
-                      className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <ArrowLeft size={14} />
-                      <span>Previous</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleNextStep}
-                      className="px-6 py-2.5 bg-[#1877f2] hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md inline-flex items-center gap-2 cursor-pointer"
-                    >
-                      <span>Next: Account Credentials</span>
-                      <ArrowRight size={15} />
-                    </button>
+                  {/* Countries Served */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
+                      Countries Served <span className="text-slate-400">(select all that apply)</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {COUNTRIES_SERVED_OPTIONS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => toggleCountryServed(c)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+                            formData.countriesServed.includes(c)
+                              ? "bg-emerald-600 text-white border-emerald-600"
+                              : "bg-slate-50 text-slate-700 border-slate-200 hover:border-emerald-400"
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                    {formData.countriesServed.includes("Other") && (
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          name="otherCountryServed"
+                          value={formData.otherCountryServed}
+                          onChange={handleInputChange}
+                          placeholder="Please specify country..."
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    )}
                   </div>
+
+
+
                 </div>
-              )}
 
-              {/* PAGE 3: CREDENTIALS & SUBMISSION */}
-              {currentStep === 3 && (
-                <div className="space-y-3 max-w-xl mx-auto">
+              {/* PAGE 2: CREDENTIALS & SUBMISSION */}
+              <div className="space-y-3 bg-white p-4 rounded-xl border border-slate-200">
+                <h3 className="text-sm font-black text-slate-900 border-b border-slate-100 pb-2 mb-3 flex items-center gap-2">
+                  <Lock className="text-[#1877f2]" size={16} />
+                  2. Login Credentials
+                </h3>
+
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
                       Login Email Address (Username) <span className="text-rose-500">*</span>
@@ -795,11 +708,14 @@ export function VendorRegister() {
                     <input
                       type="email"
                       name="loginEmail"
-                      value={formData.loginEmail || formData.email}
+                      value={formData.loginEmail}
                       onChange={handleInputChange}
                       placeholder="vendor@abcmanpower.com"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                      className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                        fieldErrors.loginEmail ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                      }`}
                     />
+                    {fieldErrors.loginEmail && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.loginEmail}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -811,8 +727,11 @@ export function VendorRegister() {
                         value={formData.password}
                         onChange={handleInputChange}
                         placeholder="Min 6 chars"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                          fieldErrors.password ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
                       />
+                      {fieldErrors.password && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.password}</p>}
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-700 mb-0.5">Confirm Password <span className="text-rose-500">*</span></label>
@@ -822,8 +741,11 @@ export function VendorRegister() {
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
                         placeholder="Re-enter password"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:border-[#1877f2]"
+                        className={`w-full px-3 py-2 rounded-xl border text-xs font-medium focus:outline-none focus:border-[#1877f2] ${
+                          fieldErrors.confirmPassword ? "border-rose-400 bg-rose-50/30" : "border-slate-200"
+                        }`}
                       />
+                      {fieldErrors.confirmPassword && <p className="text-rose-600 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.confirmPassword}</p>}
                     </div>
                   </div>
 
@@ -837,38 +759,29 @@ export function VendorRegister() {
                         className="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500 mt-0.5 cursor-pointer shrink-0"
                       />
                       <span className="text-[11px] font-semibold text-slate-700 leading-snug">
-                        I hereby declare all provided RA licenses, GST and statutory documents are authentic. I understand my account will remain <b>Pending Verification</b> until approved by Admin.
+                        I hereby declare all provided documents (PAN Card, and optionally GST/Registration Certificate) are authentic and correct. I understand my account will remain <b>Pending Verification</b> until approved by Admin.
                       </span>
                     </label>
+                    {fieldErrors.declarationConfirmed && <p className="text-rose-600 text-[10px] flex items-center gap-1"><AlertCircle size={10}/>{fieldErrors.declarationConfirmed}</p>}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(2)}
-                      disabled={loading}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <ArrowLeft size={14} />
-                      <span>Previous</span>
-                    </button>
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-2.5 bg-[#1877f2] hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-lg inline-flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                      className="px-8 py-3 bg-[#1877f2] hover:bg-blue-700 text-white font-black rounded-xl text-sm shadow-lg inline-flex items-center gap-2 cursor-pointer disabled:opacity-60"
                     >
                       {loading ? (
                         <span>Submitting Registration...</span>
                       ) : (
                         <>
-                          <span>Submit Registration for Admin Verification 🚀</span>
-                          <Check size={15} />
+                          <span>Submit Registration</span>
+                          <Check size={18} />
                         </>
                       )}
                     </button>
                   </div>
                 </div>
-              )}
             </form>
           )}
         </div>
