@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 import { crmClientService } from "../../services/crmClientService";
+import { initialClients } from "../../data/mockClients";
 
 export default function SubmitCandidate() {
   const [searchParams] = useSearchParams();
@@ -35,6 +36,7 @@ export default function SubmitCandidate() {
   const [clients, setClients] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [availableProjectsList, setAvailableProjectsList] = useState([]);
   const [excludedBusyCount, setExcludedBusyCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -72,19 +74,54 @@ export default function SubmitCandidate() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
 
-      const [clientRes, candRes, appRes] = await Promise.all([
+      const [clientRes, candRes, appRes, availProjects] = await Promise.all([
         crmClientService.getClients({ limit: 100 }),
         crmVendorService.getCandidates(curVendor?.id),
         crmVendorService.getApplications(curVendor?.id),
+        crmVendorService.getAvailableProjects(curVendor?.id),
       ]);
 
-      const clientList = clientRes?.clients || [];
+      let clientList = clientRes?.clients || [];
+      if (!clientList.length) {
+        try {
+          const raw =
+            localStorage.getItem("crm_clients_data_v3") ||
+            localStorage.getItem("crm_clients_data_v2") ||
+            "[]";
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            clientList = parsed;
+          }
+        } catch {}
+      }
+      if (!clientList.length && Array.isArray(initialClients) && initialClients.length > 0) {
+        clientList = initialClients;
+      }
       setClients(clientList);
       setApplications(appRes || []);
 
+      let pList = Array.isArray(availProjects) && availProjects.length > 0 ? availProjects : [];
+      if (pList.length === 0) {
+        pList = clientList.flatMap((c) =>
+          (c.projects || []).map((p) => ({
+            ...p,
+            clientId: c.id,
+            clientName: c.companyName || c.name,
+          }))
+        );
+      }
+      if (pList.length === 0 && Array.isArray(initialClients) && initialClients.length > 0) {
+        pList = initialClients.flatMap((c) =>
+          (c.projects || []).map((p) => ({
+            ...p,
+            clientId: c.id,
+            clientName: c.companyName || c.name,
+          }))
+        );
+      }
+      setAvailableProjectsList(pList);
+
       // APPLICATION STATUSES THAT DISQUALIFY A CANDIDATE FROM APPEARING IN ASSIGN CANDIDATE:
-      // "aagar vo selct ya shorlist ho gya hai interviw hai uska toh uss list ma vo nhi dikega"
-      // Includes: Selected, Shortlisted, Interview, Under Review, Submitted, Completed
       const busyDisqualifyingStatuses = [
         "Selected",
         "Shortlisted",
@@ -100,21 +137,17 @@ export default function SubmitCandidate() {
       (candRes || []).forEach((c) => {
         const cApps = (appRes || []).filter((a) => a.candidateId === c.id);
 
-        // Disqualify if candidate is active in any application:
         const hasBusyApp = cApps.some((a) => busyDisqualifyingStatuses.includes(a.status));
         if (hasBusyApp) {
           busyCount++;
           return;
         }
 
-        // Only FRESH (0 applications) or REJECTED (all applications rejected) can show:
-        // "jo fress candiate or rejct hai hai vo dikega jisse vo project ka liya assign kr de usse dubar"
         const isFresh = cApps.length === 0;
         const rejectedApp = cApps.find((a) => a.status === "Rejected");
         const isRejected = !isFresh && cApps.every((a) => a.status === "Rejected");
 
         if (!isFresh && !isRejected) {
-          // If on hold or uncertain state, also exclude
           busyCount++;
           return;
         }
@@ -140,10 +173,11 @@ export default function SubmitCandidate() {
         );
         const matchingProj = matchingClient?.projects?.find(
           (p) => String(p.id) === String(preselectedProjId)
-        );
+        ) || pList.find((p) => String(p.id) === String(preselectedProjId));
+
         if (matchingProj) {
           setSelectedProjectId(String(matchingProj.id));
-          setSelectedClientId(matchingClient.id);
+          setSelectedClientId(matchingProj.clientId || matchingClient?.id);
           if (matchingProj.manpowerRequirements?.length > 0) {
             setSelectedPosition(
               matchingProj.manpowerRequirements[0].position ||
@@ -167,27 +201,49 @@ export default function SubmitCandidate() {
     }
   };
 
-  const allProjects = clients.flatMap((c) =>
-    (c.projects || [])
-      .filter((p) => {
-        const status = (p.status || "Active").toLowerCase();
-        if (status !== "active") return false;
-        const visibility = (p.vendorVisibility || "").toLowerCase();
-        const assignmentType = (p.vendorAssignmentType || "All Vendors").toLowerCase();
-        const assignedList = p.assignedVendors || p.assignedVendorIds || [];
-        const isSpecific = visibility === "specific" || assignmentType.includes("specific");
-        const isAssigned = vendor?.id && assignedList.map(String).includes(String(vendor?.id));
-        return !isSpecific || isAssigned || assignedList.length === 0;
-      })
-      .map((p) => ({
-        ...p,
-        clientId: c.id,
-        clientName: c.companyName || c.name,
-      }))
-  );
+  const allProjects = useMemo(() => {
+    if (availableProjectsList && availableProjectsList.length > 0) {
+      return availableProjectsList;
+    }
+    if (clients && clients.length > 0) {
+      const derived = clients.flatMap((c) =>
+        (c.projects || []).map((p) => ({
+          ...p,
+          clientId: c.id,
+          clientName: c.companyName || c.name,
+        }))
+      );
+      if (derived.length > 0) return derived;
+    }
+    if (Array.isArray(initialClients) && initialClients.length > 0) {
+      return initialClients.flatMap((c) =>
+        (c.projects || []).map((p) => ({
+          ...p,
+          clientId: c.id,
+          clientName: c.companyName || c.name,
+        }))
+      );
+    }
+    return [];
+  }, [availableProjectsList, clients]);
 
   const selectedProject = allProjects.find((p) => String(p.id) === String(selectedProjectId));
-  const availableRequirements = selectedProject?.manpowerRequirements || [];
+  
+  const availableRequirements = useMemo(() => {
+    if (!selectedProject) return [];
+    if (Array.isArray(selectedProject.manpowerRequirements) && selectedProject.manpowerRequirements.length > 0) {
+      return selectedProject.manpowerRequirements;
+    }
+    const fallbackTitle = selectedProject.positionTitle || selectedProject.primaryPosition || "General Trade Position";
+    const fallbackQty = selectedProject.totalHeadcount || selectedProject.totalManpower || 1;
+    return [{
+      id: `mpr-${selectedProject.id || "1"}-1`,
+      position: fallbackTitle,
+      positionTitle: fallbackTitle,
+      quantity: fallbackQty,
+    }];
+  }, [selectedProject]);
+
   const selectedRequirement = availableRequirements.find((r) => r.positionTitle === selectedPosition || r.position === selectedPosition);
   
   const requiredHeadcount = selectedRequirement ? Number(selectedRequirement.quantity || 0) : 0;
@@ -209,11 +265,10 @@ export default function SubmitCandidate() {
     const targetProj = allProjects.find((p) => String(p.id) === String(projId));
     if (targetProj) {
       setSelectedClientId(targetProj.clientId);
-      if (targetProj.manpowerRequirements?.length > 0) {
-        setSelectedPosition(targetProj.manpowerRequirements[0].position || targetProj.manpowerRequirements[0].positionTitle);
-      } else {
-        setSelectedPosition("");
-      }
+      const reqs = Array.isArray(targetProj.manpowerRequirements) && targetProj.manpowerRequirements.length > 0
+        ? targetProj.manpowerRequirements
+        : [{ position: targetProj.positionTitle || targetProj.primaryPosition || "General Trade Position" }];
+      setSelectedPosition(reqs[0].position || reqs[0].positionTitle || "");
     } else {
       setSelectedClientId("");
       setSelectedPosition("");
@@ -759,7 +814,7 @@ export default function SubmitCandidate() {
                   <option value="">-- Choose Target Project --</option>
                   {allProjects.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.projectName} ({p.country}) - {p.clientName}
+                      {p.projectName || p.name || p.title || "Overseas Project"} ({p.country || "Overseas"}) - {p.clientName || "Direct Client"}
                     </option>
                   ))}
                 </select>

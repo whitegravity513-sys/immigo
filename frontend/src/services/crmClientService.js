@@ -1,5 +1,6 @@
 // Service layer for Foreign Manpower Supply Client Management CRM
 import { initialClients } from "../data/mockClients.js";
+import { apiClient } from "./apiClient.js";
 
 const STORAGE_KEY = "crm_clients_data_v3";
 
@@ -12,20 +13,28 @@ const loadClientsFromStorage = () => {
       localStorage.getItem("crm_clients_data");
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        // Filter out hardcoded mock client IDs
+      if (Array.isArray(parsed) && parsed.length > 0) {
         const realClients = parsed.filter(
           (c) => !["cl-1", "cl-2", "cl-3", "cl-4", "cl-5"].includes(String(c.id))
         );
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(realClients));
-        return realClients;
+        if (realClients.length > 0) {
+          const existingIds = new Set(realClients.map((c) => String(c.id)));
+          const missing = (initialClients || []).filter((c) => !existingIds.has(String(c.id)));
+          if (missing.length > 0) {
+            const merged = [...realClients, ...missing];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            return merged;
+          }
+          return realClients;
+        }
       }
     }
   } catch (err) {
     console.error("Error reading clients from storage:", err);
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
-  return [];
+  const fallback = Array.isArray(initialClients) && initialClients.length > 0 ? initialClients : [];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
+  return fallback;
 };
 
 // Internal helper to save clients
@@ -68,7 +77,13 @@ export const crmClientService = {
     sortBy = "createdAt",
     sortOrder = "desc",
   } = {}) => {
-    await delay(80);
+    try {
+      const res = await apiClient.get("/crm-sync/clients");
+      if (res.data?.success && Array.isArray(res.data.clients) && res.data.clients.length > 0) {
+        saveClientsToStorage(res.data.clients);
+      }
+    } catch {}
+
     const all = loadClientsFromStorage();
 
     let filtered = all.filter((client) => {
@@ -184,6 +199,9 @@ export const crmClientService = {
 
     all.unshift(newClient);
     saveClientsToStorage(all);
+    try {
+      await apiClient.post("/crm-sync/clients", newClient);
+    } catch {}
     return newClient;
   },
 
@@ -271,6 +289,9 @@ export const crmClientService = {
     client.updatedAt = new Date().toISOString();
 
     saveClientsToStorage(all);
+    try {
+      await apiClient.post("/crm-sync/projects", { clientId, project: newProject });
+    } catch {}
 
     // Dispatch real-time notification to assigned vendors or all vendors
     try {

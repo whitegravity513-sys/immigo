@@ -6,6 +6,7 @@ import employeeRoutes from "./employee.routes.js";
 import authRoutes from "./auth.routes.js";
 import vendorAuthRoutes from "./vendorAuth.routes.js";
 import paymentRoutes from "./payment.routes.js";
+import crmSyncRoutes from "./crmSync.routes.js";
 import { authLimiter } from "../middleware/rateLimit.middleware.js";
 
 const apiRouter = express.Router();
@@ -19,5 +20,6 @@ apiRouter.use("/employee", employeeRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/auth/vendor", vendorAuthRoutes);
 apiRouter.use("/payments", paymentRoutes);
+apiRouter.use("/crm-sync", crmSyncRoutes);
 
 export default apiRouter;

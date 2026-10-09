@@ -2,6 +2,7 @@
 // Dedicated storage and service layer for Vendor Portal and Admin Vendor Management
 import crmClientService from "./crmClientService.js";
 import { apiClient } from "./apiClient.js";
+import { initialClients } from "../data/mockClients.js";
 
 const VENDORS_STORAGE_KEY = "immigo_crm_vendors_v3";
 const CANDIDATES_STORAGE_KEY = "immigo_crm_candidates_v3";
@@ -804,7 +805,18 @@ export const crmVendorService = {
   // CANDIDATE SUBMISSION / APPLICATIONS (PER-PROJECT)
   // ----------------------------------------------------
   getApplications: async (vendorId, { status = "All", projectId = "All", search = "" } = {}) => {
-    await delay(60);
+    try {
+      const res = await apiClient.get(`/crm-sync/applications${vendorId ? `?vendorId=${vendorId}` : ""}`);
+      if (res.data?.success && Array.isArray(res.data.applications) && res.data.applications.length > 0) {
+        const local = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
+        const map = new Map();
+        local.forEach((a) => map.set(a.id, a));
+        res.data.applications.forEach((a) => map.set(a.id, { ...(map.get(a.id) || {}), ...a }));
+        const merged = Array.from(map.values());
+        saveData(APPLICATIONS_STORAGE_KEY, merged);
+      }
+    } catch {}
+
     let apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
 
     if (vendorId) {
@@ -994,6 +1006,13 @@ export const crmVendorService = {
 
     apps.unshift(newApp);
     saveData(APPLICATIONS_STORAGE_KEY, apps);
+
+    try {
+      apiClient.post("/crm-sync/applications", {
+        ...newApp,
+        vendorName: candidate.vendorName || "Agency Partner",
+      }).catch(() => {});
+    } catch {}
 
     // Notify vendor
     crmVendorService.addNotification({
@@ -1435,41 +1454,7 @@ export const crmVendorService = {
     // Fetch Available Projects based on visibility
     let availableProjects = [];
     try {
-      const clientRes = await crmClientService.getClients({ limit: 100 });
-      const clientsData =
-        clientRes?.clients?.length > 0
-          ? clientRes.clients
-          : JSON.parse(
-              localStorage.getItem("crm_clients_data_v3") ||
-                localStorage.getItem("crm_clients_data_v2") ||
-                "[]"
-            );
-
-      clientsData.forEach((client) => {
-        if (client.projects) {
-          client.projects.forEach((proj) => {
-            if (proj.status === "Active" || !proj.status) {
-              const assignmentType = proj.vendorAssignmentType || "All Vendors";
-              if (
-                assignmentType === "All Vendors" ||
-                !proj.assignedVendors ||
-                proj.assignedVendors.length === 0 ||
-                (assignmentType === "Specific Vendor" &&
-                  proj.assignedVendors &&
-                  proj.assignedVendors.includes(vendorId))
-              ) {
-                availableProjects.push({
-                  ...proj,
-                  clientName: client.companyName,
-                  clientId: client.id,
-                });
-              }
-            }
-          });
-        }
-      });
-      // Sort by newest first
-      availableProjects.reverse();
+      availableProjects = await crmVendorService.getAvailableProjects(vendorId);
     } catch (e) {
       console.warn("Could not fetch available projects:", e);
     }
@@ -1496,27 +1481,43 @@ export const crmVendorService = {
 
   getAvailableProjects: async (vendorId) => {
     try {
+      const res = await apiClient.get(`/crm-sync/projects${vendorId ? `?vendorId=${vendorId}` : ""}`);
+      if (res.data?.success && Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+        return res.data.projects;
+      }
+    } catch {}
+
+    try {
       const clientRes = await crmClientService.getClients({ limit: 100 });
-      const clientsData =
-        clientRes?.clients?.length > 0
-          ? clientRes.clients
-          : JSON.parse(
-              localStorage.getItem("crm_clients_data_v3") ||
-                localStorage.getItem("crm_clients_data_v2") ||
-                "[]"
-            );
+      let clientsData = clientRes?.clients || [];
+      if (!clientsData.length) {
+        try {
+          const raw =
+            localStorage.getItem("crm_clients_data_v3") ||
+            localStorage.getItem("crm_clients_data_v2") ||
+            "[]";
+          clientsData = JSON.parse(raw);
+        } catch {}
+      }
 
       const list = [];
       clientsData.forEach((client) => {
         if (client.projects && Array.isArray(client.projects)) {
           client.projects.forEach((proj) => {
             const status = (proj.status || "Active").toLowerCase();
-            if (status === "active") {
+            if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
               const visibility = (proj.vendorVisibility || "").toLowerCase();
               const assignmentType = (proj.vendorAssignmentType || "All Vendors").toLowerCase();
               const assignedList = proj.assignedVendors || proj.assignedVendorIds || [];
               const isSpecific = visibility === "specific" || assignmentType.includes("specific");
-              const isAssigned = vendorId && assignedList.map(String).includes(String(vendorId));
+              const isAssigned =
+                vendorId &&
+                assignedList.some(
+                  (id) =>
+                    String(id).toLowerCase() === String(vendorId).toLowerCase() ||
+                    String(id).includes(String(vendorId)) ||
+                    String(vendorId).includes(String(id))
+                );
 
               if (!isSpecific || isAssigned || assignedList.length === 0) {
                 list.push({
@@ -1529,9 +1530,30 @@ export const crmVendorService = {
           });
         }
       });
+
+      if (list.length === 0 && Array.isArray(initialClients) && initialClients.length > 0) {
+        initialClients.forEach((client) => {
+          if (client.projects && Array.isArray(client.projects)) {
+            client.projects.forEach((proj) => {
+              list.push({
+                ...proj,
+                clientName: client.companyName || client.name,
+                clientId: client.id,
+              });
+            });
+          }
+        });
+      }
+
       return list.reverse();
     } catch {
-      return [];
+      return (initialClients || []).flatMap((c) =>
+        (c.projects || []).map((p) => ({
+          ...p,
+          clientName: c.companyName || c.name,
+          clientId: c.id,
+        }))
+      );
     }
   },
 
@@ -1539,6 +1561,18 @@ export const crmVendorService = {
   // NOTIFICATIONS
   // ----------------------------------------------------
   getNotifications: (vendorId) => {
+    try {
+      apiClient.get(`/crm-sync/notifications?role=VENDOR${vendorId ? `&vendorId=${vendorId}` : ""}`)
+        .then((res) => {
+          if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
+            const current = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
+            const map = new Map();
+            current.forEach((n) => map.set(n.id, n));
+            res.data.notifications.forEach((n) => map.set(n.id, { ...(map.get(n.id) || {}), ...n }));
+            saveData(VENDOR_NOTIFICATIONS_KEY, Array.from(map.values()));
+          }
+        }).catch(() => {});
+    } catch {}
     const notifs = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
     return notifs.filter((n) => !vendorId || n.vendorId === vendorId);
   },
@@ -1553,6 +1587,12 @@ export const crmVendorService = {
     };
     notifs.unshift(newNotif);
     saveData(VENDOR_NOTIFICATIONS_KEY, notifs);
+    try {
+      apiClient.post("/crm-sync/notifications", {
+        ...newNotif,
+        recipientRole: "VENDOR",
+      }).catch(() => {});
+    } catch {}
     return newNotif;
   },
 
@@ -1575,6 +1615,18 @@ export const crmVendorService = {
   // ADMIN NOTIFICATIONS
   // ----------------------------------------------------
   getAdminNotifications: () => {
+    try {
+      apiClient.get("/crm-sync/notifications?role=ADMIN")
+        .then((res) => {
+          if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
+            const current = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
+            const map = new Map();
+            current.forEach((n) => map.set(n.id, n));
+            res.data.notifications.forEach((n) => map.set(n.id, { ...(map.get(n.id) || {}), ...n }));
+            saveData(ADMIN_NOTIFICATIONS_KEY, Array.from(map.values()));
+          }
+        }).catch(() => {});
+    } catch {}
     return loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
   },
 
@@ -1588,6 +1640,12 @@ export const crmVendorService = {
     };
     notifs.unshift(newNotif);
     saveData(ADMIN_NOTIFICATIONS_KEY, notifs);
+    try {
+      apiClient.post("/crm-sync/notifications", {
+        ...newNotif,
+        recipientRole: "ADMIN",
+      }).catch(() => {});
+    } catch {}
     return newNotif;
   },
 
