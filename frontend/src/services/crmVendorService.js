@@ -23,6 +23,22 @@ const INITIAL_APPLICATIONS = [];
 const INITIAL_ADMIN_NOTIFICATIONS = [];
 const INITIAL_NOTIFICATIONS = [];
 
+// Automatic cleanup to clear any old mock candidates or test data
+if (typeof window !== "undefined") {
+  try {
+    const cleanKey = "immigo_cleaned_candidates_v5";
+    if (!localStorage.getItem(cleanKey)) {
+      localStorage.removeItem("immigo_crm_candidates_v3");
+      localStorage.removeItem("immigo_crm_applications_v3");
+      localStorage.removeItem("immigo_crm_refunds_v3");
+      localStorage.setItem("immigo_crm_candidates_v3", JSON.stringify([]));
+      localStorage.setItem("immigo_crm_applications_v3", JSON.stringify([]));
+      localStorage.setItem("immigo_crm_refunds_v3", JSON.stringify([]));
+      localStorage.setItem(cleanKey, "true");
+    }
+  } catch {}
+}
+
 // Helper to load/save
 const loadData = (key, fallback) => {
   try {

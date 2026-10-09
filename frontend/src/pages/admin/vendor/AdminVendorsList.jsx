@@ -1438,140 +1438,125 @@ export default function AdminVendorsList() {
           </div>
         </div>
 
-        {/* VENDOR PERFORMANCE SUMMARY CARDS */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <TrendingUp size={18} className="text-blue-600" />
-              <span>Vendor Performance Summary</span>
-            </h2>
-            <span className="text-xs font-semibold text-slate-500">
-              Metrics calculated exclusively for {selectedVendor.companyName}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Candidates</span>
-              <span className="text-2xl font-black text-slate-900 mt-1 block">{metrics.totalCandidates}</span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Submitted</span>
-              <span className="text-2xl font-black text-blue-700 mt-1 block">{metrics.submitted + metrics.underReview}</span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Shortlisted</span>
-              <span className="text-2xl font-black text-indigo-700 mt-1 block">{metrics.shortlisted}</span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Selected</span>
-              <span className="text-2xl font-black text-emerald-700 mt-1 block">{metrics.selected}</span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">Rejected</span>
-              <span className="text-2xl font-black text-rose-700 mt-1 block">{metrics.rejected}</span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">In Processing</span>
-              <span className="text-2xl font-black text-amber-700 mt-1 block">{metrics.inProcessing}</span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-2xs">
-              <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-wider block">Completed</span>
-              <span className="text-2xl font-black text-cyan-700 mt-1 block">{metrics.completed}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* VENDOR CANDIDATES & DOCUMENTS TABLE */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden space-y-4 p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+        {/* VENDOR COMPLIANCE & STATUTORY DOCUMENTS */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden space-y-5 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Vendor Candidates & Submissions</h2>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-blue-600" />
+                <span>Vendor Compliance & Statutory Documents</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Statutory registration, tax licenses, and banking verification documents submitted by this agency.
+              </p>
             </div>
-
-            <div className="relative max-w-xs w-full">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={candSearchQuery}
-                onChange={(e) => setCandSearchQuery(e.target.value)}
-                placeholder="Search candidate name, ID, position..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600 bg-white"
-              />
-            </div>
+            <button
+              onClick={() => setShowMouPreviewModal(true)}
+              className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer self-start sm:self-auto"
+            >
+              <FileText size={14} />
+              <span>Preview Official MOU</span>
+            </button>
           </div>
 
-          {filteredVendorCandidates.length === 0 ? (
+          {/* Documents Grid */}
+          {(!selectedVendor.documents || selectedVendor.documents.length === 0) ? (
             <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200">
-              <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <p className="text-xs font-bold text-slate-700">No candidate records found for this vendor.</p>
+              <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-xs font-bold text-slate-700">No documents uploaded yet by this vendor.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Documents will appear here once the vendor uploads their incorporation, PAN, or GST certificates.
+              </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-3">Candidate ID</th>
-                    <th className="py-3 px-3">Candidate Name</th>
-                    <th className="py-3 px-3">Position</th>
-                    <th className="py-3 px-3">Experience</th>
-                    <th className="py-3 px-3">Project</th>
-                    <th className="py-3 px-3">Client</th>
-                    <th className="py-3 px-3">Submitted Date</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-3 text-right">Resume & Documents</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredVendorCandidates.map((c) => {
-                    const candApp = vendorApps.find((a) => a.candidateId === c.id) || {
-                      projectName: "Riyadh Metro Line 3",
-                      clientName: "Saudi Oger Contracting",
-                      requirementCode: "REQ-0008",
-                      submittedAt: c.createdAt || "2026-09-12",
-                      status: "Under Review",
-                    };
-
-                    const docsCount = (c.documents || []).length || 3;
-
-                    return (
-                      <tr key={c.id} className="hover:bg-slate-50/70 transition">
-                        <td className="py-3.5 px-3 font-mono font-bold text-blue-700">{c.id}</td>
-                        <td className="py-3.5 px-3 font-extrabold text-slate-900">{c.fullName}</td>
-                        <td className="py-3.5 px-3 font-semibold text-slate-700">{c.currentPosition || "Technician"}</td>
-                        <td className="py-3.5 px-3 text-slate-600">{c.experienceYears || "5"} Years</td>
-                        <td className="py-3.5 px-3 font-bold text-blue-700">{candApp.projectName}</td>
-                        <td className="py-3.5 px-3 text-slate-700 font-medium">{candApp.clientName}</td>
-                        <td className="py-3.5 px-3 text-slate-500">
-                          {candApp.submittedAt ? candApp.submittedAt.split("T")[0] : "2026-09-12"}
-                        </td>
-                        <td className="py-3.5 px-3 font-bold text-slate-800">
-                          <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-bold">
-                            {candApp.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-3 text-right">
-                          <button
-                            onClick={() => setSelectedCandidate({ ...c, candApp })}
-                            className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-2xs transition flex items-center gap-1.5 ml-auto cursor-pointer"
-                          >
-                            <FileText size={13} />
-                            <span>View Profile & Documents ({docsCount})</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {selectedVendor.documents.map((doc, idx) => (
+                <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-blue-100 text-blue-700 rounded-lg shrink-0">
+                      <FileText size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">{doc.name || doc.type || "Document"}</h4>
+                      <p className="text-[11px] text-slate-500 font-mono">{doc.fileName || "document.pdf"}</p>
+                      <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        {doc.status || "Uploaded"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
+
+          {/* Bank Settlement Details */}
+          {selectedVendor.bankDetails && (selectedVendor.bankDetails.accountNumber || selectedVendor.bankDetails.bankName) && (
+            <div className="pt-4 border-t border-slate-100">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 mb-2.5">
+                Bank Settlement Account
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Account Name</span>
+                  <span className="font-bold text-slate-900">{selectedVendor.bankDetails.accountName || "N/A"}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Bank Name</span>
+                  <span className="font-bold text-slate-900">{selectedVendor.bankDetails.bankName || "N/A"}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Account Number</span>
+                  <span className="font-bold text-slate-900 font-mono">{selectedVendor.bankDetails.accountNumber || "N/A"}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">IFSC Code</span>
+                  <span className="font-bold text-slate-900 font-mono">{selectedVendor.bankDetails.ifsc || "N/A"}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MOU Execution Summary */}
+          <div className="pt-4 border-t border-slate-100">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 mb-2.5">
+              MOU Partnership Agreement Status
+            </h3>
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900">
+                    MOU Ref: MOU-VND-{selectedVendor.id || "001"}-2026
+                  </span>
+                  {selectedVendor.mouSigned || selectedVendor.mouStatus === "Approved" || selectedVendor.mouStatus === "Signed" ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      Digitally Executed
+                    </span>
+                  ) : selectedVendor.mouStatus === "Sent" || selectedVendor.status === "MOU Pending" ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+                      Issued &bull; Awaiting Vendor Signature
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                      Pending Document Verification
+                    </span>
+                  )}
+                </div>
+                <p className="text-slate-500 text-[11px]">
+                  {selectedVendor.signedMou?.signedAt
+                    ? `Signed by ${selectedVendor.signedMou.signatoryName || selectedVendor.contactPersonName} (${selectedVendor.signedMou.designation || "Signatory"}) on ${new Date(selectedVendor.signedMou.signedAt).toLocaleDateString("en-IN")}`
+                    : "Official recruitment partnership agreement between Vista Overseas and this vendor agency."}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowMouPreviewModal(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer self-start sm:self-auto shrink-0"
+              >
+                View Agreement
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1763,9 +1748,9 @@ export default function AdminVendorsList() {
                   <th className="py-3.5 px-4">State</th>
                   <th className="py-3.5 px-4">City</th>
                   <th className="py-3.5 px-4">Specialization</th>
-                  <th className="py-3.5 px-4 text-center">Total Candidates</th>
-                  <th className="py-3.5 px-4 text-center">Selected</th>
-                  <th className="py-3.5 px-4 text-center">Rejected</th>
+                  <th className="py-3.5 px-4 text-center">Registration No</th>
+                  <th className="py-3.5 px-4 text-center">Business Type</th>
+                  <th className="py-3.5 px-4 text-center">MOU Status</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4">Registration Date</th>
                   <th className="py-3.5 px-4 text-right">Action</th>
@@ -1773,8 +1758,6 @@ export default function AdminVendorsList() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredVendors.map((v) => {
-                  const m = getVendorMetrics(v.id);
-
                   return (
                     <tr
                       key={v.id}
@@ -1795,9 +1778,27 @@ export default function AdminVendorsList() {
                         {v.specialization || "Technical Trades"}
                       </td>
 
-                      <td className="py-4 px-4 text-center font-bold text-slate-900">{m.totalCandidates}</td>
-                      <td className="py-4 px-4 text-center font-extrabold text-emerald-600">{m.selected}</td>
-                      <td className="py-4 px-4 text-center font-extrabold text-rose-600">{m.rejected}</td>
+                      <td className="py-4 px-4 text-center font-mono text-xs text-slate-700 font-bold">
+                        {v.registrationNumber || "REG-VERIFIED"}
+                      </td>
+                      <td className="py-4 px-4 text-center text-xs text-slate-700 font-medium">
+                        {v.businessType || "Private Limited"}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        {v.mouSigned || v.mouStatus === "Approved" || v.mouStatus === "Signed" ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Executed
+                          </span>
+                        ) : v.mouStatus === "Sent" || v.status === "MOU Pending" ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                            MOU Sent
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            Pending
+                          </span>
+                        )}
+                      </td>
 
                       <td className="py-4 px-4">{getStatusBadge(v.status)}</td>
 

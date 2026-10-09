@@ -21,25 +21,7 @@ const saveData = (key, data) => {
   }
 };
 
-const INITIAL_REFUNDS = [
-  {
-    id: "RFD-9001",
-    applicationId: "APP-8001",
-    candidateId: "CND-501",
-    candidateName: "Rahul Kumar",
-    vendorId: "VND-1001",
-    vendorName: "ABC Manpower Consultants",
-    projectId: "PRJ-101",
-    projectName: "Dubai South Luxury Tower Phase 2",
-    totalPaid: 40000,
-    refundAmount: 30000,
-    refundReason: "Candidate refused travel due to personal reasons",
-    refundStatus: "Fully Refunded",
-    refundDate: "2026-09-28",
-    processedBy: "Admin",
-    remarks: "₹30,000 refunded to vendor account via RTGS-991203",
-  },
-];
+const INITIAL_REFUNDS = [];
 
 export const refundService = {
   // Get all refunds
