@@ -1499,7 +1499,16 @@ export const crmVendorService = {
     try {
       const res = await apiClient.get(`/crm-sync/projects${vendorId ? `?vendorId=${vendorId}` : ""}`);
       if (res.data?.success && Array.isArray(res.data.projects)) {
-        return res.data.projects.filter((p) => !DUMMY_PROJECT_IDS.includes(String(p.id)));
+        return res.data.projects
+          .map((p) => ({
+            ...p,
+            id: p.id || p.projectId || p._id?.toString(),
+            projectName: p.projectName || p.name || p.title || "Overseas Project",
+            clientName: p.clientName || "Overseas Client",
+            country: p.country || "Overseas",
+            manpowerRequirements: p.manpowerRequirements || [],
+          }))
+          .filter((p) => p.id && !DUMMY_PROJECT_IDS.includes(String(p.id)));
       }
     } catch {}
 
@@ -1520,29 +1529,20 @@ export const crmVendorService = {
       clientsData.forEach((client) => {
         if (client.projects && Array.isArray(client.projects)) {
           client.projects.forEach((proj) => {
-            if (DUMMY_PROJECT_IDS.includes(String(proj.id))) return;
+            const pId = proj.id || proj.projectId || proj._id?.toString();
+            if (!pId || DUMMY_PROJECT_IDS.includes(String(pId))) return;
             const status = (proj.status || "Active").toLowerCase();
             if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
-              const visibility = (proj.vendorVisibility || "").toLowerCase();
-              const assignmentType = (proj.vendorAssignmentType || "All Vendors").toLowerCase();
-              const assignedList = proj.assignedVendors || proj.assignedVendorIds || [];
-              const isSpecific = visibility === "specific" || assignmentType.includes("specific");
-              const isAssigned =
-                vendorId &&
-                assignedList.some(
-                  (id) =>
-                    String(id).toLowerCase() === String(vendorId).toLowerCase() ||
-                    String(id).includes(String(vendorId)) ||
-                    String(vendorId).includes(String(id))
-                );
-
-              if (!isSpecific || isAssigned || assignedList.length === 0) {
-                list.push({
-                  ...proj,
-                  clientName: client.companyName || client.name,
-                  clientId: client.id,
-                });
-              }
+              list.push({
+                ...proj,
+                id: pId,
+                projectName: proj.projectName || proj.name || proj.title || "Overseas Project",
+                clientName: client.companyName || client.name || proj.clientName || "Overseas Client",
+                clientId: client.id || client._id,
+                country: proj.country || client.country || "Overseas",
+                status: proj.status || "Active",
+                manpowerRequirements: proj.manpowerRequirements || [],
+              });
             }
           });
         }

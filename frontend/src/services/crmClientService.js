@@ -201,7 +201,12 @@ export const crmClientService = {
   updateClient: async (id, payload) => {
     await delay(100);
     const all = loadClientsFromStorage();
-    const index = all.findIndex((c) => String(c.id) === String(id));
+    const index = all.findIndex(
+      (c) =>
+        String(c.id) === String(id) ||
+        String(c._id) === String(id) ||
+        String(c.clientId) === String(id)
+    );
     if (index === -1) {
       throw new Error(`Client with ID ${id} not found.`);
     }
@@ -231,13 +236,18 @@ export const crmClientService = {
     const updated = {
       ...existing,
       ...payload,
-      id: existing.id,
+      id: existing.id || id,
       projects: updatedProjects,
       updatedAt: now,
     };
 
     all[index] = updated;
     saveClientsToStorage(all);
+
+    try {
+      await apiClient.post("/crm-sync/clients", updated);
+    } catch {}
+
     return updated;
   },
 
@@ -245,7 +255,7 @@ export const crmClientService = {
   deleteClient: async (id) => {
     await delay(80);
     let all = loadClientsFromStorage();
-    all = all.filter((c) => String(c.id) !== String(id));
+    all = all.filter((c) => String(c.id) !== String(id) && String(c._id) !== String(id));
     saveClientsToStorage(all);
     return { success: true };
   },
@@ -253,11 +263,45 @@ export const crmClientService = {
   // Add project to an existing client
   addProject: async (clientId, projectData) => {
     await delay(100);
-    const all = loadClientsFromStorage();
-    const client = all.find((c) => String(c.id) === String(clientId));
-    if (!client) throw new Error("Client not found");
+    let all = loadClientsFromStorage();
+    let client = all.find(
+      (c) =>
+        String(c.id) === String(clientId) ||
+        String(c.clientId) === String(clientId) ||
+        String(c._id) === String(clientId)
+    );
 
-    const projectId = `prj-${Date.now().toString().slice(-6)}`;
+    if (!client) {
+      try {
+        const res = await apiClient.get("/crm-sync/clients");
+        if (res.data?.success && Array.isArray(res.data.clients)) {
+          all = res.data.clients.map((c) => ({
+            ...c,
+            id: c.clientId || c.id || c._id?.toString(),
+          }));
+          saveClientsToStorage(all);
+          client = all.find(
+            (c) =>
+              String(c.id) === String(clientId) ||
+              String(c.clientId) === String(clientId) ||
+              String(c._id) === String(clientId)
+          );
+        }
+      } catch {}
+    }
+
+    if (!client) {
+      client = {
+        id: clientId,
+        clientId: clientId,
+        companyName: projectData.clientName || "Direct Overseas Client",
+        status: "Active",
+        projects: [],
+      };
+      all.unshift(client);
+    }
+
+    const projectId = projectData.id || `prj-${Date.now().toString().slice(-6)}`;
     const manpowerRequirements = (projectData.manpowerRequirements || []).map((req, idx) => ({
       ...req,
       id: req.id || `mpr-${projectId}-${idx + 1}`,
@@ -270,6 +314,7 @@ export const crmClientService = {
       ...projectData,
       id: projectId,
       clientId,
+      clientName: client.companyName || projectData.clientName || "Direct Overseas Client",
       status: projectData.status || "Active",
       manpowerRequirements,
     };
@@ -277,44 +322,40 @@ export const crmClientService = {
     if (!Array.isArray(client.projects)) {
       client.projects = [];
     }
-    client.projects.unshift(newProject);
+    const existingProjectIdx = client.projects.findIndex(
+      (p) => String(p.id) === String(projectId)
+    );
+    if (existingProjectIdx !== -1) {
+      client.projects[existingProjectIdx] = newProject;
+    } else {
+      client.projects.unshift(newProject);
+    }
     client.updatedAt = new Date().toISOString();
 
     saveClientsToStorage(all);
+
     try {
       await apiClient.post("/crm-sync/projects", { clientId, project: newProject });
-    } catch {}
+    } catch (err) {
+      console.warn("Failed to sync project to backend:", err);
+    }
 
-    // Dispatch real-time notification to assigned vendors or all vendors
+    // Dispatch real-time notification to vendors
     try {
-      const assignedVendors = newProject.assignedVendors || newProject.assignedVendorIds || [];
-      const isAll =
-        (newProject.vendorAssignmentType || newProject.vendorVisibility) !== "Specific Vendor" &&
-        (newProject.vendorAssignmentType || newProject.vendorVisibility) !== "specific";
-
       import("./crmVendorService.js").then(({ default: vendorService }) => {
-        if (isAll) {
-          const vendors = typeof vendorService.getVendorsSync === "function" ? vendorService.getVendorsSync() : [];
-          (vendors || []).forEach((v) => {
-            vendorService.addNotification({
-              vendorId: v.id,
-              title: "New Project Assigned",
-              message: `New overseas project "${newProject.projectName}" (${newProject.country || "Overseas"}) is open for candidate submissions.`,
-              type: "info",
-              link: "/vendor/dashboard",
-            });
+        const vendors =
+          typeof vendorService?.getVendorsSync === "function"
+            ? vendorService.getVendorsSync()
+            : [];
+        (vendors || []).forEach((v) => {
+          vendorService.addNotification?.({
+            vendorId: v.id,
+            title: "New Project Available",
+            message: `New overseas project "${newProject.projectName}" (${newProject.country || "Overseas"}) is open for candidate submissions.`,
+            type: "info",
+            link: `/vendor/candidates/assign?projectId=${newProject.id}`,
           });
-        } else {
-          assignedVendors.forEach((vId) => {
-            vendorService.addNotification({
-              vendorId: vId,
-              title: "Project Assigned Directly to You",
-              message: `Admin has assigned project "${newProject.projectName}" (${newProject.country || "Overseas"}) to your agency.`,
-              type: "info",
-              link: "/vendor/dashboard",
-            });
-          });
-        }
+        });
       }).catch(() => {});
     } catch {}
 
@@ -330,21 +371,44 @@ export const crmClientService = {
     let project = null;
 
     if (clientId && projectId) {
-      client = all.find((c) => String(c.id) === String(clientId));
+      client = all.find(
+        (c) =>
+          String(c.id) === String(clientId) ||
+          String(c.clientId) === String(clientId) ||
+          String(c._id) === String(clientId)
+      );
       if (client) {
-        project = (client.projects || []).find((p) => String(p.id) === String(projectId));
+        project = (client.projects || []).find(
+          (p) => String(p.id || p.projectId || p._id) === String(projectId)
+        );
       }
     }
 
     if (!project) {
       for (const c of all) {
-        const found = (c.projects || []).find((p) => String(p.id) === String(targetProjectId));
+        const found = (c.projects || []).find(
+          (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
+        );
         if (found) {
           project = found;
           client = c;
           break;
         }
       }
+    }
+
+    if (!project) {
+      try {
+        const res = await apiClient.get("/crm-sync/projects");
+        if (res.data?.success && Array.isArray(res.data.projects)) {
+          const found = res.data.projects.find(
+            (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
+          );
+          if (found) {
+            project = found;
+          }
+        }
+      } catch {}
     }
 
     return project
@@ -362,17 +426,26 @@ export const crmClientService = {
     await delay(100);
     const all = loadClientsFromStorage();
     const targetProjectId = projectId || clientId;
-    let client = clientId ? all.find((c) => String(c.id) === String(clientId)) : null;
+    let client = clientId
+      ? all.find(
+          (c) =>
+            String(c.id) === String(clientId) ||
+            String(c.clientId) === String(clientId) ||
+            String(c._id) === String(clientId)
+        )
+      : null;
 
     if (!client) {
       client = all.find((c) =>
-        (c.projects || []).some((p) => String(p.id) === String(targetProjectId))
+        (c.projects || []).some(
+          (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
+        )
       );
     }
     if (!client) throw new Error("Client not found");
 
     const pIdx = (client.projects || []).findIndex(
-      (p) => String(p.id) === String(targetProjectId)
+      (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
     );
     if (pIdx === -1) throw new Error("Project not found");
 
@@ -385,6 +458,14 @@ export const crmClientService = {
     client.updatedAt = new Date().toISOString();
 
     saveClientsToStorage(all);
+
+    try {
+      await apiClient.post("/crm-sync/projects", {
+        clientId: client.id,
+        project: client.projects[pIdx],
+      });
+    } catch {}
+
     return client.projects[pIdx];
   },
 
@@ -393,17 +474,26 @@ export const crmClientService = {
     await delay(80);
     const all = loadClientsFromStorage();
     const targetProjectId = projectId || clientId;
-    let client = clientId ? all.find((c) => String(c.id) === String(clientId)) : null;
+    let client = clientId
+      ? all.find(
+          (c) =>
+            String(c.id) === String(clientId) ||
+            String(c.clientId) === String(clientId) ||
+            String(c._id) === String(clientId)
+        )
+      : null;
 
     if (!client) {
       client = all.find((c) =>
-        (c.projects || []).some((p) => String(p.id) === String(targetProjectId))
+        (c.projects || []).some(
+          (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
+        )
       );
     }
     if (!client) throw new Error("Client not found");
 
     const pIdx = (client.projects || []).findIndex(
-      (p) => String(p.id) === String(targetProjectId)
+      (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
     );
     if (pIdx === -1) throw new Error("Project not found");
 
@@ -413,6 +503,14 @@ export const crmClientService = {
     client.updatedAt = new Date().toISOString();
 
     saveClientsToStorage(all);
+
+    try {
+      await apiClient.post("/crm-sync/projects", {
+        clientId: client.id,
+        project: client.projects[pIdx],
+      });
+    } catch {}
+
     return client.projects[pIdx];
   },
 

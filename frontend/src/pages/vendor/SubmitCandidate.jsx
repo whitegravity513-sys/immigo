@@ -105,18 +105,19 @@ export default function SubmitCandidate() {
       const allFound = [];
       const seenProjIds = new Set();
       const addProj = (p, c) => {
-        if (!p || !p.id) return;
-        const key = String(p.id);
-        if (DUMMY_PROJECT_IDS.includes(key)) return;
+        if (!p) return;
+        const key = String(p.id || p.projectId || p._id || "");
+        if (!key || DUMMY_PROJECT_IDS.includes(key)) return;
         if (!seenProjIds.has(key)) {
           seenProjIds.add(key);
           allFound.push({
             ...p,
             id: key,
-            clientId: p.clientId || c?.id,
+            clientId: p.clientId || c?.id || c?._id,
             clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
             projectName: p.projectName || p.name || p.title || "Overseas Project",
             country: p.country || c?.country || "Overseas",
+            manpowerRequirements: p.manpowerRequirements || [],
           });
         }
       };
@@ -176,15 +177,16 @@ export default function SubmitCandidate() {
       const preselectedProjId = searchParams.get("projectId") || searchParams.get("project");
       if (preselectedProjId) {
         const matchingClient = clientList.find((c) =>
-          (c.projects || []).some((p) => String(p.id) === String(preselectedProjId))
+          (c.projects || []).some((p) => String(p.id || p.projectId || p._id) === String(preselectedProjId))
         );
         const matchingProj = matchingClient?.projects?.find(
-          (p) => String(p.id) === String(preselectedProjId)
-        ) || pList.find((p) => String(p.id) === String(preselectedProjId));
+          (p) => String(p.id || p.projectId || p._id) === String(preselectedProjId)
+        ) || (availProjects || []).find((p) => String(p.id || p.projectId || p._id) === String(preselectedProjId));
 
         if (matchingProj) {
-          setSelectedProjectId(String(matchingProj.id));
-          setSelectedClientId(matchingProj.clientId || matchingClient?.id);
+          const resolvedPId = String(matchingProj.id || matchingProj.projectId || matchingProj._id);
+          setSelectedProjectId(resolvedPId);
+          setSelectedClientId(matchingProj.clientId || matchingClient?.id || matchingClient?._id);
           if (matchingProj.manpowerRequirements?.length > 0) {
             setSelectedPosition(
               matchingProj.manpowerRequirements[0].position ||
@@ -213,18 +215,19 @@ export default function SubmitCandidate() {
     const list = [];
     const seen = new Set();
     const addP = (p, c) => {
-      if (!p || !p.id) return;
-      const k = String(p.id);
-      if (DUMMY_PROJECT_IDS.includes(k)) return;
+      if (!p) return;
+      const k = String(p.id || p.projectId || p._id || "");
+      if (!k || DUMMY_PROJECT_IDS.includes(k)) return;
       if (!seen.has(k)) {
         seen.add(k);
         list.push({
           ...p,
           id: k,
-          clientId: p.clientId || c?.id,
+          clientId: p.clientId || c?.id || c?._id,
           clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
           projectName: p.projectName || p.name || p.title || "Overseas Project",
           country: p.country || c?.country || "Overseas",
+          manpowerRequirements: p.manpowerRequirements || [],
         });
       }
     };

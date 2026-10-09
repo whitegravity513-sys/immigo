@@ -23,12 +23,15 @@ export const saveClient = asyncHandler(async (req, res) => {
   const clientData = req.body;
   const clientId = clientData.id || clientData.clientId || `cli-${Date.now().toString().slice(-6)}`;
 
-  let doc = await CrmOverseasClient.findOne({
-    $or: [{ clientId }, { _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }],
-  });
+  const queryConditions = [{ clientId: String(clientId) }];
+  if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+    queryConditions.push({ _id: clientId });
+  }
+
+  let doc = await CrmOverseasClient.findOne({ $or: queryConditions });
 
   if (doc) {
-    Object.assign(doc, clientData, { clientId, updatedAt: new Date() });
+    Object.assign(doc, clientData, { clientId: doc.clientId || clientId, updatedAt: new Date() });
     await doc.save();
   } else {
     doc = await CrmOverseasClient.create({
@@ -50,13 +53,16 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "clientId and project are required" });
   }
 
-  let doc = await CrmOverseasClient.findOne({
-    $or: [{ clientId }, { _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }],
-  });
+  const queryConditions = [{ clientId: String(clientId) }];
+  if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+    queryConditions.push({ _id: clientId });
+  }
+
+  let doc = await CrmOverseasClient.findOne({ $or: queryConditions });
 
   if (!doc) {
     doc = await CrmOverseasClient.create({
-      clientId,
+      clientId: String(clientId),
       companyName: project.clientName || "Overseas Client",
       country: project.country || "Overseas",
       projects: [],
@@ -64,18 +70,21 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
   }
 
   const existingProjects = Array.isArray(doc.projects) ? [...doc.projects] : [];
-  const projId = project.id || `prj-${Date.now().toString().slice(-6)}`;
+  const projId = project.id || project.projectId || `prj-${Date.now().toString().slice(-6)}`;
   const fullProject = {
     ...project,
     id: projId,
-    clientId: doc.clientId || clientId,
-    clientName: doc.companyName,
+    clientId: doc.clientId || String(clientId),
+    clientName: doc.companyName || project.clientName || "Overseas Client",
     country: project.country || doc.country || "Overseas",
     status: project.status || "Active",
+    manpowerRequirements: project.manpowerRequirements || [],
     updatedAt: new Date().toISOString(),
   };
 
-  const existingIdx = existingProjects.findIndex((p) => String(p.id) === String(projId));
+  const existingIdx = existingProjects.findIndex(
+    (p) => String(p.id || p.projectId || p._id) === String(projId)
+  );
   if (existingIdx !== -1) {
     existingProjects[existingIdx] = fullProject;
   } else {
@@ -100,7 +109,7 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
         title: "New Overseas Project Available",
         message: `Project "${fullProject.projectName}" (${fullProject.country}) is open for candidate submissions.`,
         type: "info",
-        link: `/vendor/submit-candidate?project=${fullProject.id}`,
+        link: `/vendor/candidates/assign?projectId=${fullProject.id}`,
       });
     } else {
       const assigned = fullProject.assignedVendors || fullProject.assignedVendorIds || [];
@@ -112,7 +121,7 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
           title: "Project Assigned Directly to You",
           message: `Admin has assigned project "${fullProject.projectName}" (${fullProject.country}) to your agency.`,
           type: "info",
-          link: `/vendor/submit-candidate?project=${fullProject.id}`,
+          link: `/vendor/candidates/assign?projectId=${fullProject.id}`,
         });
       }
     }
@@ -123,7 +132,6 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
 
 // GET /api/crm-sync/projects
 export const getAvailableProjects = asyncHandler(async (req, res) => {
-  const { vendorId } = req.query;
   const clients = await CrmOverseasClient.find({}).lean();
 
   const list = [];
@@ -131,26 +139,16 @@ export const getAvailableProjects = asyncHandler(async (req, res) => {
     (c.projects || []).forEach((p) => {
       const status = (p.status || "Active").toLowerCase();
       if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
-        const visibility = (p.vendorVisibility || "").toLowerCase();
-        const assignmentType = (p.vendorAssignmentType || "All Vendors").toLowerCase();
-        const assignedList = p.assignedVendors || p.assignedVendorIds || [];
-        const isSpecific = visibility === "specific" || assignmentType.includes("specific");
-        const isAssigned =
-          vendorId &&
-          assignedList.some(
-            (id) =>
-              String(id).toLowerCase() === String(vendorId).toLowerCase() ||
-              String(id).includes(String(vendorId)) ||
-              String(vendorId).includes(String(id))
-          );
-
-        if (!isSpecific || isAssigned || assignedList.length === 0) {
-          list.push({
-            ...p,
-            clientId: c.clientId || c._id.toString(),
-            clientName: c.companyName || c.name,
-          });
-        }
+        list.push({
+          ...p,
+          id: p.id || p.projectId || p._id?.toString() || `prj-${Date.now().toString().slice(-6)}`,
+          projectName: p.projectName || p.name || p.title || "Overseas Project",
+          clientId: c.clientId || c._id.toString(),
+          clientName: c.companyName || c.name || p.clientName || "Overseas Client",
+          country: p.country || c.country || "Overseas",
+          status: p.status || "Active",
+          manpowerRequirements: p.manpowerRequirements || [],
+        });
       }
     });
   });
