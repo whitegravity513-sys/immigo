@@ -23,6 +23,7 @@ export default function MouFullPageView({
   mode = "preview", // "draft" | "preview" | "sign"
   onBack,
   onSuccess,
+  onApprove,
 }) {
   const printRef = useRef(null);
 
@@ -192,10 +193,29 @@ export default function MouFullPageView({
             onClick={handlePrint}
             type="button"
             className="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            title="Download or Save MOU as PDF"
+          >
+            <Download size={15} />
+            <span>Download MOU</span>
+          </button>
+          <button
+            onClick={handlePrint}
+            type="button"
+            className="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
           >
             <Printer size={15} />
-            <span>Print / Save PDF</span>
+            <span>Print</span>
           </button>
+          {onApprove && (
+            <button
+              onClick={onApprove}
+              type="button"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm shadow-emerald-600/30"
+            >
+              <CheckCircle2 size={15} />
+              <span>Approve MOU & Finalize</span>
+            </button>
+          )}
         </div>
       </div>
 

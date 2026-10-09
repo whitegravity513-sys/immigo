@@ -233,74 +233,23 @@ export function ClientForm({
   const validate = () => {
     const newErrors = {};
 
-    // Company info
-    if (!formData.companyName.trim()) {
+    // Only Company name is strictly mandatory
+    if (!formData.companyName || !formData.companyName.trim()) {
       newErrors.companyName = "Company name is required";
     }
-    if (!formData.email.trim()) {
-      newErrors.email = "Company email is required";
-    } else if (!isValidEmail(formData.email)) {
+
+    if (formData.email?.trim() && !isValidEmail(formData.email)) {
       newErrors.email = "Enter a valid company email (e.g. info@company.com)";
     }
-    if (formData.phone.trim() && !isValidPhone(formData.phone)) {
-      newErrors.phone = "Enter a valid phone number (7–15 digits)";
-    }
-    if (!formData.country.trim()) {
-      newErrors.country = "Country is required";
-    }
 
-    // Director details validation
-    if (!formData.directorName.trim()) {
-      newErrors.directorName = "Director name is required";
-    }
-    if (!formData.directorEmail.trim()) {
-      newErrors.directorEmail = "Director email is required";
-    } else if (!isValidEmail(formData.directorEmail)) {
+    if (formData.directorEmail?.trim() && !isValidEmail(formData.directorEmail)) {
       newErrors.directorEmail = "Enter a valid director email (e.g. director@company.com)";
     }
-    
-    // PAN validation
-    if (formData.panNumber.trim() && !isValidPAN(formData.panNumber)) {
-      newErrors.panNumber = "Enter a valid Indian PAN format (e.g. ABCDE1234F)";
-    }
-
-    // Primary contact validation
-    const primary = formData.contacts[0] || {};
-    if (!primary.name || !primary.name.trim()) {
-      newErrors.contact_0_name = "Primary contact full name is required";
-    }
-    if (!primary.email || !primary.email.trim()) {
-      newErrors.contact_0_email = "Primary contact email is required";
-    } else if (!isValidEmail(primary.email)) {
-      newErrors.contact_0_email = "Enter a valid email for primary contact";
-    }
-    if (!primary.phone || !primary.phone.trim()) {
-      newErrors.contact_0_phone = "Primary contact phone is required";
-    } else if (!isValidPhone(primary.phone)) {
-      newErrors.contact_0_phone = "Enter a valid phone number for primary contact";
-    }
-    if (primary.whatsapp && !isValidPhone(primary.whatsapp)) {
-      newErrors.contact_0_whatsapp = "Enter a valid WhatsApp number";
-    }
-    if (primary.alternativePhone && !isValidPhone(primary.alternativePhone)) {
-      newErrors.contact_0_alternativePhone = "Enter a valid alternative phone";
-    }
-
-    // Validate additional contacts
-    formData.contacts.forEach((contact, idx) => {
-      if (idx === 0) return;
-      if (contact.email && !isValidEmail(contact.email)) {
-        newErrors[`contact_${idx}_email`] = "Enter a valid email";
-      }
-      if (contact.phone && !isValidPhone(contact.phone)) {
-        newErrors[`contact_${idx}_phone`] = "Enter a valid phone number";
-      }
-    });
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      showToast("Please fill all required fields correctly.", "error");
+      showToast("Please enter a valid company name.", "error");
       return false;
     }
     return true;
@@ -310,13 +259,43 @@ export function ClientForm({
     e?.preventDefault();
     if (!validate()) return;
 
+    const companySlug = (formData.companyName || "client").toLowerCase().replace(/[^a-z0-9]/g, "") || "client";
+    const resolvedEmail = formData.email?.trim() || `info@${companySlug}.com`;
+    const resolvedPhone = formData.phone?.trim() || "+971 4 000 0000";
+    const resolvedCountry = formData.country?.trim() || "UAE";
+    const resolvedDirectorName = formData.directorName?.trim() || formData.contacts?.[0]?.name?.trim() || `${formData.companyName} Director`;
+    const resolvedDirectorEmail = formData.directorEmail?.trim() || resolvedEmail;
+
+    const sanitizedContacts = (formData.contacts && formData.contacts.length > 0 ? formData.contacts : [{}]).map((c, idx) => {
+      if (idx === 0) {
+        return {
+          ...c,
+          id: c.id || "c-1",
+          name: c.name?.trim() || resolvedDirectorName,
+          designation: c.designation || "Managing Director",
+          department: c.department || "Management",
+          email: c.email?.trim() || resolvedEmail,
+          phone: c.phone?.trim() || resolvedPhone,
+          isPrimary: true,
+        };
+      }
+      return c;
+    });
+
     const panDocumentName = panFile
       ? panFile.name
       : initialData?.panDocumentName || "";
 
     onSubmit({
       ...formData,
-      panNumber: formData.panNumber.trim().toUpperCase(),
+      companyName: formData.companyName.trim(),
+      email: resolvedEmail,
+      phone: resolvedPhone,
+      country: resolvedCountry,
+      directorName: resolvedDirectorName,
+      directorEmail: resolvedDirectorEmail,
+      contacts: sanitizedContacts,
+      panNumber: (formData.panNumber || "").trim().toUpperCase(),
       panDocumentName,
     });
   };

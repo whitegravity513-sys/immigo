@@ -72,6 +72,7 @@ export function ProjectForm({
   const [allVendors, setAllVendors] = useState([]);
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
   const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
+  const [pendingInlinePosition, setPendingInlinePosition] = useState(null);
 
   const [formData, setFormData] = useState({
     clientId: preSelectedClientId || "",
@@ -216,21 +217,49 @@ export function ProjectForm({
     }));
   };
 
+  const getResolvedRequirementsAndHeadcount = () => {
+    let list = [...(formData.manpowerRequirements || [])];
+    if (list.length === 0) {
+      const pendingQty = Number(pendingInlinePosition?.quantity) || 0;
+      if (pendingQty > 0 || (pendingInlinePosition?.position && pendingInlinePosition.position.trim())) {
+        list = [
+          {
+            id: `pos-${Date.now()}`,
+            position: pendingInlinePosition?.position?.trim() || formData.projectName?.trim() || "General Trade Position",
+            quantity: pendingQty > 0 ? pendingQty : 1,
+            minAge: pendingInlinePosition?.minAge || "",
+            maxAge: pendingInlinePosition?.maxAge || "",
+            qualification: pendingInlinePosition?.qualification || "Any",
+            experienceYears: pendingInlinePosition?.experienceYears || "",
+            lastCompany: pendingInlinePosition?.lastCompany || "",
+          },
+        ];
+      } else {
+        const parsedCount = Number(formData.totalHeadcount);
+        list = [
+          {
+            id: `pos-${Date.now()}`,
+            position: formData.projectName?.trim() || "General Trade Position",
+            quantity: parsedCount > 0 ? parsedCount : 1,
+          },
+        ];
+      }
+    }
+    const headcount = list.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0) || 1;
+    return { list, headcount };
+  };
+
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.clientId) {
+    if (!formData.clientId && clients.length > 0) {
       newErrors.clientId = "Please select an existing client for this project";
     }
-    if (!formData.projectName.trim()) {
+    if (!formData.projectName || !formData.projectName.trim()) {
       newErrors.projectName = "Project name is required";
     }
-    if (!formData.country.trim()) {
+    if (!formData.country || !formData.country.trim()) {
       newErrors.country = "Project country is required";
-    }
-
-    if (!formData.totalHeadcount || Number(formData.totalHeadcount) <= 0) {
-      newErrors.totalHeadcount = "Please enter the required number of employees (greater than 0)";
     }
 
     setErrors(newErrors);
@@ -245,12 +274,18 @@ export function ProjectForm({
     e?.preventDefault();
     if (!asDraft && !validate()) return;
 
+    const { list, headcount } = getResolvedRequirementsAndHeadcount();
+
     const payload = {
       ...formData,
-      totalManpower: formData.totalHeadcount,
+      manpowerRequirements: list,
+      totalHeadcount: headcount,
+      totalManpower: headcount,
       status: asDraft ? "Draft" : formData.status || "Active",
       vendorAssignmentType: formData.vendorVisibility === 'specific' ? "Specific Vendor" : "All Vendors",
+      vendorVisibility: formData.vendorVisibility || "all",
       assignedVendors: formData.assignedVendorIds || [],
+      assignedVendorIds: formData.assignedVendorIds || [],
     };
 
     onSubmit(payload, formData.clientId, asDraft);
@@ -488,6 +523,7 @@ export function ProjectForm({
               onChange={(updatedPositions) => {
                 setFormData(prev => ({ ...prev, manpowerRequirements: updatedPositions }));
               }}
+              onPendingChange={setPendingInlinePosition}
             />
             {errors.totalHeadcount && (
               <p className="text-xs text-red-600 font-medium">{errors.totalHeadcount}</p>

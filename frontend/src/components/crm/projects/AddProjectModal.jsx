@@ -250,6 +250,10 @@ export function AddProjectModal({
       positionTitle: pos,
       totalHeadcount: headcountNum,
       totalManpower: headcountNum,
+      vendorAssignmentType: formData.vendorVisibility === "specific" ? "Specific Vendor" : "All Vendors",
+      vendorVisibility: formData.vendorVisibility || "all",
+      assignedVendors: formData.assignedVendorIds || [],
+      assignedVendorIds: formData.assignedVendorIds || [],
       manpowerRequirements: [
         {
           id: formData.manpowerRequirements?.[0]?.id || `mpr-${Date.now()}`,

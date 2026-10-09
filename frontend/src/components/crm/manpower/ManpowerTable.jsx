@@ -19,6 +19,7 @@ const QUALIFICATION_OPTIONS = [
 export function ManpowerTable({
   positions = [],
   onChange = () => { },
+  onPendingChange,
   readOnly = false,
   currencyDefault = "AED",
 }) {
@@ -42,17 +43,22 @@ export function ManpowerTable({
 
   const handleInlineChange = (e) => {
     const { name, value } = e.target;
-    setInlineForm((prev) => ({ ...prev, [name]: value }));
+    setInlineForm((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (onPendingChange) {
+        onPendingChange(updated);
+      }
+      return updated;
+    });
   };
 
   const handleAddInline = () => {
-    if (!inlineForm.position.trim()) return alert("Position name is required.");
-    const qty = Number(inlineForm.quantity);
-    if (!inlineForm.quantity || isNaN(qty) || qty <= 0) return alert("Valid quantity is required.");
+    const posName = inlineForm.position?.trim() || "Trade Position";
+    const qty = Number(inlineForm.quantity) || 1;
 
     const newItem = {
       id: `pos-${Date.now()}`,
-      position: inlineForm.position,
+      position: posName,
       quantity: qty,
       minAge: inlineForm.minAge || "",
       maxAge: inlineForm.maxAge || "",
@@ -63,10 +69,11 @@ export function ManpowerTable({
       lastCompany: inlineForm.lastCompany || "",
     };
 
-    onChange([...positions, newItem]);
+    const nextPositions = [...positions, newItem];
+    onChange(nextPositions);
 
     // Reset inline form
-    setInlineForm({
+    const reset = {
       position: "",
       quantity: "",
       minAge: "",
@@ -75,7 +82,11 @@ export function ManpowerTable({
       otherQualification: "",
       experienceYears: "",
       lastCompany: "",
-    });
+    };
+    setInlineForm(reset);
+    if (onPendingChange) {
+      onPendingChange(reset);
+    }
   };
 
   const handleConfirmDelete = () => {
@@ -204,7 +215,16 @@ export function ManpowerTable({
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
-
+            <div className="flex-1 w-full flex items-center justify-end">
+              <button
+                type="button"
+                onClick={handleAddInline}
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer h-[38px]"
+              >
+                <Plus size={16} />
+                <span>+ Add Position to Plan {Number(inlineForm.quantity) > 0 ? `(${inlineForm.quantity} Persons)` : ""}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -212,14 +232,40 @@ export function ManpowerTable({
       {/* Dynamic Table / Cards */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         {positions.length === 0 ? (
-          <div className="p-8 text-center bg-gray-50/50">
-            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center mx-auto mb-3">
-              <Users size={22} />
-            </div>
-            <h4 className="text-sm font-bold text-gray-800">No Positions Defined Yet</h4>
-            <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
-              Add at least one trade position above to complete the manpower plan.
-            </p>
+          <div className="p-6 text-center bg-gray-50/50">
+            {Number(inlineForm.quantity) > 0 ? (
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center mx-auto">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900">
+                    Drafted Position: {inlineForm.position || "Trade Position"} ({inlineForm.quantity} Persons)
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Click the button below to add it to the list, or save the project directly.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddInline}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-sm cursor-pointer"
+                >
+                  <Plus size={14} />
+                  <span>Confirm & Add Position ({inlineForm.quantity} Persons)</span>
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-500 border border-blue-100 flex items-center justify-center mx-auto mb-3">
+                  <Users size={22} />
+                </div>
+                <h4 className="text-sm font-bold text-gray-800">No Positions Defined Yet</h4>
+                <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                  Add at least one trade position above to complete the manpower plan.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -299,7 +345,7 @@ export function ManpowerTable({
               Total Required Manpower:
             </span>
             <span className="text-base font-extrabold text-blue-700 bg-blue-100/70 border border-blue-200 px-3.5 py-1 rounded-lg shadow-2xs">
-              {totalRequiredManpower.toLocaleString()} Persons
+              {(totalRequiredManpower > 0 ? totalRequiredManpower : Number(inlineForm.quantity) || 0).toLocaleString()} Persons
             </span>
           </div>
         </div>

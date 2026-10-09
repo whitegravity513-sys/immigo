@@ -170,18 +170,19 @@ export default function SubmitCandidate() {
   const allProjects = clients.flatMap((c) =>
     (c.projects || [])
       .filter((p) => {
-        const assignmentType = p.vendorAssignmentType || "All Vendors";
-        return (
-          assignmentType === "All Vendors" ||
-          (assignmentType === "Specific Vendor" &&
-            p.assignedVendors &&
-            p.assignedVendors.includes(vendor?.id))
-        );
+        const status = (p.status || "Active").toLowerCase();
+        if (status !== "active") return false;
+        const visibility = (p.vendorVisibility || "").toLowerCase();
+        const assignmentType = (p.vendorAssignmentType || "All Vendors").toLowerCase();
+        const assignedList = p.assignedVendors || p.assignedVendorIds || [];
+        const isSpecific = visibility === "specific" || assignmentType.includes("specific");
+        const isAssigned = vendor?.id && assignedList.map(String).includes(String(vendor?.id));
+        return !isSpecific || isAssigned || assignedList.length === 0;
       })
       .map((p) => ({
         ...p,
         clientId: c.id,
-        clientName: c.companyName,
+        clientName: c.companyName || c.name,
       }))
   );
 

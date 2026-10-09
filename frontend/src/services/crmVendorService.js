@@ -1508,21 +1508,20 @@ export const crmVendorService = {
 
       const list = [];
       clientsData.forEach((client) => {
-        if (client.projects) {
+        if (client.projects && Array.isArray(client.projects)) {
           client.projects.forEach((proj) => {
-            if (proj.status === "Active" || !proj.status) {
-              const assignmentType = proj.vendorAssignmentType || "All Vendors";
-              if (
-                assignmentType === "All Vendors" ||
-                !proj.assignedVendors ||
-                proj.assignedVendors.length === 0 ||
-                (assignmentType === "Specific Vendor" &&
-                  proj.assignedVendors &&
-                  proj.assignedVendors.includes(vendorId))
-              ) {
+            const status = (proj.status || "Active").toLowerCase();
+            if (status === "active") {
+              const visibility = (proj.vendorVisibility || "").toLowerCase();
+              const assignmentType = (proj.vendorAssignmentType || "All Vendors").toLowerCase();
+              const assignedList = proj.assignedVendors || proj.assignedVendorIds || [];
+              const isSpecific = visibility === "specific" || assignmentType.includes("specific");
+              const isAssigned = vendorId && assignedList.map(String).includes(String(vendorId));
+
+              if (!isSpecific || isAssigned || assignedList.length === 0) {
                 list.push({
                   ...proj,
-                  clientName: client.companyName,
+                  clientName: client.companyName || client.name,
                   clientId: client.id,
                 });
               }

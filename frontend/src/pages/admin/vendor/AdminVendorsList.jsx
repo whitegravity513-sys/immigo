@@ -1396,6 +1396,10 @@ export default function AdminVendorsList() {
           mode="preview"
           vendor={selectedVendor}
           onBack={() => setShowViewMouPage(false)}
+          onApprove={() => {
+            handleApprove(selectedVendor.id);
+            setShowViewMouPage(false);
+          }}
         />
       );
     }
@@ -1497,20 +1501,21 @@ export default function AdminVendorsList() {
                 </>
               )}
 
-              {selectedVendor.status === "MOU Pending" && (
+              {(selectedVendor.status === "MOU Pending" || selectedVendor.status === "Pending MOU Approval") && (
                 <>
                   <button
                     onClick={() => setShowViewMouPage(true)}
-                    className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 hover:bg-purple-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
                   >
                     <FileText size={13} />
-                    <span>Preview Issued MOU</span>
+                    <span>Review Signed MOU</span>
                   </button>
                   <button
                     onClick={() => handleApprove(selectedVendor.id)}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
                   >
-                    Approve & Activate
+                    <CheckCircle2 size={13} />
+                    <span>Approve MOU & Finalize</span>
                   </button>
                 </>
               )}
@@ -1879,16 +1884,11 @@ export default function AdminVendorsList() {
               <thead className="bg-slate-50/90 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-3.5 px-4 sm:px-5">Vendor ID</th>
-                  <th className="py-3.5 px-4">Vendor Name</th>
+                  <th className="py-3.5 px-4">Agency / Vendor Name</th>
                   <th className="py-3.5 px-4">Contact Person</th>
-                  <th className="py-3.5 px-4">State</th>
-                  <th className="py-3.5 px-4">City</th>
-                  <th className="py-3.5 px-4">Specialization</th>
-                  <th className="py-3.5 px-4 text-center">Registration No</th>
-                  <th className="py-3.5 px-4 text-center">Business Type</th>
+                  <th className="py-3.5 px-4">Location</th>
                   <th className="py-3.5 px-4 text-center">MOU Status</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Registration Date</th>
                   <th className="py-3.5 px-4 text-right">Action</th>
                 </tr>
               </thead>
@@ -1902,24 +1902,26 @@ export default function AdminVendorsList() {
                     >
                       <td className="py-4 px-4 sm:px-5 font-mono font-bold text-blue-700">{v.id}</td>
 
-                      {/* Clickable Vendor Name */}
-                      <td className="py-4 px-4 font-extrabold text-slate-900 group-hover:text-blue-600 transition">
-                        {v.companyName}
+                      <td className="py-4 px-4">
+                        <div className="font-extrabold text-slate-900 group-hover:text-blue-600 transition text-sm">
+                          {v.companyName}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-medium">
+                          {v.officialEmail || v.phone || "Verified Partner"}
+                        </div>
                       </td>
 
-                      <td className="py-4 px-4 text-slate-700 font-semibold">{v.contactPersonName || "N/A"}</td>
-                      <td className="py-4 px-4 text-slate-700 font-medium">{v.state || "Maharashtra"}</td>
-                      <td className="py-4 px-4 text-slate-700 font-medium">{v.city || "Mumbai"}</td>
-                      <td className="py-4 px-4 text-slate-600 text-xs truncate max-w-[150px]">
-                        {v.specialization || "Technical Trades"}
+                      <td className="py-4 px-4 text-slate-700 font-semibold">
+                        <div>{v.contactPersonName || "N/A"}</div>
+                        {v.contactPersonPhone && (
+                          <div className="text-[11px] text-slate-400 font-normal">{v.contactPersonPhone}</div>
+                        )}
                       </td>
 
-                      <td className="py-4 px-4 text-center font-mono text-xs text-slate-700 font-bold">
-                        {v.registrationNumber || "REG-VERIFIED"}
+                      <td className="py-4 px-4 text-slate-700 font-medium text-xs">
+                        {[v.city, v.state].filter(Boolean).join(", ") || "India"}
                       </td>
-                      <td className="py-4 px-4 text-center text-xs text-slate-700 font-medium">
-                        {v.businessType || "Private Limited"}
-                      </td>
+
                       <td className="py-4 px-4 text-center">
                         {v.mouSigned || v.mouStatus === "Approved" || v.mouStatus === "Signed" ? (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -1928,6 +1930,10 @@ export default function AdminVendorsList() {
                         ) : v.mouStatus === "Sent" || v.status === "MOU Pending" ? (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
                             MOU Sent
+                          </span>
+                        ) : v.status === "Pending MOU Approval" ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            Signed (Pending)
                           </span>
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
@@ -1938,30 +1944,14 @@ export default function AdminVendorsList() {
 
                       <td className="py-4 px-4">{getStatusBadge(v.status)}</td>
 
-                      <td className="py-4 px-4 text-slate-500 text-xs">
-                        {v.registeredAt ? new Date(v.registeredAt).toLocaleDateString("en-IN") : "12 Sep 2026"}
-                      </td>
-
                       <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => {
                               setSelectedVendor(v);
-                              setShowDocsPage(true);
-                            }}
-                            className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
-                            title="View Statutory Documents (Full Page)"
-                          >
-                            <FileText className="w-3.5 h-3.5 text-blue-600" />
-                            <span>Docs</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setSelectedVendor(v);
                               setShowDocsPage(false);
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             <span>View</span>
