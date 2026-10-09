@@ -1094,65 +1094,7 @@ export default function AdminVendorsList() {
   // VIEW 3: FULL PAGE VENDOR STATUTORY DOCUMENTS VAULT
   // =========================================================================
   if (selectedVendor && showDocsPage) {
-    const vendorDocs =
-      selectedVendor.documents && selectedVendor.documents.length > 0
-        ? selectedVendor.documents
-        : [
-            {
-              id: "DOC-001",
-              name: "Certificate of Incorporation / Registration",
-              fileName: `${selectedVendor.companyName?.replace(/\s+/g, "_")}_Registration.pdf`,
-              size: "2.4 MB",
-              type: "Statutory",
-              uploadedAt: "2026-09-01",
-              status: "Verified",
-            },
-            {
-              id: "DOC-002",
-              name: "GST Registration Certificate",
-              fileName: "GSTIN_Registration_Certificate.pdf",
-              size: "1.1 MB",
-              type: "Taxation",
-              uploadedAt: "2026-09-01",
-              status: "Verified",
-            },
-            {
-              id: "DOC-003",
-              name: "PAN Card (Company / Proprietor)",
-              fileName: "Company_PAN_Card.pdf",
-              size: "850 KB",
-              type: "Taxation",
-              uploadedAt: "2026-09-01",
-              status: "Verified",
-            },
-            {
-              id: "DOC-004",
-              name: "MEA License / Recruitment License Certificate",
-              fileName: "MEA_License_Approved.pdf",
-              size: "3.2 MB",
-              type: "Licensing",
-              uploadedAt: "2026-09-02",
-              status: "Verified",
-            },
-            {
-              id: "DOC-005",
-              name: "Bank Cancelled Cheque & Account Mandate",
-              fileName: "Bank_Cancelled_Cheque.pdf",
-              size: "620 KB",
-              type: "Banking",
-              uploadedAt: "2026-09-02",
-              status: "Verified",
-            },
-            {
-              id: "DOC-006",
-              name: "ISO 9001 / Quality Compliance Certificate",
-              fileName: "ISO_9001_Compliance.pdf",
-              size: "1.7 MB",
-              type: "Compliance",
-              uploadedAt: "2026-09-05",
-              status: "Verified",
-            },
-          ];
+    const vendorDocs = selectedVendor.documents || [];
 
     return (
       <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
