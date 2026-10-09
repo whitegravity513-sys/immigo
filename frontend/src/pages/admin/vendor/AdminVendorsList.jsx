@@ -34,6 +34,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
+import MouDocumentModal from "../../../components/vendor/MouDocumentModal.jsx";
 
 export default function AdminVendorsList() {
   const [vendors, setVendors] = useState([]);
@@ -121,6 +122,7 @@ export default function AdminVendorsList() {
   const [showDocsPage, setShowDocsPage] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [showMouPreviewModal, setShowMouPreviewModal] = useState(false);
 
   // Selected Candidate Full Page State inside Vendor Detail
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -329,6 +331,23 @@ export default function AdminVendorsList() {
     }
   };
 
+  const handleApproveDocsAndSendMou = async (vendorId) => {
+    try {
+      await crmVendorService.approveDocsAndSendMou(vendorId);
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({
+          ...prev,
+          status: "MOU Pending",
+          mouStatus: "Sent",
+        }));
+      }
+      alert("Compliance documents approved & official MOU issued to vendor successfully!");
+    } catch (err) {
+      alert(err.message || "Failed to send MOU");
+    }
+  };
+
   const handleVerifyMOU = async (vendorId) => {
     try {
       await crmVendorService.signOrVerifyMOU(vendorId, "Approved");
@@ -533,8 +552,9 @@ export default function AdminVendorsList() {
   // Filtered vendors list
   const filteredVendors = vendors.filter((v) => {
     if (statusFilter === "Pending Verification") {
-      if (v.status !== "Pending") return false;
+      if (v.status !== "Pending" && v.status !== "Under Review") return false;
     } else if (statusFilter === "MOU Pending") {
+      if (v.status === "MOU Pending" || v.mouStatus === "Sent") return true;
       const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected";
       if (!isMouPending) return false;
     } else if (statusFilter === "Approved") {
@@ -1336,19 +1356,44 @@ export default function AdminVendorsList() {
                 {selectedVendor.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}
               </button>
 
-              {selectedVendor.status === "Pending" && (
+              {(selectedVendor.status === "Pending" || selectedVendor.status === "Under Review") && (
                 <>
                   <button
                     onClick={() => setShowRejectModal(true)}
                     className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs cursor-pointer"
                   >
-                    Reject Vendor
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleApproveDocsAndSendMou(selectedVendor.id)}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Send size={13} />
+                    <span>Approve Docs & Send MOU</span>
                   </button>
                   <button
                     onClick={() => handleApprove(selectedVendor.id)}
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
                   >
-                    Approve Vendor
+                    Direct Approve
+                  </button>
+                </>
+              )}
+
+              {selectedVendor.status === "MOU Pending" && (
+                <>
+                  <button
+                    onClick={() => setShowMouPreviewModal(true)}
+                    className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <FileText size={13} />
+                    <span>Preview Issued MOU</span>
+                  </button>
+                  <button
+                    onClick={() => handleApprove(selectedVendor.id)}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                  >
+                    Approve & Activate
                   </button>
                 </>
               )}
@@ -2420,6 +2465,13 @@ export default function AdminVendorsList() {
           </div>
         </div>
       )}
+
+      {/* Admin Preview MOU Modal */}
+      <MouDocumentModal
+        isOpen={showMouPreviewModal}
+        onClose={() => setShowMouPreviewModal(false)}
+        vendor={selectedVendor}
+      />
     </div>
   );
 }

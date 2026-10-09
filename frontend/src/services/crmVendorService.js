@@ -97,6 +97,99 @@ export const crmVendorService = {
     }
   },
 
+  uploadVendorDocuments: async (documents, bankDetails) => {
+    try {
+      const response = await apiClient.post("/auth/vendor/upload-documents", { documents, bankDetails });
+      const updatedVendor = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId,
+      };
+
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === updatedVendor.id || v.email === updatedVendor.email);
+      if (idx !== -1) vendors[idx] = updatedVendor;
+      else vendors.unshift(updatedVendor);
+      saveData(VENDORS_STORAGE_KEY, vendors);
+
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          localStorage.setItem("user", JSON.stringify({ ...u, ...updatedVendor }));
+          localStorage.setItem("immigo_user", JSON.stringify({ ...u, ...updatedVendor }));
+        }
+      } catch {}
+
+      return updatedVendor;
+    } catch (err) {
+      // Local fallback
+      const cur = crmVendorService.getCurrentVendor();
+      if (!cur) throw new Error(err.response?.data?.message || err.message);
+      const updated = {
+        ...cur,
+        documents: documents || cur.documents || [],
+        bankDetails: bankDetails || cur.bankDetails || {},
+        documentsUploaded: true,
+        status: "Under Review",
+        onboardingStage: "DOCS_SUBMITTED",
+      };
+      await crmVendorService.updateVendorProfile(cur.id, updated);
+      return updated;
+    }
+  },
+
+  signVendorMou: async ({ signatoryName, designation, signatureData, signedFileUrl } = {}) => {
+    try {
+      const response = await apiClient.post("/auth/vendor/sign-mou", {
+        signatoryName,
+        designation,
+        signatureData,
+        signedFileUrl,
+      });
+      const updatedVendor = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId,
+      };
+
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === updatedVendor.id || v.email === updatedVendor.email);
+      if (idx !== -1) vendors[idx] = updatedVendor;
+      else vendors.unshift(updatedVendor);
+      saveData(VENDORS_STORAGE_KEY, vendors);
+
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          localStorage.setItem("user", JSON.stringify({ ...u, ...updatedVendor }));
+          localStorage.setItem("immigo_user", JSON.stringify({ ...u, ...updatedVendor }));
+        }
+      } catch {}
+
+      return updatedVendor;
+    } catch (err) {
+      // Local fallback
+      const cur = crmVendorService.getCurrentVendor();
+      if (!cur) throw new Error(err.response?.data?.message || err.message);
+      const updated = {
+        ...cur,
+        mouSigned: true,
+        mouStatus: "Signed",
+        status: "Approved",
+        onboardingStage: "COMPLETED",
+        signedMou: {
+          signatoryName,
+          designation,
+          signatureData,
+          signedFileUrl,
+          signedAt: new Date().toISOString(),
+        },
+      };
+      await crmVendorService.updateVendorProfile(cur.id, updated);
+      return updated;
+    }
+  },
+
   getCurrentVendor: () => {
     try {
       const stored = localStorage.getItem("user") || localStorage.getItem("immigo_user");
@@ -224,14 +317,32 @@ export const crmVendorService = {
   },
 
   // ----------------------------------------------------
+  // ----------------------------------------------------
   // ADMIN VENDOR MANAGEMENT
   // ----------------------------------------------------
   getVendors: async ({ search = "", status = "All", country = "All" } = {}) => {
-    await delay(80);
-    let vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    let vendors = [];
+    try {
+      const response = await apiClient.get("/admin/vendors");
+      if (response.data?.vendors && Array.isArray(response.data.vendors)) {
+        vendors = response.data.vendors.map((v) => ({
+          ...v,
+          id: v.vendorId || v._id,
+        }));
+        saveData(VENDORS_STORAGE_KEY, vendors);
+      } else {
+        vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      }
+    } catch {
+      vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    }
 
     if (status !== "All") {
-      vendors = vendors.filter((v) => v.status === status);
+      vendors = vendors.filter((v) => {
+        if (status === "Pending Verification") return v.status === "Pending" || v.status === "Under Review";
+        if (status === "MOU Pending") return v.status === "MOU Pending" || (v.status === "Approved" && !v.mouSigned);
+        return v.status === status;
+      });
     }
     if (country !== "All") {
       vendors = vendors.filter((v) => v.country === country);
@@ -251,76 +362,68 @@ export const crmVendorService = {
     return vendors;
   },
 
-  registerVendor: async (vendorData) => {
-    await delay(100);
-    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-    const existing = vendors.find(
-      (v) => v.email?.toLowerCase() === vendorData.email?.toLowerCase()
-    );
-    if (existing) {
-      throw new Error(`Vendor with email ${vendorData.email} is already registered.`);
-    }
-
-    const newVendor = {
-      id: `VND-${Math.floor(1000 + Math.random() * 9000)}`,
-      companyName: vendorData.companyName || "New Manpower Agency",
-      registrationNumber: vendorData.registrationNumber || `REG-${Date.now().toString().slice(-6)}`,
-      email: vendorData.email,
-      password: vendorData.password || "Password@123",
-      phone: vendorData.phone || vendorData.contactPersonPhone || "+91 98765 00000",
-      country: vendorData.country || "India",
-      state: vendorData.state || "Maharashtra",
-      city: vendorData.city || "Mumbai",
-      address: vendorData.address || "Main Office Address",
-      website: vendorData.website || "",
-      contactPersonName: vendorData.contactPersonName || "Contact Person",
-      contactPersonEmail: vendorData.contactPersonEmail || vendorData.email,
-      contactPersonPhone: vendorData.contactPersonPhone || vendorData.phone,
-      businessType: vendorData.businessType || "Overseas Recruitment Agency",
-      specialization: vendorData.specialization || "Technical Trades",
-      countriesServed: vendorData.countriesServed || ["UAE", "Saudi Arabia"],
-      employeeCount: "25",
-      experienceYears: vendorData.experienceYears || "5",
-      status: vendorData.status || "Approved",
-      registeredAt: new Date().toISOString(),
-      verifiedAt: new Date().toISOString(),
-      documents: vendorData.documents || [],
-      loginUrl: `${window.location.origin}/vendor/login`,
-    };
-
-    vendors.unshift(newVendor);
-    saveData(VENDORS_STORAGE_KEY, vendors);
-
-    return newVendor;
-  },
-
   getVendorById: async (vendorId) => {
-    await delay(40);
+    try {
+      const response = await apiClient.get(`/admin/vendors/${vendorId}`);
+      if (response.data?.vendor) {
+        return { ...response.data.vendor, id: response.data.vendor.vendorId || response.data.vendor._id };
+      }
+    } catch {}
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     return vendors.find((v) => v.id === vendorId) || null;
   },
 
+  approveDocsAndSendMou: async (vendorId) => {
+    try {
+      const response = await apiClient.post(`/admin/vendors/${vendorId}/send-mou`);
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch (err) {
+      // Local fallback
+      return crmVendorService.signOrVerifyMOU(vendorId, "Sent");
+    }
+  },
+
   approveVendor: async (vendorId) => {
-    await delay(80);
-    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-    const idx = vendors.findIndex((v) => v.id === vendorId);
-    if (idx === -1) throw new Error("Vendor not found");
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}/approve`);
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch {
+      await delay(80);
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx === -1) throw new Error("Vendor not found");
 
-    vendors[idx].status = "Approved";
-    vendors[idx].verifiedAt = new Date().toISOString();
-    vendors[idx].rejectionReason = "";
-    saveData(VENDORS_STORAGE_KEY, vendors);
+      vendors[idx].status = "Approved";
+      vendors[idx].verifiedAt = new Date().toISOString();
+      vendors[idx].rejectionReason = "";
+      saveData(VENDORS_STORAGE_KEY, vendors);
 
-    // Create notification for vendor
-    crmVendorService.addNotification({
-      vendorId,
-      title: "Vendor Account Approved",
-      message: `Your account for ${vendors[idx].companyName} has been verified and approved by Admin. You now have full access to submit candidates.`,
-      type: "success",
-      link: "/vendor/dashboard",
-    });
+      crmVendorService.addNotification({
+        vendorId,
+        title: "Vendor Account Approved",
+        message: `Your account for ${vendors[idx].companyName} has been verified and approved by Admin. You now have full access to submit candidates.`,
+        type: "success",
+        link: "/vendor/dashboard",
+      });
 
-    return vendors[idx];
+      return vendors[idx];
+    }
   },
 
   signOrVerifyMOU: async (vendorId, status = "Approved") => {
@@ -329,15 +432,29 @@ export const crmVendorService = {
     const idx = vendors.findIndex((v) => v.id === vendorId);
     if (idx === -1) throw new Error("Vendor not found");
 
-    vendors[idx].mouSigned = status === "Approved" || status === "Signed";
-    vendors[idx].mouStatus = status;
-    vendors[idx].mouVerifiedAt = new Date().toISOString();
+    if (status === "Sent") {
+      vendors[idx].mouStatus = "Sent";
+      vendors[idx].status = "MOU Pending";
+      vendors[idx].onboardingStage = "MOU_SENT";
+      vendors[idx].mouDocument = {
+        title: "Memorandum of Understanding (MOU) for Recruitment Services",
+        sentAt: new Date().toISOString(),
+        termsVersion: "v1.0",
+      };
+    } else {
+      vendors[idx].mouSigned = status === "Approved" || status === "Signed";
+      vendors[idx].mouStatus = status;
+      vendors[idx].status = "Approved";
+      vendors[idx].mouVerifiedAt = new Date().toISOString();
+    }
     saveData(VENDORS_STORAGE_KEY, vendors);
 
     crmVendorService.addNotification({
       vendorId,
-      title: "MOU Agreement Completed",
-      message: `Your Memorandum of Understanding (MOU) has been verified and approved.`,
+      title: status === "Sent" ? "MOU Agreement Sent" : "MOU Agreement Completed",
+      message: status === "Sent" 
+        ? "Your compliance documents have been approved! The official MOU has been issued for your signature."
+        : "Your Memorandum of Understanding (MOU) has been verified and approved.",
       type: "success",
       link: "/vendor/dashboard",
     });
@@ -346,7 +463,10 @@ export const crmVendorService = {
   },
 
   rejectVendor: async (vendorId, reason = "") => {
-    await delay(80);
+    try {
+      await apiClient.put(`/admin/vendors/${vendorId}/reject`, { reason });
+    } catch {}
+
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     const idx = vendors.findIndex((v) => v.id === vendorId);
     if (idx === -1) throw new Error("Vendor not found");
@@ -367,7 +487,10 @@ export const crmVendorService = {
   },
 
   suspendVendor: async (vendorId) => {
-    await delay(80);
+    try {
+      await apiClient.put(`/admin/vendors/${vendorId}/suspend`);
+    } catch {}
+
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     const idx = vendors.findIndex((v) => v.id === vendorId);
     if (idx === -1) throw new Error("Vendor not found");

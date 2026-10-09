@@ -25,11 +25,13 @@ import {
   Globe,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
+import MouDocumentModal from "../../components/vendor/MouDocumentModal.jsx";
 
 export function VendorDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showMouModal, setShowMouModal] = useState(false);
   const vendor = crmVendorService.getCurrentVendor();
 
   useEffect(() => {
@@ -152,69 +154,18 @@ export function VendorDashboard() {
     }
   };
 
-  if (vendor?.status === "Pending") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-6">
-          <Clock size={40} />
-        </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Account Pending Approval</h2>
-        <p className="text-slate-500 max-w-md">
-          Your vendor account registration is currently under review by our administration team. 
-          You will gain full access to the dashboard once your account is verified and approved.
-        </p>
-      </div>
-    );
-  }
-
-  if (vendor?.status === "Approved" && !vendor.documentsUploaded) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
-              Approved
-            </span>
-          </div>
-          <h2 className="text-base sm:text-lg font-black tracking-tight mt-1">
-            Welcome, {vendor?.companyName}
-          </h2>
-        </div>
-
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center max-w-3xl mx-auto mt-10">
-          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle size={32} />
-          </div>
-          <h3 className="text-xl font-bold text-rose-900 mb-2">Action Required: Upload Documents</h3>
-          <p className="text-rose-700 text-sm mb-6 max-w-md mx-auto">
-            To unlock your dashboard and start submitting candidates, you must upload your required KYC documents (Bank Details, PAN, etc.) as a single PDF.
-            <br/><br/>
-            <span className="font-bold">Max File Size: 2MB | Format: PDF</span>
-          </p>
-          
-          <label className="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl cursor-pointer transition-colors">
-            <FileText size={18} />
-            <span>Select & Upload PDF</span>
-            <input 
-              type="file" 
-              accept="application/pdf" 
-              className="hidden" 
-              onChange={handleFileUpload}
-            />
-          </label>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 border border-blue-800/60">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
-              Approved Partner
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
+              <CheckCircle2 size={12} className="text-emerald-400" />
+              Verified Partner &bull; MOU Executed
+            </span>
+            <span className="text-[10px] font-mono text-slate-300">
+              ID: {vendor?.id || vendor?.vendorId || "VND"}
             </span>
           </div>
           <h2 className="text-base sm:text-lg font-black tracking-tight mt-1">
@@ -226,6 +177,14 @@ export function VendorDashboard() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap shrink-0 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => setShowMouModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-200 bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+          >
+            <FileText size={13} />
+            <span>View Executed MOU</span>
+          </button>
           <Link
             to="/vendor/candidates/add"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-lg shadow-2xs transition-colors cursor-pointer"
@@ -383,6 +342,12 @@ export function VendorDashboard() {
           </table>
         </div>
       </div>
+
+      <MouDocumentModal
+        isOpen={showMouModal}
+        onClose={() => setShowMouModal(false)}
+        vendor={vendor}
+      />
     </div>
   );
 }

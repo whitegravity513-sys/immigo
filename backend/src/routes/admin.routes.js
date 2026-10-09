@@ -11,6 +11,7 @@ import paymentRoutes from "./admin/payment.routes.js";
 import renewalRoutes from "./admin/renewal.routes.js";
 import meetingRoutes from "./admin/meeting.routes.js";
 import notificationRoutes from "./admin/notification.routes.js";
+import vendorRoutes from "./admin/vendor.routes.js";
 
 const router = express.Router();
 
@@ -26,5 +27,6 @@ router.use(paymentRoutes);
 router.use(renewalRoutes);
 router.use(meetingRoutes);
 router.use(notificationRoutes);
+router.use(vendorRoutes);
 
 export default router;

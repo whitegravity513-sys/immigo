@@ -87,8 +87,13 @@ const vendorSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Rejected", "Suspended"],
+      enum: ["Pending", "Under Review", "MOU Pending", "Approved", "Rejected", "Suspended"],
       default: "Pending",
+    },
+    onboardingStage: {
+      type: String,
+      enum: ["DOCS_PENDING", "DOCS_SUBMITTED", "MOU_SENT", "MOU_SIGNED", "COMPLETED"],
+      default: "DOCS_PENDING",
     },
     rejectionReason: {
       type: String,
@@ -100,7 +105,44 @@ const vendorSchema = new mongoose.Schema(
     },
     mouStatus: {
       type: String,
+      enum: ["Pending", "Sent", "Signed", "Approved"],
       default: "Pending",
+    },
+    documents: [
+      {
+        id: String,
+        name: String,
+        fileName: String,
+        type: { type: String, default: "Document" },
+        fileUrl: String,
+        size: String,
+        uploadedAt: { type: Date, default: Date.now },
+        status: { type: String, default: "Pending" },
+        remarks: { type: String, default: "" },
+      },
+    ],
+    documentsUploaded: {
+      type: Boolean,
+      default: false,
+    },
+    bankDetails: {
+      accountName: { type: String, default: "" },
+      accountNumber: { type: String, default: "" },
+      bankName: { type: String, default: "" },
+      ifsc: { type: String, default: "" },
+    },
+    mouDocument: {
+      title: { type: String, default: "Memorandum of Understanding (MOU)" },
+      sentAt: { type: Date, default: null },
+      fileUrl: { type: String, default: "" },
+      termsVersion: { type: String, default: "v1.0" },
+    },
+    signedMou: {
+      signatoryName: { type: String, default: "" },
+      designation: { type: String, default: "" },
+      signedAt: { type: Date, default: null },
+      signatureData: { type: String, default: "" },
+      signedFileUrl: { type: String, default: "" },
     },
     verifiedAt: {
       type: Date,

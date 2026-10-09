@@ -96,7 +96,7 @@ export const vendorLogin = asyncHandler(async (req, res) => {
 });
 
 export const getVendorMe = asyncHandler(async (req, res) => {
-  const vendorId = req.user.id;
+  const vendorId = req.user.id || req.user._id;
   const vendor = await Vendor.findById(vendorId);
   
   if (!vendor) {
@@ -104,12 +104,113 @@ export const getVendorMe = asyncHandler(async (req, res) => {
   }
   
   return res.status(200).json({
-    vendor
+    vendor,
+  });
+});
+
+export const uploadVendorDocuments = asyncHandler(async (req, res) => {
+  const vendorId = req.user.id || req.user._id;
+  const { documents, bankDetails } = req.body;
+
+  const vendor = await Vendor.findById(vendorId);
+  if (!vendor) {
+    throw new ApiError(404, "Vendor not found");
+  }
+
+  if (Array.isArray(documents) && documents.length > 0) {
+    vendor.documents = documents;
+    vendor.documentsUploaded = true;
+  }
+  if (bankDetails) {
+    vendor.bankDetails = bankDetails;
+  }
+
+  vendor.status = "Under Review";
+  vendor.onboardingStage = "DOCS_SUBMITTED";
+  await vendor.save();
+
+  // Create Notification for Admin
+  try {
+    const Notification = (await import("../models/Notification.js")).default;
+    await Notification.create({
+      type: "DOCUMENT_UPLOAD",
+      title: `Vendor Documents Submitted: ${vendor.companyName}`,
+      message: `${vendor.companyName} (${vendor.vendorId}) has uploaded compliance documents for review.`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Failed to create admin notification:", err.message);
+  }
+
+  return res.status(200).json({
+    message: "Documents submitted successfully for Admin review",
+    vendor,
+  });
+});
+
+export const signVendorMou = asyncHandler(async (req, res) => {
+  const vendorId = req.user.id || req.user._id;
+  const { signatoryName, designation, signatureData, signedFileUrl } = req.body;
+
+  const vendor = await Vendor.findById(vendorId);
+  if (!vendor) {
+    throw new ApiError(404, "Vendor not found");
+  }
+
+  vendor.mouSigned = true;
+  vendor.mouStatus = "Signed";
+  vendor.status = "Approved";
+  vendor.onboardingStage = "COMPLETED";
+  vendor.signedMou = {
+    signatoryName: signatoryName || vendor.contactPersonName,
+    designation: designation || "Authorized Signatory",
+    signatureData: signatureData || "Digitally Signed",
+    signedFileUrl: signedFileUrl || "",
+    signedAt: new Date(),
+  };
+
+  await vendor.save();
+
+  // Create Notification for Admin
+  try {
+    const Notification = (await import("../models/Notification.js")).default;
+    await Notification.create({
+      type: "DOCUMENT_UPDATE",
+      title: `MOU Signed: ${vendor.companyName}`,
+      message: `${vendor.companyName} (${vendor.vendorId}) has digitally signed and submitted the MOU. Vendor dashboard is active.`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Failed to create admin notification:", err.message);
+  }
+
+  return res.status(200).json({
+    message: "MOU agreement signed successfully. Account fully activated!",
+    vendor,
+  });
+});
+
+export const updateVendorProfile = asyncHandler(async (req, res) => {
+  const vendorId = req.user.id || req.user._id;
+  const vendor = await Vendor.findByIdAndUpdate(vendorId, req.body, { new: true, runValidators: true });
+  if (!vendor) {
+    throw new ApiError(404, "Vendor not found");
+  }
+  return res.status(200).json({
+    message: "Profile updated successfully",
+    vendor,
   });
 });
 
 export default {
   vendorRegister,
   vendorLogin,
-  getVendorMe
+  getVendorMe,
+  uploadVendorDocuments,
+  signVendorMou,
+  updateVendorProfile,
 };
