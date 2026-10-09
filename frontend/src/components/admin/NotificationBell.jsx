@@ -26,10 +26,37 @@ export default function NotificationBell({ className }) {
 
   const fetchNotifications = async () => {
     try {
-      const res = await apiClient.get("/admin/notifications?limit=30");
-      const backendNotifs = res.data?.notifications || [];
-      setNotifications(backendNotifs);
-      setUnreadCount(res.data?.unreadCount || 0);
+      let backendNotifs = [];
+      try {
+        const res = await apiClient.get("/admin/notifications?limit=30");
+        backendNotifs = res.data?.notifications || [];
+      } catch {}
+
+      const localAdminNotifs = (crmVendorService.getAdminNotifications() || []).map((n) => ({
+        _id: n.id,
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        createdAt: n.timestamp,
+        isRead: !!n.read,
+        read: !!n.read,
+        type: n.type || "INFO",
+        link: n.link,
+      }));
+
+      const all = [...localAdminNotifs, ...backendNotifs];
+      const seen = new Set();
+      const merged = all.filter((n) => {
+        const key = n._id || n.id || `${n.title}-${n.createdAt}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      merged.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      const unread = merged.filter((n) => !n.isRead && !n.read).length;
+      setNotifications(merged);
+      setUnreadCount(unread);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
     }

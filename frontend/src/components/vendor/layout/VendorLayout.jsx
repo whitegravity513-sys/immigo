@@ -17,13 +17,8 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
     const syncVendor = async () => {
       try {
         // Fetch fresh state from backend
-        const res = await crmVendorService.apiClient?.get?.("/auth/vendor/me") || null;
-        if (res?.data?.vendor && isMounted) {
-          const fresh = {
-            ...res.data.vendor,
-            id: res.data.vendor.vendorId || res.data.vendor._id,
-          };
-
+        const fresh = await crmVendorService.getVendorMe();
+        if (fresh && isMounted) {
           setVendor((prev) => {
             if (
               !prev ||
@@ -33,15 +28,6 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
               prev.onboardingStage !== fresh.onboardingStage ||
               JSON.stringify(prev.mouDocument) !== JSON.stringify(fresh.mouDocument)
             ) {
-              // Update local storages
-              try {
-                const stored = localStorage.getItem("user");
-                if (stored) {
-                  const u = JSON.parse(stored);
-                  localStorage.setItem("user", JSON.stringify({ ...u, ...fresh }));
-                  localStorage.setItem("immigo_user", JSON.stringify({ ...u, ...fresh }));
-                }
-              } catch {}
               return fresh;
             }
             return prev;
@@ -84,9 +70,15 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
     };
   }, []);
 
-  const isFullyUnlocked =
-    vendor?.status === "Approved" &&
-    (vendor?.mouSigned || vendor?.mouStatus === "Signed" || vendor?.mouStatus === "Approved");
+  const isFullyUnlocked = Boolean(
+    vendor?.mouSigned ||
+    vendor?.mouStatus === "Signed" ||
+    vendor?.mouStatus === "Approved" ||
+    vendor?.status === "Approved" ||
+    vendor?.status === "Pending MOU Approval" ||
+    vendor?.onboardingStage === "MOU_SIGNED" ||
+    vendor?.onboardingStage === "COMPLETED"
+  );
 
   return (
     <div className="h-screen flex overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">

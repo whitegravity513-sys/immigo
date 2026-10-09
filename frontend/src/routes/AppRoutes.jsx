@@ -51,6 +51,7 @@ const VendorPaymentHistory = lazy(() => import("../pages/vendor/PaymentHistory.j
 const VendorDocuments = lazy(() => import("../pages/vendor/Documents.jsx"));
 const VendorProfile = lazy(() => import("../pages/vendor/Profile.jsx"));
 const VendorProjectDetails = lazy(() => import("../pages/vendor/VendorProjectDetails.jsx"));
+const VendorProjects = lazy(() => import("../pages/vendor/VendorProjects.jsx"));
 const VendorEditCandidate = lazy(() => import("../pages/vendor/EditCandidate.jsx"));
 const VendorRefunds = lazy(() => import("../pages/vendor/VendorRefunds.jsx"));
 const VendorNewRefund = lazy(() => import("../pages/vendor/VendorNewRefund.jsx"));
@@ -444,6 +445,7 @@ export default function AppRoutes() {
         >
           <Route index element={<Navigate to="/vendor/dashboard" replace />} />
           <Route path="dashboard" element={<VendorDashboard />} />
+          <Route path="projects" element={<VendorProjects />} />
           <Route path="projects/:id" element={<VendorProjectDetails />} />
           <Route path="candidates" element={<VendorCandidates />} />
           <Route path="candidates/add" element={<VendorAddCandidate />} />

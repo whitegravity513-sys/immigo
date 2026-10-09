@@ -100,6 +100,9 @@ export const approveVendor = asyncHandler(async (req, res) => {
   vendor.status = "Approved";
   vendor.verifiedAt = new Date();
   vendor.rejectionReason = "";
+  vendor.onboardingStage = "COMPLETED";
+  vendor.mouSigned = true;
+  vendor.mouStatus = "Approved";
   await vendor.save();
 
   try {

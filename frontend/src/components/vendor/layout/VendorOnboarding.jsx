@@ -23,7 +23,16 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
   // Step Determination
   // 1 = Upload Docs, 2 = Under Review, 3 = MOU Sent / Sign MOU, 4 = Completed
   const getInitialStep = (v = vendor) => {
-    if (v?.mouSigned || v?.status === "Approved") return 4;
+    if (
+      v?.mouSigned ||
+      v?.mouStatus === "Signed" ||
+      v?.status === "Approved" ||
+      v?.status === "Pending MOU Approval" ||
+      v?.onboardingStage === "MOU_SIGNED" ||
+      v?.onboardingStage === "COMPLETED"
+    ) {
+      return 4;
+    }
     if (v?.mouStatus === "Sent" || v?.status === "MOU Pending" || v?.onboardingStage === "MOU_SENT") return 3;
     if (v?.status === "Under Review" || v?.documentsUploaded || v?.onboardingStage === "DOCS_SUBMITTED") return 2;
     return 1;
@@ -56,8 +65,42 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [checkingApproval, setCheckingApproval] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  const handleCheckApproval = async (silent = false) => {
+    if (!silent) setCheckingApproval(true);
+    try {
+      const fresh = await crmVendorService.getVendorMe();
+      if (fresh) {
+        if (onVendorUpdate) onVendorUpdate(fresh);
+        const nextStep = getInitialStep(fresh);
+        if (nextStep !== currentStep) {
+          setCurrentStep(nextStep);
+          if (nextStep === 3) {
+            setSuccessMsg("Admin has approved your compliance documents and sent the MOU agreement! Please review and digitally sign.");
+          } else if (nextStep === 4) {
+            setSuccessMsg("Account verified and approved by Admin! Unlocking dashboard...");
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Check approval failed:", e);
+    } finally {
+      if (!silent) setCheckingApproval(false);
+    }
+  };
+
+  // Poll in background when under review (step 2) to auto-advance when Admin acts
+  useEffect(() => {
+    if (currentStep === 2) {
+      const interval = setInterval(() => {
+        handleCheckApproval(true);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [currentStep]);
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -168,7 +211,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     setError("");
 
     try {
-      await crmVendorService.signVendorMou({
+      const updated = await crmVendorService.signVendorMou({
         signatoryName: signatoryName.trim(),
         designation: designation.trim(),
         signatureData: signatureText.trim() || signatoryName.trim(),
@@ -176,9 +219,12 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       });
 
       setSuccessMsg("MOU successfully executed! Your dashboard is now active.");
+      if (onVendorUpdate) {
+        onVendorUpdate(updated);
+      }
       setTimeout(() => {
         window.location.reload();
-      }, 1200);
+      }, 800);
     } catch (err) {
       setError(err.message || "Failed to submit MOU signature.");
     } finally {
@@ -206,11 +252,11 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               ...prev,
               mouSigned: true,
               mouStatus: "Signed",
-              status: "Approved",
-              onboardingStage: "COMPLETED",
+              status: "Pending MOU Approval",
+              onboardingStage: "MOU_SIGNED",
             }));
           }
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => window.location.reload(), 800);
         }}
       />
     );
@@ -527,11 +573,12 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
 
           <div className="pt-2 flex items-center justify-center gap-3">
             <button
-              onClick={() => window.location.reload()}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-2"
+              onClick={() => handleCheckApproval(false)}
+              disabled={checkingApproval}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-2"
             >
-              <RefreshCw size={14} />
-              <span>Check for Admin Approval</span>
+              <RefreshCw size={14} className={checkingApproval ? "animate-spin" : ""} />
+              <span>{checkingApproval ? "Checking with Admin..." : "Check for Admin Approval"}</span>
             </button>
           </div>
         </div>

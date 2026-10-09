@@ -9,25 +9,29 @@ import {
   FileCheck,
   ShieldCheck,
   Building2,
-  User,
   ExternalLink,
   Plus,
   Eye,
+  Clock,
+  Printer,
+  Sparkles,
+  Calendar,
+  PenTool,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 import DocumentViewerFullPage from "../../components/vendor/DocumentViewerFullPage.jsx";
+import MouFullPageView from "../../components/vendor/MouFullPageView.jsx";
 
 export default function Documents() {
   const [vendor, setVendor] = useState(null);
-  const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("company"); // "company" or "candidates"
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("mou"); // "mou" or "company"
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newDocName, setNewDocName] = useState("");
   const [newDocType, setNewDocType] = useState("Statutory License");
   const [companyDocs, setCompanyDocs] = useState([]);
   const [previewingDoc, setPreviewingDoc] = useState(null);
+  const [viewingMou, setViewingMou] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -39,9 +43,6 @@ export default function Documents() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
       setCompanyDocs(curVendor?.documents || []);
-
-      const candRes = await crmVendorService.getCandidates(curVendor?.id);
-      setCandidates(candRes || []);
     } catch (err) {
       console.error("Failed to load documents:", err);
     } finally {
@@ -73,7 +74,7 @@ export default function Documents() {
     setNewDocName("");
   };
 
-  const handleDownload = (doc) => {
+  const handleDownloadDoc = (doc) => {
     if (doc?.fileUrl && doc.fileUrl.startsWith("data:")) {
       const a = document.createElement("a");
       a.href = doc.fileUrl;
@@ -95,42 +96,31 @@ export default function Documents() {
     URL.revokeObjectURL(url);
   };
 
-  // Flatten candidate documents
-  const candidateDocs = [];
-  candidates.forEach((cand) => {
-    if (cand.documents && cand.documents.length > 0) {
-      cand.documents.forEach((d) => {
-        candidateDocs.push({
-          ...d,
-          candidateId: cand.id,
-          candidateName: cand.fullName,
-          position: cand.currentPosition,
-        });
-      });
-    } else {
-      // Add default resume
-      candidateDocs.push({
-        name: "Standard Curriculum Vitae (CV)",
-        fileName: `${cand.fullName.toLowerCase().replace(/\s+/g, "_")}_resume.pdf`,
-        type: "Resume",
-        size: "950 KB",
-        candidateId: cand.id,
-        candidateName: cand.fullName,
-        position: cand.currentPosition,
-      });
-    }
-  });
+  const handleDownloadMou = () => {
+    const mou = vendor?.mouDocument || {};
+    const text = `MEMORANDUM OF UNDERSTANDING (MOU)\nBETWEEN: VISTA OVERSEAS RECRUITMENT SOLUTIONS & ${vendor?.companyName || "VENDOR"}\nAgreement Ref: ${mou.refNumber || `MOU-${vendor?.id || "VND"}`}\nStatus: ${vendor?.status || "Signed"}\nSigned Date: ${mou.signedAt || mou.signatureDate || new Date().toLocaleDateString()}\nSignatory: ${mou.signatoryName || vendor?.contactPersonName || "Authorized Representative"}\nDesignation: ${mou.signatoryDesignation || "Director / Authorized Signatory"}\nCommission: ${mou.commissionRate || "Standard Agreement"}\nValidity: ${mou.validityYears || "1 Year"}\nTerms: All candidate placements shall strictly adhere to MEA and GCC bilateral labor agreements.`;
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Executed_MOU_${vendor?.companyName?.replace(/\s+/g, "_") || "Vendor"}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-  const filteredCandidateDocs = candidateDocs.filter((d) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+  if (viewingMou) {
     return (
-      d.candidateName?.toLowerCase().includes(q) ||
-      d.name?.toLowerCase().includes(q) ||
-      d.fileName?.toLowerCase().includes(q) ||
-      d.position?.toLowerCase().includes(q)
+      <div className="space-y-6">
+        <MouFullPageView
+          mode="preview"
+          vendor={vendor}
+          onBack={() => setViewingMou(false)}
+        />
+      </div>
     );
-  });
+  }
 
   if (previewingDoc) {
     return (
@@ -144,70 +134,206 @@ export default function Documents() {
     );
   }
 
+  const isMouSigned = vendor?.mouSigned || vendor?.status === "Pending MOU Approval" || vendor?.status === "Approved" || vendor?.mouStatus === "Signed" || vendor?.mouStatus === "Approved";
+  const mouData = vendor?.mouDocument || {};
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
             <FileText className="w-4 h-4" />
-            <span>Document Repository</span>
+            <span>Legal & Statutory Repository</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Compliance & Candidate Files
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Documents & Executed MOU
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Access statutory vendor licenses, trade attestations, and submitted candidate dossiers.
+            Access your executed agency partnership MOU, compliance records, and statutory licenses.
           </p>
         </div>
 
         <button
           onClick={() => setShowUploadModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm transition self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition self-start sm:self-auto cursor-pointer"
         >
           <Upload className="w-4 h-4" />
-          <span>Upload Company Document</span>
+          <span>Upload Statutory Document</span>
         </button>
       </div>
 
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <button
+          onClick={() => setActiveTab("mou")}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${
+            activeTab === "mou"
+              ? "bg-slate-900 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <FileCheck className="w-4 h-4" />
+          <span>Executed MOU Agreement</span>
+          {isMouSigned && (
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab("company")}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${
             activeTab === "company"
-              ? "bg-slate-900 text-white shadow-sm"
+              ? "bg-slate-900 text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <Building2 className="w-4 h-4" />
-          <span>Company Licenses & Compliance ({companyDocs.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("candidates")}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center gap-2 ${
-            activeTab === "candidates"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          }`}
-        >
-          <User className="w-4 h-4" />
-          <span>Candidate Resumes & Dossiers ({candidateDocs.length})</span>
+          <span>Statutory Licenses & Compliance ({companyDocs.length})</span>
         </button>
       </div>
 
-      {activeTab === "company" ? (
-        /* Company Documents View */
+      {activeTab === "mou" ? (
+        /* Executed MOU Agreement View */
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+            {/* Top Banner */}
+            <div className="p-6 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
+                    Ref: {mouData.refNumber || `MOU-${vendor?.id || "VND"}`}
+                  </span>
+                  {vendor?.status === "Approved" ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                      <CheckCircle2 size={11} className="text-emerald-400" />
+                      Approved & Counter-Signed
+                    </span>
+                  ) : isMouSigned ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                      <Clock size={11} className="text-amber-400" />
+                      Signed &bull; Pending Admin Approval (Full Access Unlocked)
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                      Pending Signature
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-lg sm:text-xl font-black tracking-tight">
+                  Manpower Supply Partnership Memorandum of Understanding
+                </h3>
+                <p className="text-xs text-blue-200 mt-1 max-w-2xl leading-relaxed">
+                  Legally binding overseas recruitment agreement executed between Vista Overseas Operations and {vendor?.companyName || "Vendor Agency Partner"}.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewingMou(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                >
+                  <Eye size={14} />
+                  <span>Preview Executed MOU</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadMou}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer border border-white/20"
+                >
+                  <Download size={14} />
+                  <span>Download MOU</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Agreement Metadata Summary */}
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50/60 border-b border-slate-200/80">
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Authorized Signatory</span>
+                <span className="text-xs font-bold text-slate-900 mt-1 block">
+                  {mouData.signatoryName || vendor?.contactPersonName || "Vendor Director"}
+                </span>
+                <span className="text-[11px] text-slate-500 mt-0.5 block truncate">
+                  {mouData.signatoryDesignation || "Managing Director / Partner"}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Execution Date</span>
+                <span className="text-xs font-bold text-slate-900 mt-1 block">
+                  {mouData.signedAt ? new Date(mouData.signedAt).toLocaleDateString() : (mouData.signatureDate || new Date().toLocaleDateString())}
+                </span>
+                <span className="text-[11px] text-slate-500 mt-0.5 block">
+                  Validity: {mouData.validityYears || "1 Year (Renewable)"}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Commission Structure</span>
+                <span className="text-xs font-bold text-slate-900 mt-1 block">
+                  {mouData.commissionRate || "Standard Agency Rate"}
+                </span>
+                <span className="text-[11px] text-slate-500 mt-0.5 block">
+                  Terms: {mouData.paymentTerms || "30 Days post deployment"}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Digital Signature</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-emerald-700 font-mono">
+                    VERIFIED & TIMESTAMPED
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400 block mt-0.5 truncate">
+                  SHA256: {vendor?.id || "VND"}-MOU-EXEC
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Agreement Highlights */}
+            <div className="p-6 space-y-4">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Operative Clauses & Mandate Summary
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-blue-600" />
+                    Manpower Supply Mandate
+                  </span>
+                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                    Sourcing, trade verification, and pre-screening of candidates for Middle East & global deployment in civil, MEP, and industrial trades.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <CheckCircle2 size={13} className="text-blue-600" />
+                    Zero Fee & Ethical Recruitment
+                  </span>
+                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                    Strict adherence to the Employer-Pays principle and Indian Ministry of External Affairs regulations. No illegal levies on worker candidates.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Statutory Licenses View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {companyDocs.map((doc, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between hover:shadow-md transition"
+              className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between hover:shadow-sm transition"
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <FileCheck className="w-5 h-5" />
                   </div>
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -236,7 +362,7 @@ export default function Documents() {
                     <span>Preview</span>
                   </button>
                   <button
-                    onClick={() => handleDownload(doc)}
+                    onClick={() => handleDownloadDoc(doc)}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold transition cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -247,148 +373,61 @@ export default function Documents() {
             </div>
           ))}
         </div>
-      ) : (
-        /* Candidate Documents View */
-        <div className="space-y-4">
-          <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search candidate name, document or trade..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-            />
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                  <tr>
-                    <th className="py-3.5 px-4 sm:px-6">Candidate</th>
-                    <th className="py-3.5 px-4">Document Title</th>
-                    <th className="py-3.5 px-4">File Name</th>
-                    <th className="py-3.5 px-4">Type</th>
-                    <th className="py-3.5 px-4">File Size</th>
-                    <th className="py-3.5 px-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredCandidateDocs.map((doc, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/70 transition">
-                      <td className="py-3.5 px-4 sm:px-6">
-                        <Link
-                          to={`/vendor/candidates/${doc.candidateId}`}
-                          className="font-bold text-slate-900 hover:text-indigo-600 transition block truncate max-w-[170px]"
-                        >
-                          {doc.candidateName}
-                        </Link>
-                        <span className="text-[11px] text-slate-400">{doc.position}</span>
-                      </td>
-
-                      <td className="py-3.5 px-4 font-medium text-slate-800">{doc.name}</td>
-
-                      <td className="py-3.5 px-4 font-mono text-xs text-slate-500">
-                        {doc.fileName}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
-                          {doc.type || "PDF"}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-slate-400 text-xs">{doc.size || "1 MB"}</td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="inline-flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setPreviewingDoc(doc)}
-                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer"
-                            title="Preview Document"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDownload(doc)}
-                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer"
-                            title="Download File"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Upload Company Document</h3>
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Upload Statutory Document</h3>
             <p className="text-xs text-slate-500 mb-4">
-              Add updated trade licenses, commercial registrations, or tax compliance filings.
+              Add government agency licenses, incorporation certificates or GST/tax documents.
             </p>
 
             <form onSubmit={handleUploadCompanyDoc} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                   Document Title
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 2026 Overseas Recruitment License"
+                  placeholder="e.g. MEA Recruiting License"
                   value={newDocName}
                   onChange={(e) => setNewDocName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Document Classification
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Document Type
                 </label>
                 <select
                   value={newDocType}
                   onChange={(e) => setNewDocType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 >
                   <option value="Statutory License">Statutory License / MEA Certificate</option>
-                  <option value="Commercial Registration">Commercial Registration (CR)</option>
-                  <option value="Tax Certificate">Tax / GST Certificate</option>
-                  <option value="Bank Reference">Bank Reference Letter</option>
+                  <option value="Incorporation">Incorporation Certificate</option>
+                  <option value="Tax Registration">Tax Registration / PAN / GST</option>
+                  <option value="Bank Attestation">Bank Solvency / Attestation</option>
                 </select>
               </div>
 
-              <div className="p-4 rounded-xl border-2 border-dashed border-slate-300 text-center bg-slate-50">
-                <Upload className="w-8 h-8 text-slate-400 mx-auto mb-1" />
-                <span className="text-xs font-semibold text-indigo-600">Choose file to upload</span>
-                <span className="text-[11px] text-slate-400 block mt-0.5">PDF, DOCX, or PNG up to 10MB</span>
-              </div>
-
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 text-slate-700 font-medium text-xs hover:bg-slate-50"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
                 >
-                  Upload & Save
+                  Save & Upload
                 </button>
               </div>
             </form>

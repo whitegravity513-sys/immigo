@@ -632,9 +632,6 @@ export default function SubmitCandidate() {
                       </td>
                       <td className="py-3 px-4">
                         <span className="font-bold text-slate-800 block">{c.currentPosition || "General Labor"}</span>
-                        <span className="text-[11px] text-slate-400 block truncate max-w-[140px]">
-                          {c.previousCompany || "Gulf / Overseas"}
-                        </span>
                       </td>
                       <td className="py-3 px-4">
                         <div className="font-bold text-slate-700 flex items-center gap-1">
@@ -804,7 +801,7 @@ export default function SubmitCandidate() {
                   <span>Project Overview & Vacancy Status</span>
                   <span className="text-blue-600 font-extrabold">{selectedProject.country}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase font-bold">Positions Required</span>
                     <span className="font-black text-slate-900">
@@ -814,12 +811,6 @@ export default function SubmitCandidate() {
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase font-bold">In Selection / Shortlist</span>
                     <span className="font-black text-slate-900">{selectedOrShortlisted} candidates</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Slots Open</span>
-                    <span className="font-black text-emerald-600">
-                      {remainingSlots > 0 ? `${remainingSlots} Open Slots` : "Open Pool"}
-                    </span>
                   </div>
                 </div>
               </div>

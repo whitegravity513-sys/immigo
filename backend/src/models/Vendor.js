@@ -87,7 +87,7 @@ const vendorSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Under Review", "MOU Pending", "Approved", "Rejected", "Suspended"],
+      enum: ["Pending", "Under Review", "MOU Pending", "Pending MOU Approval", "Approved", "Rejected", "Suspended"],
       default: "Pending",
     },
     onboardingStage: {

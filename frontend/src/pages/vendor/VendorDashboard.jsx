@@ -172,10 +172,17 @@ export function VendorDashboard() {
       <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 border border-blue-800/60">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
-              <CheckCircle2 size={12} className="text-emerald-400" />
-              Verified Partner &bull; MOU Executed
-            </span>
+            {vendor?.status === "Pending MOU Approval" || (vendor?.mouSigned && vendor?.status !== "Approved") ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-400/20">
+                <Clock size={12} className="text-amber-400" />
+                MOU Signed &bull; Pending Admin Approval (Full Access Unlocked)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
+                <CheckCircle2 size={12} className="text-emerald-400" />
+                Verified Partner &bull; MOU Executed
+              </span>
+            )}
             <span className="text-[10px] font-mono text-slate-300">
               ID: {vendor?.id || vendor?.vendorId || "VND"}
             </span>

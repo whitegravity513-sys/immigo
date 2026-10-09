@@ -176,8 +176,8 @@ export const signVendorMou = asyncHandler(async (req, res) => {
 
   vendor.mouSigned = true;
   vendor.mouStatus = "Signed";
-  vendor.status = "Approved";
-  vendor.onboardingStage = "COMPLETED";
+  vendor.status = "Pending MOU Approval";
+  vendor.onboardingStage = "MOU_SIGNED";
   vendor.signedMou = {
     signatoryName: signatoryName || vendor.contactPersonName,
     designation: designation || "Authorized Signatory",

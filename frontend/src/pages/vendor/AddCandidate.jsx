@@ -446,9 +446,10 @@ export function AddCandidate() {
               <input
                 type="text"
                 name="preferredCountries"
-                value={formData.preferredCountries}
+                value={formData.preferredCountries || ""}
                 onChange={handleFieldChange}
-                placeholder="e.g. UAE, Saudi Arabia, Qatar"
+                autoComplete="off"
+                placeholder=""
                 className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none bg-white"
               />
             </div>

@@ -72,6 +72,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api", apiRouter);
+// Fallback direct mount to prevent 404 if request is made without /api prefix
+app.use(apiRouter);
 
 app.use((req, res, next) => {
   next(new ApiError(404, `Route ${req.method} ${req.originalUrl} not found`));

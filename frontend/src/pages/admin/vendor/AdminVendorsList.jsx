@@ -601,7 +601,7 @@ export default function AdminVendorsList() {
     if (statusFilter === "Pending Verification") {
       if (v.status !== "Pending" && v.status !== "Under Review") return false;
     } else if (statusFilter === "MOU Pending") {
-      if (v.status === "MOU Pending" || v.mouStatus === "Sent") return true;
+      if (v.status === "MOU Pending" || v.status === "Pending MOU Approval" || v.mouStatus === "Sent" || v.mouStatus === "Signed") return true;
       const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected";
       if (!isMouPending) return false;
     } else if (statusFilter === "Approved") {
@@ -645,6 +645,20 @@ export default function AdminVendorsList() {
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             Approved
+          </span>
+        );
+      case "Pending MOU Approval":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <FileCheck className="w-3.5 h-3.5 text-indigo-600" />
+            Pending MOU Approval
+          </span>
+        );
+      case "MOU Pending":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+            <FileText className="w-3.5 h-3.5 text-purple-600" />
+            MOU Pending
           </span>
         );
       case "Pending":
@@ -1158,6 +1172,19 @@ export default function AdminVendorsList() {
   }
 
   // =========================================================================
+  // VIEW: FULL PAGE STATUTORY DOCUMENT VIEWER (ZERO POPUPS)
+  // =========================================================================
+  if (previewingDoc) {
+    return (
+      <DocumentViewerFullPage
+        doc={previewingDoc}
+        vendor={selectedVendor}
+        onBack={() => setPreviewingDoc(null)}
+      />
+    );
+  }
+
+  // =========================================================================
   // VIEW 3: FULL PAGE VENDOR STATUTORY DOCUMENTS VAULT
   // =========================================================================
   if (selectedVendor && showDocsPage) {
@@ -1285,7 +1312,7 @@ export default function AdminVendorsList() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => alert(`Previewing statutory document: ${doc.fileName}`)}
+                      onClick={() => setPreviewingDoc(doc)}
                       className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer transition flex items-center gap-1"
                     >
                       <Eye size={13} />
@@ -1293,7 +1320,7 @@ export default function AdminVendorsList() {
                     </button>
 
                     <button
-                      onClick={() => alert(`Downloading statutory document: ${doc.fileName}`)}
+                      onClick={() => handleDownloadDoc(doc)}
                       className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer transition flex items-center gap-1 shadow-2xs"
                     >
                       <Download size={13} />

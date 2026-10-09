@@ -3,14 +3,22 @@ import { initialClients } from "../data/mockClients.js";
 
 const STORAGE_KEY = "crm_clients_data_v3";
 
-// Internal helper to get all clients from localStorage or initialize with mock data
+// Internal helper to get all clients from localStorage or initialize with empty list
 const loadClientsFromStorage = () => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw =
+      localStorage.getItem(STORAGE_KEY) ||
+      localStorage.getItem("crm_clients_data_v2") ||
+      localStorage.getItem("crm_clients_data");
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      if (Array.isArray(parsed)) {
+        // Filter out hardcoded mock client IDs
+        const realClients = parsed.filter(
+          (c) => !["cl-1", "cl-2", "cl-3", "cl-4", "cl-5"].includes(String(c.id))
+        );
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(realClients));
+        return realClients;
       }
     }
   } catch (err) {
@@ -263,6 +271,40 @@ export const crmClientService = {
     client.updatedAt = new Date().toISOString();
 
     saveClientsToStorage(all);
+
+    // Dispatch real-time notification to assigned vendors or all vendors
+    try {
+      const assignedVendors = newProject.assignedVendors || newProject.assignedVendorIds || [];
+      const isAll =
+        (newProject.vendorAssignmentType || newProject.vendorVisibility) !== "Specific Vendor" &&
+        (newProject.vendorAssignmentType || newProject.vendorVisibility) !== "specific";
+
+      import("./crmVendorService.js").then(({ default: vendorService }) => {
+        if (isAll) {
+          const vendors = typeof vendorService.getVendorsSync === "function" ? vendorService.getVendorsSync() : [];
+          (vendors || []).forEach((v) => {
+            vendorService.addNotification({
+              vendorId: v.id,
+              title: "New Project Assigned",
+              message: `New overseas project "${newProject.projectName}" (${newProject.country || "Overseas"}) is open for candidate submissions.`,
+              type: "info",
+              link: "/vendor/dashboard",
+            });
+          });
+        } else {
+          assignedVendors.forEach((vId) => {
+            vendorService.addNotification({
+              vendorId: vId,
+              title: "Project Assigned Directly to You",
+              message: `Admin has assigned project "${newProject.projectName}" (${newProject.country || "Overseas"}) to your agency.`,
+              type: "info",
+              link: "/vendor/dashboard",
+            });
+          });
+        }
+      }).catch(() => {});
+    } catch {}
+
     return newProject;
   },
 

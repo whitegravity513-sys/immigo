@@ -63,9 +63,45 @@ const saveData = (key, data) => {
 };
 
 export const crmVendorService = {
+  apiClient,
+
   // ----------------------------------------------------
-  // VENDOR AUTH & REGISTRATION
+  // VENDOR AUTH & PROFILE SYNC
   // ----------------------------------------------------
+  getVendorMe: async () => {
+    try {
+      const response = await apiClient.get("/auth/vendor/me");
+      if (response.data?.vendor) {
+        const vendor = {
+          ...response.data.vendor,
+          id: response.data.vendor.vendorId || response.data.vendor._id,
+        };
+        try {
+          const stored = localStorage.getItem("user");
+          const u = stored ? JSON.parse(stored) : {};
+          localStorage.setItem("user", JSON.stringify({ ...u, ...vendor }));
+          localStorage.setItem("immigo_user", JSON.stringify({ ...u, ...vendor }));
+        } catch {}
+
+        const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+        const idx = vendors.findIndex(
+          (v) =>
+            (v.id && vendor.id && v.id === vendor.id) ||
+            (v.email && vendor.email && v.email.toLowerCase() === vendor.email.toLowerCase())
+        );
+        if (idx !== -1) {
+          vendors[idx] = { ...vendors[idx], ...vendor };
+        } else {
+          vendors.unshift(vendor);
+        }
+        saveData(VENDORS_STORAGE_KEY, vendors);
+
+        return vendor;
+      }
+    } catch {}
+    return crmVendorService.getCurrentVendor();
+  },
+
   registerVendor: async (vendorData) => {
     try {
       const response = await apiClient.post("/auth/vendor/register", vendorData);
@@ -216,8 +252,8 @@ export const crmVendorService = {
         ...cur,
         mouSigned: true,
         mouStatus: "Signed",
-        status: "Approved",
-        onboardingStage: "COMPLETED",
+        status: "Pending MOU Approval",
+        onboardingStage: "MOU_SIGNED",
         signedMou: {
           signatoryName,
           designation,
@@ -392,6 +428,10 @@ export const crmVendorService = {
   // ----------------------------------------------------
   // ADMIN VENDOR MANAGEMENT
   // ----------------------------------------------------
+  getVendorsSync: () => {
+    return loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+  },
+
   getVendors: async ({ search = "", status = "All", country = "All" } = {}) => {
     let vendors = [];
     try {
@@ -679,6 +719,14 @@ export const crmVendorService = {
 
     candidates.unshift(newCandidate);
     saveData(CANDIDATES_STORAGE_KEY, candidates);
+
+    crmVendorService.addAdminNotification({
+      title: "New Candidate Registered",
+      message: `${newCandidate.vendorName || "Vendor"} registered candidate ${newCandidate.fullName} (${newCandidate.currentPosition || "General"}).`,
+      type: "info",
+      link: "/admin/vendor/candidates",
+    });
+
     return newCandidate;
   },
 
@@ -1192,6 +1240,16 @@ export const crmVendorService = {
     }
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
+
+    // Notify vendor
+    crmVendorService.addNotification({
+      vendorId: apps[idx].vendorId,
+      title: "Candidate Milestone Updated",
+      message: `Candidate ${apps[idx].candidateName} milestone updated for project ${apps[idx].projectName}.`,
+      type: "success",
+      link: `/vendor/processing/${apps[idx].id}`,
+    });
+
     return apps[idx];
   },
 
@@ -1233,6 +1291,15 @@ export const crmVendorService = {
     }
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
+
+    // Notify admin
+    crmVendorService.addAdminNotification({
+      title: "Milestone Payment Submitted 💳",
+      message: `Payment submitted for candidate ${apps[idx].candidateName} on project ${apps[idx].projectName}.`,
+      type: "info",
+      link: "/admin/vendor/payments",
+    });
+
     return apps[idx];
   },
 
@@ -1257,6 +1324,16 @@ export const crmVendorService = {
     }
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
+
+    // Notify vendor
+    crmVendorService.addNotification({
+      vendorId: apps[idx].vendorId,
+      title: "Payment Approved ✅",
+      message: `Payment approved for candidate ${apps[idx].candidateName} on project ${apps[idx].projectName}.`,
+      type: "success",
+      link: `/vendor/payments/${apps[idx].id}`,
+    });
+
     return apps[idx];
   },
 
@@ -1358,16 +1435,33 @@ export const crmVendorService = {
     // Fetch Available Projects based on visibility
     let availableProjects = [];
     try {
-      const clientsData = JSON.parse(localStorage.getItem("crm_clients_data_v2") || "[]");
-      clientsData.forEach(client => {
+      const clientRes = await crmClientService.getClients({ limit: 100 });
+      const clientsData =
+        clientRes?.clients?.length > 0
+          ? clientRes.clients
+          : JSON.parse(
+              localStorage.getItem("crm_clients_data_v3") ||
+                localStorage.getItem("crm_clients_data_v2") ||
+                "[]"
+            );
+
+      clientsData.forEach((client) => {
         if (client.projects) {
-          client.projects.forEach(proj => {
-            if (proj.status === "Active") {
+          client.projects.forEach((proj) => {
+            if (proj.status === "Active" || !proj.status) {
               const assignmentType = proj.vendorAssignmentType || "All Vendors";
-              if (assignmentType === "All Vendors" || (assignmentType === "Specific Vendor" && proj.assignedVendors && proj.assignedVendors.includes(vendorId))) {
+              if (
+                assignmentType === "All Vendors" ||
+                !proj.assignedVendors ||
+                proj.assignedVendors.length === 0 ||
+                (assignmentType === "Specific Vendor" &&
+                  proj.assignedVendors &&
+                  proj.assignedVendors.includes(vendorId))
+              ) {
                 availableProjects.push({
                   ...proj,
-                  clientName: client.companyName
+                  clientName: client.companyName,
+                  clientId: client.id,
                 });
               }
             }
@@ -1398,6 +1492,48 @@ export const crmVendorService = {
       recentActivity,
       availableProjects,
     };
+  },
+
+  getAvailableProjects: async (vendorId) => {
+    try {
+      const clientRes = await crmClientService.getClients({ limit: 100 });
+      const clientsData =
+        clientRes?.clients?.length > 0
+          ? clientRes.clients
+          : JSON.parse(
+              localStorage.getItem("crm_clients_data_v3") ||
+                localStorage.getItem("crm_clients_data_v2") ||
+                "[]"
+            );
+
+      const list = [];
+      clientsData.forEach((client) => {
+        if (client.projects) {
+          client.projects.forEach((proj) => {
+            if (proj.status === "Active" || !proj.status) {
+              const assignmentType = proj.vendorAssignmentType || "All Vendors";
+              if (
+                assignmentType === "All Vendors" ||
+                !proj.assignedVendors ||
+                proj.assignedVendors.length === 0 ||
+                (assignmentType === "Specific Vendor" &&
+                  proj.assignedVendors &&
+                  proj.assignedVendors.includes(vendorId))
+              ) {
+                list.push({
+                  ...proj,
+                  clientName: client.companyName,
+                  clientId: client.id,
+                });
+              }
+            }
+          });
+        }
+      });
+      return list.reverse();
+    } catch {
+      return [];
+    }
   },
 
   // ----------------------------------------------------

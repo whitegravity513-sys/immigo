@@ -88,9 +88,20 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Vendor Header Pill */}
         <div className="hidden md:flex flex-col text-right">
-          <span className="text-xs font-bold text-white max-w-[200px] truncate leading-tight">
-            {vendorName}
-          </span>
+          <div className="flex items-center gap-1.5 justify-end">
+            <span className="text-xs font-bold text-white max-w-[180px] truncate leading-tight">
+              {vendorName}
+            </span>
+            {vendor?.status === "Pending MOU Approval" || (vendor?.mouSigned && vendor?.status !== "Approved") ? (
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                Pending MOU Approval
+              </span>
+            ) : vendor?.status === "Approved" ? (
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40">
+                Approved
+              </span>
+            ) : null}
+          </div>
           <span className="text-[10px] font-mono font-semibold text-blue-400">
             ID: {vendorId}
           </span>

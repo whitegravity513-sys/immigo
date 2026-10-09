@@ -319,9 +319,6 @@ export function Candidates() {
                         <span className="font-semibold text-slate-800 block">
                           {c.currentPosition}
                         </span>
-                        <span className="text-[11px] text-slate-400">
-                          {c.previousCompany || "Private EPC"}
-                        </span>
                       </td>
 
                       {/* Availability & Reusability Status */}
@@ -359,11 +356,8 @@ export function Candidates() {
                         ) : (
                           <div>
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <Sparkles size={11} className="text-emerald-600 shrink-0" />
+                              <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
                               <span>Available (Ready)</span>
-                            </span>
-                            <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">
-                              Ready for Deployment
                             </span>
                           </div>
                         )}
