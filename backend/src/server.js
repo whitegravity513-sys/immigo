@@ -14,12 +14,7 @@ process.on("uncaughtException", (error) => {
 const startServer = async () => {
   await connectDB();
 
-  try {
-    const { seedDefaultEmployee } = await import("./seed/employee.seed.js");
-    await seedDefaultEmployee(false);
-  } catch (err) {
-    logger.warn("Non-critical: default employee seed check skipped", err.message);
-  }
+  // Default employee seed removed so DB remains clean with admin only
 
   const server = app.listen(PORT, () => {
     logger.info(`Vista Enterprise Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
