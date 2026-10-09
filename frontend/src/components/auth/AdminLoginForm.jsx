@@ -53,7 +53,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
     } catch (err) {
       console.error("Admin login error:", err);
       if (err?.code === "ERR_NETWORK" || !err?.response) {
-        setError("Backend server not responding. Please ensure backend is running on http://localhost:5000");
+        setError("Connecting to live server. Please retry in a moment.");
       } else {
         setError(err.response?.data?.message || "Invalid admin credentials. Please try again.");
       }
