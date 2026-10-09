@@ -1496,21 +1496,26 @@ export const crmVendorService = {
 
   getAvailableProjects: async (vendorId) => {
     const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
+    let backendProjects = [];
     try {
       const res = await apiClient.get(`/crm-sync/projects${vendorId ? `?vendorId=${vendorId}` : ""}`);
       if (res.data?.success && Array.isArray(res.data.projects)) {
-        return res.data.projects
+        backendProjects = res.data.projects
           .map((p) => ({
             ...p,
             id: p.id || p.projectId || p._id?.toString(),
             projectName: p.projectName || p.name || p.title || "Overseas Project",
             clientName: p.clientName || "Overseas Client",
             country: p.country || "Overseas",
+            totalHeadcount: p.totalHeadcount || (p.manpowerRequirements || []).reduce((s, r) => s + (Number(r.quantity) || 0), 0) || 0,
             manpowerRequirements: p.manpowerRequirements || [],
           }))
           .filter((p) => p.id && !DUMMY_PROJECT_IDS.includes(String(p.id)));
       }
     } catch {}
+
+    const list = [...backendProjects];
+    const seenIds = new Set(list.map((p) => String(p.id)));
 
     try {
       const clientRes = await crmClientService.getClients({ limit: 100 });
@@ -1525,14 +1530,14 @@ export const crmVendorService = {
         } catch {}
       }
 
-      const list = [];
       clientsData.forEach((client) => {
         if (client.projects && Array.isArray(client.projects)) {
           client.projects.forEach((proj) => {
-            const pId = proj.id || proj.projectId || proj._id?.toString();
-            if (!pId || DUMMY_PROJECT_IDS.includes(String(pId))) return;
+            const pId = String(proj.id || proj.projectId || proj._id || "");
+            if (!pId || DUMMY_PROJECT_IDS.includes(pId) || seenIds.has(pId)) return;
             const status = (proj.status || "Active").toLowerCase();
             if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
+              seenIds.add(pId);
               list.push({
                 ...proj,
                 id: pId,
@@ -1541,17 +1546,16 @@ export const crmVendorService = {
                 clientId: client.id || client._id,
                 country: proj.country || client.country || "Overseas",
                 status: proj.status || "Active",
+                totalHeadcount: proj.totalHeadcount || (proj.manpowerRequirements || []).reduce((s, r) => s + (Number(r.quantity) || 0), 0) || 0,
                 manpowerRequirements: proj.manpowerRequirements || [],
               });
             }
           });
         }
       });
+    } catch {}
 
-      return list.reverse();
-    } catch {
-      return [];
-    }
+    return list;
   },
 
   // ----------------------------------------------------

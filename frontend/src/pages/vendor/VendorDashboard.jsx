@@ -41,8 +41,14 @@ export function VendorDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const data = await crmVendorService.getVendorDashboardStats(vendor?.id);
-      setStats(data);
+      const [data, projs] = await Promise.all([
+        crmVendorService.getVendorDashboardStats(vendor?.id),
+        crmVendorService.getAvailableProjects(vendor?.id),
+      ]);
+      setStats({
+        ...data,
+        availableProjects: Array.isArray(projs) && projs.length > 0 ? projs : data?.availableProjects || [],
+      });
     } catch (err) {
       console.error("Failed to load vendor dashboard:", err);
     } finally {
