@@ -5,122 +5,9 @@ import CrmNotification from "../models/CrmNotification.js";
 import Notification from "../models/Notification.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-// Default overseas clients & projects to seed if collection is empty
-const SEED_CLIENTS = [
-  {
-    clientId: "cli-uae-101",
-    companyName: "Al-Bahar Construction LLC",
-    companyType: "Construction",
-    country: "UAE",
-    city: "Dubai",
-    status: "Active",
-    projects: [
-      {
-        id: "prj-dxb-101",
-        clientId: "cli-uae-101",
-        projectName: "Dubai Metro Extension & Commercial Towers",
-        projectType: "Construction",
-        country: "UAE",
-        location: "Business Bay / Downtown Dubai",
-        startDate: "2026-10-15",
-        duration: "24 Months",
-        status: "Active",
-        vendorVisibility: "all",
-        vendorAssignmentType: "All Vendors",
-        assignedVendors: [],
-        assignedVendorIds: [],
-        totalHeadcount: 130,
-        totalManpower: 130,
-        benefits: ["Accommodation", "Transportation", "Medical Insurance", "Visa", "Overtime"],
-        manpowerRequirements: [
-          { id: "mpr-dxb-1", position: "Electrician", quantity: 25, salary: 1800, currency: "AED" },
-          { id: "mpr-dxb-2", position: "Shuttering Carpenter", quantity: 35, salary: 1600, currency: "AED" },
-          { id: "mpr-dxb-3", position: "Mason (Tiles & Plaster)", quantity: 40, salary: 1550, currency: "AED" },
-          { id: "mpr-dxb-4", position: "Steel Fixer", quantity: 30, salary: 1650, currency: "AED" },
-        ],
-      },
-    ],
-  },
-  {
-    clientId: "cli-ksa-102",
-    companyName: "Saudi Aramco Energy & MEP Contracting",
-    companyType: "Energy / MEP",
-    country: "Saudi Arabia",
-    city: "Riyadh",
-    status: "Active",
-    projects: [
-      {
-        id: "prj-ksa-201",
-        clientId: "cli-ksa-102",
-        projectName: "Riyadh Pipeline & Industrial Facility Phase 2",
-        projectType: "Oil & Gas / Infrastructure",
-        country: "Saudi Arabia",
-        location: "Industrial City 2, Riyadh",
-        startDate: "2026-11-01",
-        duration: "36 Months",
-        status: "Active",
-        vendorVisibility: "all",
-        vendorAssignmentType: "All Vendors",
-        assignedVendors: [],
-        assignedVendorIds: [],
-        totalHeadcount: 155,
-        totalManpower: 155,
-        benefits: ["Single Room Camp", "Food Allowance", "Medical Insurance", "Annual Flight Ticket"],
-        manpowerRequirements: [
-          { id: "mpr-ksa-1", position: "6G Pipe Welder (TIG & ARC)", quantity: 30, salary: 2800, currency: "SAR" },
-          { id: "mpr-ksa-2", position: "Pipe Fitter", quantity: 45, salary: 1900, currency: "SAR" },
-          { id: "mpr-ksa-3", position: "Industrial Electrician", quantity: 40, salary: 2200, currency: "SAR" },
-          { id: "mpr-ksa-4", position: "Certified Scaffolder", quantity: 40, salary: 1750, currency: "SAR" },
-        ],
-      },
-    ],
-  },
-  {
-    clientId: "cli-qat-103",
-    companyName: "Qatar Coastal Infrastructure & Logistics WLL",
-    companyType: "Logistics & Ports",
-    country: "Qatar",
-    city: "Doha",
-    status: "Active",
-    projects: [
-      {
-        id: "prj-qat-301",
-        clientId: "cli-qat-103",
-        projectName: "Hamad Port Modern Logistics & Cold Storage Hub",
-        projectType: "Logistics & Cold Storage",
-        country: "Qatar",
-        location: "Mesaieed / Hamad Port Free Zone",
-        startDate: "2026-10-20",
-        duration: "18 Months",
-        status: "Active",
-        vendorVisibility: "all",
-        vendorAssignmentType: "All Vendors",
-        assignedVendors: [],
-        assignedVendorIds: [],
-        totalHeadcount: 95,
-        totalManpower: 95,
-        benefits: ["Air Conditioned Camp", "Duty Meals", "Medical Insurance", "Employment Visa"],
-        manpowerRequirements: [
-          { id: "mpr-qat-1", position: "Heavy Duty Trailer Driver (GCC License)", quantity: 35, salary: 2400, currency: "QAR" },
-          { id: "mpr-qat-2", position: "Forklift & Reach Truck Operator", quantity: 20, salary: 2000, currency: "QAR" },
-          { id: "mpr-qat-3", position: "HVAC Maintenance Technician", quantity: 20, salary: 2500, currency: "QAR" },
-          { id: "mpr-qat-4", position: "Warehouse Loading Foreman", quantity: 20, salary: 2200, currency: "QAR" },
-        ],
-      },
-    ],
-  },
-];
-
 // GET /api/crm-sync/clients
 export const getClients = asyncHandler(async (req, res) => {
-  let clients = await CrmOverseasClient.find({}).sort({ createdAt: -1 }).lean();
-
-  if (!clients || clients.length === 0) {
-    try {
-      await CrmOverseasClient.insertMany(SEED_CLIENTS);
-      clients = await CrmOverseasClient.find({}).sort({ createdAt: -1 }).lean();
-    } catch {}
-  }
+  const clients = await CrmOverseasClient.find({}).sort({ createdAt: -1 }).lean();
 
   // Ensure format has id
   const formatted = (clients || []).map((c) => ({
@@ -237,14 +124,7 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
 // GET /api/crm-sync/projects
 export const getAvailableProjects = asyncHandler(async (req, res) => {
   const { vendorId } = req.query;
-
-  let clients = await CrmOverseasClient.find({}).lean();
-  if (!clients || clients.length === 0) {
-    try {
-      await CrmOverseasClient.insertMany(SEED_CLIENTS);
-      clients = await CrmOverseasClient.find({}).lean();
-    } catch {}
-  }
+  const clients = await CrmOverseasClient.find({}).lean();
 
   const list = [];
   (clients || []).forEach((c) => {

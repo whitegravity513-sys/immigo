@@ -1495,10 +1495,11 @@ export const crmVendorService = {
   },
 
   getAvailableProjects: async (vendorId) => {
+    const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
     try {
       const res = await apiClient.get(`/crm-sync/projects${vendorId ? `?vendorId=${vendorId}` : ""}`);
-      if (res.data?.success && Array.isArray(res.data.projects) && res.data.projects.length > 0) {
-        return res.data.projects;
+      if (res.data?.success && Array.isArray(res.data.projects)) {
+        return res.data.projects.filter((p) => !DUMMY_PROJECT_IDS.includes(String(p.id)));
       }
     } catch {}
 
@@ -1519,6 +1520,7 @@ export const crmVendorService = {
       clientsData.forEach((client) => {
         if (client.projects && Array.isArray(client.projects)) {
           client.projects.forEach((proj) => {
+            if (DUMMY_PROJECT_IDS.includes(String(proj.id))) return;
             const status = (proj.status || "Active").toLowerCase();
             if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
               const visibility = (proj.vendorVisibility || "").toLowerCase();
@@ -1546,29 +1548,9 @@ export const crmVendorService = {
         }
       });
 
-      if (list.length === 0 && Array.isArray(initialClients) && initialClients.length > 0) {
-        initialClients.forEach((client) => {
-          if (client.projects && Array.isArray(client.projects)) {
-            client.projects.forEach((proj) => {
-              list.push({
-                ...proj,
-                clientName: client.companyName || client.name,
-                clientId: client.id,
-              });
-            });
-          }
-        });
-      }
-
       return list.reverse();
     } catch {
-      return (initialClients || []).flatMap((c) =>
-        (c.projects || []).map((p) => ({
-          ...p,
-          clientName: c.companyName || c.name,
-          clientId: c.id,
-        }))
-      );
+      return [];
     }
   },
 

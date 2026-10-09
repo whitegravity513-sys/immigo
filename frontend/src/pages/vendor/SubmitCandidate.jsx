@@ -100,12 +100,14 @@ export default function SubmitCandidate() {
       setClients(clientList);
       setApplications(appRes || []);
 
-      // Merge all available projects across all sources
+      const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
+      // Merge all real projects created by Admin
       const allFound = [];
       const seenProjIds = new Set();
       const addProj = (p, c) => {
         if (!p || !p.id) return;
         const key = String(p.id);
+        if (DUMMY_PROJECT_IDS.includes(key)) return;
         if (!seenProjIds.has(key)) {
           seenProjIds.add(key);
           allFound.push({
@@ -121,9 +123,6 @@ export default function SubmitCandidate() {
 
       (availProjects || []).forEach((p) => addProj(p));
       (clientList || []).forEach((c) => {
-        (c.projects || []).forEach((p) => addProj(p, c));
-      });
-      (initialClients || []).forEach((c) => {
         (c.projects || []).forEach((p) => addProj(p, c));
       });
 
@@ -210,11 +209,13 @@ export default function SubmitCandidate() {
   };
 
   const allProjects = useMemo(() => {
+    const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
     const list = [];
     const seen = new Set();
     const addP = (p, c) => {
       if (!p || !p.id) return;
       const k = String(p.id);
+      if (DUMMY_PROJECT_IDS.includes(k)) return;
       if (!seen.has(k)) {
         seen.add(k);
         list.push({
@@ -230,7 +231,6 @@ export default function SubmitCandidate() {
 
     (availableProjectsList || []).forEach((p) => addP(p));
     (clients || []).forEach((c) => (c.projects || []).forEach((p) => addP(p, c)));
-    (initialClients || []).forEach((c) => (c.projects || []).forEach((p) => addP(p, c)));
     return list;
   }, [availableProjectsList, clients]);
 
@@ -818,7 +818,11 @@ export default function SubmitCandidate() {
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                   required
                 >
-                  <option value="">-- Choose Target Project --</option>
+                  <option value="">
+                    {allProjects.length === 0
+                      ? "-- No Projects Added by Admin Yet --"
+                      : "-- Choose Target Project --"}
+                  </option>
                   {allProjects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.projectName || p.name || p.title || "Overseas Project"} ({p.country || "Overseas"}) - {p.clientName || "Direct Client"}

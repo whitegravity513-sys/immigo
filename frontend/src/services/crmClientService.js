@@ -15,26 +15,18 @@ const loadClientsFromStorage = () => {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         const realClients = parsed.filter(
-          (c) => !["cl-1", "cl-2", "cl-3", "cl-4", "cl-5"].includes(String(c.id))
+          (c) =>
+            !["cl-1", "cl-2", "cl-3", "cl-4", "cl-5", "cli-uae-101", "cli-ksa-102", "cli-qat-103"].includes(
+              String(c.id)
+            )
         );
-        if (realClients.length > 0) {
-          const existingIds = new Set(realClients.map((c) => String(c.id)));
-          const missing = (initialClients || []).filter((c) => !existingIds.has(String(c.id)));
-          if (missing.length > 0) {
-            const merged = [...realClients, ...missing];
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-            return merged;
-          }
-          return realClients;
-        }
+        return realClients;
       }
     }
   } catch (err) {
     console.error("Error reading clients from storage:", err);
   }
-  const fallback = Array.isArray(initialClients) && initialClients.length > 0 ? initialClients : [];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(fallback));
-  return fallback;
+  return [];
 };
 
 // Internal helper to save clients
