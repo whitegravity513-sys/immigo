@@ -9,6 +9,8 @@ import {
   updateApplicationStatus,
   getNotifications,
   createNotification,
+  getCandidates,
+  saveCandidate,
 } from "../controllers/crmSync.controller.js";
 
 const router = express.Router();
@@ -22,5 +24,7 @@ router.post("/applications", submitApplication);
 router.put("/applications/:id", updateApplicationStatus);
 router.get("/notifications", getNotifications);
 router.post("/notifications", createNotification);
+router.get("/candidates", getCandidates);
+router.post("/candidates", saveCandidate);
 
 export default router;

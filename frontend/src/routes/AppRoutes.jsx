@@ -118,6 +118,8 @@ export default function AppRoutes() {
           }
         />
 
+        <Route path="/admin/dashboard/projects" element={<Navigate to="/client/projects" replace />} />
+
         {/* Existing Admin / Workforce Sub-Routes (Preserving all employee CRM, attendance, leaves, etc.) */}
         <Route
           path="/admin/dashboard/*"

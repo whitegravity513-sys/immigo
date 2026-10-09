@@ -648,7 +648,18 @@ export const crmVendorService = {
   // VENDOR CANDIDATES (POOL)
   // ----------------------------------------------------
   getCandidates: async (vendorId, { search = "", position = "All", country = "All", experience = "All" } = {}) => {
-    await delay(70);
+    try {
+      const res = await apiClient.get(`/crm-sync/candidates${vendorId ? `?vendorId=${vendorId}` : ""}`);
+      if (res.data?.success && Array.isArray(res.data.candidates) && res.data.candidates.length > 0) {
+        const local = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
+        const map = new Map();
+        local.forEach((c) => map.set(c.id, c));
+        res.data.candidates.forEach((c) => map.set(c.id, { ...(map.get(c.id) || {}), ...c }));
+        const merged = Array.from(map.values());
+        saveData(CANDIDATES_STORAGE_KEY, merged);
+      }
+    } catch {}
+
     let candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
 
     if (vendorId) {
@@ -720,6 +731,10 @@ export const crmVendorService = {
 
     candidates.unshift(newCandidate);
     saveData(CANDIDATES_STORAGE_KEY, candidates);
+
+    try {
+      apiClient.post("/crm-sync/candidates", newCandidate).catch(() => {});
+    } catch {}
 
     crmVendorService.addAdminNotification({
       title: "New Candidate Registered",

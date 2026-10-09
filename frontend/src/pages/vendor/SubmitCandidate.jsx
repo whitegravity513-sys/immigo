@@ -100,26 +100,34 @@ export default function SubmitCandidate() {
       setClients(clientList);
       setApplications(appRes || []);
 
-      let pList = Array.isArray(availProjects) && availProjects.length > 0 ? availProjects : [];
-      if (pList.length === 0) {
-        pList = clientList.flatMap((c) =>
-          (c.projects || []).map((p) => ({
+      // Merge all available projects across all sources
+      const allFound = [];
+      const seenProjIds = new Set();
+      const addProj = (p, c) => {
+        if (!p || !p.id) return;
+        const key = String(p.id);
+        if (!seenProjIds.has(key)) {
+          seenProjIds.add(key);
+          allFound.push({
             ...p,
-            clientId: c.id,
-            clientName: c.companyName || c.name,
-          }))
-        );
-      }
-      if (pList.length === 0 && Array.isArray(initialClients) && initialClients.length > 0) {
-        pList = initialClients.flatMap((c) =>
-          (c.projects || []).map((p) => ({
-            ...p,
-            clientId: c.id,
-            clientName: c.companyName || c.name,
-          }))
-        );
-      }
-      setAvailableProjectsList(pList);
+            id: key,
+            clientId: p.clientId || c?.id,
+            clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
+            projectName: p.projectName || p.name || p.title || "Overseas Project",
+            country: p.country || c?.country || "Overseas",
+          });
+        }
+      };
+
+      (availProjects || []).forEach((p) => addProj(p));
+      (clientList || []).forEach((c) => {
+        (c.projects || []).forEach((p) => addProj(p, c));
+      });
+      (initialClients || []).forEach((c) => {
+        (c.projects || []).forEach((p) => addProj(p, c));
+      });
+
+      setAvailableProjectsList(allFound);
 
       // APPLICATION STATUSES THAT DISQUALIFY A CANDIDATE FROM APPEARING IN ASSIGN CANDIDATE:
       const busyDisqualifyingStatuses = [
@@ -202,29 +210,28 @@ export default function SubmitCandidate() {
   };
 
   const allProjects = useMemo(() => {
-    if (availableProjectsList && availableProjectsList.length > 0) {
-      return availableProjectsList;
-    }
-    if (clients && clients.length > 0) {
-      const derived = clients.flatMap((c) =>
-        (c.projects || []).map((p) => ({
+    const list = [];
+    const seen = new Set();
+    const addP = (p, c) => {
+      if (!p || !p.id) return;
+      const k = String(p.id);
+      if (!seen.has(k)) {
+        seen.add(k);
+        list.push({
           ...p,
-          clientId: c.id,
-          clientName: c.companyName || c.name,
-        }))
-      );
-      if (derived.length > 0) return derived;
-    }
-    if (Array.isArray(initialClients) && initialClients.length > 0) {
-      return initialClients.flatMap((c) =>
-        (c.projects || []).map((p) => ({
-          ...p,
-          clientId: c.id,
-          clientName: c.companyName || c.name,
-        }))
-      );
-    }
-    return [];
+          id: k,
+          clientId: p.clientId || c?.id,
+          clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
+          projectName: p.projectName || p.name || p.title || "Overseas Project",
+          country: p.country || c?.country || "Overseas",
+        });
+      }
+    };
+
+    (availableProjectsList || []).forEach((p) => addP(p));
+    (clients || []).forEach((c) => (c.projects || []).forEach((p) => addP(p, c)));
+    (initialClients || []).forEach((c) => (c.projects || []).forEach((p) => addP(p, c)));
+    return list;
   }, [availableProjectsList, clients]);
 
   const selectedProject = allProjects.find((p) => String(p.id) === String(selectedProjectId));

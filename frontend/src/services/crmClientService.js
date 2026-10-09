@@ -586,7 +586,13 @@ export const crmClientService = {
     country = "All",
     clientId = "All",
   } = {}) => {
-    await delay(80);
+    try {
+      const res = await apiClient.get("/crm-sync/clients");
+      if (res.data?.success && Array.isArray(res.data.clients) && res.data.clients.length > 0) {
+        saveClientsToStorage(res.data.clients);
+      }
+    } catch {}
+
     const all = loadClientsFromStorage();
     let projectsList = [];
 

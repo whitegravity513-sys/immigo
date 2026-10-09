@@ -78,7 +78,7 @@ export function VendorManagementSidebar({
   ];
 
   const standaloneItems = [
-    { title: "Projects", icon: Building2, path: "/admin/dashboard/projects" },
+    { title: "Projects", icon: Building2, path: "/client/projects" },
     { title: "Refunds", icon: RotateCcw, path: "/admin/vendor/refunds" },
     { title: "Notifications", icon: FileText, path: "/admin/vendor/dashboard" },
   ];
