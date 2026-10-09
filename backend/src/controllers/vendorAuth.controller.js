@@ -39,6 +39,21 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     { expiresIn: "7d" }
   );
 
+  // Notify Admin of new vendor registration
+  try {
+    const Notification = (await import("../models/Notification.js")).default;
+    await Notification.create({
+      type: "VENDOR_REGISTERED",
+      title: `New Vendor Registered: ${newVendor.companyName}`,
+      message: `${newVendor.companyName} (${newVendor.vendorId}) has registered as a recruitment agency partner. Documents review pending.`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+      metadata: { vendorId: newVendor._id, vendorCode: newVendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Failed to notify admin of vendor registration:", err.message);
+  }
+
   return res.status(201).json({
     message: "Vendor registered successfully",
     token,
@@ -200,6 +215,22 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
   if (!vendor) {
     throw new ApiError(404, "Vendor not found");
   }
+
+  // Create Notification for Admin
+  try {
+    const Notification = (await import("../models/Notification.js")).default;
+    await Notification.create({
+      type: "VENDOR_UPDATED",
+      title: `Vendor Profile Updated: ${vendor.companyName}`,
+      message: `${vendor.companyName} (${vendor.vendorId}) updated their company profile details.`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Admin notification error:", err.message);
+  }
+
   return res.status(200).json({
     message: "Profile updated successfully",
     vendor,

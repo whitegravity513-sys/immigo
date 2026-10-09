@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   UploadCloud,
   CheckCircle2,
@@ -16,20 +16,26 @@ import {
   FileCheck,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
-import MouDocumentModal from "../MouDocumentModal.jsx";
+import MouFullPageView from "../MouFullPageView.jsx";
+import DocumentViewerFullPage from "../DocumentViewerFullPage.jsx";
 
-export function VendorOnboarding({ vendor }) {
+export function VendorOnboarding({ vendor, onVendorUpdate }) {
   // Step Determination
   // 1 = Upload Docs, 2 = Under Review, 3 = MOU Sent / Sign MOU, 4 = Completed
-  const getInitialStep = () => {
-    if (vendor?.mouSigned || vendor?.status === "Approved") return 4;
-    if (vendor?.mouStatus === "Sent" || vendor?.status === "MOU Pending" || vendor?.onboardingStage === "MOU_SENT") return 3;
-    if (vendor?.status === "Under Review" || vendor?.documentsUploaded || vendor?.onboardingStage === "DOCS_SUBMITTED") return 2;
+  const getInitialStep = (v = vendor) => {
+    if (v?.mouSigned || v?.status === "Approved") return 4;
+    if (v?.mouStatus === "Sent" || v?.status === "MOU Pending" || v?.onboardingStage === "MOU_SENT") return 3;
+    if (v?.status === "Under Review" || v?.documentsUploaded || v?.onboardingStage === "DOCS_SUBMITTED") return 2;
     return 1;
   };
 
   const [currentStep, setCurrentStep] = useState(getInitialStep());
-  const [showMouModal, setShowMouModal] = useState(false);
+  const [viewMouFullPage, setViewMouFullPage] = useState(false);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
+
+  useEffect(() => {
+    setCurrentStep(getInitialStep(vendor));
+  }, [vendor?.status, vendor?.mouStatus, vendor?.onboardingStage, vendor?.mouSigned]);
 
   // Document Upload States
   const [incorpFile, setIncorpFile] = useState(null);
@@ -186,6 +192,39 @@ export function VendorOnboarding({ vendor }) {
     { num: 3, label: "Admin Verification & MOU", done: currentStep >= 3 },
     { num: 4, label: "Digital MOU Execution", done: currentStep >= 4 },
   ];
+
+  if (viewMouFullPage) {
+    return (
+      <MouFullPageView
+        mode="sign"
+        vendor={vendor}
+        onBack={() => setViewMouFullPage(false)}
+        onSuccess={() => {
+          setViewMouFullPage(false);
+          if (onVendorUpdate) {
+            onVendorUpdate((prev) => ({
+              ...prev,
+              mouSigned: true,
+              mouStatus: "Signed",
+              status: "Approved",
+              onboardingStage: "COMPLETED",
+            }));
+          }
+          setTimeout(() => window.location.reload(), 1000);
+        }}
+      />
+    );
+  }
+
+  if (previewingDoc) {
+    return (
+      <DocumentViewerFullPage
+        doc={previewingDoc}
+        vendor={vendor}
+        onBack={() => setPreviewingDoc(null)}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 animate-fadeIn">
@@ -518,7 +557,7 @@ export function VendorOnboarding({ vendor }) {
 
             <button
               type="button"
-              onClick={() => setShowMouModal(true)}
+              onClick={() => setViewMouFullPage(true)}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-1.5 shrink-0"
             >
               <FileText size={14} />
@@ -605,7 +644,7 @@ export function VendorOnboarding({ vendor }) {
             <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
-                onClick={() => setShowMouModal(true)}
+                onClick={() => setViewMouFullPage(true)}
                 className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
               >
                 <ExternalLink size={13} />
@@ -633,19 +672,6 @@ export function VendorOnboarding({ vendor }) {
           </form>
         </div>
       )}
-
-      {/* MOU Full Modal */}
-      <MouDocumentModal
-        isOpen={showMouModal}
-        onClose={() => setShowMouModal(false)}
-        vendor={vendor}
-        signedData={{
-          signatoryName,
-          designation,
-          signatureData: signatureText,
-        }}
-        onSignClick={() => setShowMouModal(false)}
-      />
     </div>
   );
 }

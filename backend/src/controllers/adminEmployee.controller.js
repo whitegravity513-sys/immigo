@@ -82,8 +82,8 @@ export const getEmployeeHistory = asyncHandler(async (req, res) => {
 
 export const getEmployeeMonthlyDetails = asyncHandler(async (req, res) => {
   const { employeeId } = req.params;
-  const { month, year } = req.query;
-  const details = await EmployeeService.getEmployeeMonthlyDetails(employeeId, month, year);
+  const { month, year, startDate, endDate } = req.query;
+  const details = await EmployeeService.getEmployeeMonthlyDetails(employeeId, month, year, startDate, endDate);
   return res.status(200).json(details);
 });
 

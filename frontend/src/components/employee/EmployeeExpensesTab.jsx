@@ -356,27 +356,28 @@ export default function EmployeeExpensesTab({ user, token }) {
       </div>
 
       {}
+      {/* Slide-over Side Drawer for Adding Business Expense (No Popup) */}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setIsModalOpen(false)}
-        >
+        <div className="fixed inset-0 z-50 overflow-hidden">
           <div
-            className="bg-white w-full max-w-lg rounded-3xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
-                <IndianRupee size={18} className="text-blue-600" /> Submit Business Expense
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setIsModalOpen(false)}
+          />
+
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-xs">
+                <h3 className="text-base font-black flex items-center gap-2">
+                  <IndianRupee size={18} className="text-amber-300" /> Submit Business Expense
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold cursor-pointer transition"
+                >
+                  ✕
+                </button>
+              </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
               {}
@@ -524,6 +525,7 @@ export default function EmployeeExpensesTab({ user, token }) {
             </form>
           </div>
         </div>
+      </div>
       )}
 
       {}

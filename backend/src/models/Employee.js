@@ -68,6 +68,10 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    rawPassword: {
+      type: String,
+      default: "",
+    },
     profileImage: {
       type: String,
       default: "",
@@ -124,6 +128,11 @@ const employeeSchema = new mongoose.Schema(
     joiningDate: {
       type: Date,
       default: Date.now,
+    },
+    dob: {
+      type: String,
+      default: "",
+      trim: true,
     },
     leavingDate: {
       type: Date,

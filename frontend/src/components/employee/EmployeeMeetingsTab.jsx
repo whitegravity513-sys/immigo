@@ -121,19 +121,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
               </div>
             </div>
           )}
-
-          {}
-          {pastMeetings.length > 0 && (
-            <div className="space-y-3 pt-4 border-t border-slate-200">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Past Meetings ({pastMeetings.length})
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75">
-                {pastMeetings.map((m) => renderMeetingCard(m, false, true))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

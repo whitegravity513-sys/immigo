@@ -36,6 +36,31 @@ export const RegisterEmployeeModal = ({
   const fileInputRef = useRef(null);
   const photoInputRef = useRef(null);
 
+  const computeImmiId = (joiningDate, dob) => {
+    const formatPart = (dStr) => {
+      if (!dStr) return null;
+      const str = String(dStr).split("T")[0];
+      const parts = str.split("-");
+      if (parts.length === 3) {
+        const yr = parts[0].slice(-2);
+        const day = parts[2].padStart(2, "0");
+        return `${day}${yr}`;
+      }
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return null;
+      const day = String(d.getDate()).padStart(2, "0");
+      const yr = String(d.getFullYear()).slice(-2);
+      return `${day}${yr}`;
+    };
+
+    const joinPart = formatPart(joiningDate) || formatPart(new Date().toISOString().split("T")[0]) || "DDYY";
+    const dobPart = formatPart(dob);
+    if (!dobPart) {
+      return `IMMI-${joinPart}-DDYY(DOB)`;
+    }
+    return `IMMI-${joinPart}-${dobPart}`;
+  };
+
   if (!isOpen) return null;
 
   const docCategories = [
@@ -226,8 +251,11 @@ export const RegisterEmployeeModal = ({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Generated System Code
                 </span>
-                <span className="text-base font-black text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl tracking-wide mt-0.5">
-                  {employeeForm.employeeId || "AUTOGEN-ID"}
+                <span className="text-base font-black text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl tracking-wide mt-0.5 font-mono">
+                  {employeeForm.employeeId || computeImmiId(employeeForm.joiningDate, employeeForm.dob)}
+                </span>
+                <span className="text-[9px] text-slate-400 mt-0.5">
+                  Format: Immi-DOJ(DDYY)-DOB(DDYY)
                 </span>
               </div>
             </div>
@@ -343,11 +371,43 @@ export const RegisterEmployeeModal = ({
                     type="date"
                     required
                     value={employeeForm.joiningDate || ""}
-                    onChange={(e) =>
-                      setEmployeeForm({ ...employeeForm, joiningDate: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const newDoj = e.target.value;
+                      const newId = computeImmiId(newDoj, employeeForm.dob);
+                      setEmployeeForm({
+                        ...employeeForm,
+                        joiningDate: newDoj,
+                        employeeId: newId,
+                      });
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                   />
+                  <span className="text-[10px] text-slate-400">Day & Year forms ID prefix (e.g. 0926)</span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">Date of Birth (DOB) *</label>
+                    {employeeForm.dob && (
+                      <span className="text-[10px] font-bold text-emerald-600">Selected ✓</span>
+                    )}
+                  </div>
+                  <input
+                    type="date"
+                    required
+                    value={employeeForm.dob || ""}
+                    onChange={(e) => {
+                      const newDob = e.target.value;
+                      const newId = computeImmiId(employeeForm.joiningDate, newDob);
+                      setEmployeeForm({
+                        ...employeeForm,
+                        dob: newDob,
+                        employeeId: newId,
+                      });
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  />
+                  <span className="text-[10px] text-slate-400">Day & Year forms ID suffix (e.g. 1598)</span>
                 </div>
 
                 <div className="space-y-1">

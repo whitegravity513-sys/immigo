@@ -159,20 +159,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   useEffect(() => {
     if (!token) return;
     fetchAll();
-    const iv = setInterval(() => {
-      fetchAll(true);
-    }, 45000);
-    return () => clearInterval(iv);
-  }, [token]);
 
-  useEffect(() => {
-    if (token && (view === "calendar" || view === "tracker")) {
-      fetchMonthlyAttendance(calendarMonth, calendarYear);
-    }
-  }, [token, view, calendarMonth, calendarYear]);
-
-  useEffect(() => {
-    if (!token) return;
     const todayStr = new Date().toISOString().split("T")[0];
     apiClient.get(`/employee/meetings`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -180,7 +167,26 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       const all = Array.isArray(res.data) ? res.data : [];
       setTodayMeetings(all.filter((m) => m.date === todayStr));
     }).catch(() => { });
+
+    // Real-time 2-second synchronization for immediate updates between Admin and Employee
+    const iv = setInterval(() => {
+      fetchAll(true);
+    }, 2000);
+
+    const handleFocus = () => fetchAll(true);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [token]);
+
+  useEffect(() => {
+    if (token && (view === "calendar" || view === "tracker")) {
+      fetchMonthlyAttendance(calendarMonth, calendarYear);
+    }
+  }, [token, view, calendarMonth, calendarYear]);
 
   async function fetchAll(silent = false) {
     try {
@@ -339,6 +345,19 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   });
 
   const handleCheckOut = () => apiCall(async () => {
+    try {
+      const wlRes = await apiClient.get("/employee/worklog/today");
+      const hasWorkLog = Boolean(wlRes.data?.log?.logText && wlRes.data.log.logText.trim().length > 0);
+      if (!hasWorkLog && !checkOutNote.trim()) {
+        setErrorMsg("⚠️ Please enter and save Today's Work Log before checking out! (Work log is mandatory)");
+        const wlEl = document.getElementById("daily-worklog-section");
+        if (wlEl) wlEl.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    } catch {
+      // Proceed to let backend enforce validation
+    }
+
     const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
     const res = await apiClient.post(`/employee/check-out`, { location: loc, checkOutNote });
     const rec = res.data?.record || res.data?.attendance;
@@ -498,6 +517,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               lunchSeconds={lunchSeconds}
               breakSeconds={breakSeconds}
               fmtDur={fmtDur}
+              employeeProfile={employeeProfile}
             />
           )}
           {view === "checkinout" && (

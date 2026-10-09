@@ -20,11 +20,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
     return () => clearTimeout(timer);
   }, [error]);
 
-  const handleQuickFill = () => {
-    setIdentifier("VESTA-001");
-    setPassword("12345");
-    setError("");
-  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,20 +55,6 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">
-      {}
-      <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
-        <span className="truncate mr-2">
-          Default ID: <span className="font-bold text-[#1877f2]">VESTA-001</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
-        </span>
-        <button
-          type="button"
-          onClick={handleQuickFill}
-          className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
-        >
-          Quick Fill
-        </button>
-      </div>
-
       <AuthErrorMessage msg={error} />
 
       <div>
@@ -87,7 +69,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
             autoFocus
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="e.g. VESTA-001 or email"
+            placeholder="e.g. Immi-0926-1598 or email"
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>

@@ -3,6 +3,7 @@ import Employee from "../models/Employee.js";
 import Attendance from "../models/Attendance.js";
 import Leave from "../models/Leave.js";
 import Holiday from "../models/Holiday.js";
+import DailyWorkLog from "../models/DailyWorkLog.js";
 import {
   getTodayDateString,
   isSunday,
@@ -272,7 +273,7 @@ export class AttendanceService {
       const empIdCode = emp?.employeeId || "WG-EMP";
       const timeStr = now.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true });
 
-      NotificationService.createNotification({
+      await NotificationService.createNotification({
         type: "CHECK_IN",
         title: `Check-In: ${empName} (${empIdCode})`,
         message: `Employee [${empIdCode}] ${empName} checked in at ${timeStr}`,
@@ -328,7 +329,7 @@ export class AttendanceService {
       const empName = emp?.name || "Employee";
       const timeStr = breakStart.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true });
 
-      NotificationService.createNotification({
+      await NotificationService.createNotification({
         type: "BREAK_START",
         title: `Break Start: ${empName} (${empIdCode})`,
         message: `Employee [${empIdCode}] ${empName} went on ${normalizedType} break at ${timeStr}`,
@@ -378,7 +379,7 @@ export class AttendanceService {
       const empIdCode = emp?.employeeId || "WG-EMP";
       const empName = emp?.name || "Employee";
 
-      NotificationService.createNotification({
+      await NotificationService.createNotification({
         type: "BREAK_END",
         title: `Break End: ${empName} (${empIdCode})`,
         message: `Employee [${empIdCode}] ${empName} resumed work after break`,
@@ -394,6 +395,31 @@ export class AttendanceService {
 
   static async checkOut(employeeId, location = {}, checkOutNote = "") {
     const today = getTodayDateString();
+
+    // Enforce Today's Work Log before Check Out
+    let worklog = await DailyWorkLog.findOne({ employee: employeeId, date: today });
+    if (!worklog || !worklog.logText || !worklog.logText.trim()) {
+      if (checkOutNote && checkOutNote.trim()) {
+        worklog = await DailyWorkLog.findOneAndUpdate(
+          { employee: employeeId, date: today },
+          {
+            employee: employeeId,
+            date: today,
+            logText: checkOutNote.trim(),
+            updatedAt: new Date(),
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+      } else {
+        throw new ApiError(
+          400,
+          "Please enter your Today's Work Log before checking out. (Work Log is mandatory to complete shift)"
+        );
+      }
+    }
+
+    const finalNote = checkOutNote || worklog?.logText || "";
+
     let record = await Attendance.findOne({ employeeId, date: today });
     const now = new Date();
 
@@ -413,7 +439,7 @@ export class AttendanceService {
         checkOutAddress: location.address || "Web Portal",
         checkOutDevice: location.device || "Browser",
         totalWorkSeconds: 0,
-        checkOutNote: checkOutNote || "",
+        checkOutNote: finalNote,
       });
       await record.save();
     } else {
@@ -441,9 +467,7 @@ export class AttendanceService {
       record.checkOutLongitude = location.longitude || null;
       record.checkOutAddress = location.address || "Web Portal";
       record.checkOutDevice = location.device || "Browser";
-      if (checkOutNote) {
-        record.checkOutNote = checkOutNote;
-      }
+      record.checkOutNote = finalNote || record.checkOutNote || "";
 
       const checkInMs = record.checkInTime ? new Date(record.checkInTime).getTime() : now.getTime();
       const totalSecondsElapsed = Math.max(0, Math.floor((now.getTime() - checkInMs) / 1000));
@@ -460,7 +484,7 @@ export class AttendanceService {
       const mins = Math.floor(((record.totalWorkSeconds || 0) % 3600) / 60);
       const timeStr = now.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true });
 
-      NotificationService.createNotification({
+      await NotificationService.createNotification({
         type: "CHECK_OUT",
         title: `Check-Out: ${empName} (${empIdCode})`,
         message: `Employee [${empIdCode}] ${empName} checked out at ${timeStr} (Total Work: ${hrs}h ${mins}m)`,

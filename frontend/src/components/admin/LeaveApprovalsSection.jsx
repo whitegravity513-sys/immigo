@@ -1,19 +1,46 @@
-import React from "react";
-import { Eye } from "lucide-react";
+import React, { useState } from "react";
+import { Eye, Check, X, AlertCircle } from "lucide-react";
 
 export default function LeaveApprovalsSection({
   leavesReport = [],
   openEmployeeDetail,
   formatDate,
   setPreviewDoc,
-  openLeaveActionModal
+  handleDirectLeaveAction,
 }) {
+  const [rejectingId, setRejectingId] = useState(null);
+  const [rejectRemark, setRejectRemark] = useState("");
+  const [submittingId, setSubmittingId] = useState(null);
+
+  const handleApprove = async (leaveId) => {
+    if (!handleDirectLeaveAction) return;
+    setSubmittingId(leaveId);
+    try {
+      await handleDirectLeaveAction(leaveId, "Approved", "Approved by Admin");
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const handleConfirmReject = async (leaveId) => {
+    if (!handleDirectLeaveAction) return;
+    setSubmittingId(leaveId);
+    try {
+      const remark = rejectRemark.trim() || "Rejected by Admin";
+      await handleDirectLeaveAction(leaveId, "Rejected", remark);
+      setRejectingId(null);
+      setRejectRemark("");
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-5 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-base font-black text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
-          <p className="text-xs text-slate-500">Review employee leave claims and supporting proofs</p>
+          <p className="text-xs text-slate-500">Review employee leave claims and approve or reject inline directly (No popups)</p>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -36,6 +63,9 @@ export default function LeaveApprovalsSection({
                 : (typeof leave.employee === 'string' ? "Employee" : "Deleted Employee");
               const empCode = emp?.employeeId || (empId ? `ID: ${String(empId).slice(-4)}` : "Staff");
 
+              const isRejectingThis = rejectingId === leave._id;
+              const isSubmittingThis = submittingId === leave._id;
+
               return (
                 <tr key={leave._id || Math.random()} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
                   <td className="px-4 sm:px-6 py-4 text-sm">
@@ -43,7 +73,7 @@ export default function LeaveApprovalsSection({
                       <div>
                         <button
                           className="font-bold text-blue-700 hover:underline cursor-pointer text-sm text-left block"
-                          onClick={() => openEmployeeDetail(empId, "leaves")}
+                          onClick={() => openEmployeeDetail && openEmployeeDetail(empId, "leaves")}
                         >
                           {empName}
                         </button>
@@ -73,7 +103,7 @@ export default function LeaveApprovalsSection({
                     {leave.document ? (
                       <button
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer w-fit transition"
-                        onClick={() => setPreviewDoc(leave.document)}
+                        onClick={() => setPreviewDoc && setPreviewDoc(leave.document)}
                       >
                         <Eye size={12} /> View File
                       </button>
@@ -92,39 +122,93 @@ export default function LeaveApprovalsSection({
                     )}
                   </td>
                   <td className="px-4 sm:px-6 py-4 text-sm">
-                    {leave.status === "Pending" ? (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                          type="button"
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
-                          onClick={() => openLeaveActionModal(leave._id, "Approved", leave)}
-                        >
-                          ✓ Approve
-                        </button>
-                        <button
-                          type="button"
-                          className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
-                          onClick={() => openLeaveActionModal(leave._id, "Rejected", leave)}
-                        >
-                          ✕ Reject
-                        </button>
+                    {isRejectingThis ? (
+                      <div className="flex flex-col gap-2 p-2.5 bg-rose-50/90 border border-rose-200 rounded-xl min-w-[250px] animate-in fade-in duration-150">
+                        <span className="text-[11px] font-bold text-rose-800 flex items-center gap-1">
+                          <AlertCircle size={13} /> Rejection Remark:
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="e.g. Incomplete proof / Not permitted"
+                          value={rejectRemark}
+                          onChange={(e) => setRejectRemark(e.target.value)}
+                          className="w-full px-2.5 py-1 text-xs bg-white border border-rose-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-500 text-slate-800"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleConfirmReject(leave._id);
+                            if (e.key === "Escape") { setRejectingId(null); setRejectRemark(""); }
+                          }}
+                        />
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isSubmittingThis}
+                            onClick={() => handleConfirmReject(leave._id)}
+                            className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs disabled:opacity-50 cursor-pointer"
+                          >
+                            {isSubmittingThis ? "Rejecting..." : "Confirm Reject"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isSubmittingThis}
+                            onClick={() => { setRejectingId(null); setRejectRemark(""); }}
+                            className="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1 shadow-2xs"
-                          onClick={() =>
-                            openLeaveActionModal(
-                              leave._id,
-                              leave.status === "Approved" ? "Rejected" : "Approved",
-                              leave
-                            )
-                          }
-                          title="Edit leave approval status or remark"
-                        >
-                          ✎ Edit Decision
-                        </button>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {leave.status === "Pending" ? (
+                          <>
+                            <button
+                              type="button"
+                              disabled={isSubmittingThis}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95 disabled:opacity-50"
+                              onClick={() => handleApprove(leave._id)}
+                            >
+                              <Check size={13} />
+                              <span>{isSubmittingThis ? "Approving..." : "Approve"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isSubmittingThis}
+                              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95 disabled:opacity-50"
+                              onClick={() => { setRejectingId(leave._id); setRejectRemark(""); }}
+                            >
+                              <X size={13} />
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        ) : leave.status === "Approved" ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-emerald-700 font-bold">✓ Approved</span>
+                            <button
+                              type="button"
+                              disabled={isSubmittingThis}
+                              className="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 rounded-lg text-xs font-bold cursor-pointer transition border border-slate-200"
+                              onClick={() => { setRejectingId(leave._id); setRejectRemark(""); }}
+                              title="Switch decision to Rejected"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-rose-700 font-bold">✕ Rejected</span>
+                            <button
+                              type="button"
+                              disabled={isSubmittingThis}
+                              className="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 rounded-lg text-xs font-bold cursor-pointer transition border border-slate-200 flex items-center gap-1"
+                              onClick={() => handleApprove(leave._id)}
+                              title="Switch decision to Approved"
+                            >
+                              <Check size={12} />
+                              <span>Approve</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </td>
@@ -144,4 +228,3 @@ export default function LeaveApprovalsSection({
     </div>
   );
 }
-

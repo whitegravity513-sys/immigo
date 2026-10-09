@@ -90,6 +90,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
     setSelectedEmployee,
     selectedMonth,
     setSelectedMonth,
+    customStartDate,
+    setCustomStartDate,
+    customEndDate,
+    setCustomEndDate,
     monthlyData,
     loading,
     errorMsg,
@@ -103,6 +107,22 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
     formatDate
   } = useEmployeeMonthlyReport(token);
 
+  const [useDateRange, setUseDateRange] = React.useState(false);
+
+  const handleSetJoiningToToday = () => {
+    if (!selectedEmployee?.joiningDate) return;
+    const jDate = new Date(selectedEmployee.joiningDate);
+    setUseDateRange(true);
+    setCustomStartDate(jDate);
+    setCustomEndDate(new Date());
+  };
+
+  const handleResetToMonth = () => {
+    setUseDateRange(false);
+    setCustomStartDate(null);
+    setCustomEndDate(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       {}
@@ -113,7 +133,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         >
           <ChevronLeft className="w-6 h-6 text-slate-600" />
         </button>
-        <h1 className="text-3xl font-bold text-slate-900">Employee Monthly Report</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Employee Monthly & Salary Report</h1>
       </div>
 
       {}
@@ -132,10 +152,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
 
       {}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Select Employee</label>
+            <label className="block text-sm font-bold text-slate-700 mb-2">1. Select Employee</label>
             <div className="relative">
               <input
                 type="text"
@@ -152,6 +172,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                       onClick={() => {
                         setSelectedEmployee(emp);
                         setSearchTerm("");
+                        if (emp.joiningDate) {
+                          setCustomStartDate(new Date(emp.joiningDate));
+                          setCustomEndDate(new Date());
+                        }
                       }}
                       className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-slate-800 last:border-b-0"
                     >
@@ -167,8 +191,15 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 <div className="font-bold text-green-900">{typeof selectedEmployee?.name === 'string' ? selectedEmployee.name : (selectedEmployee?.name?.first ? `${selectedEmployee.name.first} ${selectedEmployee.name.last}` : String(selectedEmployee?.name || ""))}</div>
                 <div className="text-sm text-green-700">{selectedEmployee.employeeId}</div>
                 {selectedEmployee.joiningDate && (
-                  <div className="text-xs text-green-600 mt-1 font-semibold">
-                    📅 Joined: {new Date(selectedEmployee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <div className="text-xs text-green-700 mt-1 font-semibold flex items-center justify-between">
+                    <span>📅 Joined: {new Date(selectedEmployee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <button
+                      type="button"
+                      onClick={handleSetJoiningToToday}
+                      className="ml-2 text-[11px] bg-green-700 text-white px-2 py-0.5 rounded hover:bg-green-800 cursor-pointer"
+                    >
+                      Use Joining Date
+                    </button>
                   </div>
                 )}
               </div>
@@ -177,37 +208,97 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
 
           {}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Select Month</label>
-            <DatePicker
-              selected={selectedMonth}
-              onChange={(date) => setSelectedMonth(date)}
-              dateFormat="MMMM yyyy"
-              showMonthYearPicker
-              minDate={selectedEmployee?.joiningDate ? new Date(selectedEmployee.joiningDate) : undefined}
-              maxDate={new Date()}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-            {selectedEmployee?.joiningDate && (
-              <div className="text-xs text-slate-500 mt-1">
-                Earliest: {new Date(selectedEmployee.joiningDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-bold text-slate-700">2. Salary Calculation Period</label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setUseDateRange(false)}
+                  className={`text-[11px] px-2 py-0.5 rounded font-bold transition cursor-pointer ${!useDateRange ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                >
+                  By Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUseDateRange(true)}
+                  className={`text-[11px] px-2 py-0.5 rounded font-bold transition cursor-pointer ${useDateRange ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                >
+                  Custom Dates
+                </button>
+              </div>
+            </div>
+
+            {!useDateRange ? (
+              <div>
+                <DatePicker
+                  selected={selectedMonth}
+                  onChange={(date) => {
+                    setSelectedMonth(date);
+                    setCustomStartDate(null);
+                    setCustomEndDate(null);
+                  }}
+                  dateFormat="MMMM yyyy"
+                  showMonthYearPicker
+                  minDate={selectedEmployee?.joiningDate ? new Date(selectedEmployee.joiningDate) : undefined}
+                  maxDate={new Date()}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+                <div className="flex items-center justify-between mt-1 text-xs text-slate-500">
+                  <span>Calculates from 1st of month to today</span>
+                  {selectedEmployee?.joiningDate && (
+                    <button
+                      type="button"
+                      onClick={handleSetJoiningToToday}
+                      className="text-blue-600 hover:underline font-bold cursor-pointer"
+                    >
+                      Calculate from Joining
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1">From Date</label>
+                  <DatePicker
+                    selected={customStartDate}
+                    onChange={(date) => setCustomStartDate(date)}
+                    dateFormat="dd MMM yyyy"
+                    placeholderText="Start Date"
+                    maxDate={customEndDate || new Date()}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-black text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1">To Date</label>
+                  <DatePicker
+                    selected={customEndDate}
+                    onChange={(date) => setCustomEndDate(date)}
+                    dateFormat="dd MMM yyyy"
+                    placeholderText="End Date"
+                    minDate={customStartDate || undefined}
+                    maxDate={new Date()}
+                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-black text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             )}
           </div>
 
           {}
-          <div className="flex items-end gap-2">
+          <div className="flex flex-col justify-end gap-2">
             <button
-              onClick={fetchMonthlyReport}
+              onClick={() => fetchMonthlyReport()}
               disabled={!selectedEmployee || loading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full px-4 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <TrendingUp className="w-4 h-4" />
-              {loading ? "Loading..." : "Generate Report"}
+              {loading ? "Calculating..." : "Generate Salary & Report"}
             </button>
             {monthlyData && (
               <button
                 onClick={downloadReport}
-                className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 cursor-pointer"
+                className="w-full px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm text-xs"
               >
                 <Download className="w-4 h-4" />
                 Download Excel (.xlsx)
@@ -289,7 +380,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                     {monthlyData.summary?.paidDays ?? 0}
                   </div>
                   <div className="text-[10px] text-slate-400 font-bold mt-1">
-                    Present + Leaves + Holidays + Weekends
+                    Present + Leaves + Holidays + Weekends in Period
                   </div>
                 </div>
                 <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
@@ -299,6 +390,12 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                   </div>
                 </div>
               </div>
+              {monthlyData.calcStartDate && (
+                <div className="mt-4 px-4 py-2.5 bg-blue-50/90 rounded-xl border border-blue-200 text-xs text-blue-900 flex items-center justify-between">
+                  <span>📅 Calculation Window: <strong className="font-bold">{monthlyData.calcStartDate}</strong> to <strong className="font-bold">{monthlyData.calcEndDate}</strong></span>
+                  <span>Evaluated Working Days: <strong className="font-bold">{monthlyData.summary?.totalWorkingDays ?? 0} Days</strong></span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -307,7 +404,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                Daily Attendance Details
+                Daily Attendance Details (Past to Today)
                 {monthlyData.employee?.joiningDate && (
                   <span className="ml-auto text-xs font-semibold text-green-100 bg-green-800/40 px-2 py-1 rounded-lg">
                     From Joining: {new Date(monthlyData.employee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -330,7 +427,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 </thead>
                 <tbody>
                   {monthlyData.dailyRecords
-                    .filter((r) => r.status !== "Before Joining")
+                    .filter((r) => r.status !== "Before Joining" && r.status !== "Upcoming")
                     .map((record, idx) => {
                     const workHours = Math.floor(record.workSeconds / 3600);
                     const workMinutes = Math.floor((record.workSeconds % 3600) / 60);

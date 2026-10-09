@@ -32,8 +32,11 @@ export const getEmployeeNote = async (id, date = "") => {
   return res.data;
 };
 
-export const getEmployeeMonthlyReport = async (id, month, year) => {
-  const res = await apiClient.get(`/admin/employee/${id}/monthly?month=${month}&year=${year}`);
+export const getEmployeeMonthlyReport = async (id, month, year, startDate = null, endDate = null) => {
+  let url = `/admin/employee/${id}/monthly?month=${month}&year=${year}`;
+  if (startDate) url += `&startDate=${startDate}`;
+  if (endDate) url += `&endDate=${endDate}`;
+  const res = await apiClient.get(url);
   return res.data;
 };
 

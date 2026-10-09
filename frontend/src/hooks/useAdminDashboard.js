@@ -30,12 +30,42 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState(null);
   const [leaveActionRemark, setLeaveActionRemark] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const generateImmiEmployeeId = (joiningDate, dob) => {
+    const formatPart = (dStr) => {
+      if (!dStr) return null;
+      const str = String(dStr).split("T")[0];
+      const parts = str.split("-");
+      if (parts.length === 3) {
+        const yr = parts[0].slice(-2);
+        const day = parts[2].padStart(2, "0");
+        return `${day}${yr}`;
+      }
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return null;
+      const day = String(d.getDate()).padStart(2, "0");
+      const yr = String(d.getFullYear()).slice(-2);
+      return `${day}${yr}`;
+    };
+
+    const joinPart = formatPart(joiningDate) || formatPart(new Date().toISOString().split("T")[0]) || "DDYY";
+    const dobPart = formatPart(dob);
+    if (!dobPart) {
+      return `IMMI-${joinPart}-DDYY(DOB)`;
+    }
+    return `IMMI-${joinPart}-${dobPart}`;
+  };
+
   const openAddEmployeeModal = () => {
-    const nextIdNumber = employees.length + 1;
-    const yearMonth = new Date().toISOString().slice(2,7).replace('-',''); // e.g., 2610
-    const dynamicId = `EMP-${yearMonth}-${String(nextIdNumber).padStart(4, "0")}`;
+    const today = new Date().toISOString().split("T")[0];
+    const dynamicId = generateImmiEmployeeId(today, "");
     
-    setEmployeeForm(prev => ({ ...prev, employeeId: dynamicId }));
+    setEmployeeForm(prev => ({
+      ...prev,
+      joiningDate: today,
+      dob: "",
+      employeeId: dynamicId,
+    }));
     setIsAddModalOpen(true);
   };
   const [employeeForm, setEmployeeForm] = useState({
@@ -53,6 +83,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     currentPackage: "",
     experience: "",
     joiningDate: new Date().toISOString().split("T")[0],
+    dob: "",
     employeeId: "",
     profileImage: "",
     documents: [],
@@ -113,9 +144,17 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   }, [view, token, location.pathname]);
 
   useEffect(() => {
-    if (token && (view === "live" || view === "dashboard" || view === "workforce")) {
-      const iv = setInterval(() => fetchAdminReports(), 8000);
-      return () => clearInterval(iv);
+    if (token) {
+      const activeViews = ["live", "dashboard", "workforce", "attendance-all", "leaves", "employees", "employee-detail"];
+      if (activeViews.includes(view)) {
+        const iv = setInterval(() => fetchAdminReports(), 2000);
+        const handleFocus = () => fetchAdminReports();
+        window.addEventListener("focus", handleFocus);
+        return () => {
+          clearInterval(iv);
+          window.removeEventListener("focus", handleFocus);
+        };
+      }
     }
   }, [view, token]);
 
@@ -429,9 +468,8 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleOpenAddModal = () => {
     setErrorMsg("");
-    const nextIdNumber = employees.length + 1;
-    const yearMonth = new Date().toISOString().slice(2,7).replace('-','');
-    const dynamicId = `EMP-${yearMonth}-${String(nextIdNumber).padStart(4, "0")}`;
+    const today = new Date().toISOString().split("T")[0];
+    const dynamicId = generateImmiEmployeeId(today, "");
 
     setEmployeeForm({
       name: "",
@@ -447,23 +485,14 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       previousPackage: "",
       currentPackage: "",
       experience: "",
-      joiningDate: new Date().toISOString().split("T")[0],
+      joiningDate: today,
+      dob: "",
       employeeId: dynamicId,
       profileImage: "",
       documents: [],
     });
-    setIsAddModalOpen(true);
-
-    apiClient
-      .get("/admin/employee/next-id")
-      .then((r) => {
-        if (r.data?.employeeId) {
-          setEmployeeForm((prev) => ({ ...prev, employeeId: r.data.employeeId }));
-        }
-      })
-      .catch((e) => {
-        console.warn("Auto-next-id fetch warning:", e);
-      });
+    setIsAddModalOpen(false);
+    navigateTo("register-employee");
   };
 
   const handleCreateEmployeeSubmit = async (e) => {
@@ -493,6 +522,11 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       return;
     }
 
+    if (!employeeForm.dob) {
+      setErrorMsg("Please enter employee Date of Birth (DOB).");
+      return;
+    }
+
     const digitsOnly = (employeeForm.phone || "").replace(/\D/g, "");
     const cleanPhone = digitsOnly.length > 10 ? digitsOnly.slice(-10) : digitsOnly;
     if (cleanPhone && cleanPhone.length !== 10) {
@@ -502,8 +536,12 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     setLoading(true);
     try {
+      const finalGeneratedId = generateImmiEmployeeId(employeeForm.joiningDate, employeeForm.dob);
       const payload = {
         ...employeeForm,
+        employeeId: (!employeeForm.employeeId || employeeForm.employeeId.includes("XXXX"))
+          ? finalGeneratedId
+          : employeeForm.employeeId,
         name: employeeForm.name.trim(),
         email: employeeForm.email.trim().toLowerCase(),
         personalEmail: (employeeForm.personalEmail || "").trim().toLowerCase(),
@@ -527,12 +565,14 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
         currentPackage: "",
         experience: "",
         joiningDate: "",
+        dob: "",
         employeeId: "",
         profileImage: "",
         documents: [],
       });
       setIsAddModalOpen(false);
       fetchAdminReports();
+      navigateTo("employees");
     } catch (err) {
       setErrorMsg(err.response?.data?.message || err.message || "Failed to create employee.");
     } finally {
@@ -553,9 +593,10 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const handleEditClick = (emp) => {
     setEditingEmployee(emp);
     const empName = typeof emp.name === 'string' ? emp.name : (emp.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp.name || ""));
+    const rawPass = emp.rawPassword || emp.plainPassword || (emp.password && !emp.password.startsWith("$2") ? emp.password : "");
     setEditForm({
       name: empName,
-      email: emp.email,
+      email: emp.email || "",
       personalEmail: emp.personalEmail || "",
       designation: emp.designation || emp.role || "",
       department: emp.department || "",
@@ -565,24 +606,56 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       previousCompany: emp.previousCompany || "",
       previousPackage: emp.previousPackage || "",
       currentPackage: emp.currentPackage || "",
+      monthlySalary: emp.monthlySalary || "",
       experience: emp.experience || "",
       profileImage: emp.profileImage || "",
       joiningDate: emp.joiningDate ? emp.joiningDate.split("T")[0] : "",
+      dob: emp.dob ? emp.dob.split("T")[0] : "",
+      employeeId: emp.employeeId || "",
       leavingDate: emp.leavingDate ? emp.leavingDate.split("T")[0] : "",
       leaveBalance: emp.leaveBalance ?? 18,
       allocatedLeaves: emp.allocatedLeaves ?? 18,
       nextMonthLeaves: emp.nextMonthLeaves || 0,
+      previousPassword: rawPass,
       password: ""
     });
+    navigateTo("edit-employee");
   };
 
   const handleUpdateEmployeeSubmit = async (e) => {
-    e.preventDefault(); setLoading(true); setErrorMsg("");
+    if (e) e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
     try {
       const r = await apiClient.put(`/admin/employee/update/${editingEmployee._id}`, editForm);
-      setSuccessMsg(r.data.message); setEditingEmployee(null); fetchAdminReports();
-    } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to update employee."); }
-    finally { setLoading(false); }
+      setSuccessMsg(r.data.message || "Employee updated successfully");
+      setEditingEmployee(null);
+      fetchAdminReports();
+      navigateTo("employees");
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || "Failed to update employee.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDirectLeaveAction = async (leaveId, action, remark = "") => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const defaultRemark = action === "Approved" ? "Approved by Admin" : "Rejected by Admin";
+      const finalRemark = remark.trim() || defaultRemark;
+      const r = await apiClient.put(`/admin/leaves/${leaveId}`, {
+        status: action,
+        adminRemark: finalRemark,
+      });
+      setSuccessMsg(r.data.message || `Leave ${action.toLowerCase()} successfully`);
+      fetchAdminReports();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || "Failed to update leave status.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openLeaveActionModal = (leaveId, action, leave = null) => {
@@ -746,6 +819,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     handleUpdateEmployeeSubmit,
     openLeaveActionModal,
     handleSubmitLeaveAction,
+    handleDirectLeaveAction,
     formatDuration,
     formatDate,
     formatTime,

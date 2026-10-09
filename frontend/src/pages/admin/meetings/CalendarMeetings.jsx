@@ -235,8 +235,9 @@ export default function CalendarMeetings() {
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {!isModalOpen ? (
+        <>
+          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100">
@@ -623,32 +624,34 @@ export default function CalendarMeetings() {
           )}
         </div>
       )}
-
-      {}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="bg-white w-full max-w-xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
+        </>
+      ) : (
+        /* Schedule / Edit Meeting Dedicated New Page (Zero Popups) */
+        <div className="space-y-4 max-w-4xl mx-auto animate-in fade-in duration-200">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
-            {}
+            <ChevronLeft size={16} />
+            <span>Back to Meetings Calendar</span>
+          </button>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <Video size={18} className="text-indigo-600" />
-                <h3 className="text-base font-black text-slate-800">
-                  {editingMeeting ? "Edit Scheduled Meeting" : "Schedule New Meeting"}
-                </h3>
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                  <Video size={18} />
+                </span>
+                <div>
+                  <h3 className="text-base font-black text-slate-800">
+                    {editingMeeting ? "Edit Scheduled Meeting" : "Schedule New Meeting"}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Configure meeting link and notify assigned employees
+                  </p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-xl cursor-pointer p-1"
-              >
-                ×
-              </button>
             </div>
 
             {}

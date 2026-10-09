@@ -24,7 +24,7 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
   });
 
   try {
-    NotificationService.createNotification({
+    await NotificationService.createNotification({
       type: "ANNOUNCEMENT",
       title: `Announcement: ${title}`,
       message,

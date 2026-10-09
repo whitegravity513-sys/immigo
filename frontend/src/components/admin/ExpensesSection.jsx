@@ -4,6 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import {
   DollarSign,
   CheckCircle,
+  CheckCircle2,
   AlertCircle,
   Edit,
   Trash2,
@@ -56,6 +57,11 @@ export default function ExpensesSection({
   const [reviewAction, setReviewAction] = useState("Approved"); 
   const [adminRemark, setAdminRemark] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [reviewSuccess, setReviewSuccess] = useState("");
+  const [paymentMode, setPaymentMode] = useState("Bank Transfer");
+  const [transactionRef, setTransactionRef] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
 
   const [receiptModalUrl, setReceiptModalUrl] = useState(null);
 
@@ -112,25 +118,57 @@ export default function ExpensesSection({
     fetchClientExpenses();
   }, [selectedClientId]);
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    if (!selectedClaim?._id) return;
+  const handleSubmitReview = async (e, overrideStatus = null) => {
+    if (e) e.preventDefault();
+    const claimId = selectedClaim?._id || selectedClaim?.id;
+    if (!claimId) return;
+
+    const action = overrideStatus || reviewAction;
+    setReviewError("");
+    setReviewSuccess("");
+
     try {
       setReviewing(true);
-      await apiClient.patch(`/admin/expenses/${selectedClaim._id}/review`, {
-        status: reviewAction,
-        adminRemark: adminRemark || (reviewAction === "Approved" ? "Approved by Admin" : "Rejected by Admin"),
-      });
-      setReviewModalOpen(false);
-      setSelectedClaim(null);
-      setAdminRemark("");
+      const payload = {
+        status: action,
+        adminRemark:
+          adminRemark.trim() ||
+          (action === "Approved"
+            ? "Approved for payment"
+            : action === "Paid"
+            ? "Payment disbursed to employee account"
+            : "Rejected by Admin"),
+      };
+
+      if (action === "Paid") {
+        payload.paymentMode = paymentMode || "Bank Transfer";
+        payload.transactionRef = transactionRef ? transactionRef.trim() : "";
+        payload.paymentNote = paymentNote ? paymentNote.trim() : "Credited to employee account";
+      }
+
+      try {
+        await apiClient.patch(`/admin/expenses/${claimId}/review`, payload);
+      } catch (patchErr) {
+        await apiClient.put(`/admin/expenses/${claimId}/review`, payload);
+      }
+
+      setReviewSuccess(`Expense claim marked as ${action} successfully!`);
+      setTimeout(() => {
+        setReviewModalOpen(false);
+        setSelectedClaim(null);
+        setAdminRemark("");
+        setTransactionRef("");
+        setPaymentNote("");
+        setReviewSuccess("");
+        setReviewError("");
+      }, 700);
+
       if (typeof fetchExpenses === "function") {
         fetchExpenses();
-      } else {
-        window.location.reload();
       }
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to update claim review");
+      console.error("Expense review error:", err);
+      setReviewError(err?.response?.data?.message || err?.message || "Failed to update claim review");
     } finally {
       setReviewing(false);
     }
@@ -761,46 +799,78 @@ export default function ExpensesSection({
                           )}
                         </td>
                         <td className="px-4 py-3.5">
-                          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-lg border ${
-                            claim.status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg border ${
+                            claim.status === "Paid" ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-black" :
+                            claim.status === "Approved" ? "bg-blue-50 text-blue-700 border-blue-200" :
                             claim.status === "Rejected" ? "bg-rose-50 text-rose-700 border-rose-200" :
                             "bg-amber-50 text-amber-700 border-amber-200"
                           }`}>
+                            {claim.status === "Paid" && <CheckCircle2 size={13} className="text-emerald-600" />}
                             {claim.status || "Pending"}
                           </span>
                         </td>
                         <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             {claim.status === "Pending" ? (
-                              <>
-                                <button
-                                  onClick={() => {
-                                    setSelectedClaim(claim);
-                                    setReviewAction("Approved");
-                                    setAdminRemark("Approved for payment");
-                                    setReviewModalOpen(true);
-                                  }}
-                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setSelectedClaim(claim);
-                                    setReviewAction("Rejected");
-                                    setAdminRemark("Invalid bill receipt or reason");
-                                    setReviewModalOpen(true);
-                                  }}
-                                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs"
-                                >
-                                  Reject
-                                </button>
-                              </>
+                              <button
+                                onClick={() => {
+                                  setSelectedClaim(claim);
+                                  setReviewAction("Approved");
+                                  setAdminRemark("Approved for payment");
+                                  setReviewError("");
+                                  setReviewSuccess("");
+                                  setReviewModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95"
+                              >
+                                Review & Approve
+                              </button>
+                            ) : claim.status === "Approved" ? (
+                              <button
+                                onClick={() => {
+                                  setSelectedClaim(claim);
+                                  setReviewAction("Paid");
+                                  setAdminRemark("Disbursed to employee account");
+                                  setPaymentMode("Bank Transfer");
+                                  setTransactionRef("");
+                                  setPaymentNote("Transferred to bank account");
+                                  setReviewError("");
+                                  setReviewSuccess("");
+                                  setReviewModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95"
+                                title="Record payment transfer into employee bank account"
+                              >
+                                💳 Disburse / Mark Paid
+                              </button>
+                            ) : claim.status === "Paid" ? (
+                              <button
+                                onClick={() => {
+                                  setSelectedClaim(claim);
+                                  setReviewAction("Paid");
+                                  setReviewError("");
+                                  setReviewSuccess("");
+                                  setReviewModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1"
+                              >
+                                <span>View Settlement</span>
+                              </button>
                             ) : (
-                              <span className="text-xs text-slate-400 italic">
-                                {claim.adminRemark ? `Remark: ${claim.adminRemark}` : "Done"}
-                              </span>
+                              <button
+                                onClick={() => {
+                                  setSelectedClaim(claim);
+                                  setReviewAction("Approved");
+                                  setReviewError("");
+                                  setReviewSuccess("");
+                                  setReviewModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center gap-1"
+                              >
+                                <span>Re-evaluate</span>
+                              </button>
                             )}
+
                             {handleDeleteExpense && (
                               <button
                                 onClick={() => handleDeleteExpense(claim._id || claim.id)}
@@ -832,56 +902,237 @@ export default function ExpensesSection({
       )}
 
       {}
+      {/* Slide-Over Side Drawer for Expense Claim Review, Approval & Payment Disbursal */}
       {reviewModalOpen && selectedClaim && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h4 className="text-base font-black text-slate-800">
-                {reviewAction === "Approved" ? "Approve Expense Claim" : "Reject Expense Claim"}
-              </h4>
-              <button onClick={() => setReviewModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-            </div>
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setReviewModalOpen(false)}
+          />
 
-            <div className="space-y-2 bg-slate-50 p-3 rounded-xl text-xs text-slate-600">
-              <div><strong>Employee:</strong> {typeof selectedClaim.employee?.name === 'string' ? selectedClaim.employee.name : "Employee"}</div>
-              <div><strong>Amount:</strong> ₹{Number(selectedClaim.amount || 0).toLocaleString("en-IN")}</div>
-              <div><strong>Category:</strong> {selectedClaim.category?.name || "General"}</div>
-              <div><strong>Date:</strong> {formatDate(selectedClaim.date)}</div>
-              <div><strong>Description:</strong> {selectedClaim.description}</div>
-            </div>
-
-            <form onSubmit={handleSubmitReview} className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">Admin Remark / Reason</label>
-                <textarea
-                  rows={3}
-                  value={adminRemark}
-                  onChange={e => setAdminRemark(e.target.value)}
-                  placeholder="Enter remarks for the employee..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 outline-none focus:border-blue-500"
-                  required
-                />
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+              {/* Header */}
+              <div className="px-6 py-4 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">
+                <div>
+                  <h4 className="text-base font-black tracking-tight">
+                    Expense Claim & Settlement
+                  </h4>
+                  <p className="text-[11px] text-blue-200 font-medium">
+                    Review claim proofs and disburse payments directly
+                  </p>
+                </div>
+                <button
+                  onClick={() => setReviewModalOpen(false)}
+                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-left">
+                {reviewError && (
+                  <div className="p-3 bg-rose-50 border border-rose-300 text-rose-800 rounded-xl text-xs font-semibold flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0 text-rose-600" />
+                    <span>{reviewError}</span>
+                  </div>
+                )}
+                {reviewSuccess && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-2">
+                    <CheckCircle2 size={15} className="shrink-0 text-emerald-600" />
+                    <span>{reviewSuccess}</span>
+                  </div>
+                )}
+
+                {/* Claim Summary Card */}
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee</span>
+                    <span className="text-xs font-bold text-blue-900">
+                      {typeof selectedClaim.employee?.name === "string" ? selectedClaim.employee.name : "Employee"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Claim Amount</span>
+                    <span className="text-lg font-black text-slate-900 font-mono">
+                      ₹{Number(selectedClaim.amount || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Category</span>
+                    <span className="text-xs font-bold text-slate-700">
+                      {selectedClaim.category?.name || "General Expense"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expense Date</span>
+                    <span className="text-xs font-semibold text-slate-600">
+                      {formatDate(selectedClaim.date)}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Reason / Description</span>
+                    <p className="text-xs text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200">
+                      {selectedClaim.description || "No description specified"}
+                    </p>
+                  </div>
+
+                  {selectedClaim.receipt && (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setReceiptModalUrl(selectedClaim.receipt)}
+                        className="w-full py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-blue-200 cursor-pointer"
+                      >
+                        <Eye size={13} />
+                        <span>View Attached Bill Receipt</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Status Switcher / Settlement Form */}
+                <div className="space-y-3 pt-2">
+                  <label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+                    Update Claim Status & Payment
+                  </label>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReviewAction("Approved");
+                        setAdminRemark("Approved for payment");
+                      }}
+                      className={`py-2 px-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                        reviewAction === "Approved"
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                      }`}
+                    >
+                      ✓ Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReviewAction("Paid");
+                        setAdminRemark("Payment disbursed to employee account");
+                      }}
+                      className={`py-2 px-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                        reviewAction === "Paid"
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                      }`}
+                    >
+                      💳 Disburse (Paid)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReviewAction("Rejected");
+                        setAdminRemark("Rejected by Admin");
+                      }}
+                      className={`py-2 px-2 text-xs font-bold rounded-xl border transition cursor-pointer ${
+                        reviewAction === "Rejected"
+                          ? "bg-rose-600 text-white border-rose-600 shadow-sm"
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                      }`}
+                    >
+                      ✕ Reject
+                    </button>
+                  </div>
+
+                  {/* Payment Details Form if Paid selected */}
+                  {reviewAction === "Paid" && (
+                    <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
+                      <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider block">
+                        Payment Disbursal Info
+                      </span>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-600 uppercase">Payment Mode</label>
+                        <select
+                          value={paymentMode}
+                          onChange={(e) => setPaymentMode(e.target.value)}
+                          className="w-full bg-white border border-emerald-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800"
+                        >
+                          <option value="Bank Transfer">Bank Transfer (NEFT / IMPS / RTGS)</option>
+                          <option value="UPI">UPI / GPay / PhonePe</option>
+                          <option value="Company Account">Company Account Transfer</option>
+                          <option value="Cash">Cash Reimbursement</option>
+                          <option value="Cheque">Bank Cheque</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-600 uppercase">UTR / Reference ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. UTR2026100918239"
+                          value={transactionRef}
+                          onChange={(e) => setTransactionRef(e.target.value)}
+                          className="w-full bg-white border border-emerald-300 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-600 uppercase">Payment Note</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Credited to Salary Account"
+                          value={paymentNote}
+                          onChange={(e) => setPaymentNote(e.target.value)}
+                          className="w-full bg-white border border-emerald-300 rounded-xl px-2.5 py-1.5 text-xs text-slate-800"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Admin Remarks */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-600 block">
+                      Admin Remarks / Notes for Employee
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={adminRemark}
+                      onChange={(e) => setAdminRemark(e.target.value)}
+                      placeholder="Enter remarks for the employee..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setReviewModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type="button"
                   disabled={reviewing}
-                  className={`px-5 py-2 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition ${
-                    reviewAction === "Approved" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"
+                  onClick={(e) => handleSubmitReview(e, reviewAction)}
+                  className={`px-5 py-2.5 text-white text-xs font-black rounded-xl shadow-md cursor-pointer transition active:scale-95 disabled:opacity-50 ${
+                    reviewAction === "Paid"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : reviewAction === "Approved"
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-rose-600 hover:bg-rose-700"
                   }`}
                 >
-                  {reviewing ? "Processing..." : `Confirm ${reviewAction}`}
+                  {reviewing ? "Processing..." : reviewAction === "Paid" ? "Confirm & Mark as Paid" : `Confirm ${reviewAction}`}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

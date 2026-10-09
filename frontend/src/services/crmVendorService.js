@@ -136,6 +136,15 @@ export const crmVendorService = {
         }
       } catch {}
 
+      // Add Notification for Admin
+      crmVendorService.addAdminNotification({
+        title: "Vendor Documents Submitted",
+        message: `${updatedVendor.companyName || "Vendor"} (${updatedVendor.vendorId || updatedVendor.id}) submitted statutory documents for Admin verification.`,
+        type: "warning",
+        vendorId: updatedVendor.id,
+        link: "/admin/vendor/vendors?tab=pending",
+      });
+
       return updatedVendor;
     } catch (err) {
       // Local fallback
@@ -150,6 +159,13 @@ export const crmVendorService = {
         onboardingStage: "DOCS_SUBMITTED",
       };
       await crmVendorService.updateVendorProfile(cur.id, updated);
+      crmVendorService.addAdminNotification({
+        title: "Vendor Documents Submitted",
+        message: `${cur.companyName || "Vendor"} submitted statutory documents for review.`,
+        type: "warning",
+        vendorId: cur.id,
+        link: "/admin/vendor/vendors?tab=pending",
+      });
       return updated;
     }
   },
@@ -182,6 +198,15 @@ export const crmVendorService = {
         }
       } catch {}
 
+      // Add notification for Admin
+      crmVendorService.addAdminNotification({
+        title: "MOU Signed by Vendor",
+        message: `${updatedVendor.companyName || "Vendor"} (${updatedVendor.vendorId}) digitally signed and executed their MOU agreement!`,
+        type: "success",
+        vendorId: updatedVendor.id,
+        link: "/admin/vendor/vendors",
+      });
+
       return updatedVendor;
     } catch (err) {
       // Local fallback
@@ -202,6 +227,13 @@ export const crmVendorService = {
         },
       };
       await crmVendorService.updateVendorProfile(cur.id, updated);
+      crmVendorService.addAdminNotification({
+        title: "MOU Signed by Vendor",
+        message: `${cur.companyName || "Vendor"} digitally signed and executed the MOU agreement.`,
+        type: "success",
+        vendorId: cur.id,
+        link: "/admin/vendor/vendors",
+      });
       return updated;
     }
   },
@@ -228,30 +260,54 @@ export const crmVendorService = {
   },
 
   updateVendorProfile: async (vendorId, profileData) => {
-    await delay(80);
-    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-    const idx = vendors.findIndex((v) => v.id === vendorId);
-    if (idx === -1) throw new Error("Vendor not found");
+    let updatedVendor = null;
+    try {
+      const response = await apiClient.put("/auth/vendor/profile", profileData);
+      if (response.data?.vendor) {
+        updatedVendor = {
+          ...response.data.vendor,
+          id: response.data.vendor.vendorId || response.data.vendor._id,
+        };
+      }
+    } catch (apiErr) {
+      console.warn("Backend updateVendorProfile API fallback:", apiErr);
+    }
 
-    vendors[idx] = {
-      ...vendors[idx],
-      ...profileData,
-    };
+    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    const idx = vendors.findIndex((v) => v.id === vendorId || (updatedVendor && v.id === updatedVendor.id));
+    const finalVendor = updatedVendor
+      ? { ...(vendors[idx] || {}), ...updatedVendor }
+      : { ...(vendors[idx] || {}), ...profileData, id: vendorId };
+
+    if (idx !== -1) {
+      vendors[idx] = finalVendor;
+    } else {
+      vendors.push(finalVendor);
+    }
     saveData(VENDORS_STORAGE_KEY, vendors);
 
     try {
       const stored = localStorage.getItem("user");
       if (stored) {
         const u = JSON.parse(stored);
-        if (u.id === vendorId || u.email?.toLowerCase() === vendors[idx].email?.toLowerCase()) {
-          const updatedUser = { ...u, ...vendors[idx] };
+        if (u.id === vendorId || (finalVendor.email && u.email?.toLowerCase() === finalVendor.email?.toLowerCase())) {
+          const updatedUser = { ...u, ...finalVendor };
           localStorage.setItem("user", JSON.stringify(updatedUser));
           localStorage.setItem("immigo_user", JSON.stringify(updatedUser));
         }
       }
     } catch {}
 
-    return vendors[idx];
+    // Add Notification for Admin in frontend store
+    crmVendorService.addAdminNotification({
+      title: "Vendor Profile Updated",
+      message: `${finalVendor.companyName || "Vendor"} updated their profile or compliance details.`,
+      type: "info",
+      vendorId: finalVendor.id,
+      link: "/admin/vendor/vendors",
+    });
+
+    return finalVendor;
   },
 
   changeVendorPassword: async (vendorId, oldPassword, newPassword) => {
@@ -389,17 +445,37 @@ export const crmVendorService = {
     return vendors.find((v) => v.id === vendorId) || null;
   },
 
-  approveDocsAndSendMou: async (vendorId) => {
+  approveDocsAndSendMou: async (vendorId, mouPayload = {}) => {
     try {
-      const response = await apiClient.post(`/admin/vendors/${vendorId}/send-mou`);
+      const response = await apiClient.post(`/admin/vendors/${vendorId}/send-mou`, mouPayload);
       const updated = {
         ...response.data.vendor,
         id: response.data.vendor.vendorId || response.data.vendor._id,
       };
       const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-      const idx = vendors.findIndex((v) => v.id === vendorId);
+      const idx = vendors.findIndex((v) => v.id === vendorId || v.id === updated.id);
       if (idx !== -1) vendors[idx] = updated;
       saveData(VENDORS_STORAGE_KEY, vendors);
+
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u.id === vendorId || u.vendorId === vendorId || u.email?.toLowerCase() === updated.email?.toLowerCase()) {
+            localStorage.setItem("user", JSON.stringify({ ...u, ...updated }));
+            localStorage.setItem("immigo_user", JSON.stringify({ ...u, ...updated }));
+          }
+        }
+      } catch {}
+
+      crmVendorService.addNotification({
+        vendorId: updated.id,
+        title: "Official Partnership MOU Issued",
+        message: `Your statutory documents are approved! Official MOU agreement has been issued by Admin. Please review and digitally sign.`,
+        type: "success",
+        link: "/vendor/dashboard",
+      });
+
       return updated;
     } catch (err) {
       // Local fallback
@@ -418,6 +494,17 @@ export const crmVendorService = {
       const idx = vendors.findIndex((v) => v.id === vendorId);
       if (idx !== -1) vendors[idx] = updated;
       saveData(VENDORS_STORAGE_KEY, vendors);
+
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const u = JSON.parse(stored);
+          if (u.id === vendorId || u.vendorId === vendorId || u.email?.toLowerCase() === updated.email?.toLowerCase()) {
+            localStorage.setItem("user", JSON.stringify({ ...u, ...updated }));
+            localStorage.setItem("immigo_user", JSON.stringify({ ...u, ...updated }));
+          }
+        }
+      } catch {}
       return updated;
     } catch {
       await delay(80);

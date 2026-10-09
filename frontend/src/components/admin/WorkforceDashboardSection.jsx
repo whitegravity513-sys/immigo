@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "../../services/apiClient.js";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import AdminWorkLogsModal from "./AdminWorkLogsModal.jsx";
 
 export default function WorkforceDashboardSection({
   employees = [],
@@ -43,6 +44,8 @@ export default function WorkforceDashboardSection({
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logSearch, setLogSearch] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
+  const [inspectingWorkLog, setInspectingWorkLog] = useState(null);
+  const [workLogsModalOpen, setWorkLogsModalOpen] = useState(false);
 
   const todayDate = useMemo(() => {
     return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
@@ -236,6 +239,28 @@ export default function WorkforceDashboardSection({
     return matchSearch && matchDept;
   });
 
+  const getEmpWorkLog = (rep) => {
+    if (!rep) return { logText: "", hoursWorked: null, tasksCompleted: [], hasLog: false };
+    const actualEmpId =
+      rep.employeeId ||
+      (typeof rep._id === "string" ? rep._id.replace(/^virtual-/, "") : rep._id);
+    const matched = workLogs.find((wl) => {
+      const wlEmpId = wl.employee?._id || wl.employee || wl.employeeId;
+      const wlEmpCode = wl.employee?.employeeCode;
+      return (
+        (actualEmpId && String(wlEmpId) === String(actualEmpId)) ||
+        (rep.employeeCode && wlEmpCode === rep.employeeCode)
+      );
+    });
+    const logText = matched?.logText || rep.checkOutNote || "";
+    return {
+      logText,
+      hoursWorked: matched?.hoursWorked || null,
+      tasksCompleted: matched?.tasksCompleted || [],
+      hasLog: Boolean(logText && logText.trim()),
+    };
+  };
+
   const formatISTTime = (isoString) => {
     if (!isoString) return "—";
     try {
@@ -365,13 +390,13 @@ export default function WorkforceDashboardSection({
             </button>
             <div className="min-w-0">
               <h1 className="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
-                <span>All Attendance</span>
+                <span>Daily Attendance</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
                   {filteredAttendance.length} Total
                 </span>
               </h1>
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                Full company attendance register with past calendar history and shifts
+                Daily staff attendance tracker, shift punches & status logs
               </p>
             </div>
           </div>
@@ -391,23 +416,14 @@ export default function WorkforceDashboardSection({
               <RefreshCw size={13} className={loadingDateAttendance ? "animate-spin" : ""} />
               <span>Refresh</span>
             </button>
-
             <button
               type="button"
               onClick={handleExportCSV}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
+              title="Download attendance CSV"
             >
               <Download size={13} />
               <span>Export CSV</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={openAddModal}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs shadow-blue-600/20 active:scale-95 cursor-pointer"
-            >
-              <UserPlus size={13} />
-              <span>Register Employee</span>
             </button>
           </div>
         </div>
@@ -458,84 +474,81 @@ export default function WorkforceDashboardSection({
         </div>
       )}
 
-      {}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {}
-        <div
-          onClick={() => openMetricListModal("total")}
-          className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-blue-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
-          title="Click to view all registered staff"
-        >
-          <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            <span className="group-hover:text-blue-600 transition-colors">Total Staff</span>
-            <Users size={15} className="text-blue-600 group-hover:scale-110 transition-transform" />
+      {!isFullRegisterPage && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div
+            onClick={() => openMetricListModal("total")}
+            className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs hover:shadow-md hover:border-blue-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
+            title="Click to view all registered staff"
+          >
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="group-hover:text-blue-600 transition-colors">Total Staff</span>
+              <Users size={15} className="text-blue-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+              {totalEmployeesCount}
+            </div>
+            <div className="text-[10px] text-slate-500 font-semibold mt-0.5 flex items-center justify-between">
+              <span>Registered employees</span>
+              <span className="text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
+            </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-            {totalEmployeesCount}
-          </div>
-          <div className="text-[10px] text-slate-500 font-semibold mt-0.5 flex items-center justify-between">
-            <span>Registered employees</span>
-            <span className="text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
-          </div>
-        </div>
 
-        {}
-        <div
-          onClick={() => openMetricListModal("present")}
-          className="bg-white rounded-xl border border-emerald-200/80 bg-emerald-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-emerald-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
-          title="Click to view present employees"
-        >
-          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
-            <span>{selectedDate === todayDate ? "Present Today" : "Present on Date"}</span>
-            <UserCheck size={15} className="text-emerald-600 group-hover:scale-110 transition-transform" />
+          <div
+            onClick={() => openMetricListModal("present")}
+            className="bg-white rounded-xl border border-emerald-200/80 bg-emerald-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-emerald-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
+            title="Click to view present employees"
+          >
+            <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+              <span>{selectedDate === todayDate ? "Present Today" : "Present on Date"}</span>
+              <UserCheck size={15} className="text-emerald-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-emerald-900 mt-1">
+              {presentCount}
+            </div>
+            <div className="text-[10px] text-emerald-700 font-semibold mt-0.5 flex items-center justify-between">
+              <span>Checked in & attended</span>
+              <span className="text-emerald-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
+            </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-900 mt-1">
-            {presentCount}
-          </div>
-          <div className="text-[10px] text-emerald-700 font-semibold mt-0.5 flex items-center justify-between">
-            <span>Checked in & attended</span>
-            <span className="text-emerald-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
-          </div>
-        </div>
 
-        {}
-        <div
-          onClick={() => openMetricListModal("leave")}
-          className="bg-white rounded-xl border border-purple-200/80 bg-purple-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-purple-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
-          title="Click to view employees on leave"
-        >
-          <div className="flex items-center justify-between text-[10px] font-bold text-purple-600 uppercase tracking-wider">
-            <span>On Leave</span>
-            <Calendar size={15} className="text-purple-600 group-hover:scale-110 transition-transform" />
+          <div
+            onClick={() => openMetricListModal("leave")}
+            className="bg-white rounded-xl border border-purple-200/80 bg-purple-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-purple-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
+            title="Click to view employees on leave"
+          >
+            <div className="flex items-center justify-between text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+              <span>On Leave</span>
+              <Calendar size={15} className="text-purple-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-purple-900 mt-1">
+              {onLeaveCount}
+            </div>
+            <div className="text-[10px] text-purple-700 font-semibold mt-0.5 flex items-center justify-between">
+              <span>Approved leaves for date</span>
+              <span className="text-purple-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
+            </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-purple-900 mt-1">
-            {onLeaveCount}
-          </div>
-          <div className="text-[10px] text-purple-700 font-semibold mt-0.5 flex items-center justify-between">
-            <span>Approved leaves for date</span>
-            <span className="text-purple-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
-          </div>
-        </div>
 
-        {}
-        <div
-          onClick={() => openMetricListModal("absent")}
-          className="bg-white rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-rose-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
-          title="Click to view absent employees"
-        >
-          <div className="flex items-center justify-between text-[10px] font-bold text-rose-600 uppercase tracking-wider">
-            <span>Absent</span>
-            <AlertCircle size={15} className="text-rose-600 group-hover:scale-110 transition-transform" />
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-rose-900 mt-1">
-            {absentCount}
-          </div>
-          <div className="text-[10px] text-rose-700 font-semibold mt-0.5 flex items-center justify-between">
-            <span>Did not attend</span>
-            <span className="text-rose-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
+          <div
+            onClick={() => openMetricListModal("absent")}
+            className="bg-white rounded-xl border border-rose-200/80 bg-rose-50/20 p-3.5 shadow-2xs hover:shadow-md hover:border-rose-300 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
+            title="Click to view absent employees"
+          >
+            <div className="flex items-center justify-between text-[10px] font-bold text-rose-600 uppercase tracking-wider">
+              <span>Absent</span>
+              <AlertCircle size={15} className="text-rose-600 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-rose-900 mt-1">
+              {absentCount}
+            </div>
+            <div className="text-[10px] text-rose-700 font-semibold mt-0.5 flex items-center justify-between">
+              <span>Did not attend</span>
+              <span className="text-rose-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity">View list →</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {}
       {isFullRegisterPage && (
@@ -550,7 +563,7 @@ export default function WorkforceDashboardSection({
               </div>
               <div>
                 <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                  All Employees Attendance Register
+                  Daily Attendance Tracker
                 </h2>
                 <p className="text-[11px] text-slate-500 font-medium">
                   {selectedDate === todayDate
@@ -605,19 +618,6 @@ export default function WorkforceDashboardSection({
                 placeholder="Search staff..."
                 className="w-full md:w-36 lg:w-44 pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
               />
-            </div>
-
-            {}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer border border-slate-200 shrink-0"
-                title="Download CSV for this date"
-              >
-                <Download size={13} />
-                <span className="inline">Export CSV</span>
-              </button>
             </div>
           </div>
         </div>

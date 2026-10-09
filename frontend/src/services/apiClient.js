@@ -16,7 +16,11 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(appConfig.STORAGE_KEYS.TOKEN);
+    const token =
+      localStorage.getItem(appConfig.STORAGE_KEYS.TOKEN) ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("vista_auth_token") ||
+      localStorage.getItem("immigo_token");
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }

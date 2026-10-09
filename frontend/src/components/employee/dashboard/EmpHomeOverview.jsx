@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   FileText,
   Megaphone,
+  PartyPopper,
+  Sparkles,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
@@ -55,6 +57,39 @@ export default function EmpHomeOverview({
   complianceInfo = { isComplianceOnHold: false, missingDocs: [], rejectedDocs: [] },
 }) {
   const [showMorePast, setShowMorePast] = useState(false);
+
+  const todayDateStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+  }).format(new Date());
+
+  const [holidayAcknowledged, setHolidayAcknowledged] = useState(() => {
+    return !!localStorage.getItem(`immigo_holiday_ack_${todayDateStr}`);
+  });
+
+  const [meetingAcks, setMeetingAcks] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("immigo_meeting_acks") || "{}");
+    } catch {
+      return {};
+    }
+  });
+
+  const handleAcknowledgeHoliday = () => {
+    localStorage.setItem(`immigo_holiday_ack_${todayDateStr}`, "true");
+    setHolidayAcknowledged(true);
+  };
+
+  const handleAcknowledgeMeeting = (id) => {
+    const updated = { ...meetingAcks, [id]: new Date().toISOString() };
+    setMeetingAcks(updated);
+    localStorage.setItem("immigo_meeting_acks", JSON.stringify(updated));
+  };
+
+  const unacknowledgedMeeting = (todayMeetings || []).find(
+    (m) => m && !meetingAcks[m._id || m.id]
+  );
+
+  const activeHoliday = todayHoliday || (isHolidayToday ? { title: "Company Holiday", date: todayDateStr } : null);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
@@ -109,60 +144,66 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {}
+      {/* Compact Compliance Notice Strip (Reduced height, clean simple content) */}
       {complianceInfo?.isComplianceOnHold && (
-        <div className="bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600 text-white rounded-2xl sm:rounded-3xl p-5 shadow-lg border border-rose-300/40 space-y-3 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center gap-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 shadow-inner">
-                <AlertCircle size={24} className="text-white animate-pulse" />
-              </div>
-              <div className="space-y-0.5 text-left">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 bg-black/25 text-white rounded-full text-[10px] font-black uppercase tracking-wider border border-white/20">
-                    Compliance Status: ON HOLD
-                  </span>
-                  <span className="text-xs font-bold text-amber-100">Mandatory Verification Pending</span>
-                </div>
-                <h3 className="text-base font-black text-white tracking-tight">
-                  Required Compliance Documents Missing or Rejected
-                </h3>
-                <p className="text-xs text-rose-100 font-medium max-w-2xl">
-                  Your employee profile documentation is currently on hold. Mandatory compliance documents must be submitted and approved by HR.
-                </p>
-              </div>
+        <div className="bg-amber-500/10 border border-amber-400/40 text-amber-950 rounded-xl px-4 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AlertCircle size={18} className="text-amber-600 shrink-0" />
+            <div className="min-w-0 text-xs">
+              <span className="font-extrabold text-amber-900 mr-1.5">Compliance Notice:</span>
+              <span className="text-amber-800 font-medium">
+                Mandatory employee profile verification documents pending
+                {complianceInfo.missingDocs?.length > 0 && ` (${complianceInfo.missingDocs.length} missing)`}
+                {complianceInfo.rejectedDocs?.length > 0 && ` (${complianceInfo.rejectedDocs.length} rejected)`}.
+              </span>
             </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setView("profile-docs")}
+            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer self-start sm:self-auto"
+          >
+            <span>Upload Documents</span>
+            <ChevronRight size={13} />
+          </button>
+        </div>
+      )}
 
+      {/* Meeting Acknowledgment Card for Employee Dashboard */}
+      {unacknowledgedMeeting && (
+        <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white rounded-xl p-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 border border-purple-400/40">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <Video size={16} className="text-white animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-1.5 py-0.5 rounded">Meeting Scheduled</span>
+                <span className="text-xs text-purple-200 font-bold">{unacknowledgedMeeting.startTime} • {unacknowledgedMeeting.date}</span>
+              </div>
+              <h4 className="text-xs font-bold text-white mt-0.5 truncate max-w-md">{unacknowledgedMeeting.title}</h4>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => setView("profile-docs")}
-              className="px-5 py-2.5 bg-white hover:bg-rose-50 text-rose-700 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95 cursor-pointer"
+              onClick={() => handleAcknowledgeMeeting(unacknowledgedMeeting._id || unacknowledgedMeeting.id)}
+              className="px-3 py-1.5 bg-white text-purple-900 hover:bg-purple-50 rounded-lg text-xs font-black shadow-xs cursor-pointer transition-all flex items-center gap-1"
             >
-              <span>Upload / Resolve Documents</span>
-              <ChevronRight size={15} />
+              <CheckCircle2 size={13} className="text-emerald-600" />
+              <span>Acknowledge</span>
             </button>
-          </div>
-
-          {}
-          <div className="pt-2 border-t border-white/20 flex items-center gap-2 flex-wrap text-left">
-            <span className="text-[11px] font-bold text-rose-100">Action Needed:</span>
-            {complianceInfo.rejectedDocs?.map((doc) => (
-              <span
-                key={doc._id || doc.id}
-                className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-900/40 text-rose-100 rounded-lg text-[11px] font-bold border border-rose-300/30"
-                title={doc.verificationNote || "Rejected by HR"}
+            {unacknowledgedMeeting.meetingLink && (
+              <a
+                href={unacknowledgedMeeting.meetingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1"
               >
-                ⚠️ Rejected: {doc.name || doc.type}
-              </span>
-            ))}
-            {complianceInfo.missingDocs?.map((type) => (
-              <span
-                key={type}
-                className="inline-flex items-center gap-1 px-2.5 py-1 bg-black/25 text-amber-100 rounded-lg text-[11px] font-bold border border-white/20"
-              >
-                Missing: {type}
-              </span>
-            ))}
+                <span>Join</span>
+                <ExternalLink size={11} />
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -265,6 +306,75 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
+      {/* Holiday Notification & Acknowledgement Card (Inline - No Popup) */}
+      {activeHoliday && (
+        <div
+          className={`p-4 sm:p-5 rounded-2xl border transition-all animate-in fade-in duration-200 ${
+            holidayAcknowledged
+              ? "bg-amber-50/70 border-amber-200/90 text-amber-950"
+              : "bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/70 border-amber-300 shadow-sm text-slate-800"
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <PartyPopper size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 flex items-center gap-1">
+                    <Sparkles size={11} className="text-amber-700" />
+                    Official Company Holiday
+                  </span>
+                  <span className="text-xs font-bold text-amber-800">
+                    {activeHoliday.date
+                      ? new Date(activeHoliday.date).toLocaleDateString("en-IN", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Today"}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight mt-0.5">
+                  {activeHoliday.title || "Holiday Celebration"}
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5 max-w-2xl leading-relaxed">
+                  {activeHoliday.description ||
+                    "Official company holiday. Regular shifts and work logs are optional today, and your holiday credit is accounted for by HRMS."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {holidayAcknowledged ? (
+                <div className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold shadow-2xs">
+                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  <span>✓ Acknowledged</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAcknowledgeHoliday}
+                  className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-black rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                >
+                  <CheckCircle2 size={15} />
+                  <span>Acknowledge Holiday</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setView("calendar")}
+                className="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition cursor-pointer shadow-2xs"
+              >
+                View Holidays
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
         {}
@@ -335,6 +445,44 @@ export default function EmpHomeOverview({
             </div>
             <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
               <span>● Shifts Under 8 Hours</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Attendance Status Card */}
+      <div className="p-4 sm:p-4.5 rounded-2xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                  Daily Attendance Verification
+                </span>
+                <span className="text-xs font-bold text-slate-500">
+                  Today: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
+                <span className="text-xs font-bold text-slate-800">
+                  Status: <strong className="text-blue-900 font-black">{status}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-600">
+                  In: <strong className="font-semibold text-slate-800">{statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "Not marked"}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-600">
+                  Out: <strong className="font-semibold text-slate-800">{statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : (status === "Active" ? "In Progress" : "Pending")}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-600">
+                  Worked: <strong className="font-semibold text-slate-800">{fmtDur(workSeconds)}</strong>
+                </span>
+              </div>
             </div>
           </div>
         </div>

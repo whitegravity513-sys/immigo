@@ -85,6 +85,7 @@ export default function EmpTopbar({
         <EmployeeNotificationBell
           token={token}
           onNewNotification={onNewNotification}
+          onViewAll={() => setView && setView("announcements")}
           className="relative p-2 rounded-xl text-white hover:bg-blue-800/60 transition-colors cursor-pointer border border-blue-700/60 bg-blue-900/40 shadow-xs"
         />
 

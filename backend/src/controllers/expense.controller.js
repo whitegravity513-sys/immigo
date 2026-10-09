@@ -55,13 +55,16 @@ export const createExpense = asyncHandler(async (req, res) => {
 });
 
 export const reviewExpense = asyncHandler(async (req, res) => {
-  const { status, adminRemark } = req.body;
-  const adminId = req.admin?._id || req.user?._id || null;
+  const { status, adminRemark, paymentMode, transactionRef, paymentNote } = req.body;
+  const rawAdminId = req.admin?._id || req.user?.id || req.user?._id || null;
 
   const expense = await ExpenseService.reviewExpense(req.params.id, {
     status,
     adminRemark,
-    adminId,
+    adminId: rawAdminId,
+    paymentMode,
+    transactionRef,
+    paymentNote,
   });
 
   return res.status(200).json({

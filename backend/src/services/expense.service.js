@@ -235,35 +235,66 @@ export class ExpenseService {
     return this.formatExpense(expense);
   }
 
-  static async reviewExpense(id, { status, adminRemark, adminId }) {
-    if (!["Approved", "Rejected", "Pending"].includes(status)) {
-      throw new ApiError(400, "Invalid status. Use 'Approved', 'Rejected', or 'Pending'.");
+  static async reviewExpense(id, { status, adminRemark, adminId, paymentMode, transactionRef, paymentNote }) {
+    const cleanId = String(id || "").replace(/^virtual-/, "").trim();
+    if (!cleanId || !mongoose.Types.ObjectId.isValid(cleanId)) {
+      throw new ApiError(400, "Invalid expense ID provided.");
+    }
+    const validStatuses = ["Approved", "Rejected", "Pending", "Paid"];
+    const normalizedStatus = validStatuses.find(s => s.toLowerCase() === (status || "").toLowerCase()) || status;
+    if (!validStatuses.includes(normalizedStatus)) {
+      throw new ApiError(400, "Invalid status. Use 'Approved', 'Rejected', 'Pending', or 'Paid'.");
     }
 
-    const expense = await Expense.findById(id);
+    const validAdminId = adminId && mongoose.Types.ObjectId.isValid(adminId) ? new mongoose.Types.ObjectId(adminId) : null;
+    const updateData = {
+      status: normalizedStatus,
+      reviewedBy: validAdminId,
+      reviewedAt: new Date(),
+    };
+    if (adminRemark !== undefined) {
+      updateData.adminRemark = adminRemark.trim();
+    }
+    if (normalizedStatus === "Paid") {
+      updateData.paidAt = new Date();
+      updateData.paidBy = validAdminId;
+      if (paymentMode) updateData.paymentMode = paymentMode.trim();
+      if (transactionRef) updateData.transactionRef = transactionRef.trim();
+      if (paymentNote) updateData.paymentNote = paymentNote.trim();
+    }
+
+    const expense = await Expense.findByIdAndUpdate(
+      cleanId,
+      { $set: updateData },
+      { new: true, runValidators: false }
+    ).populate(["categoryId", "employeeId", "clientId"]);
+
     if (!expense) {
       throw new ApiError(404, "Expense not found.");
     }
 
-    expense.status = status;
-    if (adminRemark !== undefined) expense.adminRemark = adminRemark.trim();
-    expense.reviewedBy = adminId || null;
-    expense.reviewedAt = new Date();
-
-    await expense.save();
-    await expense.populate(["categoryId", "employeeId", "clientId"]);
-
     try {
       if (expense.employeeId) {
         const empId = expense.employeeId._id || expense.employeeId;
+        const msg = status === "Paid"
+          ? `Your approved expense "${expense.title}" of ₹${Number(expense.amount || 0).toLocaleString("en-IN")} has been PAID/REIMBURSED via ${expense.paymentMode || "Bank Transfer"}${expense.transactionRef ? ` (Ref: ${expense.transactionRef})` : ""}.`
+          : `Your expense "${expense.title}" for ₹${Number(expense.amount || 0).toLocaleString("en-IN")} has been ${status.toLowerCase()}.${adminRemark ? ` Remark: "${adminRemark}"` : ""}`;
+
         await NotificationService.createNotification({
           type: "EXPENSE_UPDATE",
           title: `Expense Claim ${status}`,
-          message: `Your expense "${expense.title}" for ₹${Number(expense.amount || 0).toLocaleString("en-IN")} has been ${status.toLowerCase()}.${adminRemark ? ` Remark: "${adminRemark}"` : ""}`,
+          message: msg,
           targetRole: "EMPLOYEE",
           targetType: "SPECIFIC",
           targetEmployeeId: empId,
-          metadata: { expenseId: expense._id, status, adminRemark, amount: expense.amount },
+          metadata: {
+            expenseId: expense._id,
+            status,
+            adminRemark,
+            amount: expense.amount,
+            paidAt: expense.paidAt,
+            transactionRef: expense.transactionRef,
+          },
         });
       }
     } catch (e) {

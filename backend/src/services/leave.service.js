@@ -108,7 +108,7 @@ export class LeaveService {
     try {
       const empName = leave.employeeId?.name || "Employee";
       const empIdCode = leave.employeeId?.employeeId || "WG-EMP";
-      NotificationService.createNotification({
+      await NotificationService.createNotification({
         type: "LEAVE_APPLY",
         title: `Leave Applied: ${empName} (${empIdCode})`,
         message: `Employee [${empIdCode}] ${empName} applied for ${leaveType} leave (${diffDays} day${diffDays > 1 ? "s" : ""}) from ${start.toLocaleDateString("en-IN")} to ${end.toLocaleDateString("en-IN")}. Reason: "${reason}"`,

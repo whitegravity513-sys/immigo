@@ -12,8 +12,10 @@ import {
   User,
   ExternalLink,
   Plus,
+  Eye,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import DocumentViewerFullPage from "../../components/vendor/DocumentViewerFullPage.jsx";
 
 export default function Documents() {
   const [vendor, setVendor] = useState(null);
@@ -25,6 +27,7 @@ export default function Documents() {
   const [newDocName, setNewDocName] = useState("");
   const [newDocType, setNewDocType] = useState("Statutory License");
   const [companyDocs, setCompanyDocs] = useState([]);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -46,7 +49,7 @@ export default function Documents() {
     }
   };
 
-  const handleUploadCompanyDoc = (e) => {
+  const handleUploadCompanyDoc = async (e) => {
     e.preventDefault();
     if (!newDocName) return;
 
@@ -56,17 +59,40 @@ export default function Documents() {
       size: "1.2 MB",
       type: newDocType,
       uploadedAt: new Date().toISOString().split("T")[0],
+      status: "Submitted",
     };
 
     const updated = [doc, ...companyDocs];
     setCompanyDocs(updated);
-    crmVendorService.updateVendorProfile(vendor?.id, { documents: updated });
+    try {
+      await crmVendorService.updateVendorProfile(vendor?.id, { documents: updated });
+    } catch (err) {
+      console.error("Doc update err:", err);
+    }
     setShowUploadModal(false);
     setNewDocName("");
   };
 
-  const handleDownloadSim = (fileName) => {
-    alert(`Downloading ${fileName}... In production, this streams securely from protected S3/GCS bucket.`);
+  const handleDownload = (doc) => {
+    if (doc?.fileUrl && doc.fileUrl.startsWith("data:")) {
+      const a = document.createElement("a");
+      a.href = doc.fileUrl;
+      a.download = doc.fileName || `${doc.name || "document"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+    const content = `OFFICIAL STATUTORY DOCUMENT\n==========================\nDocument: ${doc?.name || doc?.type}\nFile Name: ${doc?.fileName || "document.pdf"}\nAgency: ${vendor?.companyName || "Vendor"}\nUploaded: ${doc?.uploadedAt || new Date().toISOString().split("T")[0]}\nStatus: ${doc?.status || "Uploaded"}`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc?.fileName || `${doc?.name || "document"}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Flatten candidate documents
@@ -105,6 +131,18 @@ export default function Documents() {
       d.position?.toLowerCase().includes(q)
     );
   });
+
+  if (previewingDoc) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <DocumentViewerFullPage
+          doc={previewingDoc}
+          vendor={vendor}
+          onBack={() => setPreviewingDoc(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -188,14 +226,23 @@ export default function Documents() {
               </div>
 
               <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">Updated: 2026-08-16</span>
-                <button
-                  onClick={() => handleDownloadSim(doc.fileName)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download</span>
-                </button>
+                <span className="text-[11px] text-slate-400">Status: {doc.status || "Verified"}</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setPreviewingDoc(doc)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Preview</span>
+                  </button>
+                  <button
+                    onClick={() => handleDownload(doc)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold transition cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -255,13 +302,24 @@ export default function Documents() {
                       <td className="py-3.5 px-4 text-slate-400 text-xs">{doc.size || "1 MB"}</td>
 
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => handleDownloadSim(doc.fileName)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                          title="Download File"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewingDoc(doc)}
+                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer"
+                            title="Preview Document"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(doc)}
+                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer"
+                            title="Download File"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Building2,
   Search,
@@ -34,7 +34,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
-import MouDocumentModal from "../../../components/vendor/MouDocumentModal.jsx";
+import MouFullPageView from "../../../components/vendor/MouFullPageView.jsx";
+import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
 
 export default function AdminVendorsList() {
   const [vendors, setVendors] = useState([]);
@@ -83,6 +84,7 @@ export default function AdminVendorsList() {
   });
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
   // Filters State for All Vendors Table
   const [statusFilter, setStatusFilter] = useState(() => {
@@ -95,34 +97,57 @@ export default function AdminVendorsList() {
     return "All";
   });
 
+  // Selected Vendor Detail View & Full Page States (Zero Popups)
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [showDocsPage, setShowDocsPage] = useState(false);
+  const [showDraftMouPage, setShowDraftMouPage] = useState(false);
+  const [showViewMouPage, setShowViewMouPage] = useState(false);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (tabParam === "pending") {
+    if (!tabParam || tabParam === "all") {
+      setStatusFilter("All");
+      setSelectedVendor(null);
+      setShowDocsPage(false);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
+      setPreviewingDoc(null);
+    } else if (tabParam === "pending") {
       setStatusFilter("Pending Verification");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
     } else if (tabParam === "mou") {
       setStatusFilter("MOU Pending");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
     } else if (tabParam === "approved") {
       setStatusFilter("Approved");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
     } else if (tabParam === "rejected") {
       setStatusFilter("Rejected");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
     } else if (tabParam === "suspended") {
       setStatusFilter("Suspended");
-    } else if (tabParam === "all") {
-      setStatusFilter("All");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
     }
-  }, [searchParams]);
+  }, [searchParams, location.pathname, location.search]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [stateFilter, setStateFilter] = useState("All");
   const [cityFilter, setCityFilter] = useState("All");
   const [specFilter, setSpecFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("All");
-
-  // Selected Vendor Detail View & Statutory Documents Full Page View State
-  const [selectedVendor, setSelectedVendor] = useState(null);
-  const [showDocsPage, setShowDocsPage] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [showMouPreviewModal, setShowMouPreviewModal] = useState(false);
 
   // Selected Candidate Full Page State inside Vendor Detail
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -316,6 +341,28 @@ export default function AdminVendorsList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadDoc = (doc) => {
+    if (doc?.fileUrl && doc.fileUrl.startsWith("data:")) {
+      const a = document.createElement("a");
+      a.href = doc.fileUrl;
+      a.download = doc.fileName || `${doc.name || "document"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+    const content = `OFFICIAL STATUTORY DOCUMENT\n==========================\nDocument: ${doc?.name || doc?.type}\nFile Name: ${doc?.fileName || "document.pdf"}\nAgency: ${selectedVendor?.companyName || "Vendor Agency"}\nUploaded: ${doc?.uploadedAt || new Date().toISOString().split("T")[0]}\nStatus: ${doc?.status || "Verified"}`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc?.fileName || `${doc?.name || "document"}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleApprove = async (vendorId) => {
@@ -1283,6 +1330,49 @@ export default function AdminVendorsList() {
       return true;
     });
 
+    if (previewingDoc) {
+      return (
+        <DocumentViewerFullPage
+          doc={previewingDoc}
+          vendor={selectedVendor}
+          onBack={() => setPreviewingDoc(null)}
+        />
+      );
+    }
+
+    if (showDraftMouPage) {
+      return (
+        <MouFullPageView
+          mode="draft"
+          vendor={selectedVendor}
+          onBack={() => setShowDraftMouPage(false)}
+          onSuccess={(payload) => {
+            setSelectedVendor((prev) => ({
+              ...prev,
+              status: "MOU Pending",
+              mouStatus: "Sent",
+              mouDocument: {
+                ...(prev?.mouDocument || {}),
+                ...payload,
+              },
+            }));
+            setShowDraftMouPage(false);
+            loadData();
+          }}
+        />
+      );
+    }
+
+    if (showViewMouPage) {
+      return (
+        <MouFullPageView
+          mode="preview"
+          vendor={selectedVendor}
+          onBack={() => setShowViewMouPage(false)}
+        />
+      );
+    }
+
     return (
       <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
         {/* Back Button Bar */}
@@ -1365,7 +1455,7 @@ export default function AdminVendorsList() {
                     Reject
                   </button>
                   <button
-                    onClick={() => handleApproveDocsAndSendMou(selectedVendor.id)}
+                    onClick={() => setShowDraftMouPage(true)}
                     className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
                   >
                     <Send size={13} />
@@ -1383,7 +1473,7 @@ export default function AdminVendorsList() {
               {selectedVendor.status === "MOU Pending" && (
                 <>
                   <button
-                    onClick={() => setShowMouPreviewModal(true)}
+                    onClick={() => setShowViewMouPage(true)}
                     className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
                   >
                     <FileText size={13} />
@@ -1451,7 +1541,7 @@ export default function AdminVendorsList() {
               </p>
             </div>
             <button
-              onClick={() => setShowMouPreviewModal(true)}
+              onClick={() => setShowViewMouPage(true)}
               className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer self-start sm:self-auto"
             >
               <FileText size={14} />
@@ -1483,6 +1573,25 @@ export default function AdminVendorsList() {
                         {doc.status || "Uploaded"}
                       </span>
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0 self-center">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewingDoc(doc)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Eye size={13} />
+                      <span>Preview</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadDoc(doc)}
+                      className="px-2.5 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -1550,7 +1659,7 @@ export default function AdminVendorsList() {
 
               <button
                 type="button"
-                onClick={() => setShowMouPreviewModal(true)}
+                onClick={() => setShowViewMouPage(true)}
                 className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer self-start sm:self-auto shrink-0"
               >
                 View Agreement
@@ -2466,13 +2575,6 @@ export default function AdminVendorsList() {
           </div>
         </div>
       )}
-
-      {/* Admin Preview MOU Modal */}
-      <MouDocumentModal
-        isOpen={showMouPreviewModal}
-        onClose={() => setShowMouPreviewModal(false)}
-        vendor={selectedVendor}
-      />
     </div>
   );
 }

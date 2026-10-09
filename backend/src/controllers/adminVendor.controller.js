@@ -26,6 +26,18 @@ export const getVendorById = asyncHandler(async (req, res) => {
 
 export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const {
+    agreementDate,
+    validityYears,
+    commissionRate,
+    paymentTerms,
+    replacementPeriod,
+    sectors,
+    specialClauses,
+    adminSignatoryName,
+    adminDesignation,
+  } = req.body || {};
+
   const vendor = await Vendor.findOne({
     $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { vendorId: id }],
   });
@@ -39,7 +51,16 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   vendor.mouStatus = "Sent";
   vendor.mouDocument = {
     title: "Memorandum of Understanding (MOU) for Recruitment Services",
-    sentAt: new Date(),
+    sentAt: agreementDate ? new Date(agreementDate) : new Date(),
+    agreementDate: agreementDate || new Date().toISOString().split("T")[0],
+    validityYears: validityYears || "1 Year",
+    commissionRate: commissionRate || "8.33% / 1 Month Gross Salary",
+    paymentTerms: paymentTerms || "30 Days from candidate deployment",
+    replacementPeriod: replacementPeriod || "90 Days free replacement warranty",
+    sectors: sectors || "Construction, MEP, Hospitality, Logistics, Oil & Gas",
+    specialClauses: specialClauses || "Standard international manpower ethical recruitment covenants apply.",
+    adminSignatoryName: adminSignatoryName || "Authorized Operations Director, Vista Solutions",
+    adminDesignation: adminDesignation || "Director - Global Alliances",
     termsVersion: "v1.0",
     fileUrl: "",
   };
@@ -50,8 +71,8 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   try {
     await Notification.create({
       type: "DOCUMENT_UPDATE",
-      title: "MOU Agreement Issued",
-      message: `Your compliance documents have been verified and approved! The official MOU has been issued. Please review and digitally sign your MOU to unlock your full portal.`,
+      title: `Official MOU Issued for ${vendor.companyName}`,
+      message: `Your compliance documents were approved by Vista Admin! Official MOU with agreed commission (${commissionRate || "Standard"}) has been issued. Please review and digitally sign your MOU.`,
       targetRole: "ALL",
       targetType: "ALL",
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
@@ -61,7 +82,7 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   }
 
   return res.status(200).json({
-    message: "Documents approved and MOU sent successfully",
+    message: "Documents approved and customized MOU sent successfully",
     vendor,
   });
 });
@@ -80,6 +101,19 @@ export const approveVendor = asyncHandler(async (req, res) => {
   vendor.verifiedAt = new Date();
   vendor.rejectionReason = "";
   await vendor.save();
+
+  try {
+    await Notification.create({
+      type: "SYSTEM",
+      title: `Vendor Account Approved: ${vendor.companyName}`,
+      message: `Congratulations! Your vendor partner account has been fully approved by Vista Admin. You now have full access to candidate deployment and projects.`,
+      targetRole: "ALL",
+      targetType: "ALL",
+      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Notification error:", err.message);
+  }
 
   return res.status(200).json({
     message: "Vendor approved successfully",
@@ -103,6 +137,19 @@ export const rejectVendor = asyncHandler(async (req, res) => {
   vendor.rejectionReason = reason || "Application requirements not fulfilled.";
   await vendor.save();
 
+  try {
+    await Notification.create({
+      type: "SYSTEM",
+      title: `Vendor Application Rejected: ${vendor.companyName}`,
+      message: `Your vendor application status was updated to Rejected. Reason: ${vendor.rejectionReason}`,
+      targetRole: "ALL",
+      targetType: "ALL",
+      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Notification error:", err.message);
+  }
+
   return res.status(200).json({
     message: "Vendor rejected",
     vendor,
@@ -121,6 +168,19 @@ export const toggleSuspendVendor = asyncHandler(async (req, res) => {
 
   vendor.status = vendor.status === "Suspended" ? "Approved" : "Suspended";
   await vendor.save();
+
+  try {
+    await Notification.create({
+      type: "SYSTEM",
+      title: `Vendor Account Status Changed: ${vendor.companyName}`,
+      message: `Vendor account status is now ${vendor.status}.`,
+      targetRole: "ALL",
+      targetType: "ALL",
+      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+    });
+  } catch (err) {
+    console.error("Notification error:", err.message);
+  }
 
   return res.status(200).json({
     message: `Vendor status updated to ${vendor.status}`,

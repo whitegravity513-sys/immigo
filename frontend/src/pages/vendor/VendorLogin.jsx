@@ -455,18 +455,6 @@ export function VendorLogin() {
                   <ArrowRight size={12} />
                 </Link>
               </div>
-
-              {/* Demo Account Fill Helper */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <span>Demo Account:</span>
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo("vendor@abcmanpower.com", "Password@123")}
-                  className="font-bold text-slate-600 hover:text-blue-600 underline cursor-pointer"
-                >
-                  Fill ABC Manpower Demo
-                </button>
-              </div>
             </form>
           </div>
         </div>

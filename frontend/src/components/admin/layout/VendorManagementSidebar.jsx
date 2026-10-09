@@ -41,7 +41,11 @@ export function VendorManagementSidebar({
         currentPath === "/admin/vendor/dashboard"
       );
     }
-    return currentPath === path || currentPath.startsWith(path.split('?')[0]);
+    const [pathname, search] = path.split("?");
+    if (search) {
+      return currentPath === pathname && location.search === `?${search}`;
+    }
+    return currentPath === pathname && !location.search;
   };
 
   const mainNavItems = [
@@ -49,7 +53,7 @@ export function VendorManagementSidebar({
   ];
 
   const vendorSubItems = [
-    { title: "All Vendors", icon: Building2, path: "/admin/vendor/vendors" },
+    { title: "All Vendors", icon: Building2, path: "/admin/vendor/vendors?tab=all" },
     { title: "Pending Verification", icon: Clock, path: "/admin/vendor/vendors?tab=pending" },
     { title: "MOU Pending", icon: FileText, path: "/admin/vendor/vendors?tab=mou" },
     { title: "Approved Vendors", icon: UserCheck, path: "/admin/vendor/vendors?tab=approved" },

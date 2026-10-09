@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "./Employee.js";
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -61,6 +62,12 @@ const notificationSchema = new mongoose.Schema(
       default: false,
     },
     readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Employee",
+      },
+    ],
+    deletedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Employee",

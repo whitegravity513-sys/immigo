@@ -18,6 +18,7 @@ export default function AttendanceCalendarTab({
   lunchSeconds,
   breakSeconds,
   fmtDur,
+  employeeProfile,
 }) {
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -29,16 +30,34 @@ export default function AttendanceCalendarTab({
   const days = Array.from({ length: totalDays }, (_, i) => i + 1);
   const gridItems = [...blanks, ...days];
   const todayKey = getDateKey(new Date());
+
+  const joiningDateRaw =
+    employeeProfile?.joiningDate ||
+    statusRecord?.joiningDate ||
+    statusRecord?.attendanceStats?.joiningDate ||
+    monthlyData?.employee?.joiningDate ||
+    "";
+
+  let joiningDateStr = null;
+  if (joiningDateRaw) {
+    try {
+      const jd = new Date(joiningDateRaw);
+      if (!isNaN(jd.getTime())) {
+        joiningDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(jd);
+      }
+    } catch { }
+  }
+
   const stats = statusRecord?.attendanceStats || {
     presentDays: monthlyData?.summary?.presentDays ?? 0,
     absentDays: monthlyData?.summary?.absentDays ?? 0,
     leaveDays: monthlyData?.summary?.totalLeaveDays ?? (monthlyData?.summary?.onLeave ?? 0),
     halfDays: monthlyData?.summary?.halfDays ?? 0,
-    joiningDate: statusRecord?.joiningDate || "",
+    joiningDate: joiningDateRaw,
   };
 
-  const formattedJoining = stats.joiningDate
-    ? new Date(stats.joiningDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+  const formattedJoining = joiningDateRaw
+    ? new Date(joiningDateRaw).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
     : "Joining Date";
 
   return (
@@ -97,7 +116,7 @@ export default function AttendanceCalendarTab({
                   setCalendarMonth(calendarMonth - 1);
                 }
               }}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-sm font-bold hover:bg-slate-100"
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-sm font-bold hover:bg-slate-100 cursor-pointer"
             >
               ◀
             </button>
@@ -110,7 +129,7 @@ export default function AttendanceCalendarTab({
                   setCalendarMonth(calendarMonth + 1);
                 }
               }}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-sm font-bold hover:bg-slate-100"
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-sm font-bold hover:bg-slate-100 cursor-pointer"
             >
               ▶
             </button>
@@ -138,13 +157,20 @@ export default function AttendanceCalendarTab({
             const isOffSaturday = dayOfWeek === 6 && (satCount === 2 || satCount === 4);
             const isWeeklyOff = isSunday || isOffSaturday;
 
+            const isBeforeJoining = joiningDateStr && dateKey < joiningDateStr;
+            const isFuture = dateKey > todayKey;
+
             let cellClass = "h-16 rounded-xl border border-slate-200 bg-white p-1.5 flex flex-col justify-between";
             let badge = null;
 
-            if (holiday || record?.status === "Holiday") {
+            if (isBeforeJoining) {
+              // Prior to joining: completely clean/muted cell without false absent flags
+              cellClass = "h-16 rounded-xl border border-slate-100 bg-slate-50/50 p-1.5 flex flex-col justify-between opacity-35";
+              badge = null;
+            } else if (holiday || record?.status === "Holiday") {
               cellClass = "h-16 rounded-xl border border-amber-200 bg-amber-50 p-1.5 flex flex-col justify-between";
               badge = <span className="text-[8px] font-black uppercase bg-amber-600 text-white px-1.5 py-0.5 rounded-full">Holiday</span>;
-            } else if (record?.status && ["Present", "Active", "Checked Out", "On Break"].includes(record.status)) {
+            } else if (record?.status && ["Present", "Active", "Checked Out", "On Break", "Half Day"].includes(record.status)) {
               cellClass = "h-16 rounded-xl border border-emerald-200 bg-emerald-50 p-1.5 flex flex-col justify-between";
               badge = <span className="text-[8px] font-black uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-full">Present</span>;
             } else if (isWeeklyOff || record?.status === "Weekly Off" || record?.status === "Weekend") {
@@ -153,12 +179,12 @@ export default function AttendanceCalendarTab({
             } else if (leaveOnDay || record?.status === "On Leave") {
               cellClass = "h-16 rounded-xl border border-blue-200 bg-blue-50 p-1.5 flex flex-col justify-between";
               badge = <span className="text-[8px] font-black uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Leave</span>;
-            } else if (dateKey <= todayKey && (record?.status === "Absent" || !record)) {
+            } else if (isToday) {
+              cellClass = "h-16 rounded-xl border border-blue-400 bg-blue-50/50 p-1.5 flex flex-col justify-between shadow-xs";
+              badge = <span className="text-[8px] font-black uppercase bg-blue-700 text-white px-1.5 py-0.5 rounded-full">Today</span>;
+            } else if (!isFuture && (record?.status === "Absent" || !record)) {
               cellClass = "h-16 rounded-xl border border-rose-200 bg-rose-50 p-1.5 flex flex-col justify-between";
               badge = <span className="text-[8px] font-black uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded-full">Absent</span>;
-            } else if (isToday) {
-              cellClass = "h-16 rounded-xl border border-slate-300 bg-slate-50 p-1.5 flex flex-col justify-between";
-              badge = <span className="text-[8px] font-black uppercase bg-slate-700 text-white px-1.5 py-0.5 rounded-full">Today</span>;
             }
 
             return (

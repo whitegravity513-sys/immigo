@@ -25,13 +25,13 @@ import {
   Globe,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
-import MouDocumentModal from "../../components/vendor/MouDocumentModal.jsx";
+import MouFullPageView from "../../components/vendor/MouFullPageView.jsx";
 
 export function VendorDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showMouModal, setShowMouModal] = useState(false);
+  const [showMouPage, setShowMouPage] = useState(false);
   const vendor = crmVendorService.getCurrentVendor();
 
   useEffect(() => {
@@ -154,6 +154,18 @@ export function VendorDashboard() {
     }
   };
 
+  if (showMouPage) {
+    return (
+      <div className="space-y-6">
+        <MouFullPageView
+          mode="preview"
+          vendor={vendor}
+          onBack={() => setShowMouPage(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
@@ -179,7 +191,7 @@ export function VendorDashboard() {
         <div className="flex items-center gap-2 flex-wrap shrink-0 self-start md:self-auto">
           <button
             type="button"
-            onClick={() => setShowMouModal(true)}
+            onClick={() => setShowMouPage(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-200 bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
           >
             <FileText size={13} />
@@ -342,12 +354,6 @@ export function VendorDashboard() {
           </table>
         </div>
       </div>
-
-      <MouDocumentModal
-        isOpen={showMouModal}
-        onClose={() => setShowMouModal(false)}
-        vendor={vendor}
-      />
     </div>
   );
 }

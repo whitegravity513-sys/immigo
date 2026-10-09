@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { apiClient } from "../../services/apiClient.js";
 import {
   Bell,
@@ -13,8 +14,8 @@ import {
   X,
   Briefcase,
   Receipt,
+  ExternalLink,
 } from "lucide-react";
-import crmVendorService from "../../services/crmVendorService.js";
 
 export default function NotificationBell({ className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,28 +27,17 @@ export default function NotificationBell({ className }) {
   const fetchNotifications = async () => {
     try {
       const res = await apiClient.get("/admin/notifications?limit=30");
-      let backendNotifs = res.data?.notifications || [];
-      
-      const localNotifs = crmVendorService.getAdminNotifications();
-      
-      const merged = [...backendNotifs, ...localNotifs].sort((a, b) => new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp));
-      
-      const unreadLocal = localNotifs.filter(n => !n.read).length;
-      const unreadBackend = res.data?.unreadCount || 0;
-      
-      setNotifications(merged);
-      setUnreadCount(unreadBackend + unreadLocal);
+      const backendNotifs = res.data?.notifications || [];
+      setNotifications(backendNotifs);
+      setUnreadCount(res.data?.unreadCount || 0);
     } catch (err) {
-      // Fallback if backend is down
-      const localNotifs = crmVendorService.getAdminNotifications();
-      setNotifications(localNotifs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
-      setUnreadCount(localNotifs.filter(n => !n.read).length);
+      console.error("Failed to fetch notifications:", err);
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 5000);
+    const interval = setInterval(fetchNotifications, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -97,6 +87,24 @@ export default function NotificationBell({ className }) {
       setUnreadCount(0);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteOne = async (id, e) => {
+    if (e) e.stopPropagation();
+    try {
+      if (id && !id.startsWith("admin-notif-")) {
+        await apiClient.delete(`/admin/notifications/${id}`);
+      }
+      setNotifications((prev) => {
+        const item = prev.find((n) => n._id === id || n.id === id);
+        if (item && !item.read && !item.isRead) {
+          setUnreadCount((c) => Math.max(0, c - 1));
+        }
+        return prev.filter((n) => n._id !== id && n.id !== id);
+      });
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
     }
   };
 
@@ -227,21 +235,21 @@ export default function NotificationBell({ className }) {
                 </p>
               </div>
             ) : (
-              notifications.map((item) => {
+              notifications.slice(0, 5).map((item) => {
                 const conf = getIconAndColor(item.type);
                 const empDisplay = item.employeeName || (item.metadata?.name ? `${item.metadata.name} (${item.metadata.employeeId || "EMP"})` : null);
                 return (
                   <div
                     key={item.id}
                     onClick={() => !item.read && handleMarkOneAsRead(item.id)}
-                    className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-slate-50 ${
+                    className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-slate-50 group relative ${
                       !item.read ? "bg-cyan-50/40 border-l-3 border-cyan-500" : ""
                     }`}
                   >
                     <div className="p-2 rounded-xl bg-slate-100 shrink-0 mt-0.5 border border-slate-200">
                       {conf.icon}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-1">
                       <div className="flex items-center justify-between gap-1 mb-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span
@@ -267,18 +275,38 @@ export default function NotificationBell({ className }) {
                         {item.message}
                       </p>
                     </div>
-                    {!item.read && (
-                      <span className="w-2 h-2 rounded-full bg-cyan-500 shrink-0 mt-2" />
-                    )}
+
+                    <div className="flex flex-col items-end gap-1.5 shrink-0 mt-0.5">
+                      {!item.read && (
+                        <span className="w-2 h-2 rounded-full bg-cyan-500 shrink-0" />
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteOne(item.id || item._id, e)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                        title="Delete notification"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 );
               })
             )}
           </div>
 
-          {}
-          <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Auto-updates in real-time</span>
+          {/* View All & Footer */}
+          <Link
+            to="/admin/dashboard/announcements"
+            onClick={() => setIsOpen(false)}
+            className="w-full py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-900 border-t border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <span>View All Notifications {notifications.length > 0 ? `(${notifications.length} Total)` : ""}</span>
+            <ExternalLink size={12} />
+          </Link>
+
+          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Showing top 5 • Real-time</span>
             <button
               onClick={fetchNotifications}
               className="text-cyan-600 hover:text-cyan-700 font-semibold cursor-pointer"

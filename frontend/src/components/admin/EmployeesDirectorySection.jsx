@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Edit, UserMinus } from "lucide-react";
+import { Edit, UserMinus } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 
 export default function EmployeesDirectorySection({
@@ -19,12 +19,9 @@ export default function EmployeesDirectorySection({
             Manage employee profiles, contact details, designations, departments, and documents
           </p>
         </div>
-        <button
-          onClick={handleOpenAddModal}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm shadow-blue-500/20 transition-all"
-        >
-          <Plus size={15} /> Add New Employee
-        </button>
+        <div className="px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-700 shadow-2xs">
+          Total Employees: <span className="font-black text-blue-900">{employees.length}</span>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">

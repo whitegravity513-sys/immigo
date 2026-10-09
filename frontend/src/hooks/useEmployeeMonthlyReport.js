@@ -5,6 +5,8 @@ import { getEmployeeList, getEmployeeMonthlyReport } from "../services/employeeS
 export const useEmployeeMonthlyReport = (token) => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [customStartDate, setCustomStartDate] = useState(null);
+  const [customEndDate, setCustomEndDate] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [monthlyData, setMonthlyData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,7 @@ export const useEmployeeMonthlyReport = (token) => {
     }
   };
 
-  const fetchMonthlyReport = async () => {
+  const fetchMonthlyReport = async (overrideStart = null, overrideEnd = null) => {
     if (!selectedEmployee) {
       setErrorMsg("Please select an employee");
       return;
@@ -50,7 +52,17 @@ export const useEmployeeMonthlyReport = (token) => {
       const month = selectedMonth.getMonth() + 1;
       const year = selectedMonth.getFullYear();
 
-      const data = await getEmployeeMonthlyReport(selectedEmployee._id, month, year, token);
+      const toDateString = (d) => {
+        if (!d) return null;
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) return null;
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+      };
+
+      const startParam = toDateString(overrideStart !== null ? overrideStart : customStartDate);
+      const endParam = toDateString(overrideEnd !== null ? overrideEnd : customEndDate);
+
+      const data = await getEmployeeMonthlyReport(selectedEmployee._id, month, year, startParam, endParam);
       setMonthlyData(data);
       setSuccessMsg("Report loaded successfully!");
     } catch (err) {
@@ -165,6 +177,10 @@ export const useEmployeeMonthlyReport = (token) => {
     setSelectedEmployee,
     selectedMonth,
     setSelectedMonth,
+    customStartDate,
+    setCustomStartDate,
+    customEndDate,
+    setCustomEndDate,
     monthlyData,
     loading,
     errorMsg,

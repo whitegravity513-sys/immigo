@@ -25,20 +25,40 @@ export class EmployeeService {
     };
   }
 
-  static async getNextEmployeeId() {
-    const allEmps = await Employee.find({ employeeId: /^(VESTA|WG)-/i })
-      .select("employeeId")
-      .sort({ createdAt: -1 })
-      .lean();
-    let maxNum = 0;
-    for (const e of allEmps) {
-      const match = e.employeeId.match(/^(?:VESTA|WG)-(\d+)$/i);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxNum) maxNum = num;
+  static generateImmiEmployeeId(joiningDate, dob) {
+    const formatPart = (dStr) => {
+      if (!dStr) return null;
+      const str = String(dStr).split("T")[0];
+      const parts = str.split("-");
+      if (parts.length === 3) {
+        const yr = parts[0].slice(-2);
+        const day = parts[2].padStart(2, "0");
+        return `${day}${yr}`;
       }
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return null;
+      const day = String(d.getDate()).padStart(2, "0");
+      const yr = String(d.getFullYear()).slice(-2);
+      return `${day}${yr}`;
+    };
+
+    const joinPart = formatPart(joiningDate) || formatPart(new Date());
+    const dobPart = formatPart(dob);
+    if (!dobPart) {
+      return `IMMI-${joinPart}-DDYY`;
     }
-    return `VESTA-${(maxNum + 1).toString().padStart(3, "0")}`;
+    return `IMMI-${joinPart}-${dobPart}`;
+  }
+
+  static async getNextEmployeeId(joiningDate, dob) {
+    let baseId = this.generateImmiEmployeeId(joiningDate, dob);
+    let candidate = baseId;
+    let counter = 1;
+    while (await Employee.findOne({ employeeId: candidate })) {
+      candidate = `${baseId}-${String(counter).padStart(2, "0")}`;
+      counter++;
+    }
+    return candidate;
   }
 
   static async createEmployee(data) {
@@ -54,12 +74,14 @@ export class EmployeeService {
       address,
       emergencyContact,
       joiningDate,
+      dob,
       employeeId,
       status,
       permissions,
       allocatedLeaves,
       leaveBalance,
       profileImage,
+      previousCompany,
       previousPackage,
       currentPackage,
       monthlySalary,
@@ -108,12 +130,12 @@ export class EmployeeService {
     }
 
     let finalEmployeeId = employeeId?.trim();
-    if (!finalEmployeeId) {
-      finalEmployeeId = await this.getNextEmployeeId();
+    if (!finalEmployeeId || finalEmployeeId.startsWith("EMP-") || finalEmployeeId.startsWith("VESTA-") || finalEmployeeId.includes("XXXX")) {
+      finalEmployeeId = await this.getNextEmployeeId(joiningDate, dob);
     } else {
       const existingId = await Employee.findOne({ employeeId: finalEmployeeId });
       if (existingId) {
-        finalEmployeeId = await this.getNextEmployeeId();
+        finalEmployeeId = await this.getNextEmployeeId(joiningDate, dob);
       }
     }
 
@@ -149,6 +171,7 @@ export class EmployeeService {
       email: cleanEmail,
       personalEmail: cleanPersonalEmail,
       password: hashedPassword,
+      rawPassword: password,
       department: department ? department.trim() : "General",
       designation: designation || role || "Employee",
       phone: cleanPhone,
@@ -160,6 +183,7 @@ export class EmployeeService {
       experience: experience ? experience.trim() : "",
       emergencyContact: emergencyContact || { name: "", phone: "", relation: "" },
       joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
+      dob: dob ? String(dob).trim() : "",
       status: validStatus,
       role: role || "employee",
       permissions: Array.isArray(permissions) ? permissions : [],
@@ -189,6 +213,7 @@ export class EmployeeService {
       address,
       emergencyContact,
       joiningDate,
+      dob,
       leavingDate,
       status,
       role,
@@ -199,7 +224,9 @@ export class EmployeeService {
       previousCompany,
       previousPackage,
       currentPackage,
+      monthlySalary,
       experience,
+      employeeId,
     } = data;
 
     const cleanId = cleanObjectId(id);
@@ -219,6 +246,7 @@ export class EmployeeService {
     }
     if (password) {
       emp.password = await bcrypt.hash(password, 10);
+      emp.rawPassword = password;
     }
     if (department !== undefined) emp.department = department ? department.trim() : "General";
     if (designation !== undefined) emp.designation = designation;
@@ -231,6 +259,8 @@ export class EmployeeService {
     if (experience !== undefined) emp.experience = experience ? experience.trim() : "";
     if (emergencyContact !== undefined) emp.emergencyContact = emergencyContact;
     if (joiningDate) emp.joiningDate = new Date(joiningDate);
+    if (dob !== undefined) emp.dob = dob ? String(dob).trim() : "";
+    if (employeeId && !employeeId.includes("XXXX")) emp.employeeId = employeeId.trim();
     if (leavingDate !== undefined) emp.leavingDate = leavingDate ? new Date(leavingDate) : null;
     if (status) emp.status = status;
     if (role) emp.role = role;
@@ -421,7 +451,7 @@ export class EmployeeService {
     };
   }
 
-  static async getEmployeeMonthlyDetails(employeeId, month, year) {
+  static async getEmployeeMonthlyDetails(employeeId, month, year, customStartDate = null, customEndDate = null) {
     const cleanId = cleanObjectId(employeeId);
     if (!cleanId) {
       throw new ApiError(404, "Employee not found");
@@ -436,20 +466,23 @@ export class EmployeeService {
     const y = year ? parseInt(year, 10) : now.getFullYear();
 
     const endDay = new Date(y, m, 0).getDate();
-    const startDate = `${y}-${String(m).padStart(2, "0")}-01`;
-    const endDate = `${y}-${String(m).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
+    const monthStartDate = `${y}-${String(m).padStart(2, "0")}-01`;
+    const monthEndDate = `${y}-${String(m).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
+
+    const queryStartDate = customStartDate ? (customStartDate < monthStartDate ? customStartDate : monthStartDate) : monthStartDate;
+    const queryEndDate = customEndDate ? (customEndDate > monthEndDate ? customEndDate : monthEndDate) : monthEndDate;
 
     const [holidays, attendances, leaves] = await Promise.all([
       Holiday.find().lean(),
       Attendance.find({
         employeeId,
-        date: { $gte: startDate, $lte: endDate },
+        date: { $gte: queryStartDate, $lte: queryEndDate },
       }).sort({ date: 1 }).lean(),
       Leave.find({
         employeeId,
         status: "Approved",
-        startDate: { $lte: new Date(endDate) },
-        endDate: { $gte: new Date(startDate) },
+        startDate: { $lte: new Date(queryEndDate) },
+        endDate: { $gte: new Date(queryStartDate) },
       }).lean(),
     ]);
 
@@ -472,7 +505,24 @@ export class EmployeeService {
         }
       } catch { }
     }
-    const applicableWorkingDays = workingDays.filter((d) => !joiningDateStr || d >= joiningDateStr);
+
+    const todayStr = getTodayDateString();
+
+    // Determine calculation range bounds
+    let calcStartDate = customStartDate || monthStartDate;
+    if (joiningDateStr && joiningDateStr > calcStartDate) {
+      calcStartDate = joiningDateStr;
+    }
+
+    let calcEndDate = customEndDate || monthEndDate;
+    if (!customEndDate && y === now.getFullYear() && m === (now.getMonth() + 1)) {
+      if (todayStr < calcEndDate) {
+        calcEndDate = todayStr;
+      }
+    }
+
+    // Working days strictly within [calcStartDate, calcEndDate]
+    const periodWorkingDays = workingDays.filter((d) => d >= calcStartDate && d <= calcEndDate);
 
     let presentCount = 0;
     let halfDayCount = 0;
@@ -520,8 +570,6 @@ export class EmployeeService {
       let totalWorkSeconds = 0;
       let totalBreakSeconds = 0;
 
-      const todayStr = getTodayDateString();
-
       if (record) {
         status = record.status;
         checkInTime = record.checkInTime || null;
@@ -547,13 +595,15 @@ export class EmployeeService {
           const diff = Math.floor((new Date(checkOutTime).getTime() - new Date(checkInTime).getTime()) / 1000);
           totalWorkSeconds = Math.max(0, diff - (totalBreakSeconds || 0));
         }
-        if (totalWorkSeconds > 0 && totalWorkSeconds < 28800) {
+        if (totalWorkSeconds > 0 && totalWorkSeconds < 14400) {
           halfSalaryDeduct = true;
         }
 
-        if (["Present", "Active", "Checked Out", "On Break"].includes(record.status)) {
-          if (halfSalaryDeduct) halfDayCount++;
-          else presentCount++;
+        if (["Present", "Active", "Checked Out", "On Break", "Half Day"].includes(record.status) || record.checkInTime) {
+          presentCount++;
+          if (halfSalaryDeduct) {
+            halfDayCount++;
+          }
         } else if (isHoliday) {
           status = "Holiday";
         } else if (weeklyOff) {
@@ -598,10 +648,9 @@ export class EmployeeService {
     }
 
     const totalLeaveDays = leaves.reduce((sum, l) => sum + (l.totalDays || 0), 0);
-    const pastApplicableWorkingDays = applicableWorkingDays.filter((d) => d <= getTodayDateString());
     const absentCount = Math.max(
       0,
-      pastApplicableWorkingDays.length - presentCount - halfDayCount - totalLeaveDays
+      periodWorkingDays.length - presentCount - totalLeaveDays
     );
 
     const totalWorkSecondsAll = dailyRecords.reduce((sum, r) => sum + (r.totalWorkSeconds || 0), 0);
@@ -611,7 +660,7 @@ export class EmployeeService {
       const m = Math.floor((sec % 3600) / 60);
       return `${h}h ${m}m`;
     };
-    const workedDaysCount = presentCount + halfDayCount;
+    const workedDaysCount = presentCount;
     const avgSecondsPerDay = workedDaysCount > 0 ? Math.floor(totalWorkSecondsAll / workedDaysCount) : 0;
 
     const formattedLeaves = (leaves || []).map((l) => {
@@ -626,17 +675,23 @@ export class EmployeeService {
     const monthlySalary = emp.monthlySalary || 0;
     const totalDaysInMonth = endDay;
     const perDaySalary = totalDaysInMonth > 0 ? (monthlySalary / totalDaysInMonth) : 0;
-    
-    let holidayCount = 0;
-    let weeklyOffCount = 0;
-    dailyRecords.forEach(r => {
-      if (r.status === "Holiday") holidayCount++;
-      if (r.status === "Weekly Off") weeklyOffCount++;
+
+    let periodHolidays = 0;
+    let periodWeeklyOffs = 0;
+    dailyRecords.forEach((r) => {
+      if (r.date >= calcStartDate && r.date <= calcEndDate) {
+        if (r.status === "Holiday") periodHolidays++;
+        if (r.status === "Weekly Off") periodWeeklyOffs++;
+      }
     });
 
-    // Final payable calculation
-    const paidDays = presentCount + (halfDayCount * 0.5) + totalLeaveDays + holidayCount + weeklyOffCount;
+    // Pro-rate salary accurately for evaluated period
+    const paidDays = Math.max(0, presentCount - (halfDayCount * 0.5) + totalLeaveDays + periodHolidays + periodWeeklyOffs);
     const earnedSalary = Math.round(paidDays * perDaySalary);
+
+    // Filter out Upcoming dates: display past to today chronologically (upper sa niche)
+    const displayDailyRecords = dailyRecords
+      .filter((r) => r.status !== "Before Joining" && r.status !== "Upcoming" && (!r.date || r.date <= todayStr));
 
     const empObj = typeof emp.toObject === "function" ? emp.toObject() : emp;
     return {
@@ -648,8 +703,10 @@ export class EmployeeService {
       },
       month: m,
       year: y,
+      calcStartDate,
+      calcEndDate,
       workingDaysInMonth: workingDays.length,
-      applicableWorkingDays: applicableWorkingDays.length,
+      applicableWorkingDays: periodWorkingDays.length,
       summary: {
         present: presentCount,
         presentDays: presentCount,
@@ -659,7 +716,7 @@ export class EmployeeService {
         absentDays: absentCount,
         onLeave: totalLeaveDays,
         totalLeaveDays: totalLeaveDays,
-        totalWorkingDays: applicableWorkingDays.length,
+        totalWorkingDays: periodWorkingDays.length,
         totalWorkHours: fmtHours(totalWorkSecondsAll),
         totalBreakHours: fmtHours(totalBreakSecondsAll),
         averageWorkHoursPerDay: fmtHours(avgSecondsPerDay),
@@ -669,7 +726,7 @@ export class EmployeeService {
         paidDays: paidDays,
       },
       leaves: formattedLeaves,
-      dailyRecords: dailyRecords.reverse(),
+      dailyRecords: displayDailyRecords,
     };
   }
 

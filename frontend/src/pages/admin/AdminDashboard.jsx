@@ -33,13 +33,13 @@ import {
   EmployeeDetailSection,
   AttendanceCalendarSection,
   RegisterEmployeeModal,
+  RegisterEmployeeSection,
+  EditEmployeeSection,
 } from "../../components/admin";
 import { AdminLayout } from "../../layouts";
 import ErrorBoundary from "../../components/common/ErrorBoundary.jsx";
 import { toLocalDateStr } from "../../utils/formatters.js";
 import PastAttendanceModal from "../../components/admin/modals/PastAttendanceModal.jsx";
-import EditEmployeeModal from "../../components/admin/modals/EditEmployeeModal.jsx";
-import LeaveActionModal from "../../components/admin/modals/LeaveActionModal.jsx";
 import DocPreviewModal from "../../components/admin/modals/DocPreviewModal.jsx";
 import TextModal from "../../components/admin/modals/TextModal.jsx";
 
@@ -49,12 +49,24 @@ function AdminDashboard({ user, token, onLogout }) {
   const location = useLocation();
 
   const pathParts = location.pathname.replace(/\/+$/, "").split("/");
-  const isEmployeeDetail = pathParts.includes("employee");
+  const isRegisterEmployee =
+    pathParts.includes("register-employee") ||
+    pathParts.includes("create-employee") ||
+    (pathParts.includes("employees") && (pathParts.includes("register") || pathParts.includes("create")));
+  const isEditEmployee =
+    pathParts.includes("edit-employee") ||
+    (pathParts.includes("employees") && pathParts.includes("edit"));
+  const isEmployeeDetail = !isRegisterEmployee && !isEditEmployee && pathParts.includes("employee") && !pathParts.includes("employees");
   const rawSegment = pathParts.pop();
-  const pathSegment =
+  let pathSegment =
     rawSegment === "admin" || rawSegment === "dashboard" || !rawSegment
       ? "workforce"
       : rawSegment;
+  if (isRegisterEmployee) {
+    pathSegment = "register-employee";
+  } else if (isEditEmployee) {
+    pathSegment = "edit-employee";
+  }
   const view = isEmployeeDetail ? "employee-detail" : pathSegment;
 
   const {
@@ -188,6 +200,7 @@ function AdminDashboard({ user, token, onLogout }) {
     handleUpdateEmployeeSubmit,
     openLeaveActionModal,
     handleSubmitLeaveAction,
+    handleDirectLeaveAction,
     formatDuration,
     formatDate,
     formatTime,
@@ -261,7 +274,7 @@ function AdminDashboard({ user, token, onLogout }) {
       openEmployeeDetail={openEmployeeDetail}
       formatDate={formatDate}
       setPreviewDoc={setPreviewDoc}
-      openLeaveActionModal={openLeaveActionModal}
+      handleDirectLeaveAction={handleDirectLeaveAction}
     />
   );
 
@@ -335,7 +348,7 @@ function AdminDashboard({ user, token, onLogout }) {
     {
       key: "attendance-all",
       icon: <Clock size={16} className="shrink-0" />,
-      label: "Attendance Register",
+      label: "Daily Attendance",
       onClick: () => navigateTo("attendance-all"),
     },
     {
@@ -343,6 +356,15 @@ function AdminDashboard({ user, token, onLogout }) {
       icon: <Users size={16} className="shrink-0" />,
       label: "Employees Directory",
       onClick: () => navigateTo("employees"),
+    },
+    {
+      key: "register-employee",
+      icon: <UserPlus size={16} className="shrink-0" />,
+      label: "Register New Employee",
+      onClick: () => {
+        handleOpenAddModal();
+        navigateTo("register-employee");
+      },
     },
     {
       key: "leaves",
@@ -455,6 +477,30 @@ function AdminDashboard({ user, token, onLogout }) {
             onGoBack={() => navigateTo("live")}
           />
         )}
+        {view === "register-employee" && (
+          <RegisterEmployeeSection
+            employeeForm={employeeForm}
+            setEmployeeForm={setEmployeeForm}
+            onSubmit={handleCreateEmployeeSubmit}
+            loading={loading}
+            errorMsg={errorMsg}
+            onCancel={() => navigateTo("employees")}
+          />
+        )}
+        {view === "edit-employee" && (
+          <EditEmployeeSection
+            editingEmployee={editingEmployee}
+            editForm={editForm}
+            setEditForm={setEditForm}
+            onSubmit={handleUpdateEmployeeSubmit}
+            loading={loading}
+            errorMsg={errorMsg}
+            onCancel={() => {
+              setEditingEmployee(null);
+              navigateTo("employees");
+            }}
+          />
+        )}
       </ErrorBoundary>
 
       <PastAttendanceModal
@@ -467,35 +513,7 @@ function AdminDashboard({ user, token, onLogout }) {
 
       <TextModal data={textModalData} onClose={() => setTextModalData(null)} />
 
-      <RegisterEmployeeModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        employeeForm={employeeForm}
-        setEmployeeForm={setEmployeeForm}
-        onSubmit={handleCreateEmployeeSubmit}
-        loading={loading}
-        errorMsg={errorMsg}
-      />
-
-      <EditEmployeeModal
-        editingEmployee={editingEmployee}
-        setEditingEmployee={setEditingEmployee}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        onSubmit={handleUpdateEmployeeSubmit}
-        loading={loading}
-      />
-
       <DocPreviewModal previewDoc={previewDoc} onClose={() => setPreviewDoc(null)} />
-
-      <LeaveActionModal
-        leaveActionModal={leaveActionModal}
-        setLeaveActionModal={setLeaveActionModal}
-        leaveActionRemark={leaveActionRemark}
-        setLeaveActionRemark={setLeaveActionRemark}
-        handleSubmitLeaveAction={handleSubmitLeaveAction}
-        loading={loading}
-      />
     </AdminLayout>
   );
 }

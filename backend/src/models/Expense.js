@@ -55,7 +55,7 @@ const expenseSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Approved", "Rejected"],
+      enum: ["Pending", "Approved", "Rejected", "Paid"],
       default: "Approved",
       index: true,
     },
@@ -72,6 +72,30 @@ const expenseSchema = new mongoose.Schema(
     reviewedAt: {
       type: Date,
       default: null,
+    },
+    paidAt: {
+      type: Date,
+      default: null,
+    },
+    paidBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+      default: null,
+    },
+    paymentMode: {
+      type: String,
+      default: "Bank Transfer",
+      trim: true,
+    },
+    transactionRef: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    paymentNote: {
+      type: String,
+      default: "",
+      trim: true,
     },
   },
   {

@@ -10,9 +10,10 @@ import {
   Clock,
   Calendar,
   X,
+  Trash2,
 } from "lucide-react";
 
-export default function EmployeeNotificationBell({ token, onSelectMeeting, onNewNotification, className }) {
+export default function EmployeeNotificationBell({ token, onSelectMeeting, onNewNotification, onViewAll, className }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -26,6 +27,13 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
       if (res.data) {
         let list = res.data.notifications || [];
         const lastReadAllTs = parseInt(localStorage.getItem("emp_notifs_read_all_ts") || "0", 10);
+        const clearedTs = parseInt(localStorage.getItem("emp_notifs_cleared_ts") || "0", 10);
+
+        // Filter out notifications cleared by employee
+        list = list.filter((n) => {
+          const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
+          return !clearedTs || (itemTime && itemTime > clearedTs);
+        });
 
         let effectiveUnread = 0;
         list = list.map((n) => {
@@ -59,7 +67,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000);
+    const interval = setInterval(fetchNotifications, 2000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -93,6 +101,33 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
       await apiClient.put("/employee/notifications/read-all", {});
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      localStorage.setItem("emp_notifs_cleared_ts", Date.now().toString());
+      await apiClient.delete("/employee/notifications");
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Failed to clear notifications:", err);
+    }
+  };
+
+  const handleDeleteOne = async (id, e) => {
+    if (e) e.stopPropagation();
+    try {
+      await apiClient.delete(`/employee/notifications/${id}`);
+      setNotifications((prev) => {
+        const item = prev.find((n) => n.id === id || n._id === id);
+        if (item && !item.read) {
+          setUnreadCount((c) => Math.max(0, c - 1));
+        }
+        return prev.filter((n) => n.id !== id && n._id !== id);
+      });
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
     }
   };
 
@@ -143,16 +178,29 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
               )}
             </div>
 
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllAsRead}
-                className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-200/80 cursor-pointer font-semibold"
-                title="Mark all as read"
-              >
-                <CheckCheck size={13} className="text-emerald-600" />
-                <span className="text-[11px]">Read All</span>
-              </button>
-            )}
+            <div className="flex items-center gap-1.5">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllAsRead}
+                  className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-200/80 cursor-pointer font-semibold"
+                  title="Mark all as read"
+                >
+                  <CheckCheck size={13} className="text-emerald-600" />
+                  <span className="text-[11px]">Read All</span>
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
+                  title="Clear all notifications"
+                >
+                  <Trash2 size={13} />
+                </button>
+              )}
+            </div>
           </div>
 
           {}
@@ -166,7 +214,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                 </p>
               </div>
             ) : (
-              notifications.map((item) => {
+              notifications.slice(0, 5).map((item) => {
                 const isMeeting = item.type === "MEETING" || item.metadata?.meetingLink;
                 const meetingLink = item.metadata?.meetingLink;
                 const notifId = item.id || item._id;
@@ -175,7 +223,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                   <div
                     key={notifId}
                     onClick={() => !item.read && handleMarkOneAsRead(notifId)}
-                    className={`p-3.5 transition-colors cursor-pointer hover:bg-slate-50 flex flex-col gap-1.5 ${
+                    className={`p-3.5 transition-colors cursor-pointer hover:bg-slate-50 flex flex-col gap-1.5 group relative ${
                       !item.read
                         ? "bg-blue-50/50 border-l-3 border-blue-600"
                         : "bg-white opacity-80 hover:opacity-100"
@@ -205,9 +253,19 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {formatTimeAgo(item.createdAt)}
-                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {formatTimeAgo(item.createdAt)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteOne(notifId, e)}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all cursor-pointer"
+                          title="Delete notification"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
 
                     <h4 className="text-xs font-bold text-slate-900 leading-snug">
@@ -218,7 +276,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                       {item.message}
                     </p>
 
-                    {}
                     {meetingLink && (
                       <div className="pt-1.5 flex items-center justify-between gap-2">
                         <a
@@ -248,12 +305,23 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
             )}
           </div>
 
-          {}
-          <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Updates automatically</span>
+          {/* Footer with View All link */}
+          <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
             <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                if (onViewAll) onViewAll();
+              }}
+              className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <span>View All Notifications & Announcements {notifications.length > 0 ? `(${notifications.length})` : ""}</span>
+              <ExternalLink size={12} />
+            </button>
+            <button
+              type="button"
               onClick={fetchNotifications}
-              className="text-emerald-600 hover:text-emerald-700 font-bold cursor-pointer"
+              className="text-slate-500 hover:text-slate-800 text-[11px] font-semibold cursor-pointer"
             >
               Refresh
             </button>

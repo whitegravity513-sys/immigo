@@ -1,4 +1,5 @@
 import Notification from "../models/Notification.js";
+import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 
 export class NotificationService {
@@ -42,28 +43,48 @@ export class NotificationService {
       ],
     };
 
-    const [notifications, unreadCount] = await Promise.all([
-      Notification.find(query)
-        .populate("employeeId", "name employeeId designation")
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .lean(),
-      Notification.countDocuments({ ...query, read: false }),
-    ]);
+    let notifications = [];
+    let unreadCount = 0;
+
+    try {
+      [notifications, unreadCount] = await Promise.all([
+        Notification.find(query)
+          .populate("employeeId", "name employeeId designation")
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .lean(),
+        Notification.countDocuments({ ...query, read: false }),
+      ]);
+    } catch (err) {
+      console.error("Error fetching notifications with populate, trying fallback:", err);
+      try {
+        [notifications, unreadCount] = await Promise.all([
+          Notification.find(query)
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .lean(),
+          Notification.countDocuments({ ...query, read: false }),
+        ]);
+      } catch (innerErr) {
+        console.error("Error fetching notifications fallback failed:", innerErr);
+        notifications = [];
+        unreadCount = 0;
+      }
+    }
 
     return {
       unreadCount,
-      notifications: notifications.map((n) => ({
-        id: n._id.toString(),
-        _id: n._id.toString(),
+      notifications: (notifications || []).map((n) => ({
+        id: n._id ? n._id.toString() : "",
+        _id: n._id ? n._id.toString() : "",
         type: n.type,
         title: n.title,
         message: n.message,
-        read: n.read,
+        read: Boolean(n.read),
         employeeName: n.employeeName || n.employeeId?.name || "Employee",
         employeeCode: n.employeeId?.employeeId || "",
         createdAt: n.createdAt,
-        metadata: n.metadata,
+        metadata: n.metadata || {},
       })),
     };
   }
@@ -92,12 +113,18 @@ export class NotificationService {
     return { success: true };
   }
 
+  static async deleteNotification(id) {
+    await Notification.findByIdAndDelete(id);
+    return { success: true };
+  }
+
   static async getEmployeeNotifications(employeeId, limit = 30) {
     const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
       ? new mongoose.Types.ObjectId(employeeId.toString())
       : null;
 
     const filter = {
+      ...(empObjId ? { deletedBy: { $ne: empObjId } } : {}),
       $or: [
         {
           targetRole: { $in: ["EMPLOYEE", "ALL"] },
@@ -193,6 +220,58 @@ export class NotificationService {
         }
       );
     }
+
+    return { success: true };
+  }
+
+  static async deleteEmployeeNotification(notificationId, employeeId) {
+    const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
+      ? new mongoose.Types.ObjectId(employeeId.toString())
+      : null;
+
+    const notif = await Notification.findById(notificationId);
+    if (!notif) return { success: true };
+
+    if (notif.targetType === "ALL") {
+      if (empObjId) {
+        await Notification.findByIdAndUpdate(notificationId, {
+          $addToSet: { deletedBy: empObjId },
+        });
+      }
+    } else {
+      await Notification.findByIdAndDelete(notificationId);
+    }
+    return { success: true };
+  }
+
+  static async clearAllForEmployee(employeeId) {
+    const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
+      ? new mongoose.Types.ObjectId(employeeId.toString())
+      : null;
+
+    if (empObjId) {
+      await Notification.updateMany(
+        {
+          $or: [
+            { targetType: "ALL" },
+            { targetRole: "ALL" },
+          ],
+          deletedBy: { $ne: empObjId },
+        },
+        {
+          $addToSet: { deletedBy: empObjId },
+        }
+      );
+    }
+
+    await Notification.deleteMany({
+      $or: [
+        ...(empObjId ? [{ targetEmployeeId: empObjId }] : []),
+        { targetEmployeeId: employeeId },
+        ...(empObjId ? [{ employeeId: empObjId }] : []),
+        { employeeId },
+      ],
+    });
 
     return { success: true };
   }
