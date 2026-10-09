@@ -22,8 +22,6 @@ export default function SelectedCandidates() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [statusFilter, setStatusFilter] = useState("All");
-
   useEffect(() => {
     loadData();
   }, []);
@@ -34,11 +32,11 @@ export default function SelectedCandidates() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
       const data = await crmVendorService.getApplications(curVendor?.id);
-      // Filter selected, shortlisted or completed
-      const relevantApps = (data || []).filter(
-        (a) => a.status === "Selected" || a.status === "Completed" || a.status === "Shortlisted"
+      // Filter only selected or completed
+      const selectedApps = (data || []).filter(
+        (a) => a.status === "Selected" || a.status === "Completed"
       );
-      setApplications(relevantApps);
+      setApplications(selectedApps);
     } catch (err) {
       console.error("Failed to load selected candidates:", err);
     } finally {
@@ -47,7 +45,6 @@ export default function SelectedCandidates() {
   };
 
   const filtered = applications.filter((app) => {
-    if (statusFilter !== "All" && app.status !== statusFilter) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -149,54 +146,16 @@ export default function SelectedCandidates() {
         </div>
       </div>
 
-      {/* Status Filter Tabs & Search */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl text-xs font-bold w-fit">
-          <button
-            type="button"
-            onClick={() => setStatusFilter("All")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              statusFilter === "All"
-                ? "bg-white text-slate-900 shadow-2xs font-extrabold"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            All ({applications.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter("Selected")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              statusFilter === "Selected"
-                ? "bg-emerald-600 text-white shadow-2xs font-extrabold"
-                : "text-emerald-700 hover:text-emerald-900"
-            }`}
-          >
-            🎉 Selected ({applications.filter(a => a.status === "Selected" || a.status === "Completed").length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter("Shortlisted")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              statusFilter === "Shortlisted"
-                ? "bg-purple-600 text-white shadow-2xs font-extrabold"
-                : "text-purple-700 hover:text-purple-900"
-            }`}
-          >
-            ⭐ Shortlisted ({applications.filter(a => a.status === "Shortlisted").length})
-          </button>
-        </div>
-
-        <div className="relative flex-1 sm:max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter by name, project, role, country..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs transition"
-          />
-        </div>
+      {/* Search */}
+      <div className="relative">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Filter selected candidates by name, project, role, country..."
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm transition"
+        />
       </div>
 
       {/* List */}

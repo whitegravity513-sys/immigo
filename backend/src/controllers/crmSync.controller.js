@@ -160,7 +160,6 @@ export const getAvailableProjects = asyncHandler(async (req, res) => {
             country: p.country || c.country || "Overseas",
             status: p.status || "Active",
             manpowerRequirements: p.manpowerRequirements || [],
-            paymentMilestones: p.paymentMilestones || [],
           });
         }
       }
@@ -184,7 +183,6 @@ export const getAvailableProjects = asyncHandler(async (req, res) => {
           clientId: String(cId),
           country: dp.country || dp.clientId?.country || "Overseas",
           status: dp.status || "Active",
-          paymentMilestones: dp.paymentMilestones || [],
           manpowerRequirements: Array.isArray(dp.manpowerRequirements) && dp.manpowerRequirements.length > 0
             ? dp.manpowerRequirements
             : [
@@ -207,15 +205,8 @@ export const getAvailableProjects = asyncHandler(async (req, res) => {
 export const getApplications = asyncHandler(async (req, res) => {
   const { vendorId, projectId } = req.query;
   const filter = {};
-  if (vendorId && vendorId !== "All" && vendorId !== "undefined" && vendorId !== "null") {
-    filter.$or = [
-      { vendorId: String(vendorId) },
-      { "candidateData.vendorId": String(vendorId) },
-    ];
-  }
-  if (projectId && projectId !== "All" && projectId !== "undefined" && projectId !== "null") {
-    filter.projectId = String(projectId);
-  }
+  if (vendorId) filter.vendorId = String(vendorId);
+  if (projectId) filter.projectId = String(projectId);
 
   const applications = await CrmCandidateApplication.find(filter).sort({ createdAt: -1 }).lean();
   const formatted = (applications || []).map((a) => ({
@@ -272,63 +263,29 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
 
-  const isMongoId = /^[0-9a-fA-F]{24}$/.test(id);
-  const query = isMongoId
-    ? { $or: [{ applicationId: id }, { _id: id }, { candidateId: id }] }
-    : { $or: [{ applicationId: id }, { candidateId: id }] };
-
-  let app = await CrmCandidateApplication.findOne(query);
-
-  if (!app && updateData.candidateId && updateData.projectId) {
-    app = await CrmCandidateApplication.findOne({
-      candidateId: updateData.candidateId,
-      projectId: updateData.projectId,
-    });
-  }
+  const app = await CrmCandidateApplication.findOne({
+    $or: [{ applicationId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
+  });
 
   if (!app) {
-    app = new CrmCandidateApplication({
-      applicationId: id,
-      ...updateData,
-    });
-  } else {
-    Object.assign(app, updateData);
+    return res.status(404).json({ success: false, message: "Application not found" });
   }
 
-  app.markModified("processMilestones");
-  app.markModified("paymentPlan");
-  app.markModified("interviewDetails");
-  app.markModified("candidateData");
+  Object.assign(app, updateData);
   await app.save();
 
-  // Create notifications for vendor & admin if status updated
+  // Create notification for vendor if status updated
   if (updateData.status) {
     try {
-      const statusTitle = updateData.status === "Shortlisted"
-        ? `Candidate Shortlisted: ${app.candidateName}`
-        : updateData.status === "Selected"
-        ? `Candidate Selected: ${app.candidateName} 🎉`
-        : updateData.status === "Rejected"
-        ? `Application Rejected: ${app.candidateName}`
-        : `Candidate Status Updated: ${app.candidateName}`;
-
       await CrmNotification.create({
         notificationId: `notif-ven-${Date.now()}`,
         recipientRole: "VENDOR",
-        vendorId: app.vendorId || null,
-        title: statusTitle,
-        message: `Candidate ${app.candidateName} status changed to "${updateData.status}" on project "${app.projectName}".`,
-        type: updateData.status === "Selected" || updateData.status === "Shortlisted" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
-        link: updateData.status === "Selected" ? "/vendor/selected" : updateData.status === "Rejected" ? "/vendor/rejected" : "/vendor/applications",
+        vendorId: app.vendorId,
+        title: `Candidate ${app.candidateName}: Status ${updateData.status}`,
+        message: `Candidate ${app.candidateName} status changed to "${updateData.status}" on project ${app.projectName}.`,
+        type: updateData.status === "Selected" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
+        link: "/vendor/candidates",
       });
-
-      await Notification.create({
-        type: "STATUS_UPDATE",
-        title: statusTitle,
-        message: `Candidate ${app.candidateName} (${app.projectName}) updated to ${updateData.status}.`,
-        targetRole: "ALL",
-        targetType: "ALL",
-      }).catch(() => {});
     } catch {}
   }
 

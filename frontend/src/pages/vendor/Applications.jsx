@@ -55,8 +55,7 @@ export default function Applications() {
   const statusTabs = [
     { label: "All", count: applications.length },
     { label: "Submitted", count: applications.filter((a) => a.status === "Submitted").length },
-    { label: "Under Review", count: applications.filter((a) => a.status === "Under Review").length },
-    { label: "Shortlisted", count: applications.filter((a) => a.status === "Shortlisted" || a.status === "Interview" || a.status === "Interview Scheduled").length },
+    { label: "Under Review", count: applications.filter((a) => a.status === "Under Review" || a.status === "Shortlisted").length },
     { label: "Selected", count: applications.filter((a) => a.status === "Selected").length },
     { label: "Rejected", count: applications.filter((a) => a.status === "Rejected").length },
     { label: "Completed", count: applications.filter((a) => a.status === "Completed").length },
@@ -65,9 +64,7 @@ export default function Applications() {
   // Filtering
   const filteredApplications = applications.filter((app) => {
     if (activeTab === "Under Review") {
-      if (app.status !== "Under Review") return false;
-    } else if (activeTab === "Shortlisted") {
-      if (app.status !== "Shortlisted" && app.status !== "Interview" && app.status !== "Interview Scheduled") return false;
+      if (app.status !== "Under Review" && app.status !== "Shortlisted") return false;
     } else if (activeTab !== "All" && app.status !== activeTab) {
       return false;
     }
