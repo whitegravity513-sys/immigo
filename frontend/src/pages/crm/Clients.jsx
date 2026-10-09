@@ -153,9 +153,16 @@ export function Clients() {
   const handleSaveProjectFromModal = async (projectData) => {
     if (!addProjectTargetClient) return;
     try {
+      const targetClientId =
+        addProjectTargetClient.id ||
+        addProjectTargetClient.clientId ||
+        addProjectTargetClient._id;
       const created = await crmClientService.addProject(
-        addProjectTargetClient.id,
-        projectData
+        targetClientId,
+        {
+          ...projectData,
+          clientName: addProjectTargetClient.companyName || addProjectTargetClient.name,
+        }
       );
       showToast(
         `Project "${created.projectName}" added to ${addProjectTargetClient.companyName}!`,

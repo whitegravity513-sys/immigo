@@ -14,7 +14,7 @@ export function AddProject() {
     try {
       const created = await crmClientService.addProject(clientId, projectData);
       showToast("Project requirement created successfully.", "success");
-      navigate(`/client/clients/${clientId}/projects/${created.id}`);
+      navigate("/client/projects");
     } catch (err) {
       console.error("Error creating project:", err);
       showToast(err.message || "Failed to create project", "error");

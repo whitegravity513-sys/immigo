@@ -252,8 +252,10 @@ export function ProjectForm({
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.clientId && clients.length > 0) {
-      newErrors.clientId = "Please select an existing client for this project";
+    if (!formData.clientId && !formData.clientName?.trim() && clients.length > 0) {
+      newErrors.client = "Please select an existing client or enter a client company name";
+    } else if (!formData.clientId && !formData.clientName?.trim() && clients.length === 0) {
+      newErrors.client = "Please enter the client company name";
     }
     if (!formData.projectName || !formData.projectName.trim()) {
       newErrors.projectName = "Project name is required";
@@ -275,9 +277,13 @@ export function ProjectForm({
     if (!asDraft && !validate()) return;
 
     const { list, headcount } = getResolvedRequirementsAndHeadcount();
+    const resolvedClientId = formData.clientId || `cli-${Date.now().toString().slice(-6)}`;
+    const resolvedClientName = selectedClient?.companyName || formData.clientName?.trim() || "Direct Overseas Client";
 
     const payload = {
       ...formData,
+      clientId: resolvedClientId,
+      clientName: resolvedClientName,
       manpowerRequirements: list,
       totalHeadcount: headcount,
       totalManpower: headcount,
@@ -288,7 +294,7 @@ export function ProjectForm({
       assignedVendorIds: formData.assignedVendorIds || [],
     };
 
-    onSubmit(payload, formData.clientId, asDraft);
+    onSubmit(payload, resolvedClientId, asDraft);
   };
 
   const totalHeadcount = Number(formData.totalHeadcount) || 0;
@@ -310,7 +316,7 @@ export function ProjectForm({
             {isEdit ? "Edit Project Details" : "Add Project to Client"}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Select an existing registered client and configure deployment project & manpower requirements.
+            Select an existing registered client or enter client name, then configure deployment project & manpower requirements.
           </p>
         </div>
 
@@ -344,10 +350,10 @@ export function ProjectForm({
       </div>
 
       <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
-        {/* SECTION 1: SELECT EXISTING CLIENT */}
+        {/* SECTION 1: SELECT EXISTING CLIENT OR ENTER CLIENT NAME */}
         <FormSection
           id="client-select"
-          title="Select Existing Client"
+          title="Client Company Details"
           subtitle="Link this project directly under an authorized registered client company."
           icon={Building2}
           badge="Required"
@@ -356,32 +362,53 @@ export function ProjectForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-1.5">
-                  Choose Client Company <span className="text-red-500">*</span>
+                  Client Company <span className="text-red-500">*</span>
                 </label>
                 {loadingClients ? (
                   <div className="h-10 bg-gray-100 animate-pulse rounded-lg" />
-                ) : (
-                  <select
-                    value={formData.clientId}
-                    onChange={handleClientChange}
-                    className={`w-full appearance-none text-sm rounded-lg border py-2.5 px-3.5 bg-white text-gray-900 cursor-pointer ${errors.clientId
-                        ? "border-red-400 focus:border-red-500 ring-2 ring-red-500/20"
-                        : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
+                ) : clients.length > 0 ? (
+                  <div className="space-y-2">
+                    <select
+                      value={formData.clientId}
+                      onChange={handleClientChange}
+                      className={`w-full appearance-none text-sm rounded-lg border py-2.5 px-3.5 bg-white text-gray-900 cursor-pointer ${
+                        errors.client || errors.clientId
+                          ? "border-red-400 focus:border-red-500 ring-2 ring-red-500/20"
+                          : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
                       }`}
-                  >
-                    <option value="" disabled>
-                      -- Select an existing client --
-                    </option>
-                    {clients.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        [{c.id}] {c.companyName} ({c.country || "International"})
-                      </option>
-                    ))}
-                  </select>
+                    >
+                      <option value="">-- Choose existing client or enter new below --</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          [{c.id}] {c.companyName} ({c.country || "International"})
+                        </option>
+                      ))}
+                    </select>
+                    {!formData.clientId && (
+                      <input
+                        type="text"
+                        name="clientName"
+                        value={formData.clientName || ""}
+                        onChange={handleFieldChange}
+                        placeholder="Or enter new Client Company Name..."
+                        className="w-full text-xs rounded-lg border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    name="clientName"
+                    value={formData.clientName || ""}
+                    onChange={handleFieldChange}
+                    placeholder="Enter Client / Company Name (e.g. Al-Futtaim Construction)..."
+                    className="w-full text-sm rounded-lg border border-gray-300 py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    required
+                  />
                 )}
-                {errors.clientId && (
+                {(errors.client || errors.clientId) && (
                   <p className="text-xs text-red-600 font-medium mt-1">
-                    {errors.clientId}
+                    {errors.client || errors.clientId}
                   </p>
                 )}
               </div>
@@ -414,7 +441,7 @@ export function ProjectForm({
                 </div>
               ) : (
                 <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-3.5 flex items-center text-xs text-gray-500 italic">
-                  Select a client from the dropdown to see company profile and link this project.
+                  Select an existing client or enter client name above to link this project requirement.
                 </div>
               )}
             </div>

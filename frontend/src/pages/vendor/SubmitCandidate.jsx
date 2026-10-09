@@ -237,6 +237,13 @@ export default function SubmitCandidate() {
     return list;
   }, [availableProjectsList, clients]);
 
+  // Automatically select target project if there's only 1 project available
+  useEffect(() => {
+    if (allProjects.length === 1 && !selectedProjectId) {
+      handleSelectProjectByName(allProjects[0].id);
+    }
+  }, [allProjects, selectedProjectId]);
+
   const selectedProject = allProjects.find((p) => String(p.id) === String(selectedProjectId));
   
   const availableRequirements = useMemo(() => {
@@ -812,9 +819,25 @@ export default function SubmitCandidate() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">
-                  Select Project Name <span className="text-rose-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Select Project Name <span className="text-rose-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const projs = await crmVendorService.getAvailableProjects(vendor?.id);
+                        setAvailableProjectsList(projs || []);
+                      } catch {}
+                    }}
+                    className="text-[10px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer"
+                    title="Reload latest projects from Admin"
+                  >
+                    <RotateCcw size={10} />
+                    <span>Refresh</span>
+                  </button>
+                </div>
                 <select
                   value={selectedProjectId}
                   onChange={(e) => handleSelectProjectByName(e.target.value)}

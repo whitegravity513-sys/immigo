@@ -1,4 +1,5 @@
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
+import Project from "../models/Project.js";
 import CrmCandidateApplication from "../models/CrmCandidateApplication.js";
 import CrmCandidate from "../models/CrmCandidate.js";
 import CrmNotification from "../models/CrmNotification.js";
@@ -48,9 +49,13 @@ export const saveClient = asyncHandler(async (req, res) => {
 
 // POST /api/crm-sync/projects
 export const addOrUpdateProject = asyncHandler(async (req, res) => {
-  const { clientId, project } = req.body;
-  if (!clientId || !project) {
-    return res.status(400).json({ success: false, message: "clientId and project are required" });
+  let { clientId, project } = req.body;
+  if (!project) {
+    return res.status(400).json({ success: false, message: "project data is required" });
+  }
+
+  if (!clientId || String(clientId).trim() === "") {
+    clientId = project.clientId || `cli-${Date.now().toString().slice(-6)}`;
   }
 
   const queryConditions = [{ clientId: String(clientId) }];
@@ -133,24 +138,64 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
 // GET /api/crm-sync/projects
 export const getAvailableProjects = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).lean();
+  const directProjects = await Project.find({}).populate("clientId").lean().catch(() => []);
 
   const list = [];
+  const seenIds = new Set();
+
+  // 1. Projects under CrmOverseasClient
   (clients || []).forEach((c) => {
     (c.projects || []).forEach((p) => {
       const status = (p.status || "Active").toLowerCase();
       if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
-        list.push({
-          ...p,
-          id: p.id || p.projectId || p._id?.toString() || `prj-${Date.now().toString().slice(-6)}`,
-          projectName: p.projectName || p.name || p.title || "Overseas Project",
-          clientId: c.clientId || c._id.toString(),
-          clientName: c.companyName || c.name || p.clientName || "Overseas Client",
-          country: p.country || c.country || "Overseas",
-          status: p.status || "Active",
-          manpowerRequirements: p.manpowerRequirements || [],
-        });
+        const pId = String(p.id || p.projectId || p._id?.toString() || "");
+        if (pId && !seenIds.has(pId)) {
+          seenIds.add(pId);
+          list.push({
+            ...p,
+            id: pId,
+            projectName: p.projectName || p.name || p.title || "Overseas Project",
+            clientId: c.clientId || c._id.toString(),
+            clientName: c.companyName || c.name || p.clientName || "Overseas Client",
+            country: p.country || c.country || "Overseas",
+            status: p.status || "Active",
+            manpowerRequirements: p.manpowerRequirements || [],
+          });
+        }
       }
     });
+  });
+
+  // 2. Direct Projects from Project collection (Admin Master Dashboard)
+  (directProjects || []).forEach((dp) => {
+    const pId = String(dp.projectId || dp.id || dp._id?.toString() || "");
+    if (pId && !seenIds.has(pId)) {
+      const status = (dp.status || "Pending").toLowerCase();
+      if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
+        seenIds.add(pId);
+        const cName = dp.clientId?.companyName || dp.clientId?.name || dp.clientName || "Direct Overseas Client";
+        const cId = dp.clientId?.clientId || dp.clientId?._id?.toString() || dp.clientId || "cli-admin";
+        list.push({
+          ...dp,
+          id: pId,
+          projectName: dp.title || dp.projectName || "Overseas Project",
+          clientName: cName,
+          clientId: String(cId),
+          country: dp.country || dp.clientId?.country || "Overseas",
+          status: dp.status || "Active",
+          manpowerRequirements: Array.isArray(dp.manpowerRequirements) && dp.manpowerRequirements.length > 0
+            ? dp.manpowerRequirements
+            : [
+                {
+                  id: `mpr-${pId}-1`,
+                  position: dp.projectType || dp.industryName || dp.title || "General Trade Position",
+                  positionTitle: dp.projectType || dp.industryName || dp.title || "General Trade Position",
+                  quantity: dp.totalHeadcount || dp.manpower || 1,
+                },
+              ],
+        });
+      }
+    }
   });
 
   return res.status(200).json({ success: true, projects: list.reverse() });
