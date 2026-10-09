@@ -87,11 +87,13 @@ export function Candidates() {
 
       // Filter by statusTab
       if (statusTab === "Available") {
-        // Includes Available, Rejected, and On Hold (all candidates reusable for new projects)
-        enriched = enriched.filter((c) => ["Available", "Rejected", "On Hold"].includes(c.poolStatus));
+        enriched = enriched.filter((c) => c.poolStatus === "Available");
+      } else if (statusTab === "Shortlisted") {
+        enriched = enriched.filter((c) => ["Shortlisted", "Interview", "Interview Scheduled"].includes(c.poolStatus));
       } else if (statusTab === "Selected") {
-        // Includes Shortlisted and Selected on active project
-        enriched = enriched.filter((c) => ["Selected", "Shortlisted", "Completed"].includes(c.poolStatus));
+        enriched = enriched.filter((c) => ["Selected", "Completed"].includes(c.poolStatus));
+      } else if (statusTab === "Rejected") {
+        enriched = enriched.filter((c) => ["Rejected", "On Hold"].includes(c.poolStatus));
       }
 
       setCandidates(enriched);
@@ -162,29 +164,7 @@ export function Candidates() {
       </div>
 
       {/* Candidate Availability Tabs */}
-      <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-fit text-xs font-bold">
-        <button
-          type="button"
-          onClick={() => { setStatusTab("Available"); setCurrentPage(1); }}
-          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-            statusTab === "Available"
-              ? "bg-white text-blue-700 shadow-2xs font-extrabold"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          Available & Reusable Candidates (Fresh / Rejected / Hold)
-        </button>
-        <button
-          type="button"
-          onClick={() => { setStatusTab("Selected"); setCurrentPage(1); }}
-          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-            statusTab === "Selected"
-              ? "bg-white text-emerald-700 shadow-2xs font-extrabold"
-              : "text-slate-600 hover:text-slate-900"
-          }`}
-        >
-          Active Shortlisted / Selected Candidates
-        </button>
+      <div className="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-xl text-xs font-bold">
         <button
           type="button"
           onClick={() => { setStatusTab("All"); setCurrentPage(1); }}
@@ -195,6 +175,50 @@ export function Candidates() {
           }`}
         >
           All Candidates
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusTab("Available"); setCurrentPage(1); }}
+          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+            statusTab === "Available"
+              ? "bg-white text-blue-700 shadow-2xs font-extrabold"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Available (Fresh)
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusTab("Shortlisted"); setCurrentPage(1); }}
+          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+            statusTab === "Shortlisted"
+              ? "bg-purple-600 text-white shadow-2xs font-extrabold"
+              : "text-purple-700 hover:text-purple-900"
+          }`}
+        >
+          ⭐ Shortlisted
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusTab("Selected"); setCurrentPage(1); }}
+          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+            statusTab === "Selected"
+              ? "bg-emerald-600 text-white shadow-2xs font-extrabold"
+              : "text-emerald-700 hover:text-emerald-900"
+          }`}
+        >
+          🎉 Selected
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStatusTab("Rejected"); setCurrentPage(1); }}
+          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+            statusTab === "Rejected"
+              ? "bg-white text-rose-700 shadow-2xs font-extrabold"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          Rejected / Hold
         </button>
       </div>
 

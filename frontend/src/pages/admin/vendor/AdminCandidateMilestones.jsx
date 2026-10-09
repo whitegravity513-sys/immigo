@@ -28,18 +28,38 @@ export default function AdminCandidateMilestones() {
       if (app) {
         setApplication(app);
         
-        const plan = app.paymentPlan || {
-          totalAmount: 40000,
-          milestones: [
-            { id: "M1", name: "Milestone 1 - Selection", percentage: 25, amount: 10000, dueDate: "2026-09-20", status: "Paid", stages: [{ id: "s1", name: "Document Verification", status: "Completed" }, { id: "s2", name: "Client Selection", status: "Completed" }] },
-            { id: "M2", name: "Milestone 2 - GAMCA Medical", percentage: 25, amount: 10000, dueDate: "2026-09-30", status: "Due", stages: [{ id: "s3", name: "Medical Check", status: "Pending" }, { id: "s4", name: "GAMCA Clearance", status: "Pending" }] },
-            { id: "M3", name: "Milestone 3 - Visa Stamping", percentage: 25, amount: 10000, dueDate: "2026-10-15", status: "Pending", stages: [{ id: "s5", name: "Visa Submission", status: "Pending" }, { id: "s6", name: "Stamping Approved", status: "Pending" }] },
-            { id: "M4", name: "Milestone 4 - On-Site Deployment", percentage: 25, amount: 10000, dueDate: "2026-10-31", status: "Pending", stages: [{ id: "s7", name: "Flight Ticketing", status: "Pending" }, { id: "s8", name: "Arrival & Induction", status: "Pending" }] },
-          ],
-        };
+        let initialList = [];
+        let initialTotal = 0;
 
-        setTotalAmount(plan.totalAmount || 40000);
-        setMilestonesList(plan.milestones || []);
+        if (app.paymentPlan?.milestones?.length > 0) {
+          initialList = app.paymentPlan.milestones;
+          initialTotal = app.paymentPlan.totalAmount || initialList.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+        } else if (app.processMilestones?.length > 0) {
+          initialList = app.processMilestones.map((pm, idx) => ({
+            id: pm.id || `M${idx + 1}`,
+            name: pm.name || `Milestone ${idx + 1}`,
+            amount: Number(pm.paymentAmount) || 0,
+            percentage: 0,
+            dueDate: pm.dueDate || "",
+            status: pm.paymentStatus === "Approved" ? "Paid" : (pm.paymentStatus === "Submitted" ? "Submitted" : (pm.paymentStatus === "Payment Required" ? "Due" : "Pending")),
+            stages: (pm.stages || []).map((stg) => ({
+              id: stg.id,
+              name: stg.name,
+              status: stg.status === "Completed" ? "Completed" : "Pending",
+            })),
+          }));
+          initialTotal = initialList.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+        } else {
+          initialList = [
+            { id: "M1", name: "Milestone 1 - Selection & Documentation", percentage: 0, amount: 0, dueDate: "", status: "Pending", stages: [{ id: "s1", name: "Candidate Selection & Docs", status: "Pending" }] },
+            { id: "M2", name: "Milestone 2 - Medical & Visa Processing", percentage: 0, amount: 0, dueDate: "", status: "Pending", stages: [{ id: "s2", name: "GAMCA Medical Clearance", status: "Pending" }] },
+            { id: "M3", name: "Milestone 3 - Emigration & Flight Deployment", percentage: 0, amount: 0, dueDate: "", status: "Pending", stages: [{ id: "s3", name: "Flight Ticketing & Mobilization", status: "Pending" }] },
+          ];
+          initialTotal = 0;
+        }
+
+        setTotalAmount(initialTotal);
+        setMilestonesList(initialList);
       }
     } catch (err) {
       console.error(err);
@@ -53,30 +73,38 @@ export default function AdminCandidateMilestones() {
     const newM = {
       id: `M${nextIdx}`,
       name: `Milestone ${nextIdx} - Custom Stage`,
-      percentage: 10,
-      amount: Math.round(totalAmount * 0.1),
+      percentage: 0,
+      amount: 0,
       dueDate: "",
       status: "Pending",
       stages: [{ id: `s${Date.now()}-1`, name: "New Process", status: "Pending" }],
     };
-    setMilestonesList([...milestonesList, newM]);
+    const nextList = [...milestonesList, newM];
+    setMilestonesList(nextList);
   };
 
   const handleRemoveMilestoneRow = (idx) => {
     const updated = milestonesList.filter((_, i) => i !== idx);
     setMilestonesList(updated);
+    setTotalAmount(updated.reduce((acc, m) => acc + (Number(m.amount) || 0), 0));
   };
 
   const handleMilestoneChange = (idx, field, value) => {
     const updated = [...milestonesList];
     updated[idx] = { ...updated[idx], [field]: value };
 
-    if (field === "percentage") {
-      const pct = Number(value) || 0;
-      updated[idx].amount = Math.round((totalAmount * pct) / 100);
-    } else if (field === "amount") {
+    if (field === "amount") {
       const amt = Number(value) || 0;
-      updated[idx].percentage = totalAmount > 0 ? Math.round((amt / totalAmount) * 100) : 0;
+      updated[idx].amount = amt;
+      const sum = updated.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+      setTotalAmount(sum);
+      updated.forEach((m) => {
+        m.percentage = sum > 0 ? Math.round(((Number(m.amount) || 0) / sum) * 100) : 0;
+      });
+    } else if (field === "percentage") {
+      const pct = Number(value) || 0;
+      updated[idx].percentage = pct;
+      updated[idx].amount = Math.round((totalAmount * pct) / 100);
     }
 
     setMilestonesList(updated);
