@@ -4,6 +4,7 @@ import adminRoutes from "./admin.routes.js";
 import employeeAuthRoutes from "./employeeAuth.routes.js";
 import employeeRoutes from "./employee.routes.js";
 import authRoutes from "./auth.routes.js";
+import vendorAuthRoutes from "./vendorAuth.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import { authLimiter } from "../middleware/rateLimit.middleware.js";
 
@@ -16,6 +17,7 @@ apiRouter.use("/auth/employee", employeeAuthRoutes);
 apiRouter.use("/employee", employeeRoutes);
 
 apiRouter.use("/auth", authRoutes);
+apiRouter.use("/auth/vendor", vendorAuthRoutes);
 apiRouter.use("/payments", paymentRoutes);
 
 export default apiRouter;

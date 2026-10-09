@@ -1,6 +1,7 @@
 // crmVendorService.js
 // Dedicated storage and service layer for Vendor Portal and Admin Vendor Management
 import crmClientService from "./crmClientService.js";
+import { apiClient } from "./apiClient.js";
 
 const VENDORS_STORAGE_KEY = "immigo_crm_vendors_v3";
 const CANDIDATES_STORAGE_KEY = "immigo_crm_candidates_v3";
@@ -50,65 +51,50 @@ export const crmVendorService = {
   // VENDOR AUTH & REGISTRATION
   // ----------------------------------------------------
   registerVendor: async (vendorData) => {
-    await delay(120);
-    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-
-    // Check if email already registered
-    const existing = vendors.find(
-      (v) => v.email?.toLowerCase() === vendorData.email?.toLowerCase()
-    );
-    if (existing) {
-      throw new Error("This email is already registered as a vendor. Please sign in or contact support.");
+    try {
+      const response = await apiClient.post("/auth/vendor/register", vendorData);
+      
+      const newVendor = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId, // map vendorId to id for frontend usage
+      };
+      
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      vendors.unshift(newVendor);
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      
+      return newVendor;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to register vendor");
     }
-
-    const newVendor = {
-      ...vendorData,
-      id: `VND-${Math.floor(1000 + Math.random() * 9000)}`,
-      status: "Pending", // Pending admin verification
-      mouSigned: false,
-      mouStatus: "Pending", // "Pending" or "Approved"
-      rejectionReason: "",
-      registeredAt: new Date().toISOString(),
-      verifiedAt: null,
-      documents: vendorData.documents || [],
-    };
-
-    vendors.unshift(newVendor);
-    saveData(VENDORS_STORAGE_KEY, vendors);
-    return newVendor;
   },
 
   loginVendor: async (emailOrId, password) => {
-    await delay(150);
-    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-    const trimmed = (emailOrId || "").trim().toLowerCase();
+    try {
+      const response = await apiClient.post("/auth/vendor/login", { emailOrId, password });
+      
+      const vendor = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId, // map vendorId to id for frontend usage
+      };
 
-    const vendor = vendors.find(
-      (v) =>
-        (v.email?.toLowerCase() === trimmed || v.id?.toLowerCase() === trimmed) &&
-        v.password === password
-    );
+      // Also update local storage so other functions can work normally if they rely on it
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const existingIdx = vendors.findIndex(v => v.email === vendor.email);
+      if (existingIdx !== -1) {
+        vendors[existingIdx] = vendor;
+      } else {
+        vendors.unshift(vendor);
+      }
+      saveData(VENDORS_STORAGE_KEY, vendors);
 
-    if (!vendor) {
-      throw new Error("Invalid Vendor ID/Email or Password.");
+      return {
+        token: response.data.token,
+        vendor: vendor,
+      };
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Invalid Vendor ID/Email or Password.");
     }
-
-
-    if (vendor.status === "Rejected") {
-      throw new Error(
-        `Your vendor account application was Rejected by Admin. Reason: ${vendor.rejectionReason || "Verification criteria not met."}`
-      );
-    }
-
-    if (vendor.status === "Suspended") {
-      throw new Error("Your vendor account has been temporarily Suspended. Please contact Admin.");
-    }
-
-    // Return session payload
-    return {
-      token: `vendor-jwt-${Date.now()}`,
-      vendor,
-    };
   },
 
   getCurrentVendor: () => {
