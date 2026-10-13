@@ -86,9 +86,9 @@ export function VendorDashboard() {
     {
       title: "Total Candidates",
       value: stats?.totalCandidates ?? 0,
-      subtitle: "In your candidate pool",
+      subtitle: "Candidate pool",
       icon: Users,
-      color: "blue",
+      bgClass: "bg-blue-50 text-blue-600",
       to: "/vendor/candidates",
     },
     {
@@ -96,47 +96,23 @@ export function VendorDashboard() {
       value: stats?.submitted ?? 0,
       subtitle: "To client projects",
       icon: Send,
-      color: "indigo",
+      bgClass: "bg-indigo-50 text-indigo-600",
       to: "/vendor/applications",
-    },
-    {
-      title: "Under Review",
-      value: stats?.underReview ?? 0,
-      subtitle: "Awaiting client review",
-      icon: Clock,
-      color: "amber",
-      to: "/vendor/applications?status=Under%20Review",
-    },
-    {
-      title: "Interviews",
-      value: stats?.interview ?? 0,
-      subtitle: "Scheduled with client",
-      icon: Video,
-      color: "purple",
-      to: "/vendor/applications?status=Interview",
     },
     {
       title: "Selected",
       value: stats?.selected ?? 0,
-      subtitle: "Hired for deployment",
+      subtitle: "Hired candidates",
       icon: CheckCircle2,
-      color: "emerald",
+      bgClass: "bg-emerald-50 text-emerald-600",
       to: "/vendor/selected",
-    },
-    {
-      title: "Rejected",
-      value: stats?.rejected ?? 0,
-      subtitle: "Reusable for other projects",
-      icon: XCircle,
-      color: "rose",
-      to: "/vendor/rejected",
     },
     {
       title: "In Processing",
       value: stats?.inProcessing ?? 0,
-      subtitle: "Visa, medical & travel",
+      subtitle: "Visa & travel stage",
       icon: GitCommit,
-      color: "purple",
+      bgClass: "bg-purple-50 text-purple-600",
       to: "/vendor/candidates?tab=selected",
     },
     {
@@ -144,7 +120,7 @@ export function VendorDashboard() {
       value: stats?.completed ?? 0,
       subtitle: "Deployed on site",
       icon: Award,
-      color: "teal",
+      bgClass: "bg-teal-50 text-teal-600",
       to: "/vendor/selected",
     },
   ];
@@ -241,26 +217,28 @@ export function VendorDashboard() {
         </div>
       </div>
 
-      {/* Clickable Summary Metric Cards (Section 6) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-3.5">
+      {/* Summary Metric Cards (Strictly Single Row - 5 Cards) */}
+      <div className="grid grid-cols-5 gap-2 sm:gap-3.5 w-full">
         {CARDS.map((card) => {
           const Icon = card.icon;
           return (
             <Link
               key={card.title}
               to={card.to}
-              className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all duration-150 block text-left group cursor-pointer"
+              className="bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all duration-150 block text-left group cursor-pointer min-w-0"
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+              <div className="flex items-center justify-between mb-1.5 gap-1">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
                   {card.title}
                 </span>
-                <Icon size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0 ${card.bgClass || "bg-slate-100 text-slate-600"}`}>
+                  <Icon size={13} className="sm:w-3.5 sm:h-3.5" />
+                </div>
               </div>
-              <div className="text-2xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
+              <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors leading-none">
                 {card.value}
               </div>
-              <p className="text-[10px] text-slate-400 mt-1 truncate">
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">
                 {card.subtitle}
               </p>
             </Link>
@@ -268,119 +246,146 @@ export function VendorDashboard() {
         })}
       </div>
 
-      {/* Active Available Projects */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <FolderKanban size={16} className="text-blue-600" />
-              My Assigned Projects
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Active projects accepting candidate submissions.
-            </p>
-          </div>
-        </div>
+      {/* Active Available Projects (Recent 5 with See All) */}
+      {(() => {
+        const allProjects = stats?.availableProjects || [];
+        const recentProjects = allProjects.slice(0, 5);
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
-              <tr>
-                <th className="py-3 px-4">Project Name</th>
-                <th className="py-3 px-4">Client</th>
-                <th className="py-3 px-4">Country</th>
-                <th className="py-3 px-4">Trades / Roles</th>
-                <th className="py-3 px-4">Headcount Req.</th>
-                <th className="py-3 px-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {stats?.availableProjects && stats.availableProjects.length > 0 ? (
-                stats.availableProjects.map((proj) => {
-                  const trades = proj.manpowerRequirements || [];
-                  return (
-                    <tr key={proj.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-4 font-bold text-slate-900 truncate max-w-[200px]">
-                        <Link
-                          to={`/vendor/projects/${proj.id}`}
-                          className="hover:text-blue-600 hover:underline text-left font-bold transition-colors block truncate"
-                        >
-                          {proj.projectName}
-                        </Link>
-                      </td>
-                      <td className="py-3 px-4 text-slate-700 truncate max-w-[150px]">
-                        {proj.clientName}
-                      </td>
-                      <td className="py-3 px-4 text-slate-600">
-                        <div className="flex items-center gap-1">
-                          <MapPin size={12} className="text-blue-500 shrink-0" />
-                          <span>{proj.country}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {trades.length > 0 ? (
-                          <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
-                            {trades.slice(0, 2).map((t, idx) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70"
-                              >
-                                {t.position || t.positionTitle || "Role"}
-                                {t.quantity ? ` (${t.quantity})` : ""}
-                              </span>
-                            ))}
-                            {trades.length > 2 && (
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                  <FolderKanban size={16} className="text-blue-600" />
+                  Recent Assigned Projects (Latest 5)
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Active projects accepting candidate submissions.
+                </p>
+              </div>
+
+              <Link
+                to="/vendor/projects"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-all shadow-2xs group cursor-pointer self-start sm:self-auto"
+              >
+                <span>See All Projects ({allProjects.length})</span>
+                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
+                  <tr>
+                    <th className="py-3 px-4">Project Name</th>
+                    <th className="py-3 px-4">Client</th>
+                    <th className="py-3 px-4">Country</th>
+                    <th className="py-3 px-4">Trades / Roles</th>
+                    <th className="py-3 px-4">Headcount Req.</th>
+                    <th className="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recentProjects.length > 0 ? (
+                    recentProjects.map((proj) => {
+                      const trades = proj.manpowerRequirements || [];
+                      return (
+                        <tr key={proj.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-3 px-4 font-bold text-slate-900 truncate max-w-[200px]">
+                            <Link
+                              to={`/vendor/projects/${proj.id}`}
+                              className="hover:text-blue-600 hover:underline text-left font-bold transition-colors block truncate"
+                            >
+                              {proj.projectName}
+                            </Link>
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 truncate max-w-[150px]">
+                            {proj.clientName}
+                          </td>
+                          <td className="py-3 px-4 text-slate-600">
+                            <div className="flex items-center gap-1">
+                              <MapPin size={12} className="text-blue-500 shrink-0" />
+                              <span>{proj.country}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            {trades.length > 0 ? (
+                              <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
+                                {trades.slice(0, 2).map((t, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70"
+                                  >
+                                    {t.position || t.positionTitle || "Role"}
+                                    {t.quantity ? ` (${t.quantity})` : ""}
+                                  </span>
+                                ))}
+                                {trades.length > 2 && (
+                                  <Link
+                                    to={`/vendor/projects/${proj.id}`}
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 transition-colors"
+                                  >
+                                    +{trades.length - 2} more
+                                  </Link>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic text-[11px]">General / All Trades</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 font-semibold">
+                            <span className="inline-flex items-center gap-1">
+                              <Users size={12} className="text-slate-400" />
+                              <span>{proj.totalHeadcount || "N/A"}</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
                               <Link
                                 to={`/vendor/projects/${proj.id}`}
-                                className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 transition-colors"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition-colors"
+                                title="View Full Project Details (New Page)"
                               >
-                                +{trades.length - 2} more
+                                <Eye size={12} className="text-slate-500" />
+                                <span>View</span>
                               </Link>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 italic text-[11px]">General / All Trades</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-slate-700 font-semibold">
-                        <span className="inline-flex items-center gap-1">
-                          <Users size={12} className="text-slate-400" />
-                          <span>{proj.totalHeadcount || "N/A"}</span>
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Link
-                            to={`/vendor/projects/${proj.id}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition-colors"
-                            title="View Full Project Details (New Page)"
-                          >
-                            <Eye size={12} className="text-slate-500" />
-                            <span>View</span>
-                          </Link>
-                          <Link
-                            to={`/vendor/submit-candidate?project=${proj.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-2xs transition-colors"
-                          >
-                            <Send size={11} />
-                            <span>Submit</span>
-                          </Link>
-                        </div>
+                              <Link
+                                to={`/vendor/submit-candidate?project=${proj.id}`}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-2xs transition-colors"
+                              >
+                                <Send size={11} />
+                                <span>Submit</span>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="py-6 text-center text-slate-500 italic text-xs">
+                        No active projects assigned to you at the moment.
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="6" className="py-6 text-center text-slate-500 italic text-xs">
-                    No active projects assigned to you at the moment.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {allProjects.length > 5 && (
+              <div className="p-3.5 bg-slate-50 border-t border-slate-100 text-center">
+                <Link
+                  to="/vendor/projects"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition"
+                >
+                  <span>View all {allProjects.length} projects & available trade quotas</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

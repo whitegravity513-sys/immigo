@@ -654,7 +654,31 @@ export const crmVendorService = {
         const local = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
         const map = new Map();
         local.forEach((c) => map.set(c.id, c));
-        res.data.candidates.forEach((c) => map.set(c.id, { ...(map.get(c.id) || {}), ...c }));
+        res.data.candidates.forEach((c) => {
+          const existing = map.get(c.id);
+          if (existing) {
+            const existingDocs = existing.documents || [];
+            const serverDocs = c.documents || [];
+            const mergedDocs = (serverDocs.length > 0 ? serverDocs : existingDocs).map((sDoc, i) => {
+              const exDoc = existingDocs.find((d) => d.name === sDoc.name || d.fileName === sDoc.fileName) || existingDocs[i];
+              if (exDoc && (exDoc.status === "Verified" || exDoc.status === "Rejected")) {
+                return { ...sDoc, ...exDoc };
+              }
+              return sDoc;
+            });
+            map.set(c.id, {
+              ...c,
+              ...existing,
+              documents: mergedDocs,
+              verificationStatus:
+                existing.verificationStatus === "Verified" || existing.verificationStatus === "Rejected"
+                  ? existing.verificationStatus
+                  : c.verificationStatus,
+            });
+          } else {
+            map.set(c.id, c);
+          }
+        });
         const merged = Array.from(map.values());
         saveData(CANDIDATES_STORAGE_KEY, merged);
       }
@@ -757,6 +781,30 @@ export const crmVendorService = {
       ...updatedData,
     };
     saveData(CANDIDATES_STORAGE_KEY, candidates);
+    try {
+      apiClient.post("/crm-sync/candidates", candidates[idx]).catch(() => {});
+    } catch {}
+    return candidates[idx];
+  },
+
+  addCandidateDocument: async (candidateId, documentData) => {
+    await delay(60);
+    const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
+    const idx = candidates.findIndex((c) => c.id === candidateId);
+    if (idx === -1) throw new Error("Candidate not found");
+
+    if (!candidates[idx].documents) candidates[idx].documents = [];
+    const newDoc = {
+      ...documentData,
+      status: "Verified",
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: "Admin",
+    };
+    candidates[idx].documents.push(newDoc);
+    saveData(CANDIDATES_STORAGE_KEY, candidates);
+    try {
+      await apiClient.post("/crm-sync/candidates", candidates[idx]);
+    } catch {}
     return candidates[idx];
   },
 
@@ -792,6 +840,11 @@ export const crmVendorService = {
     }
 
     saveData(CANDIDATES_STORAGE_KEY, candidates);
+
+    try {
+      await apiClient.post("/crm-sync/candidates", candidates[idx]);
+    } catch {}
+
     return candidates[idx];
   },
 
@@ -813,8 +866,58 @@ export const crmVendorService = {
     candidates[idx].verificationRemarks = remarks;
 
     saveData(CANDIDATES_STORAGE_KEY, candidates);
+
+    try {
+      await apiClient.post("/crm-sync/candidates", candidates[idx]);
+    } catch {}
+
     return candidates[idx];
   },
+
+  addCandidateDocument: async (candidateId, docData) => {
+    await delay(60);
+    const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
+    const idx = candidates.findIndex((c) => String(c.id) === String(candidateId));
+    if (idx === -1) {
+      console.warn("Candidate not found for document attachment:", candidateId);
+      return null;
+    }
+
+    if (!Array.isArray(candidates[idx].documents)) {
+      candidates[idx].documents = [];
+    }
+
+    const newDoc = {
+      id: docData.id || `doc_${Date.now()}`,
+      name: docData.name || "Processing Document",
+      fileName: docData.fileName || docData.name || "document.pdf",
+      fileUrl: docData.fileUrl || "",
+      size: docData.size || "150 KB",
+      uploadedAt: docData.uploadedAt || new Date().toISOString(),
+      status: "Verified",
+      stageId: docData.stageId || null,
+      milestoneName: docData.milestoneName || "",
+      type: "Stage Document",
+    };
+
+    const existingDocIdx = candidates[idx].documents.findIndex(
+      (d) => (d.stageId && docData.stageId && d.stageId === docData.stageId) || (d.fileName === newDoc.fileName)
+    );
+    if (existingDocIdx !== -1) {
+      candidates[idx].documents[existingDocIdx] = { ...candidates[idx].documents[existingDocIdx], ...newDoc };
+    } else {
+      candidates[idx].documents.push(newDoc);
+    }
+
+    saveData(CANDIDATES_STORAGE_KEY, candidates);
+
+    try {
+      await apiClient.post("/crm-sync/candidates", candidates[idx]);
+    } catch {}
+
+    return candidates[idx];
+  },
+
 
   // ----------------------------------------------------
   // CANDIDATE SUBMISSION / APPLICATIONS (PER-PROJECT)

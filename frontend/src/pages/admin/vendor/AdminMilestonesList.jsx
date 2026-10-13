@@ -17,7 +17,6 @@ import {
   Receipt,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
-import ConfigureMilestonesModal from "../../../components/admin/vendor/ConfigureMilestonesModal.jsx";
 
 export default function AdminMilestonesList() {
   const [applications, setApplications] = useState([]);
@@ -25,9 +24,6 @@ export default function AdminMilestonesList() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedAppIds, setExpandedAppIds] = useState([]);
-
-  // Individual Candidate Configure Modal
-  const [configureModal, setConfigureModal] = useState(null); // { application }
 
   // Bulk Template Modal
   const [showBulkModal, setShowBulkModal] = useState(false);
@@ -159,8 +155,8 @@ export default function AdminMilestonesList() {
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Milestone Payment Management
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            1 Candidate = 1 Row. Sabhi milestone payments ek sath yahan grouped hain.
+          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+            Track and manage recruitment milestone stages, fee disbursements, and payment settlements per candidate.
           </p>
         </div>
 
@@ -452,19 +448,11 @@ export default function AdminMilestonesList() {
                             <button
                               type="button"
                               onClick={() => toggleExpand(app.id)}
-                              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                              className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
                               title={isExpanded ? "Hide Details" : "View Breakdown"}
                             >
                               <span>{isExpanded ? "Hide" : "Details"}</span>
                               {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfigureModal({ application: app })}
-                              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                            >
-                              <Sliders size={12} />
-                              <span>Configure Plan</span>
                             </button>
                           </div>
                         </td>
@@ -567,19 +555,6 @@ export default function AdminMilestonesList() {
             </table>
           </div>
         </div>
-      )}
-
-      {/* Individual Candidate Milestone Configuration Modal */}
-      {configureModal && (
-        <ConfigureMilestonesModal
-          isOpen={!!configureModal}
-          onClose={() => setConfigureModal(null)}
-          application={configureModal.application}
-          onSaved={() => {
-            loadData();
-            setConfigureModal(null);
-          }}
-        />
       )}
 
       {/* Bulk Template Modal */}

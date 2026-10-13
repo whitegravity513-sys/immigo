@@ -100,6 +100,25 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
           <LayoutDashboard size={16} /> <span>Dashboard</span>
         </NavLink>
 
+        {/* PROJECTS DIRECT LINK */}
+        <NavLink
+          to="/vendor/projects"
+          onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }}
+          className={({ isActive }) =>
+            `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${
+              isActive
+                ? "bg-blue-600 text-white shadow-md font-extrabold"
+                : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"
+            }`
+          }
+        >
+          <FolderKanban
+            size={16}
+            className={window.location.pathname.includes("/projects") ? "text-white" : "text-slate-500"}
+          />
+          <span>Projects</span>
+        </NavLink>
+
 
 
 

@@ -22,12 +22,16 @@ export default function AdminRefundsList() {
 
   // Refund Action Modal
   const [selectedRefund, setSelectedRefund] = useState(null);
+  const [processTotalPaid, setProcessTotalPaid] = useState("");
+  const [processRefundAmount, setProcessRefundAmount] = useState("");
   const [paymentRef, setPaymentRef] = useState("");
   const [rejectRefundModal, setRejectRefundModal] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
 
   const [editRefundModal, setEditRefundModal] = useState(null);
   const [editStatus, setEditStatus] = useState("");
+  const [editTotalPaid, setEditTotalPaid] = useState("");
+  const [editRefundAmount, setEditRefundAmount] = useState("");
   const [editReason, setEditReason] = useState("");
   const [editPaymentRef, setEditPaymentRef] = useState("");
 
@@ -47,13 +51,48 @@ export default function AdminRefundsList() {
     }
   };
 
+  const handleOpenProcessModal = (r) => {
+    setSelectedRefund(r);
+    const totPaid = Number(r.totalPaid || 0);
+    setProcessTotalPaid(totPaid);
+    const refAmt =
+      r.refundAmount !== undefined && r.refundAmount !== null && Number(r.refundAmount) > 0
+        ? r.refundAmount
+        : totPaid;
+    setProcessRefundAmount(refAmt);
+    setPaymentRef(r.paymentRef || "");
+  };
+
   const handleCompleteRefund = async () => {
     if (!selectedRefund) return;
+    const amtToRefund = Number(processRefundAmount);
+    if (isNaN(amtToRefund) || amtToRefund < 0) {
+      alert("Please enter a valid refund amount.");
+      return;
+    }
+
+    const totalPaidVal = Number(processTotalPaid) || Number(selectedRefund.totalPaid || 0);
+    const finalStatus =
+      amtToRefund >= totalPaidVal && totalPaidVal > 0
+        ? "Fully Refunded"
+        : amtToRefund > 0
+        ? (totalPaidVal > 0 ? "Partially Refunded" : "Fully Refunded")
+        : "No Refund";
+
     try {
-      await refundService.updateRefundStatus(selectedRefund.id, "Fully Refunded", paymentRef);
+      await refundService.updateRefundStatus(
+        selectedRefund.id,
+        finalStatus,
+        paymentRef || "Online / NEFT",
+        amtToRefund,
+        totalPaidVal
+      );
       setSelectedRefund(null);
       setPaymentRef("");
+      setProcessRefundAmount("");
+      setProcessTotalPaid("");
       loadRefunds();
+      alert(`Refund of ₹${amtToRefund.toLocaleString()} processed successfully for ${selectedRefund.candidateName}!`);
     } catch (err) {
       alert(err.message);
     }
@@ -85,10 +124,14 @@ export default function AdminRefundsList() {
   const handleEditRefund = async () => {
     if (!editRefundModal) return;
     try {
+      const amt = Number(editRefundAmount);
+      const paid = Number(editTotalPaid);
       await refundService.updateRefund(editRefundModal.id, {
         refundStatus: editStatus,
         refundReason: editReason,
         paymentRef: editPaymentRef,
+        refundAmount: isNaN(amt) ? 0 : amt,
+        totalPaid: isNaN(paid) ? editRefundModal.totalPaid : paid,
       });
       setEditRefundModal(null);
       loadRefunds();
@@ -244,11 +287,13 @@ export default function AdminRefundsList() {
                             Reject
                           </button>
                         </div>
-                      ) : (r.refundStatus === "Fully Refunded" || r.refundStatus === "Rejected" || r.refundStatus === "No Refund") ? (
+                      ) : (r.refundStatus === "Fully Refunded" || r.refundStatus === "Partially Refunded" || r.refundStatus === "Rejected" || r.refundStatus === "No Refund") ? (
                         <button
                           onClick={() => {
                             setEditRefundModal(r);
                             setEditStatus(r.refundStatus);
+                            setEditTotalPaid(r.totalPaid !== undefined ? r.totalPaid : 0);
+                            setEditRefundAmount(r.refundAmount !== undefined ? r.refundAmount : r.totalPaid || 0);
                             setEditReason(r.refundReason || "");
                             setEditPaymentRef(r.paymentRef || "");
                           }}
@@ -259,7 +304,7 @@ export default function AdminRefundsList() {
                         </button>
                       ) : (
                         <button
-                          onClick={() => setSelectedRefund(r)}
+                          onClick={() => handleOpenProcessModal(r)}
                           className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-2xs"
                         >
                           Process Refund
@@ -278,28 +323,125 @@ export default function AdminRefundsList() {
       {selectedRefund && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <h3 className="text-base font-bold text-slate-900">Process Candidate Refund</h3>
-            <p className="text-xs text-slate-500">
-              Refunding <strong>₹{Number(selectedRefund.refundAmount).toLocaleString()}</strong> to vendor <strong>{selectedRefund.vendorName}</strong> for candidate <strong>{selectedRefund.candidateName}</strong>.
-            </p>
-
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-              <p><strong>Reason:</strong> {selectedRefund.refundReason}</p>
-              <p><strong>Remarks:</strong> {selectedRefund.remarks || "No additional remarks"}</p>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Process Candidate Refund</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Candidate: <strong className="text-slate-800">{selectedRefund.candidateName}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRefund(null)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer p-1"
+              >
+                ✕
+              </button>
             </div>
 
+            {/* Candidate & Project Details */}
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Vendor Agency:</span>
+                <span className="font-bold text-slate-800">{selectedRefund.vendorName || "Skyline HR Solutions"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Project:</span>
+                <span className="font-bold text-slate-800">{selectedRefund.projectName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Refund Reason:</span>
+                <span className="text-slate-700 italic">{selectedRefund.refundReason || "Did not join"}</span>
+              </div>
+            </div>
+
+            {/* Total Paid by Vendor */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Payment Reference / Transaction ID</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Total Paid by Vendor (₹)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={processTotalPaid}
+                  onChange={(e) => setProcessTotalPaid(e.target.value)}
+                  placeholder="Total amount paid by vendor..."
+                  className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-slate-50"
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Amount received from the vendor for this candidate.</p>
+            </div>
+
+            {/* Refund Amount to Return (Admin enters this) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-800">
+                  Refund Amount to Return (₹) <span className="text-rose-500">*</span>
+                </label>
+                {Number(processTotalPaid) > 0 && (
+                  <span className="text-[11px] font-bold text-slate-400">
+                    Paid: ₹{Number(processTotalPaid).toLocaleString()}
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={processRefundAmount}
+                  onChange={(e) => setProcessRefundAmount(e.target.value)}
+                  placeholder="Enter amount to refund..."
+                  className="w-full pl-8 pr-3 py-2.5 rounded-xl border-2 border-rose-300 text-sm font-mono font-black text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-rose-50/30"
+                />
+              </div>
+
+              {/* Quick Preset Buttons if totalPaid > 0 */}
+              {Number(processTotalPaid) > 0 && (
+                <div className="flex items-center gap-1.5 pt-1">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">Quick Set:</span>
+                  <button
+                    type="button"
+                    onClick={() => setProcessRefundAmount(processTotalPaid)}
+                    className="px-2 py-0.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 text-[11px] font-bold cursor-pointer"
+                  >
+                    100% Full (₹{Number(processTotalPaid).toLocaleString()})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProcessRefundAmount(Math.round(processTotalPaid * 0.9))}
+                    className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold cursor-pointer"
+                  >
+                    90% (₹{Math.round(processTotalPaid * 0.9).toLocaleString()})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProcessRefundAmount(Math.round(processTotalPaid * 0.5))}
+                    className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold cursor-pointer"
+                  >
+                    50% (₹{Math.round(processTotalPaid * 0.5).toLocaleString()})
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Payment Reference */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Payment Reference / Transaction ID
+              </label>
               <input
                 type="text"
                 value={paymentRef}
                 onChange={(e) => setPaymentRef(e.target.value)}
-                placeholder="e.g. RTGS-88992211"
+                placeholder="e.g. RTGS-88992211 / UPI Ref / Cheque"
                 className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500"
               />
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setSelectedRefund(null)}
@@ -312,7 +454,7 @@ export default function AdminRefundsList() {
                 onClick={handleCompleteRefund}
                 className="flex-1 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-2xs"
               >
-                Confirm Refund
+                Confirm Refund (₹{Number(processRefundAmount || 0).toLocaleString()})
               </button>
             </div>
           </div>
@@ -374,6 +516,34 @@ export default function AdminRefundsList() {
                   <option value="Rejected">Rejected</option>
                   <option value="No Refund">No Refund</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Total Paid by Vendor (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editTotalPaid}
+                    onChange={(e) => setEditTotalPaid(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Refund Amount to Return (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editRefundAmount}
+                    onChange={(e) => setEditRefundAmount(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
               </div>
 
               <div>

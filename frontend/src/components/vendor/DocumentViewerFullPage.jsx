@@ -10,7 +10,7 @@ import {
   Calendar,
 } from "lucide-react";
 
-export default function DocumentViewerFullPage({ doc, vendor, onBack }) {
+export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack }) {
   if (!doc) return null;
 
   const handleDownload = () => {
@@ -67,10 +67,19 @@ export default function DocumentViewerFullPage({ doc, vendor, onBack }) {
               </span>
             </div>
             <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-1">
-              {doc.name || "Vendor Compliance Document"}
+              {doc.name || "Verification Document"}
             </h1>
             <p className="text-xs text-slate-500">
-              Agency: <b>{vendor?.companyName || "Vendor"}</b> &bull; Uploaded: {doc.uploadedAt || "Recently"}
+              {candidate ? (
+                <>
+                  Candidate: <strong className="text-slate-800">{candidate.fullName}</strong> ({candidate.id} • {candidate.currentPosition || "Candidate"})
+                  {vendor && <> &bull; Vendor: <b>{vendor?.companyName || vendor?.name}</b></>}
+                </>
+              ) : (
+                <>
+                  Agency: <b>{vendor?.companyName || "Vendor"}</b> &bull; Uploaded: {doc.uploadedAt || "Recently"}
+                </>
+              )}
             </p>
           </div>
         </div>

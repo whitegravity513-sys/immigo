@@ -14,6 +14,10 @@ import {
   Briefcase,
   Globe,
   Sparkles,
+  List,
+  LayoutGrid,
+  CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 
@@ -22,6 +26,7 @@ export default function VendorProjects() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("All");
+  const [viewMode, setViewMode] = useState("list"); // Default to list view as requested
 
   const vendor = crmVendorService.getCurrentVendor();
 
@@ -64,43 +69,19 @@ export default function VendorProjects() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
       {/* Page Header */}
-      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-2xl p-6 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-blue-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-3">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 uppercase tracking-wider">
-              Overseas Demand Pool
-            </span>
-            <span className="text-xs font-mono text-slate-300">
-              Agency: {vendor?.companyName || "Vendor"}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">
-            Active Overseas Projects
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Assigned Overseas Projects
           </h1>
-          <p className="text-xs text-slate-300 mt-1 max-w-xl">
-            Browse active manpower demands from verified international clients. Match and deploy your qualified candidates directly to open trade vacancies.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Browse and view active international client manpower demand projects.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to="/vendor/candidates/add"
-            className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-bold transition shadow-xs"
-          >
-            + Add Candidate
-          </Link>
-          <Link
-            to="/vendor/submit-candidate"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5"
-          >
-            <Send size={13} />
-            <span>Submit Candidate</span>
-          </Link>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Filter & View Switcher Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -112,7 +93,8 @@ export default function VendorProjects() {
           />
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Country Filter */}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
             <Globe size={14} className="text-blue-600" />
             <span>Country:</span>
@@ -129,10 +111,40 @@ export default function VendorProjects() {
               </option>
             ))}
           </select>
+
+          {/* List / Grid View Switcher */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 ml-auto md:ml-0">
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "list"
+                  ? "bg-white text-blue-600 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              title="Table List View"
+            >
+              <List size={14} />
+              <span>List View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "grid"
+                  ? "bg-white text-blue-600 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              title="Card Grid View"
+            >
+              <LayoutGrid size={14} />
+              <span>Grid View</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Projects Grid */}
+      {/* Projects Content */}
       {loading ? (
         <div className="p-16 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
           <div className="w-9 h-9 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -150,7 +162,154 @@ export default function VendorProjects() {
             No projects matched your search criteria. Check back soon for new international demands.
           </p>
         </div>
+      ) : viewMode === "list" ? (
+        /* TABLE / LIST VIEW */
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FolderKanban size={16} className="text-blue-600" />
+              <h2 className="text-sm font-extrabold text-slate-900">
+                All Available Projects List ({filteredProjects.length})
+              </h2>
+            </div>
+            <span className="text-[11px] text-slate-400 font-medium">
+              Showing active client demands
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200/80">
+                <tr>
+                  <th className="py-3 px-4">Project & ID</th>
+                  <th className="py-3 px-4">Client / Employer</th>
+                  <th className="py-3 px-4">Country & Location</th>
+                  <th className="py-3 px-4">Required Trades & Roles</th>
+                  <th className="py-3 px-4 text-center">Vacancies</th>
+                  <th className="py-3 px-4 text-center">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredProjects.map((proj) => {
+                  const trades = proj.manpowerRequirements || [];
+                  return (
+                    <tr
+                      key={proj.id}
+                      className="hover:bg-blue-50/40 transition-colors group"
+                    >
+                      {/* Project Name & ID */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <Link
+                            to={`/vendor/projects/${proj.id}`}
+                            className="font-extrabold text-slate-900 text-xs hover:text-blue-600 transition-colors block"
+                          >
+                            {proj.projectName}
+                          </Link>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono text-slate-400">
+                              ID: {proj.id}
+                            </span>
+                            {proj.startDate && (
+                              <span className="text-[10px] text-slate-400">
+                                &bull; Start: {proj.startDate}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Client */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                          <Building2 size={13} className="text-blue-600 shrink-0" />
+                          <span className="truncate max-w-[140px]">{proj.clientName}</span>
+                        </div>
+                      </td>
+
+                      {/* Country & Location */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/80">
+                            <MapPin size={10} className="text-blue-500" />
+                            <span>{proj.country || "Overseas"}</span>
+                          </span>
+                          {proj.location && (
+                            <span className="text-[11px] text-slate-500 block truncate max-w-[130px]">
+                              {proj.location}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Trades */}
+                      <td className="py-3.5 px-4">
+                        {trades.length > 0 ? (
+                          <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
+                            {trades.slice(0, 3).map((t, idx) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70"
+                              >
+                                {t.position || t.positionTitle || "Role"}
+                                {t.quantity ? ` (${t.quantity})` : ""}
+                              </span>
+                            ))}
+                            {trades.length > 3 && (
+                              <Link
+                                to={`/vendor/projects/${proj.id}`}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 transition-colors"
+                              >
+                                +{trades.length - 3} more
+                              </Link>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">
+                            General Demands
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Headcount */}
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 font-bold text-slate-800 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                          <Users size={12} className="text-blue-600" />
+                          <span>{proj.totalHeadcount || "Open"}</span>
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>{proj.status || "Active Demand"}</span>
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end">
+                          <Link
+                            to={`/vendor/projects/${proj.id}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11px] transition shadow-2xs"
+                            title="View Project Dossier"
+                          >
+                            <Eye size={12} className="text-slate-500" />
+                            <span>View</span>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
+        /* GRID VIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredProjects.map((proj) => {
             const trades = proj.manpowerRequirements || [];
@@ -191,13 +350,17 @@ export default function VendorProjects() {
                   {/* Location & Duration info */}
                   <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50/80 p-3 rounded-xl border border-slate-100">
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Location</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                        Location
+                      </span>
                       <span className="text-slate-700 font-semibold truncate block">
                         {proj.location || proj.country || "On-site Deployment"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Total Vacancies</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                        Total Vacancies
+                      </span>
                       <span className="text-slate-900 font-extrabold flex items-center gap-1">
                         <Users size={12} className="text-blue-600" />
                         <span>{proj.totalHeadcount || "Open Demands"}</span>
@@ -232,21 +395,13 @@ export default function VendorProjects() {
                 </div>
 
                 {/* Card Bottom Actions */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
                   <Link
                     to={`/vendor/projects/${proj.id}`}
-                    className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center gap-1.5 shadow-2xs"
                   >
                     <Eye size={13} className="text-slate-500" />
                     <span>View Project Dossier</span>
-                  </Link>
-
-                  <Link
-                    to={`/vendor/submit-candidate?project=${proj.id}`}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-xs"
-                  >
-                    <Send size={13} />
-                    <span>Submit Candidate</span>
                   </Link>
                 </div>
               </div>
@@ -257,3 +412,4 @@ export default function VendorProjects() {
     </div>
   );
 }
+

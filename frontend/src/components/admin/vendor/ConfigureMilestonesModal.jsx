@@ -23,22 +23,40 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
   // Initialize from application or generate defaults
   useEffect(() => {
     if (application) {
-      if (application.paymentPlan?.milestones?.length > 0) {
-        setTotalAmount(application.paymentPlan.totalAmount || 40000);
+      const rawMilestones =
+        application.paymentPlan?.milestones?.length > 0
+          ? application.paymentPlan.milestones
+          : application.processMilestones?.length > 0
+          ? application.processMilestones
+          : [];
+
+      if (rawMilestones.length > 0) {
+        setTotalAmount(application.paymentPlan?.totalAmount || rawMilestones.reduce((sum, m) => sum + (Number(m.amount || m.paymentAmount) || 0), 0) || 40000);
         setMilestones(
-          application.paymentPlan.milestones.map((m, idx) => ({
-            id: m.id || `m${idx}`,
-            name: m.name || `Milestone ${idx + 1}`,
-            percentage: m.percentage || Math.round(((m.amount || 10000) / (application.paymentPlan.totalAmount || 40000)) * 100),
-            amount: Number(m.amount || 10000),
-            status: m.status || (idx === 0 ? "Payment Required" : "Pending"),
-            stages: (m.stages && m.stages.length > 0)
+          rawMilestones.map((m, idx) => {
+            const pm = (application.processMilestones || []).find((p) => p.id === m.id || p.name === m.name);
+            const rawStages = (m.stages && m.stages.length > 0)
               ? m.stages
+              : (pm?.stages && pm.stages.length > 0)
+              ? pm.stages
               : [
                   { id: `s${idx}_1`, name: "Skill & Document Clearance", status: "Locked" },
                   { id: `s${idx}_2`, name: "Processing Step", status: "Locked" },
-                ],
-          }))
+                ];
+
+            return {
+              id: m.id || `m${idx}`,
+              name: m.name || `Milestone ${idx + 1}`,
+              percentage: m.percentage || Math.round(((Number(m.amount || m.paymentAmount) || 10000) / (application.paymentPlan?.totalAmount || 40000)) * 100),
+              amount: Number(m.amount || m.paymentAmount || 10000),
+              status: m.status || (idx === 0 ? "Payment Required" : "Pending"),
+              stages: rawStages.map((s, sIdx) => ({
+                id: s.id || `s${idx}_${sIdx}`,
+                name: s.name || `Stage ${sIdx + 1}`,
+                status: s.status || "Locked",
+              })),
+            };
+          })
         );
       } else {
         // Preset 3 milestones by default
@@ -209,6 +227,32 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
     setMilestones(milestones.filter((_, i) => i !== idx));
   };
 
+  const handleAddStage = (mIdx) => {
+    const updated = [...milestones];
+    if (!Array.isArray(updated[mIdx].stages)) {
+      updated[mIdx].stages = [];
+    }
+    const nextIdx = updated[mIdx].stages.length + 1;
+    updated[mIdx].stages.push({
+      id: `s${mIdx}_${Date.now()}`,
+      name: `Stage ${nextIdx}: Processing Step`,
+      status: "Locked",
+    });
+    setMilestones(updated);
+  };
+
+  const handleStageNameChange = (mIdx, sIdx, val) => {
+    const updated = [...milestones];
+    updated[mIdx].stages[sIdx].name = val;
+    setMilestones(updated);
+  };
+
+  const handleRemoveStage = (mIdx, sIdx) => {
+    const updated = [...milestones];
+    updated[mIdx].stages = updated[mIdx].stages.filter((_, i) => i !== sIdx);
+    setMilestones(updated);
+  };
+
   const handleSave = async () => {
     if (milestones.length === 0) {
       alert("Please configure at least 1 milestone.");
@@ -254,7 +298,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                 Candidate Selection & Milestone Plan
               </h2>
               <p className="text-xs text-blue-200 mt-0.5">
-                Set Total Fee & Milestone Breakdown for <strong>{application.candidateName}</strong>
+                Set Total Fee, Milestone Amounts & Processing Stages for <strong>{application.candidateName}</strong>
               </p>
             </div>
           </div>
@@ -365,15 +409,15 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </div>
 
           {/* Milestones List */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-black text-slate-900 uppercase text-[11px] tracking-wider">
-                Configured Milestones ({milestones.length})
+                Configured Milestones & Processing Stages ({milestones.length})
               </span>
               <button
                 type="button"
                 onClick={handleAddMilestone}
-                className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] border border-indigo-200 flex items-center gap-1 cursor-pointer transition"
+                className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] border border-indigo-200 flex items-center gap-1 cursor-pointer transition shadow-2xs"
               >
                 <Plus size={11} />
                 <span>Add Milestone</span>
@@ -383,25 +427,34 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             {milestones.map((m, mIdx) => (
               <div
                 key={m.id || mIdx}
-                className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-2xs space-y-3"
+                className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800 uppercase">
                         Milestone {mIdx + 1}
                       </span>
-                      {mIdx === 0 && (
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
-                          Initial Payable Milestone
-                        </span>
-                      )}
+                      <select
+                        value={m.status || "Pending"}
+                        onChange={(e) => handleMilestoneChange(mIdx, "status", e.target.value)}
+                        className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border cursor-pointer focus:outline-none ${
+                          m.status === "Paid"
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                            : "bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        <option value="Payment Required">Payment Required</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                      </select>
                     </div>
                     <input
                       type="text"
                       value={m.name}
                       onChange={(e) => handleMilestoneChange(mIdx, "name", e.target.value)}
-                      className="w-full font-bold text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                      placeholder="e.g. Milestone 1: Selection & Offer Acceptance"
+                      className="w-full font-bold text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none text-xs"
                     />
                   </div>
 
@@ -412,7 +465,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                         type="number"
                         value={m.amount}
                         onChange={(e) => handleMilestoneChange(mIdx, "amount", e.target.value)}
-                        className="w-28 font-bold text-slate-900 border border-slate-200 rounded-lg px-2 py-1"
+                        className="w-28 font-bold text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-mono"
                         placeholder="Amount"
                       />
                     </div>
@@ -425,6 +478,62 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                       >
                         <Trash2 size={14} />
                       </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Stages Section inside Milestone */}
+                <div className="mt-2 pt-2.5 border-t border-slate-100 bg-slate-50/70 -mx-4 -mb-4 p-3.5 rounded-b-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Layers size={13} className="text-indigo-600" />
+                      <span className="text-[10px] font-black uppercase text-slate-700 tracking-wider">
+                        Processing Stages ({(m.stages || []).length})
+                      </span>
+                      <span className="text-[9px] text-slate-400 font-medium">Steps inside this milestone</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleAddStage(mIdx)}
+                      className="px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold border border-indigo-200 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus size={10} />
+                      <span>Add Stage</span>
+                    </button>
+                  </div>
+
+                  {/* Stages List */}
+                  <div className="space-y-1.5">
+                    {(!m.stages || m.stages.length === 0) ? (
+                      <div className="p-2 bg-white rounded-xl border border-dashed border-slate-200 text-center text-[10px] text-slate-400">
+                        No stages added yet. Click "+ Add Stage" to attach processing stages.
+                      </div>
+                    ) : (
+                      m.stages.map((stg, sIdx) => (
+                        <div
+                          key={stg.id || sIdx}
+                          className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs group"
+                        >
+                          <span className="w-5 h-5 rounded-lg bg-indigo-100 text-indigo-800 text-[10px] font-black flex items-center justify-center shrink-0">
+                            {sIdx + 1}
+                          </span>
+                          <input
+                            type="text"
+                            value={stg.name}
+                            onChange={(e) => handleStageNameChange(mIdx, sIdx, e.target.value)}
+                            placeholder="e.g. GAMCA Medical Fitness Clearance"
+                            className="flex-1 text-xs font-semibold text-slate-800 border-none bg-transparent focus:outline-none focus:ring-1 focus:ring-indigo-400 rounded px-1"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveStage(mIdx, sIdx)}
+                            className="p-1 text-slate-300 hover:text-rose-600 transition cursor-pointer"
+                            title="Remove Stage"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>

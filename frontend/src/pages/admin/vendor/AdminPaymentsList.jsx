@@ -74,8 +74,8 @@ export default function AdminPaymentsList() {
       {/* Header */}
       <div className="border-b border-slate-200/80 pb-4">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Selected Candidates Payment Accounts</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Candidate-grouped payment ledger. Track agreed placement fee to collect, released disbursements, and pending balance per candidate.
+        <p className="text-xs text-slate-500 mt-0.5 font-medium">
+          Comprehensive financial ledger tracking agreed placement fees, approved milestone disbursements, and outstanding balances.
         </p>
       </div>
 

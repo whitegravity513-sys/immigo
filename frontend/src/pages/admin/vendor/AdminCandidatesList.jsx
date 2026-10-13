@@ -32,17 +32,13 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 import ConfigureMilestonesModal from "../../../components/admin/vendor/ConfigureMilestonesModal.jsx";
+import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
 import * as XLSX from "xlsx";
 
 const DownloadModal = ({ isOpen, onClose, onDownload }) => {
   const [status, setStatus] = useState("All");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const allColumns = [
-    "Candidate Name", "Vendor", "Position", "Status", "Experience", 
-    "Destination", "Email", "Phone", "Passport Number", "Nationality", 
-    "Qualification", "Medical Status", "Skills", "Date Added"
-  ];
 
   if (!isOpen) return null;
 
@@ -50,8 +46,11 @@ const DownloadModal = ({ isOpen, onClose, onDownload }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-slate-100">
-          <h3 className="font-bold text-slate-900">Download Candidate Data</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+          <div>
+            <h3 className="font-bold text-slate-900">Download Candidate Data</h3>
+            <p className="text-[11px] text-slate-500 mt-0.5">Export candidate roster and full placement records</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X size={18} /></button>
         </div>
         <div className="p-4 space-y-4">
           <div>
@@ -73,23 +72,39 @@ const DownloadModal = ({ isOpen, onClose, onDownload }) => {
               <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
             </div>
           </div>
+
+          <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-[11px] text-blue-900 space-y-0.5">
+            <span className="font-bold block">💡 Microsoft Office Expired / Unactivated?</span>
+            <p className="text-blue-800">Use <strong>Download CSV (.csv)</strong> to open your candidate data in any spreadsheet, Google Sheets, or browser without Microsoft Office activation errors.</p>
+          </div>
         </div>
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={() => onDownload({ status, dateFrom, dateTo })}
-            className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-          >
-            <Download size={14} />
-            <span>Download Full Details (.xlsx)</span>
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => onDownload({ status, dateFrom, dateTo }, "csv")}
+              className="flex-1 sm:flex-initial px-4 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+              title="Recommended for all PCs without MS Office license"
+            >
+              <Download size={13} />
+              <span>Download CSV (.csv)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDownload({ status, dateFrom, dateTo }, "xlsx")}
+              className="flex-1 sm:flex-initial px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+            >
+              <Download size={13} />
+              <span>Excel (.xlsx)</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -137,9 +152,10 @@ export default function AdminCandidatesList() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [submissionHistory, setSubmissionHistory] = useState([]);
 
-  // Document Verification State
-  const [rejectDocModal, setRejectDocModal] = useState(null);
-  const [docRejectionRemarks, setDocRejectionRemarks] = useState("");
+  // Document Verification State (Zero Popups, Full Page View + Inline Rejection)
+  const [previewingDoc, setPreviewingDoc] = useState(null);
+  const [inlineRejectIdx, setInlineRejectIdx] = useState(null);
+  const [inlineRejectReason, setInlineRejectReason] = useState("");
 
   // Interview Modal State
   const [interviewModal, setInterviewModal] = useState(null); // { application }
@@ -151,12 +167,7 @@ export default function AdminCandidatesList() {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectLoading, setRejectLoading] = useState(false);
 
-  // Add Milestone Modal
-  const [milestoneModal, setMilestoneModal] = useState(null); // { application }
-  const [milestoneForm, setMilestoneForm] = useState({ name: "", amount: "" });
-  const [milestoneLoading, setMilestoneLoading] = useState(false);
-
-  // Configure Milestones on Select / Edit Modal
+  // Configure Milestones on Select / Edit Modal (fee, milestones, stages)
   const [configureMilestonesModal, setConfigureMilestonesModal] = useState(null); // { application }
 
   // Action loading state
@@ -187,11 +198,13 @@ export default function AdminCandidatesList() {
   };
 
   const handleViewCandidate = async (cand) => {
-    setSelectedCandidate(cand);
     try {
+      const freshCand = (await crmVendorService.getCandidateById(cand.id)) || cand;
+      setSelectedCandidate(freshCand);
       const history = await crmVendorService.getCandidateSubmissionsHistory(cand.id);
       setSubmissionHistory(history || []);
     } catch (err) {
+      setSelectedCandidate(cand);
       setSubmissionHistory([]);
     }
   };
@@ -200,6 +213,8 @@ export default function AdminCandidatesList() {
   const refreshCandidateView = async () => {
     if (!selectedCandidate) return;
     try {
+      const fresh = await crmVendorService.getCandidateById(selectedCandidate.id);
+      if (fresh) setSelectedCandidate(fresh);
       const history = await crmVendorService.getCandidateSubmissionsHistory(selectedCandidate.id);
       setSubmissionHistory(history || []);
     } catch {
@@ -208,43 +223,60 @@ export default function AdminCandidatesList() {
     loadData();
   };
 
-  // ─── Document Actions ────────────────────────────────────────────────────────
+  // ─── Document Actions (Zero Popups) ──────────────────────────────────────────
   const handleAcceptDocument = async (docIdx) => {
     if (!selectedCandidate) return;
     try {
       const updated = await crmVendorService.verifyCandidateDocument(selectedCandidate.id, docIdx, "Verified", "");
       setSelectedCandidate({ ...updated });
-      loadData();
+      setCandidates((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const handleOpenRejectDocModal = (docIdx, docName) => {
-    setRejectDocModal({ docIdx, docName });
-    setDocRejectionRemarks("");
-  };
-
-  const handleConfirmRejectDocument = async () => {
-    if (!selectedCandidate || !rejectDocModal) return;
-    if (!docRejectionRemarks.trim()) {
+  const handleConfirmInlineReject = async (docIdx) => {
+    if (!selectedCandidate) return;
+    if (!inlineRejectReason.trim()) {
       alert("Please enter a rejection reason for this document.");
       return;
     }
     try {
       const updated = await crmVendorService.verifyCandidateDocument(
         selectedCandidate.id,
-        rejectDocModal.docIdx,
+        docIdx,
         "Rejected",
-        docRejectionRemarks
+        inlineRejectReason.trim()
       );
       setSelectedCandidate({ ...updated });
-      setRejectDocModal(null);
-      setDocRejectionRemarks("");
-      loadData();
+      setCandidates((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+      setInlineRejectIdx(null);
+      setInlineRejectReason("");
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  const handleDownloadDoc = (doc) => {
+    if (doc.fileUrl && doc.fileUrl.startsWith("data:")) {
+      const a = document.createElement("a");
+      a.href = doc.fileUrl;
+      a.download = doc.fileName || `${doc.name || "document"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+    const content = `CANDIDATE DOCUMENT RECORD\n=========================\nCandidate: ${selectedCandidate?.fullName || "Candidate"}\nCandidate ID: ${selectedCandidate?.id || "N/A"}\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nStatus: ${doc.status || "Verified"}\nVerification Date: ${doc.verifiedAt || new Date().toISOString().split("T")[0]}\n\nAuthenticated on Vista Overseas Workforce Platform.`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc.fileName || `${doc.name || "document"}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleAcceptAllCandidateDocs = async () => {
@@ -252,7 +284,7 @@ export default function AdminCandidatesList() {
     try {
       const updated = await crmVendorService.verifyAllCandidateDocuments(selectedCandidate.id, "Verified");
       setSelectedCandidate({ ...updated });
-      loadData();
+      setCandidates((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
     } catch (err) {
       alert(err.message);
     }
@@ -393,33 +425,6 @@ export default function AdminCandidatesList() {
     }
   };
 
-  // Add Custom Milestone
-  const handleOpenMilestoneModal = (app) => {
-    setMilestoneModal({ application: app });
-    setMilestoneForm({ name: "", amount: "" });
-  };
-
-  const handleAddMilestone = async () => {
-    if (!milestoneModal || !milestoneForm.name.trim()) {
-      alert("Please enter a milestone name.");
-      return;
-    }
-    setMilestoneLoading(true);
-    try {
-      await crmVendorService.addApplicationMilestone(milestoneModal.application.id, {
-        name: milestoneForm.name,
-        amount: Number(milestoneForm.amount) || 0,
-      });
-      setMilestoneModal(null);
-      setMilestoneForm({ name: "", amount: "" });
-      await refreshCandidateView();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setMilestoneLoading(false);
-    }
-  };
-
   // ─── Helpers ─────────────────────────────────────────────────────────────────
   const getVendorName = (vId) => {
     const v = vendors.find((vend) => vend.id === vId);
@@ -496,7 +501,7 @@ export default function AdminCandidatesList() {
     return true;
   });
 
-  const handleDownloadExcel = (filters) => {
+  const handleDownloadExcel = (filters, format = "csv") => {
     let data = [...candidates];
     
     // Filter by status
@@ -557,21 +562,50 @@ export default function AdminCandidatesList() {
       };
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(excelRows);
-    
-    // Auto-fit column widths
-    const colWidths = Object.keys(excelRows[0] || {}).map((key) => ({
-      wch: Math.max(key.length + 4, 15),
-    }));
-    worksheet["!cols"] = colWidths;
+    if (format === "csv") {
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      const csvOutput = XLSX.utils.sheet_to_csv(worksheet);
+      // Prepend UTF-8 BOM so currency symbols and Indian names render cleanly in all spreadsheet viewers
+      const blob = new Blob(["\uFEFF" + csvOutput], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Candidates_Full_Details_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const worksheet = XLSX.utils.json_to_sheet(excelRows);
+      // Auto-fit column widths
+      const colWidths = Object.keys(excelRows[0] || {}).map((key) => ({
+        wch: Math.max(key.length + 4, 15),
+      }));
+      worksheet["!cols"] = colWidths;
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Full Data");
-    
-    const filename = `Candidates_Full_Details_${new Date().toISOString().split("T")[0]}.xlsx`;
-    XLSX.writeFile(workbook, filename);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Full Data");
+      
+      const filename = `Candidates_Full_Details_${new Date().toISOString().split("T")[0]}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+    }
     setDownloadModalOpen(false);
   };
+
+  // =========================================================================
+  // VIEW: FULL PAGE CANDIDATE DOCUMENT VIEWER (ZERO POPUPS)
+  // =========================================================================
+  if (previewingDoc) {
+    const docVendor = vendors.find((v) => v.id === selectedCandidate?.vendorId);
+    return (
+      <DocumentViewerFullPage
+        doc={previewingDoc}
+        vendor={docVendor}
+        candidate={selectedCandidate}
+        onBack={() => setPreviewingDoc(null)}
+      />
+    );
+  }
 
   // =========================================================================
   // VIEW 2: FULL CANDIDATE DETAIL PAGE
@@ -702,15 +736,28 @@ export default function AdminCandidatesList() {
                 Inspect identity documents, passport, resume & skill certificates submitted by vendor.
               </p>
             </div>
-            {(selectedCandidate.documents || []).length > 0 && (
-              <button
-                onClick={handleAcceptAllCandidateDocs}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <CheckCircle2 size={14} />
-                <span>Verify & Accept All</span>
-              </button>
-            )}
+            {(() => {
+              const candDocs = selectedCandidate.documents || [];
+              const allDocsVerified = candDocs.length > 0 && candDocs.every((d) => (d.status || "").toLowerCase() === "verified");
+              if (candDocs.length === 0) return null;
+              if (allDocsVerified) {
+                return (
+                  <span className="px-3.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-extrabold text-xs border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                    <CheckCircle2 size={14} className="text-emerald-600" />
+                    <span>All Documents Verified</span>
+                  </span>
+                );
+              }
+              return (
+                <button
+                  onClick={handleAcceptAllCandidateDocs}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CheckCircle2 size={14} />
+                  <span>Verify & Accept All</span>
+                </button>
+              );
+            })()}
           </div>
 
           {(!selectedCandidate.documents || selectedCandidate.documents.length === 0) ? (
@@ -771,36 +818,101 @@ export default function AdminCandidatesList() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-[11px]">
-                      <button
-                        type="button"
-                        onClick={() => alert(`Downloading: ${doc.fileName}`)}
-                        className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 cursor-pointer flex items-center gap-1"
-                      >
-                        <Download size={12} /> Download
-                      </button>
-
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/80 text-[11px] gap-2 flex-wrap">
                       <div className="flex items-center gap-1.5">
-                        {!isVerified && (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewingDoc(doc)}
+                          className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 cursor-pointer flex items-center gap-1.5 transition shadow-2xs"
+                          title="Open document in dedicated full-page view"
+                        >
+                          <Eye size={13} className="text-blue-600" />
+                          <span>View Document</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadDoc(doc)}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer flex items-center gap-1 transition"
+                          title="Download document file directly"
+                        >
+                          <Download size={13} />
+                          <span>Download</span>
+                        </button>
+                      </div>
+
+                      {isVerified ? (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs border border-emerald-200 shadow-2xs">
+                          <CheckCircle2 size={14} className="text-emerald-600" />
+                          <span>Verified</span>
+                        </div>
+                      ) : isRejected ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 font-bold text-[11px] border border-rose-200">
+                            Rejected
+                          </span>
                           <button
                             type="button"
                             onClick={() => handleAcceptDocument(idx)}
-                            className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer shadow-2xs flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer shadow-2xs transition"
                           >
-                            <CheckCircle2 size={12} /> Accept
+                            Accept Now
                           </button>
-                        )}
-                        {!isRejected && (
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => handleOpenRejectDocModal(idx, doc.name)}
-                            className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] cursor-pointer shadow-2xs flex items-center gap-1"
+                            onClick={() => handleAcceptDocument(idx)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] cursor-pointer shadow-2xs transition flex items-center gap-1"
                           >
-                            <XCircle size={12} /> Reject
+                            <CheckCircle2 size={12} />
+                            <span>Accept</span>
                           </button>
-                        )}
-                      </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setInlineRejectIdx(inlineRejectIdx === idx ? null : idx);
+                              setInlineRejectReason("");
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] cursor-pointer shadow-2xs transition flex items-center gap-1"
+                          >
+                            <XCircle size={12} />
+                            <span>Reject</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
+
+                    {inlineRejectIdx === idx && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-2 animate-fadeIn">
+                        <label className="text-[11px] font-bold text-rose-900 block">
+                          Specify Rejection Reason for {doc.name}:
+                        </label>
+                        <input
+                          type="text"
+                          value={inlineRejectReason}
+                          onChange={(e) => setInlineRejectReason(e.target.value)}
+                          placeholder="e.g. Expired validity, blurred image, name mismatch..."
+                          className="w-full px-3 py-1.5 rounded-lg border border-rose-300 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-rose-500 font-medium"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setInlineRejectIdx(null)}
+                            className="px-2.5 py-1 rounded-lg text-slate-600 text-[11px] font-bold hover:bg-slate-200/60 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleConfirmInlineReject(idx)}
+                            className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold cursor-pointer shadow-2xs"
+                          >
+                            Confirm Reject
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -970,8 +1082,8 @@ export default function AdminCandidatesList() {
                             </div>
                           )}
 
-                          {/* Milestones */}
-                          {sub.paymentPlan && (
+                          {/* Milestones & Processing Stages */}
+                          {sub.paymentPlan && sub.paymentPlan.milestones?.length > 0 ? (
                             <div>
                               <div className="flex items-center justify-between mb-2">
                                 <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
@@ -980,32 +1092,57 @@ export default function AdminCandidatesList() {
                                 <div className="flex items-center gap-1.5">
                                   <button
                                     onClick={() => setConfigureMilestonesModal({ application: sub })}
-                                    className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition border border-indigo-200"
+                                    className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition border border-indigo-200 shadow-2xs"
+                                    title="Edit milestones and processing stages"
                                   >
-                                    <Sliders size={10} /> Configure Plan
+                                    <Sliders size={11} />
+                                    <span>Configure Plan</span>
                                   </button>
                                   <button
-                                    onClick={() => handleOpenMilestoneModal(sub)}
-                                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition"
+                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                                    title="Add new milestone or stages"
                                   >
-                                    <Plus size={10} /> Add Milestone
+                                    <Plus size={11} />
+                                    <span>Add Milestone</span>
                                   </button>
                                 </div>
                               </div>
                               <div className="flex flex-wrap gap-2">
-                                {sub.paymentPlan.milestones.map((ms, mi) => (
-                                  <div
+                                {(sub.paymentPlan.milestones || []).map((ms, mi) => (
+                                  <button
                                     key={mi}
-                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border ${
-                                      ms.status === "Paid" ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                                      : ms.status === "Due" ? "bg-blue-50 border-blue-200 text-blue-800"
-                                      : "bg-slate-50 border-slate-200 text-slate-600"
+                                    type="button"
+                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer hover:shadow-xs flex items-center gap-1.5 ${
+                                      ms.status === "Paid"
+                                        ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+                                        : ms.status === "Due"
+                                        ? "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100"
+                                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                                     }`}
+                                    title="Click to edit milestone and stages"
                                   >
-                                    {ms.name} — ₹{Number(ms.amount).toLocaleString("en-IN")} [{ms.status}]
-                                  </div>
+                                    <span>{ms.name} — ₹{Number(ms.amount).toLocaleString("en-IN")} [{ms.status}]</span>
+                                    <Sliders size={10} className="text-slate-400" />
+                                  </button>
                                 ))}
                               </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between p-3 bg-blue-50/70 rounded-xl border border-blue-200">
+                              <div>
+                                <p className="text-xs font-bold text-blue-900">Payment Milestones & Processing Stages</p>
+                                <p className="text-[10px] text-blue-700">Configure fee milestones and customize individual stage steps for this candidate.</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition"
+                              >
+                                <Sliders size={12} />
+                                <span>Configure Milestones & Stages</span>
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1028,27 +1165,6 @@ export default function AdminCandidatesList() {
         </div>
 
         {/* ── MODALS ─────────────────────────────────────────────────── */}
-
-        {/* Doc Rejection Modal */}
-        {rejectDocModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-              <h3 className="text-base font-bold text-slate-900">Reject Document • {rejectDocModal.docName}</h3>
-              <p className="text-xs text-slate-500">Specify the rejection reason (e.g. blurry image, expired document, name mismatch).</p>
-              <textarea
-                rows={3}
-                value={docRejectionRemarks}
-                onChange={(e) => setDocRejectionRemarks(e.target.value)}
-                placeholder="Enter rejection remark..."
-                className="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
-              />
-              <div className="flex items-center justify-end gap-2">
-                <button type="button" onClick={() => setRejectDocModal(null)} className="py-2 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
-                <button type="button" onClick={handleConfirmRejectDocument} className="py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer">Confirm Rejection</button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Interview Schedule Modal */}
         {interviewModal && (
@@ -1160,57 +1276,6 @@ export default function AdminCandidatesList() {
                 >
                   <XCircle size={13} />
                   <span>{rejectLoading ? "Rejecting..." : "Confirm Rejection"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Milestone Modal */}
-        {milestoneModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-              <div className="flex items-start justify-between border-b border-slate-100 pb-3">
-                <div>
-                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Payment Plan</span>
-                  <h3 className="text-base font-black text-slate-900">Add Custom Milestone</h3>
-                </div>
-                <button onClick={() => setMilestoneModal(null)} className="text-slate-400 hover:text-slate-600 font-bold cursor-pointer text-lg">✕</button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Milestone Name *</label>
-                  <input
-                    type="text"
-                    value={milestoneForm.name}
-                    onChange={(e) => setMilestoneForm({ ...milestoneForm, name: e.target.value })}
-                    placeholder="e.g. Visa Stamped, GAMCA Medical Cleared..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Amount (₹)</label>
-                  <input
-                    type="number"
-                    value={milestoneForm.amount}
-                    onChange={(e) => setMilestoneForm({ ...milestoneForm, amount: e.target.value })}
-                    placeholder="0"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
-                <button type="button" onClick={() => setMilestoneModal(null)} className="py-2 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer">Cancel</button>
-                <button
-                  type="button"
-                  onClick={handleAddMilestone}
-                  disabled={milestoneLoading}
-                  className="py-2 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  <Plus size={13} />
-                  <span>{milestoneLoading ? "Adding..." : "Add Milestone"}</span>
                 </button>
               </div>
             </div>
@@ -1527,14 +1592,6 @@ export default function AdminCandidatesList() {
           </div>
         </div>
       )}
-
-      {/* Configure Milestones Modal */}
-      <ConfigureMilestonesModal
-        isOpen={!!configureMilestonesModal}
-        onClose={() => setConfigureMilestonesModal(null)}
-        application={configureMilestonesModal?.application}
-        onSaved={refreshCandidateView}
-      />
     </div>
   );
 }

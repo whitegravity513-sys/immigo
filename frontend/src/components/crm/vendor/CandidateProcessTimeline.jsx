@@ -473,7 +473,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                         className="px-3 py-1.5 bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-bold text-[10px] rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
                       >
                         <Receipt size={13} className="text-indigo-600" />
-                        <span>View Invoice / Receipt (New Tab)</span>
+                        <span>View Invoice / Receipt</span>
                       </button>
                     </div>
                   )}

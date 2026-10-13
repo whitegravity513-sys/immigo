@@ -71,10 +71,10 @@ export default function VendorProjectDetails() {
         <p className="text-xs text-slate-500">{error || "The project you are looking for does not exist."}</p>
         <div>
           <Link
-            to="/vendor/dashboard"
+            to="/vendor/projects"
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
           >
-            <ArrowLeft size={14} /> Back to Dashboard
+            <ArrowLeft size={14} /> Back to Projects List
           </Link>
         </div>
       </div>
@@ -92,10 +92,10 @@ export default function VendorProjectDetails() {
       {/* Top Breadcrumb & Navigation */}
       <div className="flex items-center justify-between gap-3">
         <Link
-          to="/vendor/dashboard"
+          to="/vendor/projects"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 transition"
         >
-          <ArrowLeft size={14} /> Back to Dashboard
+          <ArrowLeft size={14} /> Back to Projects List
         </Link>
         <span className="text-xs text-slate-400 font-mono">
           Project ID: <span className="font-bold text-slate-700">{project.id}</span>

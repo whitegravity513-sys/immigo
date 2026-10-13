@@ -180,11 +180,11 @@ export default function AdminSelectedCandidates() {
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/admin/vendor/milestones-manage?appId=${app.id}`}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1 cursor-pointer"
-                            title="Manage Milestones & Processes"
+                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                            title="Manage candidate processing stages & upload documents"
                           >
                             <Sliders size={13} />
-                            <span>Milestones & Processing</span>
+                            <span>Manage Stages</span>
                           </Link>
                         </div>
                       </td>
