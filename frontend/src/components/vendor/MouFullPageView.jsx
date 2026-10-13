@@ -138,11 +138,46 @@ export default function MouFullPageView({
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const isSigned =
     vendor?.mouSigned ||
     vendor?.mouStatus === "Signed" ||
     vendor?.mouStatus === "Approved" ||
     vendor?.signedMou?.signedAt;
+
+  const handleDownloadMou = async () => {
+    setIsDownloading(true);
+    try {
+      const content = printRef.current;
+      if (!content) {
+        handlePrint();
+        return;
+      }
+
+      const cleanName = secondPartyName.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const filename = `MOU_IMMIGO_EDUCARE_LLP_${cleanName}.pdf`;
+
+      const html2pdfModule = await import("html2pdf.js");
+      const html2pdf = html2pdfModule.default || html2pdfModule;
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 1.5, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] },
+      };
+
+      await html2pdf().set(opt).from(content).save();
+    } catch (err) {
+      console.warn("Direct download fallback to print:", err);
+      handlePrint();
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handlePrint = () => {
     const originalTitle = document.title;
@@ -347,43 +382,31 @@ export default function MouFullPageView({
         }
       `}</style>
 
-      {/* Top Header / Action Bar (Print-Hidden, Flush to Top, Solid White so content scrolls cleanly beneath) */}
-      <div className="mou-print-hide print:hidden bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm px-4 sm:px-8 py-2.5">
+      {/* Top Header / Action Bar: Clean Bar with strictly Back & Download options */}
+      <div className="mou-print-hide print:hidden bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-8 py-2.5">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            {onBack && (
+          <div>
+            {onBack ? (
               <button
                 onClick={onBack}
                 type="button"
-                className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1 shrink-0"
+                className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
               >
-                <ArrowLeft size={14} />
-                <span className="hidden sm:inline">Back</span>
+                <ArrowLeft size={16} />
+                <span>Back</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => window.history.back()}
+                type="button"
+                className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              >
+                <ArrowLeft size={16} />
+                <span>Back</span>
               </button>
             )}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-200">
-                  Official Legal Contract
-                </span>
-                <span className="text-[11px] font-mono text-slate-500 font-semibold">{mouRefNumber}</span>
-                {isSigned ? (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                    <CheckCircle2 size={10} /> Signed & Active
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                    Awaiting Execution
-                  </span>
-                )}
-              </div>
-              <h1 className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight truncate mt-0.5">
-                Memorandum of Understanding &bull; <span className="text-blue-900">{secondPartyName}</span>
-              </h1>
-            </div>
           </div>
 
-          {/* Right Corner: ONLY Download Button as requested */}
           <div className="flex items-center gap-2 shrink-0">
             {onApprove && (
               <button
@@ -396,13 +419,23 @@ export default function MouFullPageView({
               </button>
             )}
             <button
-              onClick={handlePrint}
+              onClick={handleDownloadMou}
+              disabled={isDownloading}
               type="button"
-              className="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-950 text-white text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-95"
-              title="Download MOU (Save as PDF)"
+              className="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-950 disabled:opacity-60 text-white text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-95"
+              title="Download MOU PDF directly to your device"
             >
-              <Download size={15} />
-              <span>Download MOU</span>
+              {isDownloading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Downloading...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>Download MOU</span>
+                </>
+              )}
             </button>
           </div>
         </div>

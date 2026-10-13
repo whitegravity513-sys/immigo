@@ -1086,6 +1086,38 @@ export const crmVendorService = {
             stages: m.stages
           }))
         };
+
+        // Synchronize app.processing and currentStageIndex
+        const allMStages = (app.processMilestones || []).flatMap((m) => m.stages || []);
+        const compMStages = allMStages.filter((s) => s.status === "Completed" || s.completed).length;
+        const allDone = (allMStages.length > 0 && compMStages === allMStages.length) ||
+          (app.processMilestones.length > 0 && app.processMilestones.every((m) => m.status === "Completed"));
+
+        if (!app.processing) {
+          app.processing = { currentStageIndex: 0, stages: [] };
+        }
+
+        if (allDone || app.status === "Completed") {
+          if (app.status !== "Completed") {
+            app.status = "Completed";
+            dataChanged = true;
+          }
+          if (app.processing.currentStageIndex !== 7 || app.processing.status !== "Completed") {
+            app.processing.currentStageIndex = 7;
+            app.processing.status = "Completed";
+            if (Array.isArray(app.processing.stages)) {
+              app.processing.stages.forEach((s) => { s.status = "Completed"; });
+            }
+            dataChanged = true;
+          }
+        } else if (allMStages.length > 0 && compMStages > 0) {
+          const ratio = compMStages / allMStages.length;
+          const mappedIdx = Math.min(7, Math.max(0, Math.floor(ratio * 8)));
+          if (app.processing.currentStageIndex !== mappedIdx) {
+            app.processing.currentStageIndex = mappedIdx;
+            dataChanged = true;
+          }
+        }
       }
 
       return app;
@@ -1516,6 +1548,12 @@ export const crmVendorService = {
           });
         } else {
           apps[idx].status = "Completed";
+          if (!apps[idx].processing) apps[idx].processing = { currentStageIndex: 7, stages: [] };
+          apps[idx].processing.currentStageIndex = 7;
+          apps[idx].processing.status = "Completed";
+          if (Array.isArray(apps[idx].processing.stages)) {
+            apps[idx].processing.stages.forEach((s) => { s.status = "Completed"; });
+          }
         }
       }
     }

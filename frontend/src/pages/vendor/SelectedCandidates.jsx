@@ -89,7 +89,7 @@ export default function SelectedCandidates() {
 
         <Link
           to="/vendor/candidates?tab=selected"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow-sm"
         >
           <span>View Processing Stepper</span>
           <ArrowRight className="w-4 h-4" />
@@ -195,11 +195,63 @@ export default function SelectedCandidates() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map((app) => {
-                const stageIndex = app.processing?.currentStageIndex ?? 0;
-                const currentStage = app.processing?.stages?.[stageIndex];
                 const milestones = (app.processMilestones?.length ? app.processMilestones : app.paymentPlan?.milestones) || [];
                 const paidMilestones = milestones.filter((m) => m.paymentStatus === "Approved" || m.status === "Paid").length;
                 const totalMilestones = milestones.length;
+
+                // Collect all stages from milestones
+                const allMilestoneStages = (app.processMilestones || []).flatMap((m) => m.stages || []);
+                const completedMilestoneStages = allMilestoneStages.filter((s) => s.status === "Completed" || s.completed).length;
+                const totalMilestoneStages = allMilestoneStages.length;
+
+                // Collect stages from app.processing
+                const procStages = app.processing?.stages || [];
+                const completedProcStages = procStages.filter((s) => s.status === "Completed" || s.completed).length;
+
+                const allMilestoneStagesDone = totalMilestoneStages > 0 && completedMilestoneStages >= totalMilestoneStages;
+                const allProcStagesDone = procStages.length > 0 && completedProcStages >= procStages.length;
+                const allMilestonesPaid = totalMilestones > 0 && paidMilestones >= totalMilestones;
+
+                const isCompleted =
+                  app.status === "Completed" ||
+                  app.processing?.status === "Completed" ||
+                  app.processing?.currentStageIndex === 7 ||
+                  allMilestoneStagesDone ||
+                  allProcStagesDone ||
+                  (allMilestonesPaid && (totalMilestoneStages === 0 || allMilestoneStagesDone));
+
+                const totalStages = 8;
+                let completedStagesCount = 1;
+
+                if (isCompleted) {
+                  completedStagesCount = totalStages;
+                } else if (totalMilestoneStages > 0) {
+                  if (completedMilestoneStages >= totalMilestoneStages) {
+                    completedStagesCount = totalStages;
+                  } else {
+                    const ratio = completedMilestoneStages / totalMilestoneStages;
+                    completedStagesCount = Math.max(1, Math.min(7, Math.round(ratio * totalStages) || 1));
+                  }
+                } else if (completedProcStages > 0) {
+                  completedStagesCount = Math.min(totalStages, completedProcStages);
+                } else if (typeof app.processing?.currentStageIndex === "number" && app.processing.currentStageIndex > 0) {
+                  completedStagesCount = Math.min(totalStages, app.processing.currentStageIndex + 1);
+                } else if (totalMilestones > 0 && paidMilestones > 0) {
+                  completedStagesCount = Math.min(totalStages, Math.round((paidMilestones / totalMilestones) * totalStages));
+                }
+
+                let stageLabel = "In Processing";
+                if (isCompleted) {
+                  stageLabel = "Completed";
+                } else if (app.status === "Selected" && completedStagesCount === 1 && completedMilestoneStages === 0) {
+                  stageLabel = "Selected";
+                } else if (totalMilestoneStages > 0) {
+                  const activeStage = allMilestoneStages.find((s) => s.status === "In Progress") || allMilestoneStages.find((s) => s.status !== "Completed");
+                  stageLabel = activeStage?.name || "Processing";
+                } else if (procStages.length > 0) {
+                  const sIdx = Math.min(completedStagesCount - 1, procStages.length - 1);
+                  stageLabel = procStages[sIdx]?.name || "Processing";
+                }
 
                 return (
                   <tr key={app.id} className="hover:bg-slate-50/60 transition-colors">
@@ -215,8 +267,14 @@ export default function SelectedCandidates() {
                           >
                             {app.candidateName}
                           </Link>
-                          <span className="inline-flex items-center px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Selected
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-semibold ${
+                              isCompleted
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            }`}
+                          >
+                            {isCompleted ? "Completed" : "Selected"}
                           </span>
                         </div>
                       </div>
@@ -236,13 +294,23 @@ export default function SelectedCandidates() {
                     <td className="py-3 px-4">
                       <div className="flex flex-col gap-1.5 w-32">
                         <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-semibold text-emerald-700 truncate">{currentStage?.name || "Selected"}</span>
-                          <span className="text-slate-400">{stageIndex + 1}/8</span>
+                          <span
+                            className={`truncate ${
+                              isCompleted ? "text-emerald-800 font-bold" : "font-semibold text-emerald-700"
+                            }`}
+                          >
+                            {stageLabel}
+                          </span>
+                          <span className={isCompleted ? "text-emerald-700 font-bold" : "text-slate-400"}>
+                            {completedStagesCount}/{totalStages}
+                          </span>
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                           <div
-                            className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
-                            style={{ width: `${((stageIndex + 1) / 8) * 100}%` }}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                              isCompleted ? "bg-emerald-600" : "bg-emerald-500"
+                            }`}
+                            style={{ width: `${(completedStagesCount / totalStages) * 100}%` }}
                           ></div>
                         </div>
                       </div>

@@ -120,7 +120,9 @@ export default function AdminProcessingList() {
                     {selectedApp.position}
                   </span>
                   <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-bold text-xs rounded-full border border-emerald-200">
-                    Stage {currentStageIndex + 1} of 8 Active
+                    {selectedApp.status === "Completed" || currentStageIndex >= 7
+                      ? "All 8 Stages Completed"
+                      : `Stage ${currentStageIndex + 1} of 8 Active`}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1 font-semibold flex items-center gap-3 flex-wrap">

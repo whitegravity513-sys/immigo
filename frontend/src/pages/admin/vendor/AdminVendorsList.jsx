@@ -572,7 +572,7 @@ export default function AdminVendorsList() {
       (a) => a.status === "Selected" && (a.processing?.currentStageIndex ?? 0) < 7
     ).length;
     const completed = vApps.filter(
-      (a) => a.status === "Selected" && a.processing?.currentStageIndex === 7
+      (a) => a.status === "Completed" || (a.status === "Selected" && a.processing?.currentStageIndex === 7)
     ).length;
 
     return {
