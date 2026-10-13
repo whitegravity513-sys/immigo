@@ -9,6 +9,8 @@ import {
   updateApplicationStatus,
   getNotifications,
   createNotification,
+  markNotificationRead,
+  markAllNotificationsRead,
   getCandidates,
   saveCandidate,
 } from "../controllers/crmSync.controller.js";
@@ -24,6 +26,8 @@ router.post("/applications", submitApplication);
 router.put("/applications/:id", updateApplicationStatus);
 router.get("/notifications", getNotifications);
 router.post("/notifications", createNotification);
+router.put("/notifications/:id/read", markNotificationRead);
+router.put("/notifications/read-all", markAllNotificationsRead);
 router.get("/candidates", getCandidates);
 router.post("/candidates", saveCandidate);
 

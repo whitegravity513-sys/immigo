@@ -20,6 +20,7 @@ import {
   Clock,
   UserCheck,
   CheckCircle2,
+  Video,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 
@@ -51,27 +52,34 @@ export function Candidates() {
       let enriched = candData.map((c) => {
         const cApps = (appData || []).filter((a) => a.candidateId === c.id);
         const selectedApp = cApps.find((a) => ["Selected", "Shortlisted", "Completed"].includes(a.status));
-        const rejectedApp = cApps.find((a) => a.status === "Rejected");
+        const interviewApp = cApps.find((a) => a.status === "Interview" || a.status === "Interview Scheduled");
         const holdApp = cApps.find((a) => a.status === "On Hold");
+        const rejectedApp = cApps.find((a) => a.status === "Rejected");
 
         let poolStatus = "Available";
         let lastProjectInfo = null;
+        let interviewInfo = null;
 
         if (selectedApp) {
           poolStatus = selectedApp.status; // Selected or Shortlisted
           lastProjectInfo = selectedApp.projectName || selectedApp.clientName;
-        } else if (rejectedApp) {
-          poolStatus = "Rejected";
-          lastProjectInfo = rejectedApp.projectName || rejectedApp.clientName;
+        } else if (interviewApp) {
+          poolStatus = "Interview";
+          lastProjectInfo = interviewApp.projectName || interviewApp.clientName;
+          interviewInfo = interviewApp.interviewDetails;
         } else if (holdApp) {
           poolStatus = "On Hold";
           lastProjectInfo = holdApp.projectName || holdApp.clientName;
+        } else if (rejectedApp) {
+          poolStatus = "Rejected";
+          lastProjectInfo = rejectedApp.projectName || rejectedApp.clientName;
         }
 
         return {
           ...c,
           poolStatus,
           lastProjectInfo,
+          interviewInfo,
         };
       });
 
@@ -90,8 +98,8 @@ export function Candidates() {
         // Includes Available, Rejected, and On Hold (all candidates reusable for new projects)
         enriched = enriched.filter((c) => ["Available", "Rejected", "On Hold"].includes(c.poolStatus));
       } else if (statusTab === "Selected") {
-        // Includes Shortlisted and Selected on active project
-        enriched = enriched.filter((c) => ["Selected", "Shortlisted", "Completed"].includes(c.poolStatus));
+        // Includes Shortlisted, Interview and Selected on active project
+        enriched = enriched.filter((c) => ["Selected", "Shortlisted", "Completed", "Interview"].includes(c.poolStatus));
       }
 
       setCandidates(enriched);
@@ -342,6 +350,16 @@ export function Candidates() {
                             </span>
                             <span className="text-[10px] text-slate-400 block mt-0.5 truncate max-w-[140px]">
                               Prev: {c.lastProjectInfo || "Other project"}
+                            </span>
+                          </div>
+                        ) : c.poolStatus === "Interview" ? (
+                          <div>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                              <Video size={11} className="text-purple-600 shrink-0" />
+                              <span>Interview Scheduled</span>
+                            </span>
+                            <span className="text-[10px] text-purple-600 block mt-0.5 truncate max-w-[140px]">
+                              {c.lastProjectInfo} {c.interviewInfo?.dateTime ? `• ${c.interviewInfo.dateTime}` : ""}
                             </span>
                           </div>
                         ) : ["Selected", "Shortlisted", "Completed"].includes(c.poolStatus) ? (

@@ -17,6 +17,9 @@ import {
   AlertTriangle,
   RefreshCw,
   Send,
+  Video,
+  Pause,
+  Calendar,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
@@ -56,7 +59,9 @@ export default function Applications() {
     { label: "All", count: applications.length },
     { label: "Submitted", count: applications.filter((a) => a.status === "Submitted").length },
     { label: "Under Review", count: applications.filter((a) => a.status === "Under Review" || a.status === "Shortlisted").length },
+    { label: "Interview", count: applications.filter((a) => a.status === "Interview" || a.status === "Interview Scheduled").length },
     { label: "Selected", count: applications.filter((a) => a.status === "Selected").length },
+    { label: "On Hold", count: applications.filter((a) => a.status === "On Hold").length },
     { label: "Rejected", count: applications.filter((a) => a.status === "Rejected").length },
     { label: "Completed", count: applications.filter((a) => a.status === "Completed").length },
   ];
@@ -65,6 +70,8 @@ export default function Applications() {
   const filteredApplications = applications.filter((app) => {
     if (activeTab === "Under Review") {
       if (app.status !== "Under Review" && app.status !== "Shortlisted") return false;
+    } else if (activeTab === "Interview") {
+      if (app.status !== "Interview" && app.status !== "Interview Scheduled") return false;
     } else if (activeTab !== "All" && app.status !== activeTab) {
       return false;
     }
@@ -109,6 +116,21 @@ export default function Applications() {
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
             <Sparkles className="w-3 h-3 text-purple-500" />
             Shortlisted
+          </span>
+        );
+      case "Interview":
+      case "Interview Scheduled":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+            <Video className="w-3 h-3 text-purple-600" />
+            Interview Scheduled
+          </span>
+        );
+      case "On Hold":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+            <Clock className="w-3 h-3 text-amber-600" />
+            On Hold (Reusable)
           </span>
         );
       case "Selected":
@@ -317,10 +339,41 @@ export default function Applications() {
 
                       {/* Status */}
                       <td className="py-4 px-4">
-                        {getStatusBadge(app.status)}
+                        <div>
+                          {getStatusBadge(app.status)}
+                          {(app.status === "Interview" || app.status === "Interview Scheduled") && app.interviewDetails && (
+                            <div className="mt-1 space-y-0.5">
+                              {app.interviewDetails.dateTime && (
+                                <div className="flex items-center gap-1 text-[11px] text-purple-700 font-medium">
+                                  <Calendar className="w-3 h-3 text-purple-500 shrink-0" />
+                                  <span>{app.interviewDetails.dateTime}</span>
+                                </div>
+                              )}
+                              {app.interviewDetails.meetingUrl && (
+                                <a
+                                  href={app.interviewDetails.meetingUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 hover:bg-purple-200 text-purple-800 transition"
+                                >
+                                  <Video className="w-3 h-3" />
+                                  <span>Join Interview</span>
+                                </a>
+                              )}
+                            </div>
+                          )}
+                          {isRejected && app.rejectionReason && (
+                            <div className="text-[10px] text-rose-600 mt-1 truncate max-w-[170px]" title={app.rejectionReason}>
+                              Reason: {app.rejectionReason}
+                            </div>
+                          )}
+                          {app.status === "On Hold" && app.holdReason && (
+                            <div className="text-[10px] text-amber-700 mt-1 truncate max-w-[170px]" title={app.holdReason}>
+                              Note: {app.holdReason}
+                            </div>
+                          )}
+                        </div>
                       </td>
-
-
 
                       {/* Actions */}
                       <td className="py-4 px-4 text-right">
@@ -336,7 +389,7 @@ export default function Applications() {
                             </Link>
                           )}
 
-                          {isRejected && (
+                          {(isRejected || app.status === "On Hold") && (
                             <Link
                               to={`/vendor/candidates/submit?candidateId=${app.candidateId}`}
                               className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs transition inline-flex items-center gap-1 border border-emerald-200"

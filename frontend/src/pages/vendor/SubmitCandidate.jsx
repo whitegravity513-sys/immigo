@@ -22,6 +22,9 @@ import {
   Eye,
   Filter,
   CheckSquare,
+  ExternalLink,
+  Video,
+  Lock,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 import { crmClientService } from "../../services/crmClientService";
@@ -35,12 +38,13 @@ export default function SubmitCandidate() {
   const [vendor, setVendor] = useState(null);
   const [clients, setClients] = useState([]);
   const [candidates, setCandidates] = useState([]);
+  const [busyCandidates, setBusyCandidates] = useState([]);
   const [applications, setApplications] = useState([]);
   const [availableProjectsList, setAvailableProjectsList] = useState([]);
   const [excludedBusyCount, setExcludedBusyCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Tabs: 'All' | 'fresh' | 'rejected'
+  // Tabs: 'All' | 'fresh' | 'rejected' | 'in_progress'
   const [categoryFilter, setCategoryFilter] = useState("All");
 
   // Flow State
@@ -134,20 +138,36 @@ export default function SubmitCandidate() {
         "Selected",
         "Shortlisted",
         "Interview",
+        "Interview Scheduled",
         "Under Review",
         "Submitted",
         "Completed",
+        "On Hold",
       ];
 
       let busyCount = 0;
       const eligibleCandidates = [];
+      const inProgressCandidates = [];
 
       (candRes || []).forEach((c) => {
         const cApps = (appRes || []).filter((a) => a.candidateId === c.id);
 
-        const hasBusyApp = cApps.some((a) => busyDisqualifyingStatuses.includes(a.status));
-        if (hasBusyApp) {
+        const busyApp = cApps.find((a) => busyDisqualifyingStatuses.includes(a.status));
+        if (busyApp) {
           busyCount++;
+          inProgressCandidates.push({
+            ...c,
+            category: "in_progress",
+            poolStatus: busyApp.status,
+            activeProjectName: busyApp.projectName || busyApp.clientName || "Assigned Project",
+            activeClientName: busyApp.clientName || "Client",
+            activePosition: busyApp.position || c.currentPosition,
+            activeStatus: busyApp.status,
+            activeSubmittedAt: busyApp.submittedAt,
+            interviewDetails: busyApp.interviewDetails,
+            applicationId: busyApp.id || busyApp.applicationId,
+            applicationsCount: cApps.length,
+          });
           return;
         }
 
@@ -157,6 +177,20 @@ export default function SubmitCandidate() {
 
         if (!isFresh && !isRejected) {
           busyCount++;
+          const otherApp = cApps[0];
+          inProgressCandidates.push({
+            ...c,
+            category: "in_progress",
+            poolStatus: otherApp?.status || "Under Review",
+            activeProjectName: otherApp?.projectName || otherApp?.clientName || "Assigned Project",
+            activeClientName: otherApp?.clientName || "Client",
+            activePosition: otherApp?.position || c.currentPosition,
+            activeStatus: otherApp?.status || "Under Review",
+            activeSubmittedAt: otherApp?.submittedAt,
+            interviewDetails: otherApp?.interviewDetails,
+            applicationId: otherApp?.id || otherApp?.applicationId,
+            applicationsCount: cApps.length,
+          });
           return;
         }
 
@@ -170,8 +204,9 @@ export default function SubmitCandidate() {
         });
       });
 
-      setExcludedBusyCount(busyCount);
+      setExcludedBusyCount(inProgressCandidates.length);
       setCandidates(eligibleCandidates);
+      setBusyCandidates(inProgressCandidates);
 
       // Preselection handler
       const preselectedProjId = searchParams.get("projectId") || searchParams.get("project");
@@ -293,17 +328,21 @@ export default function SubmitCandidate() {
   };
 
   // Filter candidates by category tab and search text
-  const filteredCandidates = candidates.filter((c) => {
-    if (categoryFilter !== "All" && c.category !== categoryFilter) {
+  const displaySourceList = categoryFilter === "in_progress" ? busyCandidates : candidates;
+
+  const filteredCandidates = displaySourceList.filter((c) => {
+    if (categoryFilter !== "All" && categoryFilter !== "in_progress" && c.category !== categoryFilter) {
       return false;
     }
     if (!candidateSearch) return true;
     const q = candidateSearch.toLowerCase();
     return (
-      c.fullName.toLowerCase().includes(q) ||
-      c.id.toLowerCase().includes(q) ||
+      c.fullName?.toLowerCase().includes(q) ||
+      c.id?.toLowerCase().includes(q) ||
       c.currentPosition?.toLowerCase().includes(q) ||
       c.passportNumber?.toLowerCase().includes(q) ||
+      c.activeProjectName?.toLowerCase().includes(q) ||
+      c.activeStatus?.toLowerCase().includes(q) ||
       c.skills?.some((s) => s.toLowerCase().includes(q))
     );
   });
@@ -462,25 +501,53 @@ export default function SubmitCandidate() {
 
         {/* Quick KPI Stats Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
-          <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+          <div
+            onClick={() => setCategoryFilter("All")}
+            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+              categoryFilter === "All"
+                ? "bg-slate-100 border-slate-400 ring-2 ring-slate-400 shadow-xs"
+                : "bg-white border-slate-200 hover:bg-slate-50 shadow-2xs"
+            }`}
+          >
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Assignable</span>
             <span className="text-lg font-black text-slate-900">{candidates.length}</span>
             <span className="text-[10px] text-slate-400 block">In available pool</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 shadow-2xs">
+          <div
+            onClick={() => setCategoryFilter("fresh")}
+            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+              categoryFilter === "fresh"
+                ? "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-500 shadow-xs"
+                : "bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/70 shadow-2xs"
+            }`}
+          >
             <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Fresh Candidates</span>
             <span className="text-lg font-black text-emerald-800">{freshCount}</span>
             <span className="text-[10px] text-emerald-600 block">Never submitted</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200 shadow-2xs">
+          <div
+            onClick={() => setCategoryFilter("rejected")}
+            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+              categoryFilter === "rejected"
+                ? "bg-rose-100 border-rose-400 ring-2 ring-rose-500 shadow-xs"
+                : "bg-rose-50/70 border-rose-200 hover:bg-rose-100/70 shadow-2xs"
+            }`}
+          >
             <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Rejected (Reusable)</span>
             <span className="text-lg font-black text-rose-800">{rejectedCount}</span>
             <span className="text-[10px] text-rose-600 block">Ready to re-assign</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-indigo-50/70 border border-indigo-200 shadow-2xs">
+          <div
+            onClick={() => setCategoryFilter("in_progress")}
+            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+              categoryFilter === "in_progress"
+                ? "bg-indigo-100 border-indigo-400 ring-2 ring-indigo-500 shadow-xs"
+                : "bg-indigo-50/70 border-indigo-200 hover:bg-indigo-100/70 shadow-2xs"
+            }`}
+          >
             <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">In Progress / Active</span>
-            <span className="text-lg font-black text-indigo-800">{excludedBusyCount}</span>
-            <span className="text-[10px] text-indigo-600 block">Selected / Interview (Hidden)</span>
+            <span className="text-lg font-black text-indigo-800">{busyCandidates.length}</span>
+            <span className="text-[10px] text-indigo-600 block">Click to view list ({busyCandidates.length})</span>
           </div>
         </div>
       </div>
@@ -567,22 +634,22 @@ export default function SubmitCandidate() {
             {/* Filter Tabs & Search */}
             <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               {/* Category Filter Tabs */}
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold">
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold overflow-x-auto">
                 <button
                   type="button"
                   onClick={() => setCategoryFilter("All")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                     categoryFilter === "All"
                       ? "bg-white text-blue-700 shadow-2xs font-extrabold"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  All Eligible ({candidates.length})
+                  All Assignable ({candidates.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setCategoryFilter("fresh")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                     categoryFilter === "fresh"
                       ? "bg-white text-emerald-700 shadow-2xs font-extrabold"
                       : "text-slate-600 hover:text-slate-900"
@@ -594,7 +661,7 @@ export default function SubmitCandidate() {
                 <button
                   type="button"
                   onClick={() => setCategoryFilter("rejected")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                     categoryFilter === "rejected"
                       ? "bg-white text-rose-700 shadow-2xs font-extrabold"
                       : "text-slate-600 hover:text-slate-900"
@@ -603,6 +670,18 @@ export default function SubmitCandidate() {
                   <RotateCcw size={12} className="text-rose-500" />
                   <span>Rejected ({rejectedCount})</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setCategoryFilter("in_progress")}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
+                    categoryFilter === "in_progress"
+                      ? "bg-white text-indigo-700 shadow-2xs font-extrabold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Clock size={12} className="text-indigo-500" />
+                  <span>In Progress / Active ({busyCandidates.length})</span>
+                </button>
               </div>
 
               {/* Search Bar */}
@@ -610,13 +689,31 @@ export default function SubmitCandidate() {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search by name, ID, trade, passport..."
+                  placeholder="Search by name, ID, trade, project..."
                   value={candidateSearch}
                   onChange={(e) => setCandidateSearch(e.target.value)}
                   className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
                 />
               </div>
             </div>
+
+            {categoryFilter === "in_progress" && (
+              <div className="mt-3 p-3 bg-indigo-50/90 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-indigo-600 shrink-0" />
+                  <span>
+                    Showing <strong>{filteredCandidates.length}</strong> candidate(s) currently active in recruitment stages (Interview, Selected, Under Review).
+                  </span>
+                </div>
+                <Link
+                  to="/vendor/applications"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 underline whitespace-nowrap"
+                >
+                  <span>View in Applications</span>
+                  <ExternalLink size={12} />
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Candidates Table */}
@@ -625,18 +722,24 @@ export default function SubmitCandidate() {
               <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
                 <tr>
                   <th className="py-3 px-4 w-12 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedCandidateIds.length === filteredCandidates.length && filteredCandidates.length > 0}
-                      onChange={toggleAll}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
-                      title="Select all"
-                    />
+                    {categoryFilter !== "in_progress" ? (
+                      <input
+                        type="checkbox"
+                        checked={selectedCandidateIds.length === filteredCandidates.length && filteredCandidates.length > 0}
+                        onChange={toggleAll}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                        title="Select all"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-400">#</span>
+                    )}
                   </th>
                   <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Candidate Details</th>
                   <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Trade / Position</th>
                   <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Experience</th>
-                  <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Eligibility Status</th>
+                  <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                    {categoryFilter === "in_progress" ? "Active Status & Project" : "Eligibility Status"}
+                  </th>
                   <th className="py-3 px-4 text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Action</th>
                 </tr>
               </thead>
@@ -646,9 +749,15 @@ export default function SubmitCandidate() {
                     <td colSpan="6" className="text-center py-12 text-slate-500">
                       <div className="max-w-xs mx-auto space-y-2">
                         <Users size={32} className="mx-auto text-slate-300" />
-                        <p className="font-bold text-slate-700">No candidates available for assignment.</p>
+                        <p className="font-bold text-slate-700">
+                          {categoryFilter === "in_progress"
+                            ? "No candidates currently in progress."
+                            : "No candidates available for assignment."}
+                        </p>
                         <p className="text-[11px] text-slate-400">
-                          {candidates.length === 0
+                          {categoryFilter === "in_progress"
+                            ? "Candidates will appear here once submitted or scheduled for client interviews."
+                            : candidates.length === 0
                             ? "All registered candidates are currently in review, shortlisted, or selected."
                             : "No candidates match the current filter or search criteria."}
                         </p>
@@ -671,12 +780,21 @@ export default function SubmitCandidate() {
                       }`}
                     >
                       <td className="py-3 px-4 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedCandidateIds.includes(c.id)}
-                          onChange={() => toggleSelection(c.id)}
-                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
-                        />
+                        {c.category === "in_progress" ? (
+                          <span
+                            className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-400 mx-auto"
+                            title="Candidate is active on an assigned project"
+                          >
+                            <Lock size={12} />
+                          </span>
+                        ) : (
+                          <input
+                            type="checkbox"
+                            checked={selectedCandidateIds.includes(c.id)}
+                            onChange={() => toggleSelection(c.id)}
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                          />
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
@@ -714,7 +832,47 @@ export default function SubmitCandidate() {
                         <span className="text-[10px] text-slate-400 block">{c.qualification || "Trade Certified"}</span>
                       </td>
                       <td className="py-3 px-4">
-                        {c.category === "fresh" ? (
+                        {c.category === "in_progress" ? (
+                          <div>
+                            {c.activeStatus === "Interview" || c.activeStatus === "Interview Scheduled" ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                <Video size={11} className="text-purple-600 shrink-0" />
+                                <span>Interview Scheduled</span>
+                              </span>
+                            ) : c.activeStatus === "Selected" ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <UserCheck size={11} className="text-emerald-600 shrink-0" />
+                                <span>Selected</span>
+                              </span>
+                            ) : c.activeStatus === "On Hold" ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <Clock size={11} className="text-amber-600 shrink-0" />
+                                <span>On Hold</span>
+                              </span>
+                            ) : c.activeStatus === "Under Review" || c.activeStatus === "Shortlisted" ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                <Clock size={11} className="text-blue-600 shrink-0" />
+                                <span>Under Review</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <Clock size={11} className="text-amber-600 shrink-0" />
+                                <span>{c.activeStatus || "In Process"}</span>
+                              </span>
+                            )}
+                            <span
+                              className="text-[10px] text-slate-700 font-semibold block mt-0.5 truncate max-w-[160px]"
+                              title={c.activeProjectName}
+                            >
+                              Proj: {c.activeProjectName}
+                            </span>
+                            {c.interviewDetails?.dateTime && (
+                              <span className="text-[10px] text-purple-700 font-medium block truncate max-w-[160px]">
+                                Date: {c.interviewDetails.dateTime}
+                              </span>
+                            )}
+                          </div>
+                        ) : c.category === "fresh" ? (
                           <div>
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <Sparkles size={11} className="text-emerald-600 shrink-0" />
@@ -737,15 +895,35 @@ export default function SubmitCandidate() {
                         )}
                       </td>
                       <td className="py-3 px-4 text-right whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => handleDirectAssignCandidate(c.id)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-                          title="Assign this candidate to a project"
-                        >
-                          <Send size={11} />
-                          <span>Assign Project</span>
-                        </button>
+                        {c.category === "in_progress" ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Link
+                              to="/vendor/applications"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition-colors"
+                              title="View and track application"
+                            >
+                              <FileText size={12} />
+                              <span>Track</span>
+                            </Link>
+                            <Link
+                              to={`/vendor/candidates/${c.id}`}
+                              className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                              title="View Profile"
+                            >
+                              <Eye size={13} />
+                            </Link>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleDirectAssignCandidate(c.id)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                            title="Assign this candidate to a project"
+                          >
+                            <Send size={11} />
+                            <span>Assign Project</span>
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -757,7 +935,9 @@ export default function SubmitCandidate() {
           {/* Table Footer with Summary */}
           <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span className="text-slate-500">
-              Showing <strong className="text-slate-900">{filteredCandidates.length}</strong> of {candidates.length} assignable candidate(s)
+              Showing <strong className="text-slate-900">{filteredCandidates.length}</strong> of{" "}
+              {categoryFilter === "in_progress" ? busyCandidates.length : candidates.length}{" "}
+              {categoryFilter === "in_progress" ? "candidate(s) in progress" : "assignable candidate(s)"}
             </span>
             {selectedCandidateIds.length > 0 && (
               <button

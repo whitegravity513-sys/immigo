@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../services/apiClient.js";
+import crmVendorService from "../../services/crmVendorService.js";
 import {
   Bell,
   CheckCheck,
@@ -32,6 +33,22 @@ export default function NotificationBell({ className }) {
         backendNotifs = res.data?.notifications || [];
       } catch {}
 
+      let crmNotifs = [];
+      try {
+        const crmRes = await apiClient.get("/crm-sync/notifications?role=ADMIN");
+        crmNotifs = (crmRes.data?.notifications || []).map((n) => ({
+          _id: n.id || n.notificationId,
+          id: n.id || n.notificationId,
+          title: n.title,
+          message: n.message,
+          createdAt: n.timestamp || n.createdAt,
+          isRead: !!n.read,
+          read: !!n.read,
+          type: n.type || "INFO",
+          link: n.link || "/admin/vendor-candidates",
+        }));
+      } catch {}
+
       const localAdminNotifs = (crmVendorService.getAdminNotifications() || []).map((n) => ({
         _id: n.id,
         id: n.id,
@@ -44,7 +61,7 @@ export default function NotificationBell({ className }) {
         link: n.link,
       }));
 
-      const all = [...localAdminNotifs, ...backendNotifs];
+      const all = [...crmNotifs, ...localAdminNotifs, ...backendNotifs];
       const seen = new Set();
       const merged = all.filter((n) => {
         const key = n._id || n.id || `${n.title}-${n.createdAt}`;
@@ -83,6 +100,9 @@ export default function NotificationBell({ className }) {
       await apiClient.put("/admin/notifications/read-all");
     } catch (err) {}
     try {
+      await apiClient.put("/crm-sync/notifications/read-all?role=ADMIN");
+    } catch (err) {}
+    try {
       crmVendorService.markAllAdminNotificationsRead();
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
@@ -96,8 +116,9 @@ export default function NotificationBell({ className }) {
       if (id.startsWith('admin-notif-')) {
         crmVendorService.markAdminNotificationRead(id);
       } else {
-        await apiClient.put(`/admin/notifications/${id}/read`);
+        await apiClient.put(`/admin/notifications/${id}/read`).catch(() => {});
       }
+      await apiClient.put(`/crm-sync/notifications/${id}/read`).catch(() => {});
       setNotifications((prev) =>
         prev.map((n) => (n._id === id || n.id === id ? { ...n, isRead: true, read: true } : n))
       );

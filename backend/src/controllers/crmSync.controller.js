@@ -263,30 +263,71 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
 
-  const app = await CrmCandidateApplication.findOne({
-    $or: [{ applicationId: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
-  });
-
-  if (!app) {
-    return res.status(404).json({ success: false, message: "Application not found" });
+  const queryConditions = [
+    { applicationId: id },
+    { id: id },
+  ];
+  if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+    queryConditions.push({ _id: id });
   }
 
-  Object.assign(app, updateData);
-  await app.save();
+  let app = await CrmCandidateApplication.findOne({ $or: queryConditions });
+
+  if (!app && updateData.candidateId && updateData.projectId) {
+    app = await CrmCandidateApplication.findOne({
+      candidateId: updateData.candidateId,
+      projectId: updateData.projectId,
+    });
+  }
+
+  if (!app) {
+    app = await CrmCandidateApplication.create({
+      ...updateData,
+      applicationId: id,
+      status: updateData.status || "Submitted",
+    });
+  } else {
+    Object.assign(app, updateData);
+    await app.save();
+  }
 
   // Create notification for vendor if status updated
   if (updateData.status) {
     try {
+      const statusTitle =
+        updateData.status === "Selected"
+          ? `Candidate Selected! 🎉`
+          : updateData.status === "Rejected"
+          ? `Candidate Application Rejected`
+          : updateData.status === "Interview" || updateData.status === "Interview Scheduled"
+          ? `Interview Scheduled 🎥`
+          : updateData.status === "On Hold"
+          ? `Candidate Put On Hold ⏸️`
+          : `Candidate Status Updated: ${updateData.status}`;
+
+      const statusMsg =
+        updateData.status === "Selected"
+          ? `${app.candidateName} has been selected for ${app.projectName} (${app.position || "Role"}). Processing timeline initiated.`
+          : updateData.status === "Rejected"
+          ? `${app.candidateName} was not selected for ${app.projectName}. Reason: ${app.rejectionReason || "Criteria not met"}. Candidate returned to pool for reuse.`
+          : updateData.status === "Interview" || updateData.status === "Interview Scheduled"
+          ? `Interview scheduled for ${app.candidateName} on ${app.projectName}. Date: ${app.interviewDetails?.dateTime || "TBD"}.`
+          : updateData.status === "On Hold"
+          ? `${app.candidateName} was put On Hold for ${app.projectName}. Candidate is reusable for other projects.`
+          : `Candidate ${app.candidateName} status changed to "${updateData.status}" on project ${app.projectName}.`;
+
       await CrmNotification.create({
         notificationId: `notif-ven-${Date.now()}`,
         recipientRole: "VENDOR",
         vendorId: app.vendorId,
-        title: `Candidate ${app.candidateName}: Status ${updateData.status}`,
-        message: `Candidate ${app.candidateName} status changed to "${updateData.status}" on project ${app.projectName}.`,
+        title: statusTitle,
+        message: statusMsg,
         type: updateData.status === "Selected" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
-        link: "/vendor/candidates",
+        link: updateData.status === "Selected" ? "/vendor/selected" : updateData.status === "Rejected" ? "/vendor/rejected" : "/vendor/applications",
       });
-    } catch {}
+    } catch (notifErr) {
+      console.error("Failed to create vendor notification:", notifErr.message);
+    }
   }
 
   return res.status(200).json({
@@ -347,6 +388,32 @@ export const createNotification = asyncHandler(async (req, res) => {
     success: true,
     notification: { ...created.toObject(), id: created.notificationId || created._id.toString() },
   });
+});
+
+// PUT /api/crm-sync/notifications/:id/read
+export const markNotificationRead = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const isMongoId = Boolean(id && id.match(/^[0-9a-fA-F]{24}$/));
+  const conds = [{ notificationId: id }];
+  if (isMongoId) conds.push({ _id: id });
+  await CrmNotification.updateOne({ $or: conds }, { $set: { read: true } });
+  return res.status(200).json({ success: true });
+});
+
+// PUT /api/crm-sync/notifications/read-all
+export const markAllNotificationsRead = asyncHandler(async (req, res) => {
+  const { role, vendorId } = req.query;
+  const filter = {};
+  if (role) {
+    if (role.toUpperCase() === "ADMIN") {
+      filter.recipientRole = { $in: ["ADMIN", "ALL"] };
+    } else if (role.toUpperCase() === "VENDOR") {
+      filter.recipientRole = { $in: ["VENDOR", "ALL"] };
+      if (vendorId) filter.vendorId = String(vendorId);
+    }
+  }
+  await CrmNotification.updateMany(filter, { $set: { read: true } });
+  return res.status(200).json({ success: true });
 });
 
 // GET /api/crm-sync/candidates

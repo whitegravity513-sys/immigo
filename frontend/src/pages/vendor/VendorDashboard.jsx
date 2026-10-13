@@ -23,6 +23,7 @@ import {
   Check,
   ShieldCheck,
   Globe,
+  Video,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import MouFullPageView from "../../components/vendor/MouFullPageView.jsx";
@@ -60,6 +61,11 @@ export function VendorDashboard() {
     switch (status) {
       case "Selected":
         return "bg-emerald-50 text-emerald-800 border-emerald-200";
+      case "Interview":
+      case "Interview Scheduled":
+        return "bg-purple-50 text-purple-800 border-purple-200";
+      case "On Hold":
+        return "bg-amber-50 text-amber-800 border-amber-200";
       case "Under Review":
       case "Shortlisted":
         return "bg-blue-50 text-blue-800 border-blue-200";
@@ -100,6 +106,14 @@ export function VendorDashboard() {
       icon: Clock,
       color: "amber",
       to: "/vendor/applications?status=Under%20Review",
+    },
+    {
+      title: "Interviews",
+      value: stats?.interview ?? 0,
+      subtitle: "Scheduled with client",
+      icon: Video,
+      color: "purple",
+      to: "/vendor/applications?status=Interview",
     },
     {
       title: "Selected",

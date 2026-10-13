@@ -23,14 +23,19 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
   const vendorName = vendor?.companyName || "Vendor Partner";
   const vendorId = vendor?.id || "VND-1001";
 
-  const refreshNotifications = () => {
-    const list = crmVendorService.getNotifications(vendor?.id);
-    setNotifications(list);
+  const refreshNotifications = async () => {
+    try {
+      const list = await crmVendorService.getNotificationsAsync(vendor?.id);
+      setNotifications(list || []);
+    } catch {
+      const local = crmVendorService.getNotifications(vendor?.id);
+      setNotifications(local || []);
+    }
   };
 
   useEffect(() => {
     refreshNotifications();
-    const interval = setInterval(refreshNotifications, 10000);
+    const interval = setInterval(refreshNotifications, 3000);
     return () => clearInterval(interval);
   }, [vendor?.id]);
 

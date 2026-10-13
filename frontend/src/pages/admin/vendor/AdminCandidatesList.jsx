@@ -28,8 +28,10 @@ import {
   MoreVertical,
   Edit2,
   X,
+  Sliders,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
+import ConfigureMilestonesModal from "../../../components/admin/vendor/ConfigureMilestonesModal.jsx";
 
 const DownloadModal = ({ isOpen, onClose, onDownload }) => {
   const [status, setStatus] = useState("All");
@@ -138,6 +140,9 @@ export default function AdminCandidatesList() {
   const [milestoneModal, setMilestoneModal] = useState(null); // { application }
   const [milestoneForm, setMilestoneForm] = useState({ name: "", percentage: "", amount: "", dueDate: "" });
   const [milestoneLoading, setMilestoneLoading] = useState(false);
+
+  // Configure Milestones on Select / Edit Modal
+  const [configureMilestonesModal, setConfigureMilestonesModal] = useState(null); // { application }
 
   // Action loading state
   const [actionLoading, setActionLoading] = useState(null); // appId + action
@@ -320,17 +325,9 @@ export default function AdminCandidatesList() {
     }
   };
 
-  // Select candidate — initializes 8-stage pipeline + milestone plan
-  const handleSelect = async (app) => {
-    setActionLoading(app.id + "_select");
-    try {
-      await crmVendorService.updateApplicationStatus(app.id, "Selected");
-      await refreshCandidateView();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setActionLoading(null);
-    }
+  // Select candidate — opens milestone configurator
+  const handleSelect = (app) => {
+    setConfigureMilestonesModal({ application: app });
   };
 
   // Open Reject Modal
@@ -942,12 +939,20 @@ export default function AdminCandidatesList() {
                                 <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                   Payment Milestones — Total: ₹{sub.paymentPlan.totalAmount?.toLocaleString("en-IN")}
                                 </p>
-                                <button
-                                  onClick={() => handleOpenMilestoneModal(sub)}
-                                  className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Plus size={10} /> Add Milestone
-                                </button>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                    className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition border border-indigo-200"
+                                  >
+                                    <Sliders size={10} /> Configure Plan
+                                  </button>
+                                  <button
+                                    onClick={() => handleOpenMilestoneModal(sub)}
+                                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition"
+                                  >
+                                    <Plus size={10} /> Add Milestone
+                                  </button>
+                                </div>
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 {sub.paymentPlan.milestones.map((ms, mi) => (
@@ -1194,6 +1199,14 @@ export default function AdminCandidatesList() {
             </div>
           </div>
         )}
+
+        {/* Configure Milestones Modal */}
+        <ConfigureMilestonesModal
+          isOpen={!!configureMilestonesModal}
+          onClose={() => setConfigureMilestonesModal(null)}
+          application={configureMilestonesModal?.application}
+          onSaved={refreshCandidateView}
+        />
       </div>
     );
   }
@@ -1497,6 +1510,14 @@ export default function AdminCandidatesList() {
           </div>
         </div>
       )}
+
+      {/* Configure Milestones Modal */}
+      <ConfigureMilestonesModal
+        isOpen={!!configureMilestonesModal}
+        onClose={() => setConfigureMilestonesModal(null)}
+        application={configureMilestonesModal?.application}
+        onSaved={refreshCandidateView}
+      />
     </div>
   );
 }

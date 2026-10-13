@@ -73,6 +73,7 @@ const AdminMilestonesList = lazy(() => import("../pages/admin/vendor/AdminMilest
 const AdminDocumentsList = lazy(() => import("../pages/admin/vendor/AdminDocumentsList.jsx"));
 const AdminRefundsList = lazy(() => import("../pages/admin/vendor/AdminRefundsList.jsx"));
 const AdminMasterLayout = lazy(() => import("../components/admin/layout/AdminMasterLayout.jsx"));
+const InvoiceReceiptPage = lazy(() => import("../pages/common/InvoiceReceiptPage.jsx"));
 
 export default function AppRoutes() {
   const { token, user, logout, isAuthenticated, isAdmin, isVendor } = useAuth();
@@ -80,6 +81,11 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
+        {/* Dedicated Standalone Invoice Receipt Routes */}
+        <Route path="/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
+        <Route path="/vendor/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
+        <Route path="/admin/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
+
         {/* Auth Routes */}
         <Route
           path="/login"
