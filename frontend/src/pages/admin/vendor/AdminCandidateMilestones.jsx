@@ -20,7 +20,6 @@ import {
   FileText,
   Eye,
   X,
-  Sparkles,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 
@@ -320,32 +319,32 @@ export default function AdminCandidateMilestones() {
       </div>
 
       {/* Candidate Overview Card */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-4">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 text-white font-black text-lg flex items-center justify-center shadow-md shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shrink-0">
               {application.candidateName?.slice(0, 2).toUpperCase() || "CN"}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight">
                   {application.candidateName}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase bg-slate-100 text-slate-700 border border-slate-200">
                   {application.status || "Selected"}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Role: <strong className="text-blue-700">{application.position || "General Staff"}</strong>
-                {" • "}Project: <strong className="text-slate-900">{application.projectName}</strong>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                Role: <span className="font-semibold text-slate-800">{application.position || "Staff"}</span>
+                {" • "}Project: <span className="font-semibold text-slate-800">{application.projectName}</span>
                 {application.clientName && <> ({application.clientName})</>}
               </p>
             </div>
           </div>
 
           <div className="text-left sm:text-right">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vendor Agency</span>
-            <span className="font-extrabold text-slate-900 text-xs block">{application.vendorName || application.vendorId}</span>
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Vendor Agency</span>
+            <span className="font-bold text-slate-800 text-xs block">{application.vendorName || application.vendorId}</span>
           </div>
         </div>
 
@@ -366,34 +365,34 @@ export default function AdminCandidateMilestones() {
                   key={m.id || mIdx}
                   type="button"
                   onClick={() => setActiveMilestoneIdx(mIdx)}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative ${
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                     isSelectedTab
-                      ? "ring-2 ring-blue-600 border-blue-600 bg-blue-50/40 shadow-xs"
+                      ? "border-slate-900 bg-slate-50 ring-1 ring-slate-900 shadow-2xs"
                       : allDone
-                      ? "bg-emerald-50/30 border-emerald-200 hover:bg-emerald-50/60"
+                      ? "bg-slate-50 border-slate-200 hover:bg-slate-100"
                       : isPaid
                       ? "bg-white border-slate-200 hover:bg-slate-50"
-                      : "bg-slate-50/70 border-slate-200/80 hover:bg-slate-100"
+                      : "bg-slate-50/50 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  <div className="flex items-center justify-between text-[10px] font-bold mb-1">
+                  <div className="flex items-center justify-between text-[10px] font-semibold mb-1">
                     <span className="uppercase text-slate-400">Milestone {mIdx + 1}</span>
                     {allDone ? (
-                      <span className="text-emerald-700 flex items-center gap-0.5 font-black">
-                        <CheckCircle2 size={12} /> Completed
+                      <span className="text-emerald-700 flex items-center gap-0.5 font-bold">
+                        <CheckCircle2 size={12} /> Done
                       </span>
                     ) : isPaid ? (
-                      <span className="text-blue-700 flex items-center gap-0.5 font-black">
+                      <span className="text-slate-800 flex items-center gap-0.5 font-bold">
                         <Clock size={11} /> Unlocked
                       </span>
                     ) : (
-                      <span className="text-amber-700 flex items-center gap-0.5 font-bold">
+                      <span className="text-slate-500 flex items-center gap-0.5 font-medium">
                         <Lock size={11} /> Locked
                       </span>
                     )}
                   </div>
-                  <h4 className="font-black text-slate-900 text-xs truncate">{m.name}</h4>
-                  <div className="text-[11px] font-extrabold text-slate-600 mt-1">
+                  <h4 className="font-bold text-slate-900 text-xs truncate">{m.name}</h4>
+                  <div className="text-xs font-semibold text-slate-600 mt-0.5">
                     ₹{Number(m.amount).toLocaleString()}
                   </div>
                 </button>
@@ -405,22 +404,22 @@ export default function AdminCandidateMilestones() {
 
       {/* ── ACTIVE MILESTONE STAGE EXECUTION SECTION ───────────────────── */}
       {currentMilestone && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
           {/* Active Milestone Header */}
-          <div className="p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 ${
-                  isCurrentPaid ? "bg-emerald-500/20 text-emerald-400 border border-emerald-400/30" : "bg-amber-500/20 text-amber-300 border border-amber-400/30"
+                className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                  isCurrentPaid ? "bg-slate-800 text-emerald-400 border border-slate-700" : "bg-slate-800 text-slate-300 border border-slate-700"
                 }`}
               >
-                {isCurrentPaid ? <CheckCircle2 size={20} /> : <Lock size={18} />}
+                {isCurrentPaid ? <CheckCircle2 size={18} /> : <Lock size={16} />}
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-blue-300">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                   Active Focus &bull; Milestone {activeMilestoneIdx + 1} of {milestonesList.length}
                 </span>
-                <h2 className="text-lg font-black text-white">{currentMilestone.name}</h2>
+                <h2 className="text-base font-bold text-white">{currentMilestone.name}</h2>
                 <p className="text-xs text-slate-300 mt-0.5">
                   Milestone Fee: <strong>₹{Number(currentMilestone.amount).toLocaleString()}</strong>
                   {" • "}Completed: <strong>{currentStagesDoneCount} / {currentStages.length} Stages</strong>
@@ -430,20 +429,20 @@ export default function AdminCandidateMilestones() {
 
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
               {isCurrentPaid ? (
-                <span className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1.5 shadow-2xs">
-                  <CheckCircle2 size={14} className="text-emerald-400" />
-                  <span>Vendor Paid & Unlocked</span>
+                <span className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-emerald-300 border border-slate-700 flex items-center gap-1.5">
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                  <span>Paid & Unlocked</span>
                 </span>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center gap-1.5">
-                    <Lock size={13} className="text-amber-400" />
+                  <span className="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-800 text-slate-200 border border-slate-700 flex items-center gap-1.5">
+                    <Lock size={12} className="text-slate-400" />
                     <span>Awaiting Payment (₹{Number(currentMilestone.amount).toLocaleString()})</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => handleUnlockMilestone(activeMilestoneIdx)}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition cursor-pointer shadow-xs flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer shadow-2xs flex items-center gap-1"
                     title="Mark payment received from vendor and unlock stages"
                   >
                     <Unlock size={12} />
@@ -460,8 +459,8 @@ export default function AdminCandidateMilestones() {
               <>
                 <div className="flex items-center justify-between pb-1">
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                      <Layers size={16} className="text-indigo-600" />
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Layers size={16} className="text-slate-700" />
                       <span>Execute Stages for {currentMilestone.name}</span>
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -471,7 +470,7 @@ export default function AdminCandidateMilestones() {
                   <button
                     type="button"
                     onClick={() => handleAddStage(activeMilestoneIdx)}
-                    className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold border border-slate-200 transition cursor-pointer flex items-center gap-1 shadow-2xs"
                   >
                     <Plus size={13} />
                     <span>Add Stage</span>
@@ -492,22 +491,22 @@ export default function AdminCandidateMilestones() {
                       return (
                         <div
                           key={stage.id || sIdx}
-                          className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                          className={`p-4 rounded-xl border transition-all space-y-3 ${
                             isDone
-                              ? "bg-emerald-50/40 border-emerald-200"
+                              ? "bg-emerald-50/30 border-emerald-200"
                               : isInProgress
-                              ? "bg-blue-50/40 border-blue-200"
+                              ? "bg-slate-50 border-slate-300"
                               : "bg-white border-slate-200"
                           }`}
                         >
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                             <div className="flex items-center gap-3 flex-1">
                               <span
-                                className={`w-7 h-7 rounded-xl text-xs font-black flex items-center justify-center shrink-0 ${
+                                className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 ${
                                   isDone
                                     ? "bg-emerald-600 text-white"
                                     : isInProgress
-                                    ? "bg-blue-600 text-white"
+                                    ? "bg-slate-800 text-white"
                                     : "bg-slate-200 text-slate-700"
                                 }`}
                               >
@@ -518,7 +517,7 @@ export default function AdminCandidateMilestones() {
                                 value={stage.name}
                                 onChange={(e) => handleStageNameChange(activeMilestoneIdx, sIdx, e.target.value)}
                                 placeholder="Enter processing stage name..."
-                                className="flex-1 font-extrabold text-xs sm:text-sm text-slate-900 border border-slate-200 rounded-xl px-3 py-2 focus:border-blue-500 focus:outline-none bg-white shadow-2xs"
+                                className="flex-1 font-semibold text-xs sm:text-sm text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 focus:border-slate-400 focus:outline-none bg-white shadow-2xs"
                               />
                             </div>
 
@@ -527,7 +526,7 @@ export default function AdminCandidateMilestones() {
                               <button
                                 type="button"
                                 onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "Pending")}
-                                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer border ${
                                   stage.status === "Pending"
                                     ? "bg-slate-800 text-white border-slate-800"
                                     : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
@@ -538,10 +537,10 @@ export default function AdminCandidateMilestones() {
                               <button
                                 type="button"
                                 onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "In Progress")}
-                                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer border ${
                                   stage.status === "In Progress"
-                                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                                    : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                    ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                                    : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
                                 }`}
                               >
                                 In Progress
@@ -549,9 +548,9 @@ export default function AdminCandidateMilestones() {
                               <button
                                 type="button"
                                 onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "Completed")}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer border flex items-center gap-1 ${
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border flex items-center gap-1 ${
                                   stage.status === "Completed"
-                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
                                     : "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
                                 }`}
                               >
@@ -659,24 +658,24 @@ export default function AdminCandidateMilestones() {
               </>
             ) : (
               /* Milestone Locked Waiting for Vendor Payment */
-              <div className="p-8 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
-                  <Lock size={22} />
+              <div className="p-6 sm:p-8 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-center space-y-2.5">
+                <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mx-auto">
+                  <Lock size={18} />
                 </div>
-                <h4 className="font-black text-slate-900 text-base">
+                <h4 className="font-bold text-slate-900 text-sm">
                   Milestone {activeMilestoneIdx + 1} Stages Locked
                 </h4>
-                <p className="text-xs text-amber-800 max-w-md mx-auto">
-                  Previous stages completed. Vendor must submit payment for <strong>{currentMilestone.name}</strong> (₹{Number(currentMilestone.amount).toLocaleString()}) to unlock these processing stages.
+                <p className="text-xs text-slate-600 max-w-md mx-auto">
+                  Vendor must submit payment for <strong>{currentMilestone.name}</strong> (₹{Number(currentMilestone.amount).toLocaleString()}) to unlock these processing stages.
                 </p>
-                <div className="pt-2 flex items-center justify-center gap-2">
+                <div className="pt-1 flex items-center justify-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleUnlockMilestone(activeMilestoneIdx)}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer shadow-xs flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
                   >
-                    <Unlock size={14} />
-                    <span>Record Payment & Unlock Stages Now</span>
+                    <Unlock size={13} />
+                    <span>Record Payment & Unlock Stages</span>
                   </button>
                 </div>
               </div>

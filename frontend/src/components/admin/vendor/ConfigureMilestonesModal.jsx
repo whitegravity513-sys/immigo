@@ -8,7 +8,6 @@ import {
   Clock,
   IndianRupee,
   Layers,
-  Sparkles,
   Info,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
@@ -288,16 +287,16 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col font-sans max-h-[90vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white p-5 flex items-center justify-between border-b border-blue-800">
+        <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-blue-300">
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-300">
               <Sliders size={18} />
             </div>
             <div>
-              <h2 className="text-base font-black text-white leading-tight">
+              <h2 className="text-base font-bold text-white leading-tight">
                 Candidate Selection & Milestone Plan
               </h2>
-              <p className="text-xs text-blue-200 mt-0.5">
+              <p className="text-xs text-slate-300 mt-0.5">
                 Set Total Fee, Milestone Amounts & Processing Stages for <strong>{application.candidateName}</strong>
               </p>
             </div>
@@ -417,7 +416,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               <button
                 type="button"
                 onClick={handleAddMilestone}
-                className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] border border-indigo-200 flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-[10px] border border-slate-200 flex items-center gap-1 cursor-pointer transition shadow-2xs"
               >
                 <Plus size={11} />
                 <span>Add Milestone</span>
@@ -432,7 +431,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800 uppercase">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-200 text-slate-800 uppercase">
                         Milestone {mIdx + 1}
                       </span>
                       <select
@@ -454,7 +453,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                       value={m.name}
                       onChange={(e) => handleMilestoneChange(mIdx, "name", e.target.value)}
                       placeholder="e.g. Milestone 1: Selection & Offer Acceptance"
-                      className="w-full font-bold text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-blue-500 focus:outline-none text-xs"
+                      className="w-full font-bold text-slate-900 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-slate-400 focus:outline-none text-xs"
                     />
                   </div>
 
@@ -486,8 +485,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                 <div className="mt-2 pt-2.5 border-t border-slate-100 bg-slate-50/70 -mx-4 -mb-4 p-3.5 rounded-b-2xl space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <Layers size={13} className="text-indigo-600" />
-                      <span className="text-[10px] font-black uppercase text-slate-700 tracking-wider">
+                      <Layers size={13} className="text-slate-700" />
+                      <span className="text-[10px] font-bold uppercase text-slate-700 tracking-wider">
                         Processing Stages ({(m.stages || []).length})
                       </span>
                       <span className="text-[9px] text-slate-400 font-medium">Steps inside this milestone</span>
@@ -495,7 +494,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                     <button
                       type="button"
                       onClick={() => handleAddStage(mIdx)}
-                      className="px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold border border-indigo-200 transition flex items-center gap-1 cursor-pointer"
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-semibold border border-slate-200 transition flex items-center gap-1 cursor-pointer"
                     >
                       <Plus size={10} />
                       <span>Add Stage</span>
@@ -514,7 +513,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                           key={stg.id || sIdx}
                           className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs group"
                         >
-                          <span className="w-5 h-5 rounded-lg bg-indigo-100 text-indigo-800 text-[10px] font-black flex items-center justify-center shrink-0">
+                          <span className="w-5 h-5 rounded-lg bg-slate-200 text-slate-800 text-[10px] font-bold flex items-center justify-center shrink-0">
                             {sIdx + 1}
                           </span>
                           <input
@@ -522,7 +521,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                             value={stg.name}
                             onChange={(e) => handleStageNameChange(mIdx, sIdx, e.target.value)}
                             placeholder="e.g. GAMCA Medical Fitness Clearance"
-                            className="flex-1 text-xs font-semibold text-slate-800 border-none bg-transparent focus:outline-none focus:ring-1 focus:ring-indigo-400 rounded px-1"
+                            className="flex-1 text-xs font-semibold text-slate-800 border-none bg-transparent focus:outline-none focus:ring-1 focus:ring-slate-400 rounded px-1"
                           />
                           <button
                             type="button"

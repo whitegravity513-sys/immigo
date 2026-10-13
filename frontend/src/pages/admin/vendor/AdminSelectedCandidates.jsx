@@ -68,7 +68,7 @@ export default function AdminSelectedCandidates() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold">
+          <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium">
             Total Selected: {selectedApps.length}
           </span>
         </div>
@@ -153,26 +153,25 @@ export default function AdminSelectedCandidates() {
 
                       <td className="py-4 px-4 font-semibold text-slate-700">{app.vendorId}</td>
                       <td className="py-4 px-4 text-slate-800 font-medium">{app.clientName}</td>
-                      <td className="py-4 px-4 font-bold text-blue-700">{app.projectName}</td>
-                      <td className="py-4 px-4 font-semibold text-indigo-700">{app.position}</td>
+                      <td className="py-4 px-4 font-medium text-slate-800">{app.projectName}</td>
+                      <td className="py-4 px-4 font-medium text-slate-700">{app.position}</td>
 
                       <td className="py-4 px-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
+                          <Clock className="w-3.5 h-3.5 text-slate-500" />
                           {stageName} ({displayIndex}/{totalStagesCount || 8})
                         </span>
                         {activeMilestone && (
-                          <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase">
+                          <div className="text-[9px] font-semibold text-slate-400 mt-1 uppercase">
                             in {activeMilestone.name}
                           </div>
                         )}
                       </td>
 
                       <td className="py-4 px-4">
-                        <div className="space-y-0.5">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            {paidCount}/{totalCount} Paid (₹{planTotal.toLocaleString()})
-                          </span>
+                        <div className="text-xs font-medium text-slate-700">
+                          <span className="font-semibold text-slate-900">{paidCount}/{totalCount} Paid</span>
+                          <span className="text-slate-500 ml-1.5">₹{Number(planTotal).toLocaleString()}</span>
                         </div>
                       </td>
 

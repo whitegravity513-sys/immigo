@@ -175,7 +175,7 @@ export default function AdminMilestonesList() {
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
             Total Placement Fee (Agreed)
           </span>
-          <div className="text-2xl font-black text-slate-900 mt-1">
+          <div className="text-xl font-bold text-slate-900 mt-1">
             ₹{totalFeeToCollect.toLocaleString()}
           </div>
           <span className="text-[11px] text-slate-400 font-medium">
@@ -187,7 +187,7 @@ export default function AdminMilestonesList() {
           <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
             Total Fee Released (Paid)
           </span>
-          <div className="text-2xl font-black text-emerald-600 mt-1">
+          <div className="text-xl font-bold text-emerald-700 mt-1">
             ₹{totalFeeReleased.toLocaleString()}
           </div>
           <span className="text-[11px] text-emerald-700 font-medium">
@@ -196,13 +196,13 @@ export default function AdminMilestonesList() {
         </div>
 
         <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-          <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
             Remaining Pending Due
           </span>
-          <div className="text-2xl font-black text-amber-600 mt-1">
+          <div className="text-xl font-bold text-slate-800 mt-1">
             ₹{totalRemainingPending.toLocaleString()}
           </div>
-          <span className="text-[11px] text-amber-700 font-medium">
+          <span className="text-[11px] text-slate-500 font-medium">
             Awaiting upcoming milestone completion
           </span>
         </div>
@@ -342,11 +342,11 @@ export default function AdminMilestonesList() {
                         {/* 1. Candidate & Project */}
                         <td className="py-4 px-4 sm:px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-indigo-100/70 text-indigo-800 font-bold flex items-center justify-center text-sm border border-indigo-200 shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 font-bold flex items-center justify-center text-sm border border-slate-200 shrink-0">
                               {app.candidateName?.slice(0, 2).toUpperCase()}
                             </div>
                             <div>
-                              <span className="font-extrabold text-slate-900 block text-sm">
+                              <span className="font-bold text-slate-900 block text-sm">
                                 {app.candidateName}
                               </span>
                               <span className="text-[11px] text-slate-500 font-medium">
@@ -358,15 +358,15 @@ export default function AdminMilestonesList() {
 
                         {/* 2. Total Fee & Balance */}
                         <td className="py-4 px-4 whitespace-nowrap">
-                          <div className="font-black text-slate-900 text-sm">
+                          <div className="font-bold text-slate-900 text-xs sm:text-sm">
                             ₹{totalAmt.toLocaleString()}
                           </div>
                           <div className="text-[11px] text-slate-500 mt-0.5">
-                            <span className="text-emerald-600 font-semibold">
+                            <span className="text-emerald-700 font-medium">
                               Paid: ₹{paidAmt.toLocaleString()}
                             </span>
                             {balanceAmt > 0 && (
-                              <span className="text-amber-600 font-semibold ml-1.5">
+                              <span className="text-slate-600 font-medium ml-1.5">
                                 • Due: ₹{balanceAmt.toLocaleString()}
                               </span>
                             )}
@@ -386,11 +386,11 @@ export default function AdminMilestonesList() {
                               return (
                                 <span
                                   key={m.id || mIdx}
-                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
                                     isPaid
-                                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                      ? "bg-slate-50 text-emerald-800 border-emerald-200"
                                       : isSub
-                                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                                      ? "bg-slate-50 text-slate-800 border-slate-300"
                                       : "bg-slate-100 text-slate-700 border-slate-200"
                                   }`}
                                   title={`${m.name}: ₹${mAmt.toLocaleString()} (${
@@ -400,10 +400,10 @@ export default function AdminMilestonesList() {
                                   {isPaid ? (
                                     <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
                                   ) : (
-                                    <Clock size={11} className="text-amber-500 shrink-0" />
+                                    <Clock size={11} className="text-slate-400 shrink-0" />
                                   )}
                                   <span>M{mIdx + 1}:</span>
-                                  <span className="font-black">₹{mAmt.toLocaleString()}</span>
+                                  <span className="font-semibold">₹{mAmt.toLocaleString()}</span>
                                 </span>
                               );
                             })}
