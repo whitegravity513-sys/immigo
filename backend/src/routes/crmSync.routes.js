@@ -11,6 +11,8 @@ import {
   createNotification,
   markNotificationRead,
   markAllNotificationsRead,
+  deleteNotification,
+  clearAllNotifications,
   getCandidates,
   saveCandidate,
 } from "../controllers/crmSync.controller.js";
@@ -28,6 +30,8 @@ router.get("/notifications", getNotifications);
 router.post("/notifications", createNotification);
 router.put("/notifications/:id/read", markNotificationRead);
 router.put("/notifications/read-all", markAllNotificationsRead);
+router.delete("/notifications/:id", deleteNotification);
+router.delete("/notifications", clearAllNotifications);
 router.get("/candidates", getCandidates);
 router.post("/candidates", saveCandidate);
 

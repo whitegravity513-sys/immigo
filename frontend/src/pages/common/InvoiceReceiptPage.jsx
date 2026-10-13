@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ArrowLeft, Download, Printer } from "lucide-react";
+import { ArrowLeft, Download, Printer, CheckCircle2 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
-// Helper to convert number to Indian words matching the PDF format
+// Helper to convert number to Indian words
 function numberToWords(num) {
   if (!num || isNaN(num) || Number(num) === 0) return "Zero Rupees Only";
   const a = [
@@ -100,7 +100,7 @@ export default function InvoiceReceiptPage() {
         }
       }
     } catch (err) {
-      console.error("Error loading invoice data:", err);
+      console.error("Error loading receipt data:", err);
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function InvoiceReceiptPage() {
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
         <div className="text-center">
           <div className="w-10 h-10 border-3 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-xs font-bold text-slate-700">Loading Official Tax Invoice...</p>
+          <p className="text-xs font-bold text-slate-700">Loading Official Payment Receipt...</p>
         </div>
       </div>
     );
@@ -121,8 +121,8 @@ export default function InvoiceReceiptPage() {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
         <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-sm border border-slate-200">
-          <h2 className="text-base font-bold text-slate-900 mb-2">Invoice Record Not Found</h2>
-          <p className="text-xs text-slate-500 mb-4">The requested milestone payment invoice could not be located.</p>
+          <h2 className="text-base font-bold text-slate-900 mb-2">Receipt Not Found</h2>
+          <p className="text-xs text-slate-500 mb-4">The requested milestone payment receipt could not be located.</p>
           <button
             onClick={() => window.close()}
             className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 cursor-pointer"
@@ -137,7 +137,7 @@ export default function InvoiceReceiptPage() {
   const app = application;
   const currentMilestone = milestone || {};
 
-  // Milestone and Total Plan Amounts
+  // Amounts
   const totalPlanAmount =
     Number(app.paymentPlan?.totalAmount) ||
     (app.paymentPlan?.milestones || []).reduce((sum, m) => sum + (Number(m.amount) || 0), 0) ||
@@ -165,20 +165,31 @@ export default function InvoiceReceiptPage() {
     .replace(/\//g, "-");
 
   const seq = (app.id || "001").replace(/[^0-9]/g, "").slice(-4).padStart(4, "0") || "0001";
-  const invoiceNo = `IG/2026/A - ${seq}`;
+  const receiptNo = `IG/REC/2026-${seq}`;
 
-  const clientCompanyName =
-    app.clientName ||
+  const vendorCompanyName =
     vendor?.companyName ||
     app.vendorName ||
-    "REISEBUERO OVERSEAS PRIVATE LIMITED";
+    "Partner Recruitment Agency";
 
-  const clientAddress =
+  const vendorAddress =
     vendor?.address ||
-    "Second Floor, Shop No. 208, Arjun Plaza, Plot No. 7\nSector - 5, Dwarka, New Delhi, South West Delhi - 110075";
+    "Authorized Partner Office, New Delhi - 110075";
 
-  const clientGstin = vendor?.gstin || "07AAFCH2627E2ZU";
-  const clientPan = vendor?.panNumber || "AAFCH2627E";
+  // Mode and Txn
+  let paymentMode = "Bank / Online Transfer";
+  let txnRef = currentMilestone.paymentRef || "TXN-VERIFIED-98234";
+  if (currentMilestone.paymentRef) {
+    if (currentMilestone.paymentRef.includes("[Razorpay]")) {
+      paymentMode = "Razorpay Online";
+      const m = currentMilestone.paymentRef.match(/TXN:\s*([^|]+)/);
+      if (m) txnRef = m[1].trim();
+    } else if (currentMilestone.paymentRef.includes("[UPI]")) {
+      paymentMode = "UPI Transfer";
+      const m = currentMilestone.paymentRef.match(/TXN:\s*([^|]+)/);
+      if (m) txnRef = m[1].trim();
+    }
+  }
 
   const handlePrint = () => {
     window.print();
@@ -189,7 +200,7 @@ export default function InvoiceReceiptPage() {
       <style>{`
         @media print {
           @page {
-            margin: 8mm;
+            margin: 10mm;
             size: A4 portrait;
           }
           body {
@@ -201,12 +212,12 @@ export default function InvoiceReceiptPage() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .invoice-paper {
+          .receipt-paper {
             max-width: 100% !important;
             margin: 0 !important;
             border: 1.5px solid #000 !important;
             box-shadow: none !important;
-            padding: 6mm !important;
+            padding: 8mm !important;
             page-break-inside: avoid !important;
           }
           .print-hide {
@@ -215,8 +226,8 @@ export default function InvoiceReceiptPage() {
         }
       `}</style>
 
-      {/* Floating Action Controls */}
-      <div className="max-w-[850px] mx-auto mb-4 flex items-center justify-between print-hide">
+      {/* Floating Action Bar */}
+      <div className="max-w-[800px] mx-auto mb-4 flex items-center justify-between print-hide">
         <button
           onClick={() => window.close()}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-950 bg-white px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs cursor-pointer transition"
@@ -237,19 +248,18 @@ export default function InvoiceReceiptPage() {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 px-4 py-2 rounded-xl shadow-2xs cursor-pointer transition"
           >
             <Printer size={14} />
-            <span>Print Invoice</span>
+            <span>Print Receipt</span>
           </button>
         </div>
       </div>
 
-      {/* ── OFFICIAL A4 TAX INVOICE CONTAINER (1:1 Match with PDF) ── */}
-      <div className="invoice-paper max-w-[850px] mx-auto bg-white border-2 border-slate-900 p-6 sm:p-8 shadow-md text-slate-900 text-[11px] leading-tight space-y-3 font-sans">
+      {/* ── OFFICIAL PAYMENT RECEIPT CONTAINER ── */}
+      <div className="receipt-paper max-w-[800px] mx-auto bg-white border-2 border-slate-900 p-6 sm:p-8 shadow-md text-slate-900 text-xs leading-relaxed space-y-4 font-sans">
         
-        {/* 1. HEADER ROW: LOGO & COMPANY INFO (LEFT) + TAX INVOICE METADATA (RIGHT) */}
-        <div className="border border-slate-900 flex flex-col md:flex-row">
-          {/* Header Left: immiGo Branding & Registered Address */}
-          <div className="flex-1 p-3.5 border-b md:border-b-0 md:border-r border-slate-900 flex items-start gap-3">
-            {/* Logo */}
+        {/* 1. HEADER: LOGO, COMPANY DETAILS & RECEIPT TITLE */}
+        <div className="border border-slate-900 flex flex-col sm:flex-row items-stretch">
+          {/* Company Details */}
+          <div className="flex-1 p-4 border-b sm:border-b-0 sm:border-r border-slate-900 flex items-start gap-3">
             <div className="shrink-0 pt-0.5">
               <div className="flex items-baseline">
                 <span className="text-3xl font-black tracking-tight text-slate-950">immi</span>
@@ -263,343 +273,198 @@ export default function InvoiceReceiptPage() {
               </p>
             </div>
 
-            {/* Immigo Educare LLP Address Details */}
-            <div className="text-[10px] text-slate-800 space-y-0.5 leading-tight pl-2">
-              <h2 className="text-xs font-black uppercase text-slate-950 tracking-wide">
+            <div className="text-[10px] text-slate-800 space-y-0.5 pl-2 leading-tight">
+              <h2 className="text-xs font-black uppercase text-slate-950">
                 IMMIGO EDUCARE LLP
               </h2>
-              <p>C - 76, Phase - II</p>
-              <p>Sector - 88, Noida</p>
-              <p>Gautam Budh Nagar - 201301</p>
-              <p>Uttar Pradesh, India.</p>
-              <p className="font-semibold text-slate-900 pt-0.5">GSTIN: </p>
+              <p>C - 76, Phase - II, Sector - 88, Noida</p>
+              <p>Gautam Budh Nagar - 201301, Uttar Pradesh, India</p>
+              <p className="font-semibold text-slate-900 pt-0.5">PAN: AALFI5039G</p>
             </div>
           </div>
 
-          {/* Header Right: TAX INVOICE Title & Invoice Details Box */}
-          <div className="w-full md:w-[360px] flex flex-col">
-            <div className="bg-slate-100/70 border-b border-slate-900 py-1 px-3 text-center">
-              <h1 className="text-sm font-black uppercase tracking-wider text-slate-950">
-                TAX INVOICE
-              </h1>
+          {/* Receipt Meta Box */}
+          <div className="w-full sm:w-[320px] bg-slate-50/70 p-3.5 flex flex-col justify-between">
+            <div className="text-center sm:text-right border-b border-slate-300 pb-1.5 mb-1.5">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-950 block">
+                OFFICIAL PAYMENT RECEIPT
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
+                <CheckCircle2 size={11} className="text-emerald-600" />
+                <span>PAYMENT ACKNOWLEDGED</span>
+              </span>
             </div>
-            <div className="p-2.5 text-[10px] space-y-1 divide-y divide-slate-200">
-              <div className="grid grid-cols-2 pb-1">
-                <div>
-                  <span className="text-slate-600">Invoice No. : </span>
-                  <strong className="text-slate-950">{invoiceNo}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-600">Place of Supply : </span>
-                  <strong className="text-slate-950">DL (07)</strong>
-                </div>
+            <div className="text-[10px] space-y-1 text-slate-700">
+              <div className="flex justify-between">
+                <span>Receipt No:</span>
+                <strong className="text-slate-900">{receiptNo}</strong>
               </div>
-              <div className="pt-1">
-                <span className="text-slate-600">Invoice Date : </span>
-                <strong className="text-slate-950">{formattedFullDate}</strong>
+              <div className="flex justify-between">
+                <span>Payment Date:</span>
+                <strong className="text-slate-900">{formattedFullDate}</strong>
               </div>
-              <div className="pt-1">
-                <span className="text-slate-600">Terms : </span>
-                <strong className="text-slate-950">As per payment Annexure</strong>
-              </div>
-              <div className="pt-1">
-                <span className="text-slate-600">Due Date : </span>
-                <strong className="text-slate-950"></strong>
+              <div className="flex justify-between">
+                <span>Mode:</span>
+                <strong className="text-slate-900">{paymentMode}</strong>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 2. BILL TO & SHIP TO SECTION (2 Equal Columns with Border) */}
-        <div className="border border-slate-900 grid grid-cols-1 md:grid-cols-2">
-          {/* Bill To */}
-          <div className="p-3 border-b md:border-b-0 md:border-r border-slate-900 text-[10px] space-y-1">
-            <div className="border-b border-slate-300 pb-1 mb-1 font-bold uppercase tracking-wider text-slate-600 text-[9px] text-center">
-              Bill To
-            </div>
-            <h3 className="font-black text-slate-950 text-[11px] uppercase">
-              {clientCompanyName}
+        {/* 2. RECEIVED FROM & CANDIDATE / PROJECT DETAILS */}
+        <div className="border border-slate-900 grid grid-cols-1 sm:grid-cols-2 text-[11px]">
+          {/* Vendor Details */}
+          <div className="p-3.5 border-b sm:border-b-0 sm:border-r border-slate-900 space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
+              Received From (Vendor Partner)
+            </span>
+            <h3 className="font-bold text-slate-950 text-xs uppercase">
+              {vendorCompanyName}
             </h3>
-            <p className="text-slate-700 whitespace-pre-line leading-relaxed">
-              {clientAddress}
+            <p className="text-slate-600 text-[10px]">{vendorAddress}</p>
+            <p className="text-[10px] font-semibold text-slate-700 pt-1">
+              Vendor ID: {app.vendorId || vendor?.vendorId || "VND-PARTNER"}
             </p>
-            <div className="pt-1 space-y-0.5 font-semibold text-slate-800">
-              <p>GSTIN: {clientGstin}</p>
-              <p>PAN: {clientPan}</p>
-              <p className="text-[9px] text-slate-500 font-normal">
-                Candidate: {app.candidateName} &bull; Trade: {app.position || "General Staff"}
-              </p>
-            </div>
           </div>
 
-          {/* Ship To */}
-          <div className="p-3 text-[10px] space-y-1">
-            <div className="border-b border-slate-300 pb-1 mb-1 font-bold uppercase tracking-wider text-slate-600 text-[9px] text-center">
-              Ship To
-            </div>
-            <h3 className="font-black text-slate-950 text-[11px] uppercase">
-              {clientCompanyName}
-            </h3>
-            <p className="text-slate-700 whitespace-pre-line leading-relaxed">
-              {clientAddress}
-            </p>
-            <div className="pt-1 space-y-0.5 font-semibold text-slate-800">
-              <p>GSTIN: {clientGstin}</p>
-              <p>PAN: {clientPan}</p>
-              <p className="text-[9px] text-slate-500 font-normal">
-                Project: {app.projectName || "Overseas Placement"} &bull; Ref: {app.id}
+          {/* Candidate & Project Details */}
+          <div className="p-3.5 space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
+              Candidate & Overseas Deployment
+            </span>
+            <div className="space-y-0.5 text-[10px]">
+              <p>
+                <span className="text-slate-500">Candidate Name: </span>
+                <strong className="text-slate-950">{app.candidateName}</strong>
+              </p>
+              <p>
+                <span className="text-slate-500">Applied Trade / Role: </span>
+                <strong className="text-slate-800">{app.position || "General Staff"}</strong>
+              </p>
+              <p>
+                <span className="text-slate-500">Project: </span>
+                <strong className="text-slate-800">{app.projectName}</strong>
+                {app.clientName && ` (${app.clientName})`}
               </p>
             </div>
           </div>
         </div>
 
-        {/* 3. ITEM & DESCRIPTION TABLE */}
+        {/* 3. PAYMENT PARTICULARS TABLE */}
         <div className="border border-slate-900 overflow-x-auto">
-          <table className="w-full text-[10px] border-collapse">
-            <thead>
-              <tr className="border-b border-slate-900 bg-slate-50 text-slate-800 font-bold text-center">
-                <th className="py-1 px-1.5 border-r border-slate-900 w-10">SNO</th>
-                <th className="py-1 px-2 border-r border-slate-900 text-left">Item & Description</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-16">SAC</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-10">Qty</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-12">GST%</th>
-                <th className="py-1 px-2 border-r border-slate-900 text-right w-24">Rate</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-12">Disc.</th>
-                <th className="py-1 px-2 text-right w-28">Gross Amount</th>
+          <table className="w-full text-left text-[11px] border-collapse">
+            <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-900 text-[10px]">
+              <tr>
+                <th className="py-2 px-3 border-r border-slate-900 w-10 text-center">#</th>
+                <th className="py-2 px-3 border-r border-slate-900">Particulars / Payment Milestone</th>
+                <th className="py-2 px-3 border-r border-slate-900">Transaction Ref</th>
+                <th className="py-2 px-3 border-r border-slate-900 text-center">Date</th>
+                <th className="py-2 px-3 text-right w-32">Amount Received (₹)</th>
               </tr>
             </thead>
             <tbody>
               <tr className="border-b border-slate-900">
-                <td className="py-2 px-1.5 border-r border-slate-900 text-center font-semibold">1</td>
-                <td className="py-2 px-2 border-r border-slate-900 font-medium">
-                  Overseas Recruitment Consultancy
+                <td className="py-2.5 px-3 border-r border-slate-900 text-center font-bold text-slate-500">1</td>
+                <td className="py-2.5 px-3 border-r border-slate-900 font-bold text-slate-950">
+                  <span>{currentMilestone.name || "Milestone Deployment Payment"}</span>
+                  <span className="block text-[10px] text-slate-500 font-normal">
+                    Overseas Recruitment & Clearance Stage
+                  </span>
                 </td>
-                <td className="py-2 px-1.5 border-r border-slate-900 text-center">998519</td>
-                <td className="py-2 px-1.5 border-r border-slate-900 text-center font-semibold">1</td>
-                <td className="py-2 px-1.5 border-r border-slate-900 text-center font-medium">18%</td>
-                <td className="py-2 px-2 border-r border-slate-900 text-right font-semibold">
-                  ₹ {totalPlanAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                <td className="py-2.5 px-3 border-r border-slate-900 text-[10px] font-mono text-slate-700">
+                  {txnRef}
                 </td>
-                <td className="py-2 px-1.5 border-r border-slate-900 text-center"></td>
-                <td className="py-2 px-2 text-right font-bold">
-                  ₹ {totalPlanAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                <td className="py-2.5 px-3 border-r border-slate-900 text-center text-[10px]">
+                  {formattedShortDate}
                 </td>
-              </tr>
-              {/* Total Amount Payable Row */}
-              <tr className="border-b border-slate-900 font-bold bg-slate-50/50">
-                <td colSpan={7} className="py-1.5 px-3 text-right border-r border-slate-900">
-                  Total Amount Payable
-                </td>
-                <td className="py-1.5 px-2 text-right font-black">
-                  ₹ {totalPlanAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                <td className="py-2.5 px-3 text-right font-bold text-slate-950 font-mono text-xs">
+                  ₹ {paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </td>
               </tr>
-              {/* Amount in words row */}
-              <tr className="text-[10px]">
-                <td colSpan={8} className="py-1.5 px-3">
-                  <span className="text-slate-600">Amount (In words): </span>
-                  <strong className="text-slate-950 font-black ml-4">
-                    {numberToWords(totalPlanAmount)}
-                  </strong>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
 
-        {/* 4. PAYMENT DETAILS TABLE */}
-        <div className="border border-slate-900 overflow-x-auto">
-          <div className="bg-slate-50 border-b border-slate-900 py-0.5 text-center font-bold text-[10px] uppercase text-slate-800">
-            Payment Details
-          </div>
-          <table className="w-full text-[10px] border-collapse">
-            <thead>
-              <tr className="border-b border-slate-900 text-slate-800 font-bold text-center">
-                <th className="py-1 px-1.5 border-r border-slate-900 w-10">SNO</th>
-                <th className="py-1 px-2 border-r border-slate-900 text-left">Desc.</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-20">Date</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-14">Mode</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-14">GST</th>
-                <th className="py-1 px-2 border-r border-slate-900 text-right w-24">Net Amount</th>
-                <th className="py-1 px-2 text-right w-28">Gross Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-slate-900">
-                <td className="py-1.5 px-1.5 border-r border-slate-900 text-center font-semibold">1</td>
-                <td className="py-1.5 px-2 border-r border-slate-900 font-medium">
-                  Payments Received by the company
-                </td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900 text-center">{formattedShortDate}</td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900 text-center">A/c</td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900 text-center font-medium">0%</td>
-                <td className="py-1.5 px-2 border-r border-slate-900 text-right font-semibold">
-                  ₹ {paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </td>
-                <td className="py-1.5 px-2 text-right font-bold">
-                  ₹ {paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-              {/* Gross Amount Summary rows on the right */}
-              <tr className="border-b border-slate-900 text-[10px]">
-                <td colSpan={5} className="py-1 px-3 border-r border-slate-900"></td>
-                <td className="py-1 px-2 text-right font-bold border-r border-slate-900">
-                  Gross Amount Received
-                </td>
-                <td className="py-1 px-2 text-right font-bold">
-                  ₹ {paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-              <tr className="border-b border-slate-900 text-[10px]">
-                <td colSpan={5} className="py-1 px-3 border-r border-slate-900"></td>
-                <td className="py-1 px-2 text-right font-bold text-red-600 border-r border-slate-900">
-                  Gross Amount Due
-                </td>
-                <td className="py-1 px-2 text-right font-black text-red-600">
-                  ₹ {dueAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-              {/* Words row for Received and Due */}
-              <tr className="text-[10px] border-b border-slate-200">
-                <td colSpan={8} className="py-1 px-3">
-                  <span className="text-slate-600">Amount Recvd. (In words): </span>
-                  <strong className="text-slate-950 font-bold ml-3">
+              {/* Amount In Words Row */}
+              <tr className="border-b border-slate-900 bg-slate-50/50 text-[10px]">
+                <td colSpan={3} className="py-2 px-3 border-r border-slate-900">
+                  <span className="text-slate-500">Amount Received (In Words): </span>
+                  <strong className="text-slate-950 font-bold ml-1">
                     {numberToWords(paidAmount)}
                   </strong>
                 </td>
-              </tr>
-              <tr className="text-[10px]">
-                <td colSpan={8} className="py-1 px-3">
-                  <span className="text-slate-600">Amount Due (In words): </span>
-                  <strong className="text-slate-950 font-bold ml-6">
-                    {numberToWords(dueAmount)}
-                  </strong>
+                <td className="py-2 px-3 text-right font-bold border-r border-slate-900">
+                  Total Paid:
                 </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* 5. TAX DETAILS TABLE */}
-        <div className="border border-slate-900 overflow-x-auto">
-          <div className="bg-slate-50 border-b border-slate-900 py-0.5 text-center font-bold text-[10px] uppercase text-slate-800">
-            Tax Details
-          </div>
-          <table className="w-full text-[10px] border-collapse">
-            <thead>
-              <tr className="border-b border-slate-900 text-slate-800 font-bold text-center">
-                <th className="py-1 px-1.5 border-r border-slate-900 w-10">SNO</th>
-                <th className="py-1 px-2 border-r border-slate-900 text-right">Taxable value/Net Amount</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-16">SAC</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-12">GST %</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-16">IGST</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-16">CGST</th>
-                <th className="py-1 px-1.5 border-r border-slate-900 w-16">SGST</th>
-                <th className="py-1 px-2 text-right w-24">Tax Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-slate-900 text-center">
-                <td className="py-1.5 px-1.5 border-r border-slate-900 font-semibold">1</td>
-                <td className="py-1.5 px-2 border-r border-slate-900 text-right font-medium">
+                <td className="py-2 px-3 text-right font-black text-slate-950 font-mono text-xs">
                   ₹ {paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900">998519</td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900">0%</td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900">₹ -</td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900">₹ -</td>
-                <td className="py-1.5 px-1.5 border-r border-slate-900">₹ -</td>
-                <td className="py-1.5 px-2 text-right">₹ -</td>
               </tr>
-              {/* Total Tax Amount row */}
-              <tr className="border-b border-slate-900 font-bold">
-                <td colSpan={4} className="py-1 px-3 text-right border-r border-slate-900">
-                  Total Tax Amount
-                </td>
-                <td className="py-1 px-1.5 border-r border-slate-900 text-center">₹ -</td>
-                <td className="py-1 px-1.5 border-r border-slate-900 text-center">₹ -</td>
-                <td className="py-1 px-1.5 border-r border-slate-900 text-center">₹ -</td>
-                <td className="py-1 px-2 text-right">₹ -</td>
-              </tr>
+
+              {/* Ledger Summary: Total Agreed vs Due */}
               <tr className="text-[10px]">
-                <td colSpan={8} className="py-1.5 px-3">
-                  <span className="text-slate-600">Total Tax Amount (In words): </span>
-                  <strong className="text-slate-950 ml-2">Zero Rupees Only</strong>
+                <td colSpan={3} className="py-2 px-3 border-r border-slate-900 text-slate-600">
+                  Total Agreed Placement Fee: <strong className="text-slate-900">₹{totalPlanAmount.toLocaleString()}</strong>
+                </td>
+                <td className="py-2 px-3 text-right font-bold border-r border-slate-900 text-slate-700">
+                  Balance Remaining:
+                </td>
+                <td className={`py-2 px-3 text-right font-bold font-mono text-xs ${dueAmount > 0 ? "text-red-600" : "text-emerald-700"}`}>
+                  ₹ {dueAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        {/* 6. BANK DETAILS & SIGNATORY (2 Columns with Border) */}
-        <div className="border border-slate-900 grid grid-cols-1 md:grid-cols-2">
-          {/* Left: Bank Details */}
-          <div className="p-3 border-b md:border-b-0 md:border-r border-slate-900 text-[10px] space-y-1">
-            <div className="border-b border-slate-300 pb-1 mb-1 font-bold uppercase tracking-wider text-slate-700 text-[9px] text-center">
-              Bank Details
-            </div>
-            <div className="space-y-0.5 text-slate-800">
-              <p>
-                <span className="text-slate-600 inline-block w-28">Account Holder</span>
-                <strong className="text-slate-950">:Immigo Educare LLP</strong>
-              </p>
-              <p>
-                <span className="text-slate-600 inline-block w-28">Account Number</span>
-                <strong className="text-slate-950 font-mono">:925020043404157</strong>
-              </p>
-              <p>
-                <span className="text-slate-600 inline-block w-28">IFSC</span>
-                <strong className="text-slate-950 font-mono">:UTIB0004491</strong>
-              </p>
-              <p>
-                <span className="text-slate-600 inline-block w-28">Bank & Branch</span>
-                <strong className="text-slate-950">:Axis Bank, Sector - 45, Noida</strong>
-              </p>
-              <p>
-                <span className="text-slate-600 inline-block w-28">SWIFT Code</span>
-                <strong className="text-slate-950">:</strong>
-              </p>
-              <p>
-                <span className="text-slate-600 inline-block w-28">PAN No.</span>
-                <strong className="text-slate-950 font-mono">:AALFI5039G</strong>
-              </p>
+        {/* 4. BANK DETAILS & OFFICIAL SIGNATURE (SIDE BY SIDE) */}
+        <div className="border border-slate-900 grid grid-cols-1 sm:grid-cols-2 text-[10px]">
+          {/* Bank Account Details */}
+          <div className="p-3.5 border-b sm:border-b-0 sm:border-r border-slate-900 space-y-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block border-b border-slate-200 pb-1 mb-1">
+              Credited To Company Account
+            </span>
+            <div className="space-y-0.5 text-slate-700">
+              <p><span className="w-24 inline-block text-slate-500">Account Name:</span> <strong className="text-slate-950">Immigo Educare LLP</strong></p>
+              <p><span className="w-24 inline-block text-slate-500">Account No:</span> <strong className="text-slate-950 font-mono">925020043404157</strong></p>
+              <p><span className="w-24 inline-block text-slate-500">Bank & Branch:</span> <strong className="text-slate-950">Axis Bank, Sector - 45, Noida</strong></p>
+              <p><span className="w-24 inline-block text-slate-500">IFSC Code:</span> <strong className="text-slate-950 font-mono">UTIB0004491</strong></p>
             </div>
           </div>
 
-          {/* Right: Authorised Signatory with Digital Stamp & Signature */}
-          <div className="p-3 flex flex-col justify-between text-right text-[10px]">
-            <div className="font-bold uppercase tracking-wider text-slate-800 text-[9px] text-right">
-              For Immigo Educare LLP
-            </div>
+          {/* Authorised Signatory & Seal */}
+          <div className="p-3.5 flex flex-col justify-between text-right">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-800 block">
+              For IMMIGO EDUCARE LLP
+            </span>
 
-            {/* Official Stamp & Signature Graphic matching the PDF */}
-            <div className="py-2 flex items-center justify-end relative">
-              {/* Digital Stamp Simulation */}
-              <div className="w-32 h-16 border-2 border-dashed border-blue-600/70 rounded-full flex flex-col items-center justify-center p-1 text-blue-700 rotate-[-4deg] opacity-85 select-none pointer-events-none">
-                <span className="text-[8px] font-black tracking-widest uppercase">
+            {/* Stamp & Signature simulation */}
+            <div className="py-1 flex items-center justify-end">
+              <div className="w-28 h-14 border-2 border-dashed border-blue-600/70 rounded-full flex flex-col items-center justify-center p-1 text-blue-700 rotate-[-3deg] select-none pointer-events-none">
+                <span className="text-[7px] font-black tracking-widest uppercase">
                   IMMIGO EDUCARE LLP
                 </span>
-                <svg className="w-20 h-6 text-blue-800 my-[-2px]" viewBox="0 0 100 30" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-16 h-5 text-blue-800 my-[-2px]" viewBox="0 0 100 30" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M10,20 Q25,5 35,22 T55,8 T75,24 T95,12" strokeLinecap="round" />
                 </svg>
-                <span className="text-[7px] font-bold uppercase tracking-wider">
+                <span className="text-[6px] font-bold uppercase tracking-wider">
                   DESIGNATED PARTNER
                 </span>
               </div>
             </div>
 
-            <div className="border-t border-slate-300 pt-1 text-center sm:text-right">
-              <span className="font-bold text-slate-950 uppercase text-[9px]">
+            <div className="border-t border-slate-300 pt-1">
+              <span className="font-bold text-slate-950 uppercase text-[9px] block">
                 Authorised Signatory
               </span>
             </div>
           </div>
         </div>
 
-        {/* 7. BOTTOM THANK YOU NOTE */}
-        <div className="text-center pt-2">
-          <p className="text-xs font-serif italic text-slate-800 tracking-wide">
+        {/* 5. FOOTER */}
+        <div className="text-center pt-2 border-t border-slate-200">
+          <p className="text-xs italic text-slate-700 font-serif">
             Thanks for your business
+          </p>
+          <p className="text-[9px] text-slate-400 mt-0.5">
+            This is an official system-generated electronic receipt issued upon payment confirmation.
           </p>
         </div>
 

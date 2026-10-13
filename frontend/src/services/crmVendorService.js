@@ -1975,16 +1975,24 @@ export const crmVendorService = {
   // ----------------------------------------------------
   getNotifications: (vendorId) => {
     try {
-      apiClient.get(`/crm-sync/notifications?role=VENDOR${vendorId ? `&vendorId=${vendorId}` : ""}`)
+      apiClient
+        .get(`/crm-sync/notifications?role=VENDOR${vendorId ? `&vendorId=${vendorId}` : ""}`)
         .then((res) => {
           if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
             const current = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
             const map = new Map();
-            current.forEach((n) => map.set(n.id, n));
-            res.data.notifications.forEach((n) => map.set(n.id, { ...(map.get(n.id) || {}), ...n }));
+            current.forEach((n) => map.set(n.id || n._id, n));
+            res.data.notifications.forEach((n) => {
+              const key = n.id || n._id;
+              const prev = map.get(key) || {};
+              // Keep read: true if it was marked read locally
+              const isRead = Boolean(prev.read || n.read);
+              map.set(key, { ...prev, ...n, read: isRead });
+            });
             saveData(VENDOR_NOTIFICATIONS_KEY, Array.from(map.values()));
           }
-        }).catch(() => {});
+        })
+        .catch(() => {});
     } catch {}
     const notifs = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
     return notifs.filter((n) => !vendorId || !n.vendorId || n.vendorId === vendorId);
@@ -1996,8 +2004,13 @@ export const crmVendorService = {
       if (res.data?.success && Array.isArray(res.data.notifications)) {
         const current = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
         const map = new Map();
-        current.forEach((n) => map.set(n.id, n));
-        res.data.notifications.forEach((n) => map.set(n.id, { ...(map.get(n.id) || {}), ...n }));
+        current.forEach((n) => map.set(n.id || n._id, n));
+        res.data.notifications.forEach((n) => {
+          const key = n.id || n._id;
+          const prev = map.get(key) || {};
+          const isRead = Boolean(prev.read || n.read);
+          map.set(key, { ...prev, ...n, read: isRead });
+        });
         const list = Array.from(map.values());
         saveData(VENDOR_NOTIFICATIONS_KEY, list);
         return list.filter((n) => !vendorId || !n.vendorId || n.vendorId === vendorId);
@@ -2028,7 +2041,7 @@ export const crmVendorService = {
 
   markNotificationRead: (id) => {
     const notifs = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
-    const idx = notifs.findIndex((n) => n.id === id);
+    const idx = notifs.findIndex((n) => n.id === id || n._id === id);
     if (idx !== -1) {
       notifs[idx].read = true;
       saveData(VENDOR_NOTIFICATIONS_KEY, notifs);
@@ -2047,6 +2060,28 @@ export const crmVendorService = {
     } catch {}
   },
 
+  deleteNotification: (id, vendorId) => {
+    let notifs = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
+    notifs = notifs.filter((n) => n.id !== id && n._id !== id);
+    saveData(VENDOR_NOTIFICATIONS_KEY, notifs);
+    try {
+      apiClient.delete(`/crm-sync/notifications/${id}`).catch(() => {});
+    } catch {}
+  },
+
+  clearAllNotifications: (vendorId) => {
+    let notifs = loadData(VENDOR_NOTIFICATIONS_KEY, INITIAL_NOTIFICATIONS);
+    if (vendorId) {
+      notifs = notifs.filter((n) => n.vendorId && n.vendorId !== vendorId);
+    } else {
+      notifs = [];
+    }
+    saveData(VENDOR_NOTIFICATIONS_KEY, notifs);
+    try {
+      apiClient.delete(`/crm-sync/notifications?role=VENDOR${vendorId ? `&vendorId=${vendorId}` : ""}`).catch(() => {});
+    } catch {}
+  },
+
   // ----------------------------------------------------
   // ADMIN NOTIFICATIONS
   // ----------------------------------------------------
@@ -2057,8 +2092,13 @@ export const crmVendorService = {
           if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
             const current = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
             const map = new Map();
-            current.forEach((n) => map.set(n.id, n));
-            res.data.notifications.forEach((n) => map.set(n.id, { ...(map.get(n.id) || {}), ...n }));
+            current.forEach((n) => map.set(n.id || n._id, n));
+            res.data.notifications.forEach((n) => {
+              const key = n.id || n._id;
+              const prev = map.get(key) || {};
+              const isRead = Boolean(prev.read || n.read);
+              map.set(key, { ...prev, ...n, read: isRead });
+            });
             saveData(ADMIN_NOTIFICATIONS_KEY, Array.from(map.values()));
           }
         }).catch(() => {});
@@ -2087,7 +2127,7 @@ export const crmVendorService = {
 
   markAdminNotificationRead: (id) => {
     const notifs = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
-    const idx = notifs.findIndex((n) => n.id === id);
+    const idx = notifs.findIndex((n) => n.id === id || n._id === id);
     if (idx !== -1) {
       notifs[idx].read = true;
       saveData(ADMIN_NOTIFICATIONS_KEY, notifs);
@@ -2098,6 +2138,16 @@ export const crmVendorService = {
     let notifs = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
     notifs = notifs.map((n) => ({ ...n, read: true }));
     saveData(ADMIN_NOTIFICATIONS_KEY, notifs);
+  },
+
+  deleteAdminNotification: (id) => {
+    let notifs = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
+    notifs = notifs.filter((n) => n.id !== id && n._id !== id);
+    saveData(ADMIN_NOTIFICATIONS_KEY, notifs);
+  },
+
+  clearAllAdminNotifications: () => {
+    saveData(ADMIN_NOTIFICATIONS_KEY, []);
   },
 
   // ----------------------------------------------------

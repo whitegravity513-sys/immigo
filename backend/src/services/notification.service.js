@@ -99,7 +99,16 @@ export class NotificationService {
   }
 
   static async markAllAsRead() {
-    await Notification.updateMany({ read: false }, { read: true });
+    await Notification.updateMany(
+      {
+        read: false,
+        $or: [
+          { targetRole: { $in: ["ADMIN", "ALL"] } },
+          { targetRole: { $exists: false } },
+        ],
+      },
+      { read: true }
+    );
     return { success: true };
   }
 

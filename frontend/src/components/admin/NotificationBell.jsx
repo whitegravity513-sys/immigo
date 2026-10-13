@@ -24,12 +24,14 @@ export default function NotificationBell({ className }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const audioRef = useRef(null);
+  const deletedAdminIdsRef = useRef(new Set());
+  const lastAdminReadAllTsRef = useRef(0);
 
   const fetchNotifications = async () => {
     try {
       let backendNotifs = [];
       try {
-        const res = await apiClient.get("/admin/notifications?limit=30");
+        const res = await apiClient.get("/admin/notifications?limit=50");
         backendNotifs = res.data?.notifications || [];
       } catch {}
 
@@ -64,15 +66,27 @@ export default function NotificationBell({ className }) {
       const all = [...crmNotifs, ...localAdminNotifs, ...backendNotifs];
       const seen = new Set();
       const merged = all.filter((n) => {
-        const key = n._id || n.id || `${n.title}-${n.createdAt}`;
+        const key = String(n._id || n.id || `${n.title}-${n.createdAt}`);
+        if (deletedAdminIdsRef.current.has(key)) return false;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       });
 
       merged.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-      const unread = merged.filter((n) => !n.isRead && !n.read).length;
-      setNotifications(merged);
+
+      const processed = merged.map((n) => {
+        const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
+        const isRead = Boolean(
+          n.isRead ||
+          n.read ||
+          (lastAdminReadAllTsRef.current && itemTime <= lastAdminReadAllTsRef.current)
+        );
+        return { ...n, isRead, read: isRead };
+      });
+
+      const unread = processed.filter((n) => !n.isRead && !n.read).length;
+      setNotifications(processed);
       setUnreadCount(unread);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -81,7 +95,7 @@ export default function NotificationBell({ className }) {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 2000);
+    const interval = setInterval(fetchNotifications, 2500);
     return () => clearInterval(interval);
   }, []);
 
@@ -96,61 +110,74 @@ export default function NotificationBell({ className }) {
   }, []);
 
   const handleMarkAllAsRead = async () => {
+    lastAdminReadAllTsRef.current = Date.now();
+    setUnreadCount(0);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
+
     try {
-      await apiClient.put("/admin/notifications/read-all");
-    } catch (err) {}
-    try {
-      await apiClient.put("/crm-sync/notifications/read-all?role=ADMIN");
-    } catch (err) {}
-    try {
+      await Promise.allSettled([
+        apiClient.put("/admin/notifications/read-all"),
+        apiClient.put("/crm-sync/notifications/read-all?role=ADMIN"),
+      ]);
       crmVendorService.markAllAdminNotificationsRead();
-      setUnreadCount(0);
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
   };
 
   const handleMarkOneAsRead = async (id) => {
+    const sId = String(id || "");
+    setNotifications((prev) =>
+      prev.map((n) => (String(n._id) === sId || String(n.id) === sId ? { ...n, isRead: true, read: true } : n))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+
     try {
-      if (id.startsWith('admin-notif-')) {
-        crmVendorService.markAdminNotificationRead(id);
+      if (sId.startsWith("admin-notif-")) {
+        crmVendorService.markAdminNotificationRead(sId);
       } else {
-        await apiClient.put(`/admin/notifications/${id}/read`).catch(() => {});
+        await apiClient.put(`/admin/notifications/${sId}/read`).catch(() => {});
       }
-      await apiClient.put(`/crm-sync/notifications/${id}/read`).catch(() => {});
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id || n.id === id ? { ...n, isRead: true, read: true } : n))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      await apiClient.put(`/crm-sync/notifications/${sId}/read`).catch(() => {});
     } catch (err) {
       console.error("Failed to mark notification as read:", err);
     }
   };
 
   const handleClearAll = async () => {
+    setNotifications([]);
+    setUnreadCount(0);
     try {
-      await apiClient.delete("/admin/notifications");
-      setNotifications([]);
-      setUnreadCount(0);
+      await Promise.allSettled([
+        apiClient.delete("/admin/notifications"),
+        apiClient.delete("/crm-sync/notifications?role=ADMIN"),
+      ]);
+      crmVendorService.clearAllAdminNotifications();
     } catch (err) {
-      console.error(err);
+      console.error("Failed to clear notifications:", err);
     }
   };
 
   const handleDeleteOne = async (id, e) => {
     if (e) e.stopPropagation();
-    try {
-      if (id && !id.startsWith("admin-notif-")) {
-        await apiClient.delete(`/admin/notifications/${id}`);
+    const sId = String(id || "");
+    deletedAdminIdsRef.current.add(sId);
+
+    setNotifications((prev) => {
+      const item = prev.find((n) => String(n._id) === sId || String(n.id) === sId);
+      if (item && !item.read && !item.isRead) {
+        setUnreadCount((c) => Math.max(0, c - 1));
       }
-      setNotifications((prev) => {
-        const item = prev.find((n) => n._id === id || n.id === id);
-        if (item && !item.read && !item.isRead) {
-          setUnreadCount((c) => Math.max(0, c - 1));
-        }
-        return prev.filter((n) => n._id !== id && n.id !== id);
-      });
+      return prev.filter((n) => String(n._id) !== sId && String(n.id) !== sId);
+    });
+
+    try {
+      if (sId.startsWith("admin-notif-")) {
+        crmVendorService.deleteAdminNotification(sId);
+      } else {
+        await apiClient.delete(`/admin/notifications/${sId}`).catch(() => {});
+      }
+      await apiClient.delete(`/crm-sync/notifications/${sId}`).catch(() => {});
     } catch (err) {
       console.error("Failed to delete notification:", err);
     }
@@ -276,20 +303,25 @@ export default function NotificationBell({ className }) {
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
             {notifications.length === 0 ? (
               <div className="py-10 text-center text-slate-400">
-                <Bell size={28} className="mx-auto mb-2 opacity-30" />
+                <Bell size={28} className="mx-auto mb-2 opacity-30 text-slate-400" />
                 <p className="text-xs font-medium">No recent activities</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
                   Live check-ins, breaks & leave requests will appear here.
                 </p>
               </div>
             ) : (
-              notifications.slice(0, 5).map((item) => {
+              notifications.slice(0, 30).map((item) => {
                 const conf = getIconAndColor(item.type);
                 const empDisplay = item.employeeName || (item.metadata?.name ? `${item.metadata.name} (${item.metadata.employeeId || "EMP"})` : null);
-                return (
+                const notifId = item.id || item._id;
+
+                const content = (
                   <div
-                    key={item.id}
-                    onClick={() => !item.read && handleMarkOneAsRead(item.id)}
+                    key={notifId}
+                    onClick={() => {
+                      if (!item.read) handleMarkOneAsRead(notifId);
+                      if (item.link) setIsOpen(false);
+                    }}
                     className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-slate-50 group relative ${
                       !item.read ? "bg-cyan-50/40 border-l-3 border-cyan-500" : ""
                     }`}
@@ -330,7 +362,7 @@ export default function NotificationBell({ className }) {
                       )}
                       <button
                         type="button"
-                        onClick={(e) => handleDeleteOne(item.id || item._id, e)}
+                        onClick={(e) => handleDeleteOne(notifId, e)}
                         className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
                         title="Delete notification"
                       >
@@ -339,6 +371,16 @@ export default function NotificationBell({ className }) {
                     </div>
                   </div>
                 );
+
+                if (item.link) {
+                  return (
+                    <Link key={notifId} to={item.link} className="block text-inherit no-underline">
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return content;
               })
             )}
           </div>
@@ -354,7 +396,11 @@ export default function NotificationBell({ className }) {
           </Link>
 
           <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Showing top 5 • Real-time</span>
+            <span>
+              {notifications.length > 0
+                ? `Showing ${Math.min(notifications.length, 30)} of ${notifications.length}`
+                : "0 items"} • Real-time
+            </span>
             <button
               onClick={fetchNotifications}
               className="text-cyan-600 hover:text-cyan-700 font-semibold cursor-pointer"

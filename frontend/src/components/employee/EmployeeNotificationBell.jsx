@@ -21,16 +21,35 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
   const lastKnownIdRef = useRef(null);
   const initialFetchDone = useRef(false);
 
+  const getDeletedIds = () => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem("emp_deleted_notif_ids") || "[]"));
+    } catch {
+      return new Set();
+    }
+  };
+
+  const saveDeletedId = (id) => {
+    try {
+      const set = getDeletedIds();
+      set.add(String(id));
+      localStorage.setItem("emp_deleted_notif_ids", JSON.stringify(Array.from(set)));
+    } catch {}
+  };
+
   const fetchNotifications = async () => {
     try {
-      const res = await apiClient.get("/employee/notifications?limit=25");
+      const res = await apiClient.get("/employee/notifications?limit=50");
       if (res.data) {
         let list = res.data.notifications || [];
         const lastReadAllTs = parseInt(localStorage.getItem("emp_notifs_read_all_ts") || "0", 10);
         const clearedTs = parseInt(localStorage.getItem("emp_notifs_cleared_ts") || "0", 10);
+        const deletedIds = getDeletedIds();
 
-        // Filter out notifications cleared by employee
+        // Filter out notifications cleared or deleted by employee
         list = list.filter((n) => {
+          const notifId = String(n.id || n._id);
+          if (deletedIds.has(notifId)) return false;
           const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
           return !clearedTs || (itemTime && itemTime > clearedTs);
         });
@@ -67,7 +86,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 2000);
+    const interval = setInterval(fetchNotifications, 2500);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -82,22 +101,23 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
   }, []);
 
   const handleMarkOneAsRead = async (id) => {
+    const sId = String(id || "");
+    setNotifications((prev) =>
+      prev.map((n) => (String(n.id) === sId || String(n._id) === sId ? { ...n, read: true } : n))
+    );
+    setUnreadCount((c) => Math.max(0, c - 1));
     try {
-      await apiClient.put(`/employee/notifications/${id}/read`, {});
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id || n._id === id ? { ...n, read: true } : n))
-      );
-      setUnreadCount((c) => Math.max(0, c - 1));
+      await apiClient.put(`/employee/notifications/${sId}/read`, {});
     } catch (err) {
       console.error(err);
     }
   };
 
   const handleMarkAllAsRead = async () => {
+    localStorage.setItem("emp_notifs_read_all_ts", Date.now().toString());
+    setUnreadCount(0);
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     try {
-      localStorage.setItem("emp_notifs_read_all_ts", Date.now().toString());
-      setUnreadCount(0);
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       await apiClient.put("/employee/notifications/read-all", {});
     } catch (err) {
       console.error(err);
@@ -105,11 +125,12 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
   };
 
   const handleClearAll = async () => {
+    localStorage.setItem("emp_notifs_cleared_ts", Date.now().toString());
+    localStorage.removeItem("emp_deleted_notif_ids");
+    setNotifications([]);
+    setUnreadCount(0);
     try {
-      localStorage.setItem("emp_notifs_cleared_ts", Date.now().toString());
       await apiClient.delete("/employee/notifications");
-      setNotifications([]);
-      setUnreadCount(0);
     } catch (err) {
       console.error("Failed to clear notifications:", err);
     }
@@ -117,15 +138,19 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
 
   const handleDeleteOne = async (id, e) => {
     if (e) e.stopPropagation();
+    const sId = String(id || "");
+    saveDeletedId(sId);
+
+    setNotifications((prev) => {
+      const item = prev.find((n) => String(n.id) === sId || String(n._id) === sId);
+      if (item && !item.read) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
+      return prev.filter((n) => String(n.id) !== sId && String(n._id) !== sId);
+    });
+
     try {
-      await apiClient.delete(`/employee/notifications/${id}`);
-      setNotifications((prev) => {
-        const item = prev.find((n) => n.id === id || n._id === id);
-        if (item && !item.read) {
-          setUnreadCount((c) => Math.max(0, c - 1));
-        }
-        return prev.filter((n) => n.id !== id && n._id !== id);
-      });
+      await apiClient.delete(`/employee/notifications/${sId}`);
     } catch (err) {
       console.error("Failed to delete notification:", err);
     }
@@ -134,6 +159,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return "";
     const diffMs = Date.now() - new Date(dateStr).getTime();
+    if (isNaN(diffMs)) return "";
     const diffSec = Math.floor(diffMs / 1000);
     if (diffSec < 60) return "Just now";
     const diffMin = Math.floor(diffSec / 60);
@@ -214,7 +240,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                 </p>
               </div>
             ) : (
-              notifications.slice(0, 5).map((item) => {
+              notifications.slice(0, 30).map((item) => {
                 const isMeeting = item.type === "MEETING" || item.metadata?.meetingLink;
                 const meetingLink = item.metadata?.meetingLink;
                 const notifId = item.id || item._id;
