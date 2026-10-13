@@ -180,9 +180,7 @@ export default function AdminVendorsList() {
 
   const [showAddMilestoneModal, setShowAddMilestoneModal] = useState(null); // { appId, candName }
   const [newMilestoneName, setNewMilestoneName] = useState("");
-  const [newMilestonePercentage, setNewMilestonePercentage] = useState("25");
   const [newMilestoneAmount, setNewMilestoneAmount] = useState("10000");
-  const [newMilestoneDueDate, setNewMilestoneDueDate] = useState("");
 
   const handleUpdateAppStatus = async (appId, newStatus, reason = "") => {
     try {
@@ -231,9 +229,7 @@ export default function AdminVendorsList() {
     try {
       const updatedApp = await crmVendorService.addApplicationMilestone(showAddMilestoneModal.appId, {
         name: newMilestoneName.trim(),
-        percentage: Number(newMilestonePercentage) || 0,
         amount: Number(newMilestoneAmount) || 0,
-        dueDate: newMilestoneDueDate.trim(),
       });
       setShowAddMilestoneModal(null);
       setNewMilestoneName("");

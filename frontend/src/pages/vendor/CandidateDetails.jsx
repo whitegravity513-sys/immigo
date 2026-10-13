@@ -539,7 +539,6 @@ export function CandidateDetails() {
 
                     <div className="flex items-center justify-between text-[11px] text-slate-500">
                       <span>Fee Amount: <strong className="text-slate-800 font-bold">₹{Number(m.amount).toLocaleString()}</strong></span>
-                      <span>Due: {m.dueDate || "Stage trigger"}</span>
                     </div>
 
                     {m.paymentRef && (

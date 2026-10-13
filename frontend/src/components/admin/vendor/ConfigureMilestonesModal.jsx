@@ -196,7 +196,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
     const defaultPct = totalAmount > 0 ? Math.round((defaultAmt / totalAmount) * 100) : 25;
     const newM = {
       id: `m${Date.now()}`,
-      name: `Milestone ${nextIdx}: Custom Process Stage`,
+      name: `Milestone ${nextIdx}`,
       percentage: defaultPct,
       amount: defaultAmt,
       status: "Pending",
@@ -207,31 +207,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
 
   const handleRemoveMilestone = (idx) => {
     setMilestones(milestones.filter((_, i) => i !== idx));
-  };
-
-  const handleAddStage = (mIdx) => {
-    const updated = [...milestones];
-    if (!updated[mIdx].stages) updated[mIdx].stages = [];
-    updated[mIdx].stages.push({
-      id: `s${Date.now()}`,
-      name: "New Verification Step",
-      status: "Locked",
-    });
-    setMilestones(updated);
-  };
-
-  const handleRemoveStage = (mIdx, sId) => {
-    const updated = [...milestones];
-    updated[mIdx].stages = updated[mIdx].stages.filter((s) => s.id !== sId);
-    setMilestones(updated);
-  };
-
-  const handleStageNameChange = (mIdx, sId, name) => {
-    const updated = [...milestones];
-    updated[mIdx].stages = updated[mIdx].stages.map((s) =>
-      s.id === sId ? { ...s, name } : s
-    );
-    setMilestones(updated);
   };
 
   const handleSave = async () => {
@@ -337,21 +312,21 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                 onClick={() => applyPreset(2)}
                 className="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-100 text-blue-800 font-bold text-[10px] border border-blue-200 shadow-2xs transition cursor-pointer"
               >
-                2 Milestones (50% / 50%)
+                2 Milestones
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset(3)}
                 className="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-100 text-blue-800 font-bold text-[10px] border border-blue-200 shadow-2xs transition cursor-pointer"
               >
-                3 Milestones (30% / 40% / 30%)
+                3 Milestones
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset(4)}
                 className="px-2.5 py-1 rounded-lg bg-white hover:bg-blue-100 text-blue-800 font-bold text-[10px] border border-blue-200 shadow-2xs transition cursor-pointer"
               >
-                4 Milestones (25% each)
+                4 Milestones
               </button>
             </div>
 
@@ -432,21 +407,13 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
 
                   <div className="flex items-center gap-2 shrink-0">
                     <div>
-                      <span className="text-[9px] font-bold text-slate-400 block uppercase">Share (%)</span>
-                      <input
-                        type="number"
-                        value={m.percentage}
-                        onChange={(e) => handleMilestoneChange(mIdx, "percentage", e.target.value)}
-                        className="w-14 text-center font-bold text-slate-800 border border-slate-200 rounded-lg px-1.5 py-1"
-                      />
-                    </div>
-                    <div>
                       <span className="text-[9px] font-bold text-slate-400 block uppercase">Amount (₹)</span>
                       <input
                         type="number"
                         value={m.amount}
                         onChange={(e) => handleMilestoneChange(mIdx, "amount", e.target.value)}
-                        className="w-24 font-bold text-slate-900 border border-slate-200 rounded-lg px-2 py-1"
+                        className="w-28 font-bold text-slate-900 border border-slate-200 rounded-lg px-2 py-1"
+                        placeholder="Amount"
                       />
                     </div>
                     {milestones.length > 1 && (
@@ -459,44 +426,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                         <Trash2 size={14} />
                       </button>
                     )}
-                  </div>
-                </div>
-
-                {/* Stages under this milestone */}
-                <div className="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100 space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    <span>Processing Stages Linked</span>
-                    <button
-                      type="button"
-                      onClick={() => handleAddStage(mIdx)}
-                      className="text-blue-600 hover:text-blue-800 flex items-center gap-0.5 cursor-pointer"
-                    >
-                      <Plus size={10} /> Add Stage
-                    </button>
-                  </div>
-
-                  <div className="space-y-1">
-                    {(m.stages || []).map((s) => (
-                      <div key={s.id} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></div>
-                        <input
-                          type="text"
-                          value={s.name}
-                          onChange={(e) => handleStageNameChange(mIdx, s.id, e.target.value)}
-                          className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs text-slate-800"
-                        />
-                        {(m.stages || []).length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveStage(mIdx, s.id)}
-                            className="text-slate-400 hover:text-rose-500 cursor-pointer"
-                            title="Remove Stage"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -526,7 +455,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           <div className="text-xs">
             <span className="text-slate-500 font-medium">Total Configured: </span>
             <strong className="text-slate-900 font-black">₹{totalCalculated.toLocaleString()}</strong>
-            <span className="text-slate-400 ml-1">({totalPercentage}%)</span>
           </div>
           <div className="flex items-center gap-2">
             <button

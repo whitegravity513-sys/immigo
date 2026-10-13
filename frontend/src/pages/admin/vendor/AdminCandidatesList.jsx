@@ -138,7 +138,7 @@ export default function AdminCandidatesList() {
 
   // Add Milestone Modal
   const [milestoneModal, setMilestoneModal] = useState(null); // { application }
-  const [milestoneForm, setMilestoneForm] = useState({ name: "", percentage: "", amount: "", dueDate: "" });
+  const [milestoneForm, setMilestoneForm] = useState({ name: "", amount: "" });
   const [milestoneLoading, setMilestoneLoading] = useState(false);
 
   // Configure Milestones on Select / Edit Modal
@@ -381,7 +381,7 @@ export default function AdminCandidatesList() {
   // Add Custom Milestone
   const handleOpenMilestoneModal = (app) => {
     setMilestoneModal({ application: app });
-    setMilestoneForm({ name: "", percentage: "", amount: "", dueDate: "" });
+    setMilestoneForm({ name: "", amount: "" });
   };
 
   const handleAddMilestone = async () => {
@@ -393,12 +393,10 @@ export default function AdminCandidatesList() {
     try {
       await crmVendorService.addApplicationMilestone(milestoneModal.application.id, {
         name: milestoneForm.name,
-        percentage: Number(milestoneForm.percentage) || 0,
         amount: Number(milestoneForm.amount) || 0,
-        dueDate: milestoneForm.dueDate,
       });
       setMilestoneModal(null);
-      setMilestoneForm({ name: "", percentage: "", amount: "", dueDate: "" });
+      setMilestoneForm({ name: "", amount: "" });
       await refreshCandidateView();
     } catch (err) {
       alert(err.message);
@@ -1151,34 +1149,13 @@ export default function AdminCandidatesList() {
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-blue-600 focus:outline-none"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Amount (₹)</label>
-                    <input
-                      type="number"
-                      value={milestoneForm.amount}
-                      onChange={(e) => setMilestoneForm({ ...milestoneForm, amount: e.target.value })}
-                      placeholder="0"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-blue-600 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Percentage (%)</label>
-                    <input
-                      type="number"
-                      value={milestoneForm.percentage}
-                      onChange={(e) => setMilestoneForm({ ...milestoneForm, percentage: e.target.value })}
-                      placeholder="0"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-blue-600 focus:outline-none"
-                    />
-                  </div>
-                </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Due Date (Optional)</label>
+                  <label className="block font-bold text-slate-700 mb-1">Amount (₹)</label>
                   <input
-                    type="date"
-                    value={milestoneForm.dueDate}
-                    onChange={(e) => setMilestoneForm({ ...milestoneForm, dueDate: e.target.value })}
+                    type="number"
+                    value={milestoneForm.amount}
+                    onChange={(e) => setMilestoneForm({ ...milestoneForm, amount: e.target.value })}
+                    placeholder="0"
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-blue-600 focus:outline-none"
                   />
                 </div>

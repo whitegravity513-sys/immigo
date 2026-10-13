@@ -31,10 +31,10 @@ export default function AdminCandidateMilestones() {
         const plan = app.paymentPlan || {
           totalAmount: 40000,
           milestones: [
-            { id: "M1", name: "Milestone 1 - Selection", percentage: 25, amount: 10000, dueDate: "2026-09-20", status: "Paid", stages: [{ id: "s1", name: "Document Verification", status: "Completed" }, { id: "s2", name: "Client Selection", status: "Completed" }] },
-            { id: "M2", name: "Milestone 2 - GAMCA Medical", percentage: 25, amount: 10000, dueDate: "2026-09-30", status: "Due", stages: [{ id: "s3", name: "Medical Check", status: "Pending" }, { id: "s4", name: "GAMCA Clearance", status: "Pending" }] },
-            { id: "M3", name: "Milestone 3 - Visa Stamping", percentage: 25, amount: 10000, dueDate: "2026-10-15", status: "Pending", stages: [{ id: "s5", name: "Visa Submission", status: "Pending" }, { id: "s6", name: "Stamping Approved", status: "Pending" }] },
-            { id: "M4", name: "Milestone 4 - On-Site Deployment", percentage: 25, amount: 10000, dueDate: "2026-10-31", status: "Pending", stages: [{ id: "s7", name: "Flight Ticketing", status: "Pending" }, { id: "s8", name: "Arrival & Induction", status: "Pending" }] },
+            { id: "M1", name: "Milestone 1 - Selection", amount: 10000, status: "Paid", stages: [{ id: "s1", name: "Document Verification", status: "Completed" }, { id: "s2", name: "Client Selection", status: "Completed" }] },
+            { id: "M2", name: "Milestone 2 - GAMCA Medical", amount: 10000, status: "Due", stages: [{ id: "s3", name: "Medical Check", status: "Pending" }, { id: "s4", name: "GAMCA Clearance", status: "Pending" }] },
+            { id: "M3", name: "Milestone 3 - Visa Stamping", amount: 10000, status: "Pending", stages: [{ id: "s5", name: "Visa Submission", status: "Pending" }, { id: "s6", name: "Stamping Approved", status: "Pending" }] },
+            { id: "M4", name: "Milestone 4 - On-Site Deployment", amount: 10000, status: "Pending", stages: [{ id: "s7", name: "Flight Ticketing", status: "Pending" }, { id: "s8", name: "Arrival & Induction", status: "Pending" }] },
           ],
         };
 
@@ -52,10 +52,8 @@ export default function AdminCandidateMilestones() {
     const nextIdx = milestonesList.length + 1;
     const newM = {
       id: `M${nextIdx}`,
-      name: `Milestone ${nextIdx} - Custom Stage`,
-      percentage: 10,
-      amount: Math.round(totalAmount * 0.1),
-      dueDate: "",
+      name: `Milestone ${nextIdx}`,
+      amount: Math.round(totalAmount * 0.25),
       status: "Pending",
       stages: [{ id: `s${Date.now()}-1`, name: "New Process", status: "Pending" }],
     };
@@ -198,22 +196,12 @@ export default function AdminCandidateMilestones() {
                 className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all hover:border-slate-300"
               >
                 <div className="p-4 bg-slate-50/70 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                  <div className="sm:col-span-4">
+                  <div className="sm:col-span-6">
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Milestone Name</label>
                     <input
                       type="text"
                       value={m.name}
                       onChange={(e) => handleMilestoneChange(idx, "name", e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Share (%)</label>
-                    <input
-                      type="number"
-                      value={m.percentage}
-                      onChange={(e) => handleMilestoneChange(idx, "percentage", e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white focus:outline-none focus:border-blue-500"
                     />
                   </div>
