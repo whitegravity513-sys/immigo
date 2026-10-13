@@ -212,15 +212,22 @@ export default function MouFullPageView({
                 border: none !important;
                 box-shadow: none !important;
                 margin: 0 !important;
-                padding: 10mm 12mm 15mm 12mm !important;
+                margin-bottom: 0 !important;
+                padding: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                min-height: 275mm !important;
+                min-height: 0 !important;
+                height: auto !important;
                 background: white !important;
                 box-sizing: border-box !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+              }
+              .mou-page:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                margin-bottom: 0 !important;
               }
               .mou-print-hide {
                 display: none !important;
@@ -324,11 +331,18 @@ export default function MouFullPageView({
             border: none !important;
             box-shadow: none !important;
             margin: 0 !important;
+            margin-bottom: 0 !important;
             padding: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            min-height: auto !important;
+            min-height: 0 !important;
+            height: auto !important;
             background: white !important;
+          }
+          .mou-page:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+            margin-bottom: 0 !important;
           }
         }
       `}</style>
