@@ -51,10 +51,10 @@ export default function MouFullPageView({
       "1. Candidate passports and credentials must be authentic.\n2. No unauthorized recruitment fees shall be charged to candidate workers.\n3. Complete adherence to MEA (India) and destination country labor guidelines."
   );
   const [adminSignatoryName, setAdminSignatoryName] = useState(
-    vendor?.mouDocument?.adminSignatoryName || "Director of Global Operations"
+    vendor?.mouDocument?.adminSignatoryName || "Designated Partner"
   );
   const [adminDesignation, setAdminDesignation] = useState(
-    vendor?.mouDocument?.adminDesignation || "Director - Global Alliances, Vista Oversees"
+    vendor?.mouDocument?.adminDesignation || "Designated Partner, Immigo Educare LLP"
   );
 
   // Vendor Signature States (for signing mode)
@@ -432,8 +432,8 @@ export default function MouFullPageView({
       >
         {/* Document Header */}
         <div className="text-center border-b-2 border-slate-900 pb-8 space-y-3">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 font-sans text-xs font-black uppercase tracking-widest mb-1">
-            ImmiGo Global &bull; Vista Overseas Workforce
+          <div className="inline-block px-4 py-1.5 rounded-full bg-slate-100 border border-slate-300 text-slate-900 font-sans text-xs font-bold uppercase tracking-widest mb-1">
+            IMMIGO EDUCARE LLP &bull; C - 76, Phase - II, Sector - 88, Noida - 201301
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight font-sans uppercase">
             MEMORANDUM OF UNDERSTANDING (MOU)
@@ -456,10 +456,10 @@ export default function MouFullPageView({
             This Memorandum of Understanding (hereinafter referred to as the <b>"MOU"</b>) is entered into on this{" "}
             <b>{agreementDate}</b>, by and between:
           </p>
-          <div className="pl-5 border-l-3 border-blue-600 space-y-3">
+          <div className="pl-5 border-l-3 border-slate-900 space-y-3">
             <p>
               <b>FIRST PARTY (The Company):</b>{" "}
-              <span className="font-bold text-slate-900">Vista Overseas Solutions / ImmiGo Global Overseas</span>, having its principal corporate operations in India, engaged in overseas recruitment, talent sourcing, and human capital deployment (hereinafter referred to as the <b>"First Party"</b>).
+              <span className="font-bold text-slate-900">IMMIGO EDUCARE LLP</span>, having its registered principal office at C - 76, Phase - II, Sector - 88, Noida, Gautam Budh Nagar - 201301, Uttar Pradesh, India, engaged in overseas recruitment, talent sourcing, and human capital deployment (hereinafter referred to as the <b>"First Party"</b>).
             </p>
             <p className="text-center font-bold text-slate-400 font-sans text-xs uppercase tracking-widest my-1">- AND -</p>
             <p>
@@ -584,7 +584,7 @@ export default function MouFullPageView({
               </div>
               <div className="text-xs text-slate-600 space-y-0.5">
                 <p><b>Authority:</b> {adminDesignation}</p>
-                <p><b>Company:</b> Vista Overseas Solutions / ImmiGo Global</p>
+                <p><b>Company:</b> IMMIGO EDUCARE LLP</p>
                 <p className="font-mono text-[10px] text-slate-400">Date: {agreementDate}</p>
               </div>
             </div>
