@@ -219,13 +219,12 @@ export default function AdminCandidateMilestones() {
                   <div className="sm:col-span-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Payment Status</label>
                     <select
-                      value={m.status}
+                      value={m.status === "Paid" ? "Paid" : "Pending"}
                       onChange={(e) => handleMilestoneChange(idx, "status", e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white focus:outline-none focus:border-blue-500 cursor-pointer"
                     >
-                      <option value="Paid">Paid</option>
-                      <option value="Due">Due</option>
                       <option value="Pending">Pending</option>
+                      <option value="Paid">Paid</option>
                     </select>
                   </div>
 

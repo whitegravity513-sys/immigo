@@ -23,6 +23,7 @@ import {
   Video,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
+import * as XLSX from "xlsx";
 
 export function Candidates() {
   const navigate = useNavigate();
@@ -137,6 +138,44 @@ export function Candidates() {
     }
   };
 
+  const handleExportExcel = () => {
+    const excelRows = candidates.map((c, idx) => ({
+      "S.No": idx + 1,
+      "Candidate ID": c.id || `CAND-${idx + 1}`,
+      "Full Name": c.fullName || "—",
+      "Father / Guardian Name": c.fatherName || c.guardianName || "—",
+      "Gender": c.gender || "Male",
+      "Date of Birth": c.dob || c.birthDate || "—",
+      "Age": c.age || "—",
+      "Phone Number": c.phone || "—",
+      "Email Address": c.email || "—",
+      "Passport Number": c.passportNumber || "—",
+      "Passport Expiry": c.passportExpiry || "—",
+      "Nationality": c.nationality || "Indian",
+      "Address": c.address || "—",
+      "City": c.city || "—",
+      "State": c.state || "—",
+      "Trade / Position": c.currentPosition || "—",
+      "Experience (Years)": c.experienceYears != null ? `${c.experienceYears} Years` : "—",
+      "Highest Qualification": c.qualification || "—",
+      "Skills": Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—"),
+      "Preferred Country": c.preferredCountry || "—",
+      "Medical Status": c.medicalStatus || "Pending",
+      "Created Date": c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelRows);
+    const colWidths = Object.keys(excelRows[0] || {}).map((key) => ({
+      wch: Math.max(key.length + 4, 15),
+    }));
+    worksheet["!cols"] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Roster");
+    const filename = `Vendor_Candidates_${new Date().toISOString().split("T")[0]}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+  };
+
   return (
     <div className="space-y-5 font-sans">
       {/* Top Header */}
@@ -151,6 +190,16 @@ export function Candidates() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors shadow-2xs cursor-pointer"
+            title="Download complete candidates roster in Excel"
+          >
+            <Download size={14} />
+            <span>Export Excel</span>
+          </button>
+
           <Link
             to="/vendor/submit-candidate"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors shadow-2xs cursor-pointer"

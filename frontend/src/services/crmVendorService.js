@@ -1539,6 +1539,65 @@ export const crmVendorService = {
     return apps[idx];
   },
 
+  quickUpdateMilestoneStatus: async (applicationId, milestoneId, newStatus) => {
+    await delay(60);
+    const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
+    const idx = apps.findIndex((a) => String(a.id) === String(applicationId));
+    if (idx === -1) throw new Error("Application not found");
+
+    const isPaid = newStatus === "Paid";
+
+    // 1. Sync in paymentPlan.milestones
+    if (apps[idx].paymentPlan?.milestones) {
+      const pmIdx = apps[idx].paymentPlan.milestones.findIndex(
+        (m) => String(m.id) === String(milestoneId)
+      );
+      if (pmIdx !== -1) {
+        apps[idx].paymentPlan.milestones[pmIdx].status = isPaid ? "Paid" : "Pending";
+        apps[idx].paymentPlan.milestones[pmIdx].paidDate = isPaid
+          ? new Date().toISOString().split("T")[0]
+          : null;
+        if (isPaid && !apps[idx].paymentPlan.milestones[pmIdx].paymentRef) {
+          apps[idx].paymentPlan.milestones[pmIdx].paymentRef = `Admin Verified • TXN_${Date.now()}`;
+        }
+      }
+    }
+
+    // 2. Sync in processMilestones
+    if (apps[idx].processMilestones) {
+      const mIdx = apps[idx].processMilestones.findIndex(
+        (m) => String(m.id) === String(milestoneId)
+      );
+      if (mIdx !== -1) {
+        apps[idx].processMilestones[mIdx].paymentStatus = isPaid ? "Approved" : "Pending";
+        apps[idx].processMilestones[mIdx].status = isPaid ? "Active" : "Pending";
+        apps[idx].processMilestones[mIdx].paymentDate = isPaid
+          ? new Date().toISOString().split("T")[0]
+          : null;
+        apps[idx].processMilestones[mIdx].approvedBy = isPaid ? "Admin" : null;
+        if (isPaid && apps[idx].processMilestones[mIdx].stages?.length > 0) {
+          if (apps[idx].processMilestones[mIdx].stages[0].status === "Locked") {
+            apps[idx].processMilestones[mIdx].stages[0].status = "In Progress";
+          }
+        }
+      }
+    }
+
+    apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]).catch(() => {});
+    saveData(APPLICATIONS_STORAGE_KEY, apps);
+
+    // Notify vendor
+    crmVendorService.addNotification({
+      vendorId: apps[idx].vendorId,
+      title: isPaid ? "Milestone Payment Marked Paid ✅" : "Milestone Payment Reset to Pending ⏳",
+      message: `Milestone payment for candidate ${apps[idx].candidateName} is now ${newStatus}.`,
+      type: isPaid ? "success" : "info",
+      link: `/vendor/payments/${apps[idx].id}`,
+    });
+
+    return apps[idx];
+  },
+
   // Upload Official Visa document to a stage
   uploadStageVisa: async (applicationId, milestoneId, stageId, visaUrl, fileName = "Visa_Document.pdf") => {
     await delay(60);

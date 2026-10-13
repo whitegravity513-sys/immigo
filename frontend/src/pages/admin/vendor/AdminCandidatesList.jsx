@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 import ConfigureMilestonesModal from "../../../components/admin/vendor/ConfigureMilestonesModal.jsx";
+import * as XLSX from "xlsx";
 
 const DownloadModal = ({ isOpen, onClose, onDownload }) => {
   const [status, setStatus] = useState("All");
@@ -73,8 +74,22 @@ const DownloadModal = ({ isOpen, onClose, onDownload }) => {
             </div>
           </div>
         </div>
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onDownload({ status, dateFrom, dateTo })}
+            className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          >
+            <Download size={14} />
+            <span>Download Full Details (.xlsx)</span>
+          </button>
         </div>
       </div>
     </div>
@@ -485,51 +500,76 @@ export default function AdminCandidatesList() {
     let data = [...candidates];
     
     // Filter by status
-    if (filters.status !== "All") {
+    if (filters?.status && filters.status !== "All") {
       data = data.filter(c => getCandidateOverallStatus(c.id) === filters.status);
     }
     
     // Filter by date
-    if (filters.dateFrom) {
+    if (filters?.dateFrom) {
       data = data.filter(c => new Date(c.createdAt || Date.now()) >= new Date(filters.dateFrom));
     }
-    if (filters.dateTo) {
+    if (filters?.dateTo) {
       data = data.filter(c => new Date(c.createdAt || Date.now()) <= new Date(filters.dateTo));
     }
 
-    // Build CSV
-    const headers = filters.columns;
-    let csv = headers.join(",") + "\n";
-    data.forEach(c => {
-      const row = headers.map(col => {
-        let val = "";
-        if (col === "Candidate Name") val = c.fullName;
-        if (col === "Vendor") val = getVendorName(c.vendorId);
-        if (col === "Position") val = c.currentPosition;
-        if (col === "Status") val = getCandidateOverallStatus(c.id);
-        if (col === "Experience") val = c.experienceYears;
-        if (col === "Destination") val = c.preferredCountry;
-        if (col === "Email") val = c.email || "";
-        if (col === "Phone") val = c.phone || "";
-        if (col === "Passport Number") val = c.passportNumber || "";
-        if (col === "Nationality") val = c.nationality || "";
-        if (col === "Qualification") val = c.qualification || "";
-        if (col === "Medical Status") val = c.medicalStatus || "";
-        if (col === "Skills") val = (c.skills || []).join("; ");
-        if (col === "Date Added") val = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "";
-        
-        return `"${(val || '').toString().replace(/"/g, '""')}"`;
-      });
-      csv += row.join(",") + "\n";
+    const excelRows = data.map((c, idx) => {
+      const overallStatus = getCandidateOverallStatus(c.id);
+      const candApps = applications.filter((a) => a.candidateId === c.id);
+      const app = candApps[candApps.length - 1]; // latest application
+      const plan = app?.paymentPlan;
+      const totalFee = plan?.totalAmount || 40000;
+      const paidAmt = (plan?.milestones || [])
+        .filter((m) => m.status === "Paid" || m.paymentStatus === "Approved")
+        .reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+      const paymentStatus = paidAmt >= totalFee ? "Fully Paid" : paidAmt > 0 ? "Partially Paid" : "Payment Due";
+
+      return {
+        "S.No": idx + 1,
+        "Candidate ID": c.id || `CAND-${idx + 1}`,
+        "Candidate Full Name": c.fullName || "—",
+        "Father / Guardian Name": c.fatherName || c.guardianName || "—",
+        "Gender": c.gender || "Male",
+        "Date of Birth": c.dob || c.birthDate || "—",
+        "Age": c.age || "—",
+        "Contact Number": c.phone || "—",
+        "Email Address": c.email || "—",
+        "Passport Number": c.passportNumber || "—",
+        "Passport Expiry": c.passportExpiry || "—",
+        "Nationality": c.nationality || "Indian",
+        "Full Address": c.address || "—",
+        "City / District": c.city || "—",
+        "State": c.state || "—",
+        "Trade / Current Position": c.currentPosition || "—",
+        "Experience (Years)": c.experienceYears != null ? `${c.experienceYears} Years` : "—",
+        "Highest Qualification": c.qualification || "—",
+        "Key Skills": Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—"),
+        "Preferred Destination Country": c.preferredCountry || "—",
+        "Sourcing Vendor / Agency": getVendorName(c.vendorId),
+        "Vendor ID": c.vendorId || "—",
+        "Assigned Project": app?.projectName || "Not Assigned",
+        "Overall Status": overallStatus,
+        "Total Placement Fee (₹)": totalFee,
+        "Paid Fee (₹)": paidAmt,
+        "Balance Fee (₹)": Math.max(0, totalFee - paidAmt),
+        "Payment Status": paymentStatus,
+        "Medical / GAMCA Status": c.medicalStatus || "Pending",
+        "Date Added": c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
+      };
     });
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Candidates_Export_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const worksheet = XLSX.utils.json_to_sheet(excelRows);
+    
+    // Auto-fit column widths
+    const colWidths = Object.keys(excelRows[0] || {}).map((key) => ({
+      wch: Math.max(key.length + 4, 15),
+    }));
+    worksheet["!cols"] = colWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Full Data");
+    
+    const filename = `Candidates_Full_Details_${new Date().toISOString().split("T")[0]}.xlsx`;
+    XLSX.writeFile(workbook, filename);
     setDownloadModalOpen(false);
   };
 

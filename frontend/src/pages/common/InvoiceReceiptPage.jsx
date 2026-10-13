@@ -94,6 +94,33 @@ export default function InvoiceReceiptPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 py-6 sm:py-10 px-4 font-sans antialiased text-slate-800 print:bg-white print:p-0">
+      <style>{`
+        @media print {
+          @page {
+            margin: 0.8cm;
+            size: A4 portrait;
+          }
+          body {
+            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .receipt-card {
+            max-width: 490px !important;
+            margin: 0 auto !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: none !important;
+            border-radius: 24px !important;
+            overflow: hidden !important;
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
+
       {/* Top Floating Action Bar (Hidden when printing) */}
       <div className="max-w-md mx-auto mb-4 flex items-center justify-between print:hidden">
         <button
@@ -103,17 +130,26 @@ export default function InvoiceReceiptPage() {
           <ArrowLeft size={14} />
           <span>Close Window</span>
         </button>
-        <button
-          onClick={handlePrint}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-xl shadow-xs cursor-pointer transition"
-        >
-          <Printer size={14} />
-          <span>Print / Save PDF</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3.5 py-1.5 rounded-xl shadow-xs cursor-pointer transition"
+          >
+            <Download size={14} />
+            <span>Download PDF</span>
+          </button>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-3 py-1.5 rounded-xl shadow-2xs cursor-pointer transition"
+          >
+            <Printer size={14} />
+            <span>Print</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Swiggy / Zomato Style Bill Receipt Card */}
-      <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden print:shadow-none print:border-none print:max-w-full">
+      <div className="receipt-card max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden print:shadow-none print:border-none print:max-w-full">
         {/* Receipt Header Banner */}
         <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white p-6 pb-5 text-center relative overflow-hidden">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mb-3 shadow-inner">

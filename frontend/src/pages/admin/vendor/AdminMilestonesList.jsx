@@ -14,6 +14,7 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Receipt,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 import ConfigureMilestonesModal from "../../../components/admin/vendor/ConfigureMilestonesModal.jsx";
@@ -120,6 +121,15 @@ export default function AdminMilestonesList() {
     setExpandedAppIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleQuickStatusChange = async (appId, milestoneId, newStatus) => {
+    try {
+      await crmVendorService.quickUpdateMilestoneStatus(appId, milestoneId, newStatus);
+      await loadData();
+    } catch (err) {
+      alert("Failed to update status: " + err.message);
+    }
   };
 
   const handleApplyBulkTemplate = async () => {
@@ -493,19 +503,21 @@ export default function AdminMilestonesList() {
                                           : "bg-slate-50 border-slate-200"
                                       }`}
                                     >
-                                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
-                                        <span>Milestone {mIdx + 1}</span>
-                                        <span
-                                          className={`px-1.5 py-0.2 rounded font-black ${
+                                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1.5 gap-1">
+                                        <span className="font-extrabold text-slate-700">Milestone {mIdx + 1}</span>
+                                        <select
+                                          value={isPaid ? "Paid" : "Pending"}
+                                          onChange={(e) => handleQuickStatusChange(app.id, m.id, e.target.value)}
+                                          className={`px-2 py-0.5 rounded-lg font-black text-[10px] border cursor-pointer focus:outline-none transition ${
                                             isPaid
-                                              ? "bg-emerald-100 text-emerald-800"
-                                              : isSub
-                                              ? "bg-amber-100 text-amber-800"
-                                              : "bg-slate-200 text-slate-700"
+                                              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                                              : "bg-amber-100 text-amber-800 border-amber-300"
                                           }`}
+                                          title="Quick Status Update (Pending or Paid)"
                                         >
-                                          {isPaid ? "Paid" : isSub ? "Submitted" : "Pending"}
-                                        </span>
+                                          <option value="Pending">Pending</option>
+                                          <option value="Paid">Paid</option>
+                                        </select>
                                       </div>
                                       <h5 className="font-extrabold text-slate-900 text-xs truncate">
                                         {m.name}
@@ -514,10 +526,32 @@ export default function AdminMilestonesList() {
                                         ₹{mAmt.toLocaleString()}
                                       </div>
                                       {m.paymentRef && (
-                                        <p className="text-[10px] text-slate-500 font-mono mt-1 truncate">
+                                        <p className="text-[10px] text-slate-500 font-mono mt-1 truncate" title={m.paymentRef}>
                                           {m.paymentRef}
                                         </p>
                                       )}
+
+                                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5">
+                                        {isPaid ? (
+                                          <button
+                                            type="button"
+                                            onClick={() => window.open(`/invoice/${app.id}/${m.id}`, '_blank')}
+                                            className="w-full py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs"
+                                          >
+                                            <Receipt size={11} />
+                                            <span>Invoice / Receipt</span>
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleQuickStatusChange(app.id, m.id, "Paid")}
+                                            className="w-full py-1 px-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs"
+                                          >
+                                            <CheckCircle2 size={11} />
+                                            <span>Mark Paid</span>
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
                                   );
                                 })}

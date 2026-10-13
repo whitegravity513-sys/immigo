@@ -95,13 +95,20 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
         @media print {
           @page {
             margin: 0 !important;
+            size: A4 portrait;
           }
           body {
             margin: 0 !important;
             background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           .printable-sheet {
-            padding: 0.8cm 1.5cm 1.5cm 1.5cm !important;
+            padding: 0.8cm 1.2cm 1.2cm 1.2cm !important;
             margin: 0 !important;
             border: none !important;
             box-shadow: none !important;

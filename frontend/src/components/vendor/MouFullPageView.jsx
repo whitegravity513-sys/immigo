@@ -146,8 +146,37 @@ export default function MouFullPageView({
 
   return (
     <div className="w-full space-y-6 pb-16 animate-fadeIn font-sans text-slate-800">
+      <style>{`
+        @media print {
+          @page {
+            margin: 1cm;
+            size: A4 portrait;
+          }
+          body {
+            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .mou-print-hide, .print\\:hidden {
+            display: none !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .mou-sheet {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0.5cm 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+        }
+      `}</style>
+
       {/* Top Header / Action Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mou-print-hide print:hidden bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
@@ -237,7 +266,7 @@ export default function MouFullPageView({
       {mode === "draft" && (
         <form
           onSubmit={handleAdminSendMou}
-          className="bg-white rounded-2xl border border-indigo-200 shadow-sm p-6 space-y-6"
+          className="mou-print-hide print:hidden bg-white rounded-2xl border border-indigo-200 shadow-sm p-6 space-y-6"
         >
           <div className="border-b border-indigo-100 pb-4">
             <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
@@ -399,7 +428,7 @@ export default function MouFullPageView({
       {/* FULL LEGAL MOU DOCUMENT PAGE (Printable & High Quality) */}
       <div
         ref={printRef}
-        className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 sm:p-12 font-serif text-slate-800 text-sm leading-relaxed space-y-8 select-text"
+        className="mou-sheet bg-white rounded-2xl border border-slate-200 shadow-md p-6 sm:p-12 font-serif text-slate-800 text-sm leading-relaxed space-y-8 select-text"
       >
         {/* Document Header */}
         <div className="text-center border-b-2 border-slate-900 pb-8 space-y-3">
@@ -612,7 +641,7 @@ export default function MouFullPageView({
       {(mode === "sign" || (!isSigned && mode === "preview" && vendor?.role === "vendor")) && (
         <form
           onSubmit={handleVendorSignSubmit}
-          className="bg-white rounded-2xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6"
+          className="mou-print-hide print:hidden bg-white rounded-2xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6"
         >
           <div className="border-b border-indigo-100 pb-4">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
