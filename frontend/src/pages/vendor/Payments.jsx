@@ -148,6 +148,9 @@ export default function Payments() {
   const fullyPaidCount = candidateAccounts.filter((c) => c.isFullyPaid).length;
   const dueAccountsCount = candidateAccounts.filter((c) => c.dueAmount > 0).length;
 
+  // Show 5 items by default with See All toggle
+  const [showAll, setShowAll] = useState(false);
+
   // Filter candidate accounts
   const filteredAccounts = candidateAccounts.filter((cand) => {
     if (activeTab === "Paid" && cand.paidAmount <= 0) return false;
@@ -166,81 +169,86 @@ export default function Payments() {
     return true;
   });
 
+  const displayedAccounts =
+    showAll || searchQuery.trim() || activeTab !== "All"
+      ? filteredAccounts
+      : filteredAccounts.slice(0, 5);
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-4">
+    <div className="p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 font-sans">
+      {/* Header (Compact Height & Refined Bold) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
-            <CreditCard className="w-4 h-4" />
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 uppercase tracking-wider mb-0.5">
+            <CreditCard className="w-3.5 h-3.5" />
             <span>Candidate Milestone Accounts</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Payments Ledger by Candidate
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Ek candidate ka pura process aur milestone payments ek sath yahan dekhein.
           </p>
         </div>
 
         <button
           onClick={() => alert("Statement export ready.")}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold shadow-2xs transition self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-semibold shadow-2xs transition self-start sm:self-auto cursor-pointer"
         >
-          <Download className="w-4 h-4 text-slate-500" />
+          <Download className="w-3.5 h-3.5 text-slate-500" />
           <span>Export Summary</span>
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs relative overflow-hidden">
+      {/* KPI Cards (Reduced Height & Sleek Boldness) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               Total Agreed Fees
             </span>
-            <span className="p-2 rounded-xl bg-slate-100 text-slate-700">
-              <TrendingUp className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <TrendingUp className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+          <div className="text-xl sm:text-2xl font-bold text-slate-800 mt-1 tracking-tight">
             ₹{totalContractFee.toLocaleString()}
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block font-medium">
+          <span className="text-[10px] text-slate-400 mt-0.5 block font-medium">
             Across {candidateAccounts.length} selected candidate(s)
           </span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs relative overflow-hidden">
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">
               Total Amount Paid
             </span>
-            <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-              <CheckCircle2 className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-2">
+          <div className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1 tracking-tight">
             ₹{totalPaidOverall.toLocaleString()}
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block font-medium">
+          <span className="text-[10px] text-slate-400 mt-0.5 block font-medium">
             {fullyPaidCount} fully completed candidates
           </span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs relative overflow-hidden">
+        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">
+            <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
               Pending / Due Balance
             </span>
-            <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
-              <Clock className="w-4 h-4" />
+            <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+              <Clock className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-2">
+          <div className="text-xl sm:text-2xl font-bold text-amber-600 mt-1 tracking-tight">
             ₹{totalDueOverall.toLocaleString()}
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block font-medium">
+          <span className="text-[10px] text-slate-400 mt-0.5 block font-medium">
             Pending across {dueAccountsCount} active candidate(s)
           </span>
         </div>
