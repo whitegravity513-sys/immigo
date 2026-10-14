@@ -14,6 +14,7 @@ import {
   Sparkles,
   RefreshCw,
   X,
+  Edit,
 } from "lucide-react";
 
 const FORM_TABS = [
@@ -36,12 +37,15 @@ export default function AnnouncementsSection({
   holidayLoading,
   handleCreateHolidaySubmit,
   handleDeleteHoliday,
+  onHolidaySaved,
 }) {
   const [type, setType] = useState("announcement");
   const [announcements, setAnnouncements] = useState([]);
   const [annLoading, setAnnLoading] = useState(false);
   const [fetchingAnnouncements, setFetchingAnnouncements] = useState(false);
   const [annForm, setAnnForm] = useState(defaultAnnForm);
+  const [editingAnnId, setEditingAnnId] = useState(null);
+  const [editingHolidayId, setEditingHolidayId] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [listTab, setListTab] = useState("announcements");
@@ -108,19 +112,59 @@ export default function AnnouncementsSection({
     }
   }, [successMsg]);
 
+  const handleStartEditAnn = (ann) => {
+    setType("announcement");
+    setEditingAnnId(ann._id);
+    setAnnForm({
+      title: ann.title || "",
+      message: ann.message || "",
+      category: ann.category || "Company Notification",
+      priority: ann.priority || "Medium",
+      date: ann.date ? ann.date.split("T")[0] : new Date().toISOString().split("T")[0],
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEditAnn = () => {
+    setEditingAnnId(null);
+    setAnnForm(defaultAnnForm);
+  };
+
+  const handleStartEditHoliday = (hol) => {
+    setType("holiday");
+    setEditingHolidayId(hol._id);
+    setHolidayForm({
+      date: hol.date ? hol.date.split("T")[0] : "",
+      title: hol.title || "",
+      description: hol.description || "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCancelEditHoliday = () => {
+    setEditingHolidayId(null);
+    setHolidayForm({ date: "", title: "", description: "" });
+  };
+
   const handleAnnSubmit = async (e) => {
     e.preventDefault();
     setAnnLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      const res = await apiClient.post("/admin/announcements", annForm);
-      setSuccessMsg(res.data?.message || "Announcement published successfully!");
+      if (editingAnnId) {
+        const res = await apiClient.put(`/admin/announcements/${editingAnnId}`, annForm);
+        setSuccessMsg(res.data?.message || "Announcement updated successfully!");
+        setEditingAnnId(null);
+      } else {
+        const res = await apiClient.post("/admin/announcements", annForm);
+        setSuccessMsg(res.data?.message || "Announcement published successfully!");
+      }
       setAnnForm(defaultAnnForm);
       fetchAnnouncements();
       setListTab("announcements");
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Failed to post announcement.");
+      setErrorMsg(err.response?.data?.message || "Failed to save announcement.");
     } finally {
       setAnnLoading(false);
     }
@@ -130,11 +174,21 @@ export default function AnnouncementsSection({
     setErrorMsg("");
     setSuccessMsg("");
     try {
-      await handleCreateHolidaySubmit(e);
-      setSuccessMsg("Public holiday registered successfully!");
+      if (editingHolidayId) {
+        e.preventDefault();
+        const res = await apiClient.put(`/admin/holidays/${editingHolidayId}`, holidayForm);
+        setSuccessMsg(res.data?.message || "Public holiday updated successfully!");
+        setEditingHolidayId(null);
+        setHolidayForm({ date: "", title: "", description: "" });
+        if (typeof onHolidaySaved === "function") onHolidaySaved();
+        else fetchAnnouncements();
+      } else {
+        await handleCreateHolidaySubmit(e);
+        setSuccessMsg("Public holiday registered successfully!");
+      }
       setListTab("holidays");
     } catch (err) {
-      setErrorMsg(err?.message || "Failed to save holiday.");
+      setErrorMsg(err.response?.data?.message || err?.message || "Failed to save holiday.");
     }
   };
 
@@ -395,14 +449,33 @@ export default function AnnouncementsSection({
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={annLoading}
-                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
-                >
-                  <Megaphone size={14} className={annLoading ? "animate-pulse" : ""} />
-                  <span>{annLoading ? "Broadcasting..." : "Publish Announcement"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={annLoading}
+                    className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    <Megaphone size={14} className={annLoading ? "animate-pulse" : ""} />
+                    <span>
+                      {annLoading
+                        ? editingAnnId
+                          ? "Updating..."
+                          : "Broadcasting..."
+                        : editingAnnId
+                        ? "Update Announcement"
+                        : "Publish Announcement"}
+                    </span>
+                  </button>
+                  {editingAnnId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditAnn}
+                      className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </form>
             ) : (
               <form onSubmit={handleHolSubmit} className="space-y-4">
@@ -448,14 +521,33 @@ export default function AnnouncementsSection({
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={holidayLoading}
-                  className="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs shadow-amber-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
-                >
-                  <CalendarDays size={14} className={holidayLoading ? "animate-pulse" : ""} />
-                  <span>{holidayLoading ? "Saving Holiday..." : "Declare Public Holiday"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={holidayLoading}
+                    className="flex-1 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs shadow-amber-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    <CalendarDays size={14} className={holidayLoading ? "animate-pulse" : ""} />
+                    <span>
+                      {holidayLoading
+                        ? editingHolidayId
+                          ? "Updating Holiday..."
+                          : "Saving Holiday..."
+                        : editingHolidayId
+                        ? "Update Public Holiday"
+                        : "Declare Public Holiday"}
+                    </span>
+                  </button>
+                  {editingHolidayId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditHoliday}
+                      className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </form>
             )}
           </div>
@@ -572,14 +664,24 @@ export default function AnnouncementsSection({
                           </span>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteAnn(a._id)}
-                          className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                          title="Delete announcement"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditAnn(a)}
+                            className="w-7 h-7 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Edit announcement"
+                          >
+                            <Edit size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAnn(a._id)}
+                            className="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Delete announcement"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </div>
 
                       <div>
@@ -656,14 +758,24 @@ export default function AnnouncementsSection({
                             </p>
                           </td>
                           <td className="px-4 py-3 text-right whitespace-nowrap align-top">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteAnn(a._id)}
-                              className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                              title="Delete announcement"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditAnn(a)}
+                                className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                                title="Edit announcement"
+                              >
+                                <Edit size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteAnn(a._id)}
+                                className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                                title="Delete announcement"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -727,14 +839,24 @@ export default function AnnouncementsSection({
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteHoliday(h._id)}
-                          className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                          title="Delete holiday"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditHoliday(h)}
+                            className="w-7 h-7 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Edit holiday"
+                          >
+                            <Edit size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteHoliday(h._id)}
+                            className="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Delete holiday"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </div>
                     );
                   })
@@ -793,14 +915,24 @@ export default function AnnouncementsSection({
                               )}
                             </td>
                             <td className="px-4 py-3 text-right whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteHoliday(h._id)}
-                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                                title="Delete holiday"
-                              >
-                                <Trash2 size={16} />
-                              </button>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditHoliday(h)}
+                                  className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-amber-50 text-slate-500 hover:text-amber-600 border border-slate-200 hover:border-amber-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                                  title="Edit holiday"
+                                >
+                                  <Edit size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteHoliday(h._id)}
+                                  className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                                  title="Delete holiday"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );

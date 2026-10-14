@@ -28,7 +28,7 @@ export default function AdminLayout({
   children,
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans relative overflow-x-hidden">
+    <div className="h-screen overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white relative">
       <DashboardWatermark />
 
       <AdminSidebar
@@ -52,7 +52,7 @@ export default function AdminLayout({
         onLogout={onLogout}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen min-w-0 bg-slate-50 text-slate-900 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <AdminHeader
           user={user}
           sidebarCollapsed={sidebarCollapsed}
@@ -63,7 +63,7 @@ export default function AdminLayout({
           onLogout={onLogout}
         />
 
-        <main className="flex-1 p-2.5 sm:p-4 md:p-6 max-w-[1440px] w-full mx-auto min-w-0">
+        <main className="flex-1 p-2.5 sm:p-4 md:p-6 max-w-[1440px] w-full mx-auto min-w-0 overflow-y-auto">
           {errorMsg && (
             <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-sm font-medium mb-6">
               <AlertCircle size={16} className="shrink-0" />

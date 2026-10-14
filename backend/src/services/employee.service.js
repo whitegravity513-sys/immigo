@@ -290,6 +290,18 @@ export class EmployeeService {
     return this.formatEmployee(emp);
   }
 
+  static async deleteEmployee(id) {
+    const cleanId = cleanObjectId(id);
+    if (!cleanId) {
+      throw new ApiError(404, "Employee not found");
+    }
+    const emp = await Employee.findByIdAndDelete(cleanId);
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    return { id: cleanId, message: "Employee deleted successfully" };
+  }
+
   static async setLeaveBalance(id, leaveBalance, allocatedLeaves) {
     if (leaveBalance === undefined) {
       throw new ApiError(400, "leaveBalance is required");

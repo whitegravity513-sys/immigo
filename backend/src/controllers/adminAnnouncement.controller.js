@@ -45,6 +45,29 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
   });
 });
 
+export const updateAnnouncement = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { title, message, date, category, priority } = req.body;
+  const announcement = await Announcement.findByIdAndUpdate(
+    id,
+    {
+      ...(title ? { title: title.trim() } : {}),
+      ...(message ? { message: message.trim() } : {}),
+      ...(date ? { date } : {}),
+      ...(category ? { category } : {}),
+      ...(priority ? { priority } : {}),
+    },
+    { new: true, runValidators: true }
+  );
+  if (!announcement) {
+    throw new ApiError(404, "Announcement not found");
+  }
+  return res.status(200).json({
+    message: "Announcement updated successfully",
+    announcement,
+  });
+});
+
 export const deleteAnnouncement = asyncHandler(async (req, res) => {
   const announcement = await Announcement.findByIdAndDelete(req.params.id);
   if (!announcement) {
@@ -52,3 +75,10 @@ export const deleteAnnouncement = asyncHandler(async (req, res) => {
   }
   return res.status(200).json({ message: "Announcement deleted successfully" });
 });
+
+export default {
+  getAnnouncements,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+};

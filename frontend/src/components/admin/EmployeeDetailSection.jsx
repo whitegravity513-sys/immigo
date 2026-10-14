@@ -740,92 +740,108 @@ export default function EmployeeDetailSection({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
                   <h4 className="text-base font-black text-slate-800 flex items-center gap-2">
-                    <Award size={18} className="text-emerald-600" />
-                    Employee Compensation & Placement Fee Summary
+                    <Award size={18} className="text-blue-600" />
+                    Employee Compensation & Package Records
                   </h4>
                   <p className="text-xs text-slate-500">
-                    Comprehensive overview of CTC package, agreed placement fee, amount released, and remaining balance.
+                    Official compensation and package details recorded during employee onboarding.
                   </p>
                 </div>
               </div>
 
-              {/* Financial Metrics Cards */}
+              {/* Financial Metrics Cards (Real data only) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Agreed Fee Amount
+                <div className="p-4 bg-blue-50/70 rounded-xl border border-blue-200/80">
+                  <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">
+                    Current Package (CTC)
                   </span>
-                  <span className="text-2xl font-black text-slate-900 mt-1 block">
-                    ₹40,000
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">
+                    {emp?.currentPackage || (emp?.salary ? `₹${Number(emp.salary * 12).toLocaleString()} / yr` : "N/A")}
                   </span>
-                  <span className="text-[11px] text-slate-500 font-medium">Standard recruitment fee</span>
+                  <span className="text-[11px] text-slate-500 font-medium">As recorded in employment contract</span>
                 </div>
 
                 <div className="p-4 bg-emerald-50/70 rounded-xl border border-emerald-200">
                   <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
-                    Total Released / Paid
+                    Monthly Net Salary
                   </span>
-                  <span className="text-2xl font-black text-emerald-600 mt-1 block">
-                    ₹20,000
+                  <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-1 block">
+                    {emp?.monthlySalary
+                      ? `₹${Number(emp.monthlySalary).toLocaleString()}`
+                      : emp?.salary
+                      ? `₹${Number(emp.salary).toLocaleString()}`
+                      : "Not Disclosed"}
                   </span>
-                  <span className="text-[11px] text-emerald-700 font-medium">50% milestone fee disbursed</span>
+                  <span className="text-[11px] text-emerald-700 font-medium">Monthly disbursement baseline</span>
                 </div>
 
-                <div className="p-4 bg-amber-50/70 rounded-xl border border-amber-200">
-                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
-                    Remaining Balance
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                    Previous Package (CTC)
                   </span>
-                  <span className="text-2xl font-black text-amber-600 mt-1 block">
-                    ₹20,000
+                  <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1 block">
+                    {emp?.previousPackage || "N/A"}
                   </span>
-                  <span className="text-[11px] text-amber-700 font-medium">Pending upcoming stage triggers</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Prior employment compensation</span>
                 </div>
               </div>
 
-              {/* Milestone Breakdown */}
-              <div className="space-y-3 pt-2">
-                <h5 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Disbursement Milestone Schedule:
-                </h5>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-slate-900">Milestone 1 - Selection</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        Paid (₹10,000)
-                      </span>
+              {/* Career & Organization Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200 space-y-3">
+                  <h5 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Employment Details
+                  </h5>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                      <span className="text-slate-500">Designation / Role</span>
+                      <span className="font-bold text-slate-900">{emp?.role || emp?.designation || "Staff Member"}</span>
                     </div>
-                    <span className="text-[11px] text-slate-500 block">Ref: NEFT-992384 • Date: 2026-09-20</span>
+                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                      <span className="text-slate-500">Department</span>
+                      <span className="font-bold text-slate-900">{emp?.department || "General"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                      <span className="text-slate-500">Employment Status</span>
+                      <span className="font-bold text-emerald-700 capitalize">{emp?.status || "Active"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-slate-500">Date of Joining</span>
+                      <span className="font-bold text-slate-900">{emp?.joiningDate ? formatDate(emp.joiningDate) : "N/A"}</span>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-slate-900">Milestone 2 - GAMCA Medical</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        Paid (₹10,000)
-                      </span>
+                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200 space-y-3">
+                  <h5 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Experience & Background
+                  </h5>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                      <span className="text-slate-500">Total Work Experience</span>
+                      <span className="font-bold text-slate-900">{emp?.experience ? `${emp.experience} Years` : "N/A"}</span>
                     </div>
-                    <span className="text-[11px] text-slate-500 block">Ref: RTGS-883719 • Date: 2026-09-28</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-slate-900">Milestone 3 - Visa Stamping</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                        Pending Release (₹10,000)
-                      </span>
+                    <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                      <span className="text-slate-500">Previous Company</span>
+                      <span className="font-bold text-slate-900">{emp?.previousCompany || "N/A"}</span>
                     </div>
-                    <span className="text-[11px] text-slate-500 block">Due Date: 2026-10-15</span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-slate-900">Milestone 4 - On-Site Deployment</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
-                        Upcoming Stage (₹10,000)
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-500 block">Due Date: 2026-10-31</span>
+                    {emp?.bankDetails?.accountNumber || emp?.accountNumber ? (
+                      <>
+                        <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
+                          <span className="text-slate-500">Bank Name</span>
+                          <span className="font-bold text-slate-900">{emp.bankDetails?.bankName || emp.bankName || "N/A"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-slate-500">Account Number</span>
+                          <span className="font-mono font-bold text-slate-900">{emp.bankDetails?.accountNumber || emp.accountNumber}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-slate-500">Bank Account Details</span>
+                        <span className="text-slate-400 font-medium">Not provided during registration</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

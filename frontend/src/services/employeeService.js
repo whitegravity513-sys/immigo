@@ -60,6 +60,11 @@ export const setLeaveBalance = async (id, leaveBalance) => {
   return res.data;
 };
 
+export const deleteEmployee = async (id) => {
+  const res = await apiClient.delete(`/admin/employee/${id}`);
+  return res.data;
+};
+
 export default {
   getEmployees,
   getEmployeeList,
@@ -71,5 +76,6 @@ export default {
   createEmployee,
   updateEmployee,
   deactivateEmployee,
+  deleteEmployee,
   setLeaveBalance,
 };

@@ -6,6 +6,7 @@ import {
   ChevronDown,
   TrendingUp,
   ShieldCheck,
+  Shield,
   ArrowLeft,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
@@ -32,33 +33,32 @@ export const AdminSidebar = ({
 }) => {
   return (
     <>
-      {}
+      {/* Mobile Backdrop */}
       {sidebarMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden transition-opacity"
           onClick={() => setSidebarMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {}
+      {/* Main Sidebar Aside */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 bg-gradient-to-b from-[#eef5ff] via-[#e4f0fe] to-[#edf5ff] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/90 shadow-lg
-          ${sidebarCollapsed ? "w-[72px]" : "w-[240px]"}
-          ${sidebarMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
+        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none ${
+          sidebarCollapsed ? "w-[72px]" : "w-[240px]"
+        } ${sidebarMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {}
-        <div className={`h-[68px] min-h-[68px] px-4 border-b border-blue-600/30 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white flex items-center gap-2 shadow-xs ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+        <div className={`h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <div className="flex items-center gap-2.5 min-w-0">
             {sidebarCollapsed ? (
               <ImmiGoIcon size="md" />
             ) : (
-              <ImmiGoLogo size="sm" subtitle="Admin Portal" theme="light" />
+              <ImmiGoLogo size="sm" subtitle="HR Portal" theme="light" />
             )}
           </div>
           {!sidebarCollapsed && (
-            <button onClick={() => setSidebarMobileOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-blue-100 hover:text-white hover:bg-white/20 rounded-lg cursor-pointer flex-shrink-0">
+            <button onClick={() => setSidebarMobileOpen(false)} className="lg:hidden w-7 h-7 flex items-center justify-center text-blue-200 hover:text-white hover:bg-blue-800/60 rounded-lg cursor-pointer shrink-0">
               <X size={15} />
             </button>
           )}
@@ -190,12 +190,10 @@ export const AdminSidebar = ({
               <button
                 key={item.key}
                 type="button"
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[12.5px] transition-all duration-150 whitespace-nowrap cursor-pointer group ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] transition-all duration-150 whitespace-nowrap cursor-pointer group ${
                   isActive
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-md shadow-blue-600/25 translate-x-0.5"
-                    : isRegisterEmp
-                    ? "text-blue-800 bg-blue-100/70 hover:bg-blue-200/70 font-bold border border-blue-300/60"
-                    : "text-slate-700 hover:bg-white/80 hover:text-blue-900 font-semibold"
+                    ? "bg-blue-600 text-white font-bold shadow-sm shadow-blue-500/25"
+                    : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950 font-semibold"
                 }`}
                 onClick={() => {
                   if (item.onClick) item.onClick();
@@ -209,9 +207,7 @@ export const AdminSidebar = ({
                     className={`shrink-0 transition-transform group-hover:scale-105 ${
                       isActive
                         ? "text-white"
-                        : isRegisterEmp
-                        ? "text-blue-600"
-                        : "text-blue-600/70 group-hover:text-blue-800"
+                        : "text-slate-500 group-hover:text-blue-700"
                     }`}
                   >
                     {item.icon}
@@ -221,34 +217,41 @@ export const AdminSidebar = ({
                   )}
                 </div>
 
-                {!sidebarCollapsed && isRegisterEmp && !isActive && (
-                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-blue-600 text-white shadow-2xs">
-                    New
-                  </span>
+                {!sidebarCollapsed && (
+                  isActive ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                  ) : isRegisterEmp ? (
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 border border-blue-200">
+                      New
+                    </span>
+                  ) : null
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Bottom Status bar */}
+        {/* Bottom Status bar — dark navy matching Client, Vendor & Project */}
         <div
-          className={`h-[48px] min-h-[48px] border-t border-blue-200/80 bg-white/70 backdrop-blur-xs px-3.5 flex items-center shadow-xs text-xs ${
+          className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
             sidebarCollapsed ? "justify-center" : "justify-between"
           }`}
         >
           {!sidebarCollapsed ? (
-            <div className="flex items-center justify-between w-full text-blue-900/70 font-semibold text-[11px]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-xs"></span>
-                <span className="text-slate-600">Portal Online</span>
-              </span>
-              <span className="text-[10px] text-blue-700/60 font-mono">v2.6</span>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-1.5">
+                <Shield size={10} className="text-cyan-400" />
+                <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">HR Portal</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-[10px] text-blue-300/80 font-mono">v2.6</span>
+              </div>
             </div>
           ) : (
             <span
-              className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-xs"
-              title="Portal Online"
+              className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
+              title="HR Portal Active"
             ></span>
           )}
         </div>

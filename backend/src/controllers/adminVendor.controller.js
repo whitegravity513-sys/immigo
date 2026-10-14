@@ -5,6 +5,25 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const getAllVendors = asyncHandler(async (req, res) => {
   const vendors = await Vendor.find({}).sort({ createdAt: -1 });
+
+  const now = new Date();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+  for (const v of vendors) {
+    const isDocSubmitted = v.documentsUploaded || (Array.isArray(v.documents) && v.documents.length > 0);
+    const regDate = new Date(v.createdAt || v.registeredAt || now);
+    const ageMs = now - regDate;
+
+    // 7-day rule: If documents not submitted within 7 days of registration, auto-reject
+    if (!isDocSubmitted && ageMs > SEVEN_DAYS_MS && v.status !== "Approved" && v.status !== "Suspended") {
+      if (v.status !== "Rejected") {
+        v.status = "Rejected";
+        v.rejectionReason = "Auto-rejected: Compliance documents not submitted within 7 days of registration.";
+        await v.save();
+      }
+    }
+  }
+
   return res.status(200).json({
     message: "Vendors retrieved successfully",
     vendors,
@@ -19,6 +38,19 @@ export const getVendorById = asyncHandler(async (req, res) => {
 
   if (!vendor) {
     throw new ApiError(404, "Vendor not found");
+  }
+
+  // 7-day check
+  const now = new Date();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const isDocSubmitted = vendor.documentsUploaded || (Array.isArray(vendor.documents) && vendor.documents.length > 0);
+  const regDate = new Date(vendor.createdAt || vendor.registeredAt || now);
+  if (!isDocSubmitted && (now - regDate) > SEVEN_DAYS_MS && vendor.status !== "Approved" && vendor.status !== "Suspended") {
+    if (vendor.status !== "Rejected") {
+      vendor.status = "Rejected";
+      vendor.rejectionReason = "Auto-rejected: Compliance documents not submitted within 7 days of registration.";
+      await vendor.save();
+    }
   }
 
   return res.status(200).json({ vendor });
@@ -191,6 +223,71 @@ export const toggleSuspendVendor = asyncHandler(async (req, res) => {
   });
 });
 
+export const updateVendor = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const vendor = await Vendor.findOne({
+    $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { vendorId: id }],
+  });
+
+  if (!vendor) {
+    throw new ApiError(404, "Vendor not found");
+  }
+
+  const allowedFields = [
+    "companyName",
+    "businessType",
+    "registrationNumber",
+    "establishmentYear",
+    "gstin",
+    "pan",
+    "website",
+    "country",
+    "state",
+    "city",
+    "pinCode",
+    "address",
+    "contactPersonName",
+    "designation",
+    "phone",
+    "alternatePhone",
+    "specialization",
+    "countriesServed",
+    "experienceYears",
+    "availableCandidates",
+    "monthlyCapacity",
+    "status",
+  ];
+
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      vendor[field] = req.body[field];
+    }
+  });
+
+  await vendor.save();
+
+  return res.status(200).json({
+    message: "Vendor details updated successfully",
+    vendor,
+  });
+});
+
+export const deleteVendor = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const vendor = await Vendor.findOneAndDelete({
+    $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { vendorId: id }],
+  });
+
+  if (!vendor) {
+    throw new ApiError(404, "Vendor not found");
+  }
+
+  return res.status(200).json({
+    message: "Vendor removed successfully",
+    id,
+  });
+});
+
 export default {
   getAllVendors,
   getVendorById,
@@ -198,4 +295,6 @@ export default {
   approveVendor,
   rejectVendor,
   toggleSuspendVendor,
+  updateVendor,
+  deleteVendor,
 };

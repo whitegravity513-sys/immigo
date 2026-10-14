@@ -1,6 +1,8 @@
-import React from "react";
-import { Edit, UserMinus } from "lucide-react";
+import React, { useState } from "react";
+import { Edit, UserMinus, Trash2 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import DeleteConfirmModal from "../common/DeleteConfirmModal.jsx";
+import employeeService from "../../services/employeeService.js";
 
 export default function EmployeesDirectorySection({
   employees = [],
@@ -8,8 +10,26 @@ export default function EmployeesDirectorySection({
   openEmployeeDetail,
   formatDate,
   handleEditClick,
-  handleDeactivateEmployee
+  handleDeactivateEmployee,
+  onRefresh,
 }) {
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await employeeService.deleteEmployee(deleteTarget._id || deleteTarget.id);
+      setDeleteTarget(null);
+      if (onRefresh) onRefresh();
+      else window.location.reload();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to delete employee.");
+    } finally {
+      setDeleting(false);
+    }
+  };
   return (
     <div className="space-y-6 text-left">
       <div className="flex flex-wrap justify-between items-center gap-3">
@@ -138,13 +158,20 @@ export default function EmployeesDirectorySection({
                         </button>
                         {emp.status !== "inactive" ? (
                           <button
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                             onClick={() => handleDeactivateEmployee(emp._id)}
                             title="Deactivate Employee"
                           >
                             <UserMinus size={14} />
                           </button>
                         ) : null}
+                        <button
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                          onClick={() => setDeleteTarget(emp)}
+                          title="Delete Employee Permanently"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -161,6 +188,18 @@ export default function EmployeesDirectorySection({
           </table>
         </div>
       </div>
+
+      {/* Delete Employee Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Employee Record"
+        message="Are you sure you want to delete this employee from the workforce directory? This action cannot be reversed."
+        itemName={deleteTarget ? `${deleteTarget.name} (${deleteTarget.employeeId})` : ""}
+        loading={deleting}
+        confirmText="Delete Employee"
+      />
     </div>
   );
 }

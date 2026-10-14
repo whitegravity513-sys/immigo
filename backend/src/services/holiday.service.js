@@ -73,6 +73,22 @@ export class HolidayService {
     return this.formatHoliday(holiday);
   }
 
+  static async updateHoliday(id, { date, title, description }) {
+    const holiday = await Holiday.findByIdAndUpdate(
+      id,
+      {
+        ...(date ? { date } : {}),
+        ...(title ? { title: title.trim() } : {}),
+        ...(description !== undefined ? { description: description.trim() } : {}),
+      },
+      { new: true, runValidators: true }
+    );
+    if (!holiday) {
+      throw new ApiError(404, "Holiday not found");
+    }
+    return this.formatHoliday(holiday);
+  }
+
   static async deleteHoliday(id) {
     const holiday = await Holiday.findByIdAndDelete(id);
     if (!holiday) {

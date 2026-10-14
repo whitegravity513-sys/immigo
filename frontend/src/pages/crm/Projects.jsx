@@ -18,10 +18,12 @@ import {
   ToggleRight,
   ExternalLink,
   Edit3,
+  Trash2,
 } from "lucide-react";
 import StatCard from "../../components/crm/ui/StatCard.jsx";
 import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 import crmClientService from "../../services/crmClientService.js";
 
@@ -90,8 +92,30 @@ export function Projects() {
     }
   };
 
+  const [deleteTargetProject, setDeleteTargetProject] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(false);
+
   const handleEditProject = (proj) => {
     navigate(`/client/clients/${proj.clientId}/projects/${proj.id}/edit`);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteTargetProject) return;
+    setDeletingProject(true);
+    try {
+      await crmClientService.deleteProject(
+        deleteTargetProject.clientId,
+        deleteTargetProject.id
+      );
+      showToast("Project deleted successfully.", "success");
+      setDeleteTargetProject(null);
+      fetchProjects();
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      showToast(err.message || "Failed to delete project.", "error");
+    } finally {
+      setDeletingProject(false);
+    }
   };
 
   // Metrics
@@ -336,11 +360,19 @@ export function Projects() {
                           <button
                             type="button"
                             onClick={() => handleEditProject(proj)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
                             title="Edit Project Details"
                           >
-                            <Edit3 size={13} />
-                            <span>Edit</span>
+                            <Edit3 size={14} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTargetProject(proj)}
+                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Delete Project"
+                          >
+                            <Trash2 size={14} />
                           </button>
 
                           <Link
@@ -401,8 +433,8 @@ export function Projects() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <button
                         type="button"
                         onClick={(e) =>
@@ -416,10 +448,19 @@ export function Projects() {
                       <button
                         type="button"
                         onClick={() => handleEditProject(proj)}
-                        className="px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                        className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 border border-slate-200 transition-colors cursor-pointer flex items-center justify-center shadow-2xs"
+                        title="Edit Project"
                       >
-                        <Edit3 size={13} />
-                        <span>Edit</span>
+                        <Edit3 size={14} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTargetProject(proj)}
+                        className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 transition-colors cursor-pointer flex items-center justify-center shadow-2xs"
+                        title="Delete Project"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
 
@@ -437,6 +478,18 @@ export function Projects() {
           </>
         )}
       </div>
+
+      {/* Delete Project Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTargetProject)}
+        onClose={() => setDeleteTargetProject(null)}
+        onConfirm={handleDeleteProject}
+        title="Delete Project & Allocation"
+        message="Are you sure you want to delete this overseas project? This will permanently remove the trade requirements and allocations from the client directory."
+        itemName={deleteTargetProject ? `${deleteTargetProject.projectName} (${deleteTargetProject.id})` : ""}
+        loading={deletingProject}
+        confirmText="Delete Project"
+      />
 
     </div>
   );

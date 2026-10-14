@@ -21,6 +21,7 @@ import {
   Phone,
   MapPin,
   Edit,
+  Trash2,
   ShieldCheck,
   ChevronRight,
   TrendingUp,
@@ -36,6 +37,8 @@ import {
 import crmVendorService from "../../../services/crmVendorService.js";
 import MouFullPageView from "../../../components/vendor/MouFullPageView.jsx";
 import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
+import EditVendorModal from "../../../components/admin/modals/EditVendorModal.jsx";
+import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal.jsx";
 
 export default function AdminVendorsList() {
   const [vendors, setVendors] = useState([]);
@@ -48,6 +51,12 @@ export default function AdminVendorsList() {
   const [addVendorLoading, setAddVendorLoading] = useState(false);
   const [dispatchedVendor, setDispatchedVendor] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Edit & Delete Vendor Modal State
+  const [editingVendor, setEditingVendor] = useState(null);
+  const [savingVendor, setSavingVendor] = useState(false);
+  const [deleteTargetVendor, setDeleteTargetVendor] = useState(null);
+  const [deletingVendor, setDeletingVendor] = useState(false);
   const [newVendorForm, setNewVendorForm] = useState({
     companyName: "",
     businessType: "Private Limited",
@@ -89,11 +98,13 @@ export default function AdminVendorsList() {
   // Filters State for All Vendors Table
   const [statusFilter, setStatusFilter] = useState(() => {
     const tabParam = new URLSearchParams(window.location.search).get("tab");
+    if (tabParam === "registered") return "Registered";
     if (tabParam === "pending") return "Pending Verification";
     if (tabParam === "mou") return "MOU Pending";
     if (tabParam === "approved") return "Approved";
     if (tabParam === "rejected") return "Rejected";
     if (tabParam === "suspended") return "Suspended";
+    if (tabParam === "suspended-rejected") return "Suspended & Rejected";
     return "All";
   });
 
@@ -115,6 +126,11 @@ export default function AdminVendorsList() {
       setShowDraftMouPage(false);
       setShowViewMouPage(false);
       setPreviewingDoc(null);
+    } else if (tabParam === "registered") {
+      setStatusFilter("Registered");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
     } else if (tabParam === "pending") {
       setStatusFilter("Pending Verification");
       setSelectedVendor(null);
@@ -137,6 +153,11 @@ export default function AdminVendorsList() {
       setShowViewMouPage(false);
     } else if (tabParam === "suspended") {
       setStatusFilter("Suspended");
+      setSelectedVendor(null);
+      setShowDraftMouPage(false);
+      setShowViewMouPage(false);
+    } else if (tabParam === "suspended-rejected") {
+      setStatusFilter("Suspended & Rejected");
       setSelectedVendor(null);
       setShowDraftMouPage(false);
       setShowViewMouPage(false);
@@ -359,6 +380,43 @@ export default function AdminVendorsList() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleSaveVendor = async (updatedData) => {
+    setSavingVendor(true);
+    try {
+      const vId = updatedData.id || updatedData.vendorId;
+      const saved = await crmVendorService.updateVendor(vId, updatedData);
+      loadData();
+      if (selectedVendor && (selectedVendor.id === vId || selectedVendor.vendorId === vId)) {
+        setSelectedVendor(saved);
+      }
+      setEditingVendor(null);
+      alert("Vendor profile updated successfully!");
+    } catch (err) {
+      alert(err.message || "Failed to update vendor profile.");
+    } finally {
+      setSavingVendor(false);
+    }
+  };
+
+  const handleDeleteVendor = async () => {
+    if (!deleteTargetVendor) return;
+    setDeletingVendor(true);
+    try {
+      const vId = deleteTargetVendor.id || deleteTargetVendor.vendorId;
+      await crmVendorService.deleteVendor(vId);
+      loadData();
+      if (selectedVendor && (selectedVendor.id === vId || selectedVendor.vendorId === vId)) {
+        setSelectedVendor(null);
+      }
+      setDeleteTargetVendor(null);
+      alert("Vendor removed successfully.");
+    } catch (err) {
+      alert(err.message || "Failed to delete vendor.");
+    } finally {
+      setDeletingVendor(false);
+    }
   };
 
   const handleApprove = async (vendorId) => {
@@ -594,15 +652,20 @@ export default function AdminVendorsList() {
 
   // Filtered vendors list
   const filteredVendors = vendors.filter((v) => {
-    if (statusFilter === "Pending Verification") {
-      if (v.status !== "Pending" && v.status !== "Under Review") return false;
+    if (statusFilter === "Registered") {
+      const isReg = ["Pending", "Under Review", "Pending Verification", "MOU Pending", "Pending MOU Approval"].includes(v.status);
+      if (!isReg) return false;
+    } else if (statusFilter === "Pending Verification") {
+      if (v.status !== "Pending" && v.status !== "Under Review" && v.status !== "Pending Verification") return false;
     } else if (statusFilter === "MOU Pending") {
       if (v.status === "MOU Pending" || v.status === "Pending MOU Approval" || v.mouStatus === "Sent" || v.mouStatus === "Signed") return true;
-      const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected";
+      const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected" && v.status !== "Suspended";
       if (!isMouPending) return false;
     } else if (statusFilter === "Approved") {
       const isMouComplete = v.mouSigned === true || v.mouStatus === "Approved";
       if (v.status !== "Approved" || !isMouComplete) return false;
+    } else if (statusFilter === "Suspended & Rejected") {
+      if (v.status !== "Suspended" && v.status !== "Rejected") return false;
     } else if (statusFilter !== "All" && v.status !== statusFilter) {
       return false;
     }
@@ -682,6 +745,54 @@ export default function AdminVendorsList() {
       default:
         return <span className="px-2.5 py-0.5 text-xs rounded-full font-bold bg-slate-100">{status}</span>;
     }
+  };
+
+  const getVendorDocStatus = (vendor) => {
+    if (!vendor) return { label: "Under Verification", badgeClass: "bg-amber-50 text-amber-800 border-amber-200", icon: Clock };
+    const now = Date.now();
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    const regDate = new Date(vendor.registeredAt || vendor.createdAt || now).getTime();
+    const isDocSubmitted = vendor.documentsUploaded || (Array.isArray(vendor.documents) && vendor.documents.length > 0);
+
+    if (vendor.status === "Rejected") {
+      return {
+        label: "Rejected / Expired",
+        badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+        icon: XCircle,
+      };
+    }
+
+    if (!isDocSubmitted && (now - regDate) > SEVEN_DAYS_MS && vendor.status !== "Approved" && vendor.status !== "Suspended") {
+      return {
+        label: "Rejected (7-Day Expired)",
+        badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+        icon: XCircle,
+      };
+    }
+
+    if (!isDocSubmitted) {
+      const daysLeft = Math.max(0, 7 - Math.floor((now - regDate) / (24 * 60 * 60 * 1000)));
+      return {
+        label: `Under Verification (Docs Pending - ${daysLeft}d left)`,
+        badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+        icon: Clock,
+      };
+    }
+
+    const isVerifiedByAdmin = vendor.status === "Approved" || vendor.mouStatus === "Sent" || vendor.mouStatus === "Approved" || vendor.status === "MOU Pending";
+    if (!isVerifiedByAdmin) {
+      return {
+        label: "Under Verification (Pending Admin Approval)",
+        badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+        icon: Clock,
+      };
+    }
+
+    return {
+      label: "Document Verified",
+      badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      icon: ShieldCheck,
+    };
   };
 
   // =========================================================================
@@ -1238,11 +1349,24 @@ export default function AdminVendorsList() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                <ShieldCheck size={16} className="text-emerald-600" />
-                <span>All Compliance Documents Verified</span>
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setEditingVendor(selectedVendor)}
+                className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200 hover:border-blue-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                title="Edit Vendor"
+              >
+                <Edit size={14} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDeleteTargetVendor(selectedVendor)}
+                className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                title="Delete Vendor"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           </div>
 
@@ -1268,66 +1392,171 @@ export default function AdminVendorsList() {
         </div>
 
         {/* DOCUMENTS LIST GRID */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Paperclip size={18} className="text-blue-600" />
-              <span>Verified Agency Credentials ({vendorDocs.length})</span>
-            </h2>
-            <span className="text-xs text-slate-400 font-medium">Secure SSL Encrypted Document Repository</span>
-          </div>
+        {(() => {
+          const isVerified = Boolean(
+            selectedVendor.documentVerified ||
+            selectedVendor.status === "Approved" ||
+            selectedVendor.status === "Verified" ||
+            selectedVendor.mouSigned ||
+            selectedVendor.mouStatus === "Approved"
+          );
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {vendorDocs.map((doc, idx) => (
-              <div
-                key={idx}
-                className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">
-                      <FileText size={20} />
-                    </div>
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-sm">{doc.name}</h3>
-                      <span className="text-[11px] text-slate-500 font-mono block mt-0.5">
-                        {doc.fileName} • {doc.size || "1.2 MB"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
-                    Verified
-                  </span>
+          if (isVerified && vendorDocs.length > 0) {
+            return (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Paperclip size={18} className="text-blue-600" />
+                    <span>Verified Agency Credentials ({vendorDocs.length})</span>
+                  </h2>
+                  <span className="text-xs text-slate-400 font-medium">Secure SSL Encrypted Document Repository</span>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-xs">
-                  <span className="text-slate-500 font-medium text-[11px]">
-                    Category: <strong className="text-slate-800">{doc.type || "Statutory"}</strong>
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setPreviewingDoc(doc)}
-                      className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer transition flex items-center gap-1"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {vendorDocs.map((doc, idx) => (
+                    <div
+                      key={idx}
+                      className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
                     >
-                      <Eye size={13} />
-                      <span>Preview</span>
-                    </button>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">
+                            <FileText size={20} />
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-slate-900 text-sm">{doc.name}</h3>
+                            <span className="text-[11px] text-slate-500 font-mono block mt-0.5">
+                              {doc.fileName} • {doc.size || "1.2 MB"}
+                            </span>
+                          </div>
+                        </div>
 
-                    <button
-                      onClick={() => handleDownloadDoc(doc)}
-                      className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer transition flex items-center gap-1 shadow-2xs"
-                    >
-                      <Download size={13} />
-                      <span>Download</span>
-                    </button>
-                  </div>
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                          Verified
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-xs">
+                        <span className="text-slate-500 font-medium text-[11px]">
+                          Category: <strong className="text-slate-800">{doc.type || "Statutory"}</strong>
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPreviewingDoc(doc)}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer transition flex items-center gap-1"
+                          >
+                            <Eye size={13} />
+                            <span>Preview</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDownloadDoc(doc)}
+                            className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer transition flex items-center gap-1 shadow-2xs"
+                          >
+                            <Download size={13} />
+                            <span>Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            );
+          }
+
+          if (vendorDocs.length > 0 && !isVerified) {
+            return (
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Paperclip size={18} className="text-amber-600" />
+                    <span>Agency Credentials (Pending Verification) ({vendorDocs.length})</span>
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                      Pending Admin Verification
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleApproveDocsAndSendMou(selectedVendor.id)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Check size={13} />
+                      <span>Approve & Verify Credentials</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {vendorDocs.map((doc, idx) => (
+                    <div
+                      key={idx}
+                      className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0">
+                            <FileText size={20} />
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-slate-900 text-sm">{doc.name}</h3>
+                            <span className="text-[11px] text-slate-500 font-mono block mt-0.5">
+                              {doc.fileName} • {doc.size || "1.2 MB"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                          Pending Review
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-xs">
+                        <span className="text-slate-500 font-medium text-[11px]">
+                          Category: <strong className="text-slate-800">{doc.type || "Statutory"}</strong>
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPreviewingDoc(doc)}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer transition flex items-center gap-1"
+                          >
+                            <Eye size={13} />
+                            <span>Preview</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDownloadDoc(doc)}
+                            className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer transition flex items-center gap-1 shadow-2xs"
+                          >
+                            <Download size={13} />
+                            <span>Download</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
+                <Clock size={24} />
+              </div>
+              <h3 className="text-base font-bold text-slate-800">
+                Agency Credentials Under Verification
+              </h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Statutory agency credentials and compliance documents will appear in "Verified Agency Credentials" once submitted and approved by Admin.
+              </p>
+            </div>
+          );
+        })()}
       </div>
     );
   }
@@ -1451,11 +1680,19 @@ export default function AdminVendorsList() {
             {/* Header Actions */}
             <div className="flex items-center gap-2 flex-wrap self-start lg:self-center">
               <button
-                onClick={() => alert(`Editing vendor settings for ${selectedVendor.companyName}`)}
+                onClick={() => setEditingVendor(selectedVendor)}
                 className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Edit size={14} className="text-slate-500" />
                 <span>Edit Vendor</span>
+              </button>
+
+              <button
+                onClick={() => setDeleteTargetVendor(selectedVendor)}
+                className="px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 size={14} />
+                <span>Delete</span>
               </button>
 
               <button
@@ -1466,22 +1703,37 @@ export default function AdminVendorsList() {
                 <span>View Statutory Documents (Full Page)</span>
               </button>
 
-              <button
-                onClick={() => handleToggleSuspend(selectedVendor.id)}
-                className="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs transition cursor-pointer"
-              >
-                {selectedVendor.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}
-              </button>
+              {/* Suspend option: Available ONLY for vendors already registered and verified/approved */}
+              {(selectedVendor.status === "Approved" || selectedVendor.status === "Suspended") && (
+                <button
+                  type="button"
+                  onClick={() => handleToggleSuspend(selectedVendor.id)}
+                  className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    selectedVendor.status === "Suspended"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                      : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                  }`}
+                  title={selectedVendor.status === "Suspended" ? "Activate Verified Vendor" : "Suspend Verified Vendor"}
+                >
+                  <Ban size={14} />
+                  <span>{selectedVendor.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}</span>
+                </button>
+              )}
 
-              {(selectedVendor.status === "Pending" || selectedVendor.status === "Under Review") && (
+              {/* Registration Actions: Reject & Approval for newly registered / review vendors */}
+              {["Pending", "Under Review", "Pending Verification"].includes(selectedVendor.status) && (
                 <>
                   <button
+                    type="button"
                     onClick={() => setShowRejectModal(true)}
-                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                    title="Reject Vendor Registration"
                   >
-                    Reject
+                    <XCircle size={14} />
+                    <span>Reject</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setShowDraftMouPage(true)}
                     className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
                   >
@@ -1489,6 +1741,7 @@ export default function AdminVendorsList() {
                     <span>Approve Docs & Send MOU</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleApprove(selectedVendor.id)}
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
                   >
@@ -1727,6 +1980,138 @@ export default function AdminVendorsList() {
         </div>
       </div>
 
+      {/* 3 LIFECYCLE SUMMARY CARDS (Separate Registered, Verified, and Suspended/Rejected) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        {/* Card 1: Newly Registered Agencies */}
+        <div
+          onClick={() => {
+            setStatusFilter("Registered");
+            setSearchParams({ tab: "registered" });
+          }}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+            statusFilter === "Registered" || statusFilter === "Pending Verification"
+              ? "bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-400"
+              : "bg-white border-amber-200/90 hover:bg-amber-50/50"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className={`text-[11px] font-bold uppercase tracking-wider ${
+              statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-amber-100" : "text-amber-700"
+            }`}>
+              1. Newly Registered
+            </span>
+            <span className={`p-1.5 rounded-lg text-xs font-bold ${
+              statusFilter === "Registered" || statusFilter === "Pending Verification" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+            }`}>
+              Pending Review
+            </span>
+          </div>
+          <div className="mt-2.5 flex items-baseline justify-between">
+            <span className={`text-2xl sm:text-3xl font-black ${
+              statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-white" : "text-slate-900"
+            }`}>
+              {vendors.filter((v) => ["Pending", "Under Review", "Pending Verification", "MOU Pending", "Pending MOU Approval"].includes(v.status)).length}
+            </span>
+            <span className={`text-xs font-semibold ${
+              statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-amber-100" : "text-slate-500"
+            }`}>
+              Agencies Registered
+            </span>
+          </div>
+          <p className={`text-[11px] mt-1.5 font-medium ${
+            statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-amber-100" : "text-slate-500"
+          }`}>
+            Awaiting compliance verification or MOU issuance
+          </p>
+        </div>
+
+        {/* Card 2: Client Verified & Approved */}
+        <div
+          onClick={() => {
+            setStatusFilter("Approved");
+            setSearchParams({ tab: "approved" });
+          }}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+            statusFilter === "Approved"
+              ? "bg-emerald-600 text-white border-emerald-700 shadow-md ring-2 ring-emerald-400"
+              : "bg-white border-emerald-200/90 hover:bg-emerald-50/50"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className={`text-[11px] font-bold uppercase tracking-wider ${
+              statusFilter === "Approved" ? "text-emerald-100" : "text-emerald-700"
+            }`}>
+              2. Verified & Approved
+            </span>
+            <span className={`p-1.5 rounded-lg text-xs font-bold ${
+              statusFilter === "Approved" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
+            }`}>
+              Active Partner
+            </span>
+          </div>
+          <div className="mt-2.5 flex items-baseline justify-between">
+            <span className={`text-2xl sm:text-3xl font-black ${
+              statusFilter === "Approved" ? "text-white" : "text-slate-900"
+            }`}>
+              {vendors.filter((v) => v.status === "Approved" && (v.mouSigned === true || v.mouStatus === "Approved")).length}
+            </span>
+            <span className={`text-xs font-semibold ${
+              statusFilter === "Approved" ? "text-emerald-100" : "text-slate-500"
+            }`}>
+              Verified Vendors
+            </span>
+          </div>
+          <p className={`text-[11px] mt-1.5 font-medium ${
+            statusFilter === "Approved" ? "text-emerald-100" : "text-slate-500"
+          }`}>
+            Client verified, MOU signed, and authorized to deploy
+          </p>
+        </div>
+
+        {/* Card 3: Suspended / Rejected */}
+        <div
+          onClick={() => {
+            setStatusFilter("Suspended & Rejected");
+            setSearchParams({ tab: "suspended-rejected" });
+          }}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+            statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
+              ? "bg-slate-900 text-white border-slate-950 shadow-md ring-2 ring-slate-400"
+              : "bg-white border-slate-300 hover:bg-slate-50/50"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className={`text-[11px] font-bold uppercase tracking-wider ${
+              statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected" ? "text-slate-200" : "text-slate-700"
+            }`}>
+              3. Suspended & Rejected
+            </span>
+            <span className={`p-1.5 rounded-lg text-xs font-bold ${
+              statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected" ? "bg-white/20 text-white" : "bg-rose-100 text-rose-800"
+            }`}>
+              On Hold / Declined
+            </span>
+          </div>
+          <div className="mt-2.5 flex items-baseline justify-between">
+            <span className={`text-2xl sm:text-3xl font-black ${
+              statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected" ? "text-white" : "text-slate-900"
+            }`}>
+              {vendors.filter((v) => v.status === "Suspended" || v.status === "Rejected").length}
+            </span>
+            <span className={`text-xs font-semibold ${
+              statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected" ? "text-slate-300" : "text-slate-500"
+            }`}>
+              Inactive Agencies
+            </span>
+          </div>
+          <p className={`text-[11px] mt-1.5 font-medium ${
+            statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected" ? "text-slate-300" : "text-slate-500"
+          }`}>
+            Suspended verified vendors or rejected applications
+          </p>
+        </div>
+      </div>
+
       {/* FILTER TOOLBAR */}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
         {/* Row 1: Search + Status Tabs */}
@@ -1743,49 +2128,36 @@ export default function AdminVendorsList() {
             />
           </div>
 
-          {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
-            {[
-              { id: "All", label: "All Vendors", tabKey: "all" },
-              { id: "Pending Verification", label: "Pending Verification", tabKey: "pending" },
-              { id: "MOU Pending", label: "MOU Pending", tabKey: "mou" },
-              { id: "Approved", label: "Approved Vendors", tabKey: "approved" },
-              { id: "Rejected", label: "Rejected", tabKey: "rejected" },
-              { id: "Suspended", label: "Suspended", tabKey: "suspended" },
-            ].map((tab) => {
-              const count = vendors.filter((v) => {
-                if (tab.id === "Pending Verification") return v.status === "Pending";
-                if (tab.id === "MOU Pending") return (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected";
-                if (tab.id === "Approved") return v.status === "Approved" && (v.mouSigned || v.mouStatus === "Approved");
-                if (tab.id === "All") return true;
-                return v.status === tab.id;
-              }).length;
-
-              const isTabActive = statusFilter === tab.id;
-              return (
+          {/* Active Filter Indicator & Count */}
+          <div className="flex items-center gap-2">
+            {statusFilter !== "All" && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                <span>
+                  Filter:{" "}
+                  {statusFilter === "Registered"
+                    ? "Registered (Pending)"
+                    : statusFilter === "MOU Pending"
+                    ? "MOU In-Process"
+                    : statusFilter === "Approved"
+                    ? "Verified & Approved"
+                    : statusFilter}
+                </span>
                 <button
-                  key={tab.id}
+                  type="button"
                   onClick={() => {
-                    setStatusFilter(tab.id);
-                    setSearchParams(tab.tabKey === "all" ? {} : { tab: tab.tabKey });
+                    setStatusFilter("All");
+                    setSearchParams({});
                   }}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                    isTabActive
-                      ? "bg-slate-900 text-white shadow-xs"
-                      : "text-slate-600 hover:bg-slate-100 bg-slate-50"
-                  }`}
+                  className="hover:text-blue-900 p-0.5 rounded cursor-pointer"
+                  title="Clear filter"
                 >
-                  <span>{tab.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                      isTabActive ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
-                    }`}
-                  >
-                    {count}
-                  </span>
+                  <X size={12} />
                 </button>
-              );
-            })}
+              </div>
+            )}
+            <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+              {filteredVendors.length} {filteredVendors.length === 1 ? "vendor" : "vendors"}
+            </span>
           </div>
         </div>
 
@@ -1941,8 +2313,60 @@ export default function AdminVendorsList() {
                       <td className="py-4 px-4">{getStatusBadge(v.status)}</td>
 
                       <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {/* Suspend option: Only for verified/approved vendors */}
+                          {(v.status === "Approved" || v.status === "Suspended") && (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSuspend(v.id)}
+                              className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                                v.status === "Suspended"
+                                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                                  : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                              }`}
+                              title={v.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}
+                            >
+                              <Ban size={12} />
+                              <span>{v.status === "Suspended" ? "Activate" : "Suspend"}</span>
+                            </button>
+                          )}
+
+                          {/* Reject option: Only for registered / pending vendors */}
+                          {["Pending", "Under Review", "Pending Verification"].includes(v.status) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedVendor(v);
+                                setShowRejectModal(true);
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
+                              title="Reject Registration"
+                            >
+                              <XCircle size={12} />
+                              <span>Reject</span>
+                            </button>
+                          )}
+
                           <button
+                            type="button"
+                            onClick={() => setEditingVendor(v)}
+                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Edit Vendor"
+                          >
+                            <Edit size={13} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTargetVendor(v)}
+                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
+                            title="Delete Vendor"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => {
                               setSelectedVendor(v);
                               setShowDocsPage(false);
@@ -2588,6 +3012,27 @@ export default function AdminVendorsList() {
           </div>
         </div>
       )}
+
+      {/* Edit Vendor Modal */}
+      <EditVendorModal
+        isOpen={Boolean(editingVendor)}
+        onClose={() => setEditingVendor(null)}
+        vendor={editingVendor}
+        onSave={handleSaveVendor}
+        saving={savingVendor}
+      />
+
+      {/* Delete Vendor Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTargetVendor)}
+        onClose={() => setDeleteTargetVendor(null)}
+        onConfirm={handleDeleteVendor}
+        title="Delete Vendor Organization"
+        message="Are you sure you want to permanently remove this vendor partner? This action will delete the vendor account and revoke portal access."
+        itemName={deleteTargetVendor ? `${deleteTargetVendor.companyName} (${deleteTargetVendor.id || deleteTargetVendor.vendorId})` : ""}
+        loading={deletingVendor}
+        confirmText="Delete Vendor"
+      />
     </div>
   );
 }

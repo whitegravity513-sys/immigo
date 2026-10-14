@@ -5,6 +5,7 @@ import {
   getEmployees,
   updateEmployee,
   deactivateEmployee,
+  deleteEmployee,
   setLeaveBalance,
   uploadAdminDocument,
   deleteAdminDocument,
@@ -23,6 +24,8 @@ router.get("/employee/next-id", verifyAdmin, getNextEmployeeId);
 router.get("/employee/list", verifyAdmin, getEmployees);
 router.get("/employees", verifyAdmin, getEmployees);
 router.put("/employee/update/:id", verifyAdmin, updateEmployee);
+router.put("/employee/:id", verifyAdmin, updateEmployee);
+router.delete("/employee/:id", verifyAdmin, deleteEmployee);
 router.put("/employee/deactivate/:id", verifyAdmin, deactivateEmployee);
 router.put("/employee/:id/leave-balance", verifyAdmin, setLeaveBalance);
 router.get("/employee/:id/history", verifyAdmin, getEmployeeHistory);

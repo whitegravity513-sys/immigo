@@ -22,7 +22,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
 
   const handleQuickFill = () => {
     setIdentifier("admin@vista.com");
-    setPassword("SuperAdmin@Secure2026!");
+    setPassword("12345");
     setError("");
   };
 

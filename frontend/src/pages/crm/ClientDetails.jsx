@@ -22,11 +22,13 @@ import {
   FileCheck,
   Upload,
   Briefcase,
+  Trash2,
 } from "lucide-react";
 import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import AddProjectModal from "../../components/crm/projects/AddProjectModal.jsx";
 import DocumentsList from "../../components/crm/documents/DocumentsList.jsx";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 import crmClientService, {
   calculateClientManpower,
@@ -62,6 +64,23 @@ export function ClientDetails() {
       showToast("Failed to load client details", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClient = async () => {
+    setIsDeleting(true);
+    try {
+      await crmClientService.deleteClient(client.id);
+      showToast("Client deleted successfully.", "success");
+      setDeleteModalOpen(false);
+      navigate("/client/clients");
+    } catch (err) {
+      showToast(err.message || "Failed to delete client", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -185,7 +204,7 @@ export function ClientDetails() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 self-start md:self-auto">
+          <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
             <Link
               to={`/clients/${client.id}/edit`}
               className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors cursor-pointer"
@@ -193,6 +212,15 @@ export function ClientDetails() {
               <Edit2 size={14} />
               <span>Edit Client</span>
             </Link>
+
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
+            >
+              <Trash2 size={14} />
+              <span>Delete</span>
+            </button>
 
             <Link
               to={`/client/clients/${client.id}/projects/new`}
@@ -720,6 +748,18 @@ export function ClientDetails() {
         onSave={handleAddProject}
         client={client}
         clientCountry={client.country}
+      />
+
+      {/* Delete Client Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteClient}
+        title="Delete Client Organization"
+        message="Are you sure you want to delete this overseas client? All projects, manpower orders, and contact listings under this client will be permanently deleted."
+        itemName={client ? `${client.companyName} (${client.id})` : ""}
+        loading={isDeleting}
+        confirmText="Delete Client"
       />
     </div>
   );

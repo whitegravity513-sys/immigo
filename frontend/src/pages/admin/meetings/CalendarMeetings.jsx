@@ -256,17 +256,23 @@ export default function CalendarMeetings() {
           {}
           <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
             <button
-              onClick={() => setViewMode("calendar")}
+              onClick={() => {
+                setViewMode("calendar");
+                setSelectedDayMeetings(null);
+              }}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                viewMode === "calendar" ? "bg-white text-indigo-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                viewMode === "calendar" ? "bg-white text-indigo-700 shadow-xs font-bold" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Calendar
             </button>
             <button
-              onClick={() => setViewMode("list")}
+              onClick={() => {
+                setViewMode("list");
+                setSelectedDayMeetings(null);
+              }}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                viewMode === "list" ? "bg-white text-indigo-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                viewMode === "list" ? "bg-white text-indigo-700 shadow-xs font-bold" : "text-slate-600 hover:text-slate-900"
               }`}
             >
               List View
@@ -362,7 +368,10 @@ export default function CalendarMeetings() {
               ).padStart(2, "0")}`;
               const isToday = dateStr === todayStr;
 
-              const dayMeetings = meetings.filter((m) => m.date === dateStr);
+              const isPastDate = dateStr < todayStr;
+              const allDayMeetings = meetings.filter((m) => m.date === dateStr);
+              // Do NOT show past meetings in calendar boxes ("box ma nhi")
+              const displayMeetings = isPastDate ? [] : allDayMeetings;
 
               return (
                 <div
@@ -371,7 +380,6 @@ export default function CalendarMeetings() {
                     isToday ? "bg-indigo-50" : "bg-white"
                   }`}
                 >
-                  {}
                   <div className="flex items-center justify-between mb-1">
                     <span
                       className={`text-[12px] font-extrabold inline-flex items-center justify-center w-5 h-5 rounded-full ${
@@ -383,8 +391,7 @@ export default function CalendarMeetings() {
                       {dayNum}
                     </span>
 
-                    {}
-                    {dateStr >= todayStr ? (
+                    {!isPastDate ? (
                       <button
                         onClick={() => handleOpenCreateModal(dateStr)}
                         className="w-5 h-5 flex items-center justify-center text-slate-700 hover:bg-indigo-600 hover:text-white rounded cursor-pointer border border-slate-300 hover:border-indigo-600 transition-all"
@@ -399,29 +406,40 @@ export default function CalendarMeetings() {
                     )}
                   </div>
 
-                  {}
+                  {/* Meetings pills: only active/upcoming shown in boxes; past meetings listed in table/list below */}
                   <div className="flex-1 space-y-0.5 overflow-hidden">
-                    {dayMeetings.slice(0, 2).map((m) => (
+                    {displayMeetings.slice(0, 2).map((m) => (
                       <div
                         key={m._id || m.id}
-                        onClick={() => setSelectedDayMeetings(dayMeetings)}
-                        className={`text-[10px] px-1.5 py-0.5 rounded leading-tight truncate cursor-pointer font-bold border ${
+                        onClick={() => setSelectedDayMeetings(allDayMeetings)}
+                        className={`group text-[10px] px-1.5 py-0.5 rounded leading-tight cursor-pointer font-bold border flex items-center justify-between gap-1 transition-all ${
                           m.targetType === "ALL"
-                            ? "bg-indigo-100 text-indigo-900 border-indigo-300"
-                            : "bg-emerald-100 text-emerald-900 border-emerald-300"
+                            ? "bg-indigo-100 text-indigo-900 border-indigo-300 hover:bg-indigo-200"
+                            : "bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200"
                         }`}
-                        title={`${m.title} (${m.startTime})`}
+                        title={`${m.title} (${m.startTime}) - Click to view`}
                       >
-                        <span className="truncate">{m.title}</span>
+                        <span className="truncate flex-1">{m.title}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditModal(m);
+                          }}
+                          className="w-4 h-4 rounded text-slate-500 hover:text-indigo-900 hover:bg-white/80 flex items-center justify-center shrink-0 transition-all opacity-80 group-hover:opacity-100 cursor-pointer"
+                          title="Edit meeting"
+                        >
+                          <Edit2 size={10} />
+                        </button>
                       </div>
                     ))}
 
-                    {dayMeetings.length > 2 && (
+                    {displayMeetings.length > 2 && (
                       <button
-                        onClick={() => setSelectedDayMeetings(dayMeetings)}
+                        onClick={() => setSelectedDayMeetings(allDayMeetings)}
                         className="text-[10px] text-slate-900 font-extrabold hover:text-indigo-700 hover:underline px-0.5 cursor-pointer"
                       >
-                        +{dayMeetings.length - 2} more
+                        +{displayMeetings.length - 2} more
                       </button>
                     )}
                   </div>
@@ -432,7 +450,8 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {}
+      {/* Meetings List / Directory Section:
+          Strictly shown when in List View (viewMode === "list"), or when user clicks on a specific calendar day */}
       {(viewMode === "list" || selectedDayMeetings) && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">

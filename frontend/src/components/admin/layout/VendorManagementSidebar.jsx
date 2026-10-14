@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
   RotateCcw,
+  Ban,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 
@@ -41,6 +42,18 @@ export function VendorManagementSidebar({
         currentPath === "/admin/vendor/dashboard"
       );
     }
+    if (path === "/admin/vendor/vendors?tab=all") {
+      return (
+        currentPath === "/admin/vendor/vendors" &&
+        (!location.search || location.search === "?tab=all")
+      );
+    }
+    if (path === "/admin/vendor/vendors?tab=registered") {
+      return (
+        currentPath === "/admin/vendor/vendors" &&
+        (location.search === "?tab=registered" || location.search === "?tab=pending")
+      );
+    }
     const [pathname, search] = path.split("?");
     if (search) {
       return currentPath === pathname && location.search === `?${search}`;
@@ -54,9 +67,11 @@ export function VendorManagementSidebar({
 
   const vendorSubItems = [
     { title: "All Vendors", icon: Building2, path: "/admin/vendor/vendors?tab=all" },
-    { title: "Pending Verification", icon: Clock, path: "/admin/vendor/vendors?tab=pending" },
-    { title: "MOU Pending", icon: FileText, path: "/admin/vendor/vendors?tab=mou" },
-    { title: "Approved Vendors", icon: UserCheck, path: "/admin/vendor/vendors?tab=approved" },
+    { title: "Registered (Pending)", icon: Clock, path: "/admin/vendor/vendors?tab=registered" },
+    { title: "MOU In-Process", icon: FileText, path: "/admin/vendor/vendors?tab=mou" },
+    { title: "Verified & Approved", icon: UserCheck, path: "/admin/vendor/vendors?tab=approved" },
+    { title: "Suspended", icon: Ban, path: "/admin/vendor/vendors?tab=suspended" },
+    { title: "Rejected", icon: XCircle, path: "/admin/vendor/vendors?tab=rejected" },
   ];
 
   const candidateSubItems = [
@@ -189,9 +204,23 @@ export function VendorManagementSidebar({
               <div className="ml-3.5 pl-3 border-l-2 border-blue-200/80 space-y-0.5 my-1">
                 {vendorSubItems.map((sub) => {
                   const SubIcon = sub.icon;
+                  const active = isActive(sub.path);
                   return (
-                    <Link key={sub.path} to={sub.path} onClick={() => setMobileOpen(false)} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-slate-600 hover:bg-blue-100/70`}>
-                      <SubIcon size={14} className="shrink-0 text-slate-500" /> <span className="truncate">{sub.title}</span>
+                    <Link
+                      key={sub.path}
+                      to={sub.path}
+                      onClick={() => setMobileOpen(false)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[12px] font-semibold transition-all ${
+                        active
+                          ? "bg-blue-600 text-white font-bold shadow-xs"
+                          : "text-slate-600 hover:bg-blue-100/70 hover:text-blue-900"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <SubIcon size={14} className={`shrink-0 ${active ? "text-white" : "text-slate-500"}`} />
+                        <span className="truncate">{sub.title}</span>
+                      </div>
+                      {active && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
                     </Link>
                   );
                 })}

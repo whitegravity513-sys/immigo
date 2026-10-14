@@ -450,6 +450,22 @@ export const crmVendorService = {
       vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     }
 
+    // 7-Day Auto Rejection Enforcement
+    const now = Date.now();
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    vendors = vendors.map((v) => {
+      const isDocSubmitted = v.documentsUploaded || (Array.isArray(v.documents) && v.documents.length > 0);
+      const regDate = new Date(v.registeredAt || v.createdAt || now).getTime();
+      if (!isDocSubmitted && (now - regDate) > SEVEN_DAYS_MS && v.status !== "Approved" && v.status !== "Suspended") {
+        return {
+          ...v,
+          status: "Rejected",
+          rejectionReason: v.rejectionReason || "Auto-rejected: Mandatory compliance documents not submitted within 7 days of registration.",
+        };
+      }
+      return v;
+    });
+
     if (status !== "All") {
       vendors = vendors.filter((v) => {
         if (status === "Pending Verification") return v.status === "Pending" || v.status === "Under Review";
@@ -522,6 +538,48 @@ export const crmVendorService = {
       // Local fallback
       return crmVendorService.signOrVerifyMOU(vendorId, "Sent");
     }
+  },
+
+  updateVendor: async (vendorId, updateData) => {
+    let updatedVendor = null;
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}`, updateData);
+      if (response.data?.vendor) {
+        updatedVendor = {
+          ...response.data.vendor,
+          id: response.data.vendor.vendorId || response.data.vendor._id,
+        };
+      }
+    } catch (e) {
+      console.warn("Backend update vendor fallback:", e);
+    }
+
+    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    const idx = vendors.findIndex((v) => v.id === vendorId || v.vendorId === vendorId);
+    const finalVendor = updatedVendor
+      ? { ...(vendors[idx] || {}), ...updatedVendor }
+      : { ...(vendors[idx] || {}), ...updateData, id: vendorId };
+
+    if (idx !== -1) {
+      vendors[idx] = finalVendor;
+    } else {
+      vendors.unshift(finalVendor);
+    }
+    saveData(VENDORS_STORAGE_KEY, vendors);
+    return finalVendor;
+  },
+
+  deleteVendor: async (vendorId) => {
+    try {
+      await apiClient.delete(`/admin/vendors/${vendorId}`);
+    } catch (e) {
+      console.warn("Backend delete vendor fallback:", e);
+    }
+
+    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    const filtered = vendors.filter((v) => v.id !== vendorId && v.vendorId !== vendorId && v._id !== vendorId);
+    saveData(VENDORS_STORAGE_KEY, filtered);
+    return { success: true, id: vendorId };
   },
 
   approveVendor: async (vendorId) => {

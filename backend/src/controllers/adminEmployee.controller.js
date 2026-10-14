@@ -35,6 +35,11 @@ export const deactivateEmployee = asyncHandler(async (req, res) => {
   });
 });
 
+export const deleteEmployee = asyncHandler(async (req, res) => {
+  const result = await EmployeeService.deleteEmployee(req.params.id);
+  return res.status(200).json(result);
+});
+
 export const setLeaveBalance = asyncHandler(async (req, res) => {
   const { leaveBalance, allocatedLeaves } = req.body;
   const employee = await EmployeeService.setLeaveBalance(req.params.id, leaveBalance, allocatedLeaves);
@@ -105,6 +110,7 @@ export default {
   getEmployees,
   updateEmployee,
   deactivateEmployee,
+  deleteEmployee,
   setLeaveBalance,
   uploadAdminDocument,
   deleteAdminDocument,

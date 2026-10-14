@@ -12,6 +12,13 @@ export const createHoliday = asyncHandler(async (req, res) => {
   return res.status(200).json({ message: "Holiday saved successfully", holiday });
 });
 
+export const updateHoliday = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { date, title, description } = req.body;
+  const holiday = await HolidayService.updateHoliday(id, { date, title, description });
+  return res.status(200).json({ message: "Holiday updated successfully", holiday });
+});
+
 export const deleteHoliday = asyncHandler(async (req, res) => {
   await HolidayService.deleteHoliday(req.params.id);
   return res.status(200).json({ message: "Holiday deleted successfully" });
@@ -20,5 +27,6 @@ export const deleteHoliday = asyncHandler(async (req, res) => {
 export default {
   getHolidays,
   createHoliday,
+  updateHoliday,
   deleteHoliday,
 };

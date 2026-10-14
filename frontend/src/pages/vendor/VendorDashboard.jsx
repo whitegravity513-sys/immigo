@@ -373,12 +373,15 @@ export function VendorDashboard() {
             </div>
 
             {allProjects.length > 5 && (
-              <div className="p-3.5 bg-slate-50 border-t border-slate-100 text-center">
+              <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">
+                  Showing 5 of {allProjects.length} assigned projects
+                </span>
                 <Link
                   to="/vendor/projects"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition"
+                  className="inline-flex items-center gap-1.5 font-bold text-blue-600 hover:text-blue-800 transition"
                 >
-                  <span>View all {allProjects.length} projects & available trade quotas</span>
+                  <span>See All Projects ({allProjects.length})</span>
                   <ArrowRight size={13} />
                 </Link>
               </div>

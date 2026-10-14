@@ -30,6 +30,7 @@ export default function ApplyLeaveModal({
               <option value="Casual Leave">Casual Leave (CL)</option>
               <option value="Sick Leave">Sick / Medical Leave (SL)</option>
               <option value="Paid Leave">Paid / Privilege Leave (PL)</option>
+              <option value="Work From Home">Work From Home (WFH)</option>
               <option value="Half Day Leave">Half Day Leave</option>
               <option value="Emergency Leave">Emergency Leave</option>
               <option value="Maternity / Paternity">Maternity / Paternity Leave</option>

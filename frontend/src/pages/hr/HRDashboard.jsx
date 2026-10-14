@@ -17,10 +17,14 @@ import {
   Eye,
   Check,
   X,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import HrLayout from "../../components/hr/layout/HrLayout.jsx";
 import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
+import EditEmployeeModal from "../../components/hr/modals/EditEmployeeModal.jsx";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 
 export function HRDashboard() {
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,11 @@ export function HRDashboard() {
     leaveRequests: 5,
     departments: 8,
   });
+
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [savingEmployee, setSavingEmployee] = useState(false);
+  const [deleteTargetEmployee, setDeleteTargetEmployee] = useState(null);
+  const [deletingEmployee, setDeletingEmployee] = useState(false);
 
   const [recentEmployees, setRecentEmployees] = useState([
     {
@@ -138,6 +147,14 @@ export function HRDashboard() {
       leaveType: "Emergency Leave",
       from: "01 Oct 2026",
       to: "04 Oct 2026",
+      status: "Pending",
+    },
+    {
+      id: "lv-4",
+      employee: "Aarti Sharma (WG-EMP-1049)",
+      leaveType: "Work From Home (WFH)",
+      from: "15 Oct 2026",
+      to: "17 Oct 2026",
       status: "Pending",
     },
   ]);
@@ -256,6 +273,53 @@ export function HRDashboard() {
     setHrStats((prev) => ({ ...prev, leaveRequests: Math.max(0, prev.leaveRequests - 1) }));
   };
 
+  const handleSaveEmployee = async (formData) => {
+    setSavingEmployee(true);
+    try {
+      const empId = formData.id || formData._id;
+      await employeeService.updateEmployee(empId, formData);
+      setRecentEmployees((prev) =>
+        prev.map((e) =>
+          e.id === empId
+            ? {
+                ...e,
+                name: formData.name,
+                department: formData.department,
+                designation: formData.designation,
+                status: formData.status,
+              }
+            : e
+        )
+      );
+      setEditingEmployee(null);
+      alert("Employee details updated successfully!");
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to update employee.");
+    } finally {
+      setSavingEmployee(false);
+    }
+  };
+
+  const handleDeleteEmployee = async () => {
+    if (!deleteTargetEmployee) return;
+    setDeletingEmployee(true);
+    try {
+      const empId = deleteTargetEmployee.id || deleteTargetEmployee._id;
+      await employeeService.deleteEmployee(empId);
+      setRecentEmployees((prev) => prev.filter((e) => e.id !== empId));
+      setHrStats((prev) => ({
+        ...prev,
+        totalEmployees: Math.max(0, prev.totalEmployees - 1),
+      }));
+      setDeleteTargetEmployee(null);
+      alert("Employee record deleted successfully.");
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to delete employee.");
+    } finally {
+      setDeletingEmployee(false);
+    }
+  };
+
   const hrCards = [
     { title: "Total Employees", value: hrStats.totalEmployees, sub: "Registered Staff", color: "blue", to: "/admin/dashboard/employees" },
     { title: "New This Month", value: `+${hrStats.newThisMonth}`, sub: "Onboarded", color: "emerald", to: "/admin/dashboard/workforce" },
@@ -324,7 +388,8 @@ export function HRDashboard() {
                   <th className="py-2.5 px-3">Department</th>
                   <th className="py-2.5 px-3">Designation</th>
                   <th className="py-2.5 px-3">Joining Date</th>
-                  <th className="py-2.5 px-4 text-right">Status</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -345,10 +410,32 @@ export function HRDashboard() {
                     <td className="py-2.5 px-3 text-gray-500">
                       {emp.joiningDate}
                     </td>
-                    <td className="py-2.5 px-4 text-right">
+                    <td className="py-2.5 px-3">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {emp.status}
                       </span>
+                    </td>
+                    <td className="py-2.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingEmployee(emp)}
+                          className="px-2.5 py-1 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Edit Employee Profile"
+                        >
+                          <Edit2 size={11} />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTargetEmployee(emp)}
+                          className="px-2.5 py-1 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-md font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Delete Employee Record"
+                        >
+                          <Trash2 size={11} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -483,6 +570,27 @@ export function HRDashboard() {
             ))}
           </div>
         </div>
+
+        {/* Edit Employee Modal */}
+        <EditEmployeeModal
+          isOpen={Boolean(editingEmployee)}
+          onClose={() => setEditingEmployee(null)}
+          employee={editingEmployee}
+          onSave={handleSaveEmployee}
+          saving={savingEmployee}
+        />
+
+        {/* Delete Employee Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={Boolean(deleteTargetEmployee)}
+          onClose={() => setDeleteTargetEmployee(null)}
+          onConfirm={handleDeleteEmployee}
+          title="Delete Employee Record"
+          message="Are you sure you want to permanently delete this employee? All payroll, attendance logs, and profile records associated with this employee will be deleted."
+          itemName={deleteTargetEmployee ? `${deleteTargetEmployee.name} (${deleteTargetEmployee.employeeId || deleteTargetEmployee.id})` : ""}
+          loading={deletingEmployee}
+          confirmText="Delete Employee"
+        />
       </div>
     </HrLayout>
   );

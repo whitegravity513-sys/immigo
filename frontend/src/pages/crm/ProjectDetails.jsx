@@ -13,10 +13,13 @@ import {
   FileText,
   CheckCircle,
   ExternalLink,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import ManpowerTable from "../../components/crm/manpower/ManpowerTable.jsx";
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 import crmClientService, {
   calculateProjectManpower,
@@ -82,6 +85,26 @@ export function ProjectDetails() {
       showToast(`Project status changed to ${updated.status}.`, "success");
     } catch (err) {
       showToast("Failed to change project status", "error");
+    }
+  };
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteProject = async () => {
+    setIsDeleting(true);
+    try {
+      await crmClientService.deleteProject(
+        client?.id || clientId || project.clientId,
+        project.id
+      );
+      showToast("Project deleted successfully.", "success");
+      setDeleteModalOpen(false);
+      navigate("/client/projects");
+    } catch (err) {
+      showToast(err.message || "Failed to delete project", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -160,18 +183,39 @@ export function ProjectDetails() {
             </div>
           </div>
 
-          {/* Total Manpower Pill */}
-          <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3.5 flex items-center gap-3.5 self-start md:self-auto">
-            <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <Users size={18} />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start md:self-auto flex-wrap">
+            {/* Total Manpower Pill */}
+            <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3.5 flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Users size={18} />
+              </div>
+              <div>
+                <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block">
+                  Total Required Headcount
+                </span>
+                <span className="text-xl font-extrabold text-blue-700 leading-tight">
+                  {totalRequired.toLocaleString()} Persons
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block">
-                Total Required Headcount
-              </span>
-              <span className="text-xl font-extrabold text-blue-700 leading-tight">
-                {totalRequired.toLocaleString()} Persons
-              </span>
+
+            {/* Quick Actions (Edit / Delete) */}
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/client/clients/${client?.id || clientId || project.clientId}/projects/${project.id}/edit`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              >
+                <Edit2 size={14} />
+                <span>Edit Project</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition-colors cursor-pointer"
+              >
+                <Trash2 size={14} />
+                <span>Delete</span>
+              </button>
             </div>
           </div>
         </div>
@@ -405,6 +449,18 @@ export function ProjectDetails() {
           </div>
         </div>
       </div>
+
+      {/* Delete Project Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteProject}
+        title="Delete Project & Allocations"
+        message="Are you sure you want to permanently delete this overseas project? All associated manpower trade requirements will be erased."
+        itemName={project ? `${project.projectName} (${project.id})` : ""}
+        loading={isDeleting}
+        confirmText="Delete Project"
+      />
     </div>
   );
 }

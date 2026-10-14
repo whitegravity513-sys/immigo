@@ -255,62 +255,58 @@ export function MainAdminDashboard() {
 
   return (
     <AdminMasterLayout title="Overview" subtitle="Real-time Operational Command Center">
-      <div className="relative font-sans pb-12">
-        {/* Animated Background */}
-        <div className="absolute inset-0 z-0 overflow-hidden rounded-3xl pointer-events-none">
+      <div className="relative font-sans pb-6">
+        {/* Subtle Background Glow */}
+        <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl pointer-events-none">
           <div className="absolute inset-0 bg-slate-50/50 backdrop-blur-[2px]"></div>
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/40 rounded-full blur-3xl orb-blue"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[35%] h-[35%] bg-purple-200/40 rounded-full blur-3xl orb-cyan"></div>
-          <div className="absolute top-[30%] right-[10%] w-[25%] h-[25%] bg-blue-200/30 rounded-full blur-3xl orb-orange"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[35%] h-[35%] bg-indigo-200/30 rounded-full blur-3xl orb-blue"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-200/30 rounded-full blur-3xl orb-cyan"></div>
         </div>
 
-        <div className="relative z-10 space-y-8">
+        <div className="relative z-10 space-y-4">
           
-          {/* Main Stats Header */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div className="lg:col-span-1 p-6 rounded-3xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 flex flex-col justify-between overflow-hidden relative">
-              <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          {/* Main Stats Header - Compact */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+            <div className="lg:col-span-1 p-4 sm:p-5 rounded-2xl bg-indigo-600 text-white shadow-md flex flex-col justify-between overflow-hidden relative">
+              <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
               <div>
-                <h2 className="text-sm font-bold text-indigo-100 uppercase tracking-widest mb-1">Company Workforce</h2>
-                <div className="text-4xl font-black mt-2">{stats.totalEmployees}</div>
-                <div className="text-xs text-indigo-200 mt-2 font-medium bg-white/10 inline-block px-3 py-1 rounded-full">
+                <h2 className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">Company Workforce</h2>
+                <div className="text-3xl font-black mt-1">{stats.totalEmployees}</div>
+                <div className="text-[11px] text-indigo-100 mt-1.5 font-medium bg-white/15 inline-block px-2.5 py-0.5 rounded-full">
                   +{stats.newEmployeesThisMonth} new this month
                 </div>
               </div>
-              <Link to="/admin/dashboard/workforce" className="mt-6 flex items-center justify-between text-sm font-bold hover:text-white group">
+              <Link to="/admin/dashboard/workforce" className="mt-4 pt-3 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
                 <span>View HR Dashboard</span>
-                <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-colors">
-                  <ArrowRight size={14} />
+                <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-colors">
+                  <ArrowRight size={12} />
                 </span>
               </Link>
             </div>
 
-            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
               {summaryCards.slice(1, 7).map((card) => {
                 const Icon = card.icon;
                 return (
                   <Link
                     key={card.title}
                     to={card.to}
-                    className="p-5 bg-white/80 backdrop-blur-md rounded-3xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group flex flex-col justify-between relative overflow-hidden"
+                    className="p-3 sm:p-3.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-indigo-300 transition-all duration-200 group flex flex-col justify-between relative overflow-hidden"
                   >
-                    <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                      <Icon size={80} />
-                    </div>
-                    <div className="flex items-center justify-between gap-1 mb-4 relative z-10">
-                      <span className={`p-2.5 rounded-xl bg-white shadow-sm border font-bold ${card.badgeBg}`}>
-                        <Icon size={18} />
+                    <div className="flex items-center justify-between gap-1 mb-2 relative z-10">
+                      <span className={`p-1.5 rounded-lg border font-bold ${card.badgeBg}`}>
+                        <Icon size={15} />
                       </span>
-                      <span className="text-[10px] font-bold text-slate-400 group-hover:text-indigo-500 transition-colors bg-slate-50 px-2 py-1 rounded-full border border-slate-100">
+                      <span className="text-[9px] font-bold text-slate-500 group-hover:text-indigo-600 transition-colors bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 truncate max-w-[110px]">
                         {card.trend}
                       </span>
                     </div>
 
                     <div className="relative z-10">
-                      <p className="text-3xl font-black text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
+                      <p className="text-2xl font-black text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
                         {card.value}
                       </p>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">
                         {card.title}
                       </p>
                     </div>
@@ -320,126 +316,133 @@ export function MainAdminDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
             {/* Quick Actions & Recent Activity - Left Column */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-4">
               
-              <div className="p-6 bg-white/70 backdrop-blur-xl rounded-3xl border border-white shadow-sm">
-                <h3 className="text-sm font-extrabold text-slate-800 mb-4 flex items-center gap-2">
-                  <Activity size={18} className="text-indigo-500" /> Recent Operations Activity
-                </h3>
-                <div className="space-y-4">
-                  {(stats.recentActivity || []).map((item, i) => (
-                    <div key={item.id} className="flex gap-3 relative">
-                      {i !== (stats.recentActivity || []).length - 1 && (
-                        <div className="absolute left-[11px] top-7 bottom-[-16px] w-0.5 bg-slate-100"></div>
+              <div className="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
+                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                  <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Activity size={15} className="text-indigo-600" /> Recent Activity (5)
+                  </h3>
+                  <Link to="/admin/vendor/submissions" className="text-[11px] font-bold text-indigo-600 hover:underline">
+                    See All
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {(stats.recentActivity || []).slice(0, 5).map((item, i) => (
+                    <div key={item.id || i} className="flex gap-2.5 relative">
+                      {i !== Math.min((stats.recentActivity || []).length, 5) - 1 && (
+                        <div className="absolute left-[9px] top-6 bottom-[-12px] w-0.5 bg-slate-100"></div>
                       )}
-                      <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 z-10 mt-0.5">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                      <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 z-10 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-800">{item.title}</h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{item.description}</p>
-                        <span className="text-[9px] font-bold text-slate-400 mt-1 block">{item.time}</span>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-slate-800 truncate">{item.title}</h4>
+                        <p className="text-[11px] text-slate-500 line-clamp-1">{item.description}</p>
+                        <span className="text-[9px] font-semibold text-slate-400 mt-0.5 block">{item.time}</span>
                       </div>
                     </div>
                   ))}
                   {(!stats.recentActivity || stats.recentActivity.length === 0) && (
-                    <p className="text-xs text-slate-500 text-center py-4">No recent activity.</p>
+                    <p className="text-xs text-slate-400 text-center py-3">No recent activity.</p>
                   )}
                 </div>
               </div>
 
-              <div className="p-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl text-white shadow-xl relative overflow-hidden">
-                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-                <h3 className="text-sm font-bold text-white mb-2">Manpower Requirements</h3>
-                <div className="flex items-end gap-2 mb-6">
-                  <span className="text-4xl font-black text-white">{stats.totalRequiredManpower}</span>
-                  <span className="text-xs text-slate-300 font-medium mb-1">Total Positions</span>
+              <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl text-white shadow-md relative overflow-hidden">
+                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Manpower Requirements</h3>
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-3xl font-black text-white">{stats.totalRequiredManpower}</span>
+                  <span className="text-[11px] text-slate-300 font-medium">Total Positions</span>
                 </div>
                 
-                <div className="space-y-3">
-                  <Link to="/client/clients/new" className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/10">
-                    <span className="text-xs font-bold">Onboard New Client</span>
-                    <Plus size={14} />
+                <div className="space-y-2">
+                  <Link to="/client/clients/new" className="w-full flex items-center justify-between p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border border-white/10 text-xs font-bold">
+                    <span>Onboard New Client</span>
+                    <Plus size={13} />
                   </Link>
-                  <Link to="/client/projects/new" className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/10">
-                    <span className="text-xs font-bold">Create New Project</span>
-                    <Plus size={14} />
+                  <Link to="/client/projects/new" className="w-full flex items-center justify-between p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border border-white/10 text-xs font-bold">
+                    <span>Create New Project</span>
+                    <Plus size={13} />
                   </Link>
                 </div>
               </div>
 
             </div>
 
-            {/* Active Projects & Pipelines - Right 2 Columns */}
-            <div className="lg:col-span-2 space-y-6">
+            {/* Active Projects Pipeline - Right 2 Columns (Strictly 5 items + See All) */}
+            <div className="lg:col-span-2 space-y-4">
               
-              <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-sm overflow-hidden flex flex-col h-full">
-                <div className="p-6 border-b border-slate-100/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col h-full">
+                <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-                      <FolderKanban size={20} className="text-indigo-600" />
-                      Active Projects Pipeline
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <FolderKanban size={17} className="text-indigo-600" />
+                      Active Projects Pipeline (Latest 5)
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">Live tracking of manpower deployment demands</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Live tracking of overseas manpower deployment demands</p>
                   </div>
                   <Link
                     to="/client/projects"
-                    className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-2 shrink-0"
+                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
                   >
-                    View All Projects <ArrowRight size={14} />
+                    <span>See All ({projectsList.length})</span>
+                    <ArrowRight size={13} />
                   </Link>
                 </div>
 
-                <div className="flex-1 overflow-x-auto p-2">
+                <div className="flex-1 overflow-x-auto">
                   {projectsList.length === 0 ? (
-                    <div className="p-12 text-center text-xs font-medium text-slate-500 flex flex-col items-center">
-                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
-                        <FolderKanban size={24} className="text-slate-300" />
+                    <div className="p-8 text-center text-xs font-medium text-slate-500 flex flex-col items-center">
+                      <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-2">
+                        <FolderKanban size={20} className="text-slate-300" />
                       </div>
                       No active projects.
                     </div>
                   ) : (
                     <table className="w-full text-left text-xs">
                       <thead>
-                        <tr className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                          <th className="py-4 px-4">Project</th>
-                          <th className="py-4 px-4">Client</th>
-                          <th className="py-4 px-4 text-center">Positions</th>
-                          <th className="py-4 px-4">Status</th>
-                          <th className="py-4 px-4 text-right">Action</th>
+                        <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                          <th className="py-2.5 px-3.5">Project</th>
+                          <th className="py-2.5 px-3">Client</th>
+                          <th className="py-2.5 px-3 text-center">Positions</th>
+                          <th className="py-2.5 px-3">Status</th>
+                          <th className="py-2.5 px-3.5 text-right">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100/50">
-                        {projectsList.slice(0, 7).map((proj) => (
-                          <tr key={proj.id} className="hover:bg-slate-50/80 transition-colors group">
-                            <td className="py-3 px-4">
-                              <span className="font-extrabold text-slate-800 block group-hover:text-indigo-600 transition-colors">
+                      <tbody className="divide-y divide-slate-100">
+                        {projectsList.slice(0, 5).map((proj) => (
+                          <tr key={proj.id} className="hover:bg-slate-50/70 transition-colors group">
+                            <td className="py-2.5 px-3.5">
+                              <span className="font-bold text-slate-800 block group-hover:text-indigo-600 transition-colors truncate max-w-[200px]">
                                 {proj.projectName}
                               </span>
-                              <span className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
                                 <MapPin size={10} className="text-slate-400" /> {proj.country}
                               </span>
                             </td>
-                            <td className="py-3 px-4 font-bold text-slate-600">
+                            <td className="py-2.5 px-3 font-semibold text-slate-700 truncate max-w-[140px]">
                               {proj.clientName}
                             </td>
-                            <td className="py-3 px-4 text-center">
-                              <span className="inline-flex items-center px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-[10px]">
+                            <td className="py-2.5 px-3 text-center">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px]">
                                 {proj.requiredManpower} Reqs
                               </span>
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-2.5 px-3">
                               <StatusBadge status={proj.status} size="sm" />
                             </td>
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-2.5 px-3.5 text-right">
                               <Link
                                 to={`/client/clients/${proj.clientId}/projects/${proj.id}`}
-                                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-colors ml-auto shadow-2xs"
+                                className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors ml-auto shadow-2xs"
+                                title="View Project"
                               >
-                                <ArrowRight size={14} />
+                                <ArrowRight size={13} />
                               </Link>
                             </td>
                           </tr>
@@ -448,6 +451,22 @@ export function MainAdminDashboard() {
                     </table>
                   )}
                 </div>
+
+                {/* See All Footer */}
+                {projectsList.length > 5 && (
+                  <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-slate-500 font-medium">
+                      Showing 5 of {projectsList.length} active projects
+                    </span>
+                    <Link
+                      to="/client/projects"
+                      className="inline-flex items-center gap-1.5 font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                    >
+                      <span>See All Projects ({projectsList.length})</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                )}
               </div>
               
             </div>

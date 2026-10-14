@@ -190,19 +190,11 @@ export function ManpowerTable({
                 />
               )}
             </div>
-            <button
-              type="button"
-              onClick={handleAddInline}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 h-[38px]"
-            >
-              <Plus size={16} />
-              <span>Add</span>
-            </button>
           </div>
 
-          {/* Row 3: Experience + Last Company */}
+          {/* Row 3: Experience + Add Button */}
           <div className="flex flex-col sm:flex-row items-end gap-3 mt-3">
-            <div className="w-full sm:w-40">
+            <div className="w-full sm:w-48">
               <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min. Experience (Yrs)</label>
               <input
                 type="number"
@@ -219,10 +211,10 @@ export function ManpowerTable({
               <button
                 type="button"
                 onClick={handleAddInline}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer h-[38px]"
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer h-[38px]"
               >
                 <Plus size={16} />
-                <span>+ Add Position to Plan {Number(inlineForm.quantity) > 0 ? `(${inlineForm.quantity} Persons)` : ""}</span>
+                <span>Add Position to Plan {Number(inlineForm.quantity) > 0 ? `(${inlineForm.quantity} Persons)` : ""}</span>
               </button>
             </div>
           </div>
@@ -234,26 +226,18 @@ export function ManpowerTable({
         {positions.length === 0 ? (
           <div className="p-6 text-center bg-gray-50/50">
             {Number(inlineForm.quantity) > 0 ? (
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center mx-auto">
+              <div className="space-y-2 py-2">
+                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center mx-auto">
                   <Users size={20} />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">
-                    Drafted Position: {inlineForm.position || "Trade Position"} ({inlineForm.quantity} Persons)
+                    Drafted: {inlineForm.position || "Trade Position"} ({inlineForm.quantity} Persons)
                   </h4>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Click the button below to add it to the list, or save the project directly.
+                    Click the <span className="font-bold text-blue-600">"+ Add Position to Plan"</span> button above to append this role to your manpower list.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAddInline}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-sm cursor-pointer"
-                >
-                  <Plus size={14} />
-                  <span>Confirm & Add Position ({inlineForm.quantity} Persons)</span>
-                </button>
               </div>
             ) : (
               <div>
