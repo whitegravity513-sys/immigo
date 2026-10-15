@@ -59,7 +59,7 @@ export function WorkforceMetricModal({
               type="text"
               value={metricModalSearch}
               onChange={(e) => setMetricModalSearch(e.target.value)}
-              placeholder="Filter by name, ID code (e.g. VESTA-001), department..."
+              placeholder="Filter by name, ID code (e.g. IMMI-001), department..."
               className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
               autoFocus
             />
@@ -87,7 +87,7 @@ export function WorkforceMetricModal({
                   : emp?.name?.first
                   ? `${emp.name.first} ${emp.name.last}`
                   : "Employee";
-              const empCode = emp.employeeCode || emp.employeeId || "VESTA-001";
+              const empCode = emp.employeeCode || emp.employeeId || "IMMI-001";
               const info = getAttendanceInfo(emp);
 
               return (

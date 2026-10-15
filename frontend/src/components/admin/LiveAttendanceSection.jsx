@@ -15,7 +15,7 @@ const StatCard = ({ icon, color, val, label }) => (
   </div>
 );
 
-function ActiveBreakRow({ rep, formatTime }) {
+function ActiveBreakRow({ rep, formatTime, openEmployeeDetail, currentPath }) {
   const activeBreak = rep.breaks?.find(b => !b.endTime);
   const [elapsed, setElapsed] = useState(0);
 
@@ -90,7 +90,13 @@ export default function LiveAttendanceSection({
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {attendanceReport.filter(r => r.status === "On Break").map(rep => (
-              <ActiveBreakRow key={rep.employeeId} rep={rep} formatTime={formatTime} />
+              <ActiveBreakRow
+                key={rep.employeeId}
+                rep={rep}
+                formatTime={formatTime}
+                openEmployeeDetail={openEmployeeDetail}
+                currentPath={currentPath}
+              />
             ))}
           </div>
         </div>

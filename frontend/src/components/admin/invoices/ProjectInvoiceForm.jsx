@@ -38,11 +38,11 @@ export default function ProjectInvoiceForm({
               {editingInvoiceId ? `Editing Official Invoice (${editingInvoiceNo})` : "1. Client Contact & Billing Details"}
             </h3>
             <p className="text-xs text-slate-500">
-              {editingInvoiceId ? "Update line items, tax rates or client/company metadata below" : "Unique Invoice Number auto-generated based on Financial Year starting 1st April (e.g. VESTA-26-27-001)"}
+              {editingInvoiceId ? "Update line items, tax rates or client/company metadata below" : "Unique Invoice Number auto-generated based on Financial Year starting 1st April (e.g. IMMIGO-26-27-001)"}
             </p>
           </div>
           <span className="px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold uppercase font-mono">
-            {editingInvoiceId ? editingInvoiceNo : "FY VESTA-YY-YY-XXX"}
+            {editingInvoiceId ? editingInvoiceNo : "FY IMMIGO-YY-YY-XXX"}
           </span>
         </div>
 

@@ -8,8 +8,8 @@ export const seedDefaultEmployee = async (exitOnComplete = true) => {
   try {
     await connectDB();
 
-    const testEmployeeId = "VESTA-001";
-    const testEmail = "employee@vesta.in";
+    const testEmployeeId = "IMMI-001";
+    const testEmail = "employee@immigo.com";
     const testPassword = process.env.DEFAULT_EMPLOYEE_PASSWORD || "12345";
 
     const existingEmp = await Employee.findOne({
