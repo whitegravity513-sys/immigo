@@ -1,3 +1,4 @@
+
 import React from "react";
 
 export function EmployeeLeavesTab({
@@ -76,13 +77,12 @@ export function EmployeeLeavesTab({
                 </td>
                 <td className="px-4 py-3.5">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border ${
-                      l.status === "Approved"
+                    className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border ${l.status === "Approved"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : l.status === "Rejected"
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
-                    }`}
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      }`}
                   >
                     {l.status}
                   </span>
@@ -90,11 +90,10 @@ export function EmployeeLeavesTab({
                 <td className="px-4 py-3.5 text-xs max-w-[160px]">
                   {l.adminRemark ? (
                     <span
-                      className={`block px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
-                        l.status === "Rejected"
+                      className={`block px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer ${l.status === "Rejected"
                           ? "bg-rose-50 text-rose-700"
                           : "bg-slate-50 text-slate-600"
-                      }`}
+                        }`}
                       onClick={() => openTextModal("Admin Remark", l.adminRemark)}
                     >
                       {l.adminRemark}
