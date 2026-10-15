@@ -59,6 +59,14 @@ export default function AdminVendorsList() {
   const [dispatchedVendor, setDispatchedVendor] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Vendor Registration Verification Success Modal
+  const [verificationSuccessModal, setVerificationSuccessModal] = useState({
+    open: false,
+    vendorName: "",
+    vendorId: "",
+    email: "",
+  });
+
   // Edit & Delete Vendor Modal State
   const [editingVendor, setEditingVendor] = useState(null);
   const [savingVendor, setSavingVendor] = useState(false);
@@ -429,12 +437,24 @@ export default function AdminVendorsList() {
 
   const handleApproveRegistration = async (vendorId) => {
     try {
+      const targetVendor =
+        vendors.find((v) => v.id === vendorId || v.vendorId === vendorId) ||
+        (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId) ? selectedVendor : null);
+      const vName = targetVendor?.companyName || targetVendor?.name || "Vendor Partner";
+      const vEmail = targetVendor?.officialEmail || targetVendor?.email || "";
+      const vCode = targetVendor?.vendorId || vendorId;
+
       await crmVendorService.approveRegistration(vendorId);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId)) {
         setSelectedVendor((prev) => ({ ...prev, status: "Documents Pending" }));
       }
-      alert("Vendor registration approved! Approval notification with login credentials instructions has been sent to vendor.");
+      setVerificationSuccessModal({
+        open: true,
+        vendorName: vName,
+        vendorId: vCode,
+        email: vEmail,
+      });
     } catch (err) {
       alert(err.message || "Failed to approve registration");
     }
@@ -2558,6 +2578,19 @@ export default function AdminVendorsList() {
                                       <span>{v.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}</span>
                                     </button>
                                   )}
+                                  {["Pending", "Registration Pending", "Registration On Hold", "Under Review", "Pending Verification"].includes(v.status) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenVendorMenuId(null);
+                                        handleApproveRegistration(v.id);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-emerald-700 hover:bg-emerald-50 text-left transition-colors cursor-pointer font-medium"
+                                    >
+                                      <CheckCircle2 size={14} className="text-emerald-600" />
+                                      <span>Verify Registration</span>
+                                    </button>
+                                  )}
                                   {["Pending", "Under Review", "Pending Verification"].includes(v.status) && (
                                     <button
                                       type="button"
@@ -2649,6 +2682,74 @@ export default function AdminVendorsList() {
         loading={deletingVendor}
         confirmText="Delete Vendor"
       />
+
+      {/* VENDOR REGISTRATION VERIFIED SUCCESS MODAL */}
+      {verificationSuccessModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-emerald-100 text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+              <CheckCircle2 size={32} />
+            </div>
+
+            <div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 mb-2">
+                Registration Verified
+              </span>
+              <h3 className="text-lg font-bold text-slate-900">
+                Vendor Verified Successfully
+              </h3>
+              <p className="text-xs font-semibold text-blue-700 mt-1">
+                {verificationSuccessModal.vendorName} ({verificationSuccessModal.vendorId})
+              </p>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-left space-y-2 text-xs text-slate-700">
+              <div className="flex items-start gap-2">
+                <FileCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                <p>
+                  Status updated to <strong>Documents Pending</strong>. You can now proceed to review and verify compliance documents for this vendor.
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Mail size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                <p>
+                  Portal access link has been dispatched to <strong>{verificationSuccessModal.email || "registered email"}</strong>.
+                </p>
+              </div>
+              <div className="flex items-start gap-2 text-slate-500 text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                <ShieldCheck size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                <span>Security Notice: Passwords are not sent via email. Vendor will log in or set password using the portal link.</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setVerificationSuccessModal({ open: false, vendorName: "", vendorId: "", email: "" })}
+                className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const vId = verificationSuccessModal.vendorId;
+                  setVerificationSuccessModal({ open: false, vendorName: "", vendorId: "", email: "" });
+                  const vObj = vendors.find((v) => v.id === vId || v.vendorId === vId);
+                  if (vObj) {
+                    setSelectedVendor(vObj);
+                    setShowDocsPage(true);
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Verify Documents</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
