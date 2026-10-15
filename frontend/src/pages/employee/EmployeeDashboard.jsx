@@ -461,7 +461,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         errorMsg={errorMsg}
         successMsg={successMsg}
       >
-        {}
           {(view === "home" || view === "tracker") && (
             <EmpHomeOverview
               user={currentUser}

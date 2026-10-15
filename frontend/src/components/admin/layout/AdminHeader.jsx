@@ -46,10 +46,8 @@ export const AdminHeader = ({
     <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center border-b border-blue-800/80 shadow-md">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
-        {}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
 
-          {}
           <button
             type="button"
             onClick={() => {
@@ -73,7 +71,6 @@ export const AdminHeader = ({
             </span>
           </button>
 
-          {}
           <div className="flex flex-col justify-center min-w-0">
             <div className="flex items-center gap-2 truncate">
               <span className="hidden sm:flex items-end gap-0.5 select-none font-black text-lg tracking-tighter leading-none text-white">
@@ -94,7 +91,6 @@ export const AdminHeader = ({
           </div>
         </div>
 
-        {}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
           {/* Switch to Admin Dashboard */}
@@ -112,12 +108,10 @@ export const AdminHeader = ({
             <span>Admin</span>
           </div>
 
-          {}
           <div className="flex items-center">
             <NotificationBell className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs focus:outline-none" />
           </div>
 
-          {}
           {onLogout && (
             <button
               type="button"

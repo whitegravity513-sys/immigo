@@ -252,7 +252,6 @@ export default function CalendarMeetings() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          {}
           <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
             <button
               onClick={() => {
@@ -288,7 +287,6 @@ export default function CalendarMeetings() {
         </div>
       </div>
 
-      {}
       {feedback.message && (
         <div
           className={`p-4 rounded-2xl flex items-center gap-3 text-sm font-semibold border ${
@@ -306,10 +304,8 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {}
       {viewMode === "calendar" && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          {}
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/60">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-black text-slate-800">
@@ -341,7 +337,6 @@ export default function CalendarMeetings() {
             </div>
           </div>
 
-          {}
           <div className="grid grid-cols-7 border-b-2 border-slate-300 text-center py-2 bg-slate-100 text-[11px] font-extrabold text-slate-800 uppercase tracking-wider">
             <span>Sun</span>
             <span>Mon</span>
@@ -352,14 +347,11 @@ export default function CalendarMeetings() {
             <span>Sat</span>
           </div>
 
-          {}
           <div className="grid grid-cols-7 divide-x divide-y divide-slate-300" style={{border: "1px solid #cbd5e1"}}>
-            {}
             {Array.from({ length: firstDayIndex }).map((_, i) => (
               <div key={`blank-${i}`} className="min-h-[72px] bg-slate-50 p-1 border-r border-slate-300" />
             ))}
 
-            {}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const dayNum = i + 1;
               const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(
@@ -486,7 +478,6 @@ export default function CalendarMeetings() {
             )}
           </div>
 
-          {}
           {loading ? (
             <div className="py-12 text-center text-slate-400">
               <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -510,7 +501,6 @@ export default function CalendarMeetings() {
                     className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-md transition-all flex flex-col justify-between gap-3"
                   >
                     <div>
-                      {}
                       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
@@ -538,7 +528,6 @@ export default function CalendarMeetings() {
                         </span>
                       </div>
 
-                      {}
                       <h3 className="font-extrabold text-slate-900 text-base leading-snug mb-1">
                         {meeting.title}
                       </h3>
@@ -561,7 +550,6 @@ export default function CalendarMeetings() {
                         </div>
                       </div>
 
-                      {}
                       {meeting.targetType === "SPECIFIC" && Array.isArray(meeting.targetEmployees) && (
                         <div className="mb-3">
                           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -581,10 +569,8 @@ export default function CalendarMeetings() {
                       )}
                     </div>
 
-                    {}
                     <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2">
-                        {}
                         <a
                           href={meeting.meetingLink}
                           target="_blank"
@@ -595,7 +581,6 @@ export default function CalendarMeetings() {
                           <span>Join Meeting</span>
                         </a>
 
-                        {}
                         <button
                           type="button"
                           onClick={() => handleCopyLink(meeting.meetingLink, meeting._id || meeting.id)}
@@ -672,9 +657,7 @@ export default function CalendarMeetings() {
               </div>
             </div>
 
-            {}
             <form onSubmit={handleSubmitMeeting} className="p-6 overflow-y-auto space-y-4 custom-scrollbar">
-              {}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Meeting Title *
@@ -689,7 +672,6 @@ export default function CalendarMeetings() {
                 />
               </div>
 
-              {}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -725,7 +707,6 @@ export default function CalendarMeetings() {
                 </div>
               </div>
 
-              {}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -767,7 +748,6 @@ export default function CalendarMeetings() {
                 </div>
               </div>
 
-              {}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
                   Notify & Invite Audience *
@@ -806,7 +786,6 @@ export default function CalendarMeetings() {
                   </button>
                 </div>
 
-                {}
                 {formData.targetType === "SPECIFIC" && (
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 mt-2">
                     <div className="flex items-center justify-between gap-2">
@@ -873,7 +852,6 @@ export default function CalendarMeetings() {
                 )}
               </div>
 
-              {}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Agenda / Notes (Optional)
@@ -887,7 +865,6 @@ export default function CalendarMeetings() {
                 />
               </div>
 
-              {}
               <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="submit"

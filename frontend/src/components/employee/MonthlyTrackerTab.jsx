@@ -26,7 +26,6 @@ export default function MonthlyTrackerTab({
 
   return (
     <div className="space-y-6">
-      {}
       {holidays.length > 0 && (
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-4 sm:p-5 text-white shadow-md shadow-blue-600/10 flex items-center justify-between border border-blue-400/20">
           <div className="flex items-center gap-3.5">
@@ -50,7 +49,6 @@ export default function MonthlyTrackerTab({
         </div>
       )}
 
-      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
@@ -111,7 +109,6 @@ export default function MonthlyTrackerTab({
         </div>
       )}
 
-      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
@@ -151,7 +148,6 @@ export default function MonthlyTrackerTab({
           ))}
         </div>
 
-        {}
         {statusRecord?.breaks?.length > 0 && (
           <div className="mt-6">
             <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">Break Log</div>
@@ -219,7 +215,6 @@ export default function MonthlyTrackerTab({
         )}
       </div>
 
-      {}
       <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

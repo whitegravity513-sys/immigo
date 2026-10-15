@@ -246,7 +246,6 @@ export default function NotificationBell({ className }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -261,10 +260,8 @@ export default function NotificationBell({ className }) {
         )}
       </button>
 
-      {}
       {isOpen && (
         <div className="absolute right-0 mt-3 w-84 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          {}
           <div className="px-4 py-3.5 bg-slate-50 border-b border-slate-200 text-slate-900 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell size={17} className="text-indigo-600" />
@@ -298,7 +295,6 @@ export default function NotificationBell({ className }) {
             </div>
           </div>
 
-          {}
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100">
             {notifications.length === 0 ? (
               <div className="py-10 text-center text-slate-400">

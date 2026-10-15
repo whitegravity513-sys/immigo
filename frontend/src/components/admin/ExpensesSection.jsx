@@ -247,7 +247,6 @@ export default function ExpensesSection({
 
   return (
     <div className="space-y-6">
-      {}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 className="text-xl font-black text-slate-800 tracking-tight">Corporate Expense & Claims Hub</h3>
@@ -257,7 +256,6 @@ export default function ExpensesSection({
         </div>
       </div>
 
-      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div
           onClick={() => setExpenseTargetFilter(expenseTargetFilter === "company" ? "all" : "company")}
@@ -320,7 +318,6 @@ export default function ExpensesSection({
         </div>
       </div>
 
-      {}
       <div className="flex items-center gap-2 border-b border-slate-200">
         <button
           onClick={() => setActiveTab("company")}
@@ -349,10 +346,8 @@ export default function ExpensesSection({
         </button>
       </div>
 
-      {}
       {activeTab === "company" && (
         <div className="space-y-6">
-          {}
           <div className="flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Classification:</span>
@@ -415,7 +410,6 @@ export default function ExpensesSection({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {}
             <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4 sm:p-5 h-fit lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
@@ -447,7 +441,6 @@ export default function ExpensesSection({
               </div>
 
               <form onSubmit={handleExpenseSubmit} className="space-y-2.5 text-left">
-                {}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date *</label>
@@ -475,7 +468,6 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Amount (₹) *</label>
@@ -503,7 +495,6 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Classification *</label>
                   <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg">
@@ -546,7 +537,6 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {}
                 {expenseTargetType === "client" && (
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Client (Project / Visit) *</label>
@@ -564,7 +554,6 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                {}
                 {expenseTargetType === "employee" && (
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Employee (Benefit / Claim) *</label>
@@ -584,7 +573,6 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                {}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Project Ref</label>
@@ -609,7 +597,6 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                {}
                 <div className="flex flex-col gap-0.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Notes</label>
                   <textarea
@@ -631,7 +618,6 @@ export default function ExpensesSection({
               </form>
             </div>
 
-            {}
             <div className="lg:col-span-2 space-y-4">
               {expenseLoading ? (
                 <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm">
@@ -664,7 +650,6 @@ export default function ExpensesSection({
                                   {rec.type || "Expense"}
                                 </span>
 
-                                {}
                                 {rec.client ? (
                                   <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
                                     🤝 Client: {rec.client.name || rec.client.companyName || "Client"}
@@ -742,7 +727,6 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {}
       {activeTab === "claims" && (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -901,7 +885,6 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {}
       {/* Slide-Over Side Drawer for Expense Claim Review, Approval & Payment Disbursal */}
       {reviewModalOpen && selectedClaim && (
         <div className="fixed inset-0 z-50 overflow-hidden">
@@ -1137,7 +1120,6 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {}
       {receiptModalUrl && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">

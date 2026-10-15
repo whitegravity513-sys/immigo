@@ -90,7 +90,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
         className="bg-white w-full max-w-4xl rounded-2xl border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {}
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/50 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
@@ -118,10 +117,8 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {}
         <div className="p-3 sm:p-4 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
-            {}
             <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
               <Calendar size={14} className="text-slate-500" />
               <input
@@ -132,7 +129,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
               />
             </div>
 
-            {}
             <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
               <Filter size={13} className="text-slate-500" />
               <select
@@ -149,7 +145,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {}
           <div className="relative min-w-[200px] flex-1 sm:flex-initial">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -162,7 +157,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
           {loading ? (
             <div className="py-16 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
@@ -185,7 +179,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                   key={item._id}
                   className="bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all p-3.5 sm:p-4 space-y-2.5"
                 >
-                  {}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0">
@@ -223,7 +216,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                     </div>
                   </div>
 
-                  {}
                   <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-100 text-xs text-slate-800 leading-relaxed whitespace-pre-wrap font-normal">
                     {item.logText}
                   </div>
@@ -233,7 +225,6 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
           )}
         </div>
 
-        {}
         <div className="p-3 sm:p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
           <span>Date: <strong className="text-slate-800">{selectedDate}</strong></span>
           <button

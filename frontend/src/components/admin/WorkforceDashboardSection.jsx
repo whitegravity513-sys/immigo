@@ -375,7 +375,6 @@ export default function WorkforceDashboardSection({
 
   return (
     <div className="space-y-5 text-slate-800">
-      {}
       {isFullRegisterPage ? (
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -550,12 +549,9 @@ export default function WorkforceDashboardSection({
         </div>
       )}
 
-      {}
       {isFullRegisterPage && (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        {}
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/20 flex flex-col xl:flex-row xl:items-center justify-between gap-3.5">
-          {}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold shrink-0">
@@ -573,7 +569,6 @@ export default function WorkforceDashboardSection({
               </div>
             </div>
 
-            {}
             <div className="flex items-center gap-1.5 bg-slate-100/90 border border-slate-200/90 rounded-xl p-1 text-xs flex-wrap sm:flex-nowrap">
               <div className="flex items-center gap-1 px-2 py-1 bg-white rounded-lg shadow-2xs border border-slate-200/80 shrink-0">
                 <Calendar size={13} className="text-blue-600 shrink-0" />
@@ -606,9 +601,7 @@ export default function WorkforceDashboardSection({
             </div>
           </div>
 
-          {}
           <div className="flex flex-col md:flex-row md:items-center gap-2.5 w-full xl:w-auto">
-            {}
             <div className="relative w-full md:w-auto">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -622,7 +615,6 @@ export default function WorkforceDashboardSection({
           </div>
         </div>
 
-        {}
         <div className="block lg:hidden p-3 sm:p-4 space-y-3">
           {displayedAttendance.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -653,7 +645,6 @@ export default function WorkforceDashboardSection({
                   key={`card-${rep.employeeId || rep._id || actualEmpId}`}
                   className="p-3.5 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white shadow-2xs space-y-3 transition-all"
                 >
-                  {}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
@@ -685,7 +676,6 @@ export default function WorkforceDashboardSection({
                     </span>
                   </div>
 
-                  {}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Check In</span>
@@ -716,7 +706,6 @@ export default function WorkforceDashboardSection({
                     </div>
                   </div>
 
-                  {}
                   {(rep.email || rep.personalEmail) && (
                     <div className="space-y-1 text-[11px] text-slate-500 pt-1 border-t border-slate-100">
                       {rep.email && (
@@ -734,7 +723,6 @@ export default function WorkforceDashboardSection({
                     </div>
                   )}
 
-                  {}
                   <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
                     <button
                       type="button"
@@ -765,7 +753,6 @@ export default function WorkforceDashboardSection({
           )}
         </div>
 
-        {}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -810,7 +797,6 @@ export default function WorkforceDashboardSection({
                       key={rep.employeeId || rep._id || actualEmpId}
                       className="hover:bg-blue-50/20 transition-colors"
                     >
-                      {}
                       <td className="px-4 py-3">
                         <div className="flex items-start gap-2.5">
                           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
@@ -827,7 +813,6 @@ export default function WorkforceDashboardSection({
                               />
                             </div>
 
-                            {}
                             {rep.email && (
                               <div className="text-[11px] text-slate-600 font-medium flex items-center gap-1 mt-0.5 truncate">
                                 <Mail size={11} className="text-slate-400 shrink-0" />
@@ -835,7 +820,6 @@ export default function WorkforceDashboardSection({
                               </div>
                             )}
 
-                            {}
                             {rep.personalEmail && (
                               <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5 truncate">
                                 <User size={10} className="text-slate-400 shrink-0" />
@@ -846,7 +830,6 @@ export default function WorkforceDashboardSection({
                         </div>
                       </td>
 
-                      {}
                       <td className="px-3 py-3">
                         <div className="font-semibold text-slate-800 text-xs">
                           {rep.department || "General"}
@@ -859,7 +842,6 @@ export default function WorkforceDashboardSection({
                         </div>
                       </td>
 
-                      {}
                       <td className="px-3 py-3">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider ${info.badgeClass}`}
@@ -869,17 +851,14 @@ export default function WorkforceDashboardSection({
                         </span>
                       </td>
 
-                      {}
                       <td className="px-3 py-3 font-mono font-bold text-slate-700 text-xs">
                         {formatTime(rep.checkInTime)}
                       </td>
 
-                      {}
                       <td className="px-3 py-3 font-mono font-bold text-slate-700 text-xs">
                         {formatTime(rep.checkOutTime)}
                       </td>
 
-                      {}
                       <td className="px-3 py-3 font-mono text-slate-600 text-xs">
                         {rep.totalBreakSeconds ? (
                           <span className={rep.totalBreakSeconds > 3600 ? "text-rose-600 font-bold" : ""}>
@@ -890,15 +869,12 @@ export default function WorkforceDashboardSection({
                         )}
                       </td>
 
-                      {}
                       <td className="px-3 py-3 font-mono font-bold text-blue-900 text-xs">
                         {workDurStr}
                       </td>
 
-                      {}
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {}
                           <button
                             type="button"
                             onClick={() => {
@@ -914,7 +890,6 @@ export default function WorkforceDashboardSection({
                             <span>Edit Time</span>
                           </button>
 
-                          {}
                           <button
                             type="button"
                             onClick={() => openEmployeeDetail(actualEmpId)}
@@ -934,7 +909,6 @@ export default function WorkforceDashboardSection({
           </table>
         </div>
 
-        {}
         {!isFullRegisterPage ? (
           <div className="p-3.5 sm:p-4 bg-slate-50/90 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="text-xs text-slate-600 font-medium">
@@ -969,7 +943,6 @@ export default function WorkforceDashboardSection({
       </div>
       )}
 
-      {}
       {!isFullRegisterPage && (
         <div className="w-full space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
@@ -1000,7 +973,6 @@ export default function WorkforceDashboardSection({
               </button>
             </div>
 
-            {}
             <div className="p-3 sm:p-4 space-y-3 max-h-[460px] overflow-y-auto pr-1">
               {pendingLeaves.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -1104,7 +1076,6 @@ export default function WorkforceDashboardSection({
         </div>
       )}
 
-      {}
       {metricModal && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
@@ -1114,7 +1085,6 @@ export default function WorkforceDashboardSection({
             className="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            {}
             <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/30 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-white shadow-2xs border border-slate-200/80 flex items-center justify-center font-bold shrink-0">
@@ -1143,7 +1113,6 @@ export default function WorkforceDashboardSection({
               </button>
             </div>
 
-            {}
             <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50/50">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1158,7 +1127,6 @@ export default function WorkforceDashboardSection({
               </div>
             </div>
 
-            {}
             <div className="p-3 sm:p-4 overflow-y-auto space-y-2.5 flex-1 divide-y divide-slate-100/80">
               {modalFilteredList.length === 0 ? (
                 <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -1253,7 +1221,6 @@ export default function WorkforceDashboardSection({
               )}
             </div>
 
-            {}
             <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Showing {modalFilteredList.length} of {metricModal.list.length} records</span>
               <button

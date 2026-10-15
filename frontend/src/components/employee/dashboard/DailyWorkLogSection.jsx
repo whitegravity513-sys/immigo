@@ -114,7 +114,6 @@ export default function DailyWorkLogSection() {
 
   return (
     <div id="daily-worklog-section" className="bg-white rounded-2xl border-2 border-slate-300 shadow-xs overflow-hidden h-full flex flex-col justify-between">
-      {}
       <div className="p-3.5 sm:p-4 bg-slate-100/90 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
@@ -130,7 +129,6 @@ export default function DailyWorkLogSection() {
           </div>
         </div>
 
-        {}
         <div className="flex items-center gap-2">
           {lastSavedAt ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold">
@@ -146,9 +144,7 @@ export default function DailyWorkLogSection() {
         </div>
       </div>
 
-      {}
       <div className="p-3.5 sm:p-4 space-y-2.5 flex-1 flex flex-col justify-between">
-        {}
         {statusMsg.text && (
           <div
             className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${statusMsg.type === "success"
@@ -165,7 +161,6 @@ export default function DailyWorkLogSection() {
           </div>
         )}
 
-        {}
         <div className="relative">
           {loading ? (
             <div className="h-28 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-300">
@@ -184,7 +179,6 @@ export default function DailyWorkLogSection() {
                 className="w-full text-xs text-slate-900 bg-white hover:bg-slate-50/50 focus:bg-white border-2 border-slate-300 focus:border-blue-600 rounded-xl p-3 outline-none transition-all placeholder:text-slate-400 font-medium leading-relaxed resize-y min-h-[88px]"
               />
 
-              {}
               <div className="flex items-center justify-between pt-1 text-[11px] text-slate-600 font-medium">
                 <div className="flex items-center gap-1.5">
                   <button
@@ -212,7 +206,6 @@ export default function DailyWorkLogSection() {
           )}
         </div>
 
-        {}
         <div className="flex items-center justify-between pt-1">
           <button
             type="button"
@@ -248,7 +241,6 @@ export default function DailyWorkLogSection() {
           </button>
         </div>
 
-        {}
         {showHistory && (
           <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 animate-in fade-in duration-200">
             <div className="flex items-center justify-between">

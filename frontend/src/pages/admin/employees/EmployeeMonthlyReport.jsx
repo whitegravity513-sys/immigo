@@ -125,7 +125,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      {}
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={onGoBack}
@@ -136,7 +135,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         <h1 className="text-3xl font-bold text-slate-900">Employee Monthly & Salary Report</h1>
       </div>
 
-      {}
       {errorMsg && (
         <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700">
           <AlertCircle className="w-5 h-5" />
@@ -150,10 +148,8 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         </div>
       )}
 
-      {}
       <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {}
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">1. Select Employee</label>
             <div className="relative">
@@ -206,7 +202,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             )}
           </div>
 
-          {}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-bold text-slate-700">2. Salary Calculation Period</label>
@@ -285,7 +280,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             )}
           </div>
 
-          {}
           <div className="flex flex-col justify-end gap-2">
             <button
               onClick={() => fetchMonthlyReport()}
@@ -308,10 +302,8 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
         </div>
       </div>
 
-      {}
       {monthlyData && (
         <div className="space-y-6">
-          {}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
               <div className="text-sm text-slate-600 font-bold">Working Days</div>
@@ -330,7 +322,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl p-4 border border-cyan-200">
               <div className="flex items-center justify-between">
@@ -479,7 +470,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {}
           {monthlyData.leaves.length > 0 && (
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-rose-600 to-rose-700 px-6 py-4">

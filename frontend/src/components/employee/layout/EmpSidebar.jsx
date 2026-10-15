@@ -56,7 +56,6 @@ export default function EmpSidebar({
 
   return (
     <>
-      { }
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"
@@ -64,12 +63,10 @@ export default function EmpSidebar({
         />
       )}
 
-      { }
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-64 bg-gradient-to-b from-[#eef5ff] via-[#e4f0fe] to-[#edf5ff] text-slate-800 border-r border-blue-200/90 shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
       >
-        { }
         <div className="h-[68px] min-h-[68px] px-5 border-b border-blue-600/30 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
             <ImmiGoLogo size="sm" subtitle="Workforce Suite" theme="light" />
@@ -82,9 +79,7 @@ export default function EmpSidebar({
           </button>
         </div>
 
-        { }
 
-        { }
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
           {navSections.map((section, idx) => (
             <div key={idx}>
@@ -133,7 +128,6 @@ export default function EmpSidebar({
           ))}
         </nav>
 
-        { }
         <div className="p-3 border-t border-blue-200/80 bg-white/70 backdrop-blur-xs flex flex-col gap-2 shadow-2xs">
           {user && (
             <div className="flex items-center gap-2.5 px-2 py-1">

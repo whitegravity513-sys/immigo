@@ -171,7 +171,6 @@ export default function EmployeeExpensesTab({ user, token }) {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto text-left">
-      {}
       {errorMsg && (
         <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-sm font-medium">
           <AlertCircle size={16} className="shrink-0" />
@@ -185,7 +184,6 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       )}
 
-      {}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
@@ -205,7 +203,6 @@ export default function EmployeeExpensesTab({ user, token }) {
         </button>
       </div>
 
-      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
@@ -245,9 +242,7 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        {}
         <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
           <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
             {["ALL", "Pending", "Approved", "Rejected"].map((f) => (
@@ -267,7 +262,6 @@ export default function EmployeeExpensesTab({ user, token }) {
           <span className="text-xs text-slate-500 font-medium">Showing {filteredExpenses.length} records</span>
         </div>
 
-        {}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
@@ -355,7 +349,6 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       </div>
 
-      {}
       {/* Slide-over Side Drawer for Adding Business Expense (No Popup) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
@@ -380,7 +373,6 @@ export default function EmployeeExpensesTab({ user, token }) {
               </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
-              {}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -421,7 +413,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                 </datalist>
               </div>
 
-              {}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2 space-y-1">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Expense Title *</label>
@@ -449,7 +440,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                 </div>
               </div>
 
-              {}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Expense *</label>
                 <input
@@ -461,7 +451,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                 />
               </div>
 
-              {}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Description & Purpose</label>
                 <textarea
@@ -473,7 +462,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                 />
               </div>
 
-              {}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Bill Receipt Document <span className="font-normal normal-case text-slate-400">(Image or PDF)</span>
@@ -494,7 +482,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                 </div>
               </div>
 
-              {}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Additional Remarks</label>
                 <input
@@ -528,7 +515,6 @@ export default function EmployeeExpensesTab({ user, token }) {
       </div>
       )}
 
-      {}
       {previewReceipt && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4"

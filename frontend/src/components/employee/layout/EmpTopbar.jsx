@@ -66,7 +66,6 @@ export default function EmpTopbar({
 
   return (
     <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4 shadow-md">
-      {}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -81,7 +80,6 @@ export default function EmpTopbar({
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
-        {}
         <EmployeeNotificationBell
           token={token}
           onNewNotification={onNewNotification}
@@ -89,7 +87,6 @@ export default function EmpTopbar({
           className="relative p-2 rounded-xl text-white hover:bg-blue-800/60 transition-colors cursor-pointer border border-blue-700/60 bg-blue-900/40 shadow-xs"
         />
 
-        {}
         <div className="relative" ref={profileRef}>
           <button
             type="button"
@@ -119,7 +116,6 @@ export default function EmpTopbar({
             <ChevronDown size={14} className="text-white" />
           </button>
 
-          {}
           {profileOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
               <div className="px-4 py-2 border-b border-slate-100">

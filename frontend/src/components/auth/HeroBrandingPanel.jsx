@@ -26,7 +26,6 @@ export default function HeroBrandingPanel() {
         backgroundPosition: "center",
       }}
     >
-      {}
       <div
         className="absolute inset-0"
         style={{
@@ -36,7 +35,6 @@ export default function HeroBrandingPanel() {
       />
 
       <div className="relative z-10 h-full flex flex-col justify-between p-6 xl:p-10 text-white drop-shadow-sm">
-        {}
         <div className="flex items-end gap-0.5 select-none drop-shadow-md">
           <span className="font-black text-2xl xl:text-3xl text-white tracking-tighter leading-none">
             immi
@@ -59,7 +57,6 @@ export default function HeroBrandingPanel() {
           </svg>
         </div>
 
-        {}
         <div>
           <div className="inline-flex items-center gap-2 text-[10px] xl:text-[11px] font-extrabold text-blue-200 uppercase tracking-[0.16em] mb-2.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-full border border-white/15">
             <Globe2 size={12} className="text-orange-400" />
@@ -77,7 +74,6 @@ export default function HeroBrandingPanel() {
             attendance management — all united in one secure platform.
           </p>
 
-          {}
           <div className="grid grid-cols-2 gap-2 mb-3.5">
             {capabilities.map(({ icon, title, subtitle }) => (
               <div
@@ -97,7 +93,6 @@ export default function HeroBrandingPanel() {
             ))}
           </div>
 
-          {}
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20">
             {stats.map(({ value, label }) => (
               <div
@@ -115,7 +110,6 @@ export default function HeroBrandingPanel() {
           </p>
         </div>
 
-        {}
         <p className="text-[10px] text-white/70 font-semibold">
           &copy; {new Date().getFullYear()} immiGo Global Mobility. All rights reserved.
         </p>

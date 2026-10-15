@@ -171,7 +171,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -186,10 +185,8 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         )}
       </button>
 
-      {}
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          {}
           <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell size={16} className="text-emerald-600" />
@@ -228,7 +225,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
             </div>
           </div>
 
-          {}
           <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
             {notifications.length === 0 ? (
               <div className="py-10 text-center text-slate-400">

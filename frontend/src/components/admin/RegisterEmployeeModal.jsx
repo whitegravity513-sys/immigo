@@ -163,7 +163,6 @@ export const RegisterEmployeeModal = ({
         className="bg-white w-full max-w-4xl rounded-2xl border border-slate-200 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
@@ -187,7 +186,6 @@ export const RegisterEmployeeModal = ({
           </button>
         </div>
 
-        {}
         <div className="p-6 overflow-y-auto space-y-6">
           {(modalError || errorMsg) && (
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-bold shadow-xs">
@@ -197,7 +195,6 @@ export const RegisterEmployeeModal = ({
           )}
 
           <form id="registerEmployeeForm" onSubmit={onSubmit} className="space-y-6 text-left">
-            {}
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="relative group">
@@ -260,7 +257,6 @@ export const RegisterEmployeeModal = ({
               </div>
             </div>
 
-            {}
             <div>
               <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <User size={14} className="text-blue-600" />
@@ -427,7 +423,6 @@ export const RegisterEmployeeModal = ({
               </div>
             </div>
 
-            {}
             <div>
               <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Briefcase size={14} className="text-blue-600" />
@@ -482,7 +477,6 @@ export const RegisterEmployeeModal = ({
               </div>
             </div>
 
-            {}
             <div>
               <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Award size={14} className="text-blue-600" />
@@ -558,7 +552,6 @@ export const RegisterEmployeeModal = ({
               </div>
             </div>
 
-            {}
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
@@ -570,7 +563,6 @@ export const RegisterEmployeeModal = ({
                 </span>
               </div>
 
-              {}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <div className="space-y-1">
@@ -618,7 +610,6 @@ export const RegisterEmployeeModal = ({
                   Tip: Select Aadhaar, PAN, Resume, Offer Letter, or Degrees. Each document is stored in the employee's permanent compliance vault.
                 </p>
 
-                {}
                 {employeeForm.documents && employeeForm.documents.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200/80">
                     {employeeForm.documents.map((doc, idx) => (
@@ -656,7 +647,6 @@ export const RegisterEmployeeModal = ({
           </form>
         </div>
 
-        {}
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 shrink-0">
           <button
             type="button"

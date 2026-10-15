@@ -271,7 +271,6 @@ export default function AttendanceCalendarSection({
 
   return (
     <div className="space-y-6 text-slate-800">
-      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -292,7 +291,6 @@ export default function AttendanceCalendarSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {}
             <select
               value={currentMonth}
               onChange={(e) => setCurrentMonth(Number(e.target.value))}
@@ -347,10 +345,8 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {}
         <div className="overflow-x-auto pb-1">
           <div className="min-w-[700px]">
-            {}
             <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-black uppercase tracking-wider text-slate-500">
               <span className="text-rose-600">Sun</span>
               <span>Mon</span>
@@ -361,7 +357,6 @@ export default function AttendanceCalendarSection({
               <span className="text-indigo-600">Sat</span>
             </div>
 
-            {}
             <div className="grid grid-cols-7 gap-2">
               {allGridCells.map((dayNum, idx) => {
                 if (dayNum === null) {
@@ -391,7 +386,6 @@ export default function AttendanceCalendarSection({
                         : "bg-white border-slate-200 hover:border-blue-300 hover:shadow-xs"
                     }`}
                   >
-                    {}
                     <div className="flex items-center justify-between">
                       <span
                         className={`text-xs font-black rounded-lg w-6 h-6 flex items-center justify-center ${
@@ -420,7 +414,6 @@ export default function AttendanceCalendarSection({
                       ) : null}
                     </div>
 
-                    {}
                     {stats ? (
                       <div className="space-y-0.5 text-[10px] font-bold">
                         {stats.presentCount > 0 ? (
@@ -458,9 +451,7 @@ export default function AttendanceCalendarSection({
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-6">
-        {}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2">
@@ -479,7 +470,6 @@ export default function AttendanceCalendarSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {}
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
               <CalendarIcon size={15} className="text-slate-500" />
               <input
@@ -499,7 +489,6 @@ export default function AttendanceCalendarSection({
               />
             </div>
 
-            {}
             <button
               type="button"
               onClick={handleExportCSV}
@@ -513,7 +502,6 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <div className="flex items-center justify-between text-slate-500 mb-1">
@@ -561,9 +549,7 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          {}
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
             {[
               { id: "all", label: `All Staff (${dateRecords.length})` },
@@ -587,7 +573,6 @@ export default function AttendanceCalendarSection({
             ))}
           </div>
 
-          {}
           <div className="relative min-w-[240px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -600,7 +585,6 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        {}
         {dateLoading ? (
           <div className="py-16 text-center text-slate-500 font-medium text-sm space-y-2">
             <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -649,7 +633,6 @@ export default function AttendanceCalendarSection({
 
                   return (
                     <tr key={emp.id || emp.employeeId} className="hover:bg-slate-50/60 transition">
-                      {}
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
@@ -675,7 +658,6 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5">
                         <div className="space-y-0.5 font-medium">
                           <div className="text-slate-700 truncate max-w-[220px]" title={emp.email}>
@@ -691,13 +673,11 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5">
                         <div className="font-semibold text-slate-700">{emp.department || "General"}</div>
                         <div className="text-[11px] text-slate-400">{emp.designation || "Employee"}</div>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5">
                         <div className="inline-flex items-center gap-1.5">
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border ${statusBg}`}>
@@ -713,21 +693,18 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5">
                         <span className="font-mono text-xs font-bold text-slate-800">
                           {emp.checkInTime ? formatTime12(emp.checkInTime) : "—"}
                         </span>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5">
                         <span className="font-mono text-xs font-bold text-slate-800">
                           {emp.checkOutTime ? formatTime12(emp.checkOutTime) : "—"}
                         </span>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5">
                         <div className="space-y-0.5">
                           <div className="font-mono font-bold text-blue-700">
@@ -739,7 +716,6 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      {}
                       <td className="px-4 py-3.5 text-right">
                         <button
                           type="button"

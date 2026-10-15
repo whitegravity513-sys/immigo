@@ -259,7 +259,6 @@ export default function AnnouncementsSection({
 
   return (
     <div className="space-y-5 text-slate-800">
-      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -276,7 +275,6 @@ export default function AnnouncementsSection({
             </div>
           </div>
 
-          {}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs">
               <Bell size={14} className="text-blue-600 shrink-0" />
@@ -303,7 +301,6 @@ export default function AnnouncementsSection({
         </div>
       </div>
 
-      {}
       {errorMsg && (
         <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-between gap-2 shadow-2xs">
           <div className="flex items-center gap-2">
@@ -336,11 +333,8 @@ export default function AnnouncementsSection({
         </div>
       )}
 
-      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {}
         <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          {}
           <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70">
             <div className="grid grid-cols-2 p-1 bg-slate-200/70 rounded-xl gap-1">
               {FORM_TABS.map((t) => {
@@ -370,7 +364,6 @@ export default function AnnouncementsSection({
             </div>
           </div>
 
-          {}
           <div className="p-4 sm:p-5">
             {type === "announcement" ? (
               <form onSubmit={handleAnnSubmit} className="space-y-4">
@@ -552,11 +545,8 @@ export default function AnnouncementsSection({
           </div>
         </div>
 
-        {}
         <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          {}
           <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {}
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
               <button
                 type="button"
@@ -585,7 +575,6 @@ export default function AnnouncementsSection({
               </button>
             </div>
 
-            {}
             <div className="flex items-center gap-2">
               <div className="relative flex-1 sm:flex-initial">
                 <Search
@@ -626,10 +615,8 @@ export default function AnnouncementsSection({
             </div>
           </div>
 
-          {}
           {listTab === "announcements" && (
             <div>
-              {}
               <div className="block md:hidden p-3.5 space-y-3">
                 {filteredAnnouncements.length === 0 ? (
                   <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -701,7 +688,6 @@ export default function AnnouncementsSection({
                 )}
               </div>
 
-              {}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -785,10 +771,8 @@ export default function AnnouncementsSection({
             </div>
           )}
 
-          {}
           {listTab === "holidays" && (
             <div>
-              {}
               <div className="block md:hidden p-3.5 space-y-3">
                 {filteredHolidays.length === 0 ? (
                   <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -808,7 +792,6 @@ export default function AnnouncementsSection({
                         className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white shadow-2xs flex items-start justify-between gap-3 transition-all"
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          {}
                           <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center shrink-0 shadow-2xs">
                             <span className="text-[9px] font-black text-amber-700 leading-none">
                               {cal.month}
@@ -862,7 +845,6 @@ export default function AnnouncementsSection({
                 )}
               </div>
 
-              {}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>

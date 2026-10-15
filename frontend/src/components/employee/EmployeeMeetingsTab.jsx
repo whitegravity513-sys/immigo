@@ -58,7 +58,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
 
   return (
     <div className="space-y-6">
-      {}
       <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -92,7 +91,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
         </div>
       ) : (
         <div className="space-y-6">
-          {}
           {todayMeetings.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -108,7 +106,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
             </div>
           )}
 
-          {}
           {upcomingMeetings.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
@@ -186,7 +183,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
           </div>
         </div>
 
-        {}
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
           <a
             href={meeting.meetingLink}

@@ -284,7 +284,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto text-slate-800">
-      {}
       {errorMsg && (
         <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-sm font-medium">
           <AlertCircle size={16} className="shrink-0" />
@@ -298,11 +297,9 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       )}
 
-      {}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-8">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
           <div className="flex items-center gap-5">
-            {}
             <div className="relative group">
               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-3xl flex items-center justify-center shadow-md border-2 border-white">
                 {profile?.profileImage ? (
@@ -321,7 +318,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
               </label>
             </div>
 
-            {}
             <div className="space-y-1">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">
@@ -345,7 +341,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
             </div>
           </div>
 
-          {}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-center min-w-[100px]">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Joined</span>
@@ -361,9 +356,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       </div>
 
-      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {}
         <div className="lg:col-span-1 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
@@ -499,7 +492,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
           </div>
         </div>
 
-        {}
         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
@@ -524,7 +516,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
               </button>
             </div>
 
-            {}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {REQUIRED_DOC_TYPES.map((item) => {
                 const existingDoc = uploadedDocs.find((d) => d.type === item.type);
@@ -591,7 +582,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                       </div>
                     </div>
 
-                    {}
                     {isRejected && (
                       <div className="pt-2 border-t border-rose-200/70 flex items-center justify-between gap-2">
                         <span className="text-[10px] text-rose-700 font-medium truncate" title={existingDoc.verificationNote}>
@@ -614,7 +604,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div>
@@ -721,7 +710,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       </div>
 
-      {}
       {uploadModalOpen && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
@@ -814,7 +802,6 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       )}
 
-      {}
       {previewDoc && (
         <div
           className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4"
