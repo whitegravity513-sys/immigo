@@ -185,12 +185,12 @@ export function VendorRegister() {
 
   return (
     <div className="h-screen w-full flex overflow-hidden bg-white">
-      {/* LEFT HALF: Full-Screen Fit Vendor Registration Showcase */}
-      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-white border-r border-slate-200 select-none">
+      {/* LEFT HALF: Natural-Proportion Vendor Registration Showcase */}
+      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-slate-900 border-r border-slate-200 select-none">
         <img
           src={vendorManpowerBanner}
           alt="Partner With Us - Build Global Opportunities"
-          className="w-full h-full object-fill block"
+          className="w-full h-full object-cover object-center block"
         />
       </div>
 
