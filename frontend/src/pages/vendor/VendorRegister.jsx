@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
-import manpowerSupplyBg from "../../assets/manpower-supply-bg.jpg";
+import panoramicMobilityBg from "../../assets/immigo-panoramic-bg.jpg";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -185,14 +185,15 @@ export function VendorRegister() {
 
   return (
     <div className="h-screen w-full flex overflow-hidden bg-white">
-      {/* LEFT HALF: Pure animated manpower image (clean, no text clutter) */}
-      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-slate-900 border-r border-slate-200">
+      {/* LEFT HALF: Animated Global Manpower & Mobility (Blueish CRM Theme) */}
+      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-blue-950 border-r border-blue-900/40">
         <div
           className="absolute inset-0 bg-cover bg-center animated-manpower-bg"
-          style={{ backgroundImage: `url(${manpowerSupplyBg})` }}
+          style={{ backgroundImage: `url(${panoramicMobilityBg})` }}
         />
-        {/* Subtle contrast gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/20 pointer-events-none" />
+        {/* Blueish CRM Aesthetic Gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-blue-900/35 to-blue-950/50 pointer-events-none" />
+        <div className="absolute inset-0 bg-blue-900/25 mix-blend-color pointer-events-none" />
       </div>
 
       {/* RIGHT HALF: Compact form fitting entire screen without scrolling */}
@@ -554,8 +555,11 @@ export function VendorRegister() {
 
         {/* Footer */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-          <span>&copy; {new Date().getFullYear()} ImmiGo CRM</span>
-          <span>Security Verified</span>
+          <span>&copy; {new Date().getFullYear()} ImmiGo CRM &bull; Designed by White Gravity Web Solutions</span>
+          <span className="flex items-center gap-1 text-slate-500">
+            <ShieldCheck size={12} className="text-emerald-600" />
+            <span>SSL Secured</span>
+          </span>
         </div>
       </div>
     </div>
