@@ -87,7 +87,7 @@ export function ClientManpowerTab({ client }) {
                           </td>
                           <td className="py-2.5 px-3 text-right font-bold text-gray-900">
                             {pos.salary
-                              ? `${pos.currency || "AED"} ${pos.salary.toLocaleString()}`
+                              ? `${pos.currency || "AED"} ${Number(pos.salary || 0).toLocaleString()}`
                               : "Negotiable"}
                           </td>
                           <td className="py-2.5 px-3 text-gray-600 text-[11px]">

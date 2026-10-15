@@ -14,7 +14,9 @@ import DocumentsList from "../../components/crm/documents/DocumentsList.jsx";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 import { RecordClientPaymentModal } from "../../components/crm/payments/RecordClientPaymentModal.jsx";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
-import crmClientService from "../../services/crmClientService.js";
+import crmClientService, {
+  calculateClientManpower,
+} from "../../services/crmClientService.js";
 import {
   ClientDetailHeader,
   ClientOverviewTab,
@@ -152,6 +154,10 @@ export function ClientDetails() {
 
   if (!client) return null;
 
+  const totalClientManpower = calculateClientManpower(client);
+  const primaryContact =
+    client.contacts?.find((c) => c.isPrimary) || client.contacts?.[0];
+
   const tabs = [
     { id: "overview", label: "Overview", icon: Building2 },
     { id: "projects", label: `Projects (${client.projects?.length || 0})`, icon: FolderKanban },
@@ -172,7 +178,12 @@ export function ClientDetails() {
       />
 
       {activeTab === "overview" && (
-        <ClientOverviewTab client={client} formatDate={formatDate} />
+        <ClientOverviewTab
+          client={client}
+          formatDate={formatDate}
+          totalClientManpower={totalClientManpower}
+          primaryContact={primaryContact}
+        />
       )}
 
       {activeTab === "projects" && (

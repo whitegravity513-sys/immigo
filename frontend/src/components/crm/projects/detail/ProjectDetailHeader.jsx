@@ -101,7 +101,7 @@ export function ProjectDetailHeader({
                   Total Required Headcount
                 </span>
                 <span className="text-xl font-extrabold text-blue-700 leading-tight">
-                  {totalRequired.toLocaleString()} Persons
+                  {Number(totalRequired || 0).toLocaleString()} Persons
                 </span>
               </div>
             </div>

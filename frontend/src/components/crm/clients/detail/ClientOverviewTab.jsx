@@ -11,6 +11,22 @@ import {
 export function ClientOverviewTab({ client, totalClientManpower, primaryContact }) {
   if (!client) return null;
 
+  const contact =
+    primaryContact ||
+    client.contacts?.find((c) => c.isPrimary) ||
+    client.contacts?.[0];
+
+  const manpower =
+    totalClientManpower !== undefined && totalClientManpower !== null
+      ? totalClientManpower
+      : (client.projects || []).reduce((sum, p) => {
+          const posTotal = (p.positions || []).reduce(
+            (s, pos) => s + (Number(pos.quantity) || 0),
+            0
+          );
+          return sum + posTotal;
+        }, 0);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -29,7 +45,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
             Total Required Manpower
           </p>
           <p className="text-2xl font-bold text-blue-700 mt-1">
-            {totalClientManpower.toLocaleString()} Persons
+            {Number(manpower || 0).toLocaleString()} Persons
           </p>
           <p className="text-xs text-gray-500 mt-1">Sum across all trades & projects</p>
         </div>
@@ -144,17 +160,17 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
             </h3>
           </div>
 
-          {primaryContact ? (
+          {contact ? (
             <div className="space-y-4 text-xs">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0 border border-blue-100">
-                  {primaryContact.name.charAt(0).toUpperCase()}
+                  {contact.name?.charAt(0).toUpperCase() || "C"}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-900">{primaryContact.name}</p>
+                  <p className="text-sm font-bold text-gray-900">{contact.name || "Contact Person"}</p>
                   <p className="text-xs text-gray-500">
-                    {primaryContact.designation || "HR Lead"} •{" "}
-                    {primaryContact.department || "Human Resources"}
+                    {contact.designation || "HR Lead"} •{" "}
+                    {contact.department || "Human Resources"}
                   </p>
                 </div>
               </div>
@@ -163,11 +179,11 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
                 <div>
                   <span className="text-gray-400 block text-[11px]">Email Address</span>
                   <a
-                    href={`mailto:${primaryContact.email}`}
+                    href={`mailto:${contact.email}`}
                     className="font-semibold text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
                   >
                     <Mail size={12} />
-                    <span>{primaryContact.email}</span>
+                    <span>{contact.email || "—"}</span>
                   </a>
                 </div>
 
@@ -175,24 +191,24 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
                   <span className="text-gray-400 block text-[11px]">Phone Number</span>
                   <span className="font-semibold text-gray-900 flex items-center gap-1 mt-0.5">
                     <Phone size={12} className="text-gray-400" />
-                    <span>{primaryContact.phone}</span>
+                    <span>{contact.phone || "—"}</span>
                   </span>
                 </div>
 
-                {primaryContact.whatsapp && (
+                {contact.whatsapp && (
                   <div>
                     <span className="text-gray-400 block text-[11px]">WhatsApp</span>
                     <span className="font-semibold text-emerald-700 mt-0.5 block">
-                      {primaryContact.whatsapp}
+                      {contact.whatsapp}
                     </span>
                   </div>
                 )}
 
-                {primaryContact.altPhone && (
+                {contact.altPhone && (
                   <div>
                     <span className="text-gray-400 block text-[11px]">Alternative Phone</span>
                     <span className="font-semibold text-gray-800 mt-0.5 block">
-                      {primaryContact.altPhone}
+                      {contact.altPhone}
                     </span>
                   </div>
                 )}
