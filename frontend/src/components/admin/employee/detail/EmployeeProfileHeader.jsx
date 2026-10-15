@@ -8,7 +8,7 @@ import {
   Award,
   Briefcase,
 } from "lucide-react";
-import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
+import { EmployeeIdBadge } from "../../../common/ImmiGoLogo.jsx";
 
 export function EmployeeProfileHeader({
   emp,
