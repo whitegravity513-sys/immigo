@@ -34,6 +34,7 @@ import {
   Lock,
   UploadCloud,
   ExternalLink,
+  MoreVertical,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 import MouFullPageView from "../../../components/vendor/MouFullPageView.jsx";
@@ -63,6 +64,7 @@ export default function AdminVendorsList() {
   const [savingVendor, setSavingVendor] = useState(false);
   const [deleteTargetVendor, setDeleteTargetVendor] = useState(null);
   const [deletingVendor, setDeletingVendor] = useState(false);
+  const [openVendorMenuId, setOpenVendorMenuId] = useState(null);
   const [newVendorForm, setNewVendorForm] = useState({
     companyName: "",
     businessType: "Private Limited",
@@ -2421,7 +2423,7 @@ export default function AdminVendorsList() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[340px] pb-16">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50/90 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
@@ -2431,11 +2433,14 @@ export default function AdminVendorsList() {
                   <th className="py-3.5 px-4">Location</th>
                   <th className="py-3.5 px-4 text-center">MOU Status</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Action</th>
+                  <th className="py-3.5 px-4 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredVendors.map((v) => {
+                {filteredVendors.map((v, idx) => {
+                  const isNearBottom = filteredVendors.length > 4 && idx >= filteredVendors.length - 2;
+                  const isMenuOpen = openVendorMenuId === v.id;
+
                   return (
                     <tr
                       key={v.id}
@@ -2486,70 +2491,104 @@ export default function AdminVendorsList() {
 
                       <td className="py-4 px-4">{getStatusBadge(v.status)}</td>
 
-                      <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                          {/* Suspend option: Only for verified/approved vendors */}
-                          {(v.status === "Approved" || v.status === "Suspended") && (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleSuspend(v.id)}
-                              className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
-                                v.status === "Suspended"
-                                  ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                                  : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-                              }`}
-                              title={v.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}
-                            >
-                              <Ban size={12} />
-                              <span>{v.status === "Suspended" ? "Activate" : "Suspend"}</span>
-                            </button>
+                      <td className="py-4 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative inline-flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenVendorMenuId(isMenuOpen ? null : v.id)
+                            }
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                              isMenuOpen
+                                ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
+                                : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+                            }`}
+                            title="Actions"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {isMenuOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setOpenVendorMenuId(null)}
+                              />
+                              <div
+                                className={`absolute right-0 ${
+                                  isNearBottom
+                                    ? "bottom-full mb-1.5"
+                                    : "top-full mt-1.5"
+                                } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
+                              >
+                                <div className="py-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenVendorMenuId(null);
+                                      setSelectedVendor(v);
+                                      setShowDocsPage(false);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors cursor-pointer font-medium"
+                                  >
+                                    <Eye size={14} className="text-slate-400" />
+                                    <span>View Profile</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenVendorMenuId(null);
+                                      setEditingVendor(v);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors cursor-pointer font-medium"
+                                  >
+                                    <Edit size={14} className="text-slate-400" />
+                                    <span>Edit Vendor</span>
+                                  </button>
+                                  {(v.status === "Approved" || v.status === "Suspended") && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenVendorMenuId(null);
+                                        handleToggleSuspend(v.id);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-amber-50 hover:text-amber-700 text-left transition-colors cursor-pointer font-medium"
+                                    >
+                                      <Ban size={14} className="text-amber-500" />
+                                      <span>{v.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}</span>
+                                    </button>
+                                  )}
+                                  {["Pending", "Under Review", "Pending Verification"].includes(v.status) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenVendorMenuId(null);
+                                        setSelectedVendor(v);
+                                        setShowRejectModal(true);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 text-left transition-colors cursor-pointer font-medium"
+                                    >
+                                      <XCircle size={14} className="text-rose-500" />
+                                      <span>Reject Registration</span>
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="py-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenVendorMenuId(null);
+                                      setDeleteTargetVendor(v);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 text-left transition-colors cursor-pointer font-semibold"
+                                  >
+                                    <Trash2 size={14} />
+                                    <span>Delete Vendor</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </>
                           )}
-
-                          {/* Reject option: Only for registered / pending vendors */}
-                          {["Pending", "Under Review", "Pending Verification"].includes(v.status) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedVendor(v);
-                                setShowRejectModal(true);
-                              }}
-                              className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
-                              title="Reject Registration"
-                            >
-                              <XCircle size={12} />
-                              <span>Reject</span>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => setEditingVendor(v)}
-                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
-                            title="Edit Vendor"
-                          >
-                            <Edit size={13} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTargetVendor(v)}
-                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
-                            title="Delete Vendor"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedVendor(v);
-                              setShowDocsPage(false);
-                            }}
-                            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>View</span>
-                          </button>
                         </div>
                       </td>
                     </tr>

@@ -302,7 +302,7 @@ export function Clients() {
                   <th className="py-3.5 px-4 text-center">Manpower</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4">Created Date</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-3.5 px-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -311,7 +311,7 @@ export function Clients() {
                     client.contacts?.find((c) => c.isPrimary) || client.contacts?.[0];
                   const manpowerCount = calculateClientManpower(client);
                   const isMenuOpen = openMenuId === client.id;
-                  const isNearBottom = idx >= clients.length - 2;
+                  const isNearBottom = clients.length > 4 && idx >= clients.length - 2;
 
                   return (
                     <tr
@@ -388,58 +388,53 @@ export function Clients() {
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="relative inline-flex items-center gap-1.5">
-                          <Link
-                            to={`/client/clients/${client.id}`}
-                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                            title="View Client Profile"
-                          >
-                            <Eye size={15} />
-                          </Link>
-
-                          <Link
-                            to={`/client/clients/${client.id}/edit`}
-                            className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                            title="Edit Client"
-                          >
-                            <Edit2 size={15} />
-                          </Link>
-
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="relative inline-flex items-center justify-center">
                           <button
                             type="button"
-                            onClick={() => setDeleteClientTarget(client)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                            title="Delete Client Profile"
+                            onClick={() =>
+                              setOpenMenuId(isMenuOpen ? null : client.id)
+                            }
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                              isMenuOpen
+                                ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                            }`}
+                            title="Actions"
                           >
-                            <Trash2 size={15} />
+                            <MoreVertical size={16} />
                           </button>
 
-                          {/* 3-dot Dropdown */}
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setOpenMenuId(isMenuOpen ? null : client.id)
-                              }
-                              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <MoreVertical size={15} />
-                            </button>
-
-                            {isMenuOpen && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-30"
-                                  onClick={() => setOpenMenuId(null)}
-                                />
-                                <div
-                                  className={`absolute right-0 ${
-                                    isNearBottom
-                                      ? "bottom-full mb-1"
-                                      : "top-full mt-1"
-                                  } w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50 text-xs`}
-                                >
+                          {isMenuOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setOpenMenuId(null)}
+                              />
+                              <div
+                                className={`absolute right-0 ${
+                                  isNearBottom
+                                    ? "bottom-full mb-1.5"
+                                    : "top-full mt-1.5"
+                                } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
+                              >
+                                <div className="py-1">
+                                  <Link
+                                    to={`/client/clients/${client.id}`}
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors font-medium"
+                                  >
+                                    <Eye size={14} className="text-gray-400" />
+                                    <span>View Overview</span>
+                                  </Link>
+                                  <Link
+                                    to={`/client/clients/${client.id}/edit`}
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors font-medium"
+                                  >
+                                    <Edit2 size={14} className="text-gray-400" />
+                                    <span>Edit Information</span>
+                                  </Link>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -451,37 +446,23 @@ export function Clients() {
                                     <FolderPlus size={14} />
                                     <span>Direct Add Project</span>
                                   </button>
-                                  <Link
-                                    to={`/clients/${client.id}`}
-                                    onClick={() => setOpenMenuId(null)}
-                                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                  >
-                                    <Eye size={14} className="text-gray-400" />
-                                    <span>View Overview</span>
-                                  </Link>
-                                  <Link
-                                    to={`/clients/${client.id}/edit`}
-                                    onClick={() => setOpenMenuId(null)}
-                                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
-                                  >
-                                    <Edit2 size={14} className="text-gray-400" />
-                                    <span>Edit Information</span>
-                                  </Link>
+                                </div>
+                                <div className="py-1">
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setOpenMenuId(null);
                                       setDeleteClientTarget(client);
                                     }}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 text-left transition-colors cursor-pointer font-medium"
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 text-left transition-colors cursor-pointer font-semibold"
                                   >
                                     <Trash2 size={14} />
                                     <span>Delete Client</span>
                                   </button>
                                 </div>
-                              </>
-                            )}
-                          </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

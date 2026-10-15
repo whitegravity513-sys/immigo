@@ -590,8 +590,13 @@ export const crmVendorService = {
       console.warn("Backend delete vendor fallback:", e);
     }
 
-    const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-    const filtered = vendors.filter((v) => v.id !== vendorId && v.vendorId !== vendorId && v._id !== vendorId);
+    const vendors = loadData(VENDORS_STORAGE_KEY, []);
+    const filtered = vendors.filter(
+      (v) =>
+        String(v.id) !== String(vendorId) &&
+        String(v.vendorId) !== String(vendorId) &&
+        String(v._id) !== String(vendorId)
+    );
     saveData(VENDORS_STORAGE_KEY, filtered);
     return { success: true, id: vendorId };
   },

@@ -277,11 +277,15 @@ export const crmClientService = {
 
   // Delete client
   deleteClient: async (id) => {
-    await delay(80);
+    try {
+      await apiClient.delete(`/crm-sync/clients/${id}`);
+    } catch (err) {
+      console.warn("Backend deleteClient failed:", err);
+    }
     let all = loadClientsFromStorage();
-    all = all.filter((c) => String(c.id) !== String(id) && String(c._id) !== String(id));
+    all = all.filter((c) => String(c.id) !== String(id) && String(c._id) !== String(id) && String(c.clientId) !== String(id));
     saveClientsToStorage(all);
-    return { success: true };
+    return { success: true, id };
   },
 
   // Add project to an existing client
@@ -540,15 +544,35 @@ export const crmClientService = {
 
   // Delete a project
   deleteProject: async (clientId, projectId) => {
-    await delay(80);
+    try {
+      if (clientId) {
+        await apiClient.delete(`/crm-sync/clients/${clientId}/projects/${projectId}`);
+      } else {
+        await apiClient.delete(`/crm-sync/projects/${projectId}`);
+      }
+    } catch (err) {
+      console.warn("Backend deleteProject failed:", err);
+    }
     const all = loadClientsFromStorage();
-    const client = all.find((c) => String(c.id) === String(clientId));
-    if (!client) throw new Error("Client not found");
-
-    client.projects = (client.projects || []).filter((p) => String(p.id) !== String(projectId));
-    client.updatedAt = new Date().toISOString();
-    saveClientsToStorage(all);
-    return { success: true };
+    const client = all.find((c) => String(c.id) === String(clientId) || String(c.clientId) === String(clientId));
+    if (client) {
+      client.projects = (client.projects || []).filter(
+        (p) => String(p.id) !== String(projectId) && String(p._id) !== String(projectId)
+      );
+      client.updatedAt = new Date().toISOString();
+      saveClientsToStorage(all);
+    } else {
+      // Also pull from any other client in storage
+      all.forEach((c) => {
+        if (Array.isArray(c.projects)) {
+          c.projects = c.projects.filter(
+            (p) => String(p.id) !== String(projectId) && String(p._id) !== String(projectId)
+          );
+        }
+      });
+      saveClientsToStorage(all);
+    }
+    return { success: true, id: projectId };
   },
 
   // Add a manpower position to a project

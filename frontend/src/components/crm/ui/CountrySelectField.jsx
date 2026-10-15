@@ -62,7 +62,6 @@ export function CountrySelectField({
             id={name}
             name={name}
             type="text"
-            list={`${name}-datalist`}
             value={value ?? ""}
             onChange={onChange}
             disabled={disabled}
@@ -115,13 +114,6 @@ export function CountrySelectField({
             </div>
           </>
         )}
-
-        {/* Datalist for autocomplete even when typing manually */}
-        <datalist id={`${name}-datalist`}>
-          {ALL_COUNTRIES.map((c) => (
-            <option key={`dl-${c}`} value={c} />
-          ))}
-        </datalist>
       </div>
 
       {error ? (

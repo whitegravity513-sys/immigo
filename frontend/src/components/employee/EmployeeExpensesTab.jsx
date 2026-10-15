@@ -383,7 +383,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                 <input
                   type="text"
                   required
-                  list="category-suggestions"
                   placeholder="Type category (e.g. Travel, Food, Office Supplies, Lodging)"
                   value={formData.categoryName || ""}
                   onChange={(e) => {
@@ -397,20 +396,6 @@ export default function EmployeeExpensesTab({ user, token }) {
                   }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-semibold focus:outline-none focus:border-blue-500 transition-all placeholder:font-normal placeholder:text-slate-400"
                 />
-                <datalist id="category-suggestions">
-                  {categories.map((c) => (
-                    <option key={c._id || c.id} value={c.name} />
-                  ))}
-                  <option value="Travel / Taxi / Cab" />
-                  <option value="Client Dinner / Meeting" />
-                  <option value="Office Supplies & Stationery" />
-                  <option value="Phone / Internet Recharge" />
-                  <option value="Government & Embassy Fees" />
-                  <option value="Hotel & Lodging" />
-                  <option value="Fuel / Petrol" />
-                  <option value="Courier / Speed Post" />
-                  <option value="General & Miscellaneous" />
-                </datalist>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

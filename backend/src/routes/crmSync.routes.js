@@ -2,7 +2,9 @@ import express from "express";
 import {
   getClients,
   saveClient,
+  deleteClient,
   addOrUpdateProject,
+  deleteProject,
   getAvailableProjects,
   getApplications,
   submitApplication,
@@ -21,7 +23,10 @@ const router = express.Router();
 
 router.get("/clients", getClients);
 router.post("/clients", saveClient);
+router.delete("/clients/:id", deleteClient);
 router.post("/projects", addOrUpdateProject);
+router.delete("/clients/:clientId/projects/:projectId", deleteProject);
+router.delete("/projects/:projectId", deleteProject);
 router.get("/projects", getAvailableProjects);
 router.get("/applications", getApplications);
 router.post("/applications", submitApplication);

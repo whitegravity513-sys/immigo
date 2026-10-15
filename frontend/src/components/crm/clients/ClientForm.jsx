@@ -113,33 +113,17 @@ export function ClientForm({
       {
         id: "mls-1",
         name: "Milestone 1",
-        amount: "25000",
-        condition: "Candidate successfully selected",
-        timeline: "Within 7 days of selection",
-        description: "Candidate selection mobilization advance and documentation expenses",
-      },
-      {
-        id: "mls-2",
-        name: "Milestone 2",
-        amount: "15000",
-        condition: "Candidate visa process completed",
-        timeline: "Within 15 days",
-        description: "Visa processing, medical clearance and attestation expenses",
-      },
-      {
-        id: "mls-3",
-        name: "Milestone 3",
-        amount: "10000",
-        condition: "Final agreed recruitment payment",
-        timeline: "Within 30 days",
-        description: "Deployment completion and final agreed recruitment payment",
+        amount: "",
+        condition: "",
+        timeline: "",
+        description: "",
       },
     ],
   });
 
   const [totalPaymentInput, setTotalPaymentInput] = useState(() => {
     if (initialData?.totalAgreedAmount) return String(initialData.totalAgreedAmount);
-    return "50000";
+    return "";
   });
   const [errors, setErrors] = useState({});
   const [panFile, setPanFile] = useState(null);
@@ -210,26 +194,10 @@ export function ClientForm({
                 {
                   id: "mls-1",
                   name: "Milestone 1",
-                  amount: "25000",
-                  condition: "Candidate successfully selected",
-                  timeline: "Within 7 days of selection",
-                  description: "Candidate selection mobilization advance",
-                },
-                {
-                  id: "mls-2",
-                  name: "Milestone 2",
-                  amount: "15000",
-                  condition: "Candidate visa process completed",
-                  timeline: "Within 15 days",
-                  description: "Visa processing and embassy documentation",
-                },
-                {
-                  id: "mls-3",
-                  name: "Milestone 3",
-                  amount: "10000",
-                  condition: "Final agreed recruitment payment",
-                  timeline: "Within 30 days",
-                  description: "Final agreed recruitment payment upon deployment",
+                  amount: "",
+                  condition: "",
+                  timeline: "",
+                  description: "",
                 },
               ],
       });
@@ -1196,7 +1164,6 @@ export function ClientForm({
                       </label>
                       <input
                         type="text"
-                        list={`conditions-list-${idx}`}
                         value={milestone.condition}
                         onChange={(e) => handleMilestoneChange(idx, "condition", e.target.value)}
                         placeholder="e.g. Candidate successfully selected"
@@ -1204,13 +1171,6 @@ export function ClientForm({
                           errors[`milestone_${idx}_condition`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
                         }`}
                       />
-                      <datalist id={`conditions-list-${idx}`}>
-                        <option value="Candidate successfully selected" />
-                        <option value="Candidate visa process completed" />
-                        <option value="Medical clearance and documentation completed" />
-                        <option value="Final agreed recruitment payment" />
-                        <option value="Deployment on project site completed" />
-                      </datalist>
                       {errors[`milestone_${idx}_condition`] && (
                         <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
                           <AlertCircle size={10} /> {errors[`milestone_${idx}_condition`]}
@@ -1225,18 +1185,11 @@ export function ClientForm({
                       </label>
                       <input
                         type="text"
-                        list={`timelines-list-${idx}`}
                         value={milestone.timeline}
                         onChange={(e) => handleMilestoneChange(idx, "timeline", e.target.value)}
                         placeholder="e.g. Within 7 days of selection"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
-                      <datalist id={`timelines-list-${idx}`}>
-                        <option value="Within 7 days of selection" />
-                        <option value="Within 15 days" />
-                        <option value="Within 30 days" />
-                        <option value="Within 45 days of deployment" />
-                      </datalist>
                     </div>
                   </div>
 

@@ -1,11 +1,41 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Plus, MapPin, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Plus,
+  MapPin,
+  MoreVertical,
+  Eye,
+  Edit2,
+  Trash2,
+  Clock,
+} from "lucide-react";
 import StatusBadge from "../../ui/StatusBadge.jsx";
-import { calculateProjectManpower } from "../../../../services/crmClientService.js";
+import DeleteConfirmModal from "../../../../components/common/DeleteConfirmModal.jsx";
+import crmClientService, {
+  calculateProjectManpower,
+} from "../../../../services/crmClientService.js";
 
 export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
+  const navigate = useNavigate();
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteTargetProject, setDeleteTargetProject] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   if (!client) return null;
+
+  const handleDelete = async () => {
+    if (!deleteTargetProject) return;
+    setIsDeleting(true);
+    try {
+      await crmClientService.deleteProject(client.id, deleteTargetProject.id);
+      setDeleteTargetProject(null);
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -38,7 +68,7 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[300px] pb-16">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
@@ -48,12 +78,17 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                   <th className="py-3.5 px-4 text-center">Required Manpower</th>
                   <th className="py-3.5 px-4">Start Date</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-3.5 px-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {(client.projects || []).map((project) => {
+                {(client.projects || []).map((project, idx) => {
                   const reqCount = calculateProjectManpower(project);
+                  const isNearBottom =
+                    (client.projects || []).length > 4 &&
+                    idx >= (client.projects || []).length - 2;
+                  const isMenuOpen = openMenuId === project.id;
+
                   return (
                     <tr key={project.id} className="hover:bg-blue-50/30 transition-colors">
                       <td className="py-3.5 px-4 sm:px-6">
@@ -99,14 +134,86 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                           </button>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <Link
-                          to={`/client/clients/${client.id}/projects/${project.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                        >
-                          <span>View Project</span>
-                          <ArrowRight size={13} />
-                        </Link>
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="relative inline-flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenMenuId(isMenuOpen ? null : project.id)
+                            }
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                              isMenuOpen
+                                ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
+                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                            }`}
+                            title="Actions"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+
+                          {isMenuOpen && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setOpenMenuId(null)}
+                              />
+                              <div
+                                className={`absolute right-0 ${
+                                  isNearBottom
+                                    ? "bottom-full mb-1.5"
+                                    : "top-full mt-1.5"
+                                } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
+                              >
+                                <div className="py-1">
+                                  <Link
+                                    to={`/client/clients/${client.id}/projects/${project.id}`}
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors font-medium"
+                                  >
+                                    <Eye size={14} className="text-gray-400" />
+                                    <span>View Details</span>
+                                  </Link>
+                                  <Link
+                                    to={`/client/clients/${client.id}/projects/${project.id}/edit`}
+                                    onClick={() => setOpenMenuId(null)}
+                                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors font-medium"
+                                  >
+                                    <Edit2 size={14} className="text-gray-400" />
+                                    <span>Edit Project</span>
+                                  </Link>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      handleToggleProjectStatus(project.id);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors cursor-pointer font-medium"
+                                  >
+                                    <Clock size={14} className="text-gray-400" />
+                                    <span>
+                                      {project.status === "Active"
+                                        ? "Set Inactive"
+                                        : "Set Active"}
+                                    </span>
+                                  </button>
+                                </div>
+                                <div className="py-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      setDeleteTargetProject(project);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 text-left transition-colors cursor-pointer font-semibold"
+                                  >
+                                    <Trash2 size={14} />
+                                    <span>Delete Project</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -116,6 +223,17 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
           </div>
         )}
       </div>
+
+      <DeleteConfirmModal
+        isOpen={deleteTargetProject !== null}
+        onClose={() => setDeleteTargetProject(null)}
+        onConfirm={handleDelete}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${deleteTargetProject?.projectName}"? All trade requirements under this project will be removed.`}
+        itemName={deleteTargetProject?.projectName}
+        loading={isDeleting}
+        confirmText="Delete Project"
+      />
     </div>
   );
 }

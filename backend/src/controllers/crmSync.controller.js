@@ -1,4 +1,5 @@
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
+import Client from "../models/Client.js";
 import Project from "../models/Project.js";
 import CrmCandidateApplication from "../models/CrmCandidateApplication.js";
 import CrmCandidate from "../models/CrmCandidate.js";
@@ -670,10 +671,127 @@ export const saveCandidate = asyncHandler(async (req, res) => {
   });
 });
 
+// DELETE /api/crm-sync/clients/:id
+export const deleteClient = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ success: false, message: "Client ID required" });
+  }
+
+  const query = [{ clientId: String(id) }, { id: String(id) }];
+  if (typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id)) {
+    query.push({ _id: id });
+  }
+
+  // Delete from CrmOverseasClient
+  const deletedCrm = await CrmOverseasClient.findOneAndDelete({ $or: query });
+
+  // Also delete from Client model if present
+  try {
+    await Client.deleteMany({
+      $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { company: id }, { clientId: id }],
+    });
+  } catch {}
+
+  // Also delete any client payments recorded for this client
+  try {
+    await ClientPayment.deleteMany({ clientId: String(id) });
+  } catch {}
+
+  // Record audit activity
+  try {
+    await ActivityService.recordActivity({
+      action: "DELETE",
+      module: "CRM",
+      targetId: id,
+      description: `Client organization ${deletedCrm?.companyName || id} was deleted from CRM.`,
+      performedBy: req.user?.name || "Admin",
+      performedByRole: "admin",
+    });
+  } catch {}
+
+  return res.status(200).json({
+    success: true,
+    message: "Client organization deleted successfully.",
+    id,
+  });
+});
+
+// DELETE /api/crm-sync/clients/:clientId/projects/:projectId OR /api/crm-sync/projects/:projectId
+export const deleteProject = asyncHandler(async (req, res) => {
+  const { clientId, projectId, id } = req.params;
+  const targetProjectId = projectId || id;
+
+  if (!targetProjectId) {
+    return res.status(400).json({ success: false, message: "Project ID required" });
+  }
+
+  // Remove project from CrmOverseasClient
+  if (clientId) {
+    const clientQuery = [{ clientId: String(clientId) }, { id: String(clientId) }];
+    if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+      clientQuery.push({ _id: clientId });
+    }
+    await CrmOverseasClient.updateMany(
+      { $or: clientQuery },
+      {
+        $pull: {
+          projects: {
+            $or: [{ id: String(targetProjectId) }, { _id: targetProjectId }],
+          },
+        },
+      }
+    );
+  } else {
+    // If no clientId specified, pull from all clients that contain this project
+    await CrmOverseasClient.updateMany(
+      {},
+      {
+        $pull: {
+          projects: {
+            $or: [{ id: String(targetProjectId) }, { _id: targetProjectId }],
+          },
+        },
+      }
+    );
+  }
+
+  // Also delete from Project collection if it exists there
+  try {
+    await Project.deleteMany({
+      $or: [
+        { _id: targetProjectId.match(/^[0-9a-fA-F]{24}$/) ? targetProjectId : null },
+        { projectId: targetProjectId },
+        { id: targetProjectId },
+      ],
+    });
+  } catch {}
+
+  // Record activity
+  try {
+    await ActivityService.recordActivity({
+      action: "DELETE",
+      module: "CRM",
+      targetId: targetProjectId,
+      description: `Project (${targetProjectId}) deleted from CRM.`,
+      performedBy: req.user?.name || "Admin",
+      performedByRole: "admin",
+    });
+  } catch {}
+
+  return res.status(200).json({
+    success: true,
+    message: "Project deleted successfully.",
+    id: targetProjectId,
+  });
+});
+
 export default {
   getClients,
   saveClient,
+  deleteClient,
   addOrUpdateProject,
+  deleteProject,
   getAvailableProjects,
   getApplications,
   submitApplication,

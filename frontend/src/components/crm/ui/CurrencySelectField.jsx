@@ -54,7 +54,6 @@ export function CurrencySelectField({
             id={name}
             name={name}
             type="text"
-            list={`${name}-cur-datalist`}
             value={value ?? ""}
             onChange={onChange}
             disabled={disabled}
@@ -82,14 +81,6 @@ export function CurrencySelectField({
             </div>
           </>
         )}
-
-        <datalist id={`${name}-cur-datalist`}>
-          {POPULAR_CURRENCIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.label}
-            </option>
-          ))}
-        </datalist>
       </div>
 
       {error && <p className="text-xs text-red-600 font-medium">{error}</p>}

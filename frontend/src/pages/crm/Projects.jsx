@@ -17,6 +17,9 @@ import {
   ToggleRight,
   ExternalLink,
   Edit3,
+  Edit2,
+  Eye,
+  MoreVertical,
   Trash2,
 } from "lucide-react";
 import StatCard from "../../components/crm/ui/StatCard.jsx";
@@ -39,8 +42,7 @@ export function Projects() {
   const [statusFilter, setStatusFilter] = useState(urlStatus);
   const [countryFilter, setCountryFilter] = useState("All");
   const [clientFilter, setClientFilter] = useState("All");
-
-  // Edit Project Modal State (Removed)
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
     const s = searchParams.get("status");
@@ -260,7 +262,7 @@ export function Projects() {
         ) : (
           <>
             {/* Desktop Table View (>= 768px) */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto min-h-[340px] pb-16">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
@@ -270,121 +272,179 @@ export function Projects() {
                     <th className="py-3 px-4">Country & Location</th>
                     <th className="py-3 px-4 text-center">Headcount</th>
                     <th className="py-3 px-4">Status & Toggle</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {projects.map((proj) => (
-                    <tr
-                      key={proj.id}
-                      className="hover:bg-blue-50/30 transition-colors"
-                    >
-                      {/* Project ID */}
-                      <td className="py-3.5 px-4 font-mono font-bold text-blue-700">
-                        <Link
-                          to={`/client/projects/${proj.id}`}
-                          className="hover:underline bg-blue-50 px-2 py-0.5 rounded border border-blue-100"
-                        >
-                          {proj.id}
-                        </Link>
-                      </td>
+                  {projects.map((proj, idx) => {
+                    const isNearBottom = projects.length > 4 && idx >= projects.length - 2;
+                    const isMenuOpen = openMenuId === proj.id;
 
-                      {/* Project Name & Type */}
-                      <td className="py-3.5 px-4">
-                        <Link
-                          to={`/client/projects/${proj.id}`}
-                          className="font-bold text-gray-900 hover:text-blue-600 block text-xs"
-                        >
-                          {proj.projectName}
-                        </Link>
-                        <span className="text-[11px] text-gray-400">
-                          {proj.projectType || "General"} • {proj.duration || "24 Months"}
-                        </span>
-                      </td>
-
-                      {/* Client Company */}
-                      <td className="py-3.5 px-4">
-                        <div className="font-semibold text-gray-800 flex items-center gap-1.5">
-                          <Building2 size={13} className="text-gray-400 shrink-0" />
-                          <span className="truncate max-w-[160px]">{proj.clientName}</span>
-                        </div>
-                        <span className="text-[10px] text-gray-400 font-mono">
-                          ID: {proj.clientId}
-                        </span>
-                      </td>
-
-                      {/* Country & Location */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                          <MapPin size={13} className="text-blue-500 shrink-0" />
-                          <span>{proj.country}</span>
-                        </div>
-                        {proj.location && (
-                          <span className="text-[11px] text-gray-400 block truncate max-w-[150px]">
-                            {proj.location}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Headcount */}
-                      <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 font-bold text-xs border border-blue-200">
-                          {proj.totalManpower} Persons
-                        </span>
-                        <span className="text-[10px] text-gray-400 block mt-0.5">
-                          {proj.manpowerRequirements?.length || 0} Trades
-                        </span>
-                      </td>
-
-                      {/* Status & Quick Toggle */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <StatusBadge status={proj.status} size="sm" />
-                          <button
-                            type="button"
-                            onClick={(e) =>
-                              handleToggleStatus(e, proj.clientId, proj.id, proj.status)
-                            }
-                            className="px-2 py-0.5 text-[10px] font-semibold text-gray-600 hover:text-blue-700 hover:bg-blue-50 border border-gray-200 rounded transition-colors cursor-pointer"
-                            title={`Click to set ${proj.status === "Active" ? "Inactive" : "Active"}`}
-                          >
-                            {proj.status === "Active" ? "Set Inactive" : "Set Active"}
-                          </button>
-                        </div>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleEditProject(proj)}
-                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
-                            title="Edit Project Details"
-                          >
-                            <Edit3 size={14} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTargetProject(proj)}
-                            className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs"
-                            title="Delete Project"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-
+                    return (
+                      <tr
+                        key={proj.id}
+                        className="hover:bg-blue-50/30 transition-colors"
+                      >
+                        {/* Project ID */}
+                        <td className="py-3.5 px-4 font-mono font-bold text-blue-700">
                           <Link
                             to={`/client/projects/${proj.id}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+                            className="hover:underline bg-blue-50 px-2 py-0.5 rounded border border-blue-100"
                           >
-                            <span>View</span>
-                            <ArrowRight size={13} />
+                            {proj.id}
                           </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        {/* Project Name & Type */}
+                        <td className="py-3.5 px-4">
+                          <Link
+                            to={`/client/projects/${proj.id}`}
+                            className="font-bold text-gray-900 hover:text-blue-600 block text-xs"
+                          >
+                            {proj.projectName}
+                          </Link>
+                          <span className="text-[11px] text-gray-400">
+                            {proj.projectType || "General"} • {proj.duration || "24 Months"}
+                          </span>
+                        </td>
+
+                        {/* Client Company */}
+                        <td className="py-3.5 px-4">
+                          <div className="font-semibold text-gray-800 flex items-center gap-1.5">
+                            <Building2 size={13} className="text-gray-400 shrink-0" />
+                            <span className="truncate max-w-[160px]">{proj.clientName}</span>
+                          </div>
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            ID: {proj.clientId}
+                          </span>
+                        </td>
+
+                        {/* Country & Location */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 text-gray-700 font-medium">
+                            <MapPin size={13} className="text-blue-500 shrink-0" />
+                            <span>{proj.country}</span>
+                          </div>
+                          {proj.location && (
+                            <span className="text-[11px] text-gray-400 block truncate max-w-[150px]">
+                              {proj.location}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Headcount */}
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 font-bold text-xs border border-blue-200">
+                            {proj.totalManpower} Persons
+                          </span>
+                          <span className="text-[10px] text-gray-400 block mt-0.5">
+                            {proj.manpowerRequirements?.length || 0} Trades
+                          </span>
+                        </td>
+
+                        {/* Status & Quick Toggle */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <StatusBadge status={proj.status} size="sm" />
+                            <button
+                              type="button"
+                              onClick={(e) =>
+                                handleToggleStatus(e, proj.clientId, proj.id, proj.status)
+                              }
+                              className="px-2 py-0.5 text-[10px] font-semibold text-gray-600 hover:text-blue-700 hover:bg-blue-50 border border-gray-200 rounded transition-colors cursor-pointer"
+                              title={`Click to set ${proj.status === "Active" ? "Inactive" : "Active"}`}
+                            >
+                              {proj.status === "Active" ? "Set Inactive" : "Set Active"}
+                            </button>
+                          </div>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="relative inline-flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenMenuId(isMenuOpen ? null : proj.id)
+                              }
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                                isMenuOpen
+                                  ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
+                                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                              }`}
+                              title="Actions"
+                            >
+                              <MoreVertical size={16} />
+                            </button>
+
+                            {isMenuOpen && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-40"
+                                  onClick={() => setOpenMenuId(null)}
+                                />
+                                <div
+                                  className={`absolute right-0 ${
+                                    isNearBottom
+                                      ? "bottom-full mb-1.5"
+                                      : "top-full mt-1.5"
+                                  } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
+                                >
+                                  <div className="py-1">
+                                    <Link
+                                      to={`/client/projects/${proj.id}`}
+                                      onClick={() => setOpenMenuId(null)}
+                                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors font-medium"
+                                    >
+                                      <Eye size={14} className="text-gray-400" />
+                                      <span>View Details</span>
+                                    </Link>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenMenuId(null);
+                                        handleEditProject(proj);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors cursor-pointer font-medium"
+                                    >
+                                      <Edit2 size={14} className="text-gray-400" />
+                                      <span>Edit Project</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        setOpenMenuId(null);
+                                        handleToggleStatus(e, proj.clientId, proj.id, proj.status);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors cursor-pointer font-medium"
+                                    >
+                                      <Clock size={14} className="text-gray-400" />
+                                      <span>
+                                        {proj.status === "Active" ? "Set Inactive" : "Set Active"}
+                                      </span>
+                                    </button>
+                                  </div>
+                                  <div className="py-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenMenuId(null);
+                                        setDeleteTargetProject(proj);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 text-left transition-colors cursor-pointer font-semibold"
+                                    >
+                                      <Trash2 size={14} />
+                                      <span>Delete Project</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -516,15 +516,15 @@ export const updateVendor = asyncHandler(async (req, res) => {
 
 export const deleteVendor = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const vendor = await Vendor.findOneAndDelete({
-    $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { vendorId: id }],
-  });
-
-  if (!vendor) {
-    throw new ApiError(404, "Vendor not found");
+  const query = [{ vendorId: id }, { id: id }];
+  if (typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id)) {
+    query.push({ _id: id });
   }
 
+  const vendor = await Vendor.findOneAndDelete({ $or: query });
+
   return res.status(200).json({
+    success: true,
     message: "Vendor removed successfully",
     id,
   });
