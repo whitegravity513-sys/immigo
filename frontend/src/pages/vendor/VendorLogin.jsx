@@ -23,6 +23,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
+import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
 
 export function VendorLogin() {
   const navigate = useNavigate();
@@ -467,59 +468,17 @@ export function VendorLogin() {
         <span className="font-bold text-white">Designed by White Gravity Web Solutions</span>
       </footer>
 
-      {/* Forgot Password Modal */}
-      {showForgotModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900">Reset Vendor Password</h3>
-              <button
-                type="button"
-                onClick={() => setShowForgotModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {forgotSent ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-bold text-center space-y-1">
-                <CheckCircle2 size={24} className="mx-auto text-emerald-600 mb-1" />
-                <p>Password reset link sent to your registered email!</p>
-              </div>
-            ) : (
-              <form onSubmit={handleForgotSubmit} className="space-y-3">
-                <p className="text-xs text-slate-500">
-                  Enter your registered vendor email address below to receive password recovery instructions.
-                </p>
-                <input
-                  type="email"
-                  required
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  placeholder="vendor@company.com"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-600"
-                />
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotModal(false)}
-                    className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-2xs hover:bg-blue-700"
-                  >
-                    Send Reset Link
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Real OTP Forgot Password Modal for Vendor */}
+      <ForgotPasswordOtpModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        role="vendor"
+        initialEmail={emailOrId}
+        onSuccess={(verifiedEmail) => {
+          setShowForgotModal(false);
+          if (verifiedEmail) setEmailOrId(verifiedEmail);
+        }}
+      />
     </div>
   );
 }

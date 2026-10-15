@@ -389,12 +389,14 @@ export const sendCredentialsEmail = async ({
   name = "Team Member",
   role = "User",
   loginId = "",
+  email = "",
   password = "",
   portalUrl = "",
   loginType = "Enterprise Portal",
 }) => {
-  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const finalPortalUrl = portalUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`;
   const designatedRecipient = process.env.VENDOR_NOTIFICATION_EMAIL || "abhishekyadav36219@gmail.com";
+  const isEmployee = loginType.toLowerCase().includes("employee");
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -408,11 +410,11 @@ export const sendCredentialsEmail = async ({
     .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
     .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
     .creds-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
-    .cred-row { padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
+    .cred-row { padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
     .cred-row:last-child { border-bottom: none; }
     .cred-label { font-weight: 600; color: #64748b; margin-right: 8px; }
-    .cred-value { font-weight: 700; color: #0f172a; font-family: monospace; }
-    .btn { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-bottom: 20px; text-align: center; }
+    .cred-value { font-weight: 800; color: #0f172a; font-family: monospace; font-size: 14px; }
+    .btn { display: inline-block; background-color: #3b2875; color: #ffffff !important; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 9999px; text-decoration: none; margin-bottom: 20px; text-align: center; }
     .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
   </style>
 </head>
@@ -421,9 +423,9 @@ export const sendCredentialsEmail = async ({
     <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
       <tr>
         <td valign="middle" style="line-height: 1;">
-          <span style="font-size: 28px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
-          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            Global Mobility & Workforce
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #3b2875; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #3b2875; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            Workforce & Global Operations
           </div>
         </td>
       </tr>
@@ -431,21 +433,26 @@ export const sendCredentialsEmail = async ({
 
     <div class="title">Welcome, ${name}!</div>
     <div class="text">
-      Your official account for <strong>${loginType}</strong> (${role}) has been created. Here are your portal access credentials:
+      Your official account for <strong>${loginType}</strong> (${role}) has been created. Here are your credentials to sign in:
     </div>
 
     <div class="creds-box">
       <div class="cred-row">
-        <span class="cred-label">Login ID / Email:</span>
-        <span class="cred-value">${loginId || to}</span>
+        <span class="cred-label">${isEmployee ? "Employee ID (Login with this):" : "Login ID:"}</span>
+        <span class="cred-value" style="color: #2563eb;">${loginId || to}</span>
       </div>
+      ${email ? `
+      <div class="cred-row">
+        <span class="cred-label">Company Email:</span>
+        <span class="cred-value" style="font-family: inherit; font-weight: 600;">${email}</span>
+      </div>` : ""}
       <div class="cred-row">
         <span class="cred-label">Password:</span>
         <span class="cred-value">${password}</span>
       </div>
       <div class="cred-row">
-        <span class="cred-label">Portal Access URL:</span>
-        <span class="cred-value"><a href="${finalPortalUrl}">${finalPortalUrl}</a></span>
+        <span class="cred-label">Portal URL:</span>
+        <span class="cred-value"><a href="${finalPortalUrl}" style="color: #2563eb; text-decoration: underline;">${finalPortalUrl}</a></span>
       </div>
     </div>
 
@@ -454,28 +461,28 @@ export const sendCredentialsEmail = async ({
     </div>
 
     <div class="text" style="font-size: 12px; color: #64748b;">
-      <em>Security Notice:</em> Please keep your credentials secure and update your password after your first login.
+      <em>Notice:</em> For security compliance, please do not share your login credentials with anyone.
     </div>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} ImmiGo Global Mobility CRM. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo Global Enterprise. All rights reserved.
     </div>
   </div>
 </body>
 </html>
   `;
 
-  const recipients = [to];
-  if (designatedRecipient && designatedRecipient !== to && !recipients.includes(designatedRecipient)) {
+  const recipients = Array.isArray(to) ? to : [to];
+  if (designatedRecipient && !recipients.includes(designatedRecipient)) {
     recipients.push(designatedRecipient);
   }
 
   const mailOptions = {
     from: process.env.EMAIL_FROM || '"ImmiGo Global" <abhishekyadav36219@gmail.com>',
     to: recipients.join(", "),
-    subject: `[ImmiGo] Account Credentials & Portal Access (${loginType})`,
+    subject: `[ImmiGo] Official Account Created - Your Credentials & Login URL (${loginType})`,
     html: htmlContent,
-    text: `Hello ${name},\n\nYour account credentials:\nLogin ID: ${loginId || to}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials safe.`,
+    text: `Hello ${name},\n\nYour account credentials:\n${isEmployee ? "Employee ID" : "Login ID"}: ${loginId || to}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials safe.`,
   };
 
   logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId}`);

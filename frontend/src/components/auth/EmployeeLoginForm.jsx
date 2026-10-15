@@ -59,7 +59,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
 
       <div>
         <label className="block text-xs font-bold text-slate-700 mb-1">
-          Official Email or Employee ID
+          Employee ID
         </label>
         <div className="relative">
           <Users size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
@@ -68,8 +68,14 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
             required
             autoFocus
             value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="e.g. Immi-0926-1598 or email"
+            onChange={(e) => {
+              const val = e.target.value;
+              setIdentifier(val);
+              if (val.includes("@")) {
+                setError("Please enter your Employee ID only (e.g. IMMI-001). Email login is not allowed for employee accounts.");
+              }
+            }}
+            placeholder="e.g. IMMI-001 or VESTA-001"
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>

@@ -6,19 +6,23 @@ import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const employeeLogin = asyncHandler(async (req, res) => {
-  const { email, employeeId, password } = req.body;
-  const identifier = String(email || employeeId || "").trim();
+  const { employeeId, email, password } = req.body;
+  const identifier = String(employeeId || email || "").trim();
   const cleanPassword = String(password || "").trim();
 
   if (!identifier || !cleanPassword) {
-    throw new ApiError(400, "Email/Employee ID and password are required");
+    throw new ApiError(400, "Employee ID and password are required.");
+  }
+
+  // Reject email addresses: Employee must use Employee ID only
+  if (identifier.includes("@")) {
+    throw new ApiError(400, "Please login with your Employee ID only (e.g. IMMI-001). Email login is not allowed for employee accounts.");
   }
 
   const escapedIdentifier = identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const alphanumeric = identifier.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
   const employee = await Employee.findOne({
     $or: [
-      { email: identifier.toLowerCase() },
       { employeeId: identifier },
       { employeeId: identifier.toUpperCase() },
       { employeeId: { $regex: new RegExp(`^${escapedIdentifier}$`, "i") } },
@@ -28,7 +32,7 @@ export const employeeLogin = asyncHandler(async (req, res) => {
   });
 
   if (!employee) {
-    throw new ApiError(401, "Invalid credentials");
+    throw new ApiError(401, "Invalid Employee ID or password.");
   }
 
   if (employee.status === "inactive") {
@@ -43,9 +47,7 @@ export const employeeLogin = asyncHandler(async (req, res) => {
      cleanPassword === "Password@123" ||
      cleanPassword === "admin" ||
      employee.employeeId?.toUpperCase() === "IMMI-001" ||
-     employee.employeeId?.toUpperCase() === "VESTA-001" ||
-     employee.email?.toLowerCase() === "employee@immigo.com" ||
-     employee.email?.toLowerCase() === "employee@vesta.in")
+     employee.employeeId?.toUpperCase() === "VESTA-001")
   ) {
     isMatch = true;
     const newHash = await bcrypt.hash("12345", 10);
@@ -55,7 +57,7 @@ export const employeeLogin = asyncHandler(async (req, res) => {
   }
 
   if (!isMatch) {
-    throw new ApiError(401, "Invalid credentials");
+    throw new ApiError(401, "Invalid Employee ID or password.");
   }
 
   const token = jwt.sign(

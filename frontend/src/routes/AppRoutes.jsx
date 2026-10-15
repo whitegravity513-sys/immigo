@@ -6,6 +6,8 @@ import LoadingFallback from "../components/common/LoadingFallback.jsx";
 
 // Auth
 const UnifiedLogin = lazy(() => import("../pages/UnifiedLogin.jsx"));
+const AdminLoginPage = lazy(() => import("../pages/admin/AdminLoginPage.jsx"));
+const EmployeeLoginPage = lazy(() => import("../pages/employee/EmployeeLoginPage.jsx"));
 
 // 1. Main Admin Central Dashboard
 const MainAdminDashboard = lazy(() => import("../pages/admin/MainAdminDashboard.jsx"));
@@ -88,7 +90,40 @@ export default function AppRoutes() {
         <Route path="/vendor/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/admin/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
 
-        {/* Auth Routes */}
+        {/* Dedicated Standalone Auth Routes with distinct URLs */}
+        <Route
+          path="/admin/login"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Navigate to="/admin/dashboard" replace />
+            ) : (
+              <AdminLoginPage />
+            )
+          }
+        />
+        <Route
+          path="/employee/login"
+          element={
+            isAuthenticated && !isAdmin && !isVendor ? (
+              <Navigate to="/employee/dashboard" replace />
+            ) : (
+              <EmployeeLoginPage />
+            )
+          }
+        />
+        <Route
+          path="/vendor/login"
+          element={
+            isAuthenticated && isVendor ? (
+              <Navigate to="/vendor/dashboard" replace />
+            ) : (
+              <VendorLogin />
+            )
+          }
+        />
+        <Route path="/vendor/register" element={<VendorRegister />} />
+
+        {/* Central /login route: smart redirect or fallback */}
         <Route
           path="/login"
           element={
@@ -104,17 +139,10 @@ export default function AppRoutes() {
                 replace
               />
             ) : (
-              <UnifiedLogin />
+              <Navigate to="/admin/login" replace />
             )
           }
         />
-
-        <Route path="/admin/login" element={<Navigate to="/login?role=admin" replace />} />
-        <Route path="/employee/login" element={<Navigate to="/login?role=employee" replace />} />
-
-        {/* Vendor Public Auth Routes */}
-        <Route path="/vendor/login" element={<VendorLogin />} />
-        <Route path="/vendor/register" element={<VendorRegister />} />
 
         {/* 1. Main Admin Central Dashboard (Default landing for Admin) */}
         <Route

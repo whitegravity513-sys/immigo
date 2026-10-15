@@ -6,6 +6,8 @@ import env from "../config/env.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
+import { requestAndSendOtp, verifyOtp } from "../services/otp.service.js";
+import { OTP_PURPOSES } from "../models/Otp.js";
 
 export const vendorRegister = asyncHandler(async (req, res) => {
   const {
@@ -331,6 +333,92 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
   });
 });
 
+export const vendorForgotPassword = asyncHandler(async (req, res) => {
+  const { emailOrId } = req.body;
+  if (!emailOrId) {
+    throw new ApiError(400, "Registered Email or Vendor ID is required");
+  }
+
+  const cleanIdentifier = String(emailOrId).trim().toLowerCase();
+
+  const vendor = await Vendor.findOne({
+    $or: [
+      { email: cleanIdentifier },
+      { vendorId: cleanIdentifier.toUpperCase() },
+    ],
+  });
+
+  if (!vendor) {
+    throw new ApiError(404, "No registered vendor found with this Email or Vendor ID.");
+  }
+
+  const ipAddress = req.ip || req.connection?.remoteAddress;
+
+  await requestAndSendOtp({
+    email: vendor.email,
+    purpose: OTP_PURPOSES.PASSWORD_RESET,
+    name: vendor.contactPersonName || vendor.companyName || "Vendor Partner",
+    ipAddress,
+  });
+
+  const [userPart, domain] = vendor.email.split("@");
+  const maskedEmail = userPart.slice(0, 2) + "*".repeat(Math.max(1, userPart.length - 2)) + "@" + (domain || "");
+
+  return res.status(200).json({
+    success: true,
+    message: `A 6-digit verification OTP has been sent from abhishekyadav36219@gmail.com to your registered email (${maskedEmail}).`,
+    email: vendor.email,
+  });
+});
+
+export const vendorResetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    throw new ApiError(400, "Email, OTP code, and new password are required");
+  }
+
+  const cleanEmail = String(email).trim().toLowerCase();
+
+  if (String(newPassword).trim().length < 6) {
+    throw new ApiError(400, "New password must be at least 6 characters long");
+  }
+
+  const vendor = await Vendor.findOne({ email: cleanEmail });
+  if (!vendor) {
+    throw new ApiError(404, "Vendor account not found for this email");
+  }
+
+  await verifyOtp({
+    email: cleanEmail,
+    otp: String(otp).trim(),
+    purpose: OTP_PURPOSES.PASSWORD_RESET,
+  });
+
+  const hashedPassword = await bcrypt.hash(String(newPassword).trim(), 10);
+  vendor.password = hashedPassword;
+  await vendor.save();
+
+  await ActivityService.log({
+    userType: "VENDOR",
+    userId: vendor.vendorId,
+    userName: vendor.companyName,
+    action: "VENDOR_PASSWORD_RESET",
+    title: `Password Reset: ${vendor.companyName}`,
+    description: `Vendor partner ${vendor.companyName} (${vendor.vendorId}) successfully reset their password via email OTP verification.`,
+    entityType: "Vendor",
+    entityId: vendor.vendorId,
+    entityName: vendor.companyName,
+    status: "Completed",
+    visibility: "ALL",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Vendor password updated successfully! You can now log in with your new password.",
+  });
+});
+
 export default {
   vendorRegister,
   vendorLogin,
@@ -338,4 +426,6 @@ export default {
   uploadVendorDocuments,
   signVendorMou,
   updateVendorProfile,
+  vendorForgotPassword,
+  vendorResetPassword,
 };

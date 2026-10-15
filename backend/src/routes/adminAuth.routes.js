@@ -2,6 +2,8 @@ import express from "express";
 import {
   adminLogin,
   verifyAdminOtp,
+  adminForgotPassword,
+  adminResetPassword,
   getAdmin,
   refreshAdminToken,
   logoutAdmin,
@@ -14,6 +16,8 @@ const router = express.Router();
 
 router.post("/login", authLimiter, adminLogin);
 router.post("/verify-otp", otpLimiter, verifyAdminOtp);
+router.post("/forgot-password", otpLimiter, adminForgotPassword);
+router.post("/reset-password", authLimiter, adminResetPassword);
 router.get("/me", verifyAdmin, getAdmin);
 router.post("/refresh-token", refreshAdminToken);
 router.post("/logout", logoutAdmin);

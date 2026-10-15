@@ -195,13 +195,18 @@ export class EmployeeService {
     });
 
     try {
+      const recipientEmails = [];
+      if (cleanPersonalEmail) recipientEmails.push(cleanPersonalEmail);
+      if (cleanEmail && !recipientEmails.includes(cleanEmail)) recipientEmails.push(cleanEmail);
+
       await sendCredentialsEmail({
-        to: cleanPersonalEmail || cleanEmail,
+        to: recipientEmails.length > 0 ? recipientEmails : cleanEmail,
         name: name.trim(),
         role: designation || role || "Employee",
-        loginId: cleanEmail,
+        loginId: finalEmployeeId,
+        email: cleanEmail,
         password: password,
-        portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+        portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`,
         loginType: "Employee Portal",
       });
     } catch (mailErr) {
