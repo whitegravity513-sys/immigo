@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
-import panoramicMobilityBg from "../../assets/immigo-panoramic-bg.jpg";
+import vendorManpowerBanner from "../../assets/vendor-manpower-banner.jpg";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -185,15 +185,13 @@ export function VendorRegister() {
 
   return (
     <div className="h-screen w-full flex overflow-hidden bg-white">
-      {/* LEFT HALF: Animated Global Manpower & Mobility (Blueish CRM Theme) */}
-      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-blue-950 border-r border-blue-900/40">
-        <div
-          className="absolute inset-0 bg-cover bg-center animated-manpower-bg"
-          style={{ backgroundImage: `url(${panoramicMobilityBg})` }}
+      {/* LEFT HALF: Full-Width Cover Vendor Registration Showcase */}
+      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-slate-900 border-r border-slate-200 select-none">
+        <img
+          src={vendorManpowerBanner}
+          alt="Partner With Us - Build Global Opportunities"
+          className="w-full h-full object-cover object-top animated-manpower-bg"
         />
-        {/* Blueish CRM Aesthetic Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-blue-900/35 to-blue-950/50 pointer-events-none" />
-        <div className="absolute inset-0 bg-blue-900/25 mix-blend-color pointer-events-none" />
       </div>
 
       {/* RIGHT HALF: Compact form fitting entire screen without scrolling */}
