@@ -8,6 +8,7 @@ import { getTodayDateString, isWeeklyOff, getWorkingDays } from "../utils/dateUt
 import { ApiError } from "../utils/apiError.js";
 import { saveBase64File } from "../utils/fileStorage.js";
 import NotificationService from "./notification.service.js";
+import { sendCredentialsEmail } from "./email.service.js";
 
 const cleanObjectId = (id) => {
   const str = String(id || "").replace(/^virtual-/, "").trim();
@@ -192,6 +193,20 @@ export class EmployeeService {
       profileImage: savedProfileImage,
       documents: formattedDocs,
     });
+
+    try {
+      await sendCredentialsEmail({
+        to: cleanPersonalEmail || cleanEmail,
+        name: name.trim(),
+        role: designation || role || "Employee",
+        loginId: cleanEmail,
+        password: password,
+        portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+        loginType: "Employee Portal",
+      });
+    } catch (mailErr) {
+      console.error("Failed to send employee credentials email:", mailErr.message);
+    }
 
     return this.formatEmployee(newEmployee);
   }

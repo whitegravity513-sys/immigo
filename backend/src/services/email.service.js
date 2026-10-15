@@ -358,9 +358,115 @@ export const sendVendorActivationEmail = async ({
   }
 };
 
+/**
+ * Send Account Login Credentials Email (ID, Password, Portal URL)
+ */
+export const sendCredentialsEmail = async ({
+  to,
+  name = "Team Member",
+  role = "User",
+  loginId = "",
+  password = "",
+  portalUrl = "",
+  loginType = "Enterprise Portal",
+}) => {
+  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const designatedRecipient = process.env.VENDOR_NOTIFICATION_EMAIL || "abhishekyadav36219@gmail.com";
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Account Credentials - Vista</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .brand { font-size: 20px; font-weight: 800; color: #2563eb; margin-bottom: 16px; letter-spacing: -0.5px; }
+    .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+    .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+    .creds-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
+    .cred-row { padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
+    .cred-row:last-child { border-bottom: none; }
+    .cred-label { font-weight: 600; color: #64748b; margin-right: 8px; }
+    .cred-value { font-weight: 700; color: #0f172a; font-family: monospace; }
+    .btn { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-bottom: 20px; text-align: center; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">VISTA ENTERPRISE CRM</div>
+    <div class="title">Welcome, ${name}!</div>
+    <div class="text">
+      Your official account for <strong>${loginType}</strong> (${role}) has been created. Here are your portal access credentials:
+    </div>
+
+    <div class="creds-box">
+      <div class="cred-row">
+        <span class="cred-label">Login ID / Email:</span>
+        <span class="cred-value">${loginId || to}</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Password:</span>
+        <span class="cred-value">${password}</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Portal Access URL:</span>
+        <span class="cred-value"><a href="${finalPortalUrl}">${finalPortalUrl}</a></span>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="${finalPortalUrl}" class="btn">Log In to Portal</a>
+    </div>
+
+    <div class="text" style="font-size: 12px; color: #64748b;">
+      <em>Security Notice:</em> Please keep your credentials secure and update your password after your first login.
+    </div>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} Vista Global Manpower CRM. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const recipients = [to];
+  if (designatedRecipient && designatedRecipient !== to && !recipients.includes(designatedRecipient)) {
+    recipients.push(designatedRecipient);
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || '"Vista Enterprise" <abhishekyadav36219@gmail.com>',
+    to: recipients.join(", "),
+    subject: `[Vista] Account Credentials & Portal Access (${loginType})`,
+    html: htmlContent,
+    text: `Hello ${name},\n\nYour account credentials:\nLogin ID: ${loginId || to}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials safe.`,
+  };
+
+  logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId}`);
+
+  if (!transporter) {
+    logger.info("Transporter not active. Simulated credentials email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Credentials email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send credentials email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 export default {
   sendOtpEmail,
   sendVendorRegistrationApprovedEmail,
   sendVendorActivationEmail,
+  sendCredentialsEmail,
 };
 

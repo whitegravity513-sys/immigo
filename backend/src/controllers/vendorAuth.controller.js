@@ -5,6 +5,7 @@ import ActivityService from "../services/activity.service.js";
 import env from "../config/env.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { sendCredentialsEmail } from "../services/email.service.js";
 
 export const vendorRegister = asyncHandler(async (req, res) => {
   const {
@@ -90,6 +91,20 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     visibility: "ADMIN",
     metadata: { email: newVendor.email, phone: newVendor.phone, pan: newVendor.pan },
   });
+
+  try {
+    await sendCredentialsEmail({
+      to: newVendor.email,
+      name: newVendor.contactPersonName || newVendor.companyName,
+      role: "Vendor Partner",
+      loginId: newVendor.email,
+      password: password,
+      portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+      loginType: "Vendor Portal",
+    });
+  } catch (mailErr) {
+    console.error("Failed to dispatch vendor credentials email:", mailErr.message);
+  }
 
   return res.status(201).json({
     success: true,
