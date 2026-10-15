@@ -288,14 +288,7 @@ export function MainAdminDashboard() {
   return (
     <AdminMasterLayout title="Overview" subtitle="Real-time Operational Command Center">
       <div className="relative font-sans pb-6">
-        {/* Subtle Background Glow */}
-        <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl pointer-events-none">
-          <div className="absolute inset-0 bg-slate-50/50 backdrop-blur-[2px]"></div>
-          <div className="absolute top-[-10%] left-[-10%] w-[35%] h-[35%] bg-indigo-200/30 rounded-full blur-3xl orb-blue"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-purple-200/30 rounded-full blur-3xl orb-cyan"></div>
-        </div>
-
-        <div className="relative z-10 space-y-4">
+        <div className="space-y-4">
           
           {/* Main Stats Header - Compact */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">

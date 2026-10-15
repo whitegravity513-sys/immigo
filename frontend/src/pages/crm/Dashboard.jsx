@@ -14,7 +14,6 @@ import {
   Briefcase,
   Contact,
   FileText,
-  Sparkles,
   ExternalLink,
   ChevronRight,
   ShieldCheck,

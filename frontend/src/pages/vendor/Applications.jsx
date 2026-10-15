@@ -9,7 +9,6 @@ import {
   XCircle,
   ArrowRight,
   RotateCcw,
-  Sparkles,
   ExternalLink,
   Building2,
   MapPin,
@@ -114,7 +113,7 @@ export default function Applications() {
       case "Shortlisted":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-            <Sparkles className="w-3 h-3 text-purple-500" />
+            <CheckCircle2 className="w-3 h-3 text-purple-500" />
             Shortlisted
           </span>
         );

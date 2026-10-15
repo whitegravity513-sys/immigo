@@ -6,11 +6,9 @@ import { ApiError } from "../utils/apiError.js";
 import { logger } from "../utils/logger.js";
 
 export class ClientPaymentService {
-  /**
-   * Helper to recalculate Client totalAgreedAmount, totalPaidAmount, remainingAmount
-   */
+  
   static async recalculateClientTotals(clientId) {
-    // Check both CrmOverseasClient and Client models
+
     const clientQuery = [{ clientId: String(clientId) }];
     if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
       clientQuery.push({ _id: clientId });
@@ -21,7 +19,6 @@ export class ClientPaymentService {
       $or: [{ _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }, { company: clientId }],
     });
 
-    // Calculate sum of active payments for this client
     const clientIds = new Set([String(clientId)]);
     if (crmClient?._id) clientIds.add(String(crmClient._id));
     if (crmClient?.id) clientIds.add(String(crmClient.id));
@@ -37,7 +34,6 @@ export class ClientPaymentService {
 
     const totalPaid = successfulPayments.reduce((acc, p) => acc + (Number(p.amountPaid) || 0), 0);
 
-    // Sum of milestones
     let totalAgreed = 0;
     if (crmClient && Array.isArray(crmClient.paymentMilestones)) {
       totalAgreed = crmClient.paymentMilestones.reduce(
@@ -61,9 +57,6 @@ export class ClientPaymentService {
     return { totalAgreed, totalPaid, remainingAmount: Math.max(0, totalAgreed - totalPaid) };
   }
 
-  /**
-   * Record a new client payment transaction
-   */
   static async recordPayment(paymentData, user = {}) {
     const {
       clientId,
@@ -96,7 +89,6 @@ export class ClientPaymentService {
       throw new ApiError(400, "Transaction Reference / UTR is required.");
     }
 
-    // Duplicate check: Prevent identical transaction reference for the same client
     const existingTx = await ClientPayment.findOne({
       clientId: String(clientId),
       transactionReference: String(transactionReference).trim(),
@@ -109,7 +101,6 @@ export class ClientPaymentService {
       );
     }
 
-    // Find client doc to locate milestone
     const clientQuery = [{ clientId: String(clientId) }];
     if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
       clientQuery.push({ _id: clientId });
@@ -158,11 +149,9 @@ export class ClientPaymentService {
       await effectiveClient.save();
     }
 
-    // Auto-generate Payment ID
     const count = await ClientPayment.countDocuments();
     const paymentId = `PAY-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`;
 
-    // Compute explicit GST
     const numericAmount = Number(amountPaid);
     let calculatedGstAmount = Number(gstAmount) || 0;
     let finalTotalTransaction = Number(totalTransactionAmount) || numericAmount;
@@ -218,10 +207,8 @@ export class ClientPaymentService {
       ],
     });
 
-    // Recalculate Client Totals
     await ClientPaymentService.recalculateClientTotals(clientId);
 
-    // Activity Log
     await ActivityService.log({
       userType: "ADMIN",
       userId: user.id || user._id,
@@ -246,9 +233,6 @@ export class ClientPaymentService {
     return newPayment;
   }
 
-  /**
-   * Reverse an existing payment
-   */
   static async reversePayment(paymentId, reason, user = {}) {
     const idStr = String(paymentId);
     const isHex = /^[0-9a-fA-F]{24}$/.test(idStr);
@@ -277,7 +261,6 @@ export class ClientPaymentService {
 
     await payment.save();
 
-    // Revert milestone balance on client
     const clientQuery = [{ clientId: String(payment.clientId) }];
     if (typeof payment.clientId === "string" && /^[0-9a-fA-F]{24}$/.test(payment.clientId)) {
       clientQuery.push({ _id: payment.clientId });
@@ -304,10 +287,8 @@ export class ClientPaymentService {
       }
     }
 
-    // Recalculate client totals
     await ClientPaymentService.recalculateClientTotals(payment.clientId);
 
-    // Activity Log
     await ActivityService.log({
       userType: "ADMIN",
       userId: user.id || user._id,
@@ -326,9 +307,6 @@ export class ClientPaymentService {
     return payment;
   }
 
-  /**
-   * Get payments with search, filters, and pagination
-   */
   static async getPayments({
     search = "",
     clientId,
@@ -411,11 +389,8 @@ export class ClientPaymentService {
     };
   }
 
-  /**
-   * Get Summary Ledger Statistics (calculated directly from active records)
-   */
   static async getLedgerStats(clientId = null) {
-    // 1. Gather all clients
+
     let crmQuery = {};
     if (clientId && clientId !== "ALL") {
       crmQuery = {
@@ -447,7 +422,6 @@ export class ClientPaymentService {
       });
     });
 
-    // 2. Sum of actual completed payments
     const paymentQuery = { paymentStatus: "Completed", isReversed: false };
     if (clientId && clientId !== "ALL") {
       paymentQuery.clientId = String(clientId);

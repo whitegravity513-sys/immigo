@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
-  Bell,
   Search,
   Plus,
   ChevronRight,
@@ -14,6 +13,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import SearchInput from "../ui/SearchInput.jsx";
+import NotificationBell from "../../admin/NotificationBell.jsx";
 
 export function CrmNavbar({
   mobileOpen,
@@ -137,69 +137,7 @@ export function CrmNavbar({
         </div>
 
         {/* Notification Bell */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-            title="Notifications"
-          >
-            <Bell size={18} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white" />
-          </button>
-
-          {/* Notifications Dropdown */}
-          {showNotifications && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setShowNotifications(false)}
-              />
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden animate-in fade-in duration-150">
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
-                  <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
-                    Notifications
-                  </h4>
-                  <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                    2 New
-                  </span>
-                </div>
-                <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto">
-                  <div className="p-3 hover:bg-gray-50 transition-colors cursor-pointer text-xs">
-                    <p className="font-semibold text-gray-900">
-                      New Requirement Added
-                    </p>
-                    <p className="text-gray-500 text-[11px] mt-0.5">
-                      ABC Construction LLC added 50 Masons for Dubai Tower.
-                    </p>
-                    <span className="text-[10px] text-gray-400 mt-1 block">
-                      10 mins ago
-                    </span>
-                  </div>
-                  <div className="p-3 hover:bg-gray-50 transition-colors cursor-pointer text-xs">
-                    <p className="font-semibold text-gray-900">
-                      Project Schedule Verified
-                    </p>
-                    <p className="text-gray-500 text-[11px] mt-0.5">
-                      Riyadh Metro Extension Line 4 approved for mobilization.
-                    </p>
-                    <span className="text-[10px] text-gray-400 mt-1 block">
-                      2 hours ago
-                    </span>
-                  </div>
-                </div>
-                <div className="p-2 border-t border-gray-100 bg-gray-50 text-center">
-                  <button
-                    onClick={() => setShowNotifications(false)}
-                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        <NotificationBell className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer border border-gray-200" />
 
         {/* Admin Profile Avatar */}
         <div className="flex items-center gap-2.5 pl-2 border-l border-gray-200">

@@ -10,8 +10,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 
 export default function DailyWorkLogSection() {
   const [logText, setLogText] = useState("");
@@ -254,7 +253,7 @@ export default function DailyWorkLogSection() {
           <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 animate-in fade-in duration-200">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 flex items-center gap-1">
-                <Sparkles size={12} className="text-blue-600" />
+                <Clock size={12} className="text-blue-600" />
                 Recent Work Log History (Past 30 Days)
               </span>
               <span className="text-[10px] text-slate-500">{historyLogs.length} logs found</span>

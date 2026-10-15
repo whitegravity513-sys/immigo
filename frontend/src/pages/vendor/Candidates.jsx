@@ -12,7 +12,6 @@ import {
   Briefcase,
   GraduationCap,
   Calendar,
-  Sparkles,
   Download,
   Trash2,
   Tag,

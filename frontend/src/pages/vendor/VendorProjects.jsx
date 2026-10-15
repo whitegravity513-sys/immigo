@@ -13,7 +13,6 @@ import {
   Clock,
   Briefcase,
   Globe,
-  Sparkles,
   List,
   LayoutGrid,
   CheckCircle2,

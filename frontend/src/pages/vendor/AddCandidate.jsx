@@ -8,7 +8,6 @@ import {
   Paperclip,
   Trash2,
   UploadCloud,
-  Sparkles,
   AlertCircle,
   X,
   FileText,

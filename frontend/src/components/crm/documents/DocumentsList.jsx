@@ -13,8 +13,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Paperclip,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 import AddDocumentModal from "./AddDocumentModal.jsx";
 import ConfirmDialog from "../ui/ConfirmDialog.jsx";
 import InputField from "../ui/InputField.jsx";

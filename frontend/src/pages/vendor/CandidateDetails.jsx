@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Sparkles,
   ExternalLink,
   X,
   Camera,

@@ -10,8 +10,7 @@ import {
   Calendar,
   User,
   Save,
-  Sparkles,
-} from 'lucide-react';
+  } from 'lucide-react';
 
 const formatHHMM = (val) => {
   if (!val) return '';

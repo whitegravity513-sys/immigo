@@ -2,9 +2,6 @@ import ActivityLog from "../models/ActivityLog.js";
 import { logger } from "../utils/logger.js";
 
 export class ActivityService {
-  /**
-   * Log an activity into MongoDB
-   */
   static async log({
     userType = "ADMIN",
     userId = "",
@@ -41,9 +38,6 @@ export class ActivityService {
     }
   }
 
-  /**
-   * Get activities for Admin (System-wide)
-   */
   static async getAdminActivities({ page = 1, limit = 20, entityType, search } = {}) {
     const query = {};
     if (entityType && entityType !== "ALL") {
@@ -80,9 +74,6 @@ export class ActivityService {
     };
   }
 
-  /**
-   * Get activities for an Employee (their own & public employee activities only)
-   */
   static async getEmployeeActivities(employeeId, { page = 1, limit = 15 } = {}) {
     const query = {
       $or: [

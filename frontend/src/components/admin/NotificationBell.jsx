@@ -11,7 +11,6 @@ import {
   Coffee,
   Play,
   Calendar,
-  Sparkles,
   X,
   Briefcase,
   Receipt,
@@ -269,7 +268,7 @@ export default function NotificationBell({ className }) {
           <div className="px-4 py-3.5 bg-slate-50 border-b border-slate-200 text-slate-900 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell size={17} className="text-indigo-600" />
-              <h3 className="font-extrabold text-sm text-slate-900 tracking-tight">Live Activity Feed</h3>
+              <h3 className="font-bold text-sm text-slate-900 tracking-tight">Notifications</h3>
               {unreadCount > 0 && (
                 <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-xs">
                   {unreadCount} New

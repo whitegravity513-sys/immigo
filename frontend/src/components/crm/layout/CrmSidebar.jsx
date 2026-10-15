@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Shield,
   ArrowRightLeft,
-  Sparkles,
   Plus,
   Users,
   Clock,

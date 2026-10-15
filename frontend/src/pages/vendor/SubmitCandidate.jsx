@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Sparkles,
   Search,
   ChevronRight,
   ShieldCheck,
@@ -655,7 +654,7 @@ export default function SubmitCandidate() {
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Sparkles size={12} className="text-emerald-500" />
+                  <CheckCircle2 size={12} className="text-emerald-500" />
                   <span>Fresh ({freshCount})</span>
                 </button>
                 <button
@@ -875,7 +874,7 @@ export default function SubmitCandidate() {
                         ) : c.category === "fresh" ? (
                           <div>
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <Sparkles size={11} className="text-emerald-600 shrink-0" />
+                              <UserCheck size={11} className="text-emerald-600 shrink-0" />
                               <span>Fresh Candidate</span>
                             </span>
                             <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">

@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Clock,
   Calendar,
-  Sparkles,
   RefreshCw,
   X,
   Edit,
@@ -293,7 +292,7 @@ export default function AnnouncementsSection({
 
             {upcomingHoliday && (
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-xs">
-                <Sparkles size={14} className="text-emerald-600 shrink-0" />
+                <Calendar size={14} className="text-emerald-600 shrink-0" />
                 <span className="text-slate-600 font-medium">Next:</span>
                 <span className="font-bold text-emerald-900 truncate max-w-[140px]">
                   {upcomingHoliday.title} ({fmtDate(upcomingHoliday.date)})

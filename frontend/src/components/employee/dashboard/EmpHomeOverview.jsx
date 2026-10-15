@@ -19,8 +19,7 @@ import {
   FileText,
   Megaphone,
   PartyPopper,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
 import EmployeeRecentActivitySection from "./EmployeeRecentActivitySection.jsx";
@@ -324,7 +323,7 @@ export default function EmpHomeOverview({
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 flex items-center gap-1">
-                    <Sparkles size={11} className="text-amber-700" />
+                    <Calendar size={11} className="text-amber-700" />
                     Official Company Holiday
                   </span>
                   <span className="text-xs font-bold text-amber-800">

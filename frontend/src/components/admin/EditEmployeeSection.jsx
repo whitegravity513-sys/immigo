@@ -13,7 +13,6 @@ import {
   EyeOff,
   Copy,
   Check,
-  Sparkles,
   ShieldAlert,
   Save,
   DollarSign,
@@ -436,7 +435,7 @@ export default function EditEmployeeSection({
                   className="inline-flex items-center gap-1 text-[10px] font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
                   title="Generate a random secure password"
                 >
-                  <Sparkles size={11} />
+                  <RefreshCw size={11} />
                   <span>Generate New</span>
                 </button>
               </div>

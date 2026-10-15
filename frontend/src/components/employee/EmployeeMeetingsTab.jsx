@@ -10,8 +10,7 @@ import {
   Users,
   UserCheck,
   AlertCircle,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 
 export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
   const [meetings, setMeetings] = useState(() => {

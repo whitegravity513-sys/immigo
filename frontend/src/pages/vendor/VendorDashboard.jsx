@@ -15,7 +15,6 @@ import {
   Building2,
   MapPin,
   Calendar,
-  Sparkles,
   Eye,
   Briefcase,
   FileText,

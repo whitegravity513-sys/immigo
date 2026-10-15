@@ -17,7 +17,6 @@ import {
   CreditCard,
   FileCheck,
   RotateCcw,
-  Sparkles,
   ExternalLink,
   Edit3,
   Sliders,

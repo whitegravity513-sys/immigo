@@ -5,7 +5,6 @@ import {
   CheckCheck,
   Video,
   ExternalLink,
-  Sparkles,
   Info,
   Clock,
   Calendar,

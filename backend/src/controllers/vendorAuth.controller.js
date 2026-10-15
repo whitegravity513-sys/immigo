@@ -6,9 +6,6 @@ import env from "../config/env.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-/**
- * Step 1: Vendor Registers (Short & Clean RA Style Form)
- */
 export const vendorRegister = asyncHandler(async (req, res) => {
   const {
     companyName,
@@ -28,19 +25,16 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Agency Name, Contact Person, Email, Mobile, PAN, and Password are required.");
   }
 
-  // Duplicate email check
   const existingEmail = await Vendor.findOne({ email: email.toLowerCase() });
   if (existingEmail) {
     throw new ApiError(400, "This official email is already registered as a vendor. Please sign in or contact support.");
   }
 
-  // Duplicate phone check
   const cleanPhone = String(phone).replace(/\D/g, "");
   if (cleanPhone.length < 10) {
     throw new ApiError(400, "Mobile number must be at least 10 digits.");
   }
 
-  // PAN format validation
   const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
   const cleanPan = String(pan).trim().toUpperCase();
   if (!panRegex.test(cleanPan)) {
@@ -63,12 +57,11 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     gstin: gstin ? String(gstin).trim().toUpperCase() : "",
     registrationNumber: registrationNumber || `REG-${Date.now().toString().slice(-5)}`,
     password: hashedPassword,
-    // Exact initial status: "Registration Pending"
+
     status: "Registration Pending",
     onboardingStage: "REGISTRATION_PENDING",
   });
 
-  // Notify Admin of new vendor registration
   try {
     const Notification = (await import("../models/Notification.js")).default;
     await Notification.create({
@@ -83,7 +76,6 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     console.error("Failed to notify admin of vendor registration:", err.message);
   }
 
-  // Log Activity for Admin Dashboard
   await ActivityService.log({
     userType: "VENDOR",
     userId: newVendor.vendorId,
@@ -113,9 +105,6 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Step 3: Vendor Login (Secured with Onboarding Authorization Checks)
- */
 export const vendorLogin = asyncHandler(async (req, res) => {
   const { emailOrId, password } = req.body;
   const identifier = String(emailOrId || "").trim().toLowerCase();
@@ -132,7 +121,6 @@ export const vendorLogin = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid Vendor ID/Email or Password.");
   }
 
-  // Check Onboarding & Approval Status Restrictions
   if (vendor.status === "Registration Pending" || vendor.status === "Pending") {
     throw new ApiError(
       403,
@@ -195,9 +183,6 @@ export const getVendorMe = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Step 4: Restricted Vendor Workspace - Upload Compliance Documents
- */
 export const uploadVendorDocuments = asyncHandler(async (req, res) => {
   const vendorId = req.user.id || req.user._id;
   const { documents, bankDetails } = req.body;
@@ -219,7 +204,6 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
   vendor.onboardingStage = "DOCS_SUBMITTED";
   await vendor.save();
 
-  // Create Notification for Admin
   try {
     const Notification = (await import("../models/Notification.js")).default;
     await Notification.create({
@@ -234,7 +218,6 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
     console.error("Failed to create admin notification:", err.message);
   }
 
-  // Log Activity for Admin Dashboard
   await ActivityService.log({
     userType: "VENDOR",
     userId: vendor.vendorId,
@@ -255,9 +238,6 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Step 6: Vendor Signs and Submits MOU (Digital Acknowledgement or Upload)
- */
 export const signVendorMou = asyncHandler(async (req, res) => {
   const vendorId = req.user.id || req.user._id;
   const {
@@ -289,7 +269,6 @@ export const signVendorMou = asyncHandler(async (req, res) => {
 
   await vendor.save();
 
-  // Create Notification for Admin
   try {
     const Notification = (await import("../models/Notification.js")).default;
     await Notification.create({
@@ -304,7 +283,6 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     console.error("Failed to create admin notification:", err.message);
   }
 
-  // Log Activity for Admin Dashboard
   await ActivityService.log({
     userType: "VENDOR",
     userId: vendor.vendorId,

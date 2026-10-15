@@ -14,7 +14,6 @@ import {
   Eye,
   Clock,
   Printer,
-  Sparkles,
   Calendar,
   PenTool,
 } from "lucide-react";

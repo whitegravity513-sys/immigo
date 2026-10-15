@@ -20,8 +20,7 @@ import {
   CheckCircle2,
   Send,
   X,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 
 export default function CalendarMeetings() {
   const [currentDate, setCurrentDate] = useState(new Date());

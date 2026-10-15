@@ -5,7 +5,6 @@ import {
   PanelLeftOpen,
   ChevronRight,
   Shield,
-  Sparkles,
   LogOut,
   LayoutDashboard,
 } from "lucide-react";

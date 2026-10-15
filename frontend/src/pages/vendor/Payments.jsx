@@ -19,8 +19,7 @@ import {
   ShieldCheck,
   ChevronRight,
   Layers,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
 export default function Payments() {

@@ -8,9 +8,9 @@ import {
   Shield,
   LogOut,
   LayoutDashboard,
-  Bell,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import NotificationBell from "../NotificationBell.jsx";
 
 export function AdminMasterNavbar({
   mobileOpen,
@@ -87,14 +87,7 @@ export function AdminMasterNavbar({
             <span>{adminName.charAt(0)}{adminName.length > 1 ? adminName.slice(1, 8) : ""}</span>
           </div>
 
-          <button
-            type="button"
-            className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs"
-            title="Notifications"
-          >
-            <Bell size={16} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-          </button>
+          <NotificationBell className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs" />
 
           <button
             type="button"

@@ -29,10 +29,6 @@ export const getVendorById = asyncHandler(async (req, res) => {
   return res.status(200).json({ vendor });
 });
 
-/**
- * Step 2: Admin reviews registration and Approves initial registration
- * Transitions to: "Documents Pending"
- */
 export const approveRegistration = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const vendor = await Vendor.findOne({
@@ -50,7 +46,6 @@ export const approveRegistration = asyncHandler(async (req, res) => {
   vendor.adminRemarks = req.body.remarks || "Initial registration approved. Please upload compliance documents.";
   await vendor.save();
 
-  // Send Registration Approval Email with portal URL
   try {
     await sendVendorRegistrationApprovedEmail({
       to: vendor.email,
@@ -63,7 +58,6 @@ export const approveRegistration = asyncHandler(async (req, res) => {
     console.error("Failed to send vendor registration approval email:", emailErr.message);
   }
 
-  // Create In-App Notification
   try {
     await Notification.create({
       type: "SYSTEM",
@@ -77,7 +71,6 @@ export const approveRegistration = asyncHandler(async (req, res) => {
     console.error("Notification creation error:", err.message);
   }
 
-  // Log Activity
   await ActivityService.log({
     userType: "ADMIN",
     userId: req.user?.id || req.user?._id,
@@ -98,9 +91,6 @@ export const approveRegistration = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Admin places vendor registration on Hold
- */
 export const holdRegistration = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { remarks } = req.body;
@@ -137,9 +127,6 @@ export const holdRegistration = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Step 5: Admin Document Verification & Automatic MOU Generation
- */
 export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const {
@@ -162,7 +149,6 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Vendor not found");
   }
 
-  // Mark all uploaded documents as verified
   if (Array.isArray(vendor.documents)) {
     vendor.documents.forEach((d) => {
       d.status = "Verified";
@@ -173,7 +159,6 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   vendor.onboardingStage = "MOU_SENT";
   vendor.mouStatus = "Sent";
 
-  // Automatically populate MOU using the vendor registration details already stored in DB
   vendor.mouDocument = {
     title: "Memorandum of Understanding (MOU) for Recruitment Services",
     sentAt: agreementDate ? new Date(agreementDate) : new Date(),
@@ -188,7 +173,7 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     adminDesignation: adminDesignation || "Director - Global Alliances",
     termsVersion: "v1.0",
     fileUrl: "",
-    // Auto-populated vendor details
+
     vendorCompanyName: vendor.companyName,
     vendorContactPerson: vendor.contactPersonName,
     vendorAddress: vendor.address || `${vendor.city || ""}, ${vendor.state || ""}, ${vendor.country || "India"}`.trim(),
@@ -200,7 +185,6 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
 
   await vendor.save();
 
-  // Notification for Vendor
   try {
     await Notification.create({
       type: "DOCUMENT_UPDATE",
@@ -214,7 +198,6 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     console.error("Notification creation error:", err.message);
   }
 
-  // Activity Log
   await ActivityService.log({
     userType: "ADMIN",
     userId: req.user?.id || req.user?._id,
@@ -235,9 +218,6 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Admin requests document correction
- */
 export const requestDocCorrection = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { remarks } = req.body;
@@ -287,14 +267,6 @@ export const requestDocCorrection = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Step 8: Final Vendor Activation (MOU Approval)
- * Activates vendor ONLY after:
- * 1. Vendor registration approved
- * 2. Required documents verified
- * 3. MOU signed and submitted
- * 4. MOU approved by admin
- */
 export const approveMouAndActivate = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const vendor = await Vendor.findOne({
@@ -314,7 +286,6 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
   vendor.mouStatus = "Approved";
   await vendor.save();
 
-  // Send Final Activation Email
   try {
     await sendVendorActivationEmail({
       to: vendor.email,
@@ -326,7 +297,6 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
     console.error("Failed to send activation email:", emailErr.message);
   }
 
-  // In-App Notification
   try {
     await Notification.create({
       type: "SYSTEM",
@@ -340,7 +310,6 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
     console.error("Notification error:", err.message);
   }
 
-  // Activity Log
   await ActivityService.log({
     userType: "ADMIN",
     userId: req.user?.id || req.user?._id,
@@ -398,7 +367,6 @@ export const requestMouCorrection = asyncHandler(async (req, res) => {
   });
 });
 
-// Backward-compatible alias
 export const approveVendor = approveMouAndActivate;
 
 export const rejectVendor = asyncHandler(async (req, res) => {

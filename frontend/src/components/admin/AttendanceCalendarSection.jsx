@@ -16,8 +16,7 @@ import {
   Briefcase,
   FileSpreadsheet,
   RotateCcw,
-  Sparkles,
-} from "lucide-react";
+  } from "lucide-react";
 import apiClient from "../../services/apiClient.js";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 
