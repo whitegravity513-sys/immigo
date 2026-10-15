@@ -18,13 +18,20 @@ import crmClientService from "../../services/crmClientService.js";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 
 const PAYMENT_METHODS = [
+  "Cash",
   "Bank Transfer",
+  "UPI",
+  "Cheque",
   "NEFT",
   "RTGS",
   "IMPS",
-  "UPI",
-  "Cheque",
   "Other",
+];
+
+const PAYMENT_STATUSES = [
+  "Verified",
+  "Pending Verification",
+  "Received",
 ];
 
 const GST_TREATMENTS = [
@@ -58,6 +65,8 @@ export default function RecordClientPaymentPage() {
     amountPaid: "",
     paymentMethod: "Bank Transfer",
     transactionReference: "",
+    receivedBy: "Admin",
+    status: "Verified",
     gstApplicable: false,
     gstTreatment: "Not Applicable",
     gstRate: 18,
@@ -213,16 +222,25 @@ export default function RecordClientPaymentPage() {
         ...formData,
         amountPaid: numericAmount,
         agreedMilestoneAmount: agreedAmount,
+        totalMilestoneAmount: agreedAmount,
+        previouslyReceivedAmount: currentPaid,
         remainingMilestoneBalance: remainingAfterPayment,
+        remainingMilestoneAmount: remainingAfterPayment,
         gstRate: formData.gstApplicable ? Number(formData.gstRate) : 0,
         gstAmount: computedGstAmount,
         totalTransactionAmount: computedTotalTransaction,
-        status: "Completed",
+        status: formData.status || "Verified",
+        paymentStatus: formData.status || "Verified",
+        receivedBy: formData.receivedBy || "Admin",
       };
 
       await crmClientService.recordClientPayment(payload);
       showToast("Payment recorded successfully", "success");
-      navigate("/client/ledger");
+      if (formData.clientId) {
+        navigate(`/client/clients/${formData.clientId}?tab=milestones`);
+      } else {
+        navigate("/client/payments-expenses");
+      }
     } catch (err) {
       console.error("Failed to record payment:", err);
       setErrors((prev) => ({
@@ -377,47 +395,32 @@ export default function RecordClientPaymentPage() {
             </div>
           )}
 
-          {/* Optional Project & Candidate Association */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Related Project <span className="text-gray-400 font-normal">(Optional)</span>
-              </label>
-              <select
-                value={formData.projectId}
-                onChange={(e) => {
-                  const pId = e.target.value;
-                  const p = selectedClient?.projects?.find((proj) => String(proj.id) === String(pId));
-                  setFormData((prev) => ({
-                    ...prev,
-                    projectId: pId,
-                    projectName: p?.projectName || "",
-                  }));
-                }}
-                disabled={!selectedClient}
-                className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
-              >
-                <option value="">-- No specific project --</option>
-                {(selectedClient?.projects || []).map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.projectName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Related Candidate Name <span className="text-gray-400 font-normal">(Optional)</span>
-              </label>
-              <input
-                type="text"
-                value={formData.candidateName}
-                onChange={(e) => setFormData((prev) => ({ ...prev, candidateName: e.target.value }))}
-                placeholder="e.g. Rahul Sharma"
-                className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-            </div>
+          {/* Optional Project Association */}
+          <div className="pt-1">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">
+              Related Project <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <select
+              value={formData.projectId}
+              onChange={(e) => {
+                const pId = e.target.value;
+                const p = selectedClient?.projects?.find((proj) => String(proj.id) === String(pId));
+                setFormData((prev) => ({
+                  ...prev,
+                  projectId: pId,
+                  projectName: p?.projectName || "",
+                }));
+              }}
+              disabled={!selectedClient}
+              className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+            >
+              <option value="">-- No specific project --</option>
+              {(selectedClient?.projects || []).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.projectName}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -533,6 +536,43 @@ export default function RecordClientPaymentPage() {
                   className="hidden"
                 />
               </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            {/* Received By */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Received By
+              </label>
+              <input
+                type="text"
+                value={formData.receivedBy}
+                onChange={(e) => setFormData((prev) => ({ ...prev, receivedBy: e.target.value }))}
+                placeholder="e.g. Accounts Manager / Admin"
+                className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Payment Verification Status <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
+                className="w-full px-3 py-2 text-xs font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-gray-900"
+              >
+                {PAYMENT_STATUSES.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-gray-500 mt-1">
+                Note: "Pending Verification" receipts are logged but excluded from confirmed revenue calculations until verified.
+              </p>
             </div>
           </div>
         </div>

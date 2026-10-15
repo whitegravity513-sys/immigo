@@ -42,7 +42,7 @@ export default function AttendanceSummarySection({
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
           <button
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-colors shadow-xs"
             onClick={fetchSummary}
           >
             {summaryLoading ? "Loading..." : "Apply"}

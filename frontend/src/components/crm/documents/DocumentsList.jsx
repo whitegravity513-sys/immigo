@@ -30,17 +30,16 @@ const DOCUMENT_CATEGORIES = [
   "Service Level Agreement (SLA)",
   "Chamber of Commerce Attestation",
   "Insurance Policy",
-  "Other Compliance Document",
+  "Other Document",
 ];
 
 const PRESET_CHIPS = [
-  { label: "Commercial Registration (CR)", type: "Commercial Registration (CR)" },
   { label: "Trade License", type: "Trade License" },
+  { label: "Commercial Registration (CR)", type: "Commercial Registration (CR)" },
   { label: "Demand Letter (DL)", type: "Demand Letter (DL)" },
   { label: "Power of Attorney (POA)", type: "Power of Attorney (POA)" },
   { label: "Tax / VAT Certificate", type: "Tax / VAT Certificate" },
-  { label: "Embassy Quota Approval", type: "Embassy Quota Approval" },
-  { label: "Chamber Attestation", type: "Chamber of Commerce Attestation" },
+  { label: "Other Document", type: "Other Document" },
 ];
 
 export function DocumentsList({
@@ -59,7 +58,7 @@ export function DocumentsList({
   // Quick inline upload draft state
   const [inlineDoc, setInlineDoc] = useState({
     name: "",
-    type: "Commercial Registration (CR)",
+    type: "Trade License",
     expiryDate: "",
     notes: "",
     fileName: "",
@@ -92,7 +91,7 @@ export function DocumentsList({
         return {
           id: `doc-${Date.now()}-${idx}`,
           name: cleanName,
-          type: "Other Compliance Document",
+          type: "Other Document",
           fileName: f.name,
           fileSize: `${sizeMB} MB`,
           expiryDate: "",
@@ -129,26 +128,36 @@ export function DocumentsList({
   };
 
   const handleApplyPreset = (chip) => {
+    const isOther = chip.type === "Other Document" || chip.type === "Other";
     setInlineDoc((prev) => ({
       ...prev,
-      name: chip.label,
       type: chip.type,
+      name: isOther ? "" : chip.label,
     }));
     setInlineError("");
   };
 
   const handleAddInlineDocument = (e) => {
     e?.preventDefault();
-    if (!inlineDoc.name.trim()) {
-      setInlineError("Please enter a custom Document Name / Title");
+    const isOther =
+      inlineDoc.type === "Other Document" ||
+      inlineDoc.type === "Other Compliance Document" ||
+      inlineDoc.type === "Other";
+
+    if (isOther && !inlineDoc.name.trim()) {
+      setInlineError("Please enter the document name");
       return;
     }
 
+    const finalName = isOther
+      ? inlineDoc.name.trim()
+      : inlineDoc.name.trim() || inlineDoc.type || (inlineDoc.fileName ? inlineDoc.fileName.replace(/\.[^/.]+$/, "") : "Document");
+
     const newDoc = {
       id: `doc-${Date.now()}`,
-      name: inlineDoc.name.trim(),
-      type: inlineDoc.type || "Other Compliance Document",
-      fileName: inlineDoc.fileName || `${inlineDoc.name.trim().toLowerCase().replace(/\s+/g, "_")}.pdf`,
+      name: finalName,
+      type: inlineDoc.type || "Other Document",
+      fileName: inlineDoc.fileName || `${finalName.toLowerCase().replace(/\s+/g, "_")}.pdf`,
       fileSize: inlineDoc.fileSize || "1.2 MB",
       expiryDate: inlineDoc.expiryDate || "",
       notes: inlineDoc.notes || "",
@@ -161,7 +170,7 @@ export function DocumentsList({
     // Reset inline form
     setInlineDoc({
       name: "",
-      type: "Commercial Registration (CR)",
+      type: "Trade License",
       expiryDate: "",
       notes: "",
       fileName: "",
@@ -310,33 +319,44 @@ export function DocumentsList({
 
           {/* Details input grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
-            <div className="sm:col-span-2 lg:col-span-1">
-              <InputField
-                label="Custom Document Name / Title"
-                name="docName"
-                value={inlineDoc.name}
-                onChange={(e) => {
-                  setInlineDoc((prev) => ({ ...prev, name: e.target.value }));
-                  if (inlineError) setInlineError("");
-                }}
-                placeholder="e.g. Dubai Trade License 2026, Demand Letter 105 Masons..."
-                required
-                error={inlineError}
-                helperText="This exact name will be displayed in the document records"
-              />
-            </div>
-
             <div>
               <SelectField
                 label="Document Category"
                 name="docType"
                 value={inlineDoc.type}
-                onChange={(e) =>
-                  setInlineDoc((prev) => ({ ...prev, type: e.target.value }))
-                }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const isOther = val === "Other Document" || val === "Other Compliance Document" || val === "Other";
+                  setInlineDoc((prev) => ({
+                    ...prev,
+                    type: val,
+                    name: isOther ? "" : prev.name || val,
+                  }));
+                  if (inlineError) setInlineError("");
+                }}
                 options={DOCUMENT_CATEGORIES}
               />
             </div>
+
+            {(inlineDoc.type === "Other Document" ||
+              inlineDoc.type === "Other Compliance Document" ||
+              inlineDoc.type === "Other") && (
+              <div>
+                <InputField
+                  label="Document Name"
+                  name="docName"
+                  value={inlineDoc.name}
+                  onChange={(e) => {
+                    setInlineDoc((prev) => ({ ...prev, name: e.target.value }));
+                    if (inlineError) setInlineError("");
+                  }}
+                  placeholder="Enter custom document name"
+                  required
+                  error={inlineError}
+                  helperText="Enter the name for this document"
+                />
+              </div>
+            )}
 
             <div>
               <InputField

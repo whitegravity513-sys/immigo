@@ -4,8 +4,6 @@ import {
   ArrowLeft,
   MapPin,
   Edit2,
-  Trash2,
-  Plus,
 } from "lucide-react";
 import StatusBadge from "../../ui/StatusBadge.jsx";
 
@@ -77,28 +75,11 @@ export function ClientDetailHeader({
 
           <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
             <Link
-              to={`/clients/${client.id}/edit`}
+              to={`/client/clients/${client.id}/edit`}
               className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors cursor-pointer"
             >
               <Edit2 size={14} />
               <span>Edit Client</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setDeleteModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
-            >
-              <Trash2 size={14} />
-              <span>Delete</span>
-            </button>
-
-            <Link
-              to={`/client/clients/${client.id}/projects/new`}
-              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
-            >
-              <Plus size={15} />
-              <span>Create Project / Requirement</span>
             </Link>
           </div>
         </div>

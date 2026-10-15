@@ -25,6 +25,7 @@ const createTransporter = () => {
 };
 
 const transporter = createTransporter();
+const DEFAULT_FROM = process.env.EMAIL_FROM || '"ImmiGo" <abhishekyadav36219@gmail.com>';
 
 const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinutes = 10 }) => {
   return `
@@ -117,8 +118,8 @@ const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinu
     </div>
     <div class="heading">${purposeTitle}</div>
     <div class="description">
-      Hello <strong>${name}</strong>,<br>
-      We received a request for authentication. Please use the following One-Time Password (OTP) to proceed.
+      Dear <strong>${name}</strong>,<br>
+      We received a verification request for your account. Please use the following One-Time Password (OTP) to proceed:
     </div>
     
     <div class="otp-container">
@@ -126,12 +127,12 @@ const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinu
     </div>
     
     <div class="warning-box">
-      <strong>Important:</strong> This OTP is valid for <strong>${expiryMinutes} minutes</strong> and can only be used once. Never share this code with anyone.
+      <strong>Security Notice:</strong> This verification code is valid for <strong>${expiryMinutes} minutes</strong> and can only be used once. For your account security, never share this code with anyone. ImmiGo representatives will never ask for your code.
     </div>
     
     <div class="footer">
-      If you did not make this request, please secure your account immediately.<br>
-      &copy; ${new Date().getFullYear()} ImmiGo Enterprise Network. All rights reserved.
+      If you did not initiate this request, please disregard this email or contact support to secure your account.<br>
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
     </div>
   </div>
 </body>
@@ -158,11 +159,11 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"ImmiGo Security" <abhishekyadav36219@gmail.com>',
+    from: DEFAULT_FROM,
     to,
-    subject: `[ImmiGo Security] ${purposeTitle}: ${otp}`,
+    subject: `[ImmiGo] ${purposeTitle}: ${otp}`,
     html: htmlContent,
-    text: `Your ImmiGo Security verification code for ${purposeTitle} is: ${otp}. It will expire in ${expiryMinutes} minutes.`,
+    text: `Dear ${name},\n\nYour ImmiGo verification code for ${purposeTitle} is: ${otp}.\n\nThis code will expire in ${expiryMinutes} minutes. For your security, do not share this code with anyone.\n\nBest regards,\nImmiGo Team`,
   };
 
   logger.info(`[OTP DISPATCH] Destination: ${to} | Purpose: ${purpose} | OTP: ${otp}`);
@@ -226,28 +227,28 @@ export const sendVendorRegistrationApprovedEmail = async ({
       </tr>
     </table>
 
-    <div class="badge">Registration Approved &bull; Documents Stage</div>
+    <div class="badge">Registration Approved &bull; Compliance Review</div>
     <div class="title">Welcome, ${vendorName}!</div>
     <div class="text">
-      Your vendor partner registration has been reviewed and approved by the ImmiGo Admin team.
-      Your initial account access is now enabled. Please log in to complete your compliance document submission.
+      We are pleased to inform you that your vendor partner registration has been reviewed and approved by the ImmiGo Administration Team.
+      Your portal access is now active. Please sign in to submit your required compliance documents to complete onboarding.
     </div>
 
     <div class="info-box">
       <strong>Vendor ID:</strong> ${vendorId}<br>
       <strong>Login Email:</strong> ${loginEmail || to}<br>
       <strong>Portal Access URL:</strong> <a href="${loginUrl}">${loginUrl}</a><br>
-      <strong>Next Step:</strong> Upload required compliance documents (PAN, GST/Registration Certificate) in your onboarding portal.
+      <strong>Next Step:</strong> Upload required compliance documents (PAN Card, Business Registration / GST Certificate) in your onboarding portal.
     </div>
 
     <a href="${loginUrl}" class="btn">Access Vendor Portal</a>
 
     <div class="text" style="font-size: 12px; color: #64748b;">
-      <em>Security Notice:</em> For your account security, passwords are encrypted and never sent via email. If you need to set or reset your password, please use the "Forgot Password" link on the portal login page.
+      <em>Security Notice:</em> For your account security, passwords are encrypted and never sent via email. You can manage or reset your password anytime using the "Forgot Password" link on the portal sign-in page.
     </div>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} ImmiGo Global Mobility CRM. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
     </div>
   </div>
 </body>
@@ -261,11 +262,11 @@ export const sendVendorRegistrationApprovedEmail = async ({
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"ImmiGo Partner Onboarding" <abhishekyadav36219@gmail.com>',
+    from: DEFAULT_FROM,
     to: recipients.join(", "),
     subject: `[ImmiGo] Vendor Registration Approved: ${vendorName} (${vendorId})`,
     html: htmlContent,
-    text: `Hello ${vendorName}, your vendor registration has been approved. Login Email: ${loginEmail || to}. Access Portal: ${loginUrl}. Please upload required compliance documents.`,
+    text: `Dear ${vendorName},\n\nYour vendor registration with ImmiGo has been reviewed and approved. Please sign in to your onboarding portal to upload your required compliance documents.\n\nLogin Email: ${loginEmail || to}\nPortal Access: ${loginUrl}\n\nBest regards,\nImmiGo Operations Team`,
   };
 
   logger.info(`[VENDOR APPROVAL EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
@@ -331,20 +332,20 @@ export const sendVendorActivationEmail = async ({
     <div class="badge">&check; Fully Active Partner</div>
     <div class="title">Congratulations, ${vendorName}!</div>
     <div class="text">
-      Your compliance documents have been verified and your signed Memorandum of Understanding (MOU) has been fully approved by ImmiGo Admin.
-      Your full operational dashboard is now <strong>Active</strong>!
+      Your compliance documents have been verified and your signed Memorandum of Understanding (MOU) has been fully approved by the ImmiGo Administration Team.
+      Your vendor partner account is now <strong>Fully Active</strong> with complete operational access.
     </div>
 
     <div class="info-box">
       <strong>Vendor ID:</strong> ${vendorId}<br>
-      <strong>Status:</strong> Active Partner &bull; Full Operational Privileges<br>
-      <strong>Available Operations:</strong> Overseas Projects Access, Candidate Profile Submissions, Milestone Tracking & Payments.
+      <strong>Account Status:</strong> Active Partner &bull; Full Operational Privileges<br>
+      <strong>Enabled Operations:</strong> Access to Overseas Deployment Projects, Candidate Profile Submissions, Milestone Tracking, and Payment Settlements.
     </div>
 
     <a href="${loginUrl}" class="btn">Launch Operational Dashboard</a>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} ImmiGo Global Mobility CRM. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
     </div>
   </div>
 </body>
@@ -357,11 +358,11 @@ export const sendVendorActivationEmail = async ({
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"ImmiGo Partner Operations" <abhishekyadav36219@gmail.com>',
+    from: DEFAULT_FROM,
     to: recipients.join(", "),
-    subject: `[ImmiGo] Vendor Account Fully Activated: ${vendorName} (${vendorId})`,
+    subject: `[ImmiGo] Vendor Account Activated: ${vendorName} (${vendorId})`,
     html: htmlContent,
-    text: `Congratulations ${vendorName}! Your vendor account (${vendorId}) is now fully active. Log in to access candidate submission and overseas projects: ${loginUrl}`,
+    text: `Dear ${vendorName},\n\nCongratulations! Your vendor partner account (${vendorId}) has been fully activated by ImmiGo Admin. You now have complete access to candidate deployment, overseas projects, and milestone management.\n\nPortal Access: ${loginUrl}\n\nBest regards,\nImmiGo Operations Team`,
   };
 
   logger.info(`[VENDOR ACTIVATION EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
@@ -433,12 +434,12 @@ export const sendCredentialsEmail = async ({
 
     <div class="title">Welcome, ${name}!</div>
     <div class="text">
-      Your official account for <strong>${loginType}</strong> (${role}) has been created. Here are your credentials to sign in:
+      Your official account for the <strong>${loginType}</strong> (${role}) has been created successfully. Please find your sign-in credentials and portal access link below:
     </div>
 
     <div class="creds-box">
       <div class="cred-row">
-        <span class="cred-label">${isEmployee ? "Employee ID (Login with this):" : "Login ID:"}</span>
+        <span class="cred-label">${isEmployee ? "Employee ID (Login ID):" : "Login ID:"}</span>
         <span class="cred-value" style="color: #2563eb;">${loginId || to}</span>
       </div>
       ${email ? `
@@ -457,15 +458,15 @@ export const sendCredentialsEmail = async ({
     </div>
 
     <div style="text-align: center;">
-      <a href="${finalPortalUrl}" class="btn">Log In to Portal</a>
+      <a href="${finalPortalUrl}" class="btn">Sign In to Portal</a>
     </div>
 
     <div class="text" style="font-size: 12px; color: #64748b;">
-      <em>Notice:</em> For security compliance, please do not share your login credentials with anyone.
+      <em>Security Notice:</em> For your account security, we recommend logging in promptly and updating your password under Account Settings. Please keep your credentials strictly confidential.
     </div>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} ImmiGo Global Enterprise. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
     </div>
   </div>
 </body>
@@ -478,11 +479,11 @@ export const sendCredentialsEmail = async ({
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"ImmiGo Global" <abhishekyadav36219@gmail.com>',
+    from: DEFAULT_FROM,
     to: recipients.join(", "),
-    subject: `[ImmiGo] Official Account Created - Your Credentials & Login URL (${loginType})`,
+    subject: `[ImmiGo] Official Account Credentials & Access Details (${loginType})`,
     html: htmlContent,
-    text: `Hello ${name},\n\nYour account credentials:\n${isEmployee ? "Employee ID" : "Login ID"}: ${loginId || to}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials safe.`,
+    text: `Dear ${name},\n\nYour official account for ${loginType} (${role}) has been created successfully.\n\n${isEmployee ? "Employee ID (Login ID)" : "Login ID"}: ${loginId || to}\n${email ? `Company Email: ${email}\n` : ""}Password: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials confidential.\n\nBest regards,\nImmiGo Team`,
   };
 
   logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId}`);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Building2,
   FolderKanban,
@@ -28,12 +28,14 @@ import {
 
 export function ClientDetails() {
   const { clientId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast } = useCrmToast();
 
+  const tabParam = searchParams.get("tab");
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(tabParam || "overview");
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState(null);
@@ -41,6 +43,12 @@ export function ClientDetails() {
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   useEffect(() => {
     loadClient();
@@ -201,6 +209,10 @@ export function ClientDetails() {
           formatDate={formatDate}
           setSelectedMilestone={setSelectedMilestone}
           setIsRecordPaymentOpen={setIsRecordPaymentOpen}
+          onRefresh={() => {
+            loadClient();
+            loadClientPayments(client?.id || clientId);
+          }}
         />
       )}
 

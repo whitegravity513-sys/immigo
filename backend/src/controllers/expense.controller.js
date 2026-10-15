@@ -101,7 +101,7 @@ export const submitMyExpense = asyncHandler(async (req, res) => {
 });
 
 export const updateExpense = asyncHandler(async (req, res) => {
-  const expense = await ExpenseService.updateExpense(req.params.id, req.body);
+  const expense = await ExpenseService.updateExpense(req.params.id, req.body, req.user || {});
   return res.status(200).json({
     message: "Expense updated successfully",
     expense,

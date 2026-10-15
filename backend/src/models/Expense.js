@@ -34,12 +34,35 @@ const expenseSchema = new mongoose.Schema(
       index: true,
     },
     clientId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      type: mongoose.Schema.Types.Mixed,
       default: null,
       index: true,
     },
+    clientName: {
+      type: String,
+      default: "",
+    },
+    projectId: {
+      type: String,
+      default: "",
+    },
+    projectName: {
+      type: String,
+      default: "",
+    },
+    categoryName: {
+      type: String,
+      default: "",
+    },
+    paidTo: {
+      type: String,
+      default: "",
+    },
     receipt: {
+      type: String,
+      default: "",
+    },
+    proofUrl: {
       type: String,
       default: "",
     },
@@ -59,6 +82,16 @@ const expenseSchema = new mongoose.Schema(
       default: "Approved",
       index: true,
     },
+    auditTrail: [
+      {
+        action: { type: String, default: "UPDATED" },
+        previousValues: { type: mongoose.Schema.Types.Mixed, default: {} },
+        updatedValues: { type: mongoose.Schema.Types.Mixed, default: {} },
+        updatedBy: { type: String, default: "Admin" },
+        date: { type: Date, default: Date.now },
+        note: { type: String, default: "" },
+      },
+    ],
     adminRemark: {
       type: String,
       default: "",
@@ -87,7 +120,27 @@ const expenseSchema = new mongoose.Schema(
       default: "Bank Transfer",
       trim: true,
     },
+    paymentMethod: {
+      type: String,
+      default: "Bank Transfer",
+      trim: true,
+    },
     transactionRef: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    transactionReference: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    recordedBy: {
+      type: String,
+      default: "Admin",
+      trim: true,
+    },
+    recordedById: {
       type: String,
       default: "",
       trim: true,

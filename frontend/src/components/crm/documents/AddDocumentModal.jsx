@@ -14,7 +14,7 @@ const DOCUMENT_TYPES = [
   "Service Level Agreement (SLA)",
   "Chamber of Commerce Attestation",
   "Insurance Policy",
-  "Other Compliance Document",
+  "Other Document",
 ];
 
 export function AddDocumentModal({ isOpen, onClose, onSave }) {
@@ -45,7 +45,6 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
         ...prev,
         fileName: file.name,
         fileSize: `${sizeMB} MB`,
-        // If document custom name is empty, auto-suggest from file name without extension
         name: prev.name ? prev.name : file.name.replace(/\.[^/.]+$/, ""),
       }));
       if (errors.fileName) setErrors((prev) => ({ ...prev, fileName: "" }));
@@ -54,11 +53,13 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) {
+    const isOther =
+      formData.type === "Other Document" ||
+      formData.type === "Other Compliance Document" ||
+      formData.type === "Other";
+
+    if (isOther && !formData.name.trim()) {
       newErrors.name = "Please enter a document name/title";
-    }
-    if (!formData.fileName && !formData.name) {
-      newErrors.fileName = "Please select or attach a file";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -68,11 +69,20 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
     e.preventDefault();
     if (!validate()) return;
 
+    const isOther =
+      formData.type === "Other Document" ||
+      formData.type === "Other Compliance Document" ||
+      formData.type === "Other";
+
+    const finalName = isOther
+      ? formData.name.trim()
+      : formData.name.trim() || formData.type || (formData.fileName ? formData.fileName.replace(/\.[^/.]+$/, "") : "Document");
+
     onSave({
       id: `doc-${Date.now()}`,
-      name: formData.name.trim(),
-      type: formData.type,
-      fileName: formData.fileName || `${formData.name.trim().toLowerCase().replace(/\s+/g, "_")}.pdf`,
+      name: finalName,
+      type: formData.type || "Other Document",
+      fileName: formData.fileName || `${finalName.toLowerCase().replace(/\s+/g, "_")}.pdf`,
       fileSize: formData.fileSize || "1.5 MB",
       expiryDate: formData.expiryDate || "",
       notes: formData.notes || "",
@@ -111,7 +121,7 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
                     Add Client Document
                   </h3>
                   <p className="text-xs text-gray-500">
-                    Enter custom document name and attach legal file.
+                    Select category, expiry date and attach legal file.
                   </p>
                 </div>
               </div>
@@ -126,23 +136,21 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
 
             {/* Modal Body */}
             <div className="p-6 space-y-4">
-              <InputField
-                label="Document Name / Title"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g. Dubai Trade License 2026, Demand Letter 105 Masons..."
-                required
-                error={errors.name}
-                helperText="This exact name will be displayed in the client document records"
-              />
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SelectField
                   label="Document Category"
                   name="type"
                   value={formData.type}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const isOther = val === "Other Document" || val === "Other Compliance Document" || val === "Other";
+                    setFormData((prev) => ({
+                      ...prev,
+                      type: val,
+                      name: isOther ? "" : prev.name || val,
+                    }));
+                    if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+                  }}
                   options={DOCUMENT_TYPES}
                 />
 
@@ -154,6 +162,21 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
                   onChange={handleChange}
                 />
               </div>
+
+              {(formData.type === "Other Document" ||
+                formData.type === "Other Compliance Document" ||
+                formData.type === "Other") && (
+                <InputField
+                  label="Document Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="e.g. Police Clearance, Certificate..."
+                  required
+                  error={errors.name}
+                  helperText="Enter the name for this custom document"
+                />
+              )}
 
               {/* File Attachment Box */}
               <div className="space-y-1.5">

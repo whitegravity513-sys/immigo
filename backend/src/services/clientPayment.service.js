@@ -28,7 +28,12 @@ export class ClientPaymentService {
 
     const successfulPayments = await ClientPayment.find({
       clientId: { $in: Array.from(clientIds) },
-      $or: [{ paymentStatus: "Completed" }, { status: "Completed" }],
+      $or: [
+        { status: "Verified" },
+        { status: "Completed" },
+        { paymentStatus: "Verified" },
+        { paymentStatus: "Completed" },
+      ],
       isReversed: false,
     }).lean();
 
@@ -170,6 +175,10 @@ export class ClientPaymentService {
     const recordedByName =
       user.name || user.email || (user.firstName ? `${user.firstName} ${user.lastName || ""}` : "System Admin");
 
+    const paymentStatusToSet = paymentData.status || paymentData.paymentStatus || "Verified";
+    const finalReceivedBy = paymentData.receivedBy || recordedByName;
+    const prevReceived = Number(paymentData.previouslyReceivedAmount) || (agreedMilestoneAmount - remainingMilestoneBalance - numericAmount);
+
     const newPayment = await ClientPayment.create({
       paymentId,
       clientId: String(clientId),
@@ -181,19 +190,23 @@ export class ClientPaymentService {
       milestoneId: String(milestoneId),
       milestoneName: milestoneName || (milestoneIdx !== -1 ? milestones[milestoneIdx].name : "Milestone Payment"),
       agreedMilestoneAmount,
+      totalMilestoneAmount: Number(paymentData.totalMilestoneAmount) || agreedMilestoneAmount,
+      previouslyReceivedAmount: Math.max(0, prevReceived),
       amountPaid: numericAmount,
       remainingMilestoneBalance,
+      remainingMilestoneAmount: Number(paymentData.remainingMilestoneAmount) !== undefined ? Number(paymentData.remainingMilestoneAmount) : remainingMilestoneBalance,
       paymentDate: new Date(paymentDate),
       paymentMethod,
       transactionReference: String(transactionReference).trim(),
+      receivedBy: finalReceivedBy,
       gstApplicable: Boolean(gstApplicable),
       gstTreatment,
       gstRate: Number(gstRate) || 0,
       gstAmount: calculatedGstAmount,
       totalTransactionAmount: finalTotalTransaction,
       paymentProofUrl,
-      status: "Completed",
-      paymentStatus: "Completed",
+      status: paymentStatusToSet,
+      paymentStatus: paymentStatusToSet,
       recordedBy: recordedByName,
       recordedById: String(user.id || user._id || ""),
       remarks,
@@ -202,7 +215,7 @@ export class ClientPaymentService {
           action: "PAYMENT_RECORDED",
           performedBy: recordedByName,
           timestamp: new Date(),
-          note: `Payment of ₹${numericAmount.toLocaleString()} recorded via ${paymentMethod} (Ref: ${transactionReference})`,
+          note: `Payment of ₹${numericAmount.toLocaleString()} recorded via ${paymentMethod} with status ${paymentStatusToSet} (Ref: ${transactionReference})`,
         },
       ],
     });
@@ -303,6 +316,44 @@ export class ClientPaymentService {
       visibility: "ADMIN",
       metadata: { paymentId: payment.paymentId, reason },
     });
+
+    return payment;
+  }
+
+  static async updatePayment(paymentId, updateData, user = {}) {
+    const idStr = String(paymentId);
+    const isHex = /^[0-9a-fA-F]{24}$/.test(idStr);
+    const payment = await ClientPayment.findOne({
+      $or: [{ paymentId: idStr }, { _id: isHex ? paymentId : null }],
+    });
+    if (!payment) throw new ApiError(404, "Payment record not found.");
+
+    const editorName =
+      user.name || user.email || (user.firstName ? `${user.firstName} ${user.lastName || ""}` : "System Admin");
+    const prevStatus = payment.status;
+    const prevAmount = payment.amountPaid;
+
+    if (updateData.amountPaid !== undefined) payment.amountPaid = Number(updateData.amountPaid);
+    if (updateData.paymentDate) payment.paymentDate = new Date(updateData.paymentDate);
+    if (updateData.paymentMethod) payment.paymentMethod = updateData.paymentMethod;
+    if (updateData.transactionReference) payment.transactionReference = String(updateData.transactionReference).trim();
+    if (updateData.receivedBy) payment.receivedBy = updateData.receivedBy;
+    if (updateData.remarks !== undefined) payment.remarks = updateData.remarks;
+    if (updateData.paymentProofUrl !== undefined) payment.paymentProofUrl = updateData.paymentProofUrl;
+    if (updateData.status) {
+      payment.status = updateData.status;
+      payment.paymentStatus = updateData.status;
+    }
+
+    payment.auditTrail.push({
+      action: "PAYMENT_UPDATED",
+      performedBy: editorName,
+      timestamp: new Date(),
+      note: `Updated payment. Status: ${prevStatus} -> ${payment.status}, Amount: ₹${prevAmount} -> ₹${payment.amountPaid}`,
+    });
+
+    await payment.save();
+    await ClientPaymentService.recalculateClientTotals(payment.clientId);
 
     return payment;
   }

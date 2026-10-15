@@ -108,17 +108,8 @@ export function ClientForm({
     // Client Legal & Compliance Documents
     documents: [],
 
-    // Payment Milestones (Candidate selection & manpower recruitment expenses)
-    paymentMilestones: [
-      {
-        id: "mls-1",
-        name: "Milestone 1",
-        amount: "",
-        condition: "",
-        timeline: "",
-        description: "",
-      },
-    ],
+    // Payment Milestones (Optional)
+    paymentMilestones: [],
   });
 
   const [totalPaymentInput, setTotalPaymentInput] = useState(() => {
@@ -182,24 +173,15 @@ export function ClientForm({
                 id: m.id || `mls-${idx + 1}`,
                 name: m.name || `Milestone ${idx + 1}`,
                 amount: String(m.amount || ""),
-                condition: m.condition || "Candidate successfully selected",
-                timeline: m.timeline || "Within 7 days",
+                condition: m.condition || "",
+                timeline: "",
                 description: m.description || "",
                 status: m.status || "Pending",
                 paidAmount: m.paidAmount || 0,
                 remainingBalance: m.remainingBalance || m.amount || 0,
                 remarks: m.remarks || "",
               }))
-            : [
-                {
-                  id: "mls-1",
-                  name: "Milestone 1",
-                  amount: "",
-                  condition: "",
-                  timeline: "",
-                  description: "",
-                },
-              ],
+            : [],
       });
 
       if (initialData.totalAgreedAmount) {
@@ -335,8 +317,8 @@ export function ClientForm({
             id: `mls-${Date.now()}-${newIdx}`,
             name: `Milestone ${newIdx}`,
             amount: unallocated > 0 ? String(unallocated) : "",
-            condition: "Candidate successfully selected",
-            timeline: "Within 15 days",
+            condition: "",
+            timeline: "",
             description: "",
             status: "Pending",
             paidAmount: 0,
@@ -393,28 +375,12 @@ export function ClientForm({
       newErrors.directorEmail = "Enter a valid director email (e.g. director@company.com)";
     }
 
-    // Validate Payment Milestones
-    (formData.paymentMilestones || []).forEach((m, idx) => {
-      if (!m.name || !String(m.name).trim()) {
-        newErrors[`milestone_${idx}_name`] = "Milestone name is required";
-      }
-      const amt = Number(m.amount);
-      if (isNaN(amt) || amt <= 0) {
-        newErrors[`milestone_${idx}_amount`] = "Enter a valid payment amount > 0";
-      }
-      if (!m.condition || !String(m.condition).trim()) {
-        newErrors[`milestone_${idx}_condition`] = "Payment trigger / condition is required";
-      }
-    });
-
+    // Milestones are NOT mandatory: do not require milestones or conditions
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      if (newErrors.companyName) {
-        showToast("Please enter a valid company name.", "error");
-      } else {
-        showToast("Please review the errors in the form.", "error");
-      }
+      const firstErr = newErrors.companyName || Object.values(newErrors)[0];
+      showToast(firstErr || "Please review the errors in the form.", "error");
       return false;
     }
     return true;
@@ -451,23 +417,25 @@ export function ClientForm({
       ? panFile.name
       : initialData?.panDocumentName || "";
 
-    const formattedMilestones = (formData.paymentMilestones || []).map((m, idx) => {
-      const amount = Number(m.amount) || 0;
-      const paidAmount = Number(m.paidAmount) || 0;
-      return {
-        ...m,
-        id: m.id || `mls-${Date.now()}-${idx + 1}`,
-        name: (m.name || `Milestone ${idx + 1}`).trim(),
-        amount,
-        condition: (m.condition || "Candidate successfully selected").trim(),
-        timeline: (m.timeline || "Within 7 days").trim(),
-        description: m.description || "",
-        status: m.status || (paidAmount >= amount && amount > 0 ? "Paid" : "Pending"),
-        paidAmount,
-        remainingBalance: Math.max(0, amount - paidAmount),
-        remarks: m.remarks || "",
-      };
-    });
+    const formattedMilestones = (formData.paymentMilestones || [])
+      .filter((m) => Number(m.amount) > 0 || (m.name && m.name.trim() && m.name !== "Milestone 1") || (m.condition && m.condition.trim()))
+      .map((m, idx) => {
+        const amount = Number(m.amount) || 0;
+        const paidAmount = Number(m.paidAmount) || 0;
+        return {
+          ...m,
+          id: m.id || `mls-${Date.now()}-${idx + 1}`,
+          name: (m.name || `Milestone ${idx + 1}`).trim(),
+          amount,
+          condition: (m.condition || "").trim(),
+          timeline: "",
+          description: m.description || "",
+          status: m.status || (paidAmount >= amount && amount > 0 ? "Paid" : "Pending"),
+          paidAmount,
+          remainingBalance: Math.max(0, amount - paidAmount),
+          remarks: m.remarks || "",
+        };
+      });
 
     const totalAgreedAmount = Number(totalPaymentInput) || formattedMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
 
@@ -1076,28 +1044,40 @@ export function ClientForm({
             </div>
 
             {/* Milestones List */}
-            <div className="space-y-3.5">
-              {(formData.paymentMilestones || []).map((milestone, idx) => (
-                <div
-                  key={milestone.id || idx}
-                  className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs hover:border-blue-200 transition-colors space-y-3 relative"
+            {(!formData.paymentMilestones || formData.paymentMilestones.length === 0) ? (
+              <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                <p className="text-xs text-gray-500 font-medium">No payment milestones configured (Optional).</p>
+                <button
+                  type="button"
+                  onClick={handleAddMilestone}
+                  className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 cursor-pointer shadow-2xs"
                 >
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
-                        {idx + 1}
-                      </span>
-                      <span className="text-xs font-bold text-gray-800">
-                        {milestone.name || `Milestone ${idx + 1}`}
-                      </span>
-                      {Number(milestone.amount) > 0 && (
-                        <span className="text-xs font-bold text-blue-700 font-mono bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-                          ₹{Number(milestone.amount).toLocaleString("en-IN")}
+                  <Plus size={13} />
+                  <span>Add Payment Milestone (Optional)</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {(formData.paymentMilestones || []).map((milestone, idx) => (
+                  <div
+                    key={milestone.id || idx}
+                    className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs hover:border-blue-200 transition-colors space-y-3 relative"
+                  >
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
+                          {idx + 1}
                         </span>
-                      )}
-                    </div>
+                        <span className="text-xs font-bold text-gray-800">
+                          {milestone.name || `Milestone ${idx + 1}`}
+                        </span>
+                        {Number(milestone.amount) > 0 && (
+                          <span className="text-xs font-bold text-blue-700 font-mono bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                            ₹{Number(milestone.amount).toLocaleString("en-IN")}
+                          </span>
+                        )}
+                      </div>
 
-                    {(formData.paymentMilestones || []).length > 1 && (
                       <button
                         type="button"
                         onClick={() => handleRemoveMilestone(idx)}
@@ -1106,120 +1086,87 @@ export function ClientForm({
                       >
                         <Trash2 size={15} />
                       </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {/* Milestone Name */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                        Milestone Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={milestone.name}
-                        onChange={(e) => handleMilestoneChange(idx, "name", e.target.value)}
-                        placeholder="e.g. Milestone 1"
-                        className={`w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                          errors[`milestone_${idx}_name`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
-                        }`}
-                      />
-                      {errors[`milestone_${idx}_name`] && (
-                        <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
-                          <AlertCircle size={10} /> {errors[`milestone_${idx}_name`]}
-                        </p>
-                      )}
                     </div>
 
-                    {/* Payment Amount */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                        Payment Amount (₹) <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2 text-xs font-bold text-gray-400">₹</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Milestone Name */}
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          Milestone Name
+                        </label>
                         <input
-                          type="number"
-                          min="0"
-                          step="100"
-                          value={milestone.amount}
-                          onChange={(e) => handleMilestoneChange(idx, "amount", e.target.value)}
-                          placeholder="25000"
-                          className={`w-full pl-7 pr-3 py-2 border rounded-lg text-xs font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                            errors[`milestone_${idx}_amount`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
-                          }`}
+                          type="text"
+                          value={milestone.name}
+                          onChange={(e) => handleMilestoneChange(idx, "name", e.target.value)}
+                          placeholder={`e.g. Milestone ${idx + 1}`}
+                          className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
-                      {errors[`milestone_${idx}_amount`] && (
-                        <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
-                          <AlertCircle size={10} /> {errors[`milestone_${idx}_amount`]}
-                        </p>
-                      )}
+
+                      {/* Payment Amount */}
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          Payment Amount (₹)
+                        </label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2 text-xs font-bold text-gray-400">₹</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={milestone.amount}
+                            onChange={(e) => handleMilestoneChange(idx, "amount", e.target.value)}
+                            placeholder="e.g. 25000"
+                            className="w-full pl-7 pr-3 py-2 border border-gray-300 bg-white rounded-lg text-xs font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Payment Trigger / Condition (Optional) */}
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          Payment Trigger / Condition (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={milestone.condition}
+                          onChange={(e) => handleMilestoneChange(idx, "condition", e.target.value)}
+                          placeholder="e.g. Candidate successfully selected (Optional)"
+                          className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
                     </div>
 
-                    {/* Payment Trigger / Condition */}
+                    {/* Optional Description / Remarks */}
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                        Payment Trigger / Condition <span className="text-red-500">*</span>
+                      <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                        Optional Description or Remarks
                       </label>
                       <input
                         type="text"
-                        value={milestone.condition}
-                        onChange={(e) => handleMilestoneChange(idx, "condition", e.target.value)}
-                        placeholder="e.g. Candidate successfully selected"
-                        className={`w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                          errors[`milestone_${idx}_condition`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
-                        }`}
-                      />
-                      {errors[`milestone_${idx}_condition`] && (
-                        <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
-                          <AlertCircle size={10} /> {errors[`milestone_${idx}_condition`]}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Expected Payment Timeline */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                        Expected Payment Timeline
-                      </label>
-                      <input
-                        type="text"
-                        value={milestone.timeline}
-                        onChange={(e) => handleMilestoneChange(idx, "timeline", e.target.value)}
-                        placeholder="e.g. Within 7 days of selection"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        value={milestone.description}
+                        onChange={(e) => handleMilestoneChange(idx, "description", e.target.value)}
+                        placeholder="e.g. Documentation processing and mobilization advance payment"
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 bg-gray-50/50 focus:outline-none focus:bg-white focus:border-blue-400"
                       />
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
 
-                  {/* Optional Description / Remarks */}
-                  <div>
-                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
-                      Optional Description or Remarks
-                    </label>
-                    <input
-                      type="text"
-                      value={milestone.description}
-                      onChange={(e) => handleMilestoneChange(idx, "description", e.target.value)}
-                      placeholder="e.g. Documentation processing and mobilization advance payment"
-                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 bg-gray-50/50 focus:outline-none focus:bg-white focus:border-blue-400"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleAddMilestone}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
-              >
-                <Plus size={13} />
-                <span>+ Add Another Milestone</span>
-              </button>
-            </div>
+            {formData.paymentMilestones && formData.paymentMilestones.length > 0 && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleAddMilestone}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <Plus size={13} />
+                  <span>+ Add Another Milestone</span>
+                </button>
+              </div>
+            )}
           </div>
         </FormSection>
 

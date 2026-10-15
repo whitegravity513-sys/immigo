@@ -974,6 +974,141 @@ export const crmClientService = {
     }
     throw new Error("Payment record not found");
   },
+
+  updateClientPayment: async (paymentId, updateData) => {
+    try {
+      const res = await apiClient.put(`/admin/client-payments/${paymentId}`, updateData);
+      if (res.data?.success) {
+        return res.data.payment;
+      }
+    } catch (err) {
+      console.warn("Backend updateClientPayment failed, updating local storage:", err.message);
+    }
+
+    const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
+    const list = JSON.parse(localPaymentsRaw);
+    const pIdx = list.findIndex((p) => String(p.id) === String(paymentId) || String(p.paymentId) === String(paymentId));
+    if (pIdx !== -1) {
+      list[pIdx] = { ...list[pIdx], ...updateData, updatedAt: new Date().toISOString() };
+      localStorage.setItem("crm_client_payments_v1", JSON.stringify(list));
+      return list[pIdx];
+    }
+    throw new Error("Payment record not found");
+  },
+
+  // ------------------------------------------------------------------------
+  // CLIENT PROJECT EXPENSES METHODS
+  // ------------------------------------------------------------------------
+  getClientExpenses: async (clientId) => {
+    try {
+      const res = await apiClient.get(`/admin/expenses/client/${clientId}`);
+      if (res.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("Backend getClientExpenses failed, falling back to local:", err.message);
+    }
+
+    const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
+    let list = JSON.parse(localExpensesRaw);
+    if (clientId) {
+      list = list.filter((e) => String(e.clientId) === String(clientId));
+    }
+
+    const totalExpensesRecorded = list.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const totalExpensesPaid = list
+      .filter((e) => e.status === "Paid")
+      .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const pendingExpenses = list
+      .filter((e) => e.status === "Pending" || e.status === "Approved")
+      .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+    return {
+      clientId,
+      totalCount: list.length,
+      totalExpensesRecorded,
+      totalExpensesPaid,
+      pendingExpenses,
+      approvedAmount: totalExpensesPaid,
+      expenses: list,
+    };
+  },
+
+  recordClientExpense: async (expenseData) => {
+    try {
+      const res = await apiClient.post("/admin/expenses", expenseData);
+      if (res.data?.expense) {
+        return res.data.expense;
+      }
+    } catch (err) {
+      console.warn("Backend recordClientExpense failed, saving to local storage:", err.message);
+    }
+
+    const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
+    const list = JSON.parse(localExpensesRaw);
+    const expenseId = `EXP-${new Date().getFullYear()}-${String(list.length + 1).padStart(4, "0")}`;
+    const newExp = {
+      ...expenseData,
+      id: expenseId,
+      _id: expenseId,
+      createdAt: new Date().toISOString(),
+      date: expenseData.date || new Date().toISOString(),
+      status: expenseData.status || "Pending",
+    };
+    list.unshift(newExp);
+    localStorage.setItem("crm_client_expenses_v1", JSON.stringify(list));
+    return newExp;
+  },
+
+  updateClientExpense: async (expenseId, updateData) => {
+    try {
+      const res = await apiClient.put(`/admin/expenses/${expenseId}`, updateData);
+      if (res.data?.expense) {
+        return res.data.expense;
+      }
+    } catch (err) {
+      console.warn("Backend updateClientExpense failed, updating local storage:", err.message);
+    }
+
+    const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
+    const list = JSON.parse(localExpensesRaw);
+    const eIdx = list.findIndex((e) => String(e.id || e._id) === String(expenseId));
+    if (eIdx !== -1) {
+      list[eIdx] = { ...list[eIdx], ...updateData, updatedAt: new Date().toISOString() };
+      localStorage.setItem("crm_client_expenses_v1", JSON.stringify(list));
+      return list[eIdx];
+    }
+    throw new Error("Expense record not found");
+  },
+
+  deleteClientExpense: async (expenseId) => {
+    try {
+      await apiClient.delete(`/admin/expenses/${expenseId}`);
+      return true;
+    } catch (err) {
+      console.warn("Backend deleteClientExpense failed, removing from local storage:", err.message);
+    }
+
+    const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
+    let list = JSON.parse(localExpensesRaw);
+    list = list.filter((e) => String(e.id || e._id) !== String(expenseId));
+    localStorage.setItem("crm_client_expenses_v1", JSON.stringify(list));
+    return true;
+  },
+
+  getAllExpenses: async (params = {}) => {
+    try {
+      const res = await apiClient.get("/admin/expenses", { params });
+      if (res.data) {
+        return Array.isArray(res.data) ? res.data : res.data.expenses || [];
+      }
+    } catch (err) {
+      console.warn("Backend getAllExpenses failed, returning local storage:", err.message);
+    }
+
+    const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
+    return JSON.parse(localExpensesRaw);
+  },
 };
 
 export default crmClientService;

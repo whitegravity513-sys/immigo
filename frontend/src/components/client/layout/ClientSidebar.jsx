@@ -9,6 +9,7 @@ import {
   Shield,
   LogOut,
   Receipt,
+  CreditCard,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -27,6 +28,7 @@ export function ClientSidebar({
     if (path === "/client/dashboard") return currentPath === "/client/dashboard" || currentPath === "/dashboard";
     if (path === "/client/clients") return currentPath === "/client/clients" || (currentPath.startsWith("/client/clients/") && currentPath !== "/client/clients/new");
     if (path === "/client/clients/new") return currentPath === "/client/clients/new";
+    if (path === "/client/payments-expenses") return currentPath.startsWith("/client/payments-expenses") || currentPath.startsWith("/client/payments") || currentPath.startsWith("/client/expenses");
     if (path === "/client/ledger") return currentPath.startsWith("/client/ledger") || currentPath.startsWith("/admin/client-ledger");
     return currentPath === path;
   };
@@ -105,7 +107,6 @@ export function ClientSidebar({
           {[
             { label: "Dashboard", icon: LayoutDashboard, path: "/client/dashboard" },
             { label: "All Clients", icon: Building2, path: "/client/clients" },
-            { label: "Payment Ledger", icon: Receipt, path: "/client/ledger" },
             { label: "Add Client", icon: Plus, path: "/client/clients/new" },
           ].map((item) => {
             const Icon = item.icon;

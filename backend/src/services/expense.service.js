@@ -198,13 +198,41 @@ export class ExpenseService {
       categoryId: targetCategoryId,
       employeeId: finalEmployeeId,
       clientId: clientId || null,
+      clientName: data.clientName || "",
+      projectId: data.projectId || "",
+      projectName: data.projectName || "",
+      categoryName: customCategoryText || data.categoryName || "General",
+      paidTo: data.paidTo || "",
+      paymentMethod: data.paymentMethod || data.paymentMode || "Bank Transfer",
+      paymentMode: data.paymentMethod || data.paymentMode || "Bank Transfer",
+      transactionReference: data.transactionReference || data.transactionRef || "",
+      transactionRef: data.transactionReference || data.transactionRef || "",
+      recordedBy: data.recordedBy || (userRole === "admin" ? "Admin" : "Employee"),
       receipt: storedReceipt,
+      proofUrl: data.proofUrl || (receipt && !receipt.startsWith("data:") ? receipt : ""),
       remarks: remarks ? remarks.trim() : "",
       notes: notes ? notes.trim() : "",
       status,
+      paidAt: status === "Paid" ? new Date() : null,
+      auditTrail: [
+        {
+          action: "EXPENSE_CREATED",
+          previousValues: {},
+          updatedValues: {
+            title: finalTitle,
+            amount: parseFloat(amount),
+            status,
+            paidTo: data.paidTo || "",
+            paymentMethod: data.paymentMethod || "Bank Transfer",
+          },
+          updatedBy: data.recordedBy || "Admin",
+          date: new Date(),
+          note: `Expense of ₹${parseFloat(amount).toLocaleString()} recorded with status ${status}`,
+        },
+      ],
     });
 
-    await expense.populate(["categoryId", "employeeId", "clientId"]);
+    await expense.populate(["categoryId", "employeeId"]);
 
     if (isEmployee) {
       try {
@@ -304,15 +332,23 @@ export class ExpenseService {
     return this.formatExpense(expense);
   }
 
-  static async updateExpense(id, data) {
+  static async updateExpense(id, data, user = {}) {
     const {
       title,
       description,
       amount,
       date,
       categoryId,
+      categoryName,
       clientId,
+      clientName,
+      projectId,
+      projectName,
+      paidTo,
+      paymentMethod,
+      transactionReference,
       receipt,
+      proofUrl,
       remarks,
       notes,
       status,
@@ -324,20 +360,88 @@ export class ExpenseService {
       throw new ApiError(404, "Expense not found.");
     }
 
-    if (title) expense.title = title.trim();
-    if (description !== undefined) expense.description = description.trim();
-    if (amount !== undefined) expense.amount = parseFloat(amount);
-    if (date) expense.date = new Date(date);
+    const previousValues = {
+      title: expense.title,
+      amount: expense.amount,
+      status: expense.status,
+      paidTo: expense.paidTo,
+      paymentMethod: expense.paymentMethod,
+      transactionReference: expense.transactionReference,
+      remarks: expense.remarks,
+    };
+
+    const updatedValues = {};
+
+    if (title && title.trim() !== expense.title) {
+      updatedValues.title = title.trim();
+      expense.title = title.trim();
+    }
+    if (description !== undefined && description.trim() !== expense.description) {
+      updatedValues.description = description.trim();
+      expense.description = description.trim();
+    }
+    if (amount !== undefined && parseFloat(amount) !== expense.amount) {
+      updatedValues.amount = parseFloat(amount);
+      expense.amount = parseFloat(amount);
+    }
+    if (date) {
+      expense.date = new Date(date);
+      updatedValues.date = expense.date;
+    }
     if (categoryId) expense.categoryId = categoryId;
+    if (categoryName) {
+      expense.categoryName = categoryName;
+      updatedValues.categoryName = categoryName;
+    }
     if (clientId !== undefined) expense.clientId = clientId || null;
+    if (clientName) expense.clientName = clientName;
+    if (projectId !== undefined) expense.projectId = projectId;
+    if (projectName !== undefined) expense.projectName = projectName;
+    if (paidTo !== undefined) {
+      updatedValues.paidTo = paidTo;
+      expense.paidTo = paidTo;
+    }
+    if (paymentMethod !== undefined) {
+      updatedValues.paymentMethod = paymentMethod;
+      expense.paymentMethod = paymentMethod;
+      expense.paymentMode = paymentMethod;
+    }
+    if (transactionReference !== undefined) {
+      updatedValues.transactionReference = transactionReference;
+      expense.transactionReference = transactionReference;
+      expense.transactionRef = transactionReference;
+    }
     if (receipt !== undefined) expense.receipt = receipt;
-    if (remarks !== undefined) expense.remarks = remarks;
+    if (proofUrl !== undefined) expense.proofUrl = proofUrl;
+    if (remarks !== undefined) {
+      updatedValues.remarks = remarks;
+      expense.remarks = remarks;
+    }
     if (notes !== undefined) expense.notes = notes;
-    if (status) expense.status = status;
+    if (status && status !== expense.status) {
+      updatedValues.status = status;
+      expense.status = status;
+      if (status === "Paid" && !expense.paidAt) {
+        expense.paidAt = new Date();
+      }
+    }
     if (adminRemark !== undefined) expense.adminRemark = adminRemark;
 
+    const updaterName = user.name || user.email || data.updatedBy || "Admin";
+
+    if (Object.keys(updatedValues).length > 0) {
+      expense.auditTrail.push({
+        action: "EXPENSE_UPDATED",
+        previousValues,
+        updatedValues,
+        updatedBy: updaterName,
+        date: new Date(),
+        note: `Updated: ${Object.keys(updatedValues).join(", ")}`,
+      });
+    }
+
     await expense.save();
-    await expense.populate(["categoryId", "employeeId", "clientId"]);
+    await expense.populate(["categoryId", "employeeId"]);
     return this.formatExpense(expense);
   }
 
@@ -368,22 +472,34 @@ export class ExpenseService {
       throw new ApiError(400, "Client ID is required");
     }
 
-    const expenses = await Expense.find({ clientId })
+    const clientQuery = [{ clientId: String(clientId) }];
+    if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+      clientQuery.push({ clientId: new mongoose.Types.ObjectId(clientId) });
+      clientQuery.push({ clientId: clientId });
+    }
+
+    const expenses = await Expense.find({ $or: clientQuery })
       .populate("categoryId", "name")
       .populate("employeeId", "name employeeId")
-      .sort({ date: -1 })
+      .sort({ date: -1, createdAt: -1 })
       .lean();
 
-    const totalAmount = expenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
-    const approvedAmount = expenses
-      .filter((e) => e.status === "Approved")
-      .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    const totalExpensesRecorded = expenses.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+    const totalExpensesPaid = expenses
+      .filter((e) => e.status === "Paid")
+      .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+    const pendingExpenses = expenses
+      .filter((e) => e.status === "Pending" || e.status === "Approved")
+      .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
     return {
       clientId,
       totalCount: expenses.length,
-      totalAmount,
-      approvedAmount,
+      totalAmount: totalExpensesRecorded,
+      totalExpensesRecorded,
+      totalExpensesPaid,
+      pendingExpenses,
+      approvedAmount: totalExpensesPaid,
       expenses: expenses.map((e) => this.formatExpense(e)),
     };
   }

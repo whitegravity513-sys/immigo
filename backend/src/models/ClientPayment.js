@@ -46,6 +46,14 @@ const clientPaymentSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    totalMilestoneAmount: {
+      type: Number,
+      default: 0,
+    },
+    previouslyReceivedAmount: {
+      type: Number,
+      default: 0,
+    },
     amountPaid: {
       type: Number,
       required: true,
@@ -56,6 +64,10 @@ const clientPaymentSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    remainingMilestoneAmount: {
+      type: Number,
+      default: 0,
+    },
     paymentDate: {
       type: Date,
       default: Date.now,
@@ -63,7 +75,7 @@ const clientPaymentSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["Bank Transfer", "NEFT", "RTGS", "IMPS", "UPI", "Cheque", "Other"],
+      enum: ["Cash", "Bank Transfer", "NEFT", "RTGS", "IMPS", "UPI", "Cheque", "Other"],
       default: "Bank Transfer",
     },
     transactionReference: {
@@ -71,6 +83,10 @@ const clientPaymentSchema = new mongoose.Schema(
       required: true,
       trim: true,
       index: true,
+    },
+    receivedBy: {
+      type: String,
+      default: "Admin",
     },
     gstApplicable: {
       type: Boolean,
@@ -100,13 +116,13 @@ const clientPaymentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Completed", "Reversed", "Adjusted"],
-      default: "Completed",
+      enum: ["Verified", "Pending Verification", "Received", "Completed", "Reversed", "Adjusted"],
+      default: "Verified",
     },
     paymentStatus: {
       type: String,
-      enum: ["Completed", "Reversed", "Adjusted"],
-      default: "Completed",
+      enum: ["Verified", "Pending Verification", "Received", "Completed", "Reversed", "Adjusted"],
+      default: "Verified",
       index: true,
     },
     recordedBy: {

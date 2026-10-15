@@ -15,6 +15,7 @@ import {
   FileText,
   Briefcase,
   Contact,
+  Receipt,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 
@@ -45,6 +46,9 @@ export function CrmSidebar({
         currentPath === "/projects/new" ||
         currentPath.includes("/projects/")
       );
+    }
+    if (path === "/client/payments-expenses") {
+      return currentPath === "/client/payments-expenses" || currentPath.startsWith("/client/payments");
     }
     return currentPath === path;
   };

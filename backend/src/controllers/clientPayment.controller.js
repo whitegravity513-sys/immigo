@@ -38,9 +38,20 @@ export const reversePayment = asyncHandler(async (req, res) => {
   });
 });
 
+export const updatePayment = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const payment = await ClientPaymentService.updatePayment(id, req.body, req.user || {});
+  return res.status(200).json({
+    success: true,
+    message: "Payment updated successfully with audit trail.",
+    payment,
+  });
+});
+
 export default {
   recordPayment,
   getPayments,
   getLedgerStats,
   reversePayment,
+  updatePayment,
 };

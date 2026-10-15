@@ -35,6 +35,8 @@ const CrmAddProject = lazy(() => import("../pages/crm/AddProject.jsx"));
 const CrmEditProject = lazy(() => import("../pages/crm/EditProject.jsx"));
 const ClientPaymentLedger = lazy(() => import("../pages/crm/ClientPaymentLedger.jsx"));
 const RecordClientPaymentPage = lazy(() => import("../pages/crm/RecordClientPaymentPage.jsx"));
+const RecordClientExpensePage = lazy(() => import("../pages/crm/RecordClientExpensePage.jsx"));
+const PaymentsExpensesPage = lazy(() => import("../pages/crm/PaymentsExpensesPage.jsx"));
 
 // 5. Vendor Module
 const VendorLogin = lazy(() => import("../pages/vendor/VendorLogin.jsx"));
@@ -233,19 +235,91 @@ export default function AppRoutes() {
           }
         />
         <Route
-          path="/client/ledger/new"
+          path="/client/payments-expenses"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Payments & Expenses"
+                subtitle="Centralized ledger of client payment receipts and project expenditures."
+                breadcrumbs={[{ label: "Client Management", to: "/client/dashboard" }, { label: "Payments & Expenses" }]}
+              >
+                <PaymentsExpensesPage />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payments-expenses"
+          element={<Navigate to="/client/payments-expenses" replace />}
+        />
+        <Route
+          path="/client/payments/record"
           element={
             <ProtectedRoute allowedRole="admin">
               <ClientLayout
                 title="Record Client Payment"
-                subtitle="Register recruitment milestone payment to client organization."
+                subtitle="Register incoming recruitment milestone payment from client organization."
                 breadcrumbs={[
                   { label: "Client Management", to: "/client/dashboard" },
-                  { label: "Payment Ledger", to: "/client/ledger" },
+                  { label: "Payments & Expenses", to: "/client/payments-expenses" },
                   { label: "Record Payment" },
                 ]}
               >
                 <RecordClientPaymentPage />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/payments/:paymentId/edit"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Edit Client Payment"
+                subtitle="Update received milestone payment details and verification status."
+                breadcrumbs={[
+                  { label: "Client Management", to: "/client/dashboard" },
+                  { label: "Payments & Expenses", to: "/client/payments-expenses" },
+                  { label: "Edit Payment" },
+                ]}
+              >
+                <RecordClientPaymentPage />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/expenses/add"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Record Client Expense"
+                subtitle="Register project-related expenses paid to vendors, candidates or operations."
+                breadcrumbs={[
+                  { label: "Client Management", to: "/client/dashboard" },
+                  { label: "Payments & Expenses", to: "/client/payments-expenses" },
+                  { label: "Add Expense" },
+                ]}
+              >
+                <RecordClientExpensePage />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/expenses/:expenseId/edit"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Edit Client Expense"
+                subtitle="Update expense details or change status to Paid with transaction reference."
+                breadcrumbs={[
+                  { label: "Client Management", to: "/client/dashboard" },
+                  { label: "Payments & Expenses", to: "/client/payments-expenses" },
+                  { label: "Edit Expense" },
+                ]}
+              >
+                <RecordClientExpensePage />
               </ClientLayout>
             </ProtectedRoute>
           }
