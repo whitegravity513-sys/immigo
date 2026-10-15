@@ -109,7 +109,12 @@ const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinu
 </head>
 <body>
   <div class="email-card">
-    <div class="brand-logo">VISTA SECURITY</div>
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="font-size: 30px; font-weight: 900; color: #ffffff; letter-spacing: -1px; line-height: 1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">immi</span><span style="font-size: 30px; font-weight: 900; color: #38bdf8; letter-spacing: -1px; line-height: 1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Go</span><span style="font-size: 26px; font-weight: 900; color: #fb923c; margin-left: 3px;">&#10140;</span>
+      <div style="font-size: 10px; font-weight: 800; color: #38bdf8; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        Security & Authentication
+      </div>
+    </div>
     <div class="heading">${purposeTitle}</div>
     <div class="description">
       Hello <strong>${name}</strong>,<br>
@@ -126,7 +131,7 @@ const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinu
     
     <div class="footer">
       If you did not make this request, please secure your account immediately.<br>
-      &copy; ${new Date().getFullYear()} Vista Enterprise Security. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo Enterprise Network. All rights reserved.
     </div>
   </div>
 </body>
@@ -153,11 +158,11 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"Vista Security" <no-reply@vista.com>',
+    from: process.env.EMAIL_FROM || '"ImmiGo Security" <abhishekyadav36219@gmail.com>',
     to,
-    subject: `[Vista Security] ${purposeTitle}: ${otp}`,
+    subject: `[ImmiGo Security] ${purposeTitle}: ${otp}`,
     html: htmlContent,
-    text: `Your Vista Security verification code for ${purposeTitle} is: ${otp}. It will expire in ${expiryMinutes} minutes.`,
+    text: `Your ImmiGo Security verification code for ${purposeTitle} is: ${otp}. It will expire in ${expiryMinutes} minutes.`,
   };
 
   logger.info(`[OTP DISPATCH] Destination: ${to} | Purpose: ${purpose} | OTP: ${otp}`);
@@ -196,11 +201,10 @@ export const sendVendorRegistrationApprovedEmail = async ({
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Vendor Registration Approved - Vista</title>
+  <title>Vendor Registration Approved - ImmiGo</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
     .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .brand { font-size: 22px; font-weight: 800; color: #2563eb; margin-bottom: 20px; }
     .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #ecfdf5; color: #047857; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #a7f3d0; }
     .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
     .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
@@ -211,11 +215,21 @@ export const sendVendorRegistrationApprovedEmail = async ({
 </head>
 <body>
   <div class="card">
-    <div class="brand">VISTA GLOBAL MANPOWER</div>
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            Partner Onboarding Network
+          </div>
+        </td>
+      </tr>
+    </table>
+
     <div class="badge">Registration Approved &bull; Documents Stage</div>
     <div class="title">Welcome, ${vendorName}!</div>
     <div class="text">
-      Your vendor partner registration has been reviewed and approved by the Vista Admin team.
+      Your vendor partner registration has been reviewed and approved by the ImmiGo Admin team.
       Your initial account access is now enabled. Please log in to complete your compliance document submission.
     </div>
 
@@ -233,7 +247,7 @@ export const sendVendorRegistrationApprovedEmail = async ({
     </div>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} Vista Global Manpower CRM. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo Global Mobility CRM. All rights reserved.
     </div>
   </div>
 </body>
@@ -247,9 +261,9 @@ export const sendVendorRegistrationApprovedEmail = async ({
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"Vista Partner Onboarding" <no-reply@vista.com>',
+    from: process.env.EMAIL_FROM || '"ImmiGo Partner Onboarding" <abhishekyadav36219@gmail.com>',
     to: recipients.join(", "),
-    subject: `[Vista] Vendor Registration Approved: ${vendorName} (${vendorId})`,
+    subject: `[ImmiGo] Vendor Registration Approved: ${vendorName} (${vendorId})`,
     html: htmlContent,
     text: `Hello ${vendorName}, your vendor registration has been approved. Login Email: ${loginEmail || to}. Access Portal: ${loginUrl}. Please upload required compliance documents.`,
   };
@@ -289,11 +303,10 @@ export const sendVendorActivationEmail = async ({
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Vendor Account Activated - Vista</title>
+  <title>Vendor Account Activated - ImmiGo</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
     .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .brand { font-size: 22px; font-weight: 800; color: #2563eb; margin-bottom: 20px; }
     .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #ecfdf5; color: #047857; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #a7f3d0; }
     .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
     .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
@@ -304,11 +317,21 @@ export const sendVendorActivationEmail = async ({
 </head>
 <body>
   <div class="card">
-    <div class="brand">VISTA GLOBAL MANPOWER</div>
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            Partner Operations Network
+          </div>
+        </td>
+      </tr>
+    </table>
+
     <div class="badge">&check; Fully Active Partner</div>
     <div class="title">Congratulations, ${vendorName}!</div>
     <div class="text">
-      Your compliance documents have been verified and your signed Memorandum of Understanding (MOU) has been fully approved by Vista Admin.
+      Your compliance documents have been verified and your signed Memorandum of Understanding (MOU) has been fully approved by ImmiGo Admin.
       Your full operational dashboard is now <strong>Active</strong>!
     </div>
 
@@ -321,7 +344,7 @@ export const sendVendorActivationEmail = async ({
     <a href="${loginUrl}" class="btn">Launch Operational Dashboard</a>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} Vista Global Manpower CRM. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo Global Mobility CRM. All rights reserved.
     </div>
   </div>
 </body>
@@ -334,9 +357,9 @@ export const sendVendorActivationEmail = async ({
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"Vista Partner Operations" <no-reply@vista.com>',
+    from: process.env.EMAIL_FROM || '"ImmiGo Partner Operations" <abhishekyadav36219@gmail.com>',
     to: recipients.join(", "),
-    subject: `[Vista] Vendor Account Fully Activated: ${vendorName} (${vendorId})`,
+    subject: `[ImmiGo] Vendor Account Fully Activated: ${vendorName} (${vendorId})`,
     html: htmlContent,
     text: `Congratulations ${vendorName}! Your vendor account (${vendorId}) is now fully active. Log in to access candidate submission and overseas projects: ${loginUrl}`,
   };
@@ -378,11 +401,10 @@ export const sendCredentialsEmail = async ({
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Account Credentials - Vista</title>
+  <title>Account Credentials - ImmiGo</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
     .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .brand { font-size: 20px; font-weight: 800; color: #2563eb; margin-bottom: 16px; letter-spacing: -0.5px; }
     .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
     .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
     .creds-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
@@ -396,7 +418,17 @@ export const sendCredentialsEmail = async ({
 </head>
 <body>
   <div class="card">
-    <div class="brand">VISTA ENTERPRISE CRM</div>
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            Global Mobility & Workforce
+          </div>
+        </td>
+      </tr>
+    </table>
+
     <div class="title">Welcome, ${name}!</div>
     <div class="text">
       Your official account for <strong>${loginType}</strong> (${role}) has been created. Here are your portal access credentials:
@@ -426,7 +458,7 @@ export const sendCredentialsEmail = async ({
     </div>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} Vista Global Manpower CRM. All rights reserved.
+      &copy; ${new Date().getFullYear()} ImmiGo Global Mobility CRM. All rights reserved.
     </div>
   </div>
 </body>
@@ -439,9 +471,9 @@ export const sendCredentialsEmail = async ({
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || '"Vista Enterprise" <abhishekyadav36219@gmail.com>',
+    from: process.env.EMAIL_FROM || '"ImmiGo Global" <abhishekyadav36219@gmail.com>',
     to: recipients.join(", "),
-    subject: `[Vista] Account Credentials & Portal Access (${loginType})`,
+    subject: `[ImmiGo] Account Credentials & Portal Access (${loginType})`,
     html: htmlContent,
     text: `Hello ${name},\n\nYour account credentials:\nLogin ID: ${loginId || to}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials safe.`,
   };
