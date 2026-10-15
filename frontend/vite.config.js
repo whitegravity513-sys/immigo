@@ -33,6 +33,12 @@ export default defineConfig({
             if (id.includes("lucide-react")) {
               return "vendor-icons";
             }
+            if (id.includes("xlsx")) {
+              return "vendor-excel";
+            }
+            if (id.includes("html2pdf") || id.includes("jspdf") || id.includes("html2canvas")) {
+              return "vendor-pdf";
+            }
             return "vendor";
           }
         },

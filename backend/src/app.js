@@ -56,7 +56,7 @@ app.use("/api", (req, res, next) => {
 });
 
 app.get("/api/health", (req, res) => {
-  return ApiResponse.send(res, 200, "Vista HRMS & Enterprise API is running smoothly", {
+  return ApiResponse.send(res, 200, "ImmiGo HRMS & Enterprise API is running smoothly", {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
