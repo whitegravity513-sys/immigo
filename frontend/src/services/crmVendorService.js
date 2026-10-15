@@ -27,7 +27,7 @@ const INITIAL_NOTIFICATIONS = [];
 // Automatic cleanup to clear all mock/demo business data across all modules
 if (typeof window !== "undefined") {
   try {
-    const cleanKey = "immigo_cleaned_all_data_v8";
+    const cleanKey = "immigo_cleaned_all_data_v9";
     if (!localStorage.getItem(cleanKey)) {
       localStorage.removeItem("immigo_crm_vendors_v3");
       localStorage.removeItem("immigo_crm_candidates_v3");
@@ -36,7 +36,9 @@ if (typeof window !== "undefined") {
       localStorage.removeItem("crm_clients_data_v3");
       localStorage.removeItem("crm_clients_data_v2");
       localStorage.removeItem("crm_clients_data");
+      localStorage.removeItem("crm_client_payments_v2");
       localStorage.removeItem("crm_client_payments_v1");
+      localStorage.removeItem("crm_client_expenses_v1");
       localStorage.removeItem("crm_recent_activities_v1");
       localStorage.removeItem("crm_employee_activities_v1");
       localStorage.removeItem("immigo_crm_admin_notifications_v3");
