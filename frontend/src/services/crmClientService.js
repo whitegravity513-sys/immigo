@@ -71,7 +71,7 @@ export const crmClientService = {
   } = {}) => {
     try {
       const res = await apiClient.get("/crm-sync/clients");
-      if (res.data?.success && Array.isArray(res.data.clients) && res.data.clients.length > 0) {
+      if (res.data?.success && Array.isArray(res.data.clients)) {
         saveClientsToStorage(res.data.clients);
       }
     } catch {}
@@ -180,6 +180,26 @@ export const crmClientService = {
       };
     });
 
+    const paymentMilestones = (payload.paymentMilestones || []).map((m, idx) => {
+      const amount = Number(m.amount) || 0;
+      const paidAmount = Number(m.paidAmount) || 0;
+      return {
+        ...m,
+        id: m.id || `mls-${Date.now()}-${idx + 1}`,
+        name: (m.name || `Milestone ${idx + 1}`).trim(),
+        amount,
+        condition: (m.condition || "Candidate successfully selected").trim(),
+        timeline: (m.timeline || "Within 7 days").trim(),
+        description: m.description || "",
+        status: m.status || (paidAmount >= amount && amount > 0 ? "Paid" : "Pending"),
+        paidAmount,
+        remainingBalance: Math.max(0, amount - paidAmount),
+        remarks: m.remarks || "",
+      };
+    });
+
+    const totalAgreedAmount = paymentMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+
     const newClient = {
       ...payload,
       id: clientId,
@@ -187,6 +207,10 @@ export const crmClientService = {
       createdAt: now,
       updatedAt: now,
       projects,
+      paymentMilestones,
+      totalAgreedAmount,
+      totalPaidAmount: 0,
+      remainingAmount: totalAgreedAmount,
     };
 
     all.unshift(newClient);
@@ -744,6 +768,189 @@ export const crmClientService = {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialClients));
     return initialClients;
   },
+
+  // ------------------------------------------------------------------------
+  // CLIENT PAYMENT LEDGER METHODS
+  // ------------------------------------------------------------------------
+  getClientPayments: async (params = {}) => {
+    try {
+      const res = await apiClient.get("/admin/client-payments", { params });
+      if (res.data?.success) {
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("Backend getClientPayments failed, falling back to local storage:", err.message);
+    }
+
+    // Local Storage Fallback
+    const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
+    let list = JSON.parse(localPaymentsRaw);
+
+    const { clientId, projectId, candidateId, paymentMethod, paymentStatus, gstTreatment, search } = params;
+    if (clientId && clientId !== "ALL") list = list.filter((p) => String(p.clientId) === String(clientId));
+    if (projectId && projectId !== "ALL") list = list.filter((p) => String(p.projectId) === String(projectId));
+    if (candidateId && candidateId !== "ALL") list = list.filter((p) => String(p.candidateId) === String(candidateId));
+    if (paymentMethod && paymentMethod !== "ALL") list = list.filter((p) => p.paymentMethod === paymentMethod);
+    if (paymentStatus && paymentStatus !== "ALL") list = list.filter((p) => p.status === paymentStatus);
+    if (gstTreatment && gstTreatment !== "ALL") list = list.filter((p) => p.gstTreatment === gstTreatment);
+    if (search && search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.paymentId?.toLowerCase().includes(q) ||
+          p.clientName?.toLowerCase().includes(q) ||
+          p.milestoneName?.toLowerCase().includes(q) ||
+          p.transactionReference?.toLowerCase().includes(q)
+      );
+    }
+
+    const page = Number(params.page) || 1;
+    const limit = Number(params.limit) || 15;
+    const startIndex = (page - 1) * limit;
+
+    return {
+      payments: list.slice(startIndex, startIndex + limit),
+      total: list.length,
+      page,
+      limit,
+      totalPages: Math.ceil(list.length / limit) || 1,
+    };
+  },
+
+  recordClientPayment: async (paymentData) => {
+    try {
+      const res = await apiClient.post("/admin/client-payments", paymentData);
+      if (res.data?.success) {
+        return res.data.payment;
+      }
+    } catch (err) {
+      console.warn("Backend recordClientPayment failed, saving to local storage:", err.message);
+    }
+
+    // Local Storage fallback & sync
+    const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
+    const list = JSON.parse(localPaymentsRaw);
+
+    const paymentId = `PAY-${new Date().getFullYear()}-${String(list.length + 1).padStart(4, "0")}`;
+    const newTx = {
+      ...paymentData,
+      id: paymentId,
+      paymentId,
+      status: "Completed",
+      paymentDate: paymentData.paymentDate || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+    list.unshift(newTx);
+    localStorage.setItem("crm_client_payments_v1", JSON.stringify(list));
+
+    // Update local client milestone balance
+    const clients = loadClientsFromStorage();
+    const cIdx = clients.findIndex((c) => String(c.id) === String(paymentData.clientId));
+    if (cIdx !== -1) {
+      const cl = clients[cIdx];
+      const milestones = cl.paymentMilestones || [];
+      const mIdx = milestones.findIndex((m) => String(m.id) === String(paymentData.milestoneId));
+      if (mIdx !== -1) {
+        const ms = milestones[mIdx];
+        const newPaid = (Number(ms.paidAmount) || 0) + Number(paymentData.amountPaid);
+        ms.paidAmount = newPaid;
+        ms.remainingBalance = Math.max(0, (Number(ms.amount) || 0) - newPaid);
+        ms.status = ms.remainingBalance <= 0 ? "Paid" : "Partially Paid";
+        milestones[mIdx] = ms;
+      }
+      cl.paymentMilestones = milestones;
+      const totalAgreed = milestones.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+      const totalPaid = milestones.reduce((sum, m) => sum + (Number(m.paidAmount) || 0), 0);
+      cl.totalAgreedAmount = totalAgreed;
+      cl.totalPaidAmount = totalPaid;
+      cl.remainingAmount = Math.max(0, totalAgreed - totalPaid);
+      clients[cIdx] = cl;
+      saveClientsToStorage(clients);
+    }
+
+    return newTx;
+  },
+
+  getLedgerStats: async (clientId = null) => {
+    try {
+      const res = await apiClient.get("/admin/client-payments/stats", {
+        params: { clientId: clientId || undefined },
+      });
+      if (res.data?.success) {
+        return res.data.stats;
+      }
+    } catch (err) {
+      console.warn("Backend getLedgerStats failed, computing locally:", err.message);
+    }
+
+    // Local calculation
+    const clients = loadClientsFromStorage();
+    let relevantClients = clients;
+    if (clientId && clientId !== "ALL") {
+      relevantClients = clients.filter((c) => String(c.id) === String(clientId));
+    }
+
+    let totalAgreed = 0;
+    let dueCount = 0;
+    let overdueCount = 0;
+    const now = new Date();
+
+    relevantClients.forEach((c) => {
+      (c.paymentMilestones || []).forEach((m) => {
+        totalAgreed += Number(m.amount) || 0;
+        if (m.status === "Due") dueCount++;
+        if (m.status === "Overdue" || (m.dueDate && new Date(m.dueDate) < now && m.status !== "Paid")) {
+          overdueCount++;
+        }
+      });
+    });
+
+    const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
+    let list = JSON.parse(localPaymentsRaw).filter((p) => !p.isReversed);
+    if (clientId && clientId !== "ALL") {
+      list = list.filter((p) => String(p.clientId) === String(clientId));
+    }
+
+    const totalPaid = list.reduce((sum, p) => sum + (Number(p.amountPaid) || 0), 0);
+    const totalTransactionsAmount = list.reduce(
+      (sum, p) => sum + (Number(p.totalTransactionAmount) || Number(p.amountPaid) || 0),
+      0
+    );
+
+    return {
+      totalAgreedPayments: totalAgreed,
+      totalPaymentsMade: totalPaid,
+      totalOutstandingAmount: Math.max(0, totalAgreed - totalPaid),
+      paymentsDue: dueCount,
+      overduePayments: overdueCount,
+      totalTransactions: list.length,
+      totalTransactionsAmount,
+    };
+  },
+
+  reverseClientPayment: async (paymentId, reason) => {
+    try {
+      const res = await apiClient.post(`/admin/client-payments/${paymentId}/reverse`, { reason });
+      if (res.data?.success) {
+        return res.data.payment;
+      }
+    } catch (err) {
+      console.warn("Backend reverseClientPayment failed, updating local:", err.message);
+    }
+
+    const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
+    const list = JSON.parse(localPaymentsRaw);
+    const pIdx = list.findIndex((p) => String(p.id) === String(paymentId) || String(p.paymentId) === String(paymentId));
+    if (pIdx !== -1) {
+      list[pIdx].isReversed = true;
+      list[pIdx].status = "Reversed";
+      list[pIdx].reversalReason = reason || "Reversed by admin";
+      localStorage.setItem("crm_client_payments_v1", JSON.stringify(list));
+      return list[pIdx];
+    }
+    throw new Error("Payment record not found");
+  },
 };
 
 export default crmClientService;
+

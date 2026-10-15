@@ -3,7 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 
 export class ClientService {
   static async createClient(data) {
-    const { name, mobile, phone, email, company, companyName, address, gstPan, remark, directorName, directorEmail, directorMobile } = data;
+    const { name, mobile, phone, email, company, companyName, address, gstPan, remark, directorName, directorEmail, directorMobile, paymentMilestones } = data;
     const finalName = name || companyName || company;
     const finalEmail = email || `${Date.now()}@client.com`;
 
@@ -23,6 +23,24 @@ export class ClientService {
       }
     }
 
+    let formattedMilestones = [];
+    if (Array.isArray(paymentMilestones)) {
+      formattedMilestones = paymentMilestones.map((m, idx) => ({
+        id: m.id || `mls-${Date.now()}-${idx + 1}`,
+        name: (m.name || `Milestone ${idx + 1}`).trim(),
+        amount: Number(m.amount) || 0,
+        condition: (m.condition || "Candidate successfully selected").trim(),
+        timeline: (m.timeline || "Within 7 days").trim(),
+        description: m.description || "",
+        status: m.status || "Pending",
+        paidAmount: Number(m.paidAmount) || 0,
+        remainingBalance: Math.max(0, (Number(m.amount) || 0) - (Number(m.paidAmount) || 0)),
+        remarks: m.remarks || "",
+      }));
+    }
+
+    const totalAgreed = formattedMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+
     const client = await Client.create({
       name: finalName.trim(),
       email: finalEmail.trim().toLowerCase(),
@@ -34,6 +52,10 @@ export class ClientService {
       directorMobile: cleanDirectorMobile || "",
       gstPan: gstPan || "",
       remark: remark || "",
+      paymentMilestones: formattedMilestones,
+      totalAgreedAmount: totalAgreed,
+      totalPaidAmount: 0,
+      remainingAmount: totalAgreed,
     });
 
     return {
@@ -83,7 +105,7 @@ export class ClientService {
   }
 
   static async updateClient(id, data) {
-    const { name, mobile, phone, email, company, companyName, address, gstPan, remark, directorName, directorEmail, directorMobile } = data;
+    const { name, mobile, phone, email, company, companyName, address, gstPan, remark, directorName, directorEmail, directorMobile, paymentMilestones } = data;
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
     if (companyName !== undefined || company !== undefined) {
@@ -114,6 +136,29 @@ export class ClientService {
     
     if (gstPan !== undefined) updateData.gstPan = gstPan;
     if (remark !== undefined) updateData.remark = remark;
+
+    if (Array.isArray(paymentMilestones)) {
+      updateData.paymentMilestones = paymentMilestones.map((m, idx) => ({
+        id: m.id || `mls-${Date.now()}-${idx + 1}`,
+        name: (m.name || `Milestone ${idx + 1}`).trim(),
+        amount: Number(m.amount) || 0,
+        condition: (m.condition || "Candidate successfully selected").trim(),
+        timeline: (m.timeline || "Within 7 days").trim(),
+        description: m.description || "",
+        status: m.status || "Pending",
+        paidAmount: Number(m.paidAmount) || 0,
+        remainingBalance: Math.max(0, (Number(m.amount) || 0) - (Number(m.paidAmount) || 0)),
+        dueDate: m.dueDate || null,
+        paidDate: m.paidDate || null,
+        relatedProjectId: m.relatedProjectId || "",
+        relatedProjectName: m.relatedProjectName || "",
+        relatedCandidateId: m.relatedCandidateId || "",
+        relatedCandidateName: m.relatedCandidateName || "",
+        remarks: m.remarks || "",
+      }));
+      const totalAgreed = updateData.paymentMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+      updateData.totalAgreedAmount = totalAgreed;
+    }
 
     const client = await Client.findByIdAndUpdate(id, updateData, { new: true });
     if (!client) {

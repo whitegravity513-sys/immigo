@@ -18,6 +18,7 @@ import {
   UserCheck,
   Calendar,
   Award,
+  Receipt,
 } from "lucide-react";
 import AdminMasterLayout from "../../components/admin/layout/AdminMasterLayout.jsx";
 import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
@@ -27,6 +28,7 @@ import crmClientService, {
 import crmVendorService from "../../services/crmVendorService.js";
 import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
+import activityService from "../../services/activityService.js";
 
 export function MainAdminDashboard() {
   const navigate = useNavigate();
@@ -57,10 +59,40 @@ export function MainAdminDashboard() {
 
   const [projectsList, setProjectsList] = useState([]);
   const [recentClients, setRecentClients] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(false);
+  const [activityFilter, setActivityFilter] = useState("ALL");
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityTotalPages, setActivityTotalPages] = useState(1);
+  const [activityTotal, setActivityTotal] = useState(0);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  useEffect(() => {
+    loadActivities();
+  }, [activityFilter, activityPage]);
+
+  const loadActivities = async () => {
+    setLoadingActivities(true);
+    try {
+      const res = await activityService.getAdminActivities({
+        page: activityPage,
+        limit: 8,
+        entityType: activityFilter !== "ALL" ? activityFilter : undefined,
+      });
+      if (res) {
+        setActivities(res.activities || []);
+        setActivityTotalPages(res.pagination?.totalPages || 1);
+        setActivityTotal(res.pagination?.total || 0);
+      }
+    } catch (err) {
+      console.error("Error loading admin activities:", err);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
 
   const loadDashboardData = async () => {
     try {
@@ -164,7 +196,7 @@ export function MainAdminDashboard() {
       title: "Total HR",
       value: stats.totalEmployees || 0,
       subtitle: "HR Officers & Personnel",
-      trend: "+2 this month",
+      trend: stats.totalEmployees > 0 ? `${stats.totalEmployees} active` : "0 active",
       icon: UserCheck,
       badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
       to: "/admin/employees",
@@ -173,7 +205,7 @@ export function MainAdminDashboard() {
       title: "Total Clients",
       value: stats.totalClients || 0,
       subtitle: "Active Client Accounts",
-      trend: "+4 active",
+      trend: stats.totalClients > 0 ? `${stats.activeClients || stats.totalClients} active` : "0 active",
       icon: Building2,
       badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
       to: "/client/dashboard",
@@ -182,7 +214,7 @@ export function MainAdminDashboard() {
       title: "Total Vendors",
       value: stats.totalVendors || 0,
       subtitle: "Registered Agencies",
-      trend: stats.pendingVendors > 0 ? `${stats.pendingVendors} pending review` : "All approved",
+      trend: stats.pendingVendors > 0 ? `${stats.pendingVendors} pending review` : stats.totalVendors > 0 ? "All approved" : "0 registered",
       icon: Briefcase,
       badgeBg: "bg-amber-50 text-amber-800 border-amber-200",
       to: "/admin/vendor/vendors",
@@ -191,7 +223,7 @@ export function MainAdminDashboard() {
       title: "Total Projects",
       value: stats.totalProjects || 0,
       subtitle: "Active Site Demands",
-      trend: "+6 new projects",
+      trend: stats.totalProjects > 0 ? `${stats.activeProjects || stats.totalProjects} active` : "0 active",
       icon: FolderKanban,
       badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
       to: "/client/projects",
@@ -200,7 +232,7 @@ export function MainAdminDashboard() {
       title: "Total Candidates",
       value: stats.totalCandidates || 0,
       subtitle: "Candidate Roster Pool",
-      trend: "+24 this week",
+      trend: stats.totalCandidates > 0 ? `${stats.totalCandidates} pooled` : "0 candidates",
       icon: Users,
       badgeBg: "bg-teal-50 text-teal-700 border-teal-200",
       to: "/admin/vendor/candidates",
@@ -209,7 +241,7 @@ export function MainAdminDashboard() {
       title: "Shortlisted Candidates",
       value: stats.pendingCandidates || 0,
       subtitle: "Under Document Review",
-      trend: "Ready for interview",
+      trend: stats.pendingCandidates > 0 ? `${stats.pendingCandidates} in review` : "0 in review",
       icon: Clock,
       badgeBg: "bg-yellow-50 text-yellow-800 border-yellow-200",
       to: "/admin/vendor/submissions?status=Shortlisted",
@@ -218,7 +250,7 @@ export function MainAdminDashboard() {
       title: "Interview Scheduled",
       value: stats.selectedCandidates || 0,
       subtitle: "Upcoming Client Interviews",
-      trend: "8 today",
+      trend: stats.selectedCandidates > 0 ? `${stats.selectedCandidates} scheduled` : "0 scheduled",
       icon: Calendar,
       badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
       to: "/admin/vendor/submissions?status=Interview Scheduled",
@@ -227,7 +259,7 @@ export function MainAdminDashboard() {
       title: "Selected Candidates",
       value: stats.selectedCandidates || 0,
       subtitle: "Client Selection Cleared",
-      trend: "In processing pipeline",
+      trend: stats.selectedCandidates > 0 ? "In processing" : "0 selected",
       icon: CheckCircle2,
       badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
       to: "/admin/vendor/selected",
@@ -236,7 +268,7 @@ export function MainAdminDashboard() {
       title: "Pending Payments",
       value: stats.pendingPayments ? `₹${(stats.pendingPayments / 100000).toFixed(1)}L` : "₹0",
       subtitle: "Milestone Fee Pipeline",
-      trend: "Due this milestone",
+      trend: stats.pendingPayments > 0 ? "Due this milestone" : "No pending dues",
       icon: TrendingUp,
       badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
       to: "/admin/vendor/payments",
@@ -245,7 +277,7 @@ export function MainAdminDashboard() {
       title: "Candidates Joined",
       value: stats.deployedCandidates || 0,
       subtitle: "Successfully Deployed",
-      trend: "100% verified",
+      trend: stats.deployedCandidates > 0 ? `${stats.deployedCandidates} joined` : "0 joined",
       icon: Award,
       badgeBg: "bg-green-50 text-green-800 border-green-200",
       to: "/admin/vendor/candidates?tab=Selected",
@@ -273,7 +305,7 @@ export function MainAdminDashboard() {
                 <h2 className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">Company Workforce</h2>
                 <div className="text-3xl font-black mt-1">{stats.totalEmployees}</div>
                 <div className="text-[11px] text-indigo-100 mt-1.5 font-medium bg-white/15 inline-block px-2.5 py-0.5 rounded-full">
-                  +{stats.newEmployeesThisMonth} new this month
+                  {stats.newEmployeesThisMonth > 0 ? `+${stats.newEmployeesThisMonth} new this month` : "Active staff"}
                 </div>
               </div>
               <Link to="/admin/dashboard/workforce" className="mt-4 pt-3 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
@@ -318,60 +350,51 @@ export function MainAdminDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
-            {/* Quick Actions & Recent Activity - Left Column */}
-            <div className="lg:col-span-1 space-y-4">
-              
-              <div className="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
-                <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
-                  <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
-                    <Activity size={15} className="text-indigo-600" /> Recent Activity (5)
-                  </h3>
-                  <Link to="/admin/vendor/submissions" className="text-[11px] font-bold text-indigo-600 hover:underline">
-                    See All
-                  </Link>
+            {/* Operations & Manpower Command - Left Column */}
+            <div className="lg:col-span-1 space-y-3">
+              <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-xl text-white shadow-xs relative overflow-hidden flex flex-col justify-between">
+                <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl"></div>
+                <div>
+                  <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider block">
+                    Overseas Manpower Demand
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1 mb-3">
+                    <span className="text-3xl font-black text-white">{stats.totalRequiredManpower}</span>
+                    <span className="text-[11px] text-slate-300 font-medium">Active Open Positions</span>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {(stats.recentActivity || []).slice(0, 5).map((item, i) => (
-                    <div key={item.id || i} className="flex gap-2.5 relative">
-                      {i !== Math.min((stats.recentActivity || []).length, 5) - 1 && (
-                        <div className="absolute left-[9px] top-6 bottom-[-12px] w-0.5 bg-slate-100"></div>
-                      )}
-                      <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 z-10 mt-0.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-bold text-slate-800 truncate">{item.title}</h4>
-                        <p className="text-[11px] text-slate-500 line-clamp-1">{item.description}</p>
-                        <span className="text-[9px] font-semibold text-slate-400 mt-0.5 block">{item.time}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {(!stats.recentActivity || stats.recentActivity.length === 0) && (
-                    <p className="text-xs text-slate-400 text-center py-3">No recent activity.</p>
-                  )}
-                </div>
-              </div>
 
-              <div className="p-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl text-white shadow-md relative overflow-hidden">
-                <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Manpower Requirements</h3>
-                <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-3xl font-black text-white">{stats.totalRequiredManpower}</span>
-                  <span className="text-[11px] text-slate-300 font-medium">Total Positions</span>
-                </div>
-                
-                <div className="space-y-2">
-                  <Link to="/client/clients/new" className="w-full flex items-center justify-between p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border border-white/10 text-xs font-bold">
-                    <span>Onboard New Client</span>
-                    <Plus size={13} />
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs font-bold">
+                  <Link
+                    to="/client/clients/new"
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                  >
+                    <span>+ Client</span>
+                    <Plus size={12} />
                   </Link>
-                  <Link to="/client/projects/new" className="w-full flex items-center justify-between p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors border border-white/10 text-xs font-bold">
-                    <span>Create New Project</span>
-                    <Plus size={13} />
+                  <Link
+                    to="/client/projects/new"
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                  >
+                    <span>+ Project</span>
+                    <Plus size={12} />
+                  </Link>
+                  <Link
+                    to="/admin/vendor"
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                  >
+                    <span>Vendors</span>
+                    <ArrowRight size={12} />
+                  </Link>
+                  <Link
+                    to="/client/ledger"
+                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                  >
+                    <span>Ledger</span>
+                    <ArrowRight size={12} />
                   </Link>
                 </div>
               </div>
-
             </div>
 
             {/* Active Projects Pipeline - Right 2 Columns (Strictly 5 items + See All) */}
@@ -468,8 +491,178 @@ export function MainAdminDashboard() {
                   </div>
                 )}
               </div>
-              
             </div>
+          </div>
+
+          {/* FULL-WIDTH UNIFIED RECENT ACTIVITY & OPERATIONS FEED */}
+          <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden mt-1">
+            <div className="p-3 sm:px-4 sm:py-2.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Activity size={15} className="text-blue-600" />
+                  <span>Recent Activity & Updates</span>
+                </h3>
+                <p className="text-[10px] text-slate-500">
+                  Live operational updates across Employee HR, Vendors, Projects, Clients, and Payments.
+                </p>
+              </div>
+
+              {/* Filter and Page controls */}
+              <div className="flex items-center gap-2 shrink-0">
+                <select
+                  value={activityFilter}
+                  onChange={(e) => {
+                    setActivityFilter(e.target.value);
+                    setActivityPage(1);
+                  }}
+                  className="px-2 py-1 text-[11px] font-semibold bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="ALL">All Updates</option>
+                  <option value="EMPLOYEE">Employees & HR</option>
+                  <option value="VENDOR">Vendors</option>
+                  <option value="PROJECT">Projects</option>
+                  <option value="CLIENT">Clients</option>
+                  <option value="CLIENT_PAYMENT">Payments</option>
+                </select>
+
+                <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-full">
+                  {activityTotal} events
+                </span>
+              </div>
+            </div>
+
+            {loadingActivities ? (
+              <div className="p-6 text-center text-xs text-slate-400">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-1.5" />
+                Loading activity feed...
+              </div>
+            ) : activities.length === 0 ? (
+              <div className="p-6 text-center text-xs text-slate-500">
+                <Activity size={20} className="mx-auto text-slate-300 mb-1.5" />
+                No activity recorded yet for the selected filter.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto">
+                {activities.map((act) => {
+                  const entityColors = {
+                    VENDOR: "bg-purple-50 text-purple-700 border-purple-200",
+                    Vendor: "bg-purple-50 text-purple-700 border-purple-200",
+                    EMPLOYEE: "bg-blue-50 text-blue-700 border-blue-200",
+                    Employee: "bg-blue-50 text-blue-700 border-blue-200",
+                    Leave: "bg-amber-50 text-amber-700 border-amber-200",
+                    CLIENT: "bg-cyan-50 text-cyan-700 border-cyan-200",
+                    Client: "bg-cyan-50 text-cyan-700 border-cyan-200",
+                    CLIENT_PAYMENT: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    Payment: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    PROJECT: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                    Project: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                    CANDIDATE: "bg-amber-50 text-amber-700 border-amber-200",
+                    Candidate: "bg-amber-50 text-amber-700 border-amber-200",
+                  };
+
+                  const getEntityIcon = (type) => {
+                    const t = (type || "").toUpperCase();
+                    if (t.includes("VENDOR")) return <Briefcase size={12} className="text-purple-600" />;
+                    if (t.includes("EMPLOYEE") || t.includes("LEAVE")) return <Users size={12} className="text-blue-600" />;
+                    if (t.includes("PAYMENT")) return <Receipt size={12} className="text-emerald-600" />;
+                    if (t.includes("PROJECT")) return <FolderKanban size={12} className="text-indigo-600" />;
+                    if (t.includes("CLIENT")) return <Building2 size={12} className="text-cyan-600" />;
+                    return <Activity size={12} className="text-slate-600" />;
+                  };
+
+                  const formatDate = (iso) => {
+                    if (!iso) return "—";
+                    try {
+                      const d = new Date(iso);
+                      return d.toLocaleString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                    } catch {
+                      return iso;
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={act._id || act.id}
+                      className="px-3 py-2 sm:px-4 sm:py-2 flex items-center justify-between gap-2.5 hover:bg-slate-50/80 transition-colors text-xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                          {getEntityIcon(act.entityType)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-[11px] text-slate-900 truncate">
+                              {act.userName || "System Admin"}
+                            </span>
+                            <span className="text-[11px] text-slate-600 font-medium">
+                              {act.action}
+                            </span>
+                            {act.status && (
+                              <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700">
+                                {act.status}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap">
+                            {act.entityType && (
+                              <span className={`px-1 py-0.2 rounded font-bold text-[9px] border ${entityColors[act.entityType] || "bg-slate-100 text-slate-600"}`}>
+                                {act.entityType.replace("_", " ")}
+                              </span>
+                            )}
+                            {act.entityName && (
+                              <span className="font-medium text-slate-700 truncate max-w-[180px] sm:max-w-none">
+                                {act.entityName}
+                              </span>
+                            )}
+                            {act.details && (
+                              <span className="text-slate-400 truncate max-w-[200px] sm:max-w-none">
+                                • {act.details}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
+                        {formatDate(act.createdAt)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Compact Pagination */}
+            {activityTotalPages > 1 && (
+              <div className="px-4 py-2 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="text-slate-500 font-medium">
+                  Page {activityPage} of {activityTotalPages}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={activityPage <= 1}
+                    onClick={() => setActivityPage((p) => Math.max(1, p - 1))}
+                    className="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-bold text-[10px] disabled:opacity-40 cursor-pointer"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    disabled={activityPage >= activityTotalPages}
+                    onClick={() => setActivityPage((p) => Math.min(activityTotalPages, p + 1))}
+                    className="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-bold text-[10px] disabled:opacity-40 cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

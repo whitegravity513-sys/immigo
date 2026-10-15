@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
+import EmployeeRecentActivitySection from "./EmployeeRecentActivitySection.jsx";
 
 export default function EmpHomeOverview({
   user,
@@ -654,9 +655,10 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        {}
-        <div className="lg:col-span-5 flex flex-col">
+        {/* Daily Work Log Section */}
+        <div className="lg:col-span-5 flex flex-col space-y-5">
           <DailyWorkLogSection />
+          <EmployeeRecentActivitySection user={user} />
         </div>
       </div>
     </div>

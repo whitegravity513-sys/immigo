@@ -107,8 +107,40 @@ export function ClientForm({
 
     // Client Legal & Compliance Documents
     documents: [],
+
+    // Payment Milestones (Candidate selection & manpower recruitment expenses)
+    paymentMilestones: [
+      {
+        id: "mls-1",
+        name: "Milestone 1",
+        amount: "25000",
+        condition: "Candidate successfully selected",
+        timeline: "Within 7 days of selection",
+        description: "Candidate selection mobilization advance and documentation expenses",
+      },
+      {
+        id: "mls-2",
+        name: "Milestone 2",
+        amount: "15000",
+        condition: "Candidate visa process completed",
+        timeline: "Within 15 days",
+        description: "Visa processing, medical clearance and attestation expenses",
+      },
+      {
+        id: "mls-3",
+        name: "Milestone 3",
+        amount: "10000",
+        condition: "Final agreed recruitment payment",
+        timeline: "Within 30 days",
+        description: "Deployment completion and final agreed recruitment payment",
+      },
+    ],
   });
 
+  const [totalPaymentInput, setTotalPaymentInput] = useState(() => {
+    if (initialData?.totalAgreedAmount) return String(initialData.totalAgreedAmount);
+    return "50000";
+  });
   const [errors, setErrors] = useState({});
   const [panFile, setPanFile] = useState(null);
 
@@ -160,7 +192,54 @@ export function ClientForm({
         localLicenseNumber: initialData.localLicenseNumber || "",
         notes: initialData.notes || "",
         documents: Array.isArray(initialData.documents) ? initialData.documents : [],
+        paymentMilestones:
+          Array.isArray(initialData.paymentMilestones) && initialData.paymentMilestones.length > 0
+            ? initialData.paymentMilestones.map((m, idx) => ({
+                id: m.id || `mls-${idx + 1}`,
+                name: m.name || `Milestone ${idx + 1}`,
+                amount: String(m.amount || ""),
+                condition: m.condition || "Candidate successfully selected",
+                timeline: m.timeline || "Within 7 days",
+                description: m.description || "",
+                status: m.status || "Pending",
+                paidAmount: m.paidAmount || 0,
+                remainingBalance: m.remainingBalance || m.amount || 0,
+                remarks: m.remarks || "",
+              }))
+            : [
+                {
+                  id: "mls-1",
+                  name: "Milestone 1",
+                  amount: "25000",
+                  condition: "Candidate successfully selected",
+                  timeline: "Within 7 days of selection",
+                  description: "Candidate selection mobilization advance",
+                },
+                {
+                  id: "mls-2",
+                  name: "Milestone 2",
+                  amount: "15000",
+                  condition: "Candidate visa process completed",
+                  timeline: "Within 15 days",
+                  description: "Visa processing and embassy documentation",
+                },
+                {
+                  id: "mls-3",
+                  name: "Milestone 3",
+                  amount: "10000",
+                  condition: "Final agreed recruitment payment",
+                  timeline: "Within 30 days",
+                  description: "Final agreed recruitment payment upon deployment",
+                },
+              ],
       });
+
+      if (initialData.totalAgreedAmount) {
+        setTotalPaymentInput(String(initialData.totalAgreedAmount));
+      } else if (Array.isArray(initialData.paymentMilestones)) {
+        const sum = initialData.paymentMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+        if (sum > 0) setTotalPaymentInput(String(sum));
+      }
     }
   }, [initialData]);
 
@@ -213,6 +292,106 @@ export function ClientForm({
     }));
   };
 
+  // Total Payment Handlers
+  const handleTotalPaymentChange = (e) => {
+    const val = e.target.value;
+    setTotalPaymentInput(val);
+
+    // If only 1 milestone exists, auto-sync its amount
+    if ((formData.paymentMilestones || []).length === 1) {
+      setFormData((prev) => ({
+        ...prev,
+        paymentMilestones: [
+          {
+            ...prev.paymentMilestones[0],
+            amount: val,
+          },
+        ],
+      }));
+    }
+  };
+
+  const handleAutoDistributeTotal = () => {
+    const total = Number(totalPaymentInput);
+    if (!total || total <= 0) {
+      showToast("Please enter a valid total payment amount to distribute", "warning");
+      return;
+    }
+    const count = (formData.paymentMilestones || []).length;
+    if (count === 0) return;
+
+    const baseShare = Math.floor(total / count);
+    const remainder = total - baseShare * count;
+
+    setFormData((prev) => ({
+      ...prev,
+      paymentMilestones: (prev.paymentMilestones || []).map((m, idx) => ({
+        ...m,
+        amount: String(idx === 0 ? baseShare + remainder : baseShare),
+      })),
+    }));
+    showToast(`Distributed ₹${total.toLocaleString("en-IN")} evenly across ${count} milestones`, "success");
+  };
+
+  // Milestone Handlers
+  const handleMilestoneChange = (index, field, value) => {
+    setFormData((prev) => {
+      const updated = [...(prev.paymentMilestones || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      if (field === "amount") {
+        const newTotal = updated.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+        setTotalPaymentInput(String(newTotal));
+      }
+      return { ...prev, paymentMilestones: updated };
+    });
+
+    const errKey = `milestone_${index}_${field}`;
+    if (errors[errKey]) {
+      setErrors((prev) => ({ ...prev, [errKey]: "" }));
+    }
+  };
+
+  const handleAddMilestone = () => {
+    setFormData((prev) => {
+      const list = prev.paymentMilestones || [];
+      const newIdx = list.length + 1;
+      const currentSum = list.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+      const targetTotal = Number(totalPaymentInput) || 0;
+      const unallocated = Math.max(0, targetTotal - currentSum);
+
+      return {
+        ...prev,
+        paymentMilestones: [
+          ...list,
+          {
+            id: `mls-${Date.now()}-${newIdx}`,
+            name: `Milestone ${newIdx}`,
+            amount: unallocated > 0 ? String(unallocated) : "",
+            condition: "Candidate successfully selected",
+            timeline: "Within 15 days",
+            description: "",
+            status: "Pending",
+            paidAmount: 0,
+            remainingBalance: 0,
+            remarks: "",
+          },
+        ],
+      };
+    });
+  };
+
+  const handleRemoveMilestone = (index) => {
+    setFormData((prev) => {
+      const remaining = (prev.paymentMilestones || []).filter((_, i) => i !== index);
+      const newTotal = remaining.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+      setTotalPaymentInput(String(newTotal));
+      return {
+        ...prev,
+        paymentMilestones: remaining,
+      };
+    });
+  };
+
   // PAN file upload handler
   const handlePanFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -233,7 +412,7 @@ export function ClientForm({
   const validate = () => {
     const newErrors = {};
 
-    // Only Company name is strictly mandatory
+    // Company name is mandatory
     if (!formData.companyName || !formData.companyName.trim()) {
       newErrors.companyName = "Company name is required";
     }
@@ -246,10 +425,28 @@ export function ClientForm({
       newErrors.directorEmail = "Enter a valid director email (e.g. director@company.com)";
     }
 
+    // Validate Payment Milestones
+    (formData.paymentMilestones || []).forEach((m, idx) => {
+      if (!m.name || !String(m.name).trim()) {
+        newErrors[`milestone_${idx}_name`] = "Milestone name is required";
+      }
+      const amt = Number(m.amount);
+      if (isNaN(amt) || amt <= 0) {
+        newErrors[`milestone_${idx}_amount`] = "Enter a valid payment amount > 0";
+      }
+      if (!m.condition || !String(m.condition).trim()) {
+        newErrors[`milestone_${idx}_condition`] = "Payment trigger / condition is required";
+      }
+    });
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      showToast("Please enter a valid company name.", "error");
+      if (newErrors.companyName) {
+        showToast("Please enter a valid company name.", "error");
+      } else {
+        showToast("Please review the errors in the form.", "error");
+      }
       return false;
     }
     return true;
@@ -286,6 +483,26 @@ export function ClientForm({
       ? panFile.name
       : initialData?.panDocumentName || "";
 
+    const formattedMilestones = (formData.paymentMilestones || []).map((m, idx) => {
+      const amount = Number(m.amount) || 0;
+      const paidAmount = Number(m.paidAmount) || 0;
+      return {
+        ...m,
+        id: m.id || `mls-${Date.now()}-${idx + 1}`,
+        name: (m.name || `Milestone ${idx + 1}`).trim(),
+        amount,
+        condition: (m.condition || "Candidate successfully selected").trim(),
+        timeline: (m.timeline || "Within 7 days").trim(),
+        description: m.description || "",
+        status: m.status || (paidAmount >= amount && amount > 0 ? "Paid" : "Pending"),
+        paidAmount,
+        remainingBalance: Math.max(0, amount - paidAmount),
+        remarks: m.remarks || "",
+      };
+    });
+
+    const totalAgreedAmount = Number(totalPaymentInput) || formattedMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+
     onSubmit({
       ...formData,
       companyName: formData.companyName.trim(),
@@ -297,6 +514,9 @@ export function ClientForm({
       contacts: sanitizedContacts,
       panNumber: (formData.panNumber || "").trim().toUpperCase(),
       panDocumentName,
+      paymentMilestones: formattedMilestones,
+      totalAgreedAmount,
+      remainingAmount: totalAgreedAmount - (Number(initialData?.totalPaidAmount) || 0),
     });
   };
 
@@ -803,10 +1023,257 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 6: CLIENT LEGAL & COMPLIANCE DOCUMENTS */}
+        {/* SECTION 6: PAYMENT MILESTONES */}
+        <FormSection
+          id="milestones"
+          title="6. Payment Milestones"
+          subtitle="Configure agreed manpower recruitment expenses (selection advance, visa processing, deployment) payable to this client."
+          icon={CreditCard}
+        >
+          <div className="space-y-4">
+            {/* Live Calculation Banner with Direct Total Input */}
+            <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex-1">
+                <label className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block mb-1.5">
+                  Total Agreed Payment Amount (₹)
+                </label>
+                
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <div className="relative w-48 sm:w-56">
+                    <span className="absolute left-3 top-2 text-sm font-bold text-blue-600">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="500"
+                      value={totalPaymentInput}
+                      onChange={handleTotalPaymentChange}
+                      placeholder="e.g. 50000"
+                      className="w-full pl-8 pr-3 py-1.5 text-lg font-black text-blue-950 font-mono bg-white border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAutoDistributeTotal}
+                    title="Auto-distribute this total amount evenly across all milestones"
+                    className="px-3 py-2 text-xs font-bold text-blue-700 bg-white hover:bg-blue-100/70 border border-blue-300 rounded-lg shadow-2xs transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    Auto Distribute
+                  </button>
+
+                  <span className="text-xs font-semibold text-blue-700 bg-blue-100/50 px-2.5 py-1.5 rounded-lg border border-blue-200">
+                    {(formData.paymentMilestones || []).length} Milestones Configured
+                  </span>
+                </div>
+
+                {/* Allocation Status Indicator */}
+                {(() => {
+                  const milestonesSum = (formData.paymentMilestones || []).reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+                  const targetTotal = Number(totalPaymentInput) || 0;
+                  return (
+                    <div className="flex items-center gap-3 mt-2 text-[11px] flex-wrap">
+                      <span className="text-blue-800/80">
+                        Milestones Total: <strong className="font-mono text-blue-900 font-bold">₹{milestonesSum.toLocaleString("en-IN")}</strong>
+                      </span>
+                      {milestonesSum === targetTotal && targetTotal > 0 ? (
+                        <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                          ✓ Fully allocated
+                        </span>
+                      ) : targetTotal > milestonesSum ? (
+                        <span className="text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          Unallocated: ₹{(targetTotal - milestonesSum).toLocaleString("en-IN")}
+                        </span>
+                      ) : (
+                        <span className="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                          Exceeds total by ₹{(milestonesSum - targetTotal).toLocaleString("en-IN")}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                <p className="text-[11px] text-blue-600/80 mt-1.5">
+                  Agreed manpower recruitment expenses payable upon candidate selection & milestones.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddMilestone}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors cursor-pointer self-start md:self-center shrink-0"
+              >
+                <Plus size={14} />
+                <span>Add Milestone</span>
+              </button>
+            </div>
+
+            {/* Milestones List */}
+            <div className="space-y-3.5">
+              {(formData.paymentMilestones || []).map((milestone, idx) => (
+                <div
+                  key={milestone.id || idx}
+                  className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs hover:border-blue-200 transition-colors space-y-3 relative"
+                >
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
+                        {idx + 1}
+                      </span>
+                      <span className="text-xs font-bold text-gray-800">
+                        {milestone.name || `Milestone ${idx + 1}`}
+                      </span>
+                      {Number(milestone.amount) > 0 && (
+                        <span className="text-xs font-bold text-blue-700 font-mono bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                          ₹{Number(milestone.amount).toLocaleString("en-IN")}
+                        </span>
+                      )}
+                    </div>
+
+                    {(formData.paymentMilestones || []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMilestone(idx)}
+                        className="text-gray-400 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
+                        title="Delete this milestone"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {/* Milestone Name */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                        Milestone Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={milestone.name}
+                        onChange={(e) => handleMilestoneChange(idx, "name", e.target.value)}
+                        placeholder="e.g. Milestone 1"
+                        className={`w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                          errors[`milestone_${idx}_name`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
+                        }`}
+                      />
+                      {errors[`milestone_${idx}_name`] && (
+                        <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                          <AlertCircle size={10} /> {errors[`milestone_${idx}_name`]}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Payment Amount */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                        Payment Amount (₹) <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-xs font-bold text-gray-400">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="100"
+                          value={milestone.amount}
+                          onChange={(e) => handleMilestoneChange(idx, "amount", e.target.value)}
+                          placeholder="25000"
+                          className={`w-full pl-7 pr-3 py-2 border rounded-lg text-xs font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                            errors[`milestone_${idx}_amount`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
+                          }`}
+                        />
+                      </div>
+                      {errors[`milestone_${idx}_amount`] && (
+                        <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                          <AlertCircle size={10} /> {errors[`milestone_${idx}_amount`]}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Payment Trigger / Condition */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                        Payment Trigger / Condition <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        list={`conditions-list-${idx}`}
+                        value={milestone.condition}
+                        onChange={(e) => handleMilestoneChange(idx, "condition", e.target.value)}
+                        placeholder="e.g. Candidate successfully selected"
+                        className={`w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                          errors[`milestone_${idx}_condition`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
+                        }`}
+                      />
+                      <datalist id={`conditions-list-${idx}`}>
+                        <option value="Candidate successfully selected" />
+                        <option value="Candidate visa process completed" />
+                        <option value="Medical clearance and documentation completed" />
+                        <option value="Final agreed recruitment payment" />
+                        <option value="Deployment on project site completed" />
+                      </datalist>
+                      {errors[`milestone_${idx}_condition`] && (
+                        <p className="text-[10px] text-red-600 mt-1 flex items-center gap-1">
+                          <AlertCircle size={10} /> {errors[`milestone_${idx}_condition`]}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Expected Payment Timeline */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                        Expected Payment Timeline
+                      </label>
+                      <input
+                        type="text"
+                        list={`timelines-list-${idx}`}
+                        value={milestone.timeline}
+                        onChange={(e) => handleMilestoneChange(idx, "timeline", e.target.value)}
+                        placeholder="e.g. Within 7 days of selection"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <datalist id={`timelines-list-${idx}`}>
+                        <option value="Within 7 days of selection" />
+                        <option value="Within 15 days" />
+                        <option value="Within 30 days" />
+                        <option value="Within 45 days of deployment" />
+                      </datalist>
+                    </div>
+                  </div>
+
+                  {/* Optional Description / Remarks */}
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                      Optional Description or Remarks
+                    </label>
+                    <input
+                      type="text"
+                      value={milestone.description}
+                      onChange={(e) => handleMilestoneChange(idx, "description", e.target.value)}
+                      placeholder="e.g. Documentation processing and mobilization advance payment"
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 bg-gray-50/50 focus:outline-none focus:bg-white focus:border-blue-400"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleAddMilestone}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <Plus size={13} />
+                <span>+ Add Another Milestone</span>
+              </button>
+            </div>
+          </div>
+        </FormSection>
+
+        {/* SECTION 7: CLIENT LEGAL & COMPLIANCE DOCUMENTS */}
         <FormSection
           id="documents"
-          title="6. Legal & Compliance Documents"
+          title="7. Legal & Compliance Documents"
           icon={FileCheck}
         >
           <DocumentsList

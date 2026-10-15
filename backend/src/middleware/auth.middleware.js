@@ -122,10 +122,39 @@ export const authorizeRoles = (...allowedRoles) => {
   };
 };
 
+export const verifyVendorActive = (req, res, next) => {
+  verifyToken(req, res, async () => {
+    const userRole = (req.user?.role || "").toLowerCase();
+    if (userRole === "admin" || userRole === "super_admin") {
+      return next();
+    }
+    const vendorId = req.user?.id || req.user?._id;
+    try {
+      const Vendor = (await import("../models/Vendor.js")).default;
+      const vendor = await Vendor.findById(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ success: false, message: "Vendor account not found." });
+      }
+      if (vendor.status !== "Active" && vendor.status !== "Approved") {
+        return res.status(403).json({
+          success: false,
+          message: `Access restricted. Your account status is "${vendor.status}". Complete onboarding verification to unlock this operation.`,
+          status: vendor.status,
+        });
+      }
+      req.vendor = vendor;
+      next();
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Error verifying vendor status." });
+    }
+  });
+};
+
 export default {
   verifyToken,
   verifyAdmin,
   verifyEmployee,
+  verifyVendorActive,
   authenticate,
   authorizeRoles,
 };

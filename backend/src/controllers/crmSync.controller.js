@@ -19,6 +19,9 @@ export const getClients = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, clients: formatted });
 });
 
+import ActivityService from "../services/activity.service.js";
+import ClientPayment from "../models/ClientPayment.js";
+
 // POST /api/crm-sync/clients
 export const saveClient = asyncHandler(async (req, res) => {
   const clientData = req.body;
@@ -29,16 +32,80 @@ export const saveClient = asyncHandler(async (req, res) => {
     queryConditions.push({ _id: clientId });
   }
 
+  // Format and validate paymentMilestones if present
+  let milestones = Array.isArray(clientData.paymentMilestones) ? [...clientData.paymentMilestones] : [];
+  milestones = milestones.map((m, idx) => {
+    const amount = Number(m.amount) || 0;
+    const paidAmount = Number(m.paidAmount) || 0;
+    const remainingBalance = Math.max(0, amount - paidAmount);
+    return {
+      ...m,
+      id: m.id || `mls-${Date.now()}-${idx + 1}`,
+      name: (m.name || `Milestone ${idx + 1}`).trim(),
+      amount,
+      condition: (m.condition || "Candidate successfully selected").trim(),
+      timeline: (m.timeline || "Within 7 days").trim(),
+      description: m.description || "",
+      status: m.status || (remainingBalance <= 0 && amount > 0 ? "Paid" : "Pending"),
+      paidAmount,
+      remainingBalance,
+      paidDate: m.paidDate || null,
+      dueDate: m.dueDate || null,
+      remarks: m.remarks || "",
+    };
+  });
+
+  const totalAgreed = milestones.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+  
+  // Calculate totalPaidAmount from actual records if available
+  const existingPayments = await ClientPayment.find({
+    clientId: String(clientId),
+    status: "Completed",
+    isReversed: false,
+  }).lean();
+  const totalPaid = existingPayments.reduce((sum, p) => sum + (Number(p.amountPaid) || 0), 0);
+  const remainingAmount = Math.max(0, totalAgreed - totalPaid);
+
   let doc = await CrmOverseasClient.findOne({ $or: queryConditions });
+  const isNew = !doc;
 
   if (doc) {
-    Object.assign(doc, clientData, { clientId: doc.clientId || clientId, updatedAt: new Date() });
+    Object.assign(doc, clientData, {
+      clientId: doc.clientId || clientId,
+      paymentMilestones: milestones,
+      totalAgreedAmount: totalAgreed,
+      totalPaidAmount: totalPaid,
+      remainingAmount,
+      updatedAt: new Date(),
+    });
     await doc.save();
   } else {
     doc = await CrmOverseasClient.create({
       ...clientData,
       clientId,
+      paymentMilestones: milestones,
+      totalAgreedAmount: totalAgreed,
+      totalPaidAmount: totalPaid,
+      remainingAmount,
     });
+  }
+
+  // Activity Log
+  try {
+    await ActivityService.log({
+      userType: "ADMIN",
+      action: isNew ? "CLIENT_CREATED" : "CLIENT_UPDATED",
+      title: isNew ? `New Client Created: ${doc.companyName}` : `Client Updated: ${doc.companyName}`,
+      description: `${doc.companyName} (${doc.clientId}) saved with ${milestones.length} payment milestone(s) totalling ₹${totalAgreed.toLocaleString()}.`,
+      entityType: "Client",
+      entityId: doc.clientId || doc._id.toString(),
+      entityName: doc.companyName,
+      status: doc.status || "Active",
+      visibility: "ADMIN",
+      metadata: { totalAgreed, milestonesCount: milestones.length },
+    });
+  } catch (err) {
+    console.error("Activity log error:", err.message);
   }
 
   return res.status(200).json({
@@ -325,6 +392,72 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
         type: updateData.status === "Selected" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
         link: updateData.status === "Selected" ? "/vendor/selected" : updateData.status === "Rejected" ? "/vendor/rejected" : "/vendor/applications",
       });
+
+      // If candidate was Selected: trigger the client payment milestone for candidate selection
+      if (updateData.status === "Selected") {
+        try {
+          const clientId = app.clientId;
+          let clientDoc = null;
+          if (clientId) {
+            clientDoc = await CrmOverseasClient.findOne({
+              $or: [{ clientId: String(clientId) }, { _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }],
+            });
+          }
+          if (!clientDoc && app.projectId) {
+            clientDoc = await CrmOverseasClient.findOne({ "projects.id": app.projectId });
+          }
+
+          if (clientDoc && Array.isArray(clientDoc.paymentMilestones)) {
+            const msIdx = clientDoc.paymentMilestones.findIndex(
+              (m) =>
+                m.status === "Pending" &&
+                (m.condition?.toLowerCase().includes("select") ||
+                  m.name?.toLowerCase().includes("select") ||
+                  m.condition?.toLowerCase().includes("candidate"))
+            );
+
+            if (msIdx !== -1) {
+              const ms = clientDoc.paymentMilestones[msIdx];
+              ms.status = "Due";
+              ms.dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+              ms.relatedCandidateId = app.candidateId || "";
+              ms.relatedCandidateName = app.candidateName || "";
+              ms.relatedProjectId = app.projectId || "";
+              ms.relatedProjectName = app.projectName || "";
+              clientDoc.paymentMilestones[msIdx] = ms;
+              clientDoc.markModified("paymentMilestones");
+              await clientDoc.save();
+
+              await ActivityService.log({
+                userType: "SYSTEM",
+                action: "CLIENT_MILESTONE_DUE",
+                title: `Client Milestone Due: ${ms.name}`,
+                description: `Milestone "${ms.name}" (₹${Number(ms.amount).toLocaleString()}) became DUE for ${clientDoc.companyName} upon selection of candidate ${app.candidateName}.`,
+                entityType: "Client",
+                entityId: clientDoc.clientId || clientDoc._id.toString(),
+                entityName: clientDoc.companyName,
+                status: "Due",
+                visibility: "ADMIN",
+                metadata: { candidateName: app.candidateName, milestoneId: ms.id },
+              });
+            }
+          }
+
+          await ActivityService.log({
+            userType: "ADMIN",
+            action: "CANDIDATE_SELECTED",
+            title: `Candidate Selected: ${app.candidateName}`,
+            description: `${app.candidateName} selected for ${app.projectName} (${app.position || "Role"}).`,
+            entityType: "Candidate",
+            entityId: app.candidateId || app._id.toString(),
+            entityName: app.candidateName,
+            status: "Selected",
+            visibility: "ADMIN",
+          });
+        } catch (selErr) {
+          console.error("Failed to trigger milestone on candidate selection:", selErr.message);
+        }
+      }
     } catch (notifErr) {
       console.error("Failed to create vendor notification:", notifErr.message);
     }

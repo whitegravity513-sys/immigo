@@ -24,17 +24,31 @@ const INITIAL_APPLICATIONS = [];
 const INITIAL_ADMIN_NOTIFICATIONS = [];
 const INITIAL_NOTIFICATIONS = [];
 
-// Automatic cleanup to clear any old mock candidates or test data
+// Automatic cleanup to clear all mock/demo business data across all modules
 if (typeof window !== "undefined") {
   try {
-    const cleanKey = "immigo_cleaned_candidates_v5";
+    const cleanKey = "immigo_cleaned_all_data_v8";
     if (!localStorage.getItem(cleanKey)) {
+      localStorage.removeItem("immigo_crm_vendors_v3");
       localStorage.removeItem("immigo_crm_candidates_v3");
       localStorage.removeItem("immigo_crm_applications_v3");
       localStorage.removeItem("immigo_crm_refunds_v3");
+      localStorage.removeItem("crm_clients_data_v3");
+      localStorage.removeItem("crm_clients_data_v2");
+      localStorage.removeItem("crm_clients_data");
+      localStorage.removeItem("crm_client_payments_v1");
+      localStorage.removeItem("crm_recent_activities_v1");
+      localStorage.removeItem("crm_employee_activities_v1");
+      localStorage.removeItem("immigo_crm_admin_notifications_v3");
+      localStorage.removeItem("immigo_crm_vendor_notifications_v3");
+      localStorage.setItem("immigo_crm_vendors_v3", JSON.stringify([]));
       localStorage.setItem("immigo_crm_candidates_v3", JSON.stringify([]));
       localStorage.setItem("immigo_crm_applications_v3", JSON.stringify([]));
       localStorage.setItem("immigo_crm_refunds_v3", JSON.stringify([]));
+      localStorage.setItem("crm_clients_data_v3", JSON.stringify([]));
+      localStorage.setItem("crm_client_payments_v1", JSON.stringify([]));
+      localStorage.setItem("crm_recent_activities_v1", JSON.stringify([]));
+      localStorage.setItem("crm_employee_activities_v1", JSON.stringify([]));
       localStorage.setItem(cleanKey, "true");
     }
   } catch {}
@@ -624,6 +638,124 @@ export const crmVendorService = {
         link: "/vendor/dashboard",
       });
 
+      return vendors[idx];
+    }
+  },
+
+  approveRegistration: async (vendorId, remarks = "") => {
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}/approve-registration`, { remarks });
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId || v.id === updated.id);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch (err) {
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx === -1) throw new Error("Vendor not found");
+      vendors[idx].status = "Documents Pending";
+      vendors[idx].approvedAt = new Date().toISOString();
+      vendors[idx].adminRemarks = remarks;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return vendors[idx];
+    }
+  },
+
+  holdRegistration: async (vendorId, remarks = "") => {
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}/hold-registration`, { remarks });
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId || v.id === updated.id);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch (err) {
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx === -1) throw new Error("Vendor not found");
+      vendors[idx].status = "Registration On Hold";
+      vendors[idx].adminRemarks = remarks;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return vendors[idx];
+    }
+  },
+
+  requestDocCorrection: async (vendorId, remarks = "") => {
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}/request-doc-correction`, { remarks });
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId || v.id === updated.id);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch (err) {
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx === -1) throw new Error("Vendor not found");
+      vendors[idx].status = "Documents Correction Required";
+      vendors[idx].adminRemarks = remarks;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return vendors[idx];
+    }
+  },
+
+  approveMouAndActivate: async (vendorId) => {
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}/approve-mou`);
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId || v.id === updated.id);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch (err) {
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx === -1) throw new Error("Vendor not found");
+      vendors[idx].status = "Active";
+      vendors[idx].mouSigned = true;
+      vendors[idx].mouStatus = "Approved";
+      vendors[idx].activationDate = new Date().toISOString();
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return vendors[idx];
+    }
+  },
+
+  requestMouCorrection: async (vendorId, remarks = "") => {
+    try {
+      const response = await apiClient.put(`/admin/vendors/${vendorId}/request-mou-correction`, { remarks });
+      const updated = {
+        ...response.data.vendor,
+        id: response.data.vendor.vendorId || response.data.vendor._id,
+      };
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId || v.id === updated.id);
+      if (idx !== -1) vendors[idx] = updated;
+      saveData(VENDORS_STORAGE_KEY, vendors);
+      return updated;
+    } catch (err) {
+      const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      const idx = vendors.findIndex((v) => v.id === vendorId);
+      if (idx === -1) throw new Error("Vendor not found");
+      vendors[idx].status = "MOU Correction Required";
+      vendors[idx].adminRemarks = remarks;
+      saveData(VENDORS_STORAGE_KEY, vendors);
       return vendors[idx];
     }
   },

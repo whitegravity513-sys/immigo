@@ -31,6 +31,8 @@ const CrmProjectDetails = lazy(() => import("../pages/crm/ProjectDetails.jsx"));
 const CrmProjects = lazy(() => import("../pages/crm/Projects.jsx"));
 const CrmAddProject = lazy(() => import("../pages/crm/AddProject.jsx"));
 const CrmEditProject = lazy(() => import("../pages/crm/EditProject.jsx"));
+const ClientPaymentLedger = lazy(() => import("../pages/crm/ClientPaymentLedger.jsx"));
+const RecordClientPaymentPage = lazy(() => import("../pages/crm/RecordClientPaymentPage.jsx"));
 
 // 5. Vendor Module
 const VendorLogin = lazy(() => import("../pages/vendor/VendorLogin.jsx"));
@@ -184,6 +186,52 @@ export default function AppRoutes() {
                 breadcrumbs={[{ label: "Client Management", to: "/client/dashboard" }, { label: "Clients", to: "/client/clients" }, { label: "Add Client" }]}
               >
                 <CrmAddClient />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/ledger"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Client Payment Ledger"
+                subtitle="Milestone payments, GST records, and transaction audit trails."
+                breadcrumbs={[{ label: "Client Management", to: "/client/dashboard" }, { label: "Payment Ledger" }]}
+              >
+                <ClientPaymentLedger />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/ledger/new"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Record Client Payment"
+                subtitle="Register recruitment milestone payment to client organization."
+                breadcrumbs={[
+                  { label: "Client Management", to: "/client/dashboard" },
+                  { label: "Payment Ledger", to: "/client/ledger" },
+                  { label: "Record Payment" },
+                ]}
+              >
+                <RecordClientPaymentPage />
+              </ClientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/client-ledger"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <ClientLayout
+                title="Client Payment Ledger"
+                subtitle="Milestone payments, GST records, and transaction audit trails."
+                breadcrumbs={[{ label: "Admin Dashboard", to: "/admin/dashboard" }, { label: "Client Payment Ledger" }]}
+              >
+                <ClientPaymentLedger />
               </ClientLayout>
             </ProtectedRoute>
           }

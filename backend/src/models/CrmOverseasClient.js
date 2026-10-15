@@ -36,6 +36,22 @@ const crmOverseasClientSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    paymentMilestones: {
+      type: Array,
+      default: [],
+    },
+    totalAgreedAmount: {
+      type: Number,
+      default: 0,
+    },
+    totalPaidAmount: {
+      type: Number,
+      default: 0,
+    },
+    remainingAmount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     strict: false,

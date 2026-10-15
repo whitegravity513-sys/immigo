@@ -19,6 +19,8 @@ export const env = {
   EMAIL_USER: process.env.SMTP_USER || process.env.EMAIL_USER || "",
   EMAIL_PASS: process.env.SMTP_PASS || process.env.EMAIL_PASS || "",
   EMAIL_FROM: process.env.EMAIL_FROM || "no-reply@vesta.in",
+  VENDOR_NOTIFICATION_EMAIL: process.env.VENDOR_NOTIFICATION_EMAIL || "abhishekyadav36219@gmail.com",
+  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
   SUPERADMIN_NAME: process.env.SUPER_ADMIN_NAME || process.env.SUPERADMIN_NAME || "Admin",
   SUPERADMIN_EMAIL: process.env.SUPER_ADMIN_EMAIL || process.env.SUPERADMIN_EMAIL || "superadmin@vesta.in",
   SUPERADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD || process.env.SUPERADMIN_PASSWORD || "SuperAdmin@2026!",

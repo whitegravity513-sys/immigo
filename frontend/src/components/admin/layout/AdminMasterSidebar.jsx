@@ -10,6 +10,7 @@ import {
   LogOut,
   X,
   Shield,
+  Receipt,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -29,6 +30,7 @@ export function AdminMasterSidebar({
     if (path === "/admin/dashboard") return currentPath === "/admin/dashboard" || currentPath === "/dashboard" || currentPath === "/";
     if (path === "/admin/dashboard/workforce") return currentPath.startsWith("/admin/dashboard/workforce") || currentPath.startsWith("/hr");
     if (path === "/client/dashboard") return currentPath === "/client/dashboard" || currentPath.startsWith("/client/clients");
+    if (path === "/client/ledger") return currentPath.startsWith("/client/ledger") || currentPath.startsWith("/admin/client-ledger");
     if (path === "/client/projects") return currentPath.startsWith("/client/projects") || currentPath.includes("/projects");
     if (path === "/admin/vendor") return currentPath.startsWith("/admin/vendor");
     if (path === "/admin/settings") return currentPath.startsWith("/admin/settings");

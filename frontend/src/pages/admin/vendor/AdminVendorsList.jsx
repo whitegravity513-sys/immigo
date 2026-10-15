@@ -6,6 +6,7 @@ import {
   Filter,
   CheckCircle2,
   XCircle,
+  X,
   Clock,
   Ban,
   Eye,
@@ -419,14 +420,42 @@ export default function AdminVendorsList() {
     }
   };
 
+  const handleApproveRegistration = async (vendorId) => {
+    try {
+      await crmVendorService.approveRegistration(vendorId);
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({ ...prev, status: "Documents Pending" }));
+      }
+      alert("Vendor registration approved! Approval notification with login credentials instructions has been sent to vendor.");
+    } catch (err) {
+      alert(err.message || "Failed to approve registration");
+    }
+  };
+
+  const handleHoldRegistration = async (vendorId) => {
+    const remarks = prompt("Please enter a remark or reason for putting registration on hold:");
+    if (remarks === null) return;
+    try {
+      await crmVendorService.holdRegistration(vendorId, remarks);
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({ ...prev, status: "Registration On Hold", adminRemarks: remarks }));
+      }
+      alert("Vendor registration placed on hold.");
+    } catch (err) {
+      alert(err.message || "Failed to put on hold");
+    }
+  };
+
   const handleApprove = async (vendorId) => {
     try {
       await crmVendorService.approveVendor(vendorId);
       loadData();
       if (selectedVendor && selectedVendor.id === vendorId) {
-        setSelectedVendor((prev) => ({ ...prev, status: "Approved" }));
+        setSelectedVendor((prev) => ({ ...prev, status: "Active" }));
       }
-      alert("Vendor approved successfully. Verification link and login credentials have been sent to their registered email.");
+      alert("Vendor activated successfully.");
     } catch (err) {
       alert(err.message);
     }
@@ -434,18 +463,67 @@ export default function AdminVendorsList() {
 
   const handleApproveDocsAndSendMou = async (vendorId) => {
     try {
-      await crmVendorService.approveDocsAndSendMou(vendorId);
+      const res = await crmVendorService.approveDocsAndSendMou(vendorId);
       loadData();
       if (selectedVendor && selectedVendor.id === vendorId) {
         setSelectedVendor((prev) => ({
           ...prev,
           status: "MOU Pending",
           mouStatus: "Sent",
+          mouDocument: res.vendor?.mouDocument || prev.mouDocument,
         }));
       }
-      alert("Compliance documents approved & official MOU issued to vendor successfully!");
+      alert("Compliance documents verified! MOU auto-populated and sent to vendor successfully.");
     } catch (err) {
-      alert(err.message || "Failed to send MOU");
+      alert(err.message || "Failed to verify documents and send MOU");
+    }
+  };
+
+  const handleRequestDocCorrection = async (vendorId) => {
+    const remarks = prompt("Please enter the correction requirements for the vendor's documents:");
+    if (!remarks) return;
+    try {
+      await crmVendorService.requestDocCorrection(vendorId, remarks);
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({ ...prev, status: "Documents Correction Required", adminRemarks: remarks }));
+      }
+      alert("Document correction requested from vendor.");
+    } catch (err) {
+      alert(err.message || "Failed to request correction");
+    }
+  };
+
+  const handleApproveMouAndActivate = async (vendorId) => {
+    try {
+      await crmVendorService.approveMouAndActivate(vendorId);
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({
+          ...prev,
+          status: "Active",
+          mouStatus: "Approved",
+          mouSigned: true,
+        }));
+      }
+      alert("MOU approved and vendor activated successfully! The operational dashboard has been unlocked.");
+    } catch (err) {
+      alert(err.message || "Failed to activate vendor");
+    }
+  };
+
+  const handleRequestMouCorrection = async (vendorId) => {
+    const remarks = prompt("Please enter the reason/correction required for the submitted MOU:");
+    if (!remarks) return;
+    try {
+      await crmVendorService.requestMouCorrection(vendorId, remarks);
+      loadData();
+      if (selectedVendor && selectedVendor.id === vendorId) {
+        setSelectedVendor((prev) => ({ ...prev, status: "MOU Correction Required", adminRemarks: remarks }));
+      }
+      alert("MOU correction requested from vendor.");
+    } catch (err) {
+      alert(err.message || "Failed to request MOU correction");
     }
   };
 
@@ -454,9 +532,9 @@ export default function AdminVendorsList() {
       await crmVendorService.signOrVerifyMOU(vendorId, "Approved");
       loadData();
       if (selectedVendor && selectedVendor.id === vendorId) {
-        setSelectedVendor((prev) => ({ ...prev, mouSigned: true, mouStatus: "Approved" }));
+        setSelectedVendor((prev) => ({ ...prev, mouSigned: true, mouStatus: "Approved", status: "Active" }));
       }
-      alert("Vendor MOU verified and approved successfully!");
+      alert("Vendor MOU verified and vendor activated successfully!");
     } catch (err) {
       alert(err.message || "Failed to verify MOU");
     }
@@ -699,20 +777,39 @@ export default function AdminVendorsList() {
 
   const getStatusBadge = (status) => {
     switch (status) {
+      case "Active":
       case "Approved":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            Approved
+            {status}
           </span>
         );
-      case "Pending MOU Approval":
+      case "Registration Pending":
+      case "Pending":
+      case "Pending Verification":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            Registration Pending
+          </span>
+        );
+      case "Registration Approved":
+      case "Documents Pending":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            Documents Pending
+          </span>
+        );
+      case "Documents Under Review":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-            <FileCheck className="w-3.5 h-3.5 text-indigo-600" />
-            Pending MOU Approval
+            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+            Docs Under Review
           </span>
         );
+      case "Documents Verified":
       case "MOU Pending":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
@@ -720,12 +817,27 @@ export default function AdminVendorsList() {
             MOU Pending
           </span>
         );
-      case "Pending":
-      case "Pending Verification":
+      case "MOU Under Review":
+      case "Pending MOU Approval":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
-            Pending Verification
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200">
+            <FileCheck className="w-3.5 h-3.5 text-sky-600" />
+            MOU Under Review
+          </span>
+        );
+      case "Registration On Hold":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+            <Ban className="w-3.5 h-3.5 text-amber-600" />
+            Registration On Hold
+          </span>
+        );
+      case "Documents Correction Required":
+      case "MOU Correction Required":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+            <Clock className="w-3.5 h-3.5 text-orange-600" />
+            Correction Required
           </span>
         );
       case "Suspended":
@@ -735,6 +847,9 @@ export default function AdminVendorsList() {
             Suspended
           </span>
         );
+      case "Registration Rejected":
+      case "Documents Rejected":
+      case "MOU Rejected":
       case "Rejected":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
@@ -1703,8 +1818,8 @@ export default function AdminVendorsList() {
                 <span>View Statutory Documents (Full Page)</span>
               </button>
 
-              {/* Suspend option: Available ONLY for vendors already registered and verified/approved */}
-              {(selectedVendor.status === "Approved" || selectedVendor.status === "Suspended") && (
+              {/* Active & Suspend Actions */}
+              {(selectedVendor.status === "Active" || selectedVendor.status === "Approved" || selectedVendor.status === "Suspended") && (
                 <button
                   type="button"
                   onClick={() => handleToggleSuspend(selectedVendor.id)}
@@ -1720,51 +1835,105 @@ export default function AdminVendorsList() {
                 </button>
               )}
 
-              {/* Registration Actions: Reject & Approval for newly registered / review vendors */}
-              {["Pending", "Under Review", "Pending Verification"].includes(selectedVendor.status) && (
+              {/* Step 1 & 2: Registration Pending / Review Actions */}
+              {(selectedVendor.status === "Registration Pending" || selectedVendor.status === "Pending" || selectedVendor.status === "Registration On Hold") && (
                 <>
                   <button
                     type="button"
+                    onClick={() => handleApproveRegistration(selectedVendor.id)}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                    title="Approve Registration and send portal credentials email"
+                  >
+                    <CheckCircle2 size={14} />
+                    <span>Approve Registration</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleHoldRegistration(selectedVendor.id)}
+                    className="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                    title="Put registration on hold with remark"
+                  >
+                    <Clock size={14} />
+                    <span>Hold</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setShowRejectModal(true)}
-                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                    className="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
                     title="Reject Vendor Registration"
                   >
                     <XCircle size={14} />
                     <span>Reject</span>
                   </button>
+                </>
+              )}
+
+              {/* Step 6 & 7: Documents Uploaded / Review Actions */}
+              {(selectedVendor.status === "Documents Pending" || selectedVendor.status === "Documents Under Review" || selectedVendor.status === "Under Review" || selectedVendor.status === "Documents Correction Required") && (
+                <>
                   <button
                     type="button"
-                    onClick={() => setShowDraftMouPage(true)}
+                    onClick={() => handleApproveDocsAndSendMou(selectedVendor.id)}
                     className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                    title="Approve uploaded documents and auto-populate MOU agreement"
                   >
-                    <Send size={13} />
-                    <span>Approve Docs & Send MOU</span>
+                    <Send size={14} />
+                    <span>Approve Docs & Generate MOU</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleApprove(selectedVendor.id)}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                    onClick={() => handleRequestDocCorrection(selectedVendor.id)}
+                    className="px-3.5 py-2 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                    title="Request corrections on documents"
                   >
-                    Direct Approve
+                    <Clock size={14} />
+                    <span>Request Correction</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRejectModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <XCircle size={14} />
+                    <span>Reject</span>
                   </button>
                 </>
               )}
 
-              {(selectedVendor.status === "MOU Pending" || selectedVendor.status === "Pending MOU Approval") && (
+              {/* Step 7 & 8: MOU Review & Activation Actions */}
+              {(selectedVendor.status === "MOU Pending" || selectedVendor.status === "MOU Under Review" || selectedVendor.status === "Pending MOU Approval" || selectedVendor.status === "MOU Correction Required") && (
                 <>
                   <button
                     onClick={() => setShowViewMouPage(true)}
                     className="px-4 py-2 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 hover:bg-purple-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
                   >
-                    <FileText size={13} />
-                    <span>Review Signed MOU</span>
+                    <FileText size={14} />
+                    <span>Review MOU Agreement</span>
                   </button>
                   <button
-                    onClick={() => handleApprove(selectedVendor.id)}
+                    onClick={() => handleApproveMouAndActivate(selectedVendor.id)}
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                    title="Approve signed MOU and activate vendor dashboard"
                   >
-                    <CheckCircle2 size={13} />
-                    <span>Approve MOU & Finalize</span>
+                    <CheckCircle2 size={14} />
+                    <span>Approve MOU & Activate</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRequestMouCorrection(selectedVendor.id)}
+                    className="px-3.5 py-2 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                    title="Request corrections on MOU"
+                  >
+                    <Clock size={14} />
+                    <span>Request MOU Correction</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRejectModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <XCircle size={14} />
+                    <span>Reject</span>
                   </button>
                 </>
               )}

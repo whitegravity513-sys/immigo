@@ -71,13 +71,8 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
   }, []);
 
   const isFullyUnlocked = Boolean(
-    vendor?.mouSigned ||
-    vendor?.mouStatus === "Signed" ||
-    vendor?.mouStatus === "Approved" ||
-    vendor?.status === "Approved" ||
-    vendor?.status === "Pending MOU Approval" ||
-    vendor?.onboardingStage === "MOU_SIGNED" ||
-    vendor?.onboardingStage === "COMPLETED"
+    vendor?.status === "Active" ||
+    (vendor?.status === "Approved" && (vendor?.mouStatus === "Approved" || vendor?.mouSigned === true))
   );
 
   return (

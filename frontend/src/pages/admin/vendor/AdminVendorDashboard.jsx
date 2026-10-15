@@ -97,86 +97,61 @@ export default function AdminVendorDashboard() {
         </div>
       </div>
 
-      {/* Widgets Grid - Compact */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Recent Vendor Activity */}
-        <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <span>Recent Vendor Activity</span>
-              <span className="text-[10px] font-semibold text-slate-400">(Latest 5)</span>
+      {/* FULL-WIDTH RECENT VENDOR ACTIVITY */}
+      <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3.5">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-indigo-600" />
+              <span>Recent Vendor Activity & Updates</span>
             </h3>
-            <Link to="/admin/vendor/vendors" className="text-[11px] text-indigo-600 font-bold hover:underline">
-              See All Vendors ↗
-            </Link>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Live activity stream of vendor registrations, candidate submissions, document verifications, and approvals.
+            </p>
           </div>
-
-          <div className="space-y-2.5">
-            {(stats.recentActivity || []).slice(0, 5).map((act) => (
-              <div key={act.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <ActivityIcon type={act.type} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-900 truncate">{act.title}</h4>
-                    <span className="text-[9px] text-slate-400 font-medium">{act.time}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-1">{act.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-2 bg-slate-50/80 border border-slate-100 rounded-lg flex items-center justify-between text-xs mt-3">
-            <span className="text-slate-500 text-[11px] font-medium">Showing 5 recent vendor events</span>
-            <Link to="/admin/vendor/vendors" className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-800 text-[11px]">
-              <span>See All Vendors</span>
-              <ArrowRight size={12} />
-            </Link>
-          </div>
+          <Link
+            to="/admin/vendor/vendors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors"
+          >
+            <span>See All Vendors</span>
+            <ArrowRight size={13} />
+          </Link>
         </div>
 
-        {/* Quick Navigation Cards */}
-        <div className="lg:col-span-6 space-y-3">
-          <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-900 to-slate-900 text-white shadow-sm flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-300">
-                Vendor Operations
+        <div className="space-y-2.5">
+          {(stats.recentActivity || []).map((act, i) => (
+            <div
+              key={act.id || i}
+              className="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/70 flex items-center justify-between gap-3 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                  <ActivityIcon type={act.type} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-xs font-bold text-slate-900">{act.title}</h4>
+                    {act.type && (
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-100/60 text-indigo-700">
+                        {act.type}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-0.5 truncate">{act.description}</p>
+                </div>
+              </div>
+
+              <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap shrink-0">
+                {act.time}
               </span>
-              <h3 className="text-lg font-bold mt-0.5">Submissions & Candidate Review</h3>
-              <p className="text-xs text-slate-300 mt-1 max-w-sm">
-                Review candidate applications across client projects, shortlist candidates, or advance deployment stages.
-              </p>
             </div>
-            <Link
-              to="/admin/vendor/submissions"
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shrink-0 flex items-center gap-1.5"
-            >
-              <span>Submissions</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          ))}
 
-          <div className="grid grid-cols-2 gap-4">
-            <Link
-              to="/admin/vendor/milestones"
-              className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-indigo-300 transition block"
-            >
-              <Sliders className="w-5 h-5 text-indigo-600 mb-2" />
-              <h4 className="text-xs font-bold text-slate-900">Milestone Templates</h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">Apply bulk recruitment fee templates</p>
-            </Link>
-
-            <Link
-              to="/admin/vendor/candidates?tab=Selected"
-              className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-300 transition block"
-            >
-              <Clock className="w-5 h-5 text-emerald-600 mb-2" />
-              <h4 className="text-xs font-bold text-slate-900">8-Stage Processing</h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">Track medical, visa & site travel</p>
-            </Link>
-          </div>
+          {(!stats.recentActivity || stats.recentActivity.length === 0) && (
+            <div className="p-8 text-center text-xs text-slate-400">
+              No recent vendor activity recorded.
+            </div>
+          )}
         </div>
       </div>
     </div>
