@@ -191,411 +191,363 @@ export function VendorRegister() {
 
   if (successSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-xl border border-gray-100 text-center space-y-6">
-          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto border border-emerald-100 shadow-xs">
-            <CheckCircle2 size={36} />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-3">
+        <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-lg border border-slate-200 text-center space-y-4">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto border border-emerald-100">
+            <CheckCircle2 size={28} />
           </div>
 
           <div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
-              Status: Registration Pending
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-1.5">
+              Registration Pending Review
             </span>
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-              Registration Submitted!
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+              Application Submitted!
             </h2>
-            <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-              Thank you, <strong className="text-gray-900">{submittedVendor?.companyName || formData.companyName}</strong>. Your recruiting agency application has been successfully submitted and is currently pending review by our administrative team.
+            <p className="text-xs text-slate-600 mt-1">
+              Thank you, <strong className="text-slate-900">{submittedVendor?.companyName || formData.companyName}</strong>. Your agency application has been submitted to our administrative team.
             </p>
           </div>
 
-          <div className="bg-blue-50/70 border border-blue-100 rounded-xl p-4 text-left space-y-2 text-xs">
-            <h4 className="font-bold text-blue-900 flex items-center gap-1.5">
-              <ShieldCheck size={15} className="text-blue-600" />
-              <span>What happens next?</span>
-            </h4>
-            <ol className="list-decimal list-inside space-y-1 text-gray-600 leading-normal">
-              <li>Our administration reviews agency details and credentials.</li>
-              <li>Upon approval, an email with login instructions will be sent to <span className="font-semibold text-gray-900">{formData.email}</span>.</li>
-              <li>You will log in to upload required compliance documents and complete MOU signing.</li>
-              <li>Operational candidate sourcing will unlock after final verification.</li>
-            </ol>
+          <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 text-left space-y-1 text-xs text-slate-600">
+            <p className="font-bold text-blue-900 flex items-center gap-1 text-[11px]">
+              <ShieldCheck size={13} className="text-blue-600" />
+              <span>Next Steps</span>
+            </p>
+            <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+              <li>Admin reviews agency details and approves account.</li>
+              <li>Login email will be dispatched to <span className="font-semibold text-slate-900">{formData.email}</span>.</li>
+              <li>Post-login: Upload compliance documents and sign MOU.</li>
+            </ul>
           </div>
 
-          <div className="pt-2">
-            <Link
-              to="/login"
-              className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/25 transition-all cursor-pointer"
-            >
-              <span>Go to Login Page</span>
-              <ArrowRight size={14} />
-            </Link>
-          </div>
+          <Link
+            to="/login"
+            className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
+          >
+            <span>Go to Login</span>
+            <ArrowRight size={13} />
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 py-10 px-4 sm:px-6">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header Branding */}
-        <div className="text-center space-y-2">
-          <div className="flex justify-center mb-2">
-            <ImmiGoLogo size="md" subtitle="Partner Network" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-            Agency / Vendor Registration
-          </h1>
-          <p className="text-xs text-gray-500 max-w-md mx-auto">
-            Join our authorized overseas recruitment network. Complete this simple initial registration to initiate vendor verification.
-          </p>
-        </div>
-
-        {/* General Error Alert */}
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-3 px-3 sm:px-6 w-full">
+      <div className="w-full space-y-2.5">
         {generalError && (
-          <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3 text-rose-700 text-xs">
-            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2 text-rose-700 text-xs">
+            <AlertCircle size={15} className="shrink-0" />
             <div className="flex-1 font-medium">{generalError}</div>
           </div>
         )}
 
-        {/* Registration Card */}
-        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 px-6 py-4 text-white">
-            <h2 className="text-sm font-bold flex items-center gap-2">
-              <Building2 size={16} className="text-blue-400" />
-              <span>Recruiting Agent (RA) Initial Application</span>
-            </h2>
-            <p className="text-[11px] text-blue-200 mt-0.5">
-              Only primary corporate credentials required. Documents & MOU will be collected post-approval.
-            </p>
+        <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 px-5 sm:px-6 py-3 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <ImmiGoLogo size="sm" subtitle="Partner Network" />
+              <div className="h-6 w-px bg-white/20 hidden sm:block" />
+              <div>
+                <h2 className="text-sm font-bold flex items-center gap-1.5 leading-tight">
+                  <Building2 size={15} className="text-blue-400" />
+                  <span>Agency / Vendor Registration</span>
+                </h2>
+                <p className="text-[10px] text-blue-200">
+                  Initial application. Compliance documents & MOU collected post-approval.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/login"
+              className="text-xs text-blue-200 hover:text-white font-medium flex items-center gap-1 self-start sm:self-auto bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg transition-colors"
+            >
+              <span>Already registered? Log In</span>
+              <ArrowRight size={12} />
+            </Link>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
-            {/* Section 1: Agency & Contact Person */}
-            <div>
-              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-gray-100">
-                <Building2 size={14} className="text-blue-600" />
-                <span>Agency & Contact Details</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Agency Name */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Agency / Company Name <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Apex Global Overseas Manpower Pvt Ltd"
-                    className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                      fieldErrors.companyName ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                  />
-                  {fieldErrors.companyName && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.companyName}</p>
-                  )}
-                </div>
-
-                {/* Contact Person Name */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Contact Person Name <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="contactPersonName"
-                    value={formData.contactPersonName}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Rajesh Sharma"
-                    className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                      fieldErrors.contactPersonName ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                  />
-                  {fieldErrors.contactPersonName && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.contactPersonName}</p>
-                  )}
-                </div>
-
-                {/* Mobile Number */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Mobile Number <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-2.5 text-xs font-semibold text-gray-400">
-                      +91
-                    </span>
-                    <input
-                      type="tel"
-                      name="mobile"
-                      maxLength={10}
-                      value={formData.mobile}
-                      onChange={handleInputChange}
-                      placeholder="9876543210"
-                      className={`w-full pl-12 pr-3.5 py-2.5 text-xs rounded-xl border ${
-                        fieldErrors.mobile ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                      } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                    />
-                  </div>
-                  {fieldErrors.mobile && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.mobile}</p>
-                  )}
-                </div>
-
-                {/* Official Email Address */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Official Email Address <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="contact@agencydomain.com"
-                    className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                      fieldErrors.email ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                  />
-                  {fieldErrors.email && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.email}</p>
-                  )}
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    This email will serve as your primary communication and portal login ID.
-                  </p>
-                </div>
+          <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* Agency Name */}
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Agency / Company Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Apex Global Overseas Pvt Ltd"
+                  className={`w-full px-3 py-1.5 text-xs rounded-lg border ${
+                    fieldErrors.companyName ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.companyName && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.companyName}</p>
+                )}
               </div>
-            </div>
 
-            {/* Section 2: Location & Address */}
-            <div>
-              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-gray-100">
-                <MapPin size={14} className="text-blue-600" />
-                <span>Office Location</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* State */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    State <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                      fieldErrors.state ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                  >
-                    <option value="">Select State</option>
-                    {INDIAN_STATES.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.state && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.state}</p>
-                  )}
-                </div>
-
-                {/* City */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    City <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Mumbai"
-                    className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                      fieldErrors.city ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                  />
-                  {fieldErrors.city && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.city}</p>
-                  )}
-                </div>
-
-                {/* Office Address */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Office Address <span className="text-rose-500">*</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="Office/Building No, Street, Commercial Area..."
-                    className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                      fieldErrors.address ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                  />
-                  {fieldErrors.address && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.address}</p>
-                  )}
-                </div>
+              {/* Contact Person Name */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Contact Person <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="contactPersonName"
+                  value={formData.contactPersonName}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Rajesh Sharma"
+                  className={`w-full px-3 py-1.5 text-xs rounded-lg border ${
+                    fieldErrors.contactPersonName ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.contactPersonName && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.contactPersonName}</p>
+                )}
               </div>
-            </div>
 
-            {/* Section 3: Tax Identification */}
-            <div>
-              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-gray-100">
-                <CreditCard size={14} className="text-blue-600" />
-                <span>Statutory Credentials</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* PAN Number */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    PAN Number <span className="text-rose-500">*</span>
-                  </label>
+              {/* Mobile Number */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Mobile Number <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1.5 text-xs font-semibold text-slate-400">
+                    +91
+                  </span>
                   <input
-                    type="text"
-                    name="pan"
+                    type="tel"
+                    name="mobile"
                     maxLength={10}
-                    value={formData.pan}
-                    onChange={(e) => {
-                      e.target.value = e.target.value.toUpperCase();
-                      handleInputChange(e);
-                    }}
-                    placeholder="ABCDE1234F"
-                    className={`w-full px-3.5 py-2.5 text-xs font-mono uppercase rounded-xl border ${
-                      fieldErrors.pan ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                    value={formData.mobile}
+                    onChange={handleInputChange}
+                    placeholder="9876543210"
+                    className={`w-full pl-10 pr-2.5 py-1.5 text-xs rounded-lg border ${
+                      fieldErrors.mobile ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                    } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
                   />
-                  {fieldErrors.pan && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.pan}</p>
-                  )}
                 </div>
+                {fieldErrors.mobile && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.mobile}</p>
+                )}
+              </div>
 
-                {/* GSTIN (Optional) */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    GSTIN <span className="text-gray-400 text-[11px] font-normal">(Optional)</span>
-                  </label>
+              {/* Official Email */}
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Official Email (Login ID) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="contact@agencydomain.com"
+                  className={`w-full px-3 py-1.5 text-xs rounded-lg border ${
+                    fieldErrors.email ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.email && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.email}</p>
+                )}
+              </div>
+
+              {/* State */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  State <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  name="state"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border ${
+                    fieldErrors.state ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                >
+                  <option value="">Select State</option>
+                  {INDIAN_STATES.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+                {fieldErrors.state && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.state}</p>
+                )}
+              </div>
+
+              {/* City */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  City <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Mumbai"
+                  className={`w-full px-3 py-1.5 text-xs rounded-lg border ${
+                    fieldErrors.city ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.city && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.city}</p>
+                )}
+              </div>
+
+              {/* PAN */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  PAN Number <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="pan"
+                  maxLength={10}
+                  value={formData.pan}
+                  onChange={(e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                    handleInputChange(e);
+                  }}
+                  placeholder="ABCDE1234F"
+                  className={`w-full px-3 py-1.5 text-xs font-mono uppercase rounded-lg border ${
+                    fieldErrors.pan ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.pan && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.pan}</p>
+                )}
+              </div>
+
+              {/* GSTIN */}
+              <div className="lg:col-span-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  GSTIN <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="gstin"
+                  maxLength={15}
+                  value={formData.gstin}
+                  onChange={(e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                    handleInputChange(e);
+                  }}
+                  placeholder="27ABCDE1234F1Z5"
+                  className={`w-full px-3 py-1.5 text-xs font-mono uppercase rounded-lg border ${
+                    fieldErrors.gstin ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.gstin && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.gstin}</p>
+                )}
+              </div>
+
+              {/* Office Address */}
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Office Address <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  placeholder="Office/Building No, Street, Area"
+                  className={`w-full px-3 py-1.5 text-xs rounded-lg border ${
+                    fieldErrors.address ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                  } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                />
+                {fieldErrors.address && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.address}</p>
+                )}
+              </div>
+
+              {/* Password */}
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Password <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
                   <input
-                    type="text"
-                    name="gstin"
-                    maxLength={15}
-                    value={formData.gstin}
-                    onChange={(e) => {
-                      e.target.value = e.target.value.toUpperCase();
-                      handleInputChange(e);
-                    }}
-                    placeholder="27ABCDE1234F1Z5"
-                    className={`w-full px-3.5 py-2.5 text-xs font-mono uppercase rounded-xl border ${
-                      fieldErrors.gstin ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                    } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Min. 6 characters"
+                    className={`w-full px-3 py-1.5 pr-8 text-xs rounded-lg border ${
+                      fieldErrors.password ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                    } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
                   />
-                  {fieldErrors.gstin && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.gstin}</p>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((p) => !p)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
                 </div>
+                {fieldErrors.password && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.password}</p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="lg:col-span-2">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Confirm Password <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    placeholder="Re-enter password"
+                    className={`w-full px-3 py-1.5 pr-8 text-xs rounded-lg border ${
+                      fieldErrors.confirmPassword ? "border-rose-400 bg-rose-50/30" : "border-slate-300"
+                    } focus:ring-1 focus:ring-blue-500 focus:outline-none`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((p) => !p)}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                {fieldErrors.confirmPassword && (
+                  <p className="text-[10px] text-rose-500 mt-0.5 leading-none">{fieldErrors.confirmPassword}</p>
+                )}
               </div>
             </div>
 
-            {/* Section 4: Portal Security */}
-            <div>
-              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-gray-100">
-                <Lock size={14} className="text-blue-600" />
-                <span>Account Credentials</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Password */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Create Password <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Minimum 6 characters"
-                      className={`w-full px-3.5 py-2.5 pr-10 text-xs rounded-xl border ${
-                        fieldErrors.password ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                      } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                  {fieldErrors.password && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.password}</p>
-                  )}
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Confirm Password <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      placeholder="Re-enter password"
-                      className={`w-full px-3.5 py-2.5 pr-10 text-xs rounded-xl border ${
-                        fieldErrors.confirmPassword ? "border-rose-400 bg-rose-50/30" : "border-gray-300"
-                      } focus:ring-2 focus:ring-blue-500 focus:outline-none`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword((p) => !p)}
-                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 cursor-pointer"
-                    >
-                      {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                  {fieldErrors.confirmPassword && (
-                    <p className="text-[11px] text-rose-500 mt-1">{fieldErrors.confirmPassword}</p>
-                  )}
-                </div>
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2.5 border-t border-slate-100">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+                <span>Verification & login instructions will be sent to your email after admin review.</span>
               </div>
-            </div>
 
-            {/* Submit Button & Switch Link */}
-            <div className="pt-2 space-y-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/25 disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm disabled:opacity-50 transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
               >
                 {loading ? (
                   <span>Submitting Application...</span>
                 ) : (
                   <>
-                    <span>Submit Agency Registration</span>
-                    <ArrowRight size={15} />
+                    <span>Submit Registration</span>
+                    <ArrowRight size={13} />
                   </>
                 )}
               </button>
-
-              <div className="text-center text-xs text-gray-500">
-                Already registered or approved?{" "}
-                <Link to="/login" className="text-blue-600 hover:underline font-bold">
-                  Log in here
-                </Link>
-              </div>
             </div>
           </form>
         </div>
