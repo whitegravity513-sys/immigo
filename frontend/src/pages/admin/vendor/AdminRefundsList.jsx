@@ -13,7 +13,7 @@ import {
   Edit3,
   ArrowRight,
 } from "lucide-react";
-import refundService from "../../../modules/vendor/services/refundService";
+import refundService from "../../../services/refundService.js";
 
 export default function AdminRefundsList() {
   const [refunds, setRefunds] = useState([]);

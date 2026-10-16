@@ -23,7 +23,7 @@ import {
 import HrLayout from "../../components/hr/layout/HrLayout.jsx";
 import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
-import EditEmployeeModal from "../../components/hr/modals/EditEmployeeModal.jsx";
+import HrEditEmployeeModal from "../../components/hr/modals/HrEditEmployeeModal.jsx";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 
 export function HRDashboard() {
@@ -572,7 +572,7 @@ export function HRDashboard() {
         </div>
 
         {/* Edit Employee Modal */}
-        <EditEmployeeModal
+        <HrEditEmployeeModal
           isOpen={Boolean(editingEmployee)}
           onClose={() => setEditingEmployee(null)}
           employee={editingEmployee}

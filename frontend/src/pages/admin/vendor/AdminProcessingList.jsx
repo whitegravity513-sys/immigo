@@ -23,7 +23,7 @@ import {
   Search,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
-import CandidateProcessTimeline from "../../../components/crm/vendor/CandidateProcessTimeline";
+import CandidateProcessTimeline from "../../../components/vendor/CandidateProcessTimeline.jsx";
 
 export default function AdminProcessingList() {
   const [searchParams] = useSearchParams();

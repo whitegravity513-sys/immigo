@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightLeft, User, Building2, Clock, CheckCircle2, AlertCircle, ExternalLink, ArrowRight } from "lucide-react";
-import refundService from "../../modules/vendor/services/refundService";
+import refundService from "../../services/refundService.js";
 
 export default function VendorRefunds() {
   const [refunds, setRefunds] = useState([]);

@@ -25,8 +25,8 @@ import {
   RotateCcw,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
-import refundService from "../../modules/vendor/services/refundService.js";
-import CandidateProcessTimeline from "../../components/crm/vendor/CandidateProcessTimeline.jsx";
+import refundService from "../../services/refundService.js";
+import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 
 export function CandidateDetails() {
   const { id } = useParams();

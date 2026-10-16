@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, Upload, AlertCircle } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
-import refundService from "../../modules/vendor/services/refundService";
+import refundService from "../../services/refundService.js";
 
 export default function VendorNewRefund() {
   const navigate = useNavigate();

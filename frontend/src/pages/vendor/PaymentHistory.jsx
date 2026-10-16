@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
-import CandidateProcessTimeline from "../../components/crm/vendor/CandidateProcessTimeline";
+import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 
 export default function PaymentHistory() {
   const { appId } = useParams();
