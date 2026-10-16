@@ -120,7 +120,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [renewalLoading, setRenewalLoading] = useState(false);
 
   useEffect(() => {
-    const effectiveToken = token || localStorage.getItem("vista_auth_token") || localStorage.getItem("token");
+    const effectiveToken = token || localStorage.getItem("immigo_token") || localStorage.getItem("token") || localStorage.getItem("vista_auth_token");
     if (effectiveToken) {
       apiClient.defaults.headers.common["Authorization"] = `Bearer ${effectiveToken}`;
     }

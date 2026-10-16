@@ -411,7 +411,7 @@ export default function VendorDetailView({
               <p className="text-slate-500 text-[11px]">
                 {selectedVendor.signedMou?.signedAt
                   ? `Signed by ${selectedVendor.signedMou.signatoryName || selectedVendor.contactPersonName} (${selectedVendor.signedMou.designation || "Signatory"}) on ${new Date(selectedVendor.signedMou.signedAt).toLocaleDateString("en-IN")}`
-                  : "Official recruitment partnership agreement between Vista Overseas and this vendor agency."}
+                  : "Official recruitment partnership agreement between ImmiGo Overseas and this vendor agency."}
               </p>
             </div>
 

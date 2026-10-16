@@ -485,10 +485,19 @@ export class EmployeeService {
 
   static async getEmployeeMonthlyDetails(employeeId, month, year, customStartDate = null, customEndDate = null) {
     const cleanId = cleanObjectId(employeeId);
-    if (!cleanId) {
-      throw new ApiError(404, "Employee not found");
+    let emp = null;
+    if (cleanId) {
+      emp = await Employee.findById(cleanId);
     }
-    const emp = await Employee.findById(cleanId);
+    if (!emp) {
+      emp = await Employee.findOne({
+        $or: [
+          { employeeId: String(employeeId) },
+          { email: String(employeeId).trim().toLowerCase() },
+          ...(cleanId ? [{ _id: cleanId }] : [])
+        ]
+      });
+    }
     if (!emp) {
       throw new ApiError(404, "Employee not found");
     }
@@ -504,14 +513,20 @@ export class EmployeeService {
     const queryStartDate = customStartDate ? (customStartDate < monthStartDate ? customStartDate : monthStartDate) : monthStartDate;
     const queryEndDate = customEndDate ? (customEndDate > monthEndDate ? customEndDate : monthEndDate) : monthEndDate;
 
+    const empQueryConditions = [
+      { employeeId: emp._id },
+      { employeeId: String(emp._id) },
+      ...(emp.employeeId ? [{ employeeId: emp.employeeId }] : [])
+    ];
+
     const [holidays, attendances, leaves] = await Promise.all([
       Holiday.find().lean(),
       Attendance.find({
-        employeeId,
+        $or: empQueryConditions,
         date: { $gte: queryStartDate, $lte: queryEndDate },
       }).sort({ date: 1 }).lean(),
       Leave.find({
-        employeeId,
+        $or: empQueryConditions,
         status: "Approved",
         startDate: { $lte: new Date(queryEndDate) },
         endDate: { $gte: new Date(queryStartDate) },

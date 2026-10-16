@@ -20,7 +20,7 @@ const startServer = async () => {
   });
 
   const server = app.listen(PORT, () => {
-    logger.info(`Vista Enterprise Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
+    logger.info(`ImmiGo Enterprise Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
     startCronJobs();
   });
 

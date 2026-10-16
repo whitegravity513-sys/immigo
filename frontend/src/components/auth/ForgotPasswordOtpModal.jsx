@@ -186,7 +186,7 @@ export default function ForgotPasswordOtpModal({
                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={isVendor ? "e.g. vendor@company.com or VND-1234" : "e.g. admin@vista.com"}
+                    placeholder={isVendor ? "e.g. vendor@company.com or VND-1234" : "e.g. admin@immigo.com"}
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition font-medium"
                   />
                 </div>

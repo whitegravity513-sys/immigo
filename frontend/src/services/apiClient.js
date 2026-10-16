@@ -18,10 +18,11 @@ apiClient.interceptors.request.use(
   (config) => {
     const token =
       localStorage.getItem(appConfig.STORAGE_KEYS.TOKEN) ||
+      localStorage.getItem("immigo_token") ||
       localStorage.getItem("token") ||
       localStorage.getItem("adminToken") ||
-      localStorage.getItem("vista_auth_token") ||
-      localStorage.getItem("immigo_token");
+      localStorage.getItem("immigo_auth_token") ||
+      localStorage.getItem("vista_auth_token");
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
@@ -74,6 +75,7 @@ apiClient.interceptors.response.use(
 
       try {
         const isAdminSession =
+          localStorage.getItem("immigo_user_role") === "ADMIN" ||
           localStorage.getItem("vista_user_role") === "ADMIN" ||
           localStorage.getItem("adminToken") ||
           originalRequest.url?.includes("/admin");

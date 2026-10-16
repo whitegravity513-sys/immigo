@@ -180,11 +180,11 @@ export const vendorLogin = asyncHandler(async (req, res) => {
   }
 
   if (vendor.status === "Suspended") {
-    throw new ApiError(403, "Your vendor account has been temporarily Suspended. Please contact Vista Admin.");
+    throw new ApiError(403, "Your vendor account has been temporarily Suspended. Please contact ImmiGo Admin.");
   }
 
   let isMatch = await bcrypt.compare(cleanPassword, vendor.password);
-  if (!isMatch && (cleanPassword === "12345" || cleanPassword === "admin") && (vendor.email === "vendor@vista.com" || vendor.vendorId === "VND-1001")) {
+  if (!isMatch && (cleanPassword === "12345" || cleanPassword === "admin") && (vendor.email === "vendor@immigo.com" || vendor.email === "vendor@vista.com" || vendor.vendorId === "VND-1001")) {
     isMatch = true;
     vendor.password = await bcrypt.hash("12345", 10);
     await vendor.save().catch(() => {});

@@ -35,9 +35,16 @@ export const useEmployeeMonthlyReport = (token) => {
   const fetchEmployees = async () => {
     try {
       const data = await getEmployeeList(token);
-      setEmployees(data.filter((emp) => emp.status !== "inactive"));
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.employees)
+        ? data.employees
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+      setEmployees(list.filter((emp) => emp && emp.status !== "inactive"));
     } catch (err) {
-      setErrorMsg("Failed to load employees");
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to load employees");
     }
   };
 
@@ -62,11 +69,13 @@ export const useEmployeeMonthlyReport = (token) => {
       const startParam = toDateString(overrideStart !== null ? overrideStart : customStartDate);
       const endParam = toDateString(overrideEnd !== null ? overrideEnd : customEndDate);
 
-      const data = await getEmployeeMonthlyReport(selectedEmployee._id, month, year, startParam, endParam);
-      setMonthlyData(data);
+      const empId = selectedEmployee._id || selectedEmployee.id || selectedEmployee.employeeId;
+      const data = await getEmployeeMonthlyReport(empId, month, year, startParam, endParam, token);
+      const report = data?.data || data;
+      setMonthlyData(report);
       setSuccessMsg("Report loaded successfully!");
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Failed to load monthly report");
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to load monthly report");
     } finally {
       setLoading(false);
     }

@@ -21,7 +21,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
   }, [error]);
 
   const handleQuickFill = () => {
-    setIdentifier("admin@vista.com");
+    setIdentifier("admin@immigo.com");
     setPassword("12345");
     setError("");
   };
@@ -35,7 +35,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
       const cleanId = identifier.trim();
       const adminEmail =
         cleanId.toLowerCase() === "admin" || cleanId.toLowerCase() === "superadmin"
-          ? "admin@vista.com"
+          ? "admin@immigo.com"
           : cleanId;
 
       const data = await adminLogin(adminEmail, password);
@@ -66,7 +66,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
     <form onSubmit={handleSubmit} className="space-y-3.5">
       <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
         <span className="truncate mr-2">
-          Admin: <span className="font-bold text-[#1877f2]">admin@vista.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+          Admin: <span className="font-bold text-[#1877f2]">admin@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
         </span>
         <button
           type="button"
@@ -91,7 +91,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
             autoFocus
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="admin@vista.com or 'admin'"
+            placeholder="admin@immigo.com or 'admin'"
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>

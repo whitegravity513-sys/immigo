@@ -258,41 +258,41 @@ export default function AnnouncementsSection({
   }, [holidays, searchQuery]);
 
   return (
-    <div className="space-y-5 text-slate-800">
-      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-5 shadow-2xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-2xs shrink-0">
-              <Megaphone size={20} />
+    <div className="space-y-3.5 text-slate-800 w-full max-w-full overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3.5 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-2xs shrink-0">
+              <Megaphone size={16} />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                 <span>Announcements &amp; Company Holidays</span>
               </h1>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
                 Broadcast notices to all employees and maintain official public holiday schedules
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs">
-              <Bell size={14} className="text-blue-600 shrink-0" />
-              <span className="text-slate-600 font-medium">Broadcasts:</span>
-              <span className="font-black text-blue-900">{announcements.length}</span>
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50/70 border border-blue-100 rounded-md text-xs">
+              <Bell size={13} className="text-blue-600 shrink-0" />
+              <span className="text-slate-600 font-medium text-[11px]">Notices:</span>
+              <span className="font-bold text-blue-900 text-xs">{announcements.length}</span>
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 border border-amber-100 rounded-xl text-xs">
-              <CalendarDays size={14} className="text-amber-600 shrink-0" />
-              <span className="text-slate-600 font-medium">Holidays:</span>
-              <span className="font-black text-amber-900">{holidays.length}</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50/70 border border-amber-100 rounded-md text-xs">
+              <CalendarDays size={13} className="text-amber-600 shrink-0" />
+              <span className="text-slate-600 font-medium text-[11px]">Holidays:</span>
+              <span className="font-bold text-amber-900 text-xs">{holidays.length}</span>
             </div>
 
             {upcomingHoliday && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-xs">
-                <Calendar size={14} className="text-emerald-600 shrink-0" />
-                <span className="text-slate-600 font-medium">Next:</span>
-                <span className="font-bold text-emerald-900 truncate max-w-[140px]">
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50/70 border border-emerald-100 rounded-md text-xs">
+                <Calendar size={13} className="text-emerald-600 shrink-0" />
+                <span className="text-slate-600 font-medium text-[11px]">Next:</span>
+                <span className="font-bold text-emerald-900 truncate max-w-[130px] text-xs">
                   {upcomingHoliday.title} ({fmtDate(upcomingHoliday.date)})
                 </span>
               </div>
@@ -333,10 +333,10 @@ export default function AnnouncementsSection({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
         <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70">
-            <div className="grid grid-cols-2 p-1 bg-slate-200/70 rounded-xl gap-1">
+          <div className="p-2 sm:p-2.5 border-b border-slate-100 bg-slate-50/70">
+            <div className="grid grid-cols-2 p-0.5 bg-slate-200/70 rounded-lg gap-1">
               {FORM_TABS.map((t) => {
                 const IconComponent = t.icon;
                 const isActive = type === t.key;
@@ -348,7 +348,7 @@ export default function AnnouncementsSection({
                       setType(t.key);
                       setListTab(t.key === "announcement" ? "announcements" : "holidays");
                     }}
-                    className={`flex items-center justify-center gap-2 py-2 px-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
                       isActive
                         ? t.key === "announcement"
                           ? "bg-blue-600 text-white shadow-xs"
@@ -356,7 +356,7 @@ export default function AnnouncementsSection({
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
-                    <IconComponent size={14} />
+                    <IconComponent size={13} />
                     <span>{t.label}</span>
                   </button>
                 );
@@ -364,7 +364,7 @@ export default function AnnouncementsSection({
             </div>
           </div>
 
-          <div className="p-4 sm:p-5">
+          <div className="p-3 sm:p-3.5">
             {type === "announcement" ? (
               <form onSubmit={handleAnnSubmit} className="space-y-2.5">
                 <div className="flex flex-col gap-0.5">
@@ -546,25 +546,25 @@ export default function AnnouncementsSection({
         </div>
 
         <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+          <div className="p-2.5 sm:p-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
               <button
                 type="button"
                 onClick={() => setListTab("announcements")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   listTab === "announcements"
                     ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
                     : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 <Megaphone size={12} className="text-blue-600" />
-                <span>Announcements ({announcements.length})</span>
+                <span>Notices ({announcements.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setListTab("holidays")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   listTab === "holidays"
                     ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
                     : "text-slate-500 hover:text-slate-900"
@@ -575,18 +575,18 @@ export default function AnnouncementsSection({
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <div className="relative flex-1 sm:flex-initial">
                 <Search
-                  size={13}
+                  size={12}
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={listTab === "announcements" ? "Search announcements..." : "Search holidays..."}
-                  className="w-full sm:w-44 pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder={listTab === "announcements" ? "Search notices..." : "Search holidays..."}
+                  className="w-full sm:w-40 pl-7 pr-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -594,7 +594,7 @@ export default function AnnouncementsSection({
                     onClick={() => setSearchQuery("")}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    <X size={12} />
+                    <X size={11} />
                   </button>
                 )}
               </div>
@@ -603,11 +603,11 @@ export default function AnnouncementsSection({
                 <button
                   type="button"
                   onClick={fetchAnnouncements}
-                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all cursor-pointer"
+                  className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-all cursor-pointer"
                   title="Refresh announcements"
                 >
                   <RefreshCw
-                    size={13}
+                    size={12}
                     className={fetchingAnnouncements ? "animate-spin text-blue-600" : ""}
                   />
                 </button>
@@ -630,7 +630,7 @@ export default function AnnouncementsSection({
                   filteredAnnouncements.map((a) => (
                     <div
                       key={a._id}
-                      className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white shadow-2xs space-y-2.5 transition-all"
+                      className="p-2.5 sm:p-3 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-2xs space-y-2 transition-all"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -692,11 +692,11 @@ export default function AnnouncementsSection({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                      <th className="px-3 py-2 text-[10px] whitespace-nowrap">Date</th>
-                      <th className="px-3 py-3 whitespace-nowrap">Category</th>
-                      <th className="px-3 py-3 whitespace-nowrap">Priority</th>
-                      <th className="px-3 py-2 text-[10px]">Title &amp; Broadcast Details</th>
-                      <th className="px-3 py-2 text-[10px] text-right whitespace-nowrap">Action</th>
+                      <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Date</th>
+                      <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Category</th>
+                      <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Priority</th>
+                      <th className="px-3 py-1.5 text-[10px]">Title &amp; Broadcast Details</th>
+                      <th className="px-3 py-1.5 text-[10px] text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
@@ -716,16 +716,16 @@ export default function AnnouncementsSection({
                           <td className="px-3 py-1.5 text-xs font-bold text-slate-700 whitespace-nowrap align-top">
                             {fmtDate(a.date || a.createdAt)}
                           </td>
-                          <td className="px-3 py-3 whitespace-nowrap align-top">
+                          <td className="px-3 py-1.5 whitespace-nowrap align-top">
                             <span
-                              className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${getCategoryBadge(
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getCategoryBadge(
                                 a.category
                               )}`}
                             >
                               {a.category || "Company Notification"}
                             </span>
                           </td>
-                          <td className="px-3 py-3 whitespace-nowrap align-top">
+                          <td className="px-3 py-1.5 whitespace-nowrap align-top">
                             <span
                               className={`text-[10px] font-black px-2 py-0.5 rounded border ${getPriorityPill(
                                 a.priority
@@ -789,10 +789,10 @@ export default function AnnouncementsSection({
                     return (
                       <div
                         key={h._id}
-                        className="p-3.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white shadow-2xs flex items-start justify-between gap-3 transition-all"
+                        className="p-2.5 sm:p-3 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-2xs flex items-start justify-between gap-2.5 transition-all"
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center shrink-0 shadow-2xs">
+                          <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-200 flex flex-col items-center justify-center shrink-0 shadow-2xs">
                             <span className="text-[9px] font-black text-amber-700 leading-none">
                               {cal.month}
                             </span>
@@ -849,11 +849,11 @@ export default function AnnouncementsSection({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                      <th className="px-3 py-2 text-[10px] whitespace-nowrap">Holiday Date</th>
-                      <th className="px-3 py-3">Holiday Name</th>
-                      <th className="px-3 py-2 text-[10px]">Description &amp; Details</th>
-                      <th className="px-3 py-3 whitespace-nowrap">Status</th>
-                      <th className="px-3 py-2 text-[10px] text-right whitespace-nowrap">Action</th>
+                      <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Holiday Date</th>
+                      <th className="px-3 py-1.5 text-[10px]">Holiday Name</th>
+                      <th className="px-3 py-1.5 text-[10px]">Description &amp; Details</th>
+                      <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Status</th>
+                      <th className="px-3 py-1.5 text-[10px] text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
@@ -875,7 +875,7 @@ export default function AnnouncementsSection({
                             <td className="px-3 py-1.5 font-bold text-amber-800 whitespace-nowrap">
                               {fmtDate(h.date)}
                             </td>
-                            <td className="px-3 py-3 font-black text-slate-900">
+                            <td className="px-3 py-1.5 font-bold text-slate-900">
                               {h.title}
                             </td>
                             <td className="px-3 py-1.5 text-slate-600 max-w-sm">
@@ -883,7 +883,7 @@ export default function AnnouncementsSection({
                                 <span className="italic text-slate-400">Official company-wide holiday</span>
                               )}
                             </td>
-                            <td className="px-3 py-3 whitespace-nowrap">
+                            <td className="px-3 py-1.5 whitespace-nowrap">
                               {isUpcoming ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

@@ -233,32 +233,32 @@ export default function CalendarMeetings() {
   }, [employees, empSearch]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3.5 w-full max-w-full overflow-hidden">
       {!isModalOpen ? (
         <>
-          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100">
-              <CalendarIcon size={20} />
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
+              <CalendarIcon size={16} />
             </span>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
               Company Calendar & Meetings
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-[11px] sm:text-xs text-slate-500">
             Schedule meetings, paste meeting links (Google Meet, Zoom, etc.), and automatically notify all or specific employees directly on their dashboard.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <div className="bg-slate-100 p-0.5 rounded-lg flex items-center border border-slate-200 text-xs font-bold">
             <button
               onClick={() => {
                 setViewMode("calendar");
                 setSelectedDayMeetings(null);
               }}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer text-xs ${
                 viewMode === "calendar" ? "bg-white text-indigo-700 shadow-xs font-bold" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -269,7 +269,7 @@ export default function CalendarMeetings() {
                 setViewMode("list");
                 setSelectedDayMeetings(null);
               }}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer text-xs ${
                 viewMode === "list" ? "bg-white text-indigo-700 shadow-xs font-bold" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -279,9 +279,9 @@ export default function CalendarMeetings() {
 
           <button
             onClick={() => handleOpenCreateModal()}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/20 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             <span>Schedule Meeting</span>
           </button>
         </div>
@@ -337,7 +337,7 @@ export default function CalendarMeetings() {
             </div>
           </div>
 
-          <div className="grid grid-cols-7 border-b-2 border-slate-300 text-center py-2 bg-slate-100 text-[11px] font-extrabold text-slate-800 uppercase tracking-wider">
+          <div className="grid grid-cols-7 border-b border-slate-200 text-center py-1.5 bg-slate-100 text-[10px] font-bold text-slate-800 uppercase tracking-wider">
             <span>Sun</span>
             <span>Mon</span>
             <span>Tue</span>
@@ -347,9 +347,9 @@ export default function CalendarMeetings() {
             <span>Sat</span>
           </div>
 
-          <div className="grid grid-cols-7 divide-x divide-y divide-slate-300" style={{border: "1px solid #cbd5e1"}}>
+          <div className="grid grid-cols-7 divide-x divide-y divide-slate-200 border border-slate-200">
             {Array.from({ length: firstDayIndex }).map((_, i) => (
-              <div key={`blank-${i}`} className="min-h-[54px] sm:min-h-[62px] bg-slate-50 p-1 border-r border-slate-300" />
+              <div key={`blank-${i}`} className="min-h-[46px] sm:min-h-[54px] bg-slate-50 p-1 border-r border-slate-200" />
             ))}
 
             {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -367,16 +367,16 @@ export default function CalendarMeetings() {
               return (
                 <div
                   key={`day-${dayNum}`}
-                  className={`min-h-[54px] sm:min-h-[62px] p-1.5 relative flex flex-col border-r border-slate-300 transition-colors hover:bg-blue-50/30 ${
-                    isToday ? "bg-indigo-50" : "bg-white"
+                  className={`min-h-[46px] sm:min-h-[54px] p-1 relative flex flex-col border-r border-slate-200 transition-colors hover:bg-blue-50/30 ${
+                    isToday ? "bg-indigo-50/70" : "bg-white"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-0.5">
                     <span
-                      className={`text-[12px] font-extrabold inline-flex items-center justify-center w-5 h-5 rounded-full ${
+                      className={`text-[11px] font-bold inline-flex items-center justify-center w-4.5 h-4.5 rounded-full ${
                         isToday
                           ? "bg-indigo-600 text-white"
-                          : "text-slate-900"
+                          : "text-slate-800"
                       }`}
                     >
                       {dayNum}
@@ -385,25 +385,24 @@ export default function CalendarMeetings() {
                     {!isPastDate ? (
                       <button
                         onClick={() => handleOpenCreateModal(dateStr)}
-                        className="w-5 h-5 flex items-center justify-center text-slate-700 hover:bg-indigo-600 hover:text-white rounded cursor-pointer border border-slate-300 hover:border-indigo-600 transition-all"
+                        className="w-4 h-4 flex items-center justify-center text-slate-600 hover:bg-indigo-600 hover:text-white rounded cursor-pointer border border-slate-200 hover:border-indigo-600 transition-all text-[10px]"
                         title="Schedule meeting on this day"
                       >
-                        <Plus size={11} />
+                        <Plus size={10} />
                       </button>
                     ) : (
-                      <span className="w-5 h-5 flex items-center justify-center text-slate-300 text-[10px]" title="Past date">
+                      <span className="w-4 h-4 flex items-center justify-center text-slate-300 text-[9px]" title="Past date">
                         —
                       </span>
                     )}
                   </div>
 
-                  {}
                   <div className="flex-1 space-y-0.5 overflow-hidden">
                     {displayMeetings.slice(0, 2).map((m) => (
                       <div
                         key={m._id || m.id}
                         onClick={() => setSelectedDayMeetings(allDayMeetings)}
-                        className={`group text-[10px] px-1.5 py-0.5 rounded leading-tight cursor-pointer font-bold border flex items-center justify-between gap-1 transition-all ${
+                        className={`group text-[9px] px-1 py-0.5 rounded leading-tight cursor-pointer font-bold border flex items-center justify-between gap-0.5 transition-all ${
                           m.targetType === "ALL"
                             ? "bg-indigo-100 text-indigo-900 border-indigo-300 hover:bg-indigo-200"
                             : "bg-emerald-100 text-emerald-900 border-emerald-300 hover:bg-emerald-200"
@@ -417,10 +416,10 @@ export default function CalendarMeetings() {
                             e.stopPropagation();
                             handleOpenEditModal(m);
                           }}
-                          className="w-4 h-4 rounded text-slate-500 hover:text-indigo-900 hover:bg-white/80 flex items-center justify-center shrink-0 transition-all opacity-80 group-hover:opacity-100 cursor-pointer"
+                          className="w-3.5 h-3.5 rounded text-slate-500 hover:text-indigo-900 hover:bg-white/80 flex items-center justify-center shrink-0 transition-all opacity-80 group-hover:opacity-100 cursor-pointer"
                           title="Edit meeting"
                         >
-                          <Edit2 size={10} />
+                          <Edit2 size={9} />
                         </button>
                       </div>
                     ))}
@@ -428,7 +427,7 @@ export default function CalendarMeetings() {
                     {displayMeetings.length > 2 && (
                       <button
                         onClick={() => setSelectedDayMeetings(allDayMeetings)}
-                        className="text-[10px] text-slate-900 font-extrabold hover:text-indigo-700 hover:underline px-0.5 cursor-pointer"
+                        className="text-[9px] text-slate-900 font-extrabold hover:text-indigo-700 hover:underline px-0.5 cursor-pointer"
                       >
                         +{displayMeetings.length - 2} more
                       </button>
@@ -441,13 +440,12 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {}
       {(viewMode === "list" || selectedDayMeetings) && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
-              <Video size={18} className="text-indigo-600" />
-              <h2 className="text-base sm:text-lg font-black text-slate-800">
+              <Video size={16} className="text-indigo-600" />
+              <h2 className="text-xs sm:text-sm font-bold text-slate-800">
                 {selectedDayMeetings ? "Meetings for Selected Date" : "Scheduled Meetings Directory"}
               </h2>
               {selectedDayMeetings && (
@@ -491,22 +489,22 @@ export default function CalendarMeetings() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {(selectedDayMeetings || filteredMeetings).map((meeting) => {
                 const isUpcoming = meeting.date >= todayStr;
                 return (
                   <div
                     key={meeting._id || meeting.id}
-                    className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-md transition-all flex flex-col justify-between gap-3"
+                    className="p-3 sm:p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-xs transition-all flex flex-col justify-between gap-2.5"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
+                      <div className="flex items-center justify-between gap-1.5 mb-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
                             {meeting.platform || "Google Meet"}
                           </span>
                           <span
-                            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border tracking-wider ${
+                            className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border tracking-wider ${
                               meeting.targetType === "ALL"
                                 ? "bg-purple-100 text-purple-800 border-purple-200"
                                 : "bg-emerald-100 text-emerald-800 border-emerald-200"
@@ -519,7 +517,7 @@ export default function CalendarMeetings() {
                         </div>
 
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                             isUpcoming ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
                           }`}
                         >
@@ -527,22 +525,22 @@ export default function CalendarMeetings() {
                         </span>
                       </div>
 
-                      <h3 className="font-extrabold text-slate-900 text-base leading-snug mb-1">
+                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm leading-snug mb-0.5">
                         {meeting.title}
                       </h3>
                       {meeting.description && (
-                        <p className="text-xs text-slate-500 line-clamp-2 mb-3">
+                        <p className="text-[11px] text-slate-500 line-clamp-2 mb-2">
                           {meeting.description}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-3 text-xs text-slate-600 font-semibold mb-3">
-                        <div className="flex items-center gap-1.5">
-                          <CalendarIcon size={14} className="text-indigo-600" />
+                      <div className="flex items-center gap-2.5 text-[11px] text-slate-600 font-medium mb-2">
+                        <div className="flex items-center gap-1">
+                          <CalendarIcon size={12} className="text-indigo-600" />
                           <span>{meeting.date}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock size={14} className="text-indigo-600" />
+                        <div className="flex items-center gap-1">
+                          <Clock size={12} className="text-indigo-600" />
                           <span>
                             {meeting.startTime} {meeting.endTime ? `— ${meeting.endTime}` : ""}
                           </span>
@@ -550,15 +548,15 @@ export default function CalendarMeetings() {
                       </div>
 
                       {meeting.targetType === "SPECIFIC" && Array.isArray(meeting.targetEmployees) && (
-                        <div className="mb-3">
-                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <div className="mb-2">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             Participants:
                           </span>
-                          <div className="flex flex-wrap gap-1 mt-1">
+                          <div className="flex flex-wrap gap-1 mt-0.5">
                             {meeting.targetEmployees.map((emp, i) => (
                               <span
                                 key={i}
-                                className="text-[11px] px-2 py-0.5 bg-white border border-slate-200 rounded-md font-medium text-slate-700"
+                                className="text-[10px] px-1.5 py-0.5 bg-white border border-slate-200 rounded font-medium text-slate-700"
                               >
                                 {typeof emp === "object" ? emp.name : emp}
                               </span>
@@ -568,32 +566,32 @@ export default function CalendarMeetings() {
                       )}
                     </div>
 
-                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
+                    <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5">
                         <a
                           href={meeting.meetingLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all"
+                          className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-xs font-bold shadow-xs transition-all"
                         >
-                          <ExternalLink size={13} />
+                          <ExternalLink size={12} />
                           <span>Join Meeting</span>
                         </a>
 
                         <button
                           type="button"
                           onClick={() => handleCopyLink(meeting.meetingLink, meeting._id || meeting.id)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer transition-all"
+                          className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-md text-xs font-semibold cursor-pointer transition-all"
                           title="Copy meeting link"
                         >
                           {copiedId === (meeting._id || meeting.id) ? (
                             <>
-                              <Check size={13} className="text-emerald-600" />
+                              <Check size={12} className="text-emerald-600" />
                               <span className="text-emerald-700 font-bold">Copied</span>
                             </>
                           ) : (
                             <>
-                              <Copy size={13} />
+                              <Copy size={12} />
                               <span>Copy</span>
                             </>
                           )}
@@ -604,18 +602,18 @@ export default function CalendarMeetings() {
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(meeting)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors cursor-pointer"
                           title="Edit Meeting"
                         >
-                          <Edit2 size={15} />
+                          <Edit2 size={13} />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteMeeting(meeting._id || meeting.id, meeting.title)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                           title="Cancel / Delete Meeting"
                         >
-                          <Trash2 size={15} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -633,20 +631,20 @@ export default function CalendarMeetings() {
           <button
             type="button"
             onClick={() => setIsModalOpen(false)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <ChevronLeft size={16} />
             <span>Back to Meetings Calendar</span>
           </button>
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
                   <Video size={18} />
                 </span>
                 <div>
-                  <h3 className="text-base font-black text-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800">
                     {editingMeeting ? "Edit Scheduled Meeting" : "Schedule New Meeting"}
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -656,7 +654,7 @@ export default function CalendarMeetings() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmitMeeting} className="p-3.5 sm:p-4 overflow-y-auto space-y-3 custom-scrollbar">
+            <form onSubmit={handleSubmitMeeting} className="p-3 sm:p-3.5 overflow-y-auto space-y-2.5 custom-scrollbar">
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                   Meeting Title *
@@ -864,13 +862,13 @@ export default function CalendarMeetings() {
                 />
               </div>
 
-              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100">
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl cursor-pointer text-sm shadow-md shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-md cursor-pointer text-xs shadow-xs transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Send size={15} />
+                  <Send size={13} />
                   <span>
                     {actionLoading
                       ? "Saving & Notifying..."
@@ -882,7 +880,7 @@ export default function CalendarMeetings() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer text-sm"
+                  className="py-1.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-bold cursor-pointer text-xs"
                 >
                   Cancel
                 </button>

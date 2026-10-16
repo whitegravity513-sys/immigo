@@ -70,7 +70,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
           {}
           <div className="text-center border-b-2 border-slate-900 pb-6 space-y-2">
             <div className="inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-blue-900 font-sans text-[11px] font-black uppercase tracking-wider mb-1">
-              ImmiGo Global &bull; Vista Overseas Workforce
+              ImmiGo Global Overseas Workforce
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-950 tracking-wide font-sans uppercase">
               MEMORANDUM OF UNDERSTANDING (MOU)
@@ -91,7 +91,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
             </p>
             <div className="pl-4 border-l-2 border-blue-600 space-y-2">
               <p>
-                <b>FIRST PARTY (The Company):</b> <span className="font-bold text-slate-900">Vista Overseas Solutions / ImmiGo Global Overseas</span>, having its principal corporate operations in India, engaged in overseas recruitment, talent sourcing, and human capital deployment.
+                <b>FIRST PARTY (The Company):</b> <span className="font-bold text-slate-900">ImmiGo Global Overseas Solutions</span>, having its principal corporate operations in India, engaged in overseas recruitment, talent sourcing, and human capital deployment.
               </p>
               <p className="text-center font-bold text-slate-400 font-sans text-xs uppercase tracking-widest my-1">- AND -</p>
               <p>
@@ -177,11 +177,11 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
                   </span>
                 </div>
                 <div className="font-serif italic text-lg text-blue-900 font-bold border-b border-blue-200 pb-2">
-                  Vista Enterprise Authority
+                  ImmiGo Enterprise Authority
                 </div>
                 <div className="text-xs text-slate-600 space-y-0.5">
                   <p><b>Authority:</b> Director of Global Operations</p>
-                  <p><b>Company:</b> Vista Overseas / ImmiGo Global</p>
+                  <p><b>Company:</b> ImmiGo Global Overseas</p>
                   <p className="font-mono text-[10px] text-slate-400">Timestamp: {effectiveDate}</p>
                 </div>
               </div>

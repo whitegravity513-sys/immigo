@@ -92,7 +92,7 @@ if (fs.existsSync(frontendDistPath)) {
   app.get("/", (req, res) => {
     res.status(200).json({
       status: "success",
-      message: "Vista HRMS & CRM Enterprise API is running successfully!",
+      message: "ImmiGo HRMS & CRM Enterprise API is running successfully!",
     });
   });
 }

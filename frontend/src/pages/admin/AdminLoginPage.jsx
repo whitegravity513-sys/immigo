@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
         isOpen={forgotModal}
         onClose={() => setForgotModal(false)}
         role="admin"
-        initialEmail="admin@vista.com"
+        initialEmail="admin@immigo.com"
         onSuccess={handleResetSuccess}
       />
     </div>

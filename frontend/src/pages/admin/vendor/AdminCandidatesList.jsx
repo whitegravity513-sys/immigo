@@ -162,7 +162,7 @@ export default function AdminCandidatesList() {
       document.body.removeChild(a);
       return;
     }
-    const content = `CANDIDATE DOCUMENT RECORD\n=========================\nCandidate: ${selectedCandidate?.fullName || "Candidate"}\nCandidate ID: ${selectedCandidate?.id || "N/A"}\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nStatus: ${doc.status || "Verified"}\nVerification Date: ${doc.verifiedAt || new Date().toISOString().split("T")[0]}\n\nAuthenticated on Vista Overseas Workforce Platform.`;
+    const content = `CANDIDATE DOCUMENT RECORD\n=========================\nCandidate: ${selectedCandidate?.fullName || "Candidate"}\nCandidate ID: ${selectedCandidate?.id || "N/A"}\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nStatus: ${doc.status || "Verified"}\nVerification Date: ${doc.verifiedAt || new Date().toISOString().split("T")[0]}\n\nAuthenticated on ImmiGo Overseas Workforce Platform.`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

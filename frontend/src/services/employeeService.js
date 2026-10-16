@@ -1,42 +1,54 @@
 import apiClient from "./apiClient.js";
 
-export const getEmployees = async () => {
-  const res = await apiClient.get("/admin/employee/list");
+export const getEmployees = async (token = null) => {
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await apiClient.get("/admin/employee/list", { headers });
   return res.data;
 };
 
 export const getEmployeeList = getEmployees;
 
-export const getEmployeeHistory = async (id) => {
-  const res = await apiClient.get(`/admin/employee/${id}/history`);
+export const getEmployeeHistory = async (id, token = null) => {
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await apiClient.get(`/admin/employee/${id}/history`, { headers });
   return res.data;
 };
 
-export const getEmployeeDetails = async (id, month, year) => {
+export const getEmployeeDetails = async (id, month, year, token = null) => {
   let url = `/admin/employee/${id}/monthly`;
   if (month && year) {
     url += `?month=${month}&year=${year}`;
   }
-  const res = await apiClient.get(url);
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await apiClient.get(url, { headers });
   return res.data;
 };
 
-export const getEmployeeLeaves = async (id) => {
-  const res = await apiClient.get(`/admin/employee/${id}/leaves`);
+export const getEmployeeLeaves = async (id, token = null) => {
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await apiClient.get(`/admin/employee/${id}/leaves`, { headers });
   return res.data;
 };
 
-export const getEmployeeNote = async (id, date = "") => {
+export const getEmployeeNote = async (id, date = "", token = null) => {
   const url = date ? `/admin/employee/${id}/note?date=${date}` : `/admin/employee/${id}/note`;
-  const res = await apiClient.get(url);
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await apiClient.get(url, { headers });
   return res.data;
 };
 
-export const getEmployeeMonthlyReport = async (id, month, year, startDate = null, endDate = null) => {
+export const getEmployeeMonthlyReport = async (id, month, year, startDate = null, endDate = null, token = null) => {
   let url = `/admin/employee/${id}/monthly?month=${month}&year=${year}`;
   if (startDate) url += `&startDate=${startDate}`;
   if (endDate) url += `&endDate=${endDate}`;
-  const res = await apiClient.get(url);
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await apiClient.get(url, { headers });
   return res.data;
 };
 

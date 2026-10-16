@@ -415,13 +415,15 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {monthlyData.dailyRecords
+                  {(monthlyData.dailyRecords || [])
                     .filter((r) => r.status !== "Before Joining" && r.status !== "Upcoming")
                     .map((record, idx) => {
-                    const workHours = Math.floor(record.workSeconds / 3600);
-                    const workMinutes = Math.floor((record.workSeconds % 3600) / 60);
-                    const breakHours = Math.floor(record.breakSeconds / 3600);
-                    const breakMinutes = Math.floor((record.breakSeconds % 3600) / 60);
+                    const wSec = record.workSeconds || record.totalWorkSeconds || 0;
+                    const bSec = record.breakSeconds || record.totalBreakSeconds || 0;
+                    const workHours = Math.floor(wSec / 3600);
+                    const workMinutes = Math.floor((wSec % 3600) / 60);
+                    const breakHours = Math.floor(bSec / 3600);
+                    const breakMinutes = Math.floor((bSec % 3600) / 60);
 
                     const statusColors = {
                       Present: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -489,7 +491,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {monthlyData.leaves.map((leave, idx) => (
+                    {(monthlyData.leaves || []).map((leave, idx) => (
                       <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                         <td className="px-3 py-1.5 font-bold text-slate-900 text-xs">{leave.leaveType}</td>
                         <td className="px-3 py-1.5 text-slate-700 text-xs">{formatDate(leave.startDate)}</td>

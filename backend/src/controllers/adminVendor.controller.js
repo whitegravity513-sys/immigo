@@ -169,7 +169,7 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     replacementPeriod: replacementPeriod || "90 Days free replacement warranty",
     sectors: sectors || vendor.specialization || "Construction, MEP, Hospitality, Logistics, Oil & Gas",
     specialClauses: specialClauses || "Standard international manpower ethical recruitment covenants apply.",
-    adminSignatoryName: adminSignatoryName || "Authorized Operations Director, Vista Solutions",
+    adminSignatoryName: adminSignatoryName || "Authorized Operations Director, ImmiGo Solutions",
     adminDesignation: adminDesignation || "Director - Global Alliances",
     termsVersion: "v1.0",
     fileUrl: "",
@@ -189,7 +189,7 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     await Notification.create({
       type: "DOCUMENT_UPDATE",
       title: `Official MOU Generated for ${vendor.companyName}`,
-      message: `Your compliance documents have been verified by Vista Admin! Official MOU agreement has been issued. Please review, choose your signature option, and submit.`,
+      message: `Your compliance documents have been verified by ImmiGo Admin! Official MOU agreement has been issued. Please review, choose your signature option, and submit.`,
       targetRole: "ALL",
       targetType: "ALL",
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
@@ -301,7 +301,7 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
     await Notification.create({
       type: "SYSTEM",
       title: `Vendor Account Activated: ${vendor.companyName}`,
-      message: `Congratulations! Your vendor partner account has been fully activated by Vista Admin. You now have full access to candidate deployment and projects.`,
+      message: `Congratulations! Your vendor partner account has been fully activated by ImmiGo Admin. You now have full access to candidate deployment and projects.`,
       targetRole: "ALL",
       targetType: "ALL",
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },

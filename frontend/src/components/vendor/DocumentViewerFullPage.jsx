@@ -25,7 +25,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
     }
 
     
-    const content = `OFFICIAL STATUTORY DOCUMENT\n==========================\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nAgency: ${vendor?.companyName || "Vendor Agency"}\nRegistration ID: ${vendor?.registrationNumber || vendor?.vendorId || "VND-VERIFIED"}\nUploaded Date: ${doc.uploadedAt || new Date().toISOString().split("T")[0]}\nStatus: ${doc.status || "Verified"}\n\nThis file is digitally authenticated on the Vista Manpower & Immigration Management System.`;
+    const content = `OFFICIAL STATUTORY DOCUMENT\n==========================\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nAgency: ${vendor?.companyName || "Vendor Agency"}\nRegistration ID: ${vendor?.registrationNumber || vendor?.vendorId || "VND-VERIFIED"}\nUploaded Date: ${doc.uploadedAt || new Date().toISOString().split("T")[0]}\nStatus: ${doc.status || "Verified"}\n\nThis file is digitally authenticated on the ImmiGo Manpower & Immigration Management System.`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -151,12 +151,12 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
                 <span className="font-bold text-emerald-700 text-sm block mt-0.5 flex items-center gap-1.5">
                   <ShieldCheck size={16} /> Verified & Approved
                 </span>
-                <span className="text-[11px] text-slate-500">Authorized by Vista Overseas Compliance Desk</span>
+                <span className="text-[11px] text-slate-500">Authorized by ImmiGo Overseas Compliance Desk</span>
               </div>
             </div>
 
             <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 text-center font-medium">
-              This statutory record has been verified and registered on the Vista global workforce portal. Click <b>"Download Document"</b> above to retrieve the full original source file.
+              This statutory record has been verified and registered on the ImmiGo global workforce portal. Click <b>"Download Document"</b> above to retrieve the full original source file.
             </div>
           </div>
         )}

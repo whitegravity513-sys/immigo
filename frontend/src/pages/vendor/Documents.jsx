@@ -97,7 +97,7 @@ export default function Documents() {
 
   const handleDownloadMou = () => {
     const mou = vendor?.mouDocument || {};
-    const text = `MEMORANDUM OF UNDERSTANDING (MOU)\nBETWEEN: VISTA OVERSEAS RECRUITMENT SOLUTIONS & ${vendor?.companyName || "VENDOR"}\nAgreement Ref: ${mou.refNumber || `MOU-${vendor?.id || "VND"}`}\nStatus: ${vendor?.status || "Signed"}\nSigned Date: ${mou.signedAt || mou.signatureDate || new Date().toLocaleDateString()}\nSignatory: ${mou.signatoryName || vendor?.contactPersonName || "Authorized Representative"}\nDesignation: ${mou.signatoryDesignation || "Director / Authorized Signatory"}\nCommission: ${mou.commissionRate || "Standard Agreement"}\nValidity: ${mou.validityYears || "1 Year"}\nTerms: All candidate placements shall strictly adhere to MEA and GCC bilateral labor agreements.`;
+    const text = `MEMORANDUM OF UNDERSTANDING (MOU)\nBETWEEN: IMMIGO OVERSEAS RECRUITMENT SOLUTIONS & ${vendor?.companyName || "VENDOR"}\nAgreement Ref: ${mou.refNumber || `MOU-${vendor?.id || "VND"}`}\nStatus: ${vendor?.status || "Signed"}\nSigned Date: ${mou.signedAt || mou.signatureDate || new Date().toLocaleDateString()}\nSignatory: ${mou.signatoryName || vendor?.contactPersonName || "Authorized Representative"}\nDesignation: ${mou.signatoryDesignation || "Director / Authorized Signatory"}\nCommission: ${mou.commissionRate || "Standard Agreement"}\nValidity: ${mou.validityYears || "1 Year"}\nTerms: All candidate placements shall strictly adhere to MEA and GCC bilateral labor agreements.`;
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -223,7 +223,7 @@ export default function Documents() {
                   Manpower Supply Partnership Memorandum of Understanding
                 </h3>
                 <p className="text-xs text-blue-200 mt-1 max-w-2xl leading-relaxed">
-                  Legally binding overseas recruitment agreement executed between Vista Overseas Operations and {vendor?.companyName || "Vendor Agency Partner"}.
+                  Legally binding overseas recruitment agreement executed between ImmiGo Overseas Operations and {vendor?.companyName || "Vendor Agency Partner"}.
                 </p>
               </div>
 
