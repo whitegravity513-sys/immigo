@@ -292,9 +292,9 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             {monthlyData && (
               <button
                 onClick={downloadReport}
-                className="w-full px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm text-xs"
+                className="w-full px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-md hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs text-xs"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5" />
                 Download Excel (.xlsx)
               </button>
             )}
@@ -405,13 +405,13 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <table className="w-full">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date & Day</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Status</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-In</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Check-Out</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Work Hours</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Break</th>
-                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-700 uppercase">Notes</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Date & Day</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Status</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Check-In</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Check-Out</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Work Hours</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Break</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -441,23 +441,23 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                         key={idx}
                         className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
                       >
-                        <td className="px-5 py-3.5 font-bold text-slate-900 whitespace-nowrap">
-                          {record.date} <span className="text-xs text-slate-400 font-semibold">({record.dayOfWeek})</span>
+                        <td className="px-3 py-1.5 font-bold text-slate-900 whitespace-nowrap text-xs">
+                          {record.date} <span className="text-[11px] text-slate-400 font-semibold">({record.dayOfWeek})</span>
                         </td>
-                        <td className="px-5 py-3.5">
-                          <span className={`px-2.5 py-0.5 rounded-lg text-xs font-bold border ${statusColors[record.status] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
+                        <td className="px-3 py-1.5">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${statusColors[record.status] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
                             {record.status}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkInTime)}</td>
-                        <td className="px-5 py-3.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkOutTime)}</td>
-                        <td className="px-5 py-3.5 font-bold text-slate-900 text-xs">
+                        <td className="px-3 py-1.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkInTime)}</td>
+                        <td className="px-3 py-1.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkOutTime)}</td>
+                        <td className="px-3 py-1.5 font-bold text-slate-900 text-xs">
                           {String(workHours).padStart(2, "0")}:{String(workMinutes).padStart(2, "0")}
                         </td>
-                        <td className="px-5 py-3.5 text-slate-600 text-xs">
+                        <td className="px-3 py-1.5 text-slate-600 text-xs">
                           {String(breakHours).padStart(2, "0")}:{String(breakMinutes).padStart(2, "0")}
                         </td>
-                        <td className="px-5 py-3.5 text-xs text-slate-600 max-w-xs truncate">
+                        <td className="px-3 py-1.5 text-xs text-slate-600 max-w-xs truncate">
                           {record.checkOutNote || "-"}
                         </td>
                       </tr>
@@ -469,10 +469,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
           </div>
 
           {monthlyData.leaves.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-rose-600 to-rose-700 px-6 py-4">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Coffee className="w-5 h-5" />
+            <div className="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+              <div className="bg-gradient-to-r from-rose-600 to-rose-700 px-4 py-2.5">
+                <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <Coffee className="w-4 h-4" />
                   Leaves in This Month
                 </h2>
               </div>
@@ -480,25 +480,25 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Leave Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Start Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">End Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Days</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Reason</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase">Status</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Leave Type</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Start Date</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">End Date</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Days</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Reason</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {monthlyData.leaves.map((leave, idx) => (
                       <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                        <td className="px-3 py-1.5 font-bold text-slate-900">{leave.leaveType}</td>
-                        <td className="px-3 py-1.5 text-slate-700">{formatDate(leave.startDate)}</td>
-                        <td className="px-3 py-1.5 text-slate-700">{formatDate(leave.endDate)}</td>
-                        <td className="px-3 py-1.5 font-bold text-slate-900">{leave.totalDays}</td>
-                        <td className="px-3 py-1.5 text-slate-700 max-w-xs truncate">{leave.reason}</td>
+                        <td className="px-3 py-1.5 font-bold text-slate-900 text-xs">{leave.leaveType}</td>
+                        <td className="px-3 py-1.5 text-slate-700 text-xs">{formatDate(leave.startDate)}</td>
+                        <td className="px-3 py-1.5 text-slate-700 text-xs">{formatDate(leave.endDate)}</td>
+                        <td className="px-3 py-1.5 font-bold text-slate-900 text-xs">{leave.totalDays}</td>
+                        <td className="px-3 py-1.5 text-slate-700 text-xs max-w-xs truncate">{leave.reason}</td>
                         <td className="px-3 py-1.5">
                           <span
-                            className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
                               leave.status === "Approved"
                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : leave.status === "Pending"
