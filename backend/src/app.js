@@ -4,6 +4,8 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
+import path from "path";
+import fs from "fs";
 
 import { env } from "./config/env.js";
 import { corsOptions } from "./config/security.js";
@@ -14,14 +16,12 @@ import apiRouter from "./routes/index.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import { ApiError } from "./utils/apiError.js";
 
-import path from "path";
-
 const app = express();
 
 app.use("/uploads", cors(corsOptions), express.static(path.join(process.cwd(), "uploads")));
 
 app.use(compression({
-  threshold: 1024, 
+  threshold: 1024,
   level: 6,
 }));
 
@@ -35,13 +35,10 @@ app.use(
 app.disable("x-powered-by");
 
 app.use(cors(corsOptions));
-
 app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
 app.use(sanitizeRequests);
-
 app.set("etag", false);
 
 app.use("/api", apiLimiter);
@@ -64,16 +61,41 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "Vista HRMS & CRM Enterprise API is running successfully!",
-  });
-});
-
 app.use("/api", apiRouter);
-// Fallback direct mount to prevent 404 if request is made without /api prefix
 app.use(apiRouter);
+
+const frontendDistPath = path.resolve(process.cwd(), "../frontend/dist");
+if (fs.existsSync(frontendDistPath)) {
+  app.use(
+    "/assets",
+    express.static(path.join(frontendDistPath, "assets"), {
+      maxAge: "1y",
+      immutable: true,
+    })
+  );
+  app.use(
+    express.static(frontendDistPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith("index.html")) {
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        }
+      },
+    })
+  );
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.status(200).json({
+      status: "success",
+      message: "Vista HRMS & CRM Enterprise API is running successfully!",
+    });
+  });
+}
 
 app.use((req, res, next) => {
   next(new ApiError(404, `Route ${req.method} ${req.originalUrl} not found`));

@@ -24,7 +24,7 @@ export const seedDefaultEmployee = async (exitOnComplete = true) => {
       if (!existingEmp.employeeId) existingEmp.employeeId = testEmployeeId;
       await existingEmp.save();
 
-      logger.info(`✅ Default Employee [${testEmployeeId}] password updated to: ${testPassword}`);
+      logger.info(`Default Employee [${testEmployeeId}] password updated to: ${testPassword}`);
       if (exitOnComplete) {
         process.exit(0);
       }
@@ -42,11 +42,7 @@ export const seedDefaultEmployee = async (exitOnComplete = true) => {
       leaveBalance: 12,
     });
 
-    logger.info(`✅ Default Employee created successfully:
-- Employee ID: ${emp.employeeId}
-- Email: ${emp.email}
-- Password: ${testPassword}
-- Name: ${emp.name}`);
+    logger.info(`Default Employee created: ${emp.employeeId} (${emp.email})`);
 
     if (exitOnComplete) {
       process.exit(0);

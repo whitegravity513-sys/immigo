@@ -40,7 +40,6 @@ export default function UnifiedLogin({ onLoginSuccess }) {
     }
   };
 
-  // Reusable login card for both desktop and mobile views
   const renderLoginCard = () => (
     <div className="w-full max-w-[430px] bg-white rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.12)] border border-slate-200/90 p-5 sm:p-7 md:p-8 text-left relative mx-auto">
       <div className="flex items-center justify-between mb-4 sm:mb-5">
@@ -95,7 +94,6 @@ export default function UnifiedLogin({ onLoginSuccess }) {
       <AuthHeader />
 
       <main className="relative z-10 w-full flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-12 xl:px-16 py-6 sm:py-8 max-w-7xl mx-auto">
-        {/* DESKTOP / LAPTOP (lg: 1024px and up): 2 Columns Side-by-Side */}
         <div className="hidden lg:flex w-full items-center justify-between gap-10 xl:gap-14">
           <AuthHeroSection />
           <div className="w-[45%] flex items-center justify-end">
@@ -103,21 +101,11 @@ export default function UnifiedLogin({ onLoginSuccess }) {
           </div>
         </div>
 
-        {/* MOBILE & TABLET (< 1024px): 
-            1st: Headline & Description (Image 2) 
-            2nd: Login Form Card (Image 3) right at the top
-            3rd: Remaining Features & Stats (Bacha hua content from Image 1) 
-        */}
         <div className="flex lg:hidden flex-col w-full items-center gap-6">
-          {/* 1st: Top Hero Headline & Description */}
           <AuthHeroHeadline isMobile />
-
-          {/* 2nd: Login Form Card */}
           <div className="w-full flex justify-center">
             {renderLoginCard()}
           </div>
-
-          {/* 3rd: Remaining Features, Stats & Trust Badges */}
           <AuthHeroFeatures isMobile />
         </div>
       </main>

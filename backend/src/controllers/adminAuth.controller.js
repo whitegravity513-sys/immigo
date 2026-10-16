@@ -148,7 +148,7 @@ export const logoutAdmin = asyncHandler(async (req, res) => {
 
 export const logoutAllAdmin = asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
-  await AdminAuthService.logoutAll(refreshToken);
+  await AdminAuthService.logoutAll(refreshToken, req.user?.id || req.user?._id);
   res.clearCookie("refreshToken", getClearCookieOptions(req));
   return res.status(200).json({ message: "Admin logged out from all devices" });
 });

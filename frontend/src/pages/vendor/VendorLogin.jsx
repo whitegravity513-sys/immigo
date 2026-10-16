@@ -37,8 +37,6 @@ export function VendorLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSent, setForgotSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,33 +71,14 @@ export function VendorLogin() {
     }
   };
 
-  const handleQuickDemo = (email, pwd) => {
-    setEmailOrId(email);
-    setPassword(pwd);
-    setError("");
-  };
-
-  const handleForgotSubmit = (e) => {
-    e.preventDefault();
-    if (!forgotEmail) return;
-    setForgotSent(true);
-    setTimeout(() => {
-      setShowForgotModal(false);
-      setForgotSent(false);
-      setForgotEmail("");
-    }, 2000);
-  };
-
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-100">
-      {/* Background Airport Image with crisp contrast overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-90"
         style={{ backgroundImage: `url(${heroTravelerBg})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-blue-900/30 pointer-events-none" />
 
-      {/* Top Header Bar */}
       <header className="relative z-20 w-full px-6 sm:px-10 lg:px-14 py-3.5 flex items-center justify-between border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-md">
         <div className="flex items-center gap-3">
           <ImmiGoLogo size="sm" theme="light" />
@@ -123,18 +102,14 @@ export function VendorLogin() {
         </div>
       </header>
 
-      {/* Main Body Grid: Hero Content Left + Vendor Login Card Right */}
       <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-4 sm:px-8 lg:px-14 xl:px-16 py-6 sm:py-10 gap-6 lg:gap-8 max-w-7xl mx-auto">
-        {/* Left Hero Content */}
         <div className="w-full lg:w-[54%] flex flex-col justify-between space-y-4 sm:space-y-6 text-left">
           <div className="space-y-3 sm:space-y-4">
-            {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-blue-50/90 border border-blue-200 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold text-blue-700 shadow-2xs">
               <Users size={13} className="text-blue-600 shrink-0" />
               <span className="uppercase tracking-wider text-[10px] sm:text-[11px]">INTERNATIONAL HIRING & WORKFORCE SOLUTIONS</span>
             </div>
 
-            {/* Main Headline */}
             <h1 className="text-2xl sm:text-4xl lg:text-[50px] font-black text-slate-900 leading-[1.15] tracking-tight">
               Supplying Skilled Talent<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
@@ -142,12 +117,10 @@ export function VendorLogin() {
               </span>
             </h1>
 
-            {/* Description */}
             <p className="text-xs sm:text-sm text-slate-700 font-semibold max-w-xl leading-relaxed">
               Connecting global businesses with verified talent for a stronger, more skilled tomorrow. Fast. Secure. Borderless.
             </p>
 
-            {/* MOBILE ONLY: Login Card right after Description! */}
             <div className="block lg:hidden w-full my-3">
               <div className="w-full max-w-[440px] bg-white rounded-2xl border border-slate-200/90 p-5 text-left shadow-lg relative mx-auto">
                 <div className="flex items-center justify-between mb-4">
@@ -262,7 +235,6 @@ export function VendorLogin() {
               </div>
             </div>
 
-            {/* 4 Feature Pills Row */}
             <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-2 max-w-xl">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-purple-50/90 border border-purple-200 text-[11px] sm:text-xs font-bold text-purple-900 shadow-2xs">
                 <span className="p-1 rounded-lg bg-purple-100 text-purple-700 shrink-0">
@@ -293,7 +265,6 @@ export function VendorLogin() {
               </div>
             </div>
 
-            {/* Bottom Statistics Card */}
             <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-sm p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 max-w-xl mt-3 sm:mt-4">
               <div className="flex items-center gap-2 sm:gap-2.5">
                 <div className="p-1.5 sm:p-2 rounded-xl bg-blue-50 text-blue-600 shrink-0">
@@ -338,10 +309,8 @@ export function VendorLogin() {
           </div>
         </div>
 
-        {/* Right Floating Vendor Login Card (DESKTOP ONLY) */}
         <div className="hidden lg:flex w-full lg:w-[44%] items-center justify-center lg:justify-end">
           <div className="w-full max-w-[440px] bg-white rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-200/90 p-6 sm:p-8 text-left relative">
-            {/* Top Logo & Vendor Portal Pill Badge */}
             <div className="flex items-center justify-between mb-5">
               <ImmiGoLogo size="sm" />
               <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black uppercase tracking-wider">
@@ -349,7 +318,6 @@ export function VendorLogin() {
               </span>
             </div>
 
-            {/* Title & Subtitle */}
             <div className="mb-6 space-y-1">
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back</h2>
               <p className="text-xs text-slate-500 font-medium">
@@ -357,7 +325,6 @@ export function VendorLogin() {
               </p>
             </div>
 
-            {/* Alert / Error Message */}
             {error && (
               <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2 animate-shake">
                 <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -365,7 +332,6 @@ export function VendorLogin() {
               </div>
             )}
 
-            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -408,7 +374,6 @@ export function VendorLogin() {
                 </div>
               </div>
 
-              {/* Remember me & Forgot Password */}
               <div className="flex items-center justify-between text-xs pt-1">
                 <label className="flex items-center gap-2 text-slate-600 cursor-pointer font-medium">
                   <input
@@ -429,7 +394,6 @@ export function VendorLogin() {
                 </button>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -445,7 +409,6 @@ export function VendorLogin() {
                 )}
               </button>
 
-              {/* Register Link */}
               <div className="text-center pt-3 border-t border-slate-100 text-xs text-slate-500">
                 <span>Don't have a vendor account? </span>
                 <Link
@@ -461,14 +424,12 @@ export function VendorLogin() {
         </div>
       </main>
 
-      {/* Bottom Footer */}
       <footer className="relative z-20 w-full px-6 py-3 text-center border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-[11px] text-blue-100 font-medium">
         <span>&copy; {new Date().getFullYear()} immiGo</span>
         <span className="mx-2 text-indigo-400/60">&bull;</span>
         <span className="font-bold text-white">Designed by White Gravity Web Solutions</span>
       </footer>
 
-      {/* Real OTP Forgot Password Modal for Vendor */}
       <ForgotPasswordOtpModal
         isOpen={showForgotModal}
         onClose={() => setShowForgotModal(false)}

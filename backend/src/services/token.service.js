@@ -10,7 +10,7 @@ export const getRefreshTokenCookieOptions = () => {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, 
+    maxAge: 30 * 24 * 60 * 60 * 1000,
     path: "/api/auth",
   };
 };
@@ -20,7 +20,7 @@ export const createSession = async (user, req = {}) => {
   const refreshToken = generateRefreshToken(user);
 
   const refreshTokenHash = hashToken(refreshToken);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   const userAgent = req.headers ? req.headers["user-agent"] : null;
   const ipAddress = req.ip || req.connection?.remoteAddress || null;

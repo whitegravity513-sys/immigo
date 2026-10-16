@@ -30,6 +30,21 @@ export const adminLogout = async () => {
   return res.data;
 };
 
+export const adminLogoutAll = async () => {
+  const res = await apiClient.post("/auth/admin/logout-all", {});
+  return res.data;
+};
+
+export const userLogout = async () => {
+  const res = await apiClient.post("/auth/logout", {});
+  return res.data;
+};
+
+export const userLogoutAll = async () => {
+  const res = await apiClient.post("/auth/logout-all", {});
+  return res.data;
+};
+
 export const employeeLogin = async (employeeId, password) => {
   const res = await apiClient.post("/auth/employee/login", {
     employeeId: String(employeeId).trim(),
@@ -55,6 +70,9 @@ export default {
   adminResetPassword,
   adminRefreshToken,
   adminLogout,
+  adminLogoutAll,
+  userLogout,
+  userLogoutAll,
   employeeLogin,
   vendorForgotPassword,
   vendorResetPassword,

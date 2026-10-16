@@ -19,6 +19,7 @@ apiClient.interceptors.request.use(
     const token =
       localStorage.getItem(appConfig.STORAGE_KEYS.TOKEN) ||
       localStorage.getItem("token") ||
+      localStorage.getItem("adminToken") ||
       localStorage.getItem("vista_auth_token") ||
       localStorage.getItem("immigo_token");
     if (token) {
@@ -32,9 +33,90 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
+    const isAuthUrl =
+      originalRequest?.url?.includes("/login") ||
+      originalRequest?.url?.includes("/register") ||
+      originalRequest?.url?.includes("/refresh-token");
+
+    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthUrl) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const isAdminSession =
+          localStorage.getItem("vista_user_role") === "ADMIN" ||
+          localStorage.getItem("adminToken") ||
+          originalRequest.url?.includes("/admin");
+
+        const refreshEndpoint = isAdminSession
+          ? `${appConfig.API_BASE_URL}/auth/admin/refresh-token`
+          : `${appConfig.API_BASE_URL}/auth/refresh-token`;
+
+        const refreshRes = await axios.post(
+          refreshEndpoint,
+          {},
+          { withCredentials: true }
+        );
+
+        const newAccessToken =
+          refreshRes.data?.accessToken ||
+          refreshRes.data?.data?.accessToken ||
+          refreshRes.data?.token;
+
+        if (newAccessToken) {
+          localStorage.setItem(appConfig.STORAGE_KEYS.TOKEN, newAccessToken);
+          localStorage.setItem("token", newAccessToken);
+          localStorage.setItem("vista_auth_token", newAccessToken);
+          localStorage.setItem("immigo_token", newAccessToken);
+          if (isAdminSession) {
+            localStorage.setItem("adminToken", newAccessToken);
+          }
+
+          apiClient.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+
+          processQueue(null, newAccessToken);
+          return apiClient(originalRequest);
+        } else {
+          processQueue(new Error("Refresh returned empty token"));
+        }
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     return Promise.reject(error);
   }
 );

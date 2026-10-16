@@ -69,13 +69,13 @@ export class AdminAuthService {
     const accessToken = jwt.sign(
       { id: admin._id.toString(), role: "ADMIN", email: admin.email },
       env.JWT_SECRET,
-      { expiresIn: "3650d" }
+      { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
       { id: admin._id.toString() },
       env.JWT_SECRET,
-      { expiresIn: "3650d" }
+      { expiresIn: "30d" }
     );
 
     const refreshTokenHash = crypto
@@ -87,7 +87,7 @@ export class AdminAuthService {
       userId: admin._id.toString(),
       token: refreshTokenHash,
       role: "ADMIN",
-      expiresAt: new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
     return {
@@ -116,13 +116,13 @@ export class AdminAuthService {
     const accessToken = jwt.sign(
       { id: admin._id.toString(), role: "ADMIN", email: admin.email },
       env.JWT_SECRET,
-      { expiresIn: "3650d" }
+      { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
       { id: admin._id.toString() },
       env.JWT_SECRET,
-      { expiresIn: "3650d" }
+      { expiresIn: "30d" }
     );
 
     const refreshTokenHash = crypto
@@ -134,7 +134,7 @@ export class AdminAuthService {
       userId: admin._id.toString(),
       token: refreshTokenHash,
       role: "ADMIN",
-      expiresAt: new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
     return {
@@ -198,13 +198,13 @@ export class AdminAuthService {
     const accessToken = jwt.sign(
       { id: decoded.id, role: "ADMIN" },
       env.JWT_SECRET,
-      { expiresIn: "3650d" }
+      { expiresIn: "15m" }
     );
 
     const newRefreshToken = jwt.sign(
       { id: decoded.id },
       env.JWT_SECRET,
-      { expiresIn: "3650d" }
+      { expiresIn: "30d" }
     );
 
     const newHash = crypto
@@ -213,6 +213,7 @@ export class AdminAuthService {
       .digest("hex");
 
     session.token = newHash;
+    session.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await session.save();
 
     return {
@@ -228,17 +229,19 @@ export class AdminAuthService {
     }
   }
 
-  static async logoutAll(refreshToken) {
+  static async logoutAll(refreshToken, adminId = null) {
+    if (adminId) {
+      await Session.deleteMany({ userId: String(adminId) });
+      return;
+    }
     if (!refreshToken) {
       throw new ApiError(400, "No refresh token found");
     }
 
-    let decoded;
     try {
-      decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+      const decoded = jwt.verify(refreshToken, env.JWT_SECRET);
       await Session.deleteMany({ userId: decoded.id });
-    } catch {
-    }
+    } catch {}
   }
 }
 

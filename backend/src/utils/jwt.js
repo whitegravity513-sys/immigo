@@ -23,7 +23,7 @@ export const generateRefreshToken = (user) => {
     },
     process.env.JWT_REFRESH_SECRET || "default_refresh_secret_change_in_production",
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRES || "7d",
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRES || "30d",
     }
   );
 };
