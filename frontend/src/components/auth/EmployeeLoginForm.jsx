@@ -15,6 +15,20 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setIdentifier("");
+    setPassword("");
+    const t1 = setTimeout(() => {
+      setIdentifier(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
+      setPassword(prev => (prev === "12345" ? "" : prev));
+    }, 50);
+    const t2 = setTimeout(() => {
+      setIdentifier(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
+    }, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+
+  useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => setError(""), 6000);
     return () => clearTimeout(timer);
@@ -55,7 +69,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3.5">
+    <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
       
 
       <AuthErrorMessage msg={error} />
@@ -78,8 +92,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
                 setError("Please enter your Employee ID only (e.g. IMMI-001). Email login is not allowed for employee accounts.");
               }
             }}
-            placeholder="e.g. IMMI-001"
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+            name="emp_user_id" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="e.g. IMMI-001" className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>
       </div>

@@ -36,6 +36,16 @@ export function VendorLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setEmailOrId("");
+    setPassword("");
+    const t = setTimeout(() => {
+      setEmailOrId(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
+    }, 50);
+    return () => clearTimeout(t);
+  }, []);
+
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   
@@ -157,8 +167,7 @@ export function VendorLogin() {
                         required
                         value={emailOrId}
                         onChange={(e) => setEmailOrId(e.target.value)}
-                        placeholder="vendor@example.com"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
+                        name="vendor_login_account" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="vendor@example.com" className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
                       />
                     </div>
                   </div>
@@ -335,7 +344,7 @@ export function VendorLogin() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   Registered Email Address
@@ -347,8 +356,7 @@ export function VendorLogin() {
                     required
                     value={emailOrId}
                     onChange={(e) => setEmailOrId(e.target.value)}
-                    placeholder="vendor@example.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
+                    name="vendor_login_account" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="vendor@example.com" className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
                   />
                 </div>
               </div>

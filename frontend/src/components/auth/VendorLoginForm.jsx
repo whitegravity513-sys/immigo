@@ -15,6 +15,16 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setIdentifier("");
+    setPassword("");
+    const t = setTimeout(() => {
+      setIdentifier(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
+    }, 50);
+    return () => clearTimeout(t);
+  }, []);
+
+
+  useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => setError(""), 6000);
     return () => clearTimeout(timer);
@@ -45,7 +55,7 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3.5">
+    <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
       {}
       
 
@@ -63,8 +73,7 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
             autoFocus
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="e.g. vendor@abcmanpower.com or VND-1001"
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+            name="vnd_login_identity" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="e.g. vendor@abcmanpower.com or VND-1001" className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>
       </div>
@@ -80,8 +89,7 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter secure password"
-            className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+            name="vnd_secure_pass" autoComplete="new-password" placeholder="Enter secure password" className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
           <button
             type="button"

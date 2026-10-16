@@ -136,6 +136,20 @@ export default function EmployeeLoginPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setEmployeeId("");
+    setPassword("");
+    const t1 = setTimeout(() => {
+      setEmployeeId(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
+      setPassword(prev => (prev === "12345" ? "" : prev));
+    }, 50);
+    const t2 = setTimeout(() => {
+      setEmployeeId(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
+    }, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+
+  useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => setError(""), 6000);
     return () => clearTimeout(timer);
@@ -253,7 +267,7 @@ export default function EmployeeLoginPage() {
             )}
 
             {}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               {}
               <div>
                 <div className="relative">
@@ -264,8 +278,7 @@ export default function EmployeeLoginPage() {
                     autoFocus
                     value={employeeId}
                     onChange={handleIdChange}
-                    placeholder="Employee ID (e.g. IMMI-001)"
-                    className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
+                    name="employee_code_id" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="Employee ID (e.g. IMMI-001)" className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                   />
                 </div>
               </div>
@@ -286,8 +299,7 @@ export default function EmployeeLoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
+                    name="employee_auth_pass" autoComplete="new-password" placeholder="Password" className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                   />
                 </div>
               </div>
