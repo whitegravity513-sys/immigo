@@ -135,17 +135,34 @@ export default function EmployeeLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+    const empInputRef = useRef(null);
+  const empPassRef = useRef(null);
+
   useEffect(() => {
     setEmployeeId("");
     setPassword("");
-    const t1 = setTimeout(() => {
-      setEmployeeId(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
-      setPassword(prev => (prev === "12345" ? "" : prev));
-    }, 50);
-    const t2 = setTimeout(() => {
-      setEmployeeId(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
-    }, 300);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const clearBrowserAutofill = () => {
+      if (empInputRef.current) {
+        const v = String(empInputRef.current.value || "");
+        if (v.toUpperCase().includes("VESTA")) {
+          empInputRef.current.value = "";
+          setEmployeeId("");
+        }
+      }
+      if (empPassRef.current && empInputRef.current && !empInputRef.current.value) {
+        if (empPassRef.current.value === "12345" || empPassRef.current.value === "vesta") {
+          empPassRef.current.value = "";
+          setPassword("");
+        }
+      }
+    };
+    clearBrowserAutofill();
+    const interval = setInterval(clearBrowserAutofill, 50);
+    const stopTimer = setTimeout(() => clearInterval(interval), 2500);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(stopTimer);
+    };
   }, []);
 
 
@@ -273,33 +290,15 @@ export default function EmployeeLoginPage() {
                 <div className="relative">
                   <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                   <input
-                    type="text"
-                    required
-                    autoFocus
-                    value={employeeId}
-                    onChange={handleIdChange}
-                    name="employee_code_id" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="Employee ID (e.g. IMMI-001)" className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
-                  />
-                </div>
-              </div>
-
-              {}
-              <div>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer p-0.5"
-                    title={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                  <input
+                    ref={empPassRef}
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    name="employee_auth_pass" autoComplete="new-password" placeholder="Password" className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
+                    name="workforce_user_secret"
+                    autoComplete="new-password"
+                    placeholder="Password"
+                    className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                   />
                 </div>
               </div>

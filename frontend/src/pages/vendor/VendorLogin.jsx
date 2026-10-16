@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Globe,
@@ -37,13 +37,36 @@ export function VendorLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+    const emailInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
+
   useEffect(() => {
     setEmailOrId("");
     setPassword("");
-    const t = setTimeout(() => {
-      setEmailOrId(prev => (prev && prev.toUpperCase().includes("VESTA") ? "" : prev));
-    }, 50);
-    return () => clearTimeout(t);
+    const clearBrowserAutofill = () => {
+      if (emailInputRef.current) {
+        const v = String(emailInputRef.current.value || "");
+        if (v.toUpperCase().includes("VESTA")) {
+          emailInputRef.current.value = "";
+          setEmailOrId("");
+        }
+      }
+      if (passwordInputRef.current) {
+        if (emailInputRef.current && !emailInputRef.current.value) {
+          if (passwordInputRef.current.value === "12345" || passwordInputRef.current.value === "vesta") {
+            passwordInputRef.current.value = "";
+            setPassword("");
+          }
+        }
+      }
+    };
+    clearBrowserAutofill();
+    const interval = setInterval(clearBrowserAutofill, 50);
+    const stopTimer = setTimeout(() => clearInterval(interval), 2500);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(stopTimer);
+    };
   }, []);
 
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -163,29 +186,16 @@ export function VendorLogin() {
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
-                        type="email"
-                        required
-                        value={emailOrId}
-                        onChange={(e) => setEmailOrId(e.target.value)}
-                        name="vendor_login_account" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="vendor@example.com" className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
-                      />
+                    ref={passwordInputRef}
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    name="vendor_portal_key"
+                    autoComplete="new-password"
+                    placeholder="Enter your password"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
+                  />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
