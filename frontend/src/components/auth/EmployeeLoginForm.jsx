@@ -38,7 +38,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
 
 
     const handleQuickFill = () => {
-    setIdentifier("IMMI-001");
+    setIdentifier("IMMI-0124-1598");
     setPassword("12345");
     setError("");
   };
@@ -78,7 +78,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
     <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
       <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
         <span className="truncate mr-2">
-          Employee: <span className="font-bold text-[#1877f2]">IMMI-001</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+          Employee ID: <span className="font-bold text-[#1877f2]">IMMI-0124-1598</span> <span className="text-[10px] text-slate-500 font-medium">(IMMI-DOJ-DOB)</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
         </span>
         <button
           type="button"
@@ -111,7 +111,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
                 setError("Please enter your Employee ID only (e.g. IMMI-001). Email login is not allowed for employee accounts.");
               }
             }}
-            name="emp_user_id" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="e.g. IMMI-001" className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+            name="emp_user_id" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="e.g. IMMI-0124-1598 (IMMI-DOJ-DOB)" className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>
       </div>

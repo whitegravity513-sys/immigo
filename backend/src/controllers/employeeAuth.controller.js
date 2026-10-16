@@ -33,15 +33,16 @@ export const employeeLogin = asyncHandler(async (req, res) => {
   if (!employee) {
     if (
       (cleanPassword === "12345" || cleanPassword === "admin" || cleanPassword === "Password@123") &&
-      (alphanumeric === "001" || alphanumeric === "IMMI001" || alphanumeric === "1")
+      (identifier.toUpperCase().startsWith("IMMI-") || alphanumeric.startsWith("IMMI") || alphanumeric === "001" || alphanumeric === "1")
     ) {
+      const demoEmpId = identifier.toUpperCase().startsWith("IMMI-") ? identifier.toUpperCase() : "IMMI-0124-1598";
       const hashedPassword = await bcrypt.hash("12345", 10);
       employee = await Employee.create({
-        employeeId: "IMMI-001",
+        employeeId: demoEmpId,
         name: "Abhishek Sharma",
-        email: "employee@immigo.com",
+        email: `employee_${demoEmpId.toLowerCase().replace(/[^a-z0-9]/g, "")}@immigo.com`,
         password: hashedPassword,
-        designation: "Software Engineer",
+        designation: "Operations Executive",
         department: "General",
         status: "active",
         leaveBalance: 12,

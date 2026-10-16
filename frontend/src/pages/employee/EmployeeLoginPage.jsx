@@ -173,7 +173,7 @@ export default function EmployeeLoginPage() {
   }, [error]);
 
     const handleQuickFill = () => {
-    setEmployeeId("IMMI-001");
+    setEmployeeId("IMMI-0124-1598");
     setPassword("12345");
     setError("");
   };
@@ -296,7 +296,7 @@ export default function EmployeeLoginPage() {
 
               <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-200/80 rounded-xl flex items-center justify-between text-[11px] text-indigo-950">
                 <span className="truncate mr-2">
-                  Employee: <span className="font-bold text-[#3b2875]">IMMI-001</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+                  Employee ID: <span className="font-bold text-[#3b2875]">IMMI-0124-1598</span> <span className="text-[10px] text-slate-500 font-medium">(IMMI-DOJ-DOB)</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
                 </span>
                 <button
                   type="button"
@@ -333,7 +333,7 @@ export default function EmployeeLoginPage() {
                     autoCorrect="off"
                     autoCapitalize="none"
                     spellCheck="false"
-                    placeholder="e.g. IMMI-001"
+                    placeholder="e.g. IMMI-0124-1598 (IMMI-DOJ-DOB)"
                     className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                   />
                 </div>
