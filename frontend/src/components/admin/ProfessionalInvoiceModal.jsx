@@ -10,10 +10,10 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
   const projectName = invoice.projectName || project?.projectName || "—";
   const projectId = invoice.projectId || project?.projectId || "—";
 
-  const adminComp = invoice.adminCompanyName || "VESTA ENTERPRISE SOLUTIONS";
+  const adminComp = invoice.adminCompanyName || "IMMIGO EDUCARE SOLUTIONS";
   const adminAddr = invoice.adminAddress || "LG-04, Dallas 1 Business Park H-202, Sector 63, Noida, U.P-201301";
   const adminPhone = invoice.adminContact || "+91-921-713-5322 | +91-879-641-4339"; 
-  const adminEmail = invoice.adminEmail || "sales@vesta.in";
+  const adminEmail = invoice.adminEmail || "sales@immigo.com";
   const adminGst = invoice.adminGstn || "09EPOPS8385K1ZL";
 
   const clientContact = invoice.clientContact || project?.client?.mobile || project?.client?.phone || "";
@@ -69,7 +69,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
     sheetData.push(["", "", "Final Total Amount (INR)", invoice.totalAmount || 0]);
     sheetData.push([]);
     sheetData.push(["BANK TRANSFER DETAILS"]);
-    sheetData.push(["Beneficiary Name:", "VESTA ENTERPRISE SOLUTIONS"]);
+    sheetData.push(["Beneficiary Name:", "IMMIGO EDUCARE SOLUTIONS"]);
     sheetData.push(["Bank Name:", "AU Small Finance Bank"]);
     sheetData.push(["Account Number:", "2602416217906823"]);
     sheetData.push(["IFSC Code:", "AUBL0004162"]);
@@ -298,7 +298,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
                 </div>
                 <div className="grid grid-cols-[115px_1fr] gap-x-2 gap-y-1.5 text-xs text-slate-700">
                   <span className="text-slate-500">Beneficiary:</span>
-                  <span className="font-bold text-slate-900">VESTA ENTERPRISE SOLUTIONS</span>
+                  <span className="font-bold text-slate-900">IMMIGO EDUCARE SOLUTIONS</span>
                   
                   <span className="text-slate-500">Account Number:</span>
                   <span className="font-mono font-bold text-slate-900 tracking-wider">2602416217906823</span>

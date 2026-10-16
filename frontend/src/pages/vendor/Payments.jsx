@@ -174,7 +174,7 @@ export default function Payments() {
       : filteredAccounts.slice(0, 5);
 
   return (
-    <div className="p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 font-sans">
+    <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
       {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
@@ -182,7 +182,7 @@ export default function Payments() {
             <CreditCard className="w-3.5 h-3.5" />
             <span>Candidate Milestone Accounts</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             Payments Ledger by Candidate
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -201,7 +201,7 @@ export default function Payments() {
 
       {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
+        <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               Total Agreed Fees
@@ -210,7 +210,7 @@ export default function Payments() {
               <TrendingUp className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-slate-800 mt-1 tracking-tight">
+          <div className="text-base sm:text-lg font-bold text-slate-800 mt-1 tracking-tight">
             ₹{totalContractFee.toLocaleString()}
           </div>
           <span className="text-[10px] text-slate-400 mt-0.5 block font-medium">
@@ -218,7 +218,7 @@ export default function Payments() {
           </span>
         </div>
 
-        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
+        <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">
               Total Amount Paid
@@ -227,7 +227,7 @@ export default function Payments() {
               <CheckCircle2 className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1 tracking-tight">
+          <div className="text-base sm:text-lg font-bold text-emerald-600 mt-1 tracking-tight">
             ₹{totalPaidOverall.toLocaleString()}
           </div>
           <span className="text-[10px] text-slate-400 mt-0.5 block font-medium">
@@ -235,7 +235,7 @@ export default function Payments() {
           </span>
         </div>
 
-        <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
+        <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
               Pending / Due Balance
@@ -244,7 +244,7 @@ export default function Payments() {
               <Clock className="w-3.5 h-3.5" />
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-amber-600 mt-1 tracking-tight">
+          <div className="text-base sm:text-lg font-bold text-amber-600 mt-1 tracking-tight">
             ₹{totalDueOverall.toLocaleString()}
           </div>
           <span className="text-[10px] text-slate-400 mt-0.5 block font-medium">
@@ -329,14 +329,14 @@ export default function Payments() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200">
                 <tr>
-                  <th className="py-2 px-3 text-[10px]">Candidate</th>
-                  <th className="py-2 px-3 text-[10px]">Project & Role</th>
-                  <th className="py-2 px-3 text-[10px] text-center">Total Fee</th>
-                  <th className="py-2 px-3 text-[10px] text-center">Amount Paid</th>
-                  <th className="py-2 px-3 text-[10px] text-center">Remaining Due</th>
-                  <th className="py-2 px-3 text-[10px]">Process Milestones</th>
-                  <th className="py-2 px-3 text-[10px] text-center">Status</th>
-                  <th className="py-2 px-3 text-[10px] text-right">Action</th>
+                  <th className="py-1.5 px-2.5 text-[10px]">Candidate</th>
+                  <th className="py-1.5 px-2.5 text-[10px]">Project & Role</th>
+                  <th className="py-1.5 px-2.5 text-[10px] text-center">Total Fee</th>
+                  <th className="py-1.5 px-2.5 text-[10px] text-center">Amount Paid</th>
+                  <th className="py-1.5 px-2.5 text-[10px] text-center">Remaining Due</th>
+                  <th className="py-1.5 px-2.5 text-[10px]">Process Milestones</th>
+                  <th className="py-1.5 px-2.5 text-[10px] text-center">Status</th>
+                  <th className="py-1.5 px-2.5 text-[10px] text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

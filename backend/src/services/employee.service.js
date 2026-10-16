@@ -131,7 +131,7 @@ export class EmployeeService {
     }
 
     let finalEmployeeId = employeeId?.trim();
-    if (!finalEmployeeId || finalEmployeeId.startsWith("EMP-") || finalEmployeeId.startsWith("VESTA-") || finalEmployeeId.includes("XXXX")) {
+    if (!finalEmployeeId || finalEmployeeId.startsWith("EMP-") || finalEmployeeId.includes("XXXX")) {
       finalEmployeeId = await this.getNextEmployeeId(joiningDate, dob);
     } else {
       const existingId = await Employee.findOne({ employeeId: finalEmployeeId });

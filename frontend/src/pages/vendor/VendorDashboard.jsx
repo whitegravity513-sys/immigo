@@ -151,7 +151,7 @@ export function VendorDashboard() {
 
   if (showMouPage) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-3.5 w-full max-w-full overflow-hidden text-slate-800">
         <MouFullPageView
           mode="preview"
           vendor={vendor}
@@ -162,9 +162,9 @@ export function VendorDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-3.5 w-full max-w-full overflow-hidden text-slate-800">
       {}
-      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 border border-blue-800/60">
+      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-lg p-2.5 sm:p-3 text-white shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-2 border border-blue-800/60">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
             {vendor?.status === "Pending MOU Approval" || (vendor?.mouSigned && vendor?.status !== "Approved") ? (
@@ -217,14 +217,14 @@ export function VendorDashboard() {
       </div>
 
       {}
-      <div className="grid grid-cols-5 gap-2 sm:gap-3.5 w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 w-full">
         {CARDS.map((card) => {
           const Icon = card.icon;
           return (
             <Link
               key={card.title}
               to={card.to}
-              className="bg-white p-2.5 sm:p-3.5 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all duration-150 block text-left group cursor-pointer min-w-0"
+              className="bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200/90 shadow-2xs hover:shadow-xs hover:border-blue-300 transition-all duration-150 block text-left group cursor-pointer min-w-0"
             >
               <div className="flex items-center justify-between mb-1.5 gap-1">
                 <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
@@ -234,7 +234,7 @@ export function VendorDashboard() {
                   <Icon size={13} className="sm:w-3.5 sm:h-3.5" />
                 </div>
               </div>
-              <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors leading-none">
+              <div className="text-base sm:text-lg font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors leading-none">
                 {card.value}
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">
@@ -251,8 +251,8 @@ export function VendorDashboard() {
         const recentProjects = allProjects.slice(0, 5);
 
         return (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="px-3 py-2 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
                   <FolderKanban size={16} className="text-blue-600" />
@@ -265,7 +265,7 @@ export function VendorDashboard() {
 
               <Link
                 to="/vendor/projects"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-all shadow-2xs group cursor-pointer self-start sm:self-auto"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all shadow-2xs group cursor-pointer self-start sm:self-auto"
               >
                 <span>See All Projects ({allProjects.length})</span>
                 <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -290,7 +290,7 @@ export function VendorDashboard() {
                       const trades = proj.manpowerRequirements || [];
                       return (
                         <tr key={proj.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-1.5 px-3 font-bold text-slate-900 truncate max-w-[200px]">
+                          <td className="py-1 px-2.5 font-bold text-slate-900 truncate max-w-[200px]">
                             <Link
                               to={`/vendor/projects/${proj.id}`}
                               className="hover:text-blue-600 hover:underline text-left font-bold transition-colors block truncate"
@@ -298,16 +298,16 @@ export function VendorDashboard() {
                               {proj.projectName}
                             </Link>
                           </td>
-                          <td className="py-1.5 px-3 text-slate-700 truncate max-w-[150px]">
+                          <td className="py-1 px-2.5 text-slate-700 truncate max-w-[150px]">
                             {proj.clientName}
                           </td>
-                          <td className="py-1.5 px-3 text-slate-600">
+                          <td className="py-1 px-2.5 text-slate-600">
                             <div className="flex items-center gap-1">
                               <MapPin size={12} className="text-blue-500 shrink-0" />
                               <span>{proj.country}</span>
                             </div>
                           </td>
-                          <td className="py-1.5 px-3">
+                          <td className="py-1 px-2.5">
                             {trades.length > 0 ? (
                               <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
                                 {trades.slice(0, 2).map((t, idx) => (
@@ -332,13 +332,13 @@ export function VendorDashboard() {
                               <span className="text-slate-400 italic text-[11px]">General / All Trades</span>
                             )}
                           </td>
-                          <td className="py-1.5 px-3 text-slate-700 font-semibold">
+                          <td className="py-1 px-2.5 text-slate-700 font-semibold">
                             <span className="inline-flex items-center gap-1">
                               <Users size={12} className="text-slate-400" />
                               <span>{proj.totalHeadcount || "N/A"}</span>
                             </span>
                           </td>
-                          <td className="py-1.5 px-3 text-right">
+                          <td className="py-1 px-2.5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <Link
                                 to={`/vendor/projects/${proj.id}`}

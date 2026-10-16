@@ -27,7 +27,7 @@ export default function VendorRefunds() {
   const displayedRefunds = showAll ? refunds : refunds.slice(0, 5);
 
   return (
-    <div className="p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 font-sans">
+    <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
       {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
@@ -36,7 +36,7 @@ export default function VendorRefunds() {
               Settlements & Claims
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             Candidate Refund Requests
           </h1>
           <p className="text-xs text-slate-500 mt-0.5 max-w-2xl">
@@ -54,7 +54,7 @@ export default function VendorRefunds() {
       </div>
 
       {}
-      <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl px-3.5 py-2.5 flex items-start gap-2.5 text-xs text-blue-900">
+      <div className="bg-blue-50/70 border border-blue-200/80 rounded-lg px-3 py-2 flex items-start gap-2.5 text-xs text-blue-900">
         <Clock size={15} className="text-blue-600 shrink-0 mt-0.5" />
         <div>
           <span className="font-semibold">Refund Policy & Application Process:</span>{" "}
@@ -88,9 +88,9 @@ export default function VendorRefunds() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs overflow-hidden">
           {}
-          <div className="px-4 py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-3 py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Applied Refund Claims List
@@ -115,12 +115,12 @@ export default function VendorRefunds() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] border-b border-slate-200/80">
                 <tr>
-                  <th className="py-2.5 px-3.5">Candidate & Ref ID</th>
-                  <th className="py-2.5 px-3.5">Project & Employer</th>
-                  <th className="py-2.5 px-3.5">Reason for Refund</th>
-                  <th className="py-2.5 px-3.5 text-center">Amount</th>
-                  <th className="py-2.5 px-3.5 text-center">Refund Status</th>
-                  <th className="py-2.5 px-3.5 text-right">Applied Date</th>
+                  <th className="py-1.5 px-2.5">Candidate & Ref ID</th>
+                  <th className="py-1.5 px-2.5">Project & Employer</th>
+                  <th className="py-1.5 px-2.5">Reason for Refund</th>
+                  <th className="py-1.5 px-2.5 text-center">Amount</th>
+                  <th className="py-1.5 px-2.5 text-center">Refund Status</th>
+                  <th className="py-1.5 px-2.5 text-right">Applied Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -133,7 +133,7 @@ export default function VendorRefunds() {
                   return (
                     <tr key={r.id || Math.random()} className="hover:bg-slate-50/60 transition-colors">
                       {}
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-1.5 px-2.5">
                         <div>
                           <div className="font-bold text-slate-900 flex items-center gap-1">
                             <span>{r.candidateName || "Candidate"}</span>
@@ -145,7 +145,7 @@ export default function VendorRefunds() {
                       </td>
 
                       {}
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-1.5 px-2.5">
                         <div className="font-semibold text-slate-800">
                           {r.projectName || "General Project"}
                         </div>
@@ -157,19 +157,19 @@ export default function VendorRefunds() {
                       </td>
 
                       {}
-                      <td className="py-2.5 px-3.5 text-slate-600 max-w-xs">
+                      <td className="py-1.5 px-2.5 text-slate-600 max-w-xs">
                         <span className="line-clamp-2" title={r.refundReason}>
                           {r.refundReason || "No reason specified"}
                         </span>
                       </td>
 
                       {}
-                      <td className="py-2.5 px-3.5 text-center font-bold text-slate-900 font-mono">
+                      <td className="py-1.5 px-2.5 text-center font-bold text-slate-900 font-mono">
                         {amount > 0 ? `₹${amount.toLocaleString()}` : "As per policy"}
                       </td>
 
                       {}
-                      <td className="py-2.5 px-3.5 text-center">
+                      <td className="py-1.5 px-2.5 text-center">
                         <div className="inline-flex flex-col items-center gap-0.5">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -191,7 +191,7 @@ export default function VendorRefunds() {
                       </td>
 
                       {}
-                      <td className="py-2.5 px-3.5 text-right text-slate-500 font-mono text-[10px]">
+                      <td className="py-1.5 px-2.5 text-right text-slate-500 font-mono text-[10px]">
                         {r.refundDate || new Date().toISOString().split("T")[0]}
                       </td>
                     </tr>

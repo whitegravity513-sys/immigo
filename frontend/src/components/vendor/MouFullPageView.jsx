@@ -540,7 +540,7 @@ export default function MouFullPageView({
                 “<b>Candidate Documentation</b>” – All personal, professional, educational, medical, and legal documents submitted by the Candidate or Second Party as per the checklist in Annexure 3.
               </li>
               <li>
-                “<b>Confidential Information</b>” – Any information, whether written, oral, or digital, that is proprietary to the First Party (or to Vesta Immigration Services LLP as per applicable clauses) and not publicly available.
+                “<b>Confidential Information</b>” – Any information, whether written, oral, or digital, that is proprietary to the First Party (or to ImmiGo Overseas Services LLP as per applicable clauses) and not publicly available.
               </li>
               <li>
                 “<b>Data Protection Laws</b>” – Applicable laws governing the protection, processing, and storage of personal data in India and in the Candidate’s destination country.
@@ -618,7 +618,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">3</div>
         </div>
 
-        {/* PAGE 4 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p className="pl-4">
@@ -792,7 +792,7 @@ export default function MouFullPageView({
               &nbsp;&nbsp;&nbsp;&nbsp;11.2.1. The First Party’s logo, trademark, or brand elements<br />
               &nbsp;&nbsp;&nbsp;&nbsp;11.2.2. The First Party’s company name (“Immigo Educare LLP”) in any form of advertising, social media, or marketing material.<br />
               &nbsp;&nbsp;&nbsp;&nbsp;11.2.3. The First Party’s identity or branding in WhatsApp groups, YouTube videos, Telegram, job portals, websites, blogs, flyers, presentations, email campaigns, or social media posts<br />
-              11.3. <b>Applicability to Vesta Immigration Services LLP</b> – For the avoidance of doubt, the obligations, restrictions, and prohibitions under this clause also apply in full to Vesta Immigration Services LLP, its partners, employees, clients, candidates, and business associates. The Second Party shall not use, disclose, circulate, or reproduce any name, logo, brand elements, recruitment license numbers, office addresses, contact details, documentation, processes, employer contacts, or proprietary materials belonging to Vesta Immigration Services LLP without prior written approval from Immigo Educare LLP. Any violation shall be treated as a material breach of this MoU and subject to the same remedies, penalties, and enforcement rights as if committed directly against the First Party.<br />
+              11.3. <b>Applicability to ImmiGo Overseas Services LLP</b> – For the avoidance of doubt, the obligations, restrictions, and prohibitions under this clause also apply in full to ImmiGo Overseas Services LLP, its partners, employees, clients, candidates, and business associates. The Second Party shall not use, disclose, circulate, or reproduce any name, logo, brand elements, recruitment license numbers, office addresses, contact details, documentation, processes, employer contacts, or proprietary materials belonging to ImmiGo Overseas Services LLP without prior written approval from Immigo Educare LLP. Any violation shall be treated as a material breach of this MoU and subject to the same remedies, penalties, and enforcement rights as if committed directly against the First Party.<br />
               11.4. The First Party does not provide any blanket authorization or implied permission to the Second Party for any form of marketing, brand representation, or promotional usage. All such requests must be submitted in writing and are subject to review and express written approval.<br />
               11.5. Any violation of this clause shall be considered a material breach of this MoU and shall entitle the First Party to:<br />
               &nbsp;&nbsp;&nbsp;&nbsp;11.5.1. Immediately terminate the agreement without notice<br />
@@ -819,7 +819,7 @@ export default function MouFullPageView({
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
-              12.2. <b>Applicability to Vesta Immigration Services LLP</b> – The restrictions under this clause apply equally to Vesta Immigration Services LLP, its name, logo, brand elements, recruitment license numbers, office details, legal credentials, and any project or operational information belonging to Vesta, whether or not Vesta is a direct party to this MoU. Any use of Vesta’s identity or information in digital or offline marketing by the Second Party requires prior written approval from Immigo Educare LLP.<br />
+              12.2. <b>Applicability to ImmiGo Overseas Services LLP</b> – The restrictions under this clause apply equally to ImmiGo Overseas Services LLP, its name, logo, brand elements, recruitment license numbers, office details, legal credentials, and any project or operational information belonging to ImmiGo, whether or not ImmiGo is a direct party to this MoU. Any use of ImmiGo’s identity or information in digital or offline marketing by the Second Party requires prior written approval from Immigo Educare LLP.<br />
               12.3. Any such use requires prior written approval from the First Party on a case-by-case basis. Blanket or assumed permission is not granted under this MoU. Unauthorized use shall be deemed a material breach, leading to immediate termination and potential legal action, including for brand misuse and misrepresentation.
             </p>
 
@@ -827,8 +827,8 @@ export default function MouFullPageView({
               <h4 className="font-bold text-sm uppercase mb-1">13. BRAND PROTECTION AND DEFAMATION</h4>
               <p>
                 13.1. The Second Party agrees not to:<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;13.1.1. Make, publish, or share any defamatory, false, misleading, or disparaging statements (online or offline) against the First Party, Vesta Immigration Services LLP, their partners, staff, or services.<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;13.1.2. Participate in or encourage any activity that could damage the reputation, goodwill, or business interests of the First Party or Vesta Immigration Services LLP.<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;13.1.1. Make, publish, or share any defamatory, false, misleading, or disparaging statements (online or offline) against the First Party, ImmiGo Overseas Services LLP, their partners, staff, or services.<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;13.1.2. Participate in or encourage any activity that could damage the reputation, goodwill, or business interests of the First Party or ImmiGo Overseas Services LLP.<br />
                 13.2. Any breach of this clause shall result in immediate legal action, including claims for damages and injunctive relief, and shall be considered a material breach of the MoU. This obligation shall survive the termination or expiry of the MoU.
               </p>
             </div>
@@ -898,7 +898,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">11</div>
         </div>
 
-        {/* PAGE 12 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -937,20 +937,20 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">12</div>
         </div>
 
-        {/* PAGE 13 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               &nbsp;&nbsp;&nbsp;&nbsp;18.1.4. Any project-specific material marked as confidential or shared verbally/in writing as sensitive<br />
-              18.2. <b>Applicability to Vesta Immigration Services LLP</b> – All confidentiality obligations in this clause also extend in full to Vesta Immigration Services LLP and its proprietary information, processes, contacts, documents, and branding, whether obtained directly or indirectly during the execution of this MoU. The Second Party shall treat Vesta’s confidential information with the same level of care as that of the First Party.<br />
+              18.2. <b>Applicability to ImmiGo Overseas Services LLP</b> – All confidentiality obligations in this clause also extend in full to ImmiGo Overseas Services LLP and its proprietary information, processes, contacts, documents, and branding, whether obtained directly or indirectly during the execution of this MoU. The Second Party shall treat ImmiGo’s confidential information with the same level of care as that of the First Party.<br />
               18.3. The Second Party is permitted to share limited and relevant information (such as job demand details, indicative fee structures, and basic process flow) solely for the purpose of pitching or onboarding candidates, provided that:<br />
               &nbsp;&nbsp;&nbsp;&nbsp;18.3.1. No official logos, credentials, license numbers, legal documents, or employer names are shared without prior written consent<br />
               &nbsp;&nbsp;&nbsp;&nbsp;18.3.2. All communication clearly states that the Second Party is acting independently, and not as a representative or employee of the First Party<br />
               &nbsp;&nbsp;&nbsp;&nbsp;18.3.3. Any materials created for such pitching must be approved in writing by the First Party before being used publicly<br />
               18.4. The Second Party shall not:<br />
               &nbsp;&nbsp;&nbsp;&nbsp;18.4.1. Copy, publish, forward, or disseminate complete visa processes, employer details, internal formats, or documentation kits<br />
-              &nbsp;&nbsp;&nbsp;&nbsp;18.4.2. Share screenshots, emails, agreements, or confidential communication received from the First Party or from Vesta Immigration Services LLP<br />
-              &nbsp;&nbsp;&nbsp;&nbsp;18.4.3. Use the First Party’s or Vesta’s branding or authority to make representations beyond the permitted scope<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;18.4.2. Share screenshots, emails, agreements, or confidential communication received from the First Party or from ImmiGo Overseas Services LLP<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;18.4.3. Use the First Party’s or ImmiGo’s branding or authority to make representations beyond the permitted scope<br />
               18.5. The Second Party shall ensure that all of its team members, associates, or sub-agents (if any) are also bound by this confidentiality obligation.<br />
               18.6. This clause shall remain in force during the validity of this MoU and for a period of two (2) years after its termination or expiration, regardless of the reason for such termination.<br />
               18.7. Any breach of this clause shall be considered a material violation, entitling the First Party to: 18.7.1. Terminate this MoU with immediate effect, 18.7.2. Initiate legal proceedings and claim damages, if necessary, 18.7.3. Blacklist the Second Party from all future engagements.
@@ -969,7 +969,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">13</div>
         </div>
 
-        {/* PAGE 14 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1002,7 +1002,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">14</div>
         </div>
 
-        {/* PAGE 15 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1038,7 +1038,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">15</div>
         </div>
 
-        {/* PAGE 16 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1064,7 +1064,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">16</div>
         </div>
 
-        {/* PAGE 17 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-6">
             <p>
@@ -1131,7 +1131,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">17</div>
         </div>
 
-        {/* PAGE 18 (ANNEXURE 1) */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <div className="text-center space-y-1">
@@ -1219,7 +1219,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">18</div>
         </div>
 
-        {/* PAGE 19 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <p className="text-xs">
@@ -1274,7 +1274,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">19</div>
         </div>
 
-        {/* PAGE 20 (ANNEXURE 2) */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <div className="text-center space-y-1">
@@ -1357,7 +1357,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">20</div>
         </div>
 
-        {/* PAGE 21 (ANNEXURE 3) */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <div className="text-center space-y-1">
@@ -1528,7 +1528,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">21</div>
         </div>
 
-        {/* PAGE 22 */}
+        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-6">
             <div>
@@ -1598,7 +1598,7 @@ export default function MouFullPageView({
         </div>
       </div>
 
-      {/* VENDOR SIGNING BOX (When vendor is reviewing to execute signature) */}
+      
       {(mode === "sign" || (!isSigned && mode === "preview" && vendor?.role === "vendor")) && (
         <form
           onSubmit={handleVendorSignSubmit}
@@ -1644,7 +1644,7 @@ export default function MouFullPageView({
             </div>
           </div>
 
-          {/* Signature Stamp Preview */}
+          
           <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
             <label className="text-xs font-bold text-indigo-950 block">Digital Signature Stamp Preview</label>
             <div className="p-4 bg-white rounded-lg border border-indigo-200 text-center">

@@ -21,8 +21,8 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
   }, [error]);
 
   const handleQuickFill = () => {
-    setIdentifier("vendor@abcmanpower.com");
-    setPassword("Password@123");
+    setIdentifier("vendor@immigo.com");
+    setPassword("12345");
     setError("");
   };
 
@@ -54,7 +54,7 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
       {}
       <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
         <span className="truncate mr-2">
-          Demo Vendor: <span className="font-bold text-[#1877f2]">vendor@abcmanpower.com</span> &bull; Pass: <span className="font-mono font-bold">Password@123</span>
+          Vendor: <span className="font-bold text-[#1877f2]">vendor@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
         </span>
         <button
           type="button"

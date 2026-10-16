@@ -95,7 +95,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
           disabled={!isFullyUnlocked}
         />
 
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto overflow-y-auto">
+        <main className="flex-1 p-2 sm:p-2.5 max-w-full w-full mx-auto overflow-y-auto overflow-x-hidden">
           {!isFullyUnlocked ? (
             <VendorOnboarding vendor={vendor} onVendorUpdate={setVendor} />
           ) : (

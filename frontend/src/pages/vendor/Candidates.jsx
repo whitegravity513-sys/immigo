@@ -19,8 +19,7 @@ import {
   Clock,
   UserCheck,
   CheckCircle2,
-  Video,
-  UploadCloud,
+  Video
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import * as XLSX from "xlsx";
@@ -250,10 +249,10 @@ export function Candidates() {
   };
 
   return (
-    <div className="space-y-5 font-sans">
+    <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             Candidate Pool & Reusability Roster
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -265,35 +264,18 @@ export function Candidates() {
           <button
             type="button"
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-md transition-colors shadow-2xs cursor-pointer"
             title="Download candidates in Excel format"
           >
             <Download size={14} />
             <span>Export Excel</span>
           </button>
 
-          <label className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors shadow-2xs cursor-pointer">
-            <UploadCloud size={14} />
-            <span>Import Excel</span>
-            <input
-              type="file"
-              accept=".xlsx, .xls, .csv"
-              onChange={handleExcelImport}
-              className="hidden"
-            />
-          </label>
-
-          <Link
-            to="/vendor/submit-candidate"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors shadow-2xs cursor-pointer"
-          >
-            <Send size={14} className="text-indigo-600" />
-            <span>Submit to Project</span>
-          </Link>
+          
 
           <Link
             to="/vendor/candidates/add"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-xs transition-colors cursor-pointer"
           >
             <Plus size={15} />
             <span>+ Add Candidate</span>
@@ -305,7 +287,7 @@ export function Candidates() {
         <button
           type="button"
           onClick={() => { setStatusTab("Available"); setCurrentPage(1); }}
-          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
             statusTab === "Available"
               ? "bg-white text-blue-700 shadow-2xs font-extrabold"
               : "text-slate-600 hover:text-slate-900"
@@ -316,7 +298,7 @@ export function Candidates() {
         <button
           type="button"
           onClick={() => { setStatusTab("Selected"); setCurrentPage(1); }}
-          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
             statusTab === "Selected"
               ? "bg-white text-emerald-700 shadow-2xs font-extrabold"
               : "text-slate-600 hover:text-slate-900"
@@ -327,7 +309,7 @@ export function Candidates() {
         <button
           type="button"
           onClick={() => { setStatusTab("All"); setCurrentPage(1); }}
-          className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
             statusTab === "All"
               ? "bg-white text-slate-900 shadow-2xs font-extrabold"
               : "text-slate-600 hover:text-slate-900"
@@ -337,7 +319,7 @@ export function Candidates() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-2.5 shadow-2xs space-y-2">
+      <div className="bg-white rounded-lg border border-slate-200 p-2.5 shadow-2xs space-y-2">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div className="relative sm:col-span-2 lg:col-span-2">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -383,7 +365,7 @@ export function Candidates() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-10 text-center text-slate-400 text-xs font-semibold">Loading candidates...</div>
         ) : candidates.length === 0 ? (
@@ -411,19 +393,19 @@ export function Candidates() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
                   <tr>
-                    <th className="py-2 px-3">Candidate</th>
-                    <th className="py-2 px-3">Trade / Position</th>
-                    <th className="py-2 px-3">Availability & Reusability</th>
-                    <th className="py-2 px-3">Experience & Qual.</th>
-                    <th className="py-2 px-3">Skills & Tags</th>
-                    <th className="py-2 px-3">Pref. Country</th>
-                    <th className="py-2 px-3 text-right">Actions</th>
+                    <th className="py-1 px-2.5">Candidate</th>
+                    <th className="py-1 px-2.5">Trade / Position</th>
+                    <th className="py-1 px-2.5">Availability & Reusability</th>
+                    <th className="py-1 px-2.5">Experience & Qual.</th>
+                    <th className="py-1 px-2.5">Skills & Tags</th>
+                    <th className="py-1 px-2.5">Pref. Country</th>
+                    <th className="py-1 px-2.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {paginatedCandidates.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2.5">
                         <div className="flex items-center gap-3">
                           {c.photo ? (
                             <img
@@ -450,13 +432,13 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2.5">
                         <span className="font-semibold text-slate-800 block">
                           {c.currentPosition}
                         </span>
                       </td>
 
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2.5">
                         {c.poolStatus === "Rejected" ? (
                           <div>
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
@@ -507,7 +489,7 @@ export function Candidates() {
                         )}
                       </td>
 
-                      <td className="py-1.5 px-3 text-slate-600">
+                      <td className="py-1 px-2.5 text-slate-600">
                         <div className="font-medium text-slate-800 flex items-center gap-1">
                           <Briefcase size={12} className="text-slate-400" />
                           <span>{c.experienceYears} Years Exp</span>
@@ -517,7 +499,7 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2.5">
                         <div className="flex flex-wrap gap-1 max-w-[180px]">
                           {(c.tags || c.skills || []).slice(0, 3).map((tag, i) => (
                             <span
@@ -530,14 +512,14 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2.5">
                         <div className="flex items-center gap-1 font-medium text-slate-700">
                           <MapPin size={12} className="text-blue-500" />
                           <span>{c.preferredCountry || "Gulf"}</span>
                         </div>
                       </td>
 
-                      <td className="py-1.5 px-3 text-right space-x-1 whitespace-nowrap">
+                      <td className="py-1 px-2.5 text-right space-x-1 whitespace-nowrap">
                         <Link
                           to={`/vendor/candidates/${c.id}`}
                           className="inline-flex items-center px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"

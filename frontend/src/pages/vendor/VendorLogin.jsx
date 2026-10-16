@@ -38,6 +38,12 @@ export function VendorLogin() {
   const [error, setError] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
 
+  const handleQuickFill = () => {
+    setEmailOrId("vendor@immigo.com");
+    setPassword("12345");
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -323,6 +329,19 @@ export function VendorLogin() {
               <p className="text-xs text-slate-500 font-medium">
                 Sign in to manage candidates and manpower submissions.
               </p>
+            </div>
+
+            <div className="mb-4 px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
+              <span className="truncate mr-2">
+                Vendor: <span className="font-bold text-[#1877f2]">vendor@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleQuickFill}
+                className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
+              >
+                Quick Fill
+              </button>
             </div>
 
             {error && (

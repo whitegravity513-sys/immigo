@@ -111,7 +111,7 @@ export default function Documents() {
 
   if (viewingMou) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <MouFullPageView
           mode="preview"
           vendor={vendor}
@@ -137,7 +137,7 @@ export default function Documents() {
   const mouData = vendor?.mouDocument || {};
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
       {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -145,7 +145,7 @@ export default function Documents() {
             <FileText className="w-4 h-4" />
             <span>Legal & Statutory Repository</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             Documents & Executed MOU
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
@@ -155,7 +155,7 @@ export default function Documents() {
 
         <button
           onClick={() => setShowUploadModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold shadow-2xs transition self-start sm:self-auto cursor-pointer"
         >
           <Upload className="w-4 h-4" />
           <span>Upload Statutory Document</span>
@@ -163,10 +163,10 @@ export default function Documents() {
       </div>
 
       {}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
         <button
           onClick={() => setActiveTab("mou")}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
             activeTab === "mou"
               ? "bg-slate-900 text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -181,7 +181,7 @@ export default function Documents() {
 
         <button
           onClick={() => setActiveTab("company")}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
             activeTab === "company"
               ? "bg-slate-900 text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -194,10 +194,10 @@ export default function Documents() {
 
       {activeTab === "mou" ? (
         
-        <div className="space-y-6">
+        <div className="space-y-3">
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
             {}
-            <div className="p-6 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-3 sm:p-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-2.5">
               <div>
                 <div className="flex items-center gap-2 flex-wrap mb-1.5">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
@@ -219,7 +219,7 @@ export default function Documents() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg sm:text-xl font-black tracking-tight">
+                <h3 className="text-sm sm:text-base font-bold tracking-tight">
                   Manpower Supply Partnership Memorandum of Understanding
                 </h3>
                 <p className="text-xs text-blue-200 mt-1 max-w-2xl leading-relaxed">
@@ -231,7 +231,7 @@ export default function Documents() {
                 <button
                   type="button"
                   onClick={() => setViewingMou(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
                 >
                   <Eye size={14} />
                   <span>Preview Executed MOU</span>
@@ -239,7 +239,7 @@ export default function Documents() {
                 <button
                   type="button"
                   onClick={handleDownloadMou}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer border border-white/20"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer border border-white/20"
                 >
                   <Download size={14} />
                   <span>Download MOU</span>
@@ -248,8 +248,8 @@ export default function Documents() {
             </div>
 
             {}
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50/60 border-b border-slate-200/80">
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+            <div className="p-2.5 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2 bg-slate-50/60 border-b border-slate-200/80">
+              <div className="p-2 rounded-md bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Authorized Signatory</span>
                 <span className="text-xs font-bold text-slate-900 mt-1 block">
                   {mouData.signatoryName || vendor?.contactPersonName || "Vendor Director"}
@@ -259,7 +259,7 @@ export default function Documents() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+              <div className="p-2 rounded-md bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Execution Date</span>
                 <span className="text-xs font-bold text-slate-900 mt-1 block">
                   {mouData.signedAt ? new Date(mouData.signedAt).toLocaleDateString() : (mouData.signatureDate || new Date().toLocaleDateString())}
@@ -269,7 +269,7 @@ export default function Documents() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+              <div className="p-2 rounded-md bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Commission Structure</span>
                 <span className="text-xs font-bold text-slate-900 mt-1 block">
                   {mouData.commissionRate || "Standard Agency Rate"}
@@ -279,7 +279,7 @@ export default function Documents() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
+              <div className="p-2 rounded-md bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Digital Signature</span>
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -294,12 +294,12 @@ export default function Documents() {
             </div>
 
             {}
-            <div className="p-6 space-y-4">
+            <div className="p-3 space-y-2">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Operative Clauses & Mandate Summary
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                <div className="p-2.5 rounded-md border border-slate-200 bg-white space-y-0.5">
                   <span className="font-bold text-slate-800 flex items-center gap-1.5">
                     <CheckCircle2 size={13} className="text-blue-600" />
                     Manpower Supply Mandate
@@ -309,7 +309,7 @@ export default function Documents() {
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
+                <div className="p-2.5 rounded-md border border-slate-200 bg-white space-y-0.5">
                   <span className="font-bold text-slate-800 flex items-center gap-1.5">
                     <CheckCircle2 size={13} className="text-blue-600" />
                     Zero Fee & Ethical Recruitment
@@ -324,11 +324,11 @@ export default function Documents() {
         </div>
       ) : (
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {companyDocs.map((doc, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between hover:shadow-sm transition"
+              className="bg-white rounded-lg border border-slate-200/80 shadow-xs p-3 flex flex-col justify-between hover:shadow-sm transition"
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">

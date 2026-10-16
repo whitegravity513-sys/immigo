@@ -21,10 +21,10 @@ export const useInvoiceLogic = (project) => {
   const [gstn, setGstn] = useState(project?.client?.gstNumber || "");
   const [clientContact, setClientContact] = useState(project?.client?.mobile || project?.client?.phone || "");
   const [clientEmail, setClientEmail] = useState(project?.client?.email || "");
-  const [adminCompanyName, setAdminCompanyName] = useState("VESTA Enterprise Solutions");
+  const [adminCompanyName, setAdminCompanyName] = useState("ImmiGo Educare Solutions");
   const [adminAddress, setAdminAddress] = useState("LG-04, Dallas 1 Business Park H-202, Sector 63, Noida, U.P-201301");
   const [adminContact, setAdminContact] = useState("+91-921-713-5322 | +91-879-641-4339");
-  const [adminEmail, setAdminEmail] = useState("sales@vesta.in");
+  const [adminEmail, setAdminEmail] = useState("sales@immigo.com");
   const [adminGstn, setAdminGstn] = useState("09EPOPS8385K1ZL");
   const [remark, setRemark] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("Unpaid");
@@ -175,10 +175,10 @@ export const useInvoiceLogic = (project) => {
     setGstn(inv.gstn || project?.client?.gstNumber || "");
     setClientContact(inv.clientContact || project?.client?.mobile || project?.client?.phone || "");
     setClientEmail(inv.clientEmail || project?.client?.email || "");
-    setAdminCompanyName(inv.adminCompanyName || "VESTA Enterprise Solutions");
+    setAdminCompanyName(inv.adminCompanyName || "ImmiGo Educare Solutions");
     setAdminAddress(inv.adminAddress || "LG-04, Dallas 1 Business Park H-202, Sector 63, Noida, U.P-201301");
     setAdminContact(inv.adminContact || "+91-921-713-5322 | +91-879-641-4339");
-    setAdminEmail(inv.adminEmail || "sales@vesta.in | info@vesta.in");
+    setAdminEmail(inv.adminEmail || "sales@immigo.com | info@immigo.com");
     setAdminGstn(inv.adminGstn || "");
     setRemark(inv.remark || "");
     setIgstRate(Number(inv.igstRate) || 0);
