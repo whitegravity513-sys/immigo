@@ -360,7 +360,7 @@ export default function AttendanceCalendarSection({
             <div className="grid grid-cols-7 gap-2">
               {allGridCells.map((dayNum, idx) => {
                 if (dayNum === null) {
-                  return <div key={`blank-${idx}`} className="h-24 rounded-2xl bg-slate-50/50 border border-transparent" />;
+                  return <div key={`blank-${idx}`} className="h-16 sm:h-20 rounded-xl bg-slate-50/50 border border-transparent" />;
                 }
 
                 const dateStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
@@ -376,9 +376,9 @@ export default function AttendanceCalendarSection({
                     key={dateStr}
                     type="button"
                     onClick={() => setSelectedDate(dateStr)}
-                    className={`h-24 p-2 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer relative group ${
+                    className={`h-16 sm:h-20 p-1.5 rounded-lg border text-left transition-all flex flex-col justify-between cursor-pointer relative group ${
                       isSelected
-                        ? "bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20"
+                        ? "bg-blue-50/90 border-blue-500 shadow-sm ring-2 ring-blue-500/20"
                         : isTodayDate
                         ? "bg-amber-50/60 border-amber-300 hover:border-blue-400"
                         : isOffDay || isHoliday
@@ -388,7 +388,7 @@ export default function AttendanceCalendarSection({
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className={`text-xs font-black rounded-lg w-6 h-6 flex items-center justify-center ${
+                        className={`text-[11px] font-black rounded w-5 h-5 flex items-center justify-center ${
                           isSelected
                             ? "bg-blue-600 text-white"
                             : isTodayDate
@@ -502,55 +502,55 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-            <div className="flex items-center justify-between text-slate-500 mb-1">
-              <span className="text-[11px] font-black uppercase tracking-wider">Total Staff</span>
-              <Users size={16} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="flex items-center justify-between text-slate-500 mb-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider">Total Staff</span>
+              <Users size={14} />
             </div>
-            <div className="text-2xl font-black text-slate-900">{dateMetrics.totalStaff}</div>
-            <div className="text-[10px] text-slate-400 mt-0.5">Eligible employees on date</div>
+            <div className="text-lg font-black text-slate-900">{dateMetrics.totalStaff}</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">Eligible employees</div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200">
-            <div className="flex items-center justify-between text-emerald-700 mb-1">
-              <span className="text-[11px] font-black uppercase tracking-wider">Active / Present</span>
-              <UserCheck size={16} />
+          <div className="p-2.5 sm:p-3 rounded-xl bg-emerald-50/80 border border-emerald-200">
+            <div className="flex items-center justify-between text-emerald-700 mb-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider">Active / Present</span>
+              <UserCheck size={14} />
             </div>
-            <div className="text-2xl font-black text-emerald-950">{dateMetrics.presentCount}</div>
+            <div className="text-lg font-black text-emerald-950">{dateMetrics.presentCount}</div>
             <div className="text-[10px] text-emerald-700 mt-0.5">Checked in & worked</div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-200">
-            <div className="flex items-center justify-between text-rose-700 mb-1">
-              <span className="text-[11px] font-black uppercase tracking-wider">Absent (Not Active)</span>
-              <UserX size={16} />
+          <div className="p-2.5 sm:p-3 rounded-xl bg-rose-50/80 border border-rose-200">
+            <div className="flex items-center justify-between text-rose-700 mb-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider">Absent</span>
+              <UserX size={14} />
             </div>
-            <div className="text-2xl font-black text-rose-950">{dateMetrics.absentCount}</div>
+            <div className="text-lg font-black text-rose-950">{dateMetrics.absentCount}</div>
             <div className="text-[10px] text-rose-700 mt-0.5">Did not attend shift</div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200">
-            <div className="flex items-center justify-between text-blue-700 mb-1">
-              <span className="text-[11px] font-black uppercase tracking-wider">Approved Leave</span>
-              <Briefcase size={16} />
+          <div className="p-2.5 sm:p-3 rounded-xl bg-blue-50/80 border border-blue-200">
+            <div className="flex items-center justify-between text-blue-700 mb-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider">Approved Leave</span>
+              <Briefcase size={14} />
             </div>
-            <div className="text-2xl font-black text-blue-950">{dateMetrics.leaveCount}</div>
+            <div className="text-lg font-black text-blue-950">{dateMetrics.leaveCount}</div>
             <div className="text-[10px] text-blue-700 mt-0.5">Approved time-off</div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200">
-            <div className="flex items-center justify-between text-amber-700 mb-1">
-              <span className="text-[11px] font-black uppercase tracking-wider">Half Day</span>
-              <Clock size={16} />
+          <div className="p-2.5 sm:p-3 rounded-xl bg-amber-50/80 border border-amber-200">
+            <div className="flex items-center justify-between text-amber-700 mb-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider">Half Day</span>
+              <Clock size={14} />
             </div>
-            <div className="text-2xl font-black text-amber-950">{dateMetrics.halfDayCount}</div>
-            <div className="text-[10px] text-amber-700 mt-0.5">Under 8 hours duration</div>
+            <div className="text-lg font-black text-amber-950">{dateMetrics.halfDayCount}</div>
+            <div className="text-[10px] text-amber-700 mt-0.5">Under 8 hours</div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+          <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
             {[
               { id: "all", label: `All Staff (${dateRecords.length})` },
               { id: "active_present", label: `Active / Present (${dateMetrics.presentCount})` },
@@ -562,7 +562,7 @@ export default function AttendanceCalendarSection({
                 key={tab.id}
                 type="button"
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
                   statusFilter === tab.id
                     ? "bg-white text-slate-900 shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
@@ -573,14 +573,14 @@ export default function AttendanceCalendarSection({
             ))}
           </div>
 
-          <div className="relative min-w-[240px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative min-w-[220px]">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search by name, ID, or department…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+              className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md pl-8 pr-2.5 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
             />
           </div>
         </div>

@@ -366,15 +366,15 @@ export default function AnnouncementsSection({
 
           <div className="p-4 sm:p-5">
             {type === "announcement" ? (
-              <form onSubmit={handleAnnSubmit} className="space-y-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+              <form onSubmit={handleAnnSubmit} className="space-y-2.5">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Category
                   </label>
                   <select
                     value={annForm.category}
                     onChange={(e) => setAnnForm({ ...annForm, category: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer"
                   >
                     <option value="Company Notification">Company Notification</option>
                     <option value="Internal Updates">Internal Updates</option>
@@ -383,9 +383,9 @@ export default function AnnouncementsSection({
                   </select>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                       Broadcast Date
                     </label>
                     <input
@@ -393,18 +393,18 @@ export default function AnnouncementsSection({
                       value={annForm.date}
                       onChange={(e) => setAnnForm({ ...annForm, date: e.target.value })}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md px-2 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer"
                     />
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                       Priority Level
                     </label>
                     <select
                       value={annForm.priority}
                       onChange={(e) => setAnnForm({ ...annForm, priority: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors cursor-pointer"
                     >
                       <option value="Low">Low Priority</option>
                       <option value="Medium">Medium Priority</option>
@@ -413,8 +413,8 @@ export default function AnnouncementsSection({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Announcement Title
                   </label>
                   <input
@@ -423,21 +423,21 @@ export default function AnnouncementsSection({
                     required
                     value={annForm.title}
                     onChange={(e) => setAnnForm({ ...annForm, title: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Broadcast Message Details
                   </label>
                   <textarea
-                    rows={4}
+                    rows={2}
                     placeholder="Provide full details, schedules, instructions or guidelines for all staff members..."
                     required
                     value={annForm.message}
                     onChange={(e) => setAnnForm({ ...annForm, message: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors resize-none leading-relaxed"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors resize-none leading-relaxed"
                   />
                 </div>
 
@@ -445,9 +445,9 @@ export default function AnnouncementsSection({
                   <button
                     type="submit"
                     disabled={annLoading}
-                    className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="flex-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs transition-all cursor-pointer shadow-xs active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-60"
                   >
-                    <Megaphone size={14} className={annLoading ? "animate-pulse" : ""} />
+                    <Megaphone size={13} className={annLoading ? "animate-pulse" : ""} />
                     <span>
                       {annLoading
                         ? editingAnnId
@@ -462,7 +462,7 @@ export default function AnnouncementsSection({
                     <button
                       type="button"
                       onClick={handleCancelEditAnn}
-                      className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-md border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -470,9 +470,9 @@ export default function AnnouncementsSection({
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleHolSubmit} className="space-y-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+              <form onSubmit={handleHolSubmit} className="space-y-2.5">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Holiday Date
                   </label>
                   <input
@@ -480,12 +480,12 @@ export default function AnnouncementsSection({
                     required
                     value={holidayForm?.date || ""}
                     onChange={(e) => setHolidayForm({ ...holidayForm, date: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors cursor-pointer"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Holiday Name / Occasion
                   </label>
                   <input
@@ -494,22 +494,22 @@ export default function AnnouncementsSection({
                     required
                     value={holidayForm?.title || ""}
                     onChange={(e) => setHolidayForm({ ...holidayForm, title: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Description &amp; Notes (Optional)
                   </label>
                   <textarea
-                    rows={4}
+                    rows={2}
                     placeholder="e.g. Mandatory public holiday. All branches and offices will remain closed."
                     value={holidayForm?.description || ""}
                     onChange={(e) =>
                       setHolidayForm({ ...holidayForm, description: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors resize-none leading-relaxed"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md p-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white transition-colors resize-none leading-relaxed"
                   />
                 </div>
 
@@ -517,9 +517,9 @@ export default function AnnouncementsSection({
                   <button
                     type="submit"
                     disabled={holidayLoading}
-                    className="flex-1 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs shadow-amber-600/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="flex-1 py-1.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-md text-xs transition-all cursor-pointer shadow-xs active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-60"
                   >
-                    <CalendarDays size={14} className={holidayLoading ? "animate-pulse" : ""} />
+                    <CalendarDays size={13} className={holidayLoading ? "animate-pulse" : ""} />
                     <span>
                       {holidayLoading
                         ? editingHolidayId
@@ -534,7 +534,7 @@ export default function AnnouncementsSection({
                     <button
                       type="button"
                       onClick={handleCancelEditHoliday}
-                      className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-md border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                     >
                       Cancel
                     </button>

@@ -292,54 +292,54 @@ export default function ExpensesSection({
               {clientExpenses.length} records &bull; Meetings, hospitality & dining
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-            <DollarSign size={24} />
+          <div className="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+            <DollarSign size={18} />
           </div>
         </div>
 
         <div
           onClick={() => setExpenseTargetFilter(expenseTargetFilter === "employee" ? "all" : "employee")}
-          className={`bg-white p-5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
+          className={`bg-white p-3 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
             expenseTargetFilter === "employee" ? "ring-2 ring-emerald-600 border-emerald-500 bg-emerald-50/20" : "border-slate-200/80 hover:border-slate-300"
           }`}
         >
-          <div className="space-y-1 text-left">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-              👥 Employee Claims & Allowances
+          <div className="space-y-0.5 text-left">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              👥 Employee Claims
             </span>
-            <div className="text-2xl font-black text-emerald-700">₹{totalEmployeeAmount.toLocaleString("en-IN")}</div>
-            <p className="text-[11px] text-slate-500 font-medium">
+            <div className="text-lg font-black text-emerald-700">₹{totalEmployeeAmount.toLocaleString("en-IN")}</div>
+            <p className="text-[10px] text-slate-500 font-medium">
               {employeeExpenses.length} records &bull; Travel, welfare & claims
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-            <Users size={24} />
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+            <Users size={18} />
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-slate-200">
+      <div className="flex items-center gap-1.5 border-b border-slate-200">
         <button
           onClick={() => setActiveTab("company")}
-          className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 font-bold text-xs border-b-2 transition-all cursor-pointer ${
             activeTab === "company"
-              ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+              ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
-          <DollarSign size={16} /> Company Transactions
+          <DollarSign size={14} /> Company Transactions
         </button>
         <button
           onClick={() => setActiveTab("claims")}
-          className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 font-bold text-xs border-b-2 transition-all cursor-pointer ${
             activeTab === "claims"
-              ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+              ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
         >
-          <Users size={16} /> Employee Claims Review
+          <Users size={14} /> Employee Claims Review
           {pendingClaims.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white">
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
               {pendingClaims.length}
             </span>
           )}

@@ -37,10 +37,10 @@ export default function LeaveApprovalsSection({
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
-      <div className="px-4 sm:px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-3 sm:px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 className="text-base font-black text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
-          <p className="text-xs text-slate-500">Review employee leave claims and approve or reject inline directly (No popups)</p>
+          <h3 className="text-sm font-black text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
+          <p className="text-[11px] text-slate-500">Review employee leave claims and approve or reject inline directly (No popups)</p>
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -48,7 +48,7 @@ export default function LeaveApprovalsSection({
           <thead>
             <tr>
               {["Employee", "Dates", "Requested Days", "Reason", "Document", "Status", "Actions"].map(h => (
-                <th key={h} className="px-4 sm:px-6 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
+                <th key={h} className="px-3 py-2 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
               ))}
             </tr>
           </thead>

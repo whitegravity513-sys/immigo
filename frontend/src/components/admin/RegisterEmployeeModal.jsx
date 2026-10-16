@@ -163,7 +163,7 @@ export const RegisterEmployeeModal = ({
         className="bg-white w-full max-w-4xl rounded-xl border border-slate-200 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shrink-0">
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
               <User size={20} className="text-blue-300" />
@@ -186,7 +186,7 @@ export const RegisterEmployeeModal = ({
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-6">
+        <div className="p-4 overflow-y-auto space-y-4">
           {(modalError || errorMsg) && (
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-xs font-bold shadow-xs">
               <AlertCircle size={16} className="shrink-0" />
@@ -195,17 +195,17 @@ export const RegisterEmployeeModal = ({
           )}
 
           <form id="registerEmployeeForm" onSubmit={onSubmit} className="space-y-6 text-left">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <div className="relative group">
                   {employeeForm.profileImage ? (
                     <img
                       src={employeeForm.profileImage}
                       alt="Profile Preview"
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-500 shadow-sm"
+                      className="w-14 h-14 rounded-xl object-cover border-2 border-blue-500 shadow-sm"
                     />
                   ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center shadow-inner border border-blue-400">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center shadow-inner border border-blue-400">
                       <Camera size={26} className="opacity-80" />
                       <span className="text-[10px] font-bold mt-1">Photo</span>
                     </div>
@@ -223,7 +223,7 @@ export const RegisterEmployeeModal = ({
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                     >
                       <Upload size={13} />
                       {employeeForm.profileImage ? "Change Photo" : "Upload Profile Photo"}
@@ -232,7 +232,7 @@ export const RegisterEmployeeModal = ({
                       <button
                         type="button"
                         onClick={handleRemovePhoto}
-                        className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition cursor-pointer"
+                        className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-md text-xs font-bold transition cursor-pointer"
                       >
                         Remove
                       </button>
@@ -279,7 +279,7 @@ export const RegisterEmployeeModal = ({
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700">Company Email (Official / Work) *</label>
+                    <label className="text-[11px] font-semibold text-slate-700">Company Email (Official / Work) *</label>
                     {employeeForm.email && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.email.trim()) && (
                       <span className="text-[10px] font-bold text-emerald-600">Valid ✓</span>
                     )}
@@ -299,7 +299,7 @@ export const RegisterEmployeeModal = ({
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700">Personal Email Address</label>
+                    <label className="text-[11px] font-semibold text-slate-700">Personal Email Address</label>
                     {employeeForm.personalEmail && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.personalEmail.trim()) && (
                       <span className="text-[10px] font-bold text-emerald-600">Valid ✓</span>
                     )}
@@ -317,7 +317,7 @@ export const RegisterEmployeeModal = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Portal Password *</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Portal Password *</label>
                   <input
                     type="password"
                     required
@@ -332,7 +332,7 @@ export const RegisterEmployeeModal = ({
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700">Contact Phone Number *</label>
+                    <label className="text-[11px] font-semibold text-slate-700">Contact Phone Number *</label>
                     <span className={`text-[10px] font-bold ${
                       (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
                         ? "text-emerald-600"
@@ -362,7 +362,7 @@ export const RegisterEmployeeModal = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Date of Joining (DOJ) *</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Date of Joining (DOJ) *</label>
                   <input
                     type="date"
                     required
@@ -383,7 +383,7 @@ export const RegisterEmployeeModal = ({
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700">Date of Birth (DOB) *</label>
+                    <label className="text-[11px] font-semibold text-slate-700">Date of Birth (DOB) *</label>
                     {employeeForm.dob && (
                       <span className="text-[10px] font-bold text-emerald-600">Selected ✓</span>
                     )}
@@ -407,7 +407,7 @@ export const RegisterEmployeeModal = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Employee Status *</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Employee Status *</label>
                   <select
                     value={employeeForm.status || "active"}
                     onChange={(e) =>

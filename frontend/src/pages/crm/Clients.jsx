@@ -194,32 +194,30 @@ export function Clients() {
     Boolean(searchQuery) || countryFilter !== "All" || statusFilter !== "All";
 
   return (
-    <div className="space-y-6">
-      {}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          <h1 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight">
             Client Management
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-0.5">
             Manage client companies, projects, and manpower requirements.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap self-start sm:self-auto">
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
           <Link
             to="/projects"
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
           >
-            <FolderPlus size={15} className="text-gray-500" />
+            <FolderPlus size={14} className="text-gray-500" />
             <span>All Projects</span>
           </Link>
         </div>
       </div>
 
-      {}
-      <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs space-y-2.5">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
           <div className="flex-1 min-w-0 max-w-lg">
             <SearchInput
               value={searchQuery}
@@ -228,12 +226,12 @@ export function Clients() {
             />
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-            <div className="w-36 sm:w-44">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div className="w-36 sm:w-40">
               <select
                 value={countryFilter}
                 onChange={handleCountryChange}
-                className="w-full text-xs rounded-lg border border-gray-300 py-2 px-3 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 cursor-pointer"
+                className="w-full text-xs rounded-md border border-gray-300 py-1.5 px-2.5 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 cursor-pointer"
               >
                 <option value="All">All Countries</option>
                 {COUNTRIES.filter((c) => c !== "All").map((country) => (
@@ -248,7 +246,7 @@ export function Clients() {
               <select
                 value={statusFilter}
                 onChange={handleStatusChange}
-                className="w-full text-xs rounded-lg border border-gray-300 py-2 px-3 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 cursor-pointer"
+                className="w-full text-xs rounded-md border border-gray-300 py-1.5 px-2.5 bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-600/20 focus:border-blue-600 cursor-pointer"
               >
                 {STATUS_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -262,10 +260,10 @@ export function Clients() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
                 title="Reset all filters"
               >
-                <RotateCcw size={13} />
+                <RotateCcw size={12} />
                 <span className="hidden sm:inline">Reset</span>
               </button>
             )}

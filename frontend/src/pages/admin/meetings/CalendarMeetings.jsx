@@ -349,7 +349,7 @@ export default function CalendarMeetings() {
 
           <div className="grid grid-cols-7 divide-x divide-y divide-slate-300" style={{border: "1px solid #cbd5e1"}}>
             {Array.from({ length: firstDayIndex }).map((_, i) => (
-              <div key={`blank-${i}`} className="min-h-[72px] bg-slate-50 p-1 border-r border-slate-300" />
+              <div key={`blank-${i}`} className="min-h-[54px] sm:min-h-[62px] bg-slate-50 p-1 border-r border-slate-300" />
             ))}
 
             {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -367,7 +367,7 @@ export default function CalendarMeetings() {
               return (
                 <div
                   key={`day-${dayNum}`}
-                  className={`min-h-[72px] p-1.5 relative flex flex-col border-r border-slate-300 transition-colors hover:bg-blue-50/30 ${
+                  className={`min-h-[54px] sm:min-h-[62px] p-1.5 relative flex flex-col border-r border-slate-300 transition-colors hover:bg-blue-50/30 ${
                     isToday ? "bg-indigo-50" : "bg-white"
                   }`}
                 >
@@ -656,9 +656,9 @@ export default function CalendarMeetings() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmitMeeting} className="p-6 overflow-y-auto space-y-4 custom-scrollbar">
+            <form onSubmit={handleSubmitMeeting} className="p-3.5 sm:p-4 overflow-y-auto space-y-3 custom-scrollbar">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                   Meeting Title *
                 </label>
                 <input
@@ -667,19 +667,19 @@ export default function CalendarMeetings() {
                   placeholder="e.g. Monthly Performance & Growth Review"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                     Platform
                   </label>
                   <select
                     value={formData.platform}
                     onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white font-medium cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white font-medium cursor-pointer"
                   >
                     <option value="Google Meet">Google Meet</option>
                     <option value="Zoom">Zoom</option>
@@ -689,7 +689,7 @@ export default function CalendarMeetings() {
                 </div>
 
                 <div className="sm:col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                     Meeting Link (URL) *
                   </label>
                   <div className="relative">
@@ -699,7 +699,7 @@ export default function CalendarMeetings() {
                       placeholder="https://meet.google.com/xyz-abcd-efg"
                       value={formData.meetingLink}
                       onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white font-medium"
                     />
                     <Link size={15} className="absolute left-3 top-3 text-slate-400" />
                   </div>
@@ -708,7 +708,7 @@ export default function CalendarMeetings() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                     Date *
                   </label>
                   <input
@@ -717,12 +717,12 @@ export default function CalendarMeetings() {
                     min={todayStr}
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                     Start Time *
                   </label>
                   <input
@@ -730,25 +730,25 @@ export default function CalendarMeetings() {
                     required
                     value={formData.startTime}
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                     End Time
                   </label>
                   <input
                     type="time"
                     value={formData.endTime}
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 font-medium"
                   />
                 </div>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
                   Notify & Invite Audience *
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -852,7 +852,7 @@ export default function CalendarMeetings() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                   Agenda / Notes (Optional)
                 </label>
                 <textarea
@@ -860,7 +860,7 @@ export default function CalendarMeetings() {
                   placeholder="Points to discuss, preparations required..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white font-medium"
                 />
               </div>
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, User, Mail, Phone, Building2, Briefcase, Calendar, Save, Loader2, IndianRupee } from "lucide-react";
-
+import { X, User, Save, Loader2 } from "lucide-react";
 
 export default function EditEmployeeModal({
   isOpen,
@@ -76,19 +75,18 @@ export default function EditEmployeeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
-        {}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold">
-              <User size={20} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white w-full max-w-xl rounded-xl shadow-2xl border border-slate-200 overflow-hidden my-4">
+        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold">
+              <User size={16} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-sm font-bold text-slate-900">
                 Edit Employee Record
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 ID: <span className="font-mono font-bold text-blue-600">{employee.employeeId || employee.id}</span> • {formData.name}
               </p>
             </div>
@@ -97,17 +95,16 @@ export default function EditEmployeeModal({
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
-        {}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="p-4 space-y-3 max-h-[78vh] overflow-y-auto custom-scrollbar text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="sm:col-span-2">
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Full Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -116,12 +113,12 @@ export default function EditEmployeeModal({
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Company Email <span className="text-rose-500">*</span>
               </label>
               <input
@@ -130,12 +127,12 @@ export default function EditEmployeeModal({
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Personal Email
               </label>
               <input
@@ -143,12 +140,12 @@ export default function EditEmployeeModal({
                 name="personalEmail"
                 value={formData.personalEmail}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Contact Phone
               </label>
               <input
@@ -156,12 +153,12 @@ export default function EditEmployeeModal({
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Joining Date
               </label>
               <input
@@ -169,12 +166,12 @@ export default function EditEmployeeModal({
                 name="joiningDate"
                 value={formData.joiningDate}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none bg-white"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Department
               </label>
               <input
@@ -183,12 +180,12 @@ export default function EditEmployeeModal({
                 value={formData.department}
                 onChange={handleChange}
                 placeholder="e.g. Operations, Engineering, HR"
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Designation / Role
               </label>
               <input
@@ -197,19 +194,19 @@ export default function EditEmployeeModal({
                 value={formData.designation}
                 onChange={handleChange}
                 placeholder="e.g. Project Engineer, Supervisor"
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Employment Status
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-bold text-slate-800"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none bg-white font-bold text-slate-800"
               >
                 <option value="active">Active</option>
                 <option value="probation">Probation</option>
@@ -219,7 +216,7 @@ export default function EditEmployeeModal({
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Monthly Salary (₹)
               </label>
               <input
@@ -228,12 +225,12 @@ export default function EditEmployeeModal({
                 value={formData.monthlySalary}
                 onChange={handleChange}
                 placeholder="Monthly Gross Salary"
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-slate-700 font-semibold mb-1">
+              <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Residential Address
               </label>
               <textarea
@@ -242,34 +239,33 @@ export default function EditEmployeeModal({
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="Permanent or current residential address"
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
               />
             </div>
           </div>
 
-          {}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               {saving ? (
                 <>
-                  <Loader2 size={14} className="animate-spin" />
+                  <Loader2 size={13} className="animate-spin" />
                   <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <Save size={14} />
+                  <Save size={13} />
                   <span>Save Record</span>
                 </>
               )}

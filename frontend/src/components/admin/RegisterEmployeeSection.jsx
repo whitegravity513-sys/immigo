@@ -156,20 +156,20 @@ export const RegisterEmployeeSection = ({
 
   return (
     <div className="w-full space-y-6 text-left">
-      {}
-      <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3.5">
           <button
             type="button"
             onClick={onCancel}
-            className="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition cursor-pointer shrink-0"
             title="Back to Employees"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                 Register New Employee
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
@@ -202,21 +202,21 @@ export const RegisterEmployeeSection = ({
         </div>
       )}
 
-      {}
+      
       <form onSubmit={onSubmit} className="space-y-6">
-        {}
-        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-slate-50 border border-slate-200/80 rounded-2xl">
-            <div className="flex items-center gap-4">
+        
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="relative group shrink-0">
                 {employeeForm.profileImage ? (
                   <img
                     src={employeeForm.profileImage}
                     alt="Profile Preview"
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-500 shadow-sm"
+                    className="w-14 h-14 rounded-xl object-cover border-2 border-blue-500 shadow-sm"
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center shadow-inner border border-blue-400">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center shadow-inner border border-blue-400">
                     <Camera size={26} className="opacity-80" />
                     <span className="text-[10px] font-bold mt-1">Photo</span>
                   </div>
@@ -234,7 +234,7 @@ export const RegisterEmployeeSection = ({
                   <button
                     type="button"
                     onClick={() => photoInputRef.current?.click()}
-                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Upload size={13} />
                     {employeeForm.profileImage ? "Change Photo" : "Upload Profile Photo"}
@@ -243,7 +243,7 @@ export const RegisterEmployeeSection = ({
                     <button
                       type="button"
                       onClick={handleRemovePhoto}
-                      className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition cursor-pointer"
+                      className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-md text-xs font-bold transition cursor-pointer"
                     >
                       Remove
                     </button>
@@ -263,15 +263,15 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {}
+          
           <div>
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <User size={15} className="text-blue-600" />
               1. Core Identity & Portal Credentials
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Full Name *</label>
+                <label className="text-[11px] font-semibold text-slate-700">Full Name *</label>
                 <input
                   type="text"
                   required
@@ -280,13 +280,13 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, name: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Company Work Email *</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Company Work Email *</label>
                   {employeeForm.email && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.email.trim()) && (
                     <span className="text-[10px] font-bold text-emerald-600">Valid ✓</span>
                   )}
@@ -299,14 +299,14 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, email: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
                 <span className="text-[10px] text-slate-400">Official email for portal login</span>
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Personal Email</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Personal Email</label>
                   {employeeForm.personalEmail && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.personalEmail.trim()) && (
                     <span className="text-[10px] font-bold text-emerald-600">Valid ✓</span>
                   )}
@@ -318,13 +318,13 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, personalEmail: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
                 <span className="text-[10px] text-slate-400">Personal ID for records</span>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Portal Password *</label>
+                <label className="text-[11px] font-semibold text-slate-700">Portal Password *</label>
                 <input
                   type="password"
                   required
@@ -333,13 +333,13 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, password: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Contact Phone *</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Contact Phone *</label>
                   <span className={`text-[10px] font-bold ${
                     (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
                       ? "text-emerald-600"
@@ -360,7 +360,7 @@ export const RegisterEmployeeSection = ({
                     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
                     setEmployeeForm({ ...employeeForm, phone: digitsOnly });
                   }}
-                  className={`w-full bg-slate-50 border rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition font-medium ${
+                  className={`w-full bg-slate-50 border rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition font-medium ${
                     (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
                       ? "border-emerald-300 focus:border-emerald-500"
                       : "border-slate-200 focus:border-blue-500"
@@ -369,7 +369,7 @@ export const RegisterEmployeeSection = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Date of Joining (DOJ) *</label>
+                <label className="text-[11px] font-semibold text-slate-700">Date of Joining (DOJ) *</label>
                 <input
                   type="date"
                   required
@@ -383,14 +383,14 @@ export const RegisterEmployeeSection = ({
                       employeeId: newId,
                     });
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
                 <span className="text-[10px] text-slate-400">Day & Year forms ID prefix (e.g. 0926)</span>
               </div>
 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Date of Birth (DOB) *</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Date of Birth (DOB) *</label>
                   {employeeForm.dob && (
                     <span className="text-[10px] font-bold text-emerald-600">Selected ✓</span>
                   )}
@@ -408,19 +408,19 @@ export const RegisterEmployeeSection = ({
                       employeeId: newId,
                     });
                   }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
                 <span className="text-[10px] text-slate-400">Day & Year forms ID suffix (e.g. 1598)</span>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Employee Status *</label>
+                <label className="text-[11px] font-semibold text-slate-700">Employee Status *</label>
                 <select
                   value={employeeForm.status || "active"}
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, status: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-semibold cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-semibold cursor-pointer"
                 >
                   <option value="active">🟢 Active</option>
                   <option value="inactive">🔴 Inactive</option>
@@ -430,13 +430,13 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {}
+          
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Briefcase size={15} className="text-blue-600" />
               2. Corporate Role & Residential Address
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Role / Designation *</label>
                 <input
@@ -447,7 +447,7 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, role: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                 />
               </div>
 
@@ -458,7 +458,7 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, department: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium cursor-pointer"
                 >
                   {departments.map((dept) => (
                     <option key={dept} value={dept}>
@@ -479,19 +479,19 @@ export const RegisterEmployeeSection = ({
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, address: e.target.value })
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition resize-none"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition resize-none"
                 />
               </div>
             </div>
           </div>
 
-          {}
+          
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Award size={15} className="text-blue-600" />
               3. Career History & Compensation Details
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50/70 border border-slate-200/80 p-4 sm:p-5 rounded-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 bg-slate-50/70 border border-slate-200/80 p-4 sm:p-5 rounded-2xl">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Previous Company</label>
                 <input
@@ -544,9 +544,9 @@ export const RegisterEmployeeSection = ({
                 />
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200/60">
+              <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-2 border-t border-slate-200/60">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Monthly Net Salary (₹)</label>
+                  <label className="text-[11px] font-semibold text-slate-700">Monthly Net Salary (₹)</label>
                   <input
                     type="number"
                     min="0"
@@ -563,7 +563,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {}
+          
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <FileText size={15} className="text-blue-600" />
@@ -654,7 +654,7 @@ export const RegisterEmployeeSection = ({
           </div>
         </div>
 
-        {}
+        
         <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs flex items-center justify-between gap-3">
           <button
             type="button"

@@ -89,21 +89,21 @@ export default function LeaveManagementSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 sm:p-6 sticky top-24">
-          <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-100">
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-              <CalendarPlus size={18} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 sticky top-24">
+          <div className="flex items-center gap-2 mb-3.5 pb-2.5 border-b border-slate-100">
+            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+              <CalendarPlus size={16} />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-900">Apply for Leave</h3>
-              <p className="text-[11px] text-slate-500 font-medium">Submit your leave request for approval</p>
+              <h3 className="text-sm font-black text-slate-900">Apply for Leave</h3>
+              <p className="text-[10px] text-slate-500 font-medium">Submit your leave request for approval</p>
             </div>
           </div>
 
-          <form onSubmit={handleLeaveSubmit} className="space-y-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+          <form onSubmit={handleLeaveSubmit} className="space-y-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
                 <span>Leave Type *</span>
                 <span className="text-[10px] text-blue-600 font-semibold lowercase">Select type</span>
               </label>
@@ -111,7 +111,7 @@ export default function LeaveManagementSection({
                 required
                 value={leaveForm.leaveType || "Casual Leave"}
                 onChange={(e) => setLeaveForm({ ...leaveForm, leaveType: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-bold cursor-pointer"
               >
                 <option value="Casual Leave">Casual Leave (CL)</option>
                 <option value="Sick Leave">Sick / Medical Leave (SL)</option>
@@ -125,27 +125,27 @@ export default function LeaveManagementSection({
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                   Start Date
                 </label>
                 <input
                   type="date"
-                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
                   value={leaveForm.startDate}
                   onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })}
                   required
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                   End Date
                 </label>
                 <input
                   type="date"
-                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
                   value={leaveForm.endDate}
                   onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })}
                   required
@@ -154,7 +154,7 @@ export default function LeaveManagementSection({
             </div>
 
             {leaveDurationDays > 0 && (
-              <div className="p-3 bg-blue-50 border border-blue-200 text-blue-900 rounded-xl text-xs font-semibold flex items-center justify-between">
+              <div className="p-2 bg-blue-50 border border-blue-200 text-blue-900 rounded-md text-[11px] font-semibold flex items-center justify-between">
                 <span>Requested Duration:</span>
                 <strong className="font-bold text-blue-700">
                   {leaveDurationDays} Day{leaveDurationDays > 1 ? "s" : ""}
@@ -162,12 +162,13 @@ export default function LeaveManagementSection({
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                 Reason / Justification
               </label>
               <textarea
-                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all min-h-[90px] resize-y font-medium leading-relaxed"
+                rows={2}
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all resize-y font-medium leading-relaxed"
                 placeholder="Briefly describe the reason for your leave request…"
                 value={leaveForm.reason}
                 onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
@@ -175,14 +176,14 @@ export default function LeaveManagementSection({
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                 Supporting Document (Optional)
               </label>
-              <label className="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-3.5 flex items-center justify-center gap-2 cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/30">
-                <FileUp size={16} className="text-slate-400" />
-                <span className="text-xs text-slate-600 font-semibold truncate">
-                  {fileLabel || "Click to upload medical certificate or ticket"}
+              <label className="border border-dashed border-slate-200 hover:border-blue-400 rounded-md p-2 flex items-center justify-center gap-1.5 cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/30">
+                <FileUp size={14} className="text-slate-400" />
+                <span className="text-[11px] text-slate-600 font-semibold truncate">
+                  {fileLabel || "Upload proof / ticket"}
                 </span>
                 <input
                   type="file"
@@ -196,7 +197,7 @@ export default function LeaveManagementSection({
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all cursor-pointer disabled:opacity-50"
+              className="w-full mt-1 py-1.5 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? "Submitting Application…" : "Submit Leave Application"}
             </button>

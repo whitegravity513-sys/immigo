@@ -18,44 +18,44 @@ export default function HolidaysSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-6 h-fit">
-          <h4 className="text-sm font-black text-slate-800 mb-4 uppercase tracking-wider">Declare New Holiday</h4>
-          <form onSubmit={handleCreateHolidaySubmit} className="space-y-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Holiday Date</label>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-3.5 sm:p-4 h-fit">
+          <h4 className="text-xs font-black text-slate-800 mb-3 uppercase tracking-wider">Declare New Holiday</h4>
+          <form onSubmit={handleCreateHolidaySubmit} className="space-y-3">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Holiday Date</label>
               <input
                 type="date"
-                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                 value={holidayForm.date}
                 onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}
                 required
               />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Holiday Title</label>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Holiday Title</label>
               <input
                 type="text"
                 placeholder="e.g. Republic Day"
-                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                 value={holidayForm.title}
                 onChange={e => setHolidayForm({ ...holidayForm, title: e.target.value })}
                 required
               />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</label>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Description</label>
               <textarea
-                rows={3}
+                rows={2}
                 placeholder="e.g. National holiday celebration"
-                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 resize-none"
                 value={holidayForm.description}
                 onChange={e => setHolidayForm({ ...holidayForm, description: e.target.value })}
               />
             </div>
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-xl text-sm transition-all cursor-pointer shadow-sm shadow-blue-500/20"
+              className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-md text-xs transition-all cursor-pointer shadow-xs"
               disabled={holidayLoading}
             >
               {holidayLoading ? "Saving..." : "Save Holiday"}

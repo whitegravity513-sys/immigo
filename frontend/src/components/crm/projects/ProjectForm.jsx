@@ -129,7 +129,7 @@ export function ProjectForm({
     ]
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState();
 
   
   useEffect(() => {
@@ -301,8 +301,8 @@ export function ProjectForm({
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <button
             type="button"
@@ -312,10 +312,10 @@ export function ProjectForm({
             <ArrowLeft size={14} />
             <span>Back</span>
           </button>
-          <h1 className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
             {isEdit ? "Edit Project Details" : "Add Project to Client"}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-500 mt-0.5">
             Select an existing registered client or enter client name, then configure deployment project & manpower requirements.
           </p>
         </div>
@@ -325,7 +325,7 @@ export function ProjectForm({
             type="button"
             onClick={() => navigate(-1)}
             disabled={loading}
-            className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
+            className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
           >
             Cancel
           </button>
@@ -333,7 +333,7 @@ export function ProjectForm({
             type="button"
             onClick={(e) => handleSubmit(e, true)}
             disabled={loading}
-            className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
+            className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-md transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
           >
             Save as Draft
           </button>
@@ -341,7 +341,7 @@ export function ProjectForm({
             type="button"
             onClick={(e) => handleSubmit(e, false)}
             disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors cursor-pointer w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-2xs transition-colors cursor-pointer w-full sm:w-auto"
           >
             <Save size={15} />
             <span>{loading ? "Saving Project..." : "Create Project"}</span>
@@ -350,7 +350,7 @@ export function ProjectForm({
       </div>
 
       <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
-        {}
+        
         <FormSection
           id="client-select"
           title="Client Company Details"
@@ -371,7 +371,7 @@ export function ProjectForm({
                     <select
                       value={formData.clientId}
                       onChange={handleClientChange}
-                      className={`w-full appearance-none text-sm rounded-lg border py-2.5 px-3.5 bg-white text-gray-900 cursor-pointer ${
+                      className={`w-full appearance-none text-xs rounded-md border py-1.5 px-2.5 bg-white text-gray-900 cursor-pointer ${
                         errors.client || errors.clientId
                           ? "border-red-400 focus:border-red-500 ring-2 ring-red-500/20"
                           : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
@@ -391,7 +391,7 @@ export function ProjectForm({
                         value={formData.clientName || ""}
                         onChange={handleFieldChange}
                         placeholder="Or enter new Client Company Name..."
-                        className="w-full text-xs rounded-lg border border-gray-300 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                        className="w-full text-xs rounded-md border border-gray-300 py-1.5 px-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                       />
                     )}
                   </div>
@@ -402,7 +402,7 @@ export function ProjectForm({
                     value={formData.clientName || ""}
                     onChange={handleFieldChange}
                     placeholder="Enter Client / Company Name (e.g. Al-Futtaim Construction)..."
-                    className="w-full text-sm rounded-lg border border-gray-300 py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    className="w-full text-xs rounded-md border border-gray-300 py-1.5 px-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                     required
                   />
                 )}
@@ -413,9 +413,9 @@ export function ProjectForm({
                 )}
               </div>
 
-              {}
+              
               {selectedClient ? (
-                <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                <div className="bg-blue-50/60 border border-blue-200 rounded-lg p-2.5 flex items-center justify-between gap-2.5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-gray-900 truncate">
@@ -440,7 +440,7 @@ export function ProjectForm({
                   </span>
                 </div>
               ) : (
-                <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-3.5 flex items-center text-xs text-gray-500 italic">
+                <div className="bg-gray-50 border border-dashed border-gray-200 rounded-lg p-2.5 flex items-center text-xs text-gray-500 italic">
                   Select an existing client or enter client name above to link this project requirement.
                 </div>
               )}
@@ -448,7 +448,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
+        
         <FormSection
           id="project-info"
           title="Project Core Information"
@@ -536,7 +536,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
+        
         <FormSection
           id="manpower-requirements"
           title="Manpower Headcount & Positions"
@@ -558,7 +558,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
+        
         <FormSection
           id="project-benefits"
           title="Employee Benefits / Allowances"
@@ -572,7 +572,7 @@ export function ProjectForm({
                 return (
                   <label
                     key={benefit}
-                    className={`flex items-center gap-2 p-2.5 sm:p-3 rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all duration-150 select-none break-words ${checked
+                    className={`flex items-center gap-2 p-2 sm:p-2.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all duration-150 select-none break-words ${checked
                         ? "bg-blue-50/80 border-blue-300 text-blue-900 shadow-2xs"
                         : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                       }`}
@@ -602,7 +602,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
+        
         <FormSection
           id="additional-requirements"
           title="Additional Recruitment Specifications"
@@ -656,7 +656,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
+        
         <FormSection
           id="payment-milestones"
           title="Candidate Selection Payment Milestones & Stages"
@@ -671,7 +671,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
+        
         <FormSection
           id="vendor-assignment"
           title="Vendor / Agency Assignment"
@@ -685,7 +685,7 @@ export function ProjectForm({
                   Project Visibility for Vendors
                 </label>
                 <div className="space-y-2">
-                  <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'all' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'all' ? '#eff6ff' : '#ffffff' }}>
+                  <label className="flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'all' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'all' ? '#eff6ff' : '#ffffff' }}>
                     <input
                       type="radio"
                       name="vendorVisibility"
@@ -700,7 +700,7 @@ export function ProjectForm({
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'specific' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'specific' ? '#eff6ff' : '#ffffff' }}>
+                  <label className="flex items-start gap-3 p-2.5 rounded-lg border cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.vendorVisibility === 'specific' ? '#2563eb' : '#e5e7eb', backgroundColor: formData.vendorVisibility === 'specific' ? '#eff6ff' : '#ffffff' }}>
                     <input
                       type="radio"
                       name="vendorVisibility"
@@ -717,7 +717,7 @@ export function ProjectForm({
                 </div>
               </div>
 
-              {}
+              
               {formData.vendorVisibility === 'specific' && (
                 <div className="mt-4 border-t border-slate-200 pt-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
@@ -786,7 +786,7 @@ export function ProjectForm({
                             </div>
                           )}
                           
-                          {}
+                          
                           {filteredVendors.length > 0 && (
                             <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
                               <span className="text-[10px] text-gray-500 font-medium">
@@ -827,13 +827,13 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {}
-        <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-3 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <button
             type="button"
             onClick={() => navigate(-1)}
             disabled={loading}
-            className="px-4 py-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer w-full sm:w-auto text-center justify-center"
+            className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer w-full sm:w-auto text-center justify-center"
           >
             Cancel
           </button>
@@ -843,14 +843,14 @@ export function ProjectForm({
               type="button"
               onClick={(e) => handleSubmit(e, true)}
               disabled={loading}
-              className="px-4 py-2.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
+              className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
             >
               Save as Draft
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors cursor-pointer flex-1 sm:flex-initial"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-2xs transition-colors cursor-pointer flex-1 sm:flex-initial"
             >
               <Save size={16} />
               <span>{loading ? "Saving..." : "Create Project"}</span>
