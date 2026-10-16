@@ -3,6 +3,7 @@ import env from "../config/env.js";
 import { User } from "../models/User.js";
 import Admin from "../models/Admin.js";
 import Employee from "../models/Employee.js";
+import Vendor from "../models/Vendor.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { verifyAccessToken } from "../utils/jwt.js";
@@ -130,7 +131,6 @@ export const verifyVendorActive = (req, res, next) => {
     }
     const vendorId = req.user?.id || req.user?._id;
     try {
-      const Vendor = (await import("../models/Vendor.js")).default;
       const vendor = await Vendor.findById(vendorId);
       if (!vendor) {
         return res.status(404).json({ success: false, message: "Vendor account not found." });

@@ -38,8 +38,21 @@ export const otpLimiter = rateLimit({
   },
 });
 
+export const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 200 : 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: "Payment transaction rate limit reached. Please wait before retrying.",
+  },
+});
+
 export default {
   apiLimiter,
   authLimiter,
   otpLimiter,
+  paymentLimiter,
 };
