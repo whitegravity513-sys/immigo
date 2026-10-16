@@ -351,7 +351,18 @@ export function VendorLogin() {
               </p>
             </div>
 
-            
+            <div className="mb-4 px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
+              <span className="truncate mr-2">
+                Vendor: <span className="font-bold text-[#1877f2]">vendor@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleQuickFill}
+                className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
+              >
+                Quick Fill
+              </button>
+            </div>
 
             {error && (
               <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2 animate-shake">
@@ -370,11 +381,27 @@ export function VendorLogin() {
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
-                    type="email"
+                    ref={emailInputRef}
+                    type="search"
+                    inputMode="email"
                     required
                     value={emailOrId}
-                    onChange={(e) => setEmailOrId(e.target.value)}
-                    name="vendor_login_account" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="vendor@example.com" className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.toUpperCase().includes("VESTA")) {
+                        setEmailOrId("");
+                        if (emailInputRef.current) emailInputRef.current.value = "";
+                        return;
+                      }
+                      setEmailOrId(val);
+                    }}
+                    name="vendor_auth_user_direct"
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck="false"
+                    placeholder="vendor@immigo.com"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
                   />
                 </div>
               </div>
@@ -386,10 +413,13 @@ export function VendorLogin() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
+                    ref={passwordInputRef}
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    name="vendor_auth_key_direct"
+                    autoComplete="new-password"
                     placeholder="Enter your password"
                     className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
                   />
