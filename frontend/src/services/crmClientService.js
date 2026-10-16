@@ -1,10 +1,10 @@
-// Service layer for Foreign Manpower Supply Client Management CRM
+
 import { initialClients } from "../data/mockClients.js";
 import { apiClient } from "./apiClient.js";
 
 const STORAGE_KEY = "crm_clients_data_v3";
 
-// Internal helper to get all clients from localStorage or initialize with empty list
+
 const loadClientsFromStorage = () => {
   try {
     const raw =
@@ -29,7 +29,7 @@ const loadClientsFromStorage = () => {
   return [];
 };
 
-// Internal helper to save clients
+
 const saveClientsToStorage = (clients) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
@@ -38,7 +38,7 @@ const saveClientsToStorage = (clients) => {
   }
 };
 
-// Helper to compute total manpower for a project
+
 export const calculateProjectManpower = (project) => {
   if (!project || !Array.isArray(project.manpowerRequirements)) return 0;
   return project.manpowerRequirements.reduce((sum, item) => {
@@ -47,7 +47,7 @@ export const calculateProjectManpower = (project) => {
   }, 0);
 };
 
-// Helper to compute total manpower across all projects of a client
+
 export const calculateClientManpower = (client) => {
   if (!client || !Array.isArray(client.projects)) return 0;
   return client.projects.reduce((sum, proj) => {
@@ -55,11 +55,11 @@ export const calculateClientManpower = (client) => {
   }, 0);
 };
 
-// Helper to simulate slight async latency (for realistic skeleton and loading indicators)
+
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const crmClientService = {
-  // Get all clients with filtering, search, and pagination
+  
   getClients: async ({
     search = "",
     country = "All",
@@ -79,7 +79,7 @@ export const crmClientService = {
     const all = loadClientsFromStorage();
 
     let filtered = all.filter((client) => {
-      // Search filter: company name, email, phone, city, primary contact name
+      
       if (search.trim()) {
         const query = search.toLowerCase();
         const primaryContact = client.contacts?.find((c) => c.isPrimary) || client.contacts?.[0];
@@ -95,14 +95,14 @@ export const crmClientService = {
         }
       }
 
-      // Country filter
+      
       if (country && country !== "All") {
         if (client.country?.toLowerCase() !== country.toLowerCase()) {
           return false;
         }
       }
 
-      // Status filter
+      
       if (status && status !== "All") {
         if (client.status?.toLowerCase() !== status.toLowerCase()) {
           return false;
@@ -112,7 +112,7 @@ export const crmClientService = {
       return true;
     });
 
-    // Sorting
+    
     filtered.sort((a, b) => {
       let valA = a[sortBy] || "";
       let valB = b[sortBy] || "";
@@ -142,7 +142,7 @@ export const crmClientService = {
     };
   },
 
-  // Get a single client by ID
+  
   getClientById: async (id) => {
     await delay(60);
     const all = loadClientsFromStorage();
@@ -150,7 +150,7 @@ export const crmClientService = {
     return found || null;
   },
 
-  // Create a new client (with projects & manpower requirements)
+  
   createClient: async (payload) => {
     await delay(120);
     const all = loadClientsFromStorage();
@@ -158,7 +158,7 @@ export const crmClientService = {
     const clientId = `cli-${Date.now().toString().slice(-6)}`;
     const now = new Date().toISOString();
 
-    // Standardize projects and their manpower requirements
+    
     const projects = (payload.projects || []).map((proj, pIdx) => {
       const projectId = proj.id || `prj-${clientId}-${pIdx + 1}`;
       const manpowerRequirements = (proj.manpowerRequirements || []).map((req, rIdx) => ({
@@ -221,7 +221,7 @@ export const crmClientService = {
     return newClient;
   },
 
-  // Update existing client
+  
   updateClient: async (id, payload) => {
     await delay(100);
     const all = loadClientsFromStorage();
@@ -238,7 +238,7 @@ export const crmClientService = {
     const existing = all[index];
     const now = new Date().toISOString();
 
-    // Preserve or merge projects
+    
     let updatedProjects = payload.projects ? [...payload.projects] : existing.projects || [];
     updatedProjects = updatedProjects.map((proj, pIdx) => {
       const projId = proj.id || `prj-${id}-${pIdx + 1}`;
@@ -275,7 +275,7 @@ export const crmClientService = {
     return updated;
   },
 
-  // Delete client
+  
   deleteClient: async (id) => {
     try {
       await apiClient.delete(`/crm-sync/clients/${id}`);
@@ -288,7 +288,7 @@ export const crmClientService = {
     return { success: true, id };
   },
 
-  // Add project to an existing client
+  
   addProject: async (clientId, projectData) => {
     await delay(100);
     let all = loadClientsFromStorage();
@@ -368,7 +368,7 @@ export const crmClientService = {
       console.warn("Failed to sync project to backend:", err);
     }
 
-    // Dispatch real-time notification to vendors
+    
     try {
       import("./crmVendorService.js").then(({ default: vendorService }) => {
         const vendors =
@@ -390,7 +390,7 @@ export const crmClientService = {
     return newProject;
   },
 
-  // Get a single project
+  
   getProjectById: async (clientId, projectId) => {
     await delay(60);
     const all = loadClientsFromStorage();
@@ -449,7 +449,7 @@ export const crmClientService = {
       : null;
   },
 
-  // Update a single project
+  
   updateProject: async (clientId, projectId, projectData) => {
     await delay(100);
     const all = loadClientsFromStorage();
@@ -497,7 +497,7 @@ export const crmClientService = {
     return client.projects[pIdx];
   },
 
-  // Toggle project status between Active and Inactive
+  
   toggleProjectStatus: async (clientId, projectId) => {
     await delay(80);
     const all = loadClientsFromStorage();
@@ -542,7 +542,7 @@ export const crmClientService = {
     return client.projects[pIdx];
   },
 
-  // Delete a project
+  
   deleteProject: async (clientId, projectId) => {
     try {
       if (clientId) {
@@ -562,7 +562,7 @@ export const crmClientService = {
       client.updatedAt = new Date().toISOString();
       saveClientsToStorage(all);
     } else {
-      // Also pull from any other client in storage
+      
       all.forEach((c) => {
         if (Array.isArray(c.projects)) {
           c.projects = c.projects.filter(
@@ -575,7 +575,7 @@ export const crmClientService = {
     return { success: true, id: projectId };
   },
 
-  // Add a manpower position to a project
+  
   addManpowerPosition: async (clientId, projectId, positionData) => {
     await delay(80);
     const all = loadClientsFromStorage();
@@ -606,7 +606,7 @@ export const crmClientService = {
     return newPosition;
   },
 
-  // Delete a manpower position
+  
   deleteManpowerPosition: async (clientId, projectId, positionId) => {
     await delay(80);
     const all = loadClientsFromStorage();
@@ -624,7 +624,7 @@ export const crmClientService = {
     return { success: true };
   },
 
-  // Update a manpower position
+  
   updateManpowerPosition: async (clientId, projectId, positionId, positionData) => {
     await delay(80);
     const all = loadClientsFromStorage();
@@ -653,7 +653,7 @@ export const crmClientService = {
     return project.manpowerRequirements[mIdx];
   },
 
-  // Get aggregated stats for Admin Dashboard
+  
   getDashboardStats: async () => {
     await delay(80);
     const all = loadClientsFromStorage();
@@ -681,7 +681,7 @@ export const crmClientService = {
       }
     });
 
-    // Recent 5 clients
+    
     const recentClients = [...all]
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
       .slice(0, 5)
@@ -696,12 +696,12 @@ export const crmClientService = {
         createdAt: client.createdAt,
       }));
 
-    // Active projects count
+    
     const activeProjects = allProjects.filter(
       (p) => (p.status || "Active").toLowerCase() === "active"
     ).length;
 
-    // Recent projects (up to 8 for dashboard overview)
+    
     const recentProjects = allProjects
       .sort((a, b) => new Date(b.startDate || 0) - new Date(a.startDate || 0))
       .slice(0, 8);
@@ -717,7 +717,7 @@ export const crmClientService = {
     };
   },
 
-  // Get all projects across all clients with rich client details, search, and filters
+  
   getAllProjects: async ({
     search = "",
     status = "All",
@@ -787,15 +787,15 @@ export const crmClientService = {
     };
   },
 
-  // Reset local storage back to default initial mock data
+  
   resetToMockData: () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialClients));
     return initialClients;
   },
 
-  // ------------------------------------------------------------------------
-  // CLIENT PAYMENT LEDGER METHODS
-  // ------------------------------------------------------------------------
+  
+  
+  
   getClientPayments: async (params = {}) => {
     try {
       const res = await apiClient.get("/admin/client-payments", { params });
@@ -806,7 +806,7 @@ export const crmClientService = {
       console.warn("Backend getClientPayments failed, falling back to local storage:", err.message);
     }
 
-    // Local Storage Fallback
+    
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
     let list = JSON.parse(localPaymentsRaw);
 
@@ -851,7 +851,7 @@ export const crmClientService = {
       console.warn("Backend recordClientPayment failed, saving to local storage:", err.message);
     }
 
-    // Local Storage fallback & sync
+    
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
     const list = JSON.parse(localPaymentsRaw);
 
@@ -867,7 +867,7 @@ export const crmClientService = {
     list.unshift(newTx);
     localStorage.setItem("crm_client_payments_v1", JSON.stringify(list));
 
-    // Update local client milestone balance
+    
     const clients = loadClientsFromStorage();
     const cIdx = clients.findIndex((c) => String(c.id) === String(paymentData.clientId));
     if (cIdx !== -1) {
@@ -907,7 +907,7 @@ export const crmClientService = {
       console.warn("Backend getLedgerStats failed, computing locally:", err.message);
     }
 
-    // Local calculation
+    
     const clients = loadClientsFromStorage();
     let relevantClients = clients;
     if (clientId && clientId !== "ALL") {
@@ -996,9 +996,9 @@ export const crmClientService = {
     throw new Error("Payment record not found");
   },
 
-  // ------------------------------------------------------------------------
-  // CLIENT PROJECT EXPENSES METHODS
-  // ------------------------------------------------------------------------
+  
+  
+  
   getClientExpenses: async (clientId) => {
     try {
       const res = await apiClient.get(`/admin/expenses/client/${clientId}`);

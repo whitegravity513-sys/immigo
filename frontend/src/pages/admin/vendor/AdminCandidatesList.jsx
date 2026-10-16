@@ -110,9 +110,7 @@ export default function AdminCandidatesList() {
       if (fresh) setSelectedCandidate(fresh);
       const history = await crmVendorService.getCandidateSubmissionsHistory(selectedCandidate.id);
       setSubmissionHistory(history || []);
-    } catch {
-      // ignore
-    }
+    } catch {}
     loadData();
   };
 
@@ -445,50 +443,24 @@ export default function AdminCandidatesList() {
       data = data.filter((c) => new Date(c.createdAt || Date.now()) <= new Date(filters.dateTo));
     }
 
-    const excelRows = data.map((c, idx) => {
-      const overallStatus = getCandidateOverallStatus(c.id);
+    const excelRows = data.map((c) => {
       const candApps = applications.filter((a) => a.candidateId === c.id);
       const app = candApps[candApps.length - 1];
-      const plan = app?.paymentPlan;
-      const totalFee = plan?.totalAmount || 40000;
-      const paidAmt = (plan?.milestones || [])
-        .filter((m) => m.status === "Paid" || m.paymentStatus === "Approved")
-        .reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
-      const paymentStatus = paidAmt >= totalFee ? "Fully Paid" : paidAmt > 0 ? "Partially Paid" : "Payment Due";
 
       return {
-        "S.No": idx + 1,
-        "Candidate ID": c.id || `CAND-${idx + 1}`,
-        "Candidate Full Name": c.fullName || "—",
-        "Father / Guardian Name": c.fatherName || c.guardianName || "—",
-        Gender: c.gender || "Male",
-        "Date of Birth": c.dob || c.birthDate || "—",
-        Age: c.age || "—",
-        "Contact Number": c.phone || "—",
-        "Email Address": c.email || "—",
-        "Passport Number": c.passportNumber || "—",
-        "Passport Expiry": c.passportExpiry || "—",
-        Nationality: c.nationality || "Indian",
-        "Full Address": c.address || "—",
-        "City / District": c.city || "—",
-        State: c.state || "—",
-        "Trade / Current Position": c.currentPosition || "—",
-        "Experience (Years)": c.experienceYears != null ? `${c.experienceYears} Years` : "—",
-        "Highest Qualification": c.qualification || "—",
-        "Key Skills": Array.isArray(c.skills) ? c.skills.join(", ") : c.skills || "—",
-        "Preferred Destination Country": c.preferredCountry || "—",
-        "Sourcing Vendor / Agency": getVendorName(c.vendorId),
-        "Vendor ID": c.vendorId || "—",
-        "Assigned Project": app?.projectName || "Not Assigned",
-        "Overall Status": overallStatus,
-        "Total Placement Fee (₹)": totalFee,
-        "Paid Fee (₹)": paidAmt,
-        "Balance Fee (₹)": Math.max(0, totalFee - paidAmt),
-        "Payment Status": paymentStatus,
-        "Medical / GAMCA Status": c.medicalStatus || "Pending",
-        "Date Added": c.createdAt
-          ? new Date(c.createdAt).toLocaleDateString("en-IN")
-          : new Date().toLocaleDateString("en-IN"),
+        "Name": c.fullName || "—",
+        "Passport No.": c.passportNumber || "—",
+        "Date of issue": c.passportIssueDate || c.dateOfIssue || "—",
+        "Date of Expiry": c.passportExpiryDate || c.passportExpiry || "—",
+        "DOB": c.dob || c.birthDate || "—",
+        "Gender": c.gender || "Male",
+        "Trade": c.trade || c.currentPosition || "—",
+        "Project": app?.projectName || c.project || c.projectName || "Not Assigned",
+        "Qualification": c.qualification || "—",
+        "Experience": c.experienceYears != null ? (typeof c.experienceYears === "number" ? `${c.experienceYears} Years` : c.experienceYears) : "—",
+        "Vendor": getVendorName(c.vendorId) || c.vendorName || "—",
+        "Skill": Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—"),
+        "State": c.state || "—",
       };
     });
 

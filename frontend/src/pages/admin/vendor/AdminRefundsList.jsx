@@ -21,8 +21,6 @@ export default function AdminRefundsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showAll, setShowAll] = useState(false);
-
-  // Refund Action Modal
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [processTotalPaid, setProcessTotalPaid] = useState("");
   const [processRefundAmount, setProcessRefundAmount] = useState("");
@@ -182,7 +180,7 @@ export default function AdminRefundsList() {
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto font-sans p-3 sm:p-5">
-      {/* Header (Compact & Refined) */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Refund Management</h1>
@@ -204,7 +202,7 @@ export default function AdminRefundsList() {
         </div>
       </div>
 
-      {/* Filters & Search */}
+      {}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative max-w-md w-full">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -234,7 +232,7 @@ export default function AdminRefundsList() {
         </div>
       </div>
 
-      {/* Refunds Table */}
+      {}
       {loading ? (
         <div className="p-10 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-7 h-7 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -248,7 +246,7 @@ export default function AdminRefundsList() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-          {/* Top Control Bar (5 items default + See All toggle) */}
+          {}
           <div className="px-4 py-2.5 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -346,7 +344,7 @@ export default function AdminRefundsList() {
             </table>
           </div>
 
-          {/* Bottom Bar: See All on Full Page */}
+          {}
           {filtered.length > 5 && !showAll && (
             <div className="p-2.5 bg-slate-50 border-t border-slate-200 text-center">
               <button
@@ -361,7 +359,7 @@ export default function AdminRefundsList() {
         </div>
       )}
 
-      {/* Process Refund Modal */}
+      {}
       {selectedRefund && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -381,7 +379,7 @@ export default function AdminRefundsList() {
               </button>
             </div>
 
-            {/* Candidate & Project Details */}
+            {}
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-medium">Vendor Agency:</span>
@@ -397,7 +395,7 @@ export default function AdminRefundsList() {
               </div>
             </div>
 
-            {/* Total Paid by Vendor */}
+            {}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 Total Paid by Vendor (₹)
@@ -416,7 +414,7 @@ export default function AdminRefundsList() {
               <p className="text-[11px] text-slate-400 mt-0.5">Amount received from the vendor for this candidate.</p>
             </div>
 
-            {/* Refund Amount to Return (Admin enters this) */}
+            {}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800">
@@ -440,7 +438,7 @@ export default function AdminRefundsList() {
                 />
               </div>
 
-              {/* Quick Preset Buttons if totalPaid > 0 */}
+              {}
               {Number(processTotalPaid) > 0 && (
                 <div className="flex items-center gap-1.5 pt-1">
                   <span className="text-[10px] text-slate-400 font-bold uppercase">Quick Set:</span>
@@ -469,7 +467,7 @@ export default function AdminRefundsList() {
               )}
             </div>
 
-            {/* Payment Reference */}
+            {}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 Payment Reference / Transaction ID
@@ -503,7 +501,7 @@ export default function AdminRefundsList() {
         </div>
       )}
 
-      {/* Reject Refund Modal */}
+      {}
       {rejectRefundModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
@@ -526,7 +524,7 @@ export default function AdminRefundsList() {
         </div>
       )}
 
-      {/* Edit Refund Modal */}
+      {}
       {editRefundModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">

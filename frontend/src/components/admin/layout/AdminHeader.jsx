@@ -93,7 +93,7 @@ export const AdminHeader = ({
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
-          {/* Switch to Admin Dashboard */}
+          {}
           <Link
             to="/dashboard"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600 text-cyan-200 hover:text-white border border-cyan-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs"

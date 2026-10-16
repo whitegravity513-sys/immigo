@@ -40,7 +40,7 @@ export function HrLayout({
           {children}
         </main>
 
-        {/* Footer */}
+        {}
         <AppFooter role="admin" />
       </div>
     </div>

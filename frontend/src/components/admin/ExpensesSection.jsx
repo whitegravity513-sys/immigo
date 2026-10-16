@@ -885,7 +885,7 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {/* Slide-Over Side Drawer for Expense Claim Review, Approval & Payment Disbursal */}
+      {}
       {reviewModalOpen && selectedClaim && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div
@@ -895,7 +895,7 @@ export default function ExpensesSection({
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
-              {/* Header */}
+              {}
               <div className="px-6 py-4 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">
                 <div>
                   <h4 className="text-base font-black tracking-tight">
@@ -913,7 +913,7 @@ export default function ExpensesSection({
                 </button>
               </div>
 
-              {/* Drawer Body */}
+              {}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-left">
                 {reviewError && (
                   <div className="p-3 bg-rose-50 border border-rose-300 text-rose-800 rounded-xl text-xs font-semibold flex items-center gap-2">
@@ -928,7 +928,7 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                {/* Claim Summary Card */}
+                {}
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee</span>
@@ -979,7 +979,7 @@ export default function ExpensesSection({
                   )}
                 </div>
 
-                {/* Status Switcher / Settlement Form */}
+                {}
                 <div className="space-y-3 pt-2">
                   <label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
                     Update Claim Status & Payment
@@ -1030,7 +1030,7 @@ export default function ExpensesSection({
                     </button>
                   </div>
 
-                  {/* Payment Details Form if Paid selected */}
+                  {}
                   {reviewAction === "Paid" && (
                     <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
                       <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider block">
@@ -1075,7 +1075,7 @@ export default function ExpensesSection({
                     </div>
                   )}
 
-                  {/* Admin Remarks */}
+                  {}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600 block">
                       Admin Remarks / Notes for Employee
@@ -1091,7 +1091,7 @@ export default function ExpensesSection({
                 </div>
               </div>
 
-              {/* Drawer Footer Actions */}
+              {}
               <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2.5">
                 <button
                   type="button"

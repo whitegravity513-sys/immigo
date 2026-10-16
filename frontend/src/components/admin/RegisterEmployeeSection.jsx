@@ -156,7 +156,7 @@ export const RegisterEmployeeSection = ({
 
   return (
     <div className="w-full space-y-6 text-left">
-      {/* Top Header Card */}
+      {}
       <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <button
@@ -202,9 +202,9 @@ export const RegisterEmployeeSection = ({
         </div>
       )}
 
-      {/* Main Registration Form */}
+      {}
       <form onSubmit={onSubmit} className="space-y-6">
-        {/* Section 1: Photo & ID Summary */}
+        {}
         <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-slate-50 border border-slate-200/80 rounded-2xl">
             <div className="flex items-center gap-4">
@@ -263,7 +263,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {/* Core Identity & Portal Credentials */}
+          {}
           <div>
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <User size={15} className="text-blue-600" />
@@ -430,7 +430,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {/* Section 2: Role & Address */}
+          {}
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Briefcase size={15} className="text-blue-600" />
@@ -485,7 +485,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {/* Section 3: Career History & Compensation */}
+          {}
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Award size={15} className="text-blue-600" />
@@ -563,7 +563,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          {/* Section 4: Document Repository */}
+          {}
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <FileText size={15} className="text-blue-600" />
@@ -654,7 +654,7 @@ export const RegisterEmployeeSection = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {}
         <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs flex items-center justify-between gap-3">
           <button
             type="button"

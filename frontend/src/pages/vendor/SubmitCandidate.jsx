@@ -43,13 +43,13 @@ export default function SubmitCandidate() {
   const [excludedBusyCount, setExcludedBusyCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Tabs: 'All' | 'fresh' | 'rejected' | 'in_progress'
+  
   const [categoryFilter, setCategoryFilter] = useState("All");
 
-  // Flow State
+  
   const [currentStep, setCurrentStep] = useState(1);
 
-  // Form State
+  
   const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("");
@@ -58,10 +58,10 @@ export default function SubmitCandidate() {
   );
   const [vendorNotes, setVendorNotes] = useState("");
 
-  // Search
+  
   const [candidateSearch, setCandidateSearch] = useState("");
 
-  // Submission State
+  
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(null);
@@ -104,7 +104,7 @@ export default function SubmitCandidate() {
       setApplications(appRes || []);
 
       const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
-      // Merge all real projects created by Admin
+      
       const allFound = [];
       const seenProjIds = new Set();
       const addProj = (p, c) => {
@@ -132,7 +132,7 @@ export default function SubmitCandidate() {
 
       setAvailableProjectsList(allFound);
 
-      // APPLICATION STATUSES THAT DISQUALIFY A CANDIDATE FROM APPEARING IN ASSIGN CANDIDATE:
+      
       const busyDisqualifyingStatuses = [
         "Selected",
         "Shortlisted",
@@ -207,7 +207,7 @@ export default function SubmitCandidate() {
       setCandidates(eligibleCandidates);
       setBusyCandidates(inProgressCandidates);
 
-      // Preselection handler
+      
       const preselectedProjId = searchParams.get("projectId") || searchParams.get("project");
       if (preselectedProjId) {
         const matchingClient = clientList.find((c) =>
@@ -271,7 +271,7 @@ export default function SubmitCandidate() {
     return list;
   }, [availableProjectsList, clients]);
 
-  // Automatically select target project if there's only 1 project available
+  
   useEffect(() => {
     if (allProjects.length === 1 && !selectedProjectId) {
       handleSelectProjectByName(allProjects[0].id);
@@ -326,7 +326,7 @@ export default function SubmitCandidate() {
     }
   };
 
-  // Filter candidates by category tab and search text
+  
   const displaySourceList = categoryFilter === "in_progress" ? busyCandidates : candidates;
 
   const filteredCandidates = displaySourceList.filter((c) => {
@@ -360,7 +360,7 @@ export default function SubmitCandidate() {
     }
   };
 
-  // Quick single-candidate assign action
+  
   const handleDirectAssignCandidate = (candidateId) => {
     setSelectedCandidateIds([candidateId]);
     setErrorMessage("");
@@ -393,7 +393,7 @@ export default function SubmitCandidate() {
       return;
     }
 
-    // Validation for already submitted to this project
+    
     const alreadySubmitted = selectedCandidateIds.filter(cid => 
       applications.some(
         a => a.candidateId === cid && String(a.projectId) === String(selectedProjectId) && a.status !== "Rejected"
@@ -433,7 +433,7 @@ export default function SubmitCandidate() {
         position: selectedPosition
       });
       
-      // Reload data - submitted candidates will now automatically be excluded!
+      
       await loadData();
     } catch (err) {
       console.error("Assignment failed:", err);
@@ -470,7 +470,7 @@ export default function SubmitCandidate() {
 
   return (
     <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 font-sans">
-      {/* Top Header */}
+      {}
       <div className="mb-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -498,7 +498,7 @@ export default function SubmitCandidate() {
           </div>
         </div>
 
-        {/* Quick KPI Stats Summary */}
+        {}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
           <div
             onClick={() => setCategoryFilter("All")}
@@ -597,10 +597,10 @@ export default function SubmitCandidate() {
         </div>
       )}
 
-      {/* STEP 1: Candidate Selection Table */}
+      {}
       {currentStep === 1 && !submitSuccess && (
         <div className="bg-white rounded-2xl border border-slate-300 shadow-xs w-full overflow-hidden flex flex-col">
-          {/* Header & Controls */}
+          {}
           <div className="p-4 sm:p-5 border-b border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -630,9 +630,9 @@ export default function SubmitCandidate() {
               </div>
             </div>
 
-            {/* Filter Tabs & Search */}
+            {}
             <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              {/* Category Filter Tabs */}
+              {}
               <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold overflow-x-auto">
                 <button
                   type="button"
@@ -683,7 +683,7 @@ export default function SubmitCandidate() {
                 </button>
               </div>
 
-              {/* Search Bar */}
+              {}
               <div className="relative flex-1 sm:max-w-xs">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -715,7 +715,7 @@ export default function SubmitCandidate() {
             )}
           </div>
 
-          {/* Candidates Table */}
+          {}
           <div className="overflow-x-auto bg-white max-h-[500px]">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
@@ -931,7 +931,7 @@ export default function SubmitCandidate() {
             </table>
           </div>
 
-          {/* Table Footer with Summary */}
+          {}
           <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span className="text-slate-500">
               Showing <strong className="text-slate-900">{filteredCandidates.length}</strong> of{" "}
@@ -952,7 +952,7 @@ export default function SubmitCandidate() {
         </div>
       )}
 
-      {/* STEP 2: Project Selection Form */}
+      {}
       {currentStep === 2 && !submitSuccess && (
         <form onSubmit={handleOpenConfirm} className="space-y-4">
           <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-4 sm:p-5">
@@ -975,7 +975,7 @@ export default function SubmitCandidate() {
               </button>
             </div>
 
-            {/* Selected Candidates Preview Strip */}
+            {}
             <div className="mb-4 p-3 bg-blue-50/50 rounded-xl border border-blue-200 text-xs">
               <span className="font-bold text-blue-900 block mb-1">
                 Selected Candidate(s) for Assignment ({selectedCandidateIds.length}):
@@ -1122,7 +1122,7 @@ export default function SubmitCandidate() {
         </form>
       )}
 
-      {/* Confirmation Modal */}
+      {}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-300 space-y-4">

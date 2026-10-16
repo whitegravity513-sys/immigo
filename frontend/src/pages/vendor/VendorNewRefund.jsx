@@ -25,14 +25,14 @@ export default function VendorNewRefund() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
 
-      // Get all apps for vendor
+      
       const apps = await crmVendorService.getApplications(curVendor?.id);
       
-      // Get all existing refunds to filter out ones that already have a request
+      
       const existingRefunds = await refundService.getAllRefunds();
       const existingAppIds = existingRefunds.map(r => r.applicationId);
 
-      // Eligible apps: Selected or Completed, and not already requested
+      
       const eligible = (apps || []).filter(
         (a) => (a.status === "Selected" || a.status === "Completed") && !existingAppIds.includes(a.id)
       );
@@ -71,7 +71,7 @@ export default function VendorNewRefund() {
         vendorName: vendor?.companyName || "Vendor",
         projectName: app.projectName,
         reason: reason,
-        documentPath: "", // Mocking optional image upload for now
+        documentPath: "", 
       });
 
       navigate("/vendor/refunds");
@@ -107,7 +107,7 @@ export default function VendorNewRefund() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Step 1: Select Candidate */}
+          {}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
               1. Select Candidate
@@ -151,7 +151,7 @@ export default function VendorNewRefund() {
             )}
           </div>
 
-          {/* Step 2: Reason */}
+          {}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
               2. Reason for Refund
@@ -166,7 +166,7 @@ export default function VendorNewRefund() {
             />
           </div>
 
-          {/* Step 3: Optional Image/Proof */}
+          {}
           <div>
             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
               3. Supporting Document / Image (Optional)

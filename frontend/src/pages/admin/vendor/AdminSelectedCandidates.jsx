@@ -21,8 +21,6 @@ export default function AdminSelectedCandidates() {
   const [selectedApps, setSelectedApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Milestone Edit Modal State
   const [milestoneModalApp, setMilestoneModalApp] = useState(null);
   const [totalAmount, setTotalAmount] = useState(40000);
   const [milestonesList, setMilestonesList] = useState([]);
@@ -58,7 +56,7 @@ export default function AdminSelectedCandidates() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Selected Candidates & Milestone Management</h1>
@@ -74,7 +72,7 @@ export default function AdminSelectedCandidates() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -86,7 +84,7 @@ export default function AdminSelectedCandidates() {
         />
       </div>
 
-      {/* Selected Candidates Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

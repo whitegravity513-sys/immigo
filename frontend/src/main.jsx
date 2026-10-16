@@ -6,7 +6,7 @@ import { UIProvider } from "./context/UIContext.jsx";
 import App from "./App.jsx";
 import "./index.css";
 
-// Auto-reload on new deployments when old chunk hashes fail to load
+
 window.addEventListener("vite:preloadError", (event) => {
   event?.preventDefault?.();
   window.location.reload();

@@ -27,8 +27,6 @@ export default function AdminSubmissionsList() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Review Modal State
   const [reviewSub, setReviewSub] = useState(null);
   const [shortlistRemark, setShortlistRemark] = useState("");
   const [interviewDate, setInterviewDate] = useState("");
@@ -63,7 +61,6 @@ export default function AdminSubmissionsList() {
     setInterviewRemarks(sub.interviewDetails?.remark || "");
     setRejectionReason(sub.rejectionReason || "");
 
-    // Default docs verification state
     const docsState = {};
     const docs = sub.documents || [
       { id: "d1", name: "Passport Document", fileName: "Passport.pdf", status: "Pending" },
@@ -199,7 +196,7 @@ export default function AdminSubmissionsList() {
     <div className="space-y-6 max-w-7xl mx-auto font-sans">
       {!reviewSub ? (
         <>
-      {/* Header */}
+      {}
       <div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Candidate Submissions & Verification</h1>
         <p className="text-xs text-slate-500 mt-0.5">
@@ -207,7 +204,7 @@ export default function AdminSubmissionsList() {
         </p>
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
         {["All", "Submitted", "Shortlisted", "Interview Scheduled", "Selected", "Completed"].map((tab) => {
           const count = submissions.filter((s) => (tab === "All" ? true : s.status === tab)).length;
@@ -228,7 +225,7 @@ export default function AdminSubmissionsList() {
         })}
       </div>
 
-      {/* Search Bar */}
+      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -240,7 +237,7 @@ export default function AdminSubmissionsList() {
         />
       </div>
 
-      {/* Submissions Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -315,7 +312,7 @@ export default function AdminSubmissionsList() {
           </div>
           
           <div className="bg-white rounded-2xl w-full p-5 sm:p-6 shadow-2xs border border-slate-200 space-y-5">
-            {/* Header */}
+            {}
             <div className="flex items-start justify-between border-b border-slate-100 pb-3.5">
               <div>
                 <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest block">
@@ -330,7 +327,7 @@ export default function AdminSubmissionsList() {
               </div>
             </div>
 
-            {/* Document Verification Section */}
+            {}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -388,9 +385,9 @@ export default function AdminSubmissionsList() {
               </div>
             </div>
 
-            {/* Workflow Action Tabs */}
+            {}
             <div className="space-y-4 pt-1">
-              {/* Shortlist Section */}
+              {}
               <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -423,7 +420,7 @@ export default function AdminSubmissionsList() {
                 </button>
               </div>
 
-              {/* Schedule Interview Section */}
+              {}
               <div className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -491,14 +488,14 @@ export default function AdminSubmissionsList() {
                 </button>
               </div>
 
-              {/* Final Decision: Select or Reject */}
+              {}
               <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
                 <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
                   3. Final Outcome (After Interview)
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Select */}
+                  {}
                   <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/70 space-y-2">
                     <span className="font-bold text-emerald-900 text-xs block">
                       Select Candidate
@@ -516,7 +513,7 @@ export default function AdminSubmissionsList() {
                     </button>
                   </div>
 
-                  {/* Reject */}
+                  {}
                   <div className="p-3 rounded-xl border border-rose-200 bg-rose-50/70 space-y-2">
                     <span className="font-bold text-rose-900 text-xs block">
                       Reject Candidate

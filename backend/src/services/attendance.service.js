@@ -396,7 +396,7 @@ export class AttendanceService {
   static async checkOut(employeeId, location = {}, checkOutNote = "") {
     const today = getTodayDateString();
 
-    // Enforce Today's Work Log before Check Out
+    
     let worklog = await DailyWorkLog.findOne({ employee: employeeId, date: today });
     if (!worklog || !worklog.logText || !worklog.logText.trim()) {
       if (checkOutNote && checkOutNote.trim()) {

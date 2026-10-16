@@ -39,7 +39,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
     return () => clearInterval(interval);
   }, [vendor?.id]);
 
-  // Click outside to close notifications dropdown
+  
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) {
@@ -99,7 +99,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
 
   return (
     <header className="h-16 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white border-b border-blue-800/80 sticky top-0 z-20 px-4 sm:px-6 flex items-center justify-between shadow-md font-sans">
-      {/* Left: Mobile Toggle & Page Title */}
+      {}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -120,9 +120,9 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
         </div>
       </div>
 
-      {/* Right: Vendor Info, Notifications, Profile, Logout */}
+      {}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Vendor Header Pill */}
+        {}
         <div className="hidden md:flex flex-col text-right">
           <div className="flex items-center gap-1.5 justify-end">
             <span className="text-xs font-bold text-white max-w-[180px] truncate leading-tight">
@@ -143,7 +143,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
           </span>
         </div>
 
-        {/* Notifications Dropdown */}
+        {}
         <div className="relative" ref={notifRef}>
           <button
             type="button"
@@ -256,7 +256,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
           )}
         </div>
 
-        {/* Profile Link */}
+        {}
         <Link
           to="/vendor/profile"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-700/50 bg-indigo-950/40 hover:bg-indigo-900/60 text-slate-200 transition-colors text-xs font-semibold cursor-pointer"

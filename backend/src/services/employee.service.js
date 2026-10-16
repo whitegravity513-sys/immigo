@@ -540,7 +540,7 @@ export class EmployeeService {
 
     const todayStr = getTodayDateString();
 
-    // Determine calculation range bounds
+    
     let calcStartDate = customStartDate || monthStartDate;
     if (joiningDateStr && joiningDateStr > calcStartDate) {
       calcStartDate = joiningDateStr;
@@ -553,7 +553,7 @@ export class EmployeeService {
       }
     }
 
-    // Working days strictly within [calcStartDate, calcEndDate]
+    
     const periodWorkingDays = workingDays.filter((d) => d >= calcStartDate && d <= calcEndDate);
 
     let presentCount = 0;
@@ -717,11 +717,11 @@ export class EmployeeService {
       }
     });
 
-    // Pro-rate salary accurately for evaluated period
+    
     const paidDays = Math.max(0, presentCount - (halfDayCount * 0.5) + totalLeaveDays + periodHolidays + periodWeeklyOffs);
     const earnedSalary = Math.round(paidDays * perDaySalary);
 
-    // Filter out Upcoming dates: display past to today chronologically (upper sa niche)
+    
     const displayDailyRecords = dailyRecords
       .filter((r) => r.status !== "Before Joining" && r.status !== "Upcoming" && (!r.date || r.date <= todayStr));
 

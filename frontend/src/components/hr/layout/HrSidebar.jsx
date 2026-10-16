@@ -102,7 +102,7 @@ export function HrSidebar({
           collapsed ? "w-[72px]" : "w-[260px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Brand Top Bar */}
+        {}
         <div className="h-16 px-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
           <Link
             to="/hr/dashboard"
@@ -137,7 +137,7 @@ export function HrSidebar({
           )}
         </div>
 
-        {/* Back to Main Admin Button */}
+        {}
         <div className="px-3 pt-3">
           <Link
             to="/admin/dashboard"
@@ -152,7 +152,7 @@ export function HrSidebar({
           </Link>
         </div>
 
-        {/* Navigation List */}
+        {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           {!collapsed && (
             <p className="px-3 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">
@@ -188,7 +188,7 @@ export function HrSidebar({
           })}
         </div>
 
-        {/* Profile Footer */}
+        {}
         <div className="p-3 border-t border-gray-100 bg-gray-50/60 space-y-2 shrink-0">
           <div
             className={`flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-200 shadow-2xs ${

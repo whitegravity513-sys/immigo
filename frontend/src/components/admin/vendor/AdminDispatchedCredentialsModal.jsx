@@ -28,7 +28,7 @@ export function AdminDispatchedCredentialsModal({
           </p>
         </div>
 
-        {/* Generated Details Box */}
+        {}
         <div className="bg-slate-50/90 rounded-2xl border border-slate-200 p-4 text-left text-xs space-y-3">
           <div className="flex justify-between items-center border-b border-slate-200 pb-2">
             <span className="text-slate-500 font-semibold">Agency Name:</span>

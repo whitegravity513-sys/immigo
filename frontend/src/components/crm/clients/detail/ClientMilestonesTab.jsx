@@ -37,7 +37,7 @@ export function ClientMilestonesTab({
 }) {
   const navigate = useNavigate();
 
-  // Expenses State
+  
   const [clientExpenses, setClientExpenses] = useState([]);
   const [loadingExpenses, setLoadingExpenses] = useState(false);
   const [expenseStats, setExpenseStats] = useState({
@@ -46,13 +46,13 @@ export function ClientMilestonesTab({
     pendingExpenses: 0,
   });
 
-  // Table Filters & Search
+  
   const [paymentSearch, setPaymentSearch] = useState("");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("All");
   const [expenseSearch, setExpenseSearch] = useState("");
   const [expenseStatusFilter, setExpenseStatusFilter] = useState("All");
 
-  // Modal State for Viewing Transaction Details
+  
   const [activeVoucher, setActiveVoucher] = useState(null);
   const [voucherType, setVoucherType] = useState("payment");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,7 +91,7 @@ export function ClientMilestonesTab({
     client.totalAgreedAmount ||
     milestones.reduce((s, m) => s + (Number(m.paymentAmount) || Number(m.amount) || 0), 0);
 
-  // Filter only verified payments for confirmed received amount
+  
   const verifiedPayments = clientPayments.filter(
     (p) =>
       !p.isReversed &&
@@ -108,7 +108,7 @@ export function ClientMilestonesTab({
 
   const remainingClientPayment = Math.max(0, totalAgreed - totalVerifiedReceived);
 
-  // Expense calculations
+  
   const totalExpensesRecorded =
     expenseStats.totalExpensesRecorded ||
     clientExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
@@ -125,7 +125,7 @@ export function ClientMilestonesTab({
       .filter((e) => e.status === "Pending" || e.status === "Approved")
       .reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
-  // Net Cash Flow = Verified Receipts - Paid Expenses
+  
   const netCashFlow = totalVerifiedReceived - totalExpensesPaid;
 
   const completedCount = milestones.filter(
@@ -159,7 +159,7 @@ export function ClientMilestonesTab({
     Overdue: "bg-rose-50 text-rose-700 border-rose-200",
   };
 
-  // Filtered Payments
+  
   const filteredPayments = clientPayments.filter((p) => {
     const matchesSearch =
       !paymentSearch.trim() ||
@@ -177,7 +177,7 @@ export function ClientMilestonesTab({
     return matchesSearch && matchesStatus;
   });
 
-  // Filtered Expenses
+  
   const filteredExpenses = clientExpenses.filter((e) => {
     const matchesSearch =
       !expenseSearch.trim() ||
@@ -203,9 +203,9 @@ export function ClientMilestonesTab({
 
   return (
     <div className="space-y-6">
-      {/* 1. TOP SUMMARY CARDS (7 Essential Financial Metrics) */}
+      {}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {/* Total Agreed */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <IndianRupee size={12} className="text-blue-600" />
@@ -219,7 +219,7 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {/* Total Received (Verified Only) */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
             <Receipt size={12} className="text-emerald-600" />
@@ -233,7 +233,7 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {/* Remaining Client Payment */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
           <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1">
             <TrendingUp size={12} className="text-amber-600" />
@@ -247,7 +247,7 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {/* Total Expenses Recorded */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <Layers size={12} className="text-purple-600" />
@@ -261,7 +261,7 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {/* Total Expenses Paid */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
           <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
             <TrendingDown size={12} className="text-rose-600" />
@@ -275,7 +275,7 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {/* Pending Expenses */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
           <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider flex items-center gap-1">
             <Clock size={12} className="text-orange-500" />
@@ -289,7 +289,7 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {/* Net Cash Flow */}
+        {}
         <div
           className={`rounded-xl border p-4 shadow-2xs ${
             netCashFlow >= 0
@@ -322,7 +322,7 @@ export function ClientMilestonesTab({
         </div>
       </div>
 
-      {/* Action Bar & Progress Bar */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1">
@@ -348,7 +348,7 @@ export function ClientMilestonesTab({
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            {/* View in Payment Ledger */}
+            {}
             <Link
               to={`/client/payments-expenses?clientId=${client.id || client._id}`}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors"
@@ -357,7 +357,7 @@ export function ClientMilestonesTab({
               <span>Full Ledger</span>
             </Link>
 
-            {/* Record Payment Button -> NEW PAGE */}
+            {}
             <Link
               to={`/client/payments/record?clientId=${client.id || client._id}`}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/25 transition-all cursor-pointer"
@@ -366,7 +366,7 @@ export function ClientMilestonesTab({
               <span>Record Payment</span>
             </Link>
 
-            {/* Add Expense Button -> NEW PAGE */}
+            {}
             <Link
               to={`/client/expenses/add?clientId=${client.id || client._id}`}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm shadow-rose-600/25 transition-all cursor-pointer"
@@ -378,7 +378,7 @@ export function ClientMilestonesTab({
         </div>
       </div>
 
-      {/* 2. CONFIGURED PAYMENT MILESTONES TABLE */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -492,7 +492,7 @@ export function ClientMilestonesTab({
         )}
       </div>
 
-      {/* 3. SECTION: PAYMENT RECEIVED TABLE (Client se humein mila) */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50/20">
           <div>
@@ -509,7 +509,7 @@ export function ClientMilestonesTab({
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Search */}
+            {}
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -521,7 +521,7 @@ export function ClientMilestonesTab({
               />
             </div>
 
-            {/* Status Filter */}
+            {}
             <select
               value={paymentStatusFilter}
               onChange={(e) => setPaymentStatusFilter(e.target.value)}
@@ -534,7 +534,7 @@ export function ClientMilestonesTab({
               <option value="Completed">Completed</option>
             </select>
 
-            {/* See All Button */}
+            {}
             <Link
               to={`/client/payments-expenses?clientId=${client.id || client._id}&tab=received`}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-100/70 hover:bg-emerald-200/80 border border-emerald-200 rounded-lg transition-colors"
@@ -543,7 +543,7 @@ export function ClientMilestonesTab({
               <ExternalLink size={12} />
             </Link>
 
-            {/* Record Payment Button */}
+            {}
             <Link
               to={`/client/payments/record?clientId=${client.id || client._id}`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors"
@@ -633,7 +633,7 @@ export function ClientMilestonesTab({
               </tbody>
             </table>
 
-            {/* Footer with See All Link */}
+            {}
             <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
               <span className="text-xs text-gray-500 font-medium">
                 Showing {Math.min(3, filteredPayments.length)} of {filteredPayments.length} payment receipts
@@ -650,7 +650,7 @@ export function ClientMilestonesTab({
         )}
       </div>
 
-      {/* 4. SECTION: EXPENSE PAID TABLE (Client ya project ke liye humne kharch kiya) */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-rose-50/20">
           <div>

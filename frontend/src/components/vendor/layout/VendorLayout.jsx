@@ -10,13 +10,13 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [vendor, setVendor] = useState(() => crmVendorService.getCurrentVendor());
 
-  // Real-time synchronization with backend & local state
+  
   useEffect(() => {
     let isMounted = true;
 
     const syncVendor = async () => {
       try {
-        // Fetch fresh state from backend
+        
         const fresh = await crmVendorService.getVendorMe();
         if (fresh && isMounted) {
           setVendor((prev) => {
@@ -35,7 +35,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
           return;
         }
       } catch {
-        // Fallback to local storage check
+        
       }
 
       if (isMounted) {
@@ -77,7 +77,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
 
   return (
     <div className="h-screen flex overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
-      {/* Sidebar - disabled until fully onboarded with signed MOU */}
+      {}
       <VendorSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
@@ -85,7 +85,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
         disabled={!isFullyUnlocked}
       />
 
-      {/* Main Content Area */}
+      {}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-full overflow-hidden">
         <VendorNavbar
           mobileOpen={mobileOpen}

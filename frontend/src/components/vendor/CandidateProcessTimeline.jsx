@@ -19,14 +19,14 @@ import { apiClient } from "../../services/apiClient.js";
 import appConfig from "../../config/appConfig.js";
 
 export default function CandidateProcessTimeline({ application, isAdmin = false, onUpdate }) {
-  const [activeStageForm, setActiveStageForm] = useState(null); // { mId, sId }
+  const [activeStageForm, setActiveStageForm] = useState(null); 
   const [stageRemark, setStageRemark] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [paymentAction, setPaymentAction] = useState(null); // { mId, action: 'Approve' | 'Reject' | 'Submit' }
+  const [paymentAction, setPaymentAction] = useState(null); 
   const [paymentRemark, setPaymentRemark] = useState("");
   
-  // Detailed vendor payment form
+  
   const [vendorPaymentForm, setVendorPaymentForm] = useState({
     date: new Date().toISOString().split('T')[0],
     method: "Bank Transfer",
@@ -84,7 +84,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
       if (action === "Submit") {
         const targetM = (application.processMilestones || []).find((m) => m.id === mId);
         const mAmount = Number(targetM?.paymentAmount || targetM?.amount || 0);
-        // Serialize form data with exact milestone amount
+        
         const payload = `[${vendorPaymentForm.method}] Amount: ₹${mAmount.toLocaleString()} | TXN: ${vendorPaymentForm.txnId} | Date: ${vendorPaymentForm.date} | Remark: ${vendorPaymentForm.remark}`;
         await crmVendorService.submitMilestonePayment(application.id, mId, payload); 
         alert("Offline payment details submitted successfully! Pending Admin verification.");
@@ -118,7 +118,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
       let orderId = `order_${Date.now()}`;
       let orderAmount = Math.round(parsedAmount * 100);
 
-      // Attempt backend order creation via configured API URL (not hardcoded localhost)
+      
       try {
         const orderRes = await apiClient.post("/payments/create-order", {
           amount: parsedAmount,
@@ -140,7 +140,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
         currency: "INR",
         name: "ImmiGo Recruitment & Operations",
         description: `Milestone Payment: ${targetM?.name || "Processing Stage"}`,
-        order_id: orderId.startsWith("order_") && orderId.length > 20 ? undefined : orderId, // If fallback mock order ID, Razorpay standard checkout accepts direct amount
+        order_id: orderId.startsWith("order_") && orderId.length > 20 ? undefined : orderId, 
         prefill: {
           name: application.candidateName || "Candidate Sponsor",
           email: "support@immigo.com",
@@ -148,7 +148,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
         },
         handler: async function (response) {
           try {
-            // Optional backend signature verification
+            
             try {
               if (response.razorpay_signature) {
                 await apiClient.post("/payments/verify-payment", {
@@ -183,7 +183,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
 
       const executeCheckout = () => {
         if (!window.Razorpay) {
-          // If script still not found on Vercel, offer quick simulation
+          
           const proceedSim = window.confirm(
             `Razorpay Checkout SDK is loading or blocked.\n\nDo you want to complete this Milestone Payment (₹${parsedAmount.toLocaleString()}) via Instant Test Payment?`
           );
@@ -231,8 +231,8 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
   return (
     <div className="space-y-6">
       {application.processMilestones.map((milestone, index) => {
-        // Sequential Milestone logic:
-        // Check if previous milestone is completed
+        
+        
         const prevMilestone = index > 0 ? application.processMilestones[index - 1] : null;
         const isPrevCompleted = index === 0 || 
           prevMilestone?.status === "Completed" || 
@@ -247,7 +247,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
         const requiresPayment = amt > 0 && !isApproved;
         const isActive = !isLocked && !isCompleted;
         
-        // Hide completed milestones for Admin to focus on active ones
+        
         if (isAdmin && isCompleted) return null;
         
         return (
@@ -293,7 +293,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
               </div>
             </div>
 
-            {/* Locked Milestone notice if previous milestone is not finished */}
+            {}
             {isLocked && (
               <div className="mb-3 p-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs flex items-center gap-2">
                 <Lock size={15} className="text-slate-400 shrink-0" />
@@ -303,7 +303,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
               </div>
             )}
 
-            {/* Locked stages notice if payment pending on this unlocked milestone */}
+            {}
             {!isLocked && requiresPayment && (
               <div className="mb-3 p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-center gap-2 shadow-2xs">
                 <Lock size={15} className="text-amber-600 shrink-0" />
@@ -326,7 +326,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
 
                 return (
                   <div key={stage.id} className="relative pl-6">
-                    {/* Timeline Dot */}
+                    {}
                     <div className={`absolute -left-[25px] top-1 w-3 h-3 rounded-full border-2 ${
                       sCompleted ? "bg-emerald-500 border-emerald-500" :
                       sInProgress ? "bg-white border-indigo-500 ring-4 ring-indigo-50" :
@@ -360,7 +360,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                           </div>
                         )}
 
-                        {/* Visa Document Display for Vendor & Admin */}
+                        {}
                         {stage.visaDocumentUrl && (
                           <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2 shadow-2xs">
                             <div className="flex items-center gap-2">
@@ -383,7 +383,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                           </div>
                         )}
 
-                        {/* Visa Upload for Admin on Visa-related Stage */}
+                        {}
                         {isAdmin && (stage.name?.toLowerCase().includes("visa") || sIdx === milestone.stages.length - 1) && !stage.visaDocumentUrl && (
                           <div className="mt-2 p-2 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between gap-2 text-xs">
                             <span className="text-[11px] font-bold text-indigo-900 flex items-center gap-1">
@@ -445,7 +445,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
               })}
             </div>
 
-            {/* Payment Section (ONLY when milestone is unlocked and has amount or payment record) */}
+            {}
             {!isLocked && (amt > 0 || isApproved || isPaymentSubmitted) && (
               <div className="mt-4 pt-4 border-t border-slate-100 bg-slate-50/50 -mx-4 -mb-4 p-4 rounded-b-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -464,7 +464,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                       Ref: {milestone.paymentRef}
                     </p>
                   )}
-                  {/* View Invoice / Receipt button ONLY when payment is genuinely APPROVED - Opens in a dedicated NEW PAGE/TAB */}
+                  {}
                   {isApproved && (
                     <div className="mt-2">
                       <button
@@ -479,7 +479,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                   )}
                 </div>
 
-                {/* Admin Actions */}
+                {}
                 {isAdmin && isPaymentSubmitted && !paymentAction && (
                   <div className="flex gap-2">
                     <button
@@ -497,7 +497,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                   </div>
                 )}
 
-                {/* Vendor Actions */}
+                {}
                 {!isAdmin && requiresPayment && !isPaymentSubmitted && !paymentAction && (
                   <div className="flex gap-2">
                     <button

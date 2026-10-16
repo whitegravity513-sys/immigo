@@ -76,7 +76,7 @@ export default function RecordClientExpensePage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Load clients
+  
   useEffect(() => {
     const fetchClients = async () => {
       setLoadingClients(true);
@@ -105,7 +105,7 @@ export default function RecordClientExpensePage() {
     fetchClients();
   }, [initialClientId, expenseId]);
 
-  // Load existing expense if edit mode
+  
   useEffect(() => {
     if (expenseId) {
       const loadExpenseData = async () => {
@@ -211,7 +211,7 @@ export default function RecordClientExpensePage() {
         showToast("Expense recorded successfully!", "success");
       }
 
-      // Navigate back
+      
       if (formData.clientId) {
         navigate(`/client/clients/${formData.clientId}?tab=milestones`);
       } else {
@@ -227,7 +227,7 @@ export default function RecordClientExpensePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* Top Bar */}
+      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -264,7 +264,7 @@ export default function RecordClientExpensePage() {
         </div>
       </div>
 
-      {/* Main Form */}
+      {}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
@@ -275,7 +275,7 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Client Select */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Client Organization <span className="text-rose-500">*</span>
@@ -300,7 +300,7 @@ export default function RecordClientExpensePage() {
               )}
             </div>
 
-            {/* Project Select */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Project Name (Optional)
@@ -339,7 +339,7 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        {/* Expense Info Card */}
+        {}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">2. Expense Classification & Amount</h2>
@@ -349,7 +349,7 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* Category */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Expense Category <span className="text-rose-500">*</span>
@@ -367,7 +367,7 @@ export default function RecordClientExpensePage() {
               </select>
             </div>
 
-            {/* Amount */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Expense Amount (₹) <span className="text-rose-500">*</span>
@@ -396,7 +396,7 @@ export default function RecordClientExpensePage() {
               )}
             </div>
 
-            {/* Paid To */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Paid To (Vendor / Employee / Person)
@@ -411,7 +411,7 @@ export default function RecordClientExpensePage() {
             </div>
           </div>
 
-          {/* Description */}
+          {}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
               Expense Description / Purpose <span className="text-rose-500">*</span>
@@ -434,7 +434,7 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        {/* Settlement & Status Details Card */}
+        {}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">3. Payment Method & Status</h2>
@@ -444,7 +444,7 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            {/* Status */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Expense Status <span className="text-rose-500">*</span>
@@ -462,7 +462,7 @@ export default function RecordClientExpensePage() {
               </select>
             </div>
 
-            {/* Payment Date */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Payment Date <span className="text-rose-500">*</span>
@@ -475,7 +475,7 @@ export default function RecordClientExpensePage() {
               />
             </div>
 
-            {/* Payment Method */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Payment Method
@@ -493,7 +493,7 @@ export default function RecordClientExpensePage() {
               </select>
             </div>
 
-            {/* Transaction Ref */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Transaction Ref / UTR {formData.status === "Paid" && <span className="text-rose-500">*</span>}
@@ -517,7 +517,7 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-            {/* Recorded By */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Recorded By
@@ -530,7 +530,7 @@ export default function RecordClientExpensePage() {
               />
             </div>
 
-            {/* Remarks */}
+            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Remarks / Audit Note (Optional)
@@ -545,7 +545,7 @@ export default function RecordClientExpensePage() {
             </div>
           </div>
 
-          {/* Proof Upload */}
+          {}
           <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
               Bill / Invoice / Payment Proof Attachment (Optional)
@@ -571,7 +571,7 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        {/* Notice Info Card */}
+        {}
         <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 flex items-start gap-3 text-xs text-blue-900">
           <Info size={18} className="text-blue-600 shrink-0 mt-0.5" />
           <p>
@@ -579,7 +579,7 @@ export default function RecordClientExpensePage() {
           </p>
         </div>
 
-        {/* Bottom Actions */}
+        {}
         <div className="flex items-center justify-end gap-3 pt-4">
           <button
             type="button"

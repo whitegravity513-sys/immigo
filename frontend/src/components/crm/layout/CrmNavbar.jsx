@@ -27,7 +27,7 @@ export function CrmNavbar({
   const [searchVal, setSearchVal] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Generate dynamic breadcrumb
+  
   const pathParts = location.pathname.split("/").filter(Boolean);
 
   const getBreadcrumbs = () => {
@@ -70,7 +70,7 @@ export function CrmNavbar({
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between gap-4 select-none">
-      {/* Left: Mobile Toggle / Collapse Button & Breadcrumbs */}
+      {}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -90,7 +90,7 @@ export function CrmNavbar({
           {collapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
         </button>
 
-        {/* Breadcrumb Navigation */}
+        {}
         <nav className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500 min-w-0">
           {breadcrumbs.map((crumb, idx) => {
             const isLast = idx === breadcrumbs.length - 1;
@@ -113,9 +113,9 @@ export function CrmNavbar({
         </nav>
       </div>
 
-      {/* Center/Right: Global Search, Quick Action, Notification & Profile */}
+      {}
       <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-        {/* Quick Search */}
+        {}
         <div className="relative hidden md:block w-56 lg:w-72">
           <Search size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
           <input
@@ -136,10 +136,10 @@ export function CrmNavbar({
           )}
         </div>
 
-        {/* Notification Bell */}
+        {}
         <NotificationBell className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer border border-gray-200" />
 
-        {/* Admin Profile Avatar */}
+        {}
         <div className="flex items-center gap-2.5 pl-2 border-l border-gray-200">
           <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
             {adminName.charAt(0).toUpperCase()}

@@ -4,7 +4,6 @@ const getApiBaseUrl = () => {
 
   let rawUrl = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL || "";
 
-  // If running on production / deployed domain (e.g. Vercel) and URL is either empty or pointing to localhost
   if (!isLocalHost) {
     if (!rawUrl || rawUrl.includes("localhost") || rawUrl.includes("127.0.0.1")) {
       rawUrl = "https://immigo.onrender.com/api";

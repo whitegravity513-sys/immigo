@@ -25,7 +25,7 @@ export default function VendorProjects() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("All");
-  const [viewMode, setViewMode] = useState("list"); // Default to list view as requested
+  const [viewMode, setViewMode] = useState("list"); 
 
   const vendor = crmVendorService.getCurrentVendor();
 
@@ -67,7 +67,7 @@ export default function VendorProjects() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-      {/* Page Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
@@ -79,7 +79,7 @@ export default function VendorProjects() {
         </div>
       </div>
 
-      {/* Filter & View Switcher Bar */}
+      {}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -93,7 +93,7 @@ export default function VendorProjects() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Country Filter */}
+          {}
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
             <Globe size={14} className="text-blue-600" />
             <span>Country:</span>
@@ -111,7 +111,7 @@ export default function VendorProjects() {
             ))}
           </select>
 
-          {/* List / Grid View Switcher */}
+          {}
           <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 ml-auto md:ml-0">
             <button
               type="button"
@@ -143,7 +143,7 @@ export default function VendorProjects() {
         </div>
       </div>
 
-      {/* Projects Content */}
+      {}
       {loading ? (
         <div className="p-16 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
           <div className="w-9 h-9 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -162,7 +162,7 @@ export default function VendorProjects() {
           </p>
         </div>
       ) : viewMode === "list" ? (
-        /* TABLE / LIST VIEW */
+        
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export default function VendorProjects() {
                       key={proj.id}
                       className="hover:bg-blue-50/40 transition-colors group"
                     >
-                      {/* Project Name & ID */}
+                      {}
                       <td className="py-3.5 px-4">
                         <div className="space-y-0.5">
                           <Link
@@ -219,7 +219,7 @@ export default function VendorProjects() {
                         </div>
                       </td>
 
-                      {/* Client */}
+                      {}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
                           <Building2 size={13} className="text-blue-600 shrink-0" />
@@ -227,7 +227,7 @@ export default function VendorProjects() {
                         </div>
                       </td>
 
-                      {/* Country & Location */}
+                      {}
                       <td className="py-3.5 px-4">
                         <div className="space-y-0.5">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/80">
@@ -242,7 +242,7 @@ export default function VendorProjects() {
                         </div>
                       </td>
 
-                      {/* Trades */}
+                      {}
                       <td className="py-3.5 px-4">
                         {trades.length > 0 ? (
                           <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
@@ -271,7 +271,7 @@ export default function VendorProjects() {
                         )}
                       </td>
 
-                      {/* Headcount */}
+                      {}
                       <td className="py-3.5 px-4 text-center">
                         <span className="inline-flex items-center gap-1 font-bold text-slate-800 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
                           <Users size={12} className="text-blue-600" />
@@ -279,7 +279,7 @@ export default function VendorProjects() {
                         </span>
                       </td>
 
-                      {/* Status */}
+                      {}
                       <td className="py-3.5 px-4 text-center">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -287,7 +287,7 @@ export default function VendorProjects() {
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      {}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end">
                           <Link
@@ -308,7 +308,7 @@ export default function VendorProjects() {
           </div>
         </div>
       ) : (
-        /* GRID VIEW */
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredProjects.map((proj) => {
             const trades = proj.manpowerRequirements || [];
@@ -318,7 +318,7 @@ export default function VendorProjects() {
                 className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all p-5 flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
-                  {/* Top Tags */}
+                  {}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -346,7 +346,7 @@ export default function VendorProjects() {
                     </div>
                   </div>
 
-                  {/* Location & Duration info */}
+                  {}
                   <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50/80 p-3 rounded-xl border border-slate-100">
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">
@@ -367,7 +367,7 @@ export default function VendorProjects() {
                     </div>
                   </div>
 
-                  {/* Trades Required */}
+                  {}
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1.5">
                       Required Trade Positions ({trades.length})
@@ -393,7 +393,7 @@ export default function VendorProjects() {
                   </div>
                 </div>
 
-                {/* Card Bottom Actions */}
+                {}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
                   <Link
                     to={`/vendor/projects/${proj.id}`}

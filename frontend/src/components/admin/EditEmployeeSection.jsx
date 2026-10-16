@@ -89,7 +89,7 @@ export default function EditEmployeeSection({
 
   return (
     <div className="space-y-5 text-slate-800 max-w-5xl mx-auto pb-10">
-      {/* Top Navigation & Header */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <button
@@ -134,9 +134,9 @@ export default function EditEmployeeSection({
         </div>
       )}
 
-      {/* Main Form */}
+      {}
       <form onSubmit={onSubmit} className="space-y-5">
-        {/* Section 1: Basic & Personal Info */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
             <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
@@ -225,7 +225,7 @@ export default function EditEmployeeSection({
           </div>
         </div>
 
-        {/* Section 2: Role, Department & Joining Dates */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
             <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
@@ -353,7 +353,7 @@ export default function EditEmployeeSection({
           </div>
         </div>
 
-        {/* Section 3: Password & Credentials Management (User Key Requirement) */}
+        {}
         <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 rounded-2xl border-2 border-blue-200/90 p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-blue-100">
             <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
@@ -368,7 +368,7 @@ export default function EditEmployeeSection({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Previous / Current Password */}
+            {}
             <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
@@ -422,7 +422,7 @@ export default function EditEmployeeSection({
               </p>
             </div>
 
-            {/* New Password Input */}
+            {}
             <div className="p-4 bg-white rounded-xl border border-blue-200 shadow-2xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-extrabold text-blue-900 flex items-center gap-1.5">
@@ -479,7 +479,7 @@ export default function EditEmployeeSection({
           </div>
         </div>
 
-        {/* Submit & Cancel Action Bar */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs text-slate-500 font-medium">
             Review all details before saving. All changes will be updated live across the database.

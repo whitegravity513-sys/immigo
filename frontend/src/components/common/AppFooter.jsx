@@ -47,7 +47,7 @@ export default function AppFooter({
 
         </div>
 
-        {/* Right Info & Branding */}
+        {}
         <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-white font-medium">
           <span>&copy; {currentYear} immiGo</span>
           <span className="text-blue-400">•</span>

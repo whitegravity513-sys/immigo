@@ -6,7 +6,7 @@ export function ProjectFacilitiesSection({ project }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Benefits & Facilities */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-4">
         <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
           <Gift size={16} className="text-blue-600" />
@@ -37,7 +37,7 @@ export function ProjectFacilitiesSection({ project }) {
         )}
       </div>
 
-      {/* Additional Requirements */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-4">
         <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
           <FileText size={16} className="text-blue-600" />

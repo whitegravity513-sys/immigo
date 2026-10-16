@@ -122,7 +122,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
         className="bg-white w-full max-w-[390px] sm:max-w-[420px] h-full shadow-2xl border-l border-slate-200/90 flex flex-col animate-in slide-in-from-right duration-200 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {}
         <div className="px-5 py-4 border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-blue-50/40 flex items-center justify-between shrink-0">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -149,9 +149,9 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
           </button>
         </div>
 
-        {/* Scrollable Form Body */}
+        {}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar text-slate-800">
-          {/* Employee Info Card */}
+          {}
           <div className="p-3 bg-slate-50/80 border border-slate-200/90 rounded-xl flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
               {String(empName).charAt(0).toUpperCase()}
@@ -164,7 +164,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
           </div>
 
-          {/* Feedback Alerts */}
+          {}
           {isPenalty && (
             <div className="flex items-start gap-2.5 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs">
               <ShieldAlert size={16} className="text-rose-500 mt-0.5 shrink-0" />
@@ -200,7 +200,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
           )}
 
-          {/* Form Fields: Date & Status */}
+          {}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
@@ -233,7 +233,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
           </div>
 
-          {/* Day Type (Full Day / Half Day) */}
+          {}
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
               Shift Day Type
@@ -248,7 +248,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </select>
           </div>
 
-          {/* Check-in & Check-out Times */}
+          {}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
@@ -277,7 +277,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
           </div>
 
-          {/* Waive Penalty Button */}
+          {}
           {isPenalty && (
             <button
               type="button"
@@ -291,7 +291,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
           )}
         </div>
 
-        {/* Footer Actions */}
+        {}
         <div className="p-4 border-t border-slate-200/80 bg-slate-50/70 flex items-center gap-2.5 shrink-0">
           <button
             type="button"

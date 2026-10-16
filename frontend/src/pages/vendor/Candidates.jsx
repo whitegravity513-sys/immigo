@@ -20,6 +20,7 @@ import {
   UserCheck,
   CheckCircle2,
   Video,
+  UploadCloud,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import * as XLSX from "xlsx";
@@ -34,7 +35,7 @@ export function Candidates() {
   const [positionFilter, setPositionFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
   const [selectedTag, setSelectedTag] = useState("All");
-  const [statusTab, setStatusTab] = useState("Available"); // Available (Available, Rejected, On Hold), Selected (Shortlisted, Selected), All
+  const [statusTab, setStatusTab] = useState("Available"); 
 
   const fetchCandidates = async () => {
     setLoading(true);
@@ -48,7 +49,7 @@ export function Candidates() {
         crmVendorService.getApplications(vendor?.id),
       ]);
 
-      // Calculate candidate deployment status from applications history
+      
       let enriched = candData.map((c) => {
         const cApps = (appData || []).filter((a) => a.candidateId === c.id);
         const selectedApp = cApps.find((a) => ["Selected", "Shortlisted", "Completed"].includes(a.status));
@@ -61,7 +62,7 @@ export function Candidates() {
         let interviewInfo = null;
 
         if (selectedApp) {
-          poolStatus = selectedApp.status; // Selected or Shortlisted
+          poolStatus = selectedApp.status; 
           lastProjectInfo = selectedApp.projectName || selectedApp.clientName;
         } else if (interviewApp) {
           poolStatus = "Interview";
@@ -83,7 +84,7 @@ export function Candidates() {
         };
       });
 
-      // Filter by tag if selected
+      
       if (selectedTag !== "All") {
         enriched = enriched.filter(
           (c) =>
@@ -93,12 +94,12 @@ export function Candidates() {
         );
       }
 
-      // Filter by statusTab
+      
       if (statusTab === "Available") {
-        // Includes Available, Rejected, and On Hold (all candidates reusable for new projects)
+        
         enriched = enriched.filter((c) => ["Available", "Rejected", "On Hold"].includes(c.poolStatus));
       } else if (statusTab === "Selected") {
-        // Includes Shortlisted, Interview and Selected on active project
+        
         enriched = enriched.filter((c) => ["Selected", "Shortlisted", "Completed", "Interview"].includes(c.poolStatus));
       }
 
@@ -121,7 +122,7 @@ export function Candidates() {
     }
   };
 
-  // Pagination state
+  
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
 
@@ -138,46 +139,118 @@ export function Candidates() {
   };
 
   const handleExportExcel = () => {
-    const excelRows = candidates.map((c, idx) => ({
-      "S.No": idx + 1,
-      "Candidate ID": c.id || `CAND-${idx + 1}`,
-      "Full Name": c.fullName || "—",
-      "Father / Guardian Name": c.fatherName || c.guardianName || "—",
+    const excelRows = candidates.map((c) => ({
+      "Name": c.fullName || "—",
+      "Passport No.": c.passportNumber || "—",
+      "Date of issue": c.passportIssueDate || c.dateOfIssue || "—",
+      "Date of Expiry": c.passportExpiryDate || c.passportExpiry || "—",
+      "DOB": c.dob || c.birthDate || "—",
       "Gender": c.gender || "Male",
-      "Date of Birth": c.dob || c.birthDate || "—",
-      "Age": c.age || "—",
-      "Phone Number": c.phone || "—",
-      "Email Address": c.email || "—",
-      "Passport Number": c.passportNumber || "—",
-      "Passport Expiry": c.passportExpiry || "—",
-      "Nationality": c.nationality || "Indian",
-      "Address": c.address || "—",
-      "City": c.city || "—",
+      "Trade": c.trade || c.currentPosition || "—",
+      "Project": c.projectName || c.lastProjectInfo || c.project || "Not Assigned",
+      "Qualification": c.qualification || "—",
+      "Experience": c.experienceYears != null ? (typeof c.experienceYears === "number" ? `${c.experienceYears} Years` : c.experienceYears) : "—",
+      "Vendor": vendor?.companyName || c.vendorName || "—",
+      "Skill": Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—"),
       "State": c.state || "—",
-      "Trade / Position": c.currentPosition || "—",
-      "Experience (Years)": c.experienceYears != null ? `${c.experienceYears} Years` : "—",
-      "Highest Qualification": c.qualification || "—",
-      "Skills": Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—"),
-      "Preferred Country": c.preferredCountry || "—",
-      "Medical Status": c.medicalStatus || "Pending",
-      "Created Date": c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(excelRows);
-    const colWidths = Object.keys(excelRows[0] || {}).map((key) => ({
-      wch: Math.max(key.length + 4, 15),
-    }));
-    worksheet["!cols"] = colWidths;
+    worksheet["!cols"] = [
+      { wch: 22 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 18 },
+      { wch: 28 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 25 },
+      { wch: 35 },
+      { wch: 18 },
+    ];
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Roster");
-    const filename = `Vendor_Candidates_${new Date().toISOString().split("T")[0]}.xlsx`;
+    const filename = `Candidates_${new Date().toISOString().split("T")[0]}.xlsx`;
     XLSX.writeFile(workbook, filename);
+  };
+
+  const handleExcelImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target.result;
+        const workbook = XLSX.read(bstr, { type: "binary", cellDates: true });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+        if (!rows.length) {
+          alert("The uploaded spreadsheet is empty.");
+          return;
+        }
+
+        let importedCount = 0;
+        for (const row of rows) {
+          const name = row["Name"] || row["Candidate Name"] || row["Full Name"];
+          if (!name) continue;
+
+          const passportNo = row["Passport No."] || row["Passport Number"] || row["Passport"] || "";
+          const dateOfIssue = row["Date of issue"] || row["Issue Date"] || "";
+          const dateOfExpiry = row["Date of Expiry"] || row["Expiry Date"] || "";
+          const dob = row["DOB"] || row["Date of Birth"] || "";
+          const gender = row["Gender"] || "Male";
+          const trade = row["Trade"] || row["Position"] || "";
+          const project = row["Project"] || "Not Assigned";
+          const qualification = row["Qualification"] || "";
+          const experience = row["Experience"] || 0;
+          const skill = row["Skill"] || row["Skills"] || "";
+          const state = row["State"] || "";
+
+          const candidateData = {
+            fullName: String(name).trim(),
+            passportNumber: String(passportNo).trim().toUpperCase(),
+            passportIssueDate: String(dateOfIssue).trim(),
+            dateOfIssue: String(dateOfIssue).trim(),
+            passportExpiryDate: String(dateOfExpiry).trim(),
+            passportExpiry: String(dateOfExpiry).trim(),
+            dob: String(dob).trim(),
+            gender: String(gender).trim() || "Male",
+            currentPosition: String(trade).trim(),
+            trade: String(trade).trim(),
+            project: String(project).trim(),
+            projectName: String(project).trim(),
+            qualification: String(qualification).trim(),
+            experienceYears: experience ? Number(experience) : 0,
+            skills: skill ? String(skill).split(",").map((s) => s.trim()).filter(Boolean) : [],
+            state: String(state).trim(),
+            vendorId: vendor?.id || "VND-1001",
+            vendorName: vendor?.companyName || "Vendor Partner",
+            status: "Available",
+          };
+
+          await crmVendorService.createCandidate(vendor?.id, candidateData);
+          importedCount++;
+        }
+
+        alert(`Successfully imported ${importedCount} candidates from Excel!`);
+        fetchCandidates();
+      } catch (err) {
+        alert(`Failed to import Excel: ${err.message}`);
+      }
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = "";
   };
 
   return (
     <div className="space-y-5 font-sans">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
@@ -193,11 +266,22 @@ export function Candidates() {
             type="button"
             onClick={handleExportExcel}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors shadow-2xs cursor-pointer"
-            title="Download complete candidates roster in Excel"
+            title="Download candidates in Excel format"
           >
             <Download size={14} />
             <span>Export Excel</span>
           </button>
+
+          <label className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors shadow-2xs cursor-pointer">
+            <UploadCloud size={14} />
+            <span>Import Excel</span>
+            <input
+              type="file"
+              accept=".xlsx, .xls, .csv"
+              onChange={handleExcelImport}
+              className="hidden"
+            />
+          </label>
 
           <Link
             to="/vendor/submit-candidate"
@@ -217,7 +301,6 @@ export function Candidates() {
         </div>
       </div>
 
-      {/* Candidate Availability Tabs */}
       <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-fit text-xs font-bold">
         <button
           type="button"
@@ -254,10 +337,8 @@ export function Candidates() {
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-          {/* Search */}
           <div className="relative sm:col-span-2 lg:col-span-2">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -302,7 +383,6 @@ export function Candidates() {
         </div>
       </div>
 
-      {/* Candidates List / Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-10 text-center text-slate-400 text-xs font-semibold">Loading candidates...</div>
@@ -343,7 +423,6 @@ export function Candidates() {
                 <tbody className="divide-y divide-slate-100">
                   {paginatedCandidates.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Candidate Identity */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           {c.photo ? (
@@ -371,14 +450,12 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      {/* Position */}
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-slate-800 block">
                           {c.currentPosition}
                         </span>
                       </td>
 
-                      {/* Availability & Reusability Status */}
                       <td className="py-3.5 px-4">
                         {c.poolStatus === "Rejected" ? (
                           <div>
@@ -430,7 +507,6 @@ export function Candidates() {
                         )}
                       </td>
 
-                      {/* Experience & Qualification */}
                       <td className="py-3.5 px-4 text-slate-600">
                         <div className="font-medium text-slate-800 flex items-center gap-1">
                           <Briefcase size={12} className="text-slate-400" />
@@ -441,7 +517,6 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      {/* Skills & Tags */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-wrap gap-1 max-w-[180px]">
                           {(c.tags || c.skills || []).slice(0, 3).map((tag, i) => (
@@ -455,7 +530,6 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      {/* Preferred Country */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1 font-medium text-slate-700">
                           <MapPin size={12} className="text-blue-500" />
@@ -463,7 +537,6 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      {/* Actions */}
                       <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
                         <Link
                           to={`/vendor/candidates/${c.id}`}
@@ -507,7 +580,6 @@ export function Candidates() {
               </table>
             </div>
 
-            {/* Pagination Controls Footer */}
             <div className="px-4 py-3 bg-slate-50/80 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
               <span className="text-slate-500 font-semibold">
                 Showing <strong className="text-slate-800">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</strong> to{" "}

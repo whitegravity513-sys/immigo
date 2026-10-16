@@ -48,7 +48,7 @@ export function ProjectLayout({
             {children}
           </main>
 
-          {/* Footer */}
+          {}
           <AppFooter role="admin" />
         </div>
 

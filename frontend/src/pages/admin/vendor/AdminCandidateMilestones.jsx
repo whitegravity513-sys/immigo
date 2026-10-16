@@ -96,14 +96,12 @@ export default function AdminCandidateMilestones() {
 
           setMilestonesList(formatted);
 
-          // Find first milestone that is NOT yet fully completed
           const firstIncompleteIdx = formatted.findIndex((m) => {
             const allStagesDone = (m.stages || []).length > 0 && m.stages.every((s) => s.status === "Completed");
             return !allStagesDone;
           });
           setActiveMilestoneIdx(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0);
         } else {
-          // Default milestones
           const defaults = [
             {
               id: "m0",
@@ -138,7 +136,6 @@ export default function AdminCandidateMilestones() {
     }
   };
 
-  // Stage modification handlers
   const handleStageStatusChange = (mIdx, sIdx, newStatus) => {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].status = newStatus;
@@ -148,10 +145,8 @@ export default function AdminCandidateMilestones() {
       updated[mIdx].stages[sIdx].completedAt = null;
     }
 
-    // If all stages of current milestone are completed and there is a next milestone:
     const allCurrentStagesDone = updated[mIdx].stages.every((s) => s.status === "Completed");
     if (allCurrentStagesDone && mIdx < updated.length - 1) {
-      // Milestone completed! Next milestone payment is now Due if not already Paid
       if (updated[mIdx + 1].status !== "Paid") {
         updated[mIdx + 1].status = "Due";
       }
@@ -195,7 +190,6 @@ export default function AdminCandidateMilestones() {
     setMilestonesList(updated);
   };
 
-  // Direct file upload to stage AND candidate's profile
   const handleFileUploadForStage = (mIdx, sIdx, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -207,7 +201,6 @@ export default function AdminCandidateMilestones() {
       const docName = `${stageName} Proof`;
       const sizeStr = `${(file.size / 1024).toFixed(1)} KB`;
 
-      // 1. Attach to stage in active milestone
       const updated = [...milestonesList];
       const docObj = {
         name: docName,
@@ -219,7 +212,6 @@ export default function AdminCandidateMilestones() {
       updated[mIdx].stages[sIdx].document = docObj;
       setMilestonesList(updated);
 
-      // 2. Add to candidate's profile documents vault so it displays in candidate profile
       if (application?.candidateId) {
         try {
           await crmVendorService.addCandidateDocument(application.candidateId, {
@@ -247,7 +239,6 @@ export default function AdminCandidateMilestones() {
   const handleUnlockMilestone = (mIdx) => {
     const updated = [...milestonesList];
     updated[mIdx].status = "Paid";
-    // Unlock first stage
     if (updated[mIdx].stages?.length > 0) {
       if (updated[mIdx].stages[0].status === "Pending") {
         updated[mIdx].stages[0].status = "In Progress";
@@ -304,7 +295,7 @@ export default function AdminCandidateMilestones() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 font-sans antialiased text-slate-800 pb-20">
-      {/* Top Navigation */}
+      {}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
@@ -318,7 +309,7 @@ export default function AdminCandidateMilestones() {
         </span>
       </div>
 
-      {/* Candidate Overview Card */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -348,7 +339,7 @@ export default function AdminCandidateMilestones() {
           </div>
         </div>
 
-        {/* ── SEQUENTIAL MILESTONE STEPPER TABS ───────────────────────── */}
+        {}
         <div className="pt-2 border-t border-slate-100">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
             Sequential Milestone Timeline:
@@ -402,10 +393,10 @@ export default function AdminCandidateMilestones() {
         </div>
       </div>
 
-      {/* ── ACTIVE MILESTONE STAGE EXECUTION SECTION ───────────────────── */}
+      {}
       {currentMilestone && (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          {/* Active Milestone Header */}
+          {}
           <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div
@@ -453,7 +444,7 @@ export default function AdminCandidateMilestones() {
             </div>
           </div>
 
-          {/* Active Milestone Stages Body */}
+          {}
           <div className="p-6 space-y-4">
             {isCurrentPaid ? (
               <>

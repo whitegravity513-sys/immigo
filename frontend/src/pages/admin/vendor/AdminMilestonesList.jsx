@@ -25,7 +25,6 @@ export default function AdminMilestonesList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedAppIds, setExpandedAppIds] = useState([]);
 
-  // Bulk Template Modal
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [templateName, setTemplateName] = useState("Standard Recruitment 4-Milestone");
   const [templateTotal, setTemplateTotal] = useState(40000);
@@ -39,7 +38,6 @@ export default function AdminMilestonesList() {
     try {
       setLoading(true);
       const data = await crmVendorService.getApplications();
-      // Milestone management applies to selected/completed candidates or ones with payment plans
       const selectedApps = (data || []).filter(
         (a) =>
           (a.status === "Selected" || a.status === "Completed" || a.paymentPlan) &&
@@ -53,7 +51,6 @@ export default function AdminMilestonesList() {
     }
   };
 
-  // Compute Overall Financial Summaries across Candidates
   let totalFeeToCollect = 0;
   let totalFeeReleased = 0;
 
@@ -77,7 +74,6 @@ export default function AdminMilestonesList() {
 
   const totalRemainingPending = Math.max(0, totalFeeToCollect - totalFeeReleased);
 
-  // Filter candidates
   const filteredApps = applications.filter((app) => {
     const milestones =
       app.processMilestones?.length > 0
@@ -149,7 +145,7 @@ export default function AdminMilestonesList() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -169,7 +165,7 @@ export default function AdminMilestonesList() {
         </button>
       </div>
 
-      {/* Financial Summary Metric Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -215,7 +211,7 @@ export default function AdminMilestonesList() {
         </div>
       )}
 
-      {/* Filters & Search Bar */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {["All", "Due", "Partially Paid", "Fully Paid"].map((tab) => {
@@ -281,7 +277,7 @@ export default function AdminMilestonesList() {
         </div>
       </div>
 
-      {/* Grouped Candidates Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -339,7 +335,7 @@ export default function AdminMilestonesList() {
                   return (
                     <React.Fragment key={app.id}>
                       <tr className="hover:bg-slate-50/70 transition">
-                        {/* 1. Candidate & Project */}
+                        {}
                         <td className="py-4 px-4 sm:px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 font-bold flex items-center justify-center text-sm border border-slate-200 shrink-0">
@@ -356,7 +352,7 @@ export default function AdminMilestonesList() {
                           </div>
                         </td>
 
-                        {/* 2. Total Fee & Balance */}
+                        {}
                         <td className="py-4 px-4 whitespace-nowrap">
                           <div className="font-bold text-slate-900 text-xs sm:text-sm">
                             ₹{totalAmt.toLocaleString()}
@@ -373,7 +369,7 @@ export default function AdminMilestonesList() {
                           </div>
                         </td>
 
-                        {/* 3. Milestones Breakdown (ALL CHIPS IN ONE ROW) */}
+                        {}
                         <td className="py-4 px-4">
                           <div className="flex flex-wrap items-center gap-1.5 max-w-md">
                             {milestones.map((m, mIdx) => {
@@ -409,7 +405,7 @@ export default function AdminMilestonesList() {
                             })}
                           </div>
 
-                          {/* Mini Progress Bar */}
+                          {}
                           <div className="flex items-center gap-2 mt-2 w-48">
                             <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
                               <div
@@ -423,7 +419,7 @@ export default function AdminMilestonesList() {
                           </div>
                         </td>
 
-                        {/* 4. Payment Status Badge */}
+                        {}
                         <td className="py-4 px-4 whitespace-nowrap">
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 ${
@@ -442,7 +438,7 @@ export default function AdminMilestonesList() {
                           </span>
                         </td>
 
-                        {/* 5. Actions */}
+                        {}
                         <td className="py-4 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
@@ -458,7 +454,7 @@ export default function AdminMilestonesList() {
                         </td>
                       </tr>
 
-                      {/* Expanded Row Breakdown */}
+                      {}
                       {isExpanded && (
                         <tr className="bg-slate-50/80">
                           <td colSpan={5} className="p-4 sm:px-6">
@@ -557,7 +553,7 @@ export default function AdminMilestonesList() {
         </div>
       )}
 
-      {/* Bulk Template Modal */}
+      {}
       {showBulkModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">

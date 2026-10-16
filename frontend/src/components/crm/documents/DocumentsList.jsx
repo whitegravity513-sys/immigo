@@ -55,7 +55,7 @@ export function DocumentsList({
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Quick inline upload draft state
+  
   const [inlineDoc, setInlineDoc] = useState({
     name: "",
     type: "Trade License",
@@ -84,7 +84,7 @@ export function DocumentsList({
       }));
       setInlineError("");
     } else {
-      // Multiple files dropped / picked: batch add with smart names
+      
       const newItems = Array.from(files).map((f, idx) => {
         const sizeMB = (f.size / (1024 * 1024)).toFixed(2);
         const cleanName = f.name.replace(/\.[^/.]+$/, "");
@@ -167,7 +167,7 @@ export function DocumentsList({
     onChange([...documents, newDoc]);
     showToast(`Document "${newDoc.name}" attached successfully.`, "success");
 
-    // Reset inline form
+    
     setInlineDoc({
       name: "",
       type: "Trade License",
@@ -222,7 +222,7 @@ export function DocumentsList({
 
   return (
     <div className="space-y-5">
-      {/* Top summary header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
@@ -245,7 +245,7 @@ export function DocumentsList({
         </div>
       </div>
 
-      {/* INLINE DOCUMENT UPLOAD SECTION (Visible in Edit / Add Client) */}
+      {}
       {!readOnly && (
         <div className="bg-gradient-to-b from-blue-50/40 to-white rounded-xl border border-blue-200/80 p-4 sm:p-5 shadow-2xs space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -258,7 +258,7 @@ export function DocumentsList({
             </span>
           </div>
 
-          {/* Drag & Drop File Box */}
+          {}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -317,7 +317,7 @@ export function DocumentsList({
             </div>
           </div>
 
-          {/* Details input grid */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
             <div>
               <SelectField
@@ -371,7 +371,7 @@ export function DocumentsList({
             </div>
           </div>
 
-          {/* Action button row */}
+          {}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div className="text-[11px] text-gray-500">
               {inlineDoc.fileName ? (
@@ -413,7 +413,7 @@ export function DocumentsList({
         </div>
       )}
 
-      {/* LIST OF UPLOADED DOCUMENTS */}
+      {}
       {documents.length === 0 ? (
         <div className="p-8 text-center bg-gray-50/60 rounded-xl border border-dashed border-gray-300">
           <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center mx-auto mb-2.5">
@@ -465,7 +465,7 @@ export function DocumentsList({
                 )}
               </div>
 
-              {/* Attachment details & Expiry */}
+              {}
               <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500 flex-wrap gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1 truncate">
                   <span className="text-gray-400 font-mono text-[10px] truncate max-w-[180px]">
@@ -502,14 +502,14 @@ export function DocumentsList({
         </div>
       )}
 
-      {/* Add Document Modal */}
+      {}
       <AddDocumentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleAddModalDocument}
       />
 
-      {/* Confirm Delete Dialog */}
+      {}
       <ConfirmDialog
         isOpen={deleteIndex !== null}
         onClose={() => setDeleteIndex(null)}

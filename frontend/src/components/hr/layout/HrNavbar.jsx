@@ -43,9 +43,9 @@ export function HrNavbar({
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200 select-none">
-      {/* Top Bar */}
+      {}
       <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
-        {/* Left: Mobile Drawer Button, Collapse Toggle & Breadcrumb */}
+        {}
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
@@ -68,7 +68,7 @@ export function HrNavbar({
           <Breadcrumb items={breadcrumbs} />
         </div>
 
-        {/* Right: Quick Switch to Main Admin, Search, Profile */}
+        {}
         <div className="flex items-center gap-3 shrink-0">
           <Link
             to="/admin/dashboard"
@@ -107,7 +107,7 @@ export function HrNavbar({
         </div>
       </div>
 
-      {/* Title Sub-bar */}
+      {}
       <div className="px-4 sm:px-6 py-2.5 bg-slate-50/70 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
         <div>
           <h1 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight leading-tight">

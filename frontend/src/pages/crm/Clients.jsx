@@ -44,7 +44,7 @@ export function Clients() {
   const navigate = useNavigate();
   const { showToast } = useCrmToast();
 
-  // Direct add project modal state
+  
   const [addProjectTargetClient, setAddProjectTargetClient] = useState(null);
 
   const [clients, setClients] = useState([]);
@@ -52,14 +52,14 @@ export function Clients() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Filters state
+  
   const searchQuery = searchParams.get("search") || "";
   const countryFilter = searchParams.get("country") || "All";
   const statusFilter = searchParams.get("status") || "All";
   const currentPage = Number(searchParams.get("page")) || 1;
   const pageSize = 10;
 
-  // Active action menu client id
+  
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteClientTarget, setDeleteClientTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -195,7 +195,7 @@ export function Clients() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
@@ -217,7 +217,7 @@ export function Clients() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex-1 min-w-0 max-w-lg">
@@ -273,7 +273,7 @@ export function Clients() {
         </div>
       </div>
 
-      {/* Clients Table Card */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-6">
@@ -318,7 +318,7 @@ export function Clients() {
                       key={client.id}
                       className="hover:bg-blue-50/30 transition-colors duration-100"
                     >
-                      {/* Company Name & Type */}
+                      {}
                       <td className="py-3.5 px-4 sm:px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 font-bold text-xs flex items-center justify-center shrink-0">
@@ -339,7 +339,7 @@ export function Clients() {
                         </div>
                       </td>
 
-                      {/* Primary Contact */}
+                      {}
                       <td className="py-3.5 px-4">
                         {primaryContact ? (
                           <div className="min-w-0">
@@ -355,7 +355,7 @@ export function Clients() {
                         )}
                       </td>
 
-                      {/* Country */}
+                      {}
                       <td className="py-3.5 px-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200 text-gray-700 font-medium text-[11px]">
                           <MapPin size={11} className="text-blue-500" />
@@ -363,31 +363,31 @@ export function Clients() {
                         </span>
                       </td>
 
-                      {/* Projects Count */}
+                      {}
                       <td className="py-3.5 px-4 text-center font-bold text-gray-700">
                         <span className="inline-flex items-center justify-center min-w-6 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
                           {client.projects?.length || 0}
                         </span>
                       </td>
 
-                      {/* Manpower Total */}
+                      {}
                       <td className="py-3.5 px-4 text-center">
                         <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
                           {manpowerCount.toLocaleString()}
                         </span>
                       </td>
 
-                      {/* Status */}
+                      {}
                       <td className="py-3.5 px-4">
                         <StatusBadge status={client.status} size="sm" />
                       </td>
 
-                      {/* Created Date */}
+                      {}
                       <td className="py-3.5 px-4 text-gray-500 font-medium">
                         {formatDate(client.createdAt)}
                       </td>
 
-                      {/* Actions */}
+                      {}
                       <td className="py-3.5 px-4 text-center">
                         <div className="relative inline-flex items-center justify-center">
                           <button
@@ -473,7 +473,7 @@ export function Clients() {
           </div>
         )}
 
-        {/* Pagination */}
+        {}
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -483,7 +483,7 @@ export function Clients() {
         />
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {}
       <ConfirmDialog
         isOpen={deleteClientTarget !== null}
         onClose={() => setDeleteClientTarget(null)}
@@ -495,7 +495,7 @@ export function Clients() {
         variant="danger"
       />
 
-      {/* Direct In-Place Add Project Modal */}
+      {}
       <AddProjectModal
         isOpen={Boolean(addProjectTargetClient)}
         onClose={() => setAddProjectTargetClient(null)}

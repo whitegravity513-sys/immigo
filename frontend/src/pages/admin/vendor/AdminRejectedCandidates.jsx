@@ -47,7 +47,7 @@ export default function AdminRejectedCandidates() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Rejected Candidates</h1>
         <p className="text-xs text-slate-500 mt-0.5">
@@ -55,7 +55,7 @@ export default function AdminRejectedCandidates() {
         </p>
       </div>
 
-      {/* Candidate Reusability Banner */}
+      {}
       <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
         <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
@@ -64,7 +64,7 @@ export default function AdminRejectedCandidates() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -76,7 +76,7 @@ export default function AdminRejectedCandidates() {
         />
       </div>
 
-      {/* Rejected Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

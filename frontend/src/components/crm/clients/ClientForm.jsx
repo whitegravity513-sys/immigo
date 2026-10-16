@@ -37,7 +37,7 @@ const COMPANY_TYPES = [
   "Other",
 ];
 
-// Validation helpers
+
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email || "").trim());
 
@@ -70,7 +70,7 @@ export function ClientForm({
     phone: "",
     status: "Active",
 
-    // Address
+    
     country: "UAE",
     state: "",
     city: "",
@@ -78,15 +78,15 @@ export function ClientForm({
     address2: "",
     postalCode: "",
 
-    // Director Details (NEW)
+    
     directorName: "",
     directorEmail: "",
     directorMobile: "",
 
-    // PAN Details (NEW – MANDATORY)
+    
     panNumber: "",
 
-    // Contacts
+    
     contacts: [
       {
         id: "c-1",
@@ -101,14 +101,14 @@ export function ClientForm({
       },
     ],
 
-    // Additional Client Information
+    
     localLicenseNumber: "",
     notes: "",
 
-    // Client Legal & Compliance Documents
+    
     documents: [],
 
-    // Payment Milestones (Optional)
+    
     paymentMilestones: [],
   });
 
@@ -139,12 +139,12 @@ export function ClientForm({
         address2: initialData.address2 || "",
         postalCode: initialData.postalCode || "",
 
-        // Director Details
+        
         directorName: initialData.directorName || "",
         directorEmail: initialData.directorEmail || "",
         directorMobile: initialData.directorMobile || "",
 
-        // PAN
+        
         panNumber: initialData.panNumber || "",
 
         contacts:
@@ -193,14 +193,14 @@ export function ClientForm({
     }
   }, [initialData]);
 
-  // Handle simple fields
+  
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Handle contact list
+  
   const handleContactChange = (index, field, value) => {
     setFormData((prev) => {
       const updated = [...prev.contacts];
@@ -242,12 +242,12 @@ export function ClientForm({
     }));
   };
 
-  // Total Payment Handlers
+  
   const handleTotalPaymentChange = (e) => {
     const val = e.target.value;
     setTotalPaymentInput(val);
 
-    // If only 1 milestone exists, auto-sync its amount
+    
     if ((formData.paymentMilestones || []).length === 1) {
       setFormData((prev) => ({
         ...prev,
@@ -283,7 +283,7 @@ export function ClientForm({
     showToast(`Distributed ₹${total.toLocaleString("en-IN")} evenly across ${count} milestones`, "success");
   };
 
-  // Milestone Handlers
+  
   const handleMilestoneChange = (index, field, value) => {
     setFormData((prev) => {
       const updated = [...(prev.paymentMilestones || [])];
@@ -342,7 +342,7 @@ export function ClientForm({
     });
   };
 
-  // PAN file upload handler
+  
   const handlePanFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -358,11 +358,11 @@ export function ClientForm({
     setErrors((prev) => ({ ...prev, panFile: "" }));
   };
 
-  // Validation
+  
   const validate = () => {
     const newErrors = {};
 
-    // Company name is mandatory
+    
     if (!formData.companyName || !formData.companyName.trim()) {
       newErrors.companyName = "Company name is required";
     }
@@ -375,7 +375,7 @@ export function ClientForm({
       newErrors.directorEmail = "Enter a valid director email (e.g. director@company.com)";
     }
 
-    // Milestones are NOT mandatory: do not require milestones or conditions
+    
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -458,7 +458,7 @@ export function ClientForm({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Top Header Card */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
@@ -499,7 +499,7 @@ export function ClientForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* SECTION 1: COMPANY INFORMATION */}
+        {}
         <FormSection
           id="company"
           title="1. Company Information"
@@ -593,7 +593,7 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 2: DIRECTOR DETAILS */}
+        {}
         <FormSection
           id="director"
           title="2. Director Details"
@@ -647,7 +647,7 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 3: CLIENT ADDRESS */}
+        {}
         <FormSection
           id="address"
           title="3. Client Address & Location"
@@ -709,7 +709,7 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 4: PRIMARY CONTACT */}
+        {}
         <FormSection
           id="contact"
           title="4. Contact Person(s)"
@@ -867,7 +867,7 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 5: PAN CARD */}
+        {}
         <FormSection
           id="pan"
           title="5. PAN Card Details"
@@ -959,7 +959,7 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 6: PAYMENT MILESTONES */}
+        {}
         <FormSection
           id="milestones"
           title="6. Payment Milestones"
@@ -967,7 +967,7 @@ export function ClientForm({
           icon={CreditCard}
         >
           <div className="space-y-4">
-            {/* Live Calculation Banner with Direct Total Input */}
+            {}
             <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <label className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block mb-1.5">
@@ -1002,7 +1002,7 @@ export function ClientForm({
                   </span>
                 </div>
 
-                {/* Allocation Status Indicator */}
+                {}
                 {(() => {
                   const milestonesSum = (formData.paymentMilestones || []).reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
                   const targetTotal = Number(totalPaymentInput) || 0;
@@ -1043,7 +1043,7 @@ export function ClientForm({
               </button>
             </div>
 
-            {/* Milestones List */}
+            {}
             {(!formData.paymentMilestones || formData.paymentMilestones.length === 0) ? (
               <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                 <p className="text-xs text-gray-500 font-medium">No payment milestones configured (Optional).</p>
@@ -1089,7 +1089,7 @@ export function ClientForm({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* Milestone Name */}
+                      {}
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                           Milestone Name
@@ -1103,7 +1103,7 @@ export function ClientForm({
                         />
                       </div>
 
-                      {/* Payment Amount */}
+                      {}
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                           Payment Amount (₹)
@@ -1122,7 +1122,7 @@ export function ClientForm({
                         </div>
                       </div>
 
-                      {/* Payment Trigger / Condition (Optional) */}
+                      {}
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                           Payment Trigger / Condition (Optional)
@@ -1137,7 +1137,7 @@ export function ClientForm({
                       </div>
                     </div>
 
-                    {/* Optional Description / Remarks */}
+                    {}
                     <div>
                       <label className="block text-[11px] font-medium text-gray-500 mb-1">
                         Optional Description or Remarks
@@ -1170,7 +1170,7 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {/* SECTION 7: CLIENT LEGAL & COMPLIANCE DOCUMENTS */}
+        {}
         <FormSection
           id="documents"
           title="7. Legal & Compliance Documents"
@@ -1182,7 +1182,7 @@ export function ClientForm({
           />
         </FormSection>
 
-        {/* Action Buttons */}
+        {}
         <div className="p-4 sm:p-5 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-gray-500">
             Once saved, you can add deployment projects and trade manpower requirements directly under this client.

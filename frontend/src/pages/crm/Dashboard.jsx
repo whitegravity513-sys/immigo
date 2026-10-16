@@ -40,7 +40,7 @@ export function Dashboard() {
     pendingLeavesList: [],
   });
   const [loading, setLoading] = useState(true);
-  const [projectTab, setProjectTab] = useState("All"); // "All" or "Active"
+  const [projectTab, setProjectTab] = useState("All"); 
 
   useEffect(() => {
     loadAllDashboardData();
@@ -143,7 +143,7 @@ export function Dashboard() {
 
   return (
     <div className="space-y-3.5 max-w-full">
-      {/* Top Slim Header Bar: Executive Admin View */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white px-4 py-3 rounded-xl border border-gray-200/90 shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function Dashboard() {
           </p>
         </div>
 
-        {/* Quick Launch Buttons to Dedicated Sub-Portals (HR first, then Client) */}
+        {}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           <Link
             to="/admin/dashboard/workforce"
@@ -182,9 +182,9 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* 4 Pillars Switchboard Hub: HR first, then Client */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* Pillar 1: HR & Workforce Portal */}
+        {}
         <Link
           to="/admin/dashboard/workforce"
           className="group p-3 bg-white hover:bg-emerald-50/40 rounded-xl border border-gray-200/90 hover:border-emerald-300 shadow-2xs transition-all duration-150 block"
@@ -209,7 +209,7 @@ export function Dashboard() {
           </p>
         </Link>
 
-        {/* Pillar 2: Client Management CRM */}
+        {}
         <Link
           to="/clients"
           className="group p-3 bg-white hover:bg-blue-50/40 rounded-xl border border-gray-200/90 hover:border-blue-300 shadow-2xs transition-all duration-150 block"
@@ -234,7 +234,7 @@ export function Dashboard() {
           </p>
         </Link>
 
-        {/* Pillar 3: Vendor Network (Phase 2 Preview) */}
+        {}
         <div className="p-3 bg-gray-50/70 rounded-xl border border-dashed border-gray-200 shadow-2xs block select-none">
           <div className="flex items-center justify-between gap-1 mb-1.5">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
@@ -255,7 +255,7 @@ export function Dashboard() {
           </p>
         </div>
 
-        {/* Pillar 4: Candidate Pipeline (Phase 2 Preview) */}
+        {}
         <div className="p-3 bg-gray-50/70 rounded-xl border border-dashed border-gray-200 shadow-2xs block select-none">
           <div className="flex items-center justify-between gap-1 mb-1.5">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -277,7 +277,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* 5 Sleek Mixed KPI StatCards: HR first, then CRM */}
+      {}
       {loading ? (
         <LoadingSkeleton type="stats" />
       ) : (
@@ -337,11 +337,11 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Side-by-Side Main Sections: Equal Space (50% HR / 50% CRM) */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-start">
-        {/* ================= LEFT 50%: HR & Workforce Operations (HR) ================= */}
+        {}
         <div className="space-y-3.5">
-          {/* Card 1: Today's Team Attendance Snapshot */}
+          {}
           <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden flex flex-col">
             <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50">
               <div className="flex items-center gap-1.5">

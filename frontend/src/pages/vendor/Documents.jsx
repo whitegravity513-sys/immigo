@@ -24,7 +24,7 @@ import MouFullPageView from "../../components/vendor/MouFullPageView.jsx";
 export default function Documents() {
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("mou"); // "mou" or "company"
+  const [activeTab, setActiveTab] = useState("mou"); 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [newDocName, setNewDocName] = useState("");
   const [newDocType, setNewDocType] = useState("Statutory License");
@@ -138,7 +138,7 @@ export default function Documents() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
@@ -162,7 +162,7 @@ export default function Documents() {
         </button>
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <button
           onClick={() => setActiveTab("mou")}
@@ -193,10 +193,10 @@ export default function Documents() {
       </div>
 
       {activeTab === "mou" ? (
-        /* Executed MOU Agreement View */
+        
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-            {/* Top Banner */}
+            {}
             <div className="p-6 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 flex-wrap mb-1.5">
@@ -247,7 +247,7 @@ export default function Documents() {
               </div>
             </div>
 
-            {/* Agreement Metadata Summary */}
+            {}
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-slate-50/60 border-b border-slate-200/80">
               <div className="p-3.5 rounded-xl bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Authorized Signatory</span>
@@ -293,7 +293,7 @@ export default function Documents() {
               </div>
             </div>
 
-            {/* Quick Agreement Highlights */}
+            {}
             <div className="p-6 space-y-4">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Operative Clauses & Mandate Summary
@@ -323,7 +323,7 @@ export default function Documents() {
           </div>
         </div>
       ) : (
-        /* Statutory Licenses View */
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {companyDocs.map((doc, idx) => (
             <div
@@ -374,7 +374,7 @@ export default function Documents() {
         </div>
       )}
 
-      {/* Upload Modal */}
+      {}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">

@@ -47,7 +47,7 @@ export default function AdminVendorDashboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Vendor Management</h1>
         <p className="text-xs text-slate-500 mt-0.5">
@@ -55,9 +55,9 @@ export default function AdminVendorDashboard() {
         </p>
       </div>
 
-      {/* Summary Cards - Compact */}
+      {}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
-        {/* Vendors */}
+        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Vendors</span>
           <div className="text-xl font-black text-slate-900 mt-0.5">{stats.totalVendors}</div>
@@ -68,28 +68,28 @@ export default function AdminVendorDashboard() {
           </div>
         </div>
 
-        {/* Candidates */}
+        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Candidates</span>
           <div className="text-xl font-black text-indigo-600 mt-0.5">{stats.totalCandidates}</div>
           <span className="text-[10px] text-slate-500 mt-0.5 block">In candidate pool</span>
         </div>
 
-        {/* Pending Review */}
+        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Review</span>
           <div className="text-xl font-black text-amber-600 mt-0.5">{stats.pendingCandidates}</div>
           <span className="text-[10px] text-amber-700 block">Submissions awaiting review</span>
         </div>
 
-        {/* Selected & In Processing */}
+        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selected / Processing</span>
           <div className="text-xl font-black text-emerald-600 mt-0.5">{stats.selectedCandidates}</div>
           <span className="text-[10px] text-slate-500 block truncate">{stats.inProcessing} in 8-stage pipeline</span>
         </div>
 
-        {/* Pending & Overdue Payments */}
+        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Payments</span>
           <div className="text-xl font-black text-slate-900 mt-0.5">₹{(stats.pendingPayments || 0).toLocaleString()}</div>
@@ -97,7 +97,7 @@ export default function AdminVendorDashboard() {
         </div>
       </div>
 
-      {/* FULL-WIDTH RECENT VENDOR ACTIVITY */}
+      {}
       <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3.5">
           <div>

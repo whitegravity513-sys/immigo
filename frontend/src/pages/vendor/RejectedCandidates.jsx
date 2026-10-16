@@ -30,7 +30,7 @@ export default function RejectedCandidates() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
       const data = await crmVendorService.getApplications(curVendor?.id);
-      // Filter only rejected applications
+      
       const rejectedApps = (data || []).filter((a) => a.status === "Rejected");
       setApplications(rejectedApps);
     } catch (err) {
@@ -54,7 +54,7 @@ export default function RejectedCandidates() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
+      {}
       <div>
         <div className="flex items-center gap-2 text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">
           <XCircle className="w-4 h-4" />
@@ -68,7 +68,7 @@ export default function RejectedCandidates() {
         </p>
       </div>
 
-      {/* Reusability Policy Banner */}
+      {}
       <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3.5 shadow-sm">
         <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
           <Info className="w-5 h-5 text-amber-800" />

@@ -32,7 +32,7 @@ export default function SelectedCandidates() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
       const data = await crmVendorService.getApplications(curVendor?.id);
-      // Filter only selected or completed
+      
       const selectedApps = (data || []).filter(
         (a) => a.status === "Selected" || a.status === "Completed"
       );
@@ -56,7 +56,7 @@ export default function SelectedCandidates() {
     );
   });
 
-  // Financial summary
+  
   const totalSelected = applications.length;
   let totalCommittedEarnings = 0;
   let totalPaidEarnings = 0;
@@ -72,7 +72,7 @@ export default function SelectedCandidates() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">
@@ -96,7 +96,7 @@ export default function SelectedCandidates() {
         </Link>
       </div>
 
-      {/* Metric Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between">
@@ -146,7 +146,7 @@ export default function SelectedCandidates() {
         </div>
       </div>
 
-      {/* Search */}
+      {}
       <div className="relative">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -158,7 +158,7 @@ export default function SelectedCandidates() {
         />
       </div>
 
-      {/* List */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -199,12 +199,12 @@ export default function SelectedCandidates() {
                 const paidMilestones = milestones.filter((m) => m.paymentStatus === "Approved" || m.status === "Paid").length;
                 const totalMilestones = milestones.length;
 
-                // Collect all stages from milestones
+                
                 const allMilestoneStages = (app.processMilestones || []).flatMap((m) => m.stages || []);
                 const completedMilestoneStages = allMilestoneStages.filter((s) => s.status === "Completed" || s.completed).length;
                 const totalMilestoneStages = allMilestoneStages.length;
 
-                // Collect stages from app.processing
+                
                 const procStages = app.processing?.stages || [];
                 const completedProcStages = procStages.filter((s) => s.status === "Completed" || s.completed).length;
 

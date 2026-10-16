@@ -118,7 +118,7 @@ const vendorSchema = new mongoose.Schema(
         "MOU Correction Required",
         "MOU Rejected",
         "Active",
-        // Backward-compatible statuses
+        
         "Pending",
         "Under Review",
         "Pending MOU Approval",

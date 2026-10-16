@@ -20,8 +20,8 @@ import MouFullPageView from "../MouFullPageView.jsx";
 import DocumentViewerFullPage from "../DocumentViewerFullPage.jsx";
 
 export function VendorOnboarding({ vendor, onVendorUpdate }) {
-  // Step Determination
-  // 1 = Upload Docs, 2 = Under Review, 3 = MOU Sent / Sign MOU, 4 = Completed
+  
+  
   const getInitialStep = (v = vendor) => {
     if (
       v?.mouSigned ||
@@ -46,19 +46,19 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     setCurrentStep(getInitialStep(vendor));
   }, [vendor?.status, vendor?.mouStatus, vendor?.onboardingStage, vendor?.mouSigned]);
 
-  // Document Upload States
+  
   const [incorpFile, setIncorpFile] = useState(null);
   const [gstFile, setGstFile] = useState(null);
   const [panFile, setPanFile] = useState(null);
   const [chequeFile, setChequeFile] = useState(null);
 
-  // Bank Info States
+  
   const [accountName, setAccountName] = useState(vendor?.contactPersonName || vendor?.companyName || "");
   const [accountNumber, setAccountNumber] = useState(vendor?.bankDetails?.accountNumber || "");
   const [bankName, setBankName] = useState(vendor?.bankDetails?.bankName || "");
   const [ifsc, setIfsc] = useState(vendor?.bankDetails?.ifsc || "");
 
-  // Digital Sign States
+  
   const [signatoryName, setSignatoryName] = useState(vendor?.contactPersonName || "");
   const [designation, setDesignation] = useState("Managing Director");
   const [signatureText, setSignatureText] = useState(vendor?.contactPersonName || "");
@@ -92,7 +92,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     }
   };
 
-  // Poll in background when under review (step 2) to auto-advance when Admin acts
+  
   useEffect(() => {
     if (currentStep === 2) {
       const interval = setInterval(() => {
@@ -102,7 +102,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     }
   }, [currentStep]);
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; 
 
   const validateAndSetFile = (file, setter, label) => {
     if (!file) return;
@@ -114,7 +114,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     setError("");
   };
 
-  // Submit Uploaded Documents
+  
   const handleDocsSubmit = async (e) => {
     e.preventDefault();
     if (!panFile && !incorpFile) {
@@ -195,7 +195,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     }
   };
 
-  // Submit Digital MOU Signature
+  
   const handleMouSignSubmit = async (e) => {
     e.preventDefault();
     if (!signatoryName.trim()) {
@@ -274,7 +274,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 animate-fadeIn">
-      {/* Header Card */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -293,7 +293,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
           </p>
         </div>
 
-        {/* Live Status Badge */}
+        {}
         <div className="shrink-0 flex items-center gap-3">
           {currentStep === 1 && (
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
@@ -330,7 +330,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       </div>
 
-      {/* 4-Step Visual Stepper */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stepsList.map((s, idx) => (
@@ -366,7 +366,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       </div>
 
-      {/* Messages */}
+      {}
       {error && (
         <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2">
           <AlertCircle size={16} className="text-rose-600 shrink-0" />
@@ -380,9 +380,9 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       )}
 
-      {/* ---------------------------------------------------- */}
-      {/* STEP 1: UPLOAD DOCUMENTS FORM */}
-      {/* ---------------------------------------------------- */}
+      {}
+      {}
+      {}
       {currentStep === 1 && (
         <form onSubmit={handleDocsSubmit} className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
@@ -396,7 +396,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 1. Incorporation */}
+            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 Certificate of Incorporation / Trade License <span className="text-rose-500">*</span>
@@ -414,7 +414,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               )}
             </div>
 
-            {/* 2. GST */}
+            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 GSTIN / Tax Registration Certificate
@@ -432,7 +432,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               )}
             </div>
 
-            {/* 3. PAN */}
+            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 Company PAN Card / Director ID <span className="text-rose-500">*</span>
@@ -450,7 +450,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               )}
             </div>
 
-            {/* 4. Bank Cheque */}
+            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 Cancelled Cheque / Bank Proof <span className="text-rose-500">*</span>
@@ -469,7 +469,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             </div>
           </div>
 
-          {/* Bank Settlement Info */}
+          {}
           <div className="pt-4 border-t border-slate-100 space-y-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">
               Agency Bank Settlement Account Details
@@ -518,7 +518,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             </div>
           </div>
 
-          {/* Submit Button */}
+          {}
           <div className="pt-4 flex items-center justify-end">
             <button
               type="submit"
@@ -541,9 +541,9 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </form>
       )}
 
-      {/* ---------------------------------------------------- */}
-      {/* STEP 2: UNDER REVIEW STATUS */}
-      {/* ---------------------------------------------------- */}
+      {}
+      {}
+      {}
       {currentStep === 2 && (
         <div className="bg-white rounded-2xl border border-slate-200/90 p-8 shadow-xs text-center space-y-6">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto border border-blue-200">
@@ -584,9 +584,9 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       )}
 
-      {/* ---------------------------------------------------- */}
-      {/* STEP 3: MOU SENT - DIGITAL SIGNATURE REQUIRED */}
-      {/* ---------------------------------------------------- */}
+      {}
+      {}
+      {}
       {currentStep === 3 && (
         <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-950">
@@ -612,7 +612,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             </button>
           </div>
 
-          {/* Digital Signature Form */}
+          {}
           <form onSubmit={handleMouSignSubmit} className="space-y-5 border-t border-slate-100 pt-5">
             <div>
               <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -654,7 +654,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               </div>
             </div>
 
-            {/* Signature Stamp Preview */}
+            {}
             <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
               <label className="text-xs font-bold text-indigo-950 block">Digital Signature Stamp</label>
               <div className="p-4 bg-white rounded-lg border border-indigo-200 text-center">
@@ -674,7 +674,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               />
             </div>
 
-            {/* Terms Acceptance Checkbox */}
+            {}
             <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer text-xs text-slate-700 font-medium">
               <input
                 type="checkbox"

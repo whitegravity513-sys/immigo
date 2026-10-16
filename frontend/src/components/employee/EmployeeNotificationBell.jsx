@@ -45,7 +45,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         const clearedTs = parseInt(localStorage.getItem("emp_notifs_cleared_ts") || "0", 10);
         const deletedIds = getDeletedIds();
 
-        // Filter out notifications cleared or deleted by employee
+        
         list = list.filter((n) => {
           const notifId = String(n.id || n._id);
           if (deletedIds.has(notifId)) return false;
@@ -326,7 +326,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
             )}
           </div>
 
-          {/* Footer with View All link */}
+          {}
           <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
             <button
               type="button"

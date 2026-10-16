@@ -41,7 +41,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
   const renderContent = () => (
     <div className="flex flex-col h-full bg-[#F3F7FC] text-slate-800 font-sans border-r border-blue-200/80">
-      {/* Brand Header */}
+      {}
       <div className="h-16 flex items-center justify-between px-5 border-b border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-900/70 border border-blue-700/50 text-cyan-400 flex items-center justify-center font-bold shadow-xs">
@@ -58,7 +58,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
           </div>
         </div>
 
-        {/* Mobile close button */}
+        {}
         {mobileOpen && (
           <button
             type="button"
@@ -70,7 +70,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
         )}
       </div>
 
-      {/* Vendor Profile Header Summary */}
+      {}
       <div className="p-3.5 mx-3 mt-3 bg-blue-100/70 rounded-xl border border-blue-300 shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs overflow-hidden border border-blue-400/60">
@@ -94,13 +94,13 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
         </div>
       </div>
 
-      {/* Navigation Items */}
+      {}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <NavLink to="/vendor/dashboard" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <LayoutDashboard size={16} /> <span>Dashboard</span>
         </NavLink>
 
-        {/* PROJECTS DIRECT LINK */}
+        {}
         <NavLink
           to="/vendor/projects"
           onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }}
@@ -122,7 +122,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
 
 
-        {/* CANDIDATES GROUP */}
+        {}
         <div className="space-y-0.5">
           <button type="button" onClick={() => setCandidatesMenuOpen(!candidatesMenuOpen)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${window.location.pathname.includes('/candidates') || window.location.pathname.includes('/selected') || window.location.pathname.includes('/rejected') ? "bg-blue-600 text-white shadow-md" : "text-slate-700 hover:bg-blue-100/70"}`}>
             <div className="flex items-center gap-2.5"><Users size={16} className={window.location.pathname.includes('/candidates') ? "text-white" : "text-slate-500"} /> <span>Candidates</span></div>
@@ -138,7 +138,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
           )}
         </div>
 
-        {/* PAYMENTS & REFUNDS DIRECT LINKS */}
+        {}
         <NavLink to="/vendor/payments" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <CreditCard size={16} className={window.location.pathname.includes('/payments') ? "text-white" : "text-slate-500"} /> <span>Payments</span>
         </NavLink>
@@ -154,7 +154,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
         </NavLink>
       </nav>
 
-      {/* Logout button at bottom - aligned with AppFooter */}
+      {}
       <div className="h-[48px] min-h-[48px] px-4 border-t border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 flex items-center">
         <button
           type="button"
@@ -170,12 +170,12 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
   return (
     <>
-      {/* Desktop fixed sidebar */}
+      {}
       <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 z-30 shadow-md">
         {renderContent()}
       </aside>
 
-      {/* Mobile drawer backdrop */}
+      {}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -183,7 +183,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
         />
       )}
 
-      {/* Mobile slide-over drawer */}
+      {}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-in-out lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}

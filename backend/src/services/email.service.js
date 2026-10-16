@@ -183,9 +183,7 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
   }
 };
 
-/**
- * Send Vendor Registration Approval Email
- */
+
 export const sendVendorRegistrationApprovedEmail = async ({
   to,
   vendorName = "Vendor Partner",
@@ -255,7 +253,7 @@ export const sendVendorRegistrationApprovedEmail = async ({
 </html>
   `;
 
-  // Send to vendor, plus notify designated recipient if configured
+  
   const recipients = [to];
   if (designatedRecipient && designatedRecipient !== to && !recipients.includes(designatedRecipient)) {
     recipients.push(designatedRecipient);
@@ -286,9 +284,7 @@ export const sendVendorRegistrationApprovedEmail = async ({
   }
 };
 
-/**
- * Send Vendor Final Activation Email
- */
+
 export const sendVendorActivationEmail = async ({
   to,
   vendorName = "Vendor Partner",
@@ -382,9 +378,7 @@ export const sendVendorActivationEmail = async ({
   }
 };
 
-/**
- * Send Account Login Credentials Email (ID, Password, Portal URL)
- */
+
 export const sendCredentialsEmail = async ({
   to,
   name = "Team Member",

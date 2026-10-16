@@ -31,7 +31,7 @@ export const runAllSeeds = async (exitOnComplete = true) => {
       logger.info(`Super Admin [${superAdminEmail}] seeded successfully.`);
     }
 
-    // await seedDefaultEmployee(false);
+    
     logger.info("Database seeding completed successfully (Admin preserved).");
 
     if (exitOnComplete) {

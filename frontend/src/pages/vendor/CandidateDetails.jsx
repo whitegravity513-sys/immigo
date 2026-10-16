@@ -161,7 +161,7 @@ export function CandidateDetails() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Top Header Card */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
@@ -182,7 +182,7 @@ export function CandidateDetails() {
 
       </div>
 
-      {/* Profile Overview Card */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative group shrink-0">
@@ -235,7 +235,7 @@ export function CandidateDetails() {
               </span>
             </div>
 
-            {/* Tags */}
+            {}
             <div className="flex flex-wrap gap-1.5 pt-1">
               {(candidate.tags || candidate.skills || []).map((t, i) => (
                 <span
@@ -248,7 +248,7 @@ export function CandidateDetails() {
             </div>
           </div>
 
-          {/* Quick Resume View Buttons */}
+          {}
           <div className="flex flex-col gap-2 shrink-0 self-stretch sm:self-auto border-t sm:border-t-0 sm:border-l sm:border-slate-100 sm:pl-6 pt-3 sm:pt-0">
             <button
               type="button"
@@ -272,9 +272,9 @@ export function CandidateDetails() {
         </div>
       </div>
 
-      {/* Grid: Personal & Professional Info */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Personal Details */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Personal Information
@@ -309,7 +309,7 @@ export function CandidateDetails() {
           </div>
         </div>
 
-        {/* Professional Details */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Professional Information
@@ -345,7 +345,7 @@ export function CandidateDetails() {
         </div>
       </div>
 
-      {/* Attached Documents */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
         <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
           Attached Compliance Documents ({candidate.documents?.length || 0})
@@ -378,7 +378,7 @@ export function CandidateDetails() {
         </div>
       </div>
 
-      {/* INTERVIEW SCHEDULE & APPLICATION REMARKS CARD */}
+      {}
       {(() => {
         const activeApp = candidate.applications?.find(
           (a) => a.interviewDetails || a.shortlistRemark || a.remarks?.length
@@ -440,7 +440,7 @@ export function CandidateDetails() {
         );
       })()}
 
-      {/* CANDIDATE RECRUITMENT FEE & MILESTONE PAYMENTS (ONLY WHEN SELECTED / COMPLETED) */}
+      {}
       {(() => {
         const selectedAppWithPlan = candidate.applications?.find(
           (a) => (a.status === "Selected" || a.status === "Completed") && a.paymentPlan
@@ -479,7 +479,7 @@ export function CandidateDetails() {
               </div>
             </div>
 
-            {/* Financial Stats Bar */}
+            {}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -512,7 +512,7 @@ export function CandidateDetails() {
               </div>
             </div>
 
-            {/* Milestone Breakdown List */}
+            {}
             <div className="space-y-2 pt-1">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Milestone Disbursement Schedule:
@@ -555,8 +555,8 @@ export function CandidateDetails() {
         );
       })()}
 
-      {/* CRUCIAL SECTION: PROJECT SUBMISSIONS / APPLICATION HISTORY */}
-      {/* Demonstrates per-project independent status (Rahul Kumar: Project A Rejected, Project B Selected, Project C Under Review) */}
+      {}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
@@ -617,14 +617,14 @@ export function CandidateDetails() {
                     <span>Submitted: {new Date(app.submittedAt).toLocaleDateString("en-GB")}</span>
                   </div>
 
-                  {/* If Rejected, show reason and prompt */}
+                  {}
                   {app.status === "Rejected" && (
                     <div className="mt-1.5 p-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-[11px]">
                       <strong>Rejection Reason:</strong> {app.rejectionReason}
                     </div>
                   )}
 
-                  {/* If Selected, show processing milestone prompt */}
+                  {}
                   {app.status === "Selected" || app.status === "Processing" || app.status === "Completed" ? (
                     <div className="mt-1.5 pt-3 border-t border-slate-100">
                       <CandidateProcessTimeline application={app} isAdmin={false} onUpdate={loadCandidate} />
@@ -648,7 +648,7 @@ export function CandidateDetails() {
         )}
       </div>
 
-      {/* Candidate Refund Claim & Settlement Section (Positioned at bottom with clean light palette) */}
+      {}
       <div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -697,11 +697,11 @@ export function CandidateDetails() {
           </div>
         </div>
 
-        {/* Expandable Refund Form with Light Palette */}
+        {}
         {showRefundForm && (
           <div className="pt-4 mt-2 border-t border-slate-200/80 bg-white rounded-xl p-4 sm:p-5 border shadow-2xs">
             <form onSubmit={handleRequestRefund} className="space-y-4 text-xs">
-              {/* Project Association */}
+              {}
               {candidate.applications?.length > 1 ? (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -738,7 +738,7 @@ export function CandidateDetails() {
                 </div>
               )}
 
-              {/* Reason for Refund */}
+              {}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Reason for Refund Claim <span className="text-blue-600">*</span>
@@ -753,7 +753,7 @@ export function CandidateDetails() {
                 />
               </div>
 
-              {/* Supporting Document (Optional) */}
+              {}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Supporting Document <span className="text-slate-400 font-normal">(Medical certificate, dropout letter, etc.)</span>
@@ -781,7 +781,7 @@ export function CandidateDetails() {
                 )}
               </div>
 
-              {/* Action Buttons */}
+              {}
               <div className="flex gap-2 justify-end pt-3 border-t border-slate-100">
                 <button
                   type="button"
@@ -803,7 +803,7 @@ export function CandidateDetails() {
         )}
       </div>
 
-      {/* Resume Preview Modal */}
+      {}
       {resumeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -823,7 +823,7 @@ export function CandidateDetails() {
               </button>
             </div>
 
-            {/* Resume Document Mock Sheet */}
+            {}
             <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 space-y-4">
               <div className="border-b border-slate-200 pb-3">
                 <h2 className="text-base font-bold text-slate-900 font-sans">{candidate.fullName}</h2>

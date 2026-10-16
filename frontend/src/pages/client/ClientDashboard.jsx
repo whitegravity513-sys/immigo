@@ -83,7 +83,7 @@ export function ClientDashboard() {
       ]}
     >
       <div className="space-y-6">
-        {/* Top Action Ribbon - Strictly Client Focused */}
+        {}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-gray-200/90 rounded-xl shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export function ClientDashboard() {
           </div>
         </div>
 
-        {/* Client KPI Summary Cards */}
+        {}
         <div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {clientCards.map((card) => (
@@ -140,7 +140,7 @@ export function ClientDashboard() {
           </div>
         </div>
 
-        {/* Full-Width Recent Clients Table (Strictly Client Details) */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -200,7 +200,7 @@ export function ClientDashboard() {
 
                     return (
                       <tr key={client.id} className="hover:bg-blue-50/30 transition-colors">
-                        {/* Company Name & Industry */}
+                        {}
                         <td className="py-3 px-5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs flex items-center justify-center shrink-0 border border-blue-100">
@@ -221,7 +221,7 @@ export function ClientDashboard() {
                           </div>
                         </td>
 
-                        {/* Country & City */}
+                        {}
                         <td className="py-3 px-4">
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200 text-gray-700 font-medium text-[11px]">
                             <MapPin size={11} className="text-blue-500 shrink-0" />
@@ -232,7 +232,7 @@ export function ClientDashboard() {
                           </div>
                         </td>
 
-                        {/* Primary Contact Person */}
+                        {}
                         <td className="py-3 px-4">
                           {primaryContact ? (
                             <div>
@@ -248,7 +248,7 @@ export function ClientDashboard() {
                           )}
                         </td>
 
-                        {/* Email & Phone */}
+                        {}
                         <td className="py-3 px-4">
                           <div className="space-y-0.5">
                             {client.email && (
@@ -266,12 +266,12 @@ export function ClientDashboard() {
                           </div>
                         </td>
 
-                        {/* Status */}
+                        {}
                         <td className="py-3 px-4">
                           <StatusBadge status={client.status || "Active"} size="sm" />
                         </td>
 
-                        {/* Actions */}
+                        {}
                         <td className="py-3 px-5 text-right">
                           <div className="inline-flex items-center gap-2">
                             <Link

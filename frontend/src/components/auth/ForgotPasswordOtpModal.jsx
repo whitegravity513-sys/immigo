@@ -22,11 +22,11 @@ import {
 export default function ForgotPasswordOtpModal({
   isOpen,
   onClose,
-  role = "admin", // "admin" | "vendor"
+  role = "admin", 
   initialEmail = "",
   onSuccess,
 }) {
-  const [step, setStep] = useState(1); // 1: Request OTP, 2: Enter OTP & New Password, 3: Success
+  const [step, setStep] = useState(1); 
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -140,7 +140,7 @@ export default function ForgotPasswordOtpModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
       <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 text-left relative animate-in fade-in zoom-in-95 duration-200">
-        {/* Close Button */}
+        {}
         <button
           type="button"
           onClick={onClose}
@@ -149,7 +149,7 @@ export default function ForgotPasswordOtpModal({
           <X size={18} />
         </button>
 
-        {/* Step 1: Request OTP */}
+        {}
         {step === 1 && (
           <div>
             <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
@@ -210,7 +210,7 @@ export default function ForgotPasswordOtpModal({
           </div>
         )}
 
-        {/* Step 2: Enter OTP & New Password */}
+        {}
         {step === 2 && (
           <div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
@@ -336,7 +336,7 @@ export default function ForgotPasswordOtpModal({
           </div>
         )}
 
-        {/* Step 3: Success Screen */}
+        {}
         {step === 3 && (
           <div className="text-center py-4 space-y-4">
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">

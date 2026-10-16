@@ -143,7 +143,7 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {/* Compact Compliance Notice Strip (Reduced height, clean simple content) */}
+      {}
       {complianceInfo?.isComplianceOnHold && (
         <div className="bg-amber-500/10 border border-amber-400/40 text-amber-950 rounded-xl px-4 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -168,7 +168,7 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {/* Meeting Acknowledgment Card for Employee Dashboard */}
+      {}
       {unacknowledgedMeeting && (
         <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white rounded-xl p-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 border border-purple-400/40">
           <div className="flex items-center gap-3 min-w-0">
@@ -301,7 +301,7 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      {/* Holiday Notification & Acknowledgement Card (Inline - No Popup) */}
+      {}
       {activeHoliday && (
         <div
           className={`p-4 sm:p-5 rounded-2xl border transition-all animate-in fade-in duration-200 ${
@@ -440,7 +440,7 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      {/* Daily Attendance Status Card */}
+      {}
       <div className="p-4 sm:p-4.5 rounded-2xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           <div className="flex items-start sm:items-center gap-3">

@@ -11,17 +11,14 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-/**
- * Full-width panoramic landscape background with rolling hills,
- * stylized cypress trees across the entire screen, clouds & foliage.
- */
+
 function FullWidthLandscapeBackground() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-      {/* Sky Base Gradient covering 100% width */}
+      {}
       <div className="absolute inset-0 bg-gradient-to-b from-[#eaf6fc] via-[#daf0f9] to-[#cbeaf6]" />
 
-      {/* Floating White Clouds across entire width */}
+      {}
       <svg className="absolute top-0 left-0 w-full h-44 opacity-80" viewBox="0 0 1440 180" preserveAspectRatio="none" fill="none">
         <path d="M80 60 C100 35, 150 35, 170 60 C190 45, 230 50, 240 70 C250 90, 240 100, 220 100 L90 100 C65 100, 60 80, 80 60 Z" fill="white" opacity="0.65" />
         <path d="M420 35 C440 15, 485 15, 505 35 C525 22, 555 28, 565 45 C575 60, 565 70, 545 70 L430 70 C410 70, 405 52, 420 35 Z" fill="white" opacity="0.5" />
@@ -29,20 +26,20 @@ function FullWidthLandscapeBackground() {
         <path d="M1160 40 C1180 20, 1220 20, 1240 40 C1255 30, 1285 35, 1295 50 C1305 65, 1295 75, 1275 75 L1170 75 C1150 75, 1145 58, 1160 40 Z" fill="white" opacity="0.45" />
       </svg>
 
-      {/* Rolling Hills, Stylized Trees, and Landscape spanning 100% full width */}
+      {}
       <svg
         className="absolute bottom-0 left-0 w-full h-[54vh] min-h-[350px]"
         viewBox="0 0 1440 440"
         preserveAspectRatio="none"
         fill="none"
       >
-        {/* Layer 1: Distant Light Teal Hills spanning edge-to-edge */}
+        {}
         <path
           d="M0 220 Q320 140 640 200 T1440 170 L1440 440 L0 440 Z"
           fill="#c4e8f3"
         />
 
-        {/* Distant Cypress Trees on Far Hills */}
+        {}
         <g transform="translate(100, 130)">
           <path d="M18 0 C30 35, 36 75, 28 110 C24 125, 12 125, 8 110 C0 75, 6 35, 18 0 Z" fill="#3eb9ce" />
           <path d="M18 10 C24 40, 24 85, 18 120" stroke="#259ab0" strokeWidth="2" strokeLinecap="round" />
@@ -68,13 +65,13 @@ function FullWidthLandscapeBackground() {
           <path d="M24 15 C32 55, 32 120, 24 165" stroke="#1f899c" strokeWidth="2.5" strokeLinecap="round" />
         </g>
 
-        {/* Layer 2: Mid Hills Band spanning edge-to-edge */}
+        {}
         <path
           d="M0 270 Q400 200 800 250 T1440 220 L1440 440 L0 440 Z"
           fill="#a4dde9"
         />
 
-        {/* Mid-Ground Trees */}
+        {}
         <g transform="translate(640, 175)">
           <path d="M20 0 C35 40, 38 85, 30 125 C25 140, 15 140, 10 125 C0 85, 5 40, 20 0 Z" fill="#30abc0" />
           <path d="M20 12 C28 45, 28 95, 20 135" stroke="#1c8497" strokeWidth="2" strokeLinecap="round" />
@@ -85,31 +82,31 @@ function FullWidthLandscapeBackground() {
           <path d="M22 15 C30 50, 30 105, 22 145" stroke="#1f899c" strokeWidth="2.2" strokeLinecap="round" />
         </g>
 
-        {/* Layer 3: Foreground Slope */}
+        {}
         <path
           d="M0 325 Q450 290 900 315 T1440 295 L1440 440 L0 440 Z"
           fill="#78c7d6"
         />
 
-        {/* Layer 4: Crisp White Ground Base */}
+        {}
         <path
           d="M0 365 Q480 348 960 358 T1440 345 L1440 440 L0 440 Z"
           fill="#ffffff"
         />
 
-        {/* Soft Blue Horizon Shadow Band */}
+        {}
         <path
           d="M0 380 Q480 366 960 374 T1440 362 L1440 402 Q960 412 480 402 T0 412 Z"
           fill="#bce4f2"
         />
 
-        {/* Lower Ground Layer */}
+        {}
         <path
           d="M0 402 Q480 392 960 398 T1440 388 L1440 440 L0 440 Z"
           fill="#ffffff"
         />
 
-        {/* Tropical Leaves on Bottom Right */}
+        {}
         <g transform="translate(1260, 260) scale(1.2)">
           <path d="M60 140 C50 90, 20 60, 0 50 C-10 65, 0 95, 10 120 C20 140, 50 145, 60 140 Z" fill="#249fb3" />
           <path d="M60 140 C35 105, 15 80, 0 50" stroke="#157787" strokeWidth="2.5" />
@@ -117,7 +114,7 @@ function FullWidthLandscapeBackground() {
           <path d="M70 140 C100 100, 120 70, 140 35" stroke="#2194a6" strokeWidth="2.5" />
         </g>
 
-        {/* Tropical Leaves on Bottom Left */}
+        {}
         <g transform="translate(50, 280) scale(1)">
           <path d="M50 130 C30 80, 5 50, -10 40 C-15 55, -5 85, 5 110 C15 130, 40 135, 50 130 Z" fill="#28a2b6" />
           <path d="M50 130 C25 95, 10 70, -10 40" stroke="#187b8b" strokeWidth="2.2" />
@@ -200,10 +197,10 @@ export default function EmployeeLoginPage() {
 
   return (
     <div className="h-screen max-h-screen w-full relative flex flex-col justify-between overflow-hidden font-sans select-none bg-[#daf0f9]">
-      {/* 100% Full-Width Scenic Landscape Background (Trees, Rolling Hills, Clouds & Foliage) */}
+      {}
       <FullWidthLandscapeBackground />
 
-      {/* Top Header Bar */}
+      {}
       <header className="relative z-20 w-full px-6 sm:px-12 py-3 flex items-center justify-between border-b border-sky-200/70 bg-white/70 backdrop-blur-md shrink-0 shadow-2xs">
         <div className="flex items-center gap-3">
           <Link to="/" className="inline-block">
@@ -220,9 +217,9 @@ export default function EmployeeLoginPage() {
         </div>
       </header>
 
-      {/* Main Full-Width Split Section covering 100% of the screen width */}
+      {}
       <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-6 sm:px-10 lg:px-16 xl:px-24 py-2 min-h-0 overflow-hidden">
-        {/* Left Side: Exact Ultra HD Vector Character (Full-Width Portion) */}
+        {}
         <div className="hidden lg:flex w-full lg:w-[50%] xl:w-[52%] h-full items-center justify-center lg:justify-end select-none pointer-events-none pr-0 lg:pr-8 xl:pr-12">
           <div className="relative w-full max-w-[480px] xl:max-w-[560px] flex items-center justify-center">
             <img
@@ -233,10 +230,10 @@ export default function EmployeeLoginPage() {
           </div>
         </div>
 
-        {/* Right Side: Exact Clean White Login Card (Full-Width Portion) */}
+        {}
         <div className="w-full lg:w-[50%] xl:w-[48%] h-full flex items-center justify-center lg:justify-start pl-0 lg:pl-8 xl:pl-12">
           <div className="w-full max-w-[430px] sm:max-w-[450px] bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_25px_60px_rgba(20,60,100,0.14)] border border-white/90 p-7 sm:p-9 text-left relative">
-            {/* Heading matching the reference image */}
+            {}
             <div className="mb-5 space-y-1">
               <h1 className="text-2xl sm:text-[28px] font-black text-[#261b4d] tracking-tight leading-tight">
                 Welcome To Family
@@ -247,7 +244,7 @@ export default function EmployeeLoginPage() {
               </p>
             </div>
 
-            {/* Error Message */}
+            {}
             {error && (
               <div className="mb-4 p-2.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
                 <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -255,9 +252,9 @@ export default function EmployeeLoginPage() {
               </div>
             )}
 
-            {/* Login Form */}
+            {}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Employee ID Pill Input */}
+              {}
               <div>
                 <div className="relative">
                   <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
@@ -273,7 +270,7 @@ export default function EmployeeLoginPage() {
                 </div>
               </div>
 
-              {/* Password Pill Input */}
+              {}
               <div>
                 <div className="relative">
                   <button
@@ -295,7 +292,7 @@ export default function EmployeeLoginPage() {
                 </div>
               </div>
 
-              {/* Remember Me Only (No forget pass, no demo) */}
+              {}
               <div className="flex items-center text-xs pt-0.5 px-1 text-slate-400 font-medium">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
@@ -308,7 +305,7 @@ export default function EmployeeLoginPage() {
                 </label>
               </div>
 
-              {/* Deep Purple Pill Button: Login */}
+              {}
               <button
                 type="submit"
                 disabled={loading}
@@ -325,7 +322,7 @@ export default function EmployeeLoginPage() {
         </div>
       </main>
 
-      {/* Compact Footer */}
+      {}
       <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-sky-200/60 bg-white/60 backdrop-blur-md text-[11px] text-slate-600 font-medium shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
         <span className="mx-2 text-slate-400">&bull;</span>

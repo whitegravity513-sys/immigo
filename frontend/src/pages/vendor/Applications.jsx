@@ -27,7 +27,7 @@ export default function Applications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All");
@@ -50,10 +50,10 @@ export default function Applications() {
     }
   };
 
-  // Distinct project names for project filter dropdown
+  
   const projectList = Array.from(new Set(applications.map((a) => a.projectName).filter(Boolean)));
 
-  // Status Tabs
+  
   const statusTabs = [
     { label: "All", count: applications.length },
     { label: "Submitted", count: applications.filter((a) => a.status === "Submitted").length },
@@ -65,7 +65,7 @@ export default function Applications() {
     { label: "Completed", count: applications.filter((a) => a.status === "Completed").length },
   ];
 
-  // Filtering
+  
   const filteredApplications = applications.filter((app) => {
     if (activeTab === "Under Review") {
       if (app.status !== "Under Review" && app.status !== "Shortlisted") return false;
@@ -164,7 +164,7 @@ export default function Applications() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Top Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">
@@ -188,7 +188,7 @@ export default function Applications() {
         </Link>
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
         {statusTabs.map((tab) => {
           const isActive = activeTab === tab.label;
@@ -215,7 +215,7 @@ export default function Applications() {
         })}
       </div>
 
-      {/* Search and Filters Bar */}
+      {}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -244,7 +244,7 @@ export default function Applications() {
         </div>
       </div>
 
-      {/* Applications Table / Cards */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -293,7 +293,7 @@ export default function Applications() {
 
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                      {/* Candidate */}
+                      {}
                       <td className="py-4 px-4 sm:px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0 border border-slate-200">
@@ -313,7 +313,7 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      {/* Project & Client */}
+                      {}
                       <td className="py-4 px-4">
                         <div className="font-semibold text-slate-800 truncate max-w-[180px]">
                           {app.projectName}
@@ -326,17 +326,17 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      {/* Position */}
+                      {}
                       <td className="py-4 px-4">
                         <span className="font-medium text-slate-800">{app.position}</span>
                       </td>
 
-                      {/* Date */}
+                      {}
                       <td className="py-4 px-4 text-slate-500 text-xs">
                         {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "-"}
                       </td>
 
-                      {/* Status */}
+                      {}
                       <td className="py-4 px-4">
                         <div>
                           {getStatusBadge(app.status)}
@@ -374,7 +374,7 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      {/* Actions */}
+                      {}
                       <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {isSelected && (

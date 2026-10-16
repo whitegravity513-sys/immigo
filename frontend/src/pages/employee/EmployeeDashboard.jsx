@@ -168,7 +168,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       setTodayMeetings(all.filter((m) => m.date === todayStr));
     }).catch(() => { });
 
-    // Real-time 2-second synchronization for immediate updates between Admin and Employee
+    
     const iv = setInterval(() => {
       fetchAll(true);
     }, 2000);
@@ -355,7 +355,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         return;
       }
     } catch {
-      // Proceed to let backend enforce validation
+      
     }
 
     const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };

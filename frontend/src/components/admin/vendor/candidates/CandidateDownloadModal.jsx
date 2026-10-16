@@ -14,7 +14,7 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
         <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div>
             <h3 className="font-bold text-slate-900">Download Candidate Data</h3>
-            <p className="text-[11px] text-slate-500 mt-0.5">Export candidate roster and full placement records</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">Export candidate roster with Name, Passport, Trade, Project, Skill, State records</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 cursor-pointer">
             <X size={18} />

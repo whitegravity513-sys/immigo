@@ -28,7 +28,7 @@ export default function VendorRefunds() {
 
   return (
     <div className="p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 font-sans">
-      {/* Page Header (Compact Height & Refined Bold) */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
           <div className="flex items-center gap-1.5 mb-0.5">
@@ -53,7 +53,7 @@ export default function VendorRefunds() {
         </Link>
       </div>
 
-      {/* Info Tip Note */}
+      {}
       <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl px-3.5 py-2.5 flex items-start gap-2.5 text-xs text-blue-900">
         <Clock size={15} className="text-blue-600 shrink-0 mt-0.5" />
         <div>
@@ -89,7 +89,7 @@ export default function VendorRefunds() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-          {/* Top Control Bar: Showing 5 items with See All toggle */}
+          {}
           <div className="px-4 py-2.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
@@ -132,7 +132,7 @@ export default function VendorRefunds() {
 
                   return (
                     <tr key={r.id || Math.random()} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Candidate */}
+                      {}
                       <td className="py-2.5 px-3.5">
                         <div>
                           <div className="font-bold text-slate-900 flex items-center gap-1">
@@ -144,7 +144,7 @@ export default function VendorRefunds() {
                         </div>
                       </td>
 
-                      {/* Project */}
+                      {}
                       <td className="py-2.5 px-3.5">
                         <div className="font-semibold text-slate-800">
                           {r.projectName || "General Project"}
@@ -156,19 +156,19 @@ export default function VendorRefunds() {
                         )}
                       </td>
 
-                      {/* Reason */}
+                      {}
                       <td className="py-2.5 px-3.5 text-slate-600 max-w-xs">
                         <span className="line-clamp-2" title={r.refundReason}>
                           {r.refundReason || "No reason specified"}
                         </span>
                       </td>
 
-                      {/* Amount */}
+                      {}
                       <td className="py-2.5 px-3.5 text-center font-bold text-slate-900 font-mono">
                         {amount > 0 ? `₹${amount.toLocaleString()}` : "As per policy"}
                       </td>
 
-                      {/* Status */}
+                      {}
                       <td className="py-2.5 px-3.5 text-center">
                         <div className="inline-flex flex-col items-center gap-0.5">
                           <span
@@ -190,7 +190,7 @@ export default function VendorRefunds() {
                         </div>
                       </td>
 
-                      {/* Date */}
+                      {}
                       <td className="py-2.5 px-3.5 text-right text-slate-500 font-mono text-[10px]">
                         {r.refundDate || new Date().toISOString().split("T")[0]}
                       </td>
@@ -201,7 +201,7 @@ export default function VendorRefunds() {
             </table>
           </div>
 
-          {/* Bottom Bar (When 5 are shown and more exist) */}
+          {}
           {refunds.length > 5 && !showAll && (
             <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
               <button

@@ -74,7 +74,7 @@ export default function PaymentHistory() {
           </div>
         </div>
 
-        {/* Agreed Fee Banner */}
+        {}
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-xs">
           <div>
             <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Total Agreed Fee</span>
@@ -96,7 +96,7 @@ export default function PaymentHistory() {
           </div>
         </div>
 
-        {/* Interactive Stages & Milestones with Payment Option */}
+        {}
         <div className="space-y-4">
           <div className="border-b border-slate-100 pb-2">
             <h4 className="font-black text-slate-900 text-sm">

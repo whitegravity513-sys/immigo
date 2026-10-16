@@ -19,8 +19,7 @@ export default function AdminDocumentsList() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Category & Status Filters
-  const [activeTab, setActiveTab] = useState("All"); // All, Vendor Statutory, Candidate Verification
+  const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -92,7 +91,7 @@ export default function AdminDocumentsList() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Central Document Verification Repository</h1>
@@ -108,9 +107,9 @@ export default function AdminDocumentsList() {
         </div>
       </div>
 
-      {/* Category Tabs & Multi-Filters */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
-        {/* Category Tabs */}
+        {}
         <div className="flex items-center gap-2 border-b border-slate-100 pb-3 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("All")}
@@ -157,7 +156,7 @@ export default function AdminDocumentsList() {
           </button>
         </div>
 
-        {/* Multi-Filter Bar */}
+        {}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div className="relative sm:col-span-2">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -200,7 +199,7 @@ export default function AdminDocumentsList() {
         </div>
       </div>
 
-      {/* Documents Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

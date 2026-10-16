@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { ArrowLeft, Download, Printer, CheckCircle2 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
-// Helper to convert number to Indian words
+
 function numberToWords(num) {
   if (!num || isNaN(num) || Number(num) === 0) return "Zero Rupees Only";
   const a = [
@@ -137,7 +137,7 @@ export default function InvoiceReceiptPage() {
   const app = application;
   const currentMilestone = milestone || {};
 
-  // Amounts
+  
   const totalPlanAmount =
     Number(app.paymentPlan?.totalAmount) ||
     (app.paymentPlan?.milestones || []).reduce((sum, m) => sum + (Number(m.amount) || 0), 0) ||
@@ -147,7 +147,7 @@ export default function InvoiceReceiptPage() {
   const paidAmount = Number(currentMilestone.paymentAmount || currentMilestone.amount || 25000);
   const dueAmount = Math.max(0, totalPlanAmount - paidAmount);
 
-  // Dates
+  
   const rawDate = currentMilestone.paymentDate || currentMilestone.completedAt || new Date().toISOString();
   const dateObj = new Date(rawDate);
   const formattedFullDate = dateObj.toLocaleDateString("en-GB", {
@@ -162,7 +162,7 @@ export default function InvoiceReceiptPage() {
       month: "2-digit",
       year: "numeric",
     })
-    .replace(/\//g, "-");
+    .split("/").join("-");
 
   const seq = (app.id || "001").replace(/[^0-9]/g, "").slice(-4).padStart(4, "0") || "0001";
   const receiptNo = `IG/REC/2026-${seq}`;
@@ -176,7 +176,7 @@ export default function InvoiceReceiptPage() {
     vendor?.address ||
     "Authorized Partner Office, New Delhi - 110075";
 
-  // Mode and Txn
+  
   let paymentMode = "Bank / Online Transfer";
   let txnRef = currentMilestone.paymentRef || "TXN-VERIFIED-98234";
   if (currentMilestone.paymentRef) {
@@ -226,7 +226,7 @@ export default function InvoiceReceiptPage() {
         }
       `}</style>
 
-      {/* Floating Action Bar */}
+      {}
       <div className="max-w-[800px] mx-auto mb-4 flex items-center justify-between print-hide">
         <button
           onClick={() => window.close()}
@@ -253,12 +253,12 @@ export default function InvoiceReceiptPage() {
         </div>
       </div>
 
-      {/* ── OFFICIAL PAYMENT RECEIPT CONTAINER ── */}
+      {}
       <div className="receipt-paper max-w-[800px] mx-auto bg-white border-2 border-slate-900 p-6 sm:p-8 shadow-md text-slate-900 text-xs leading-relaxed space-y-4 font-sans">
         
-        {/* 1. HEADER: LOGO, COMPANY DETAILS & RECEIPT TITLE */}
+        {}
         <div className="border border-slate-900 flex flex-col sm:flex-row items-stretch">
-          {/* Company Details */}
+          {}
           <div className="flex-1 p-4 border-b sm:border-b-0 sm:border-r border-slate-900 flex items-start gap-3">
             <div className="shrink-0 pt-0.5">
               <div className="flex items-baseline">
@@ -283,7 +283,7 @@ export default function InvoiceReceiptPage() {
             </div>
           </div>
 
-          {/* Receipt Meta Box */}
+          {}
           <div className="w-full sm:w-[320px] bg-slate-50/70 p-3.5 flex flex-col justify-between">
             <div className="text-center sm:text-right border-b border-slate-300 pb-1.5 mb-1.5">
               <span className="text-xs font-black uppercase tracking-wider text-slate-950 block">
@@ -311,9 +311,9 @@ export default function InvoiceReceiptPage() {
           </div>
         </div>
 
-        {/* 2. RECEIVED FROM & CANDIDATE / PROJECT DETAILS */}
+        {}
         <div className="border border-slate-900 grid grid-cols-1 sm:grid-cols-2 text-[11px]">
-          {/* Vendor Details */}
+          {}
           <div className="p-3.5 border-b sm:border-b-0 sm:border-r border-slate-900 space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
               Received From (Vendor Partner)
@@ -327,7 +327,7 @@ export default function InvoiceReceiptPage() {
             </p>
           </div>
 
-          {/* Candidate & Project Details */}
+          {}
           <div className="p-3.5 space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
               Candidate & Overseas Deployment
@@ -350,7 +350,7 @@ export default function InvoiceReceiptPage() {
           </div>
         </div>
 
-        {/* 3. PAYMENT PARTICULARS TABLE */}
+        {}
         <div className="border border-slate-900 overflow-x-auto">
           <table className="w-full text-left text-[11px] border-collapse">
             <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-900 text-[10px]">
@@ -382,7 +382,7 @@ export default function InvoiceReceiptPage() {
                 </td>
               </tr>
 
-              {/* Amount In Words Row */}
+              {}
               <tr className="border-b border-slate-900 bg-slate-50/50 text-[10px]">
                 <td colSpan={3} className="py-2 px-3 border-r border-slate-900">
                   <span className="text-slate-500">Amount Received (In Words): </span>
@@ -398,7 +398,7 @@ export default function InvoiceReceiptPage() {
                 </td>
               </tr>
 
-              {/* Ledger Summary: Total Agreed vs Due */}
+              {}
               <tr className="text-[10px]">
                 <td colSpan={3} className="py-2 px-3 border-r border-slate-900 text-slate-600">
                   Total Agreed Placement Fee: <strong className="text-slate-900">₹{totalPlanAmount.toLocaleString()}</strong>
@@ -414,9 +414,9 @@ export default function InvoiceReceiptPage() {
           </table>
         </div>
 
-        {/* 4. BANK DETAILS & OFFICIAL SIGNATURE (SIDE BY SIDE) */}
+        {}
         <div className="border border-slate-900 grid grid-cols-1 sm:grid-cols-2 text-[10px]">
-          {/* Bank Account Details */}
+          {}
           <div className="p-3.5 border-b sm:border-b-0 sm:border-r border-slate-900 space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block border-b border-slate-200 pb-1 mb-1">
               Credited To Company Account
@@ -429,13 +429,13 @@ export default function InvoiceReceiptPage() {
             </div>
           </div>
 
-          {/* Authorised Signatory & Seal */}
+          {}
           <div className="p-3.5 flex flex-col justify-between text-right">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-800 block">
               For IMMIGO EDUCARE LLP
             </span>
 
-            {/* Stamp & Signature simulation */}
+            {}
             <div className="py-1 flex items-center justify-end">
               <div className="w-28 h-14 border-2 border-dashed border-blue-600/70 rounded-full flex flex-col items-center justify-center p-1 text-blue-700 rotate-[-3deg] select-none pointer-events-none">
                 <span className="text-[7px] font-black tracking-widest uppercase">
@@ -458,7 +458,7 @@ export default function InvoiceReceiptPage() {
           </div>
         </div>
 
-        {/* 5. FOOTER */}
+        {}
         <div className="text-center pt-2 border-t border-slate-200">
           <p className="text-xs italic text-slate-700 font-serif">
             Thanks for your business

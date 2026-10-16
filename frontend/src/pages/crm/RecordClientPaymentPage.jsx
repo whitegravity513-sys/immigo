@@ -82,7 +82,7 @@ export default function RecordClientPaymentPage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Load clients
+  
   useEffect(() => {
     const fetchClients = async () => {
       setLoadingClients(true);
@@ -111,7 +111,7 @@ export default function RecordClientPaymentPage() {
     fetchClients();
   }, [initialClientId]);
 
-  // Sync selected milestone
+  
   useEffect(() => {
     if (selectedClient && selectedClient.paymentMilestones) {
       const msList = selectedClient.paymentMilestones || [];
@@ -162,7 +162,7 @@ export default function RecordClientPaymentPage() {
     if (errors.milestoneId) setErrors((prev) => ({ ...prev, milestoneId: "" }));
   };
 
-  // Live financial computations
+  
   const numericAmount = Math.max(0, Number(formData.amountPaid) || 0);
   let computedGstAmount = 0;
   let computedTotalTransaction = numericAmount;
@@ -254,7 +254,7 @@ export default function RecordClientPaymentPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 font-sans">
-      {/* Header & Back navigation */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -289,7 +289,7 @@ export default function RecordClientPaymentPage() {
         </div>
       </div>
 
-      {/* Main Form */}
+      {}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
         {errors.form && (
           <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function RecordClientPaymentPage() {
           </div>
         )}
 
-        {/* Section 1: Client & Milestone Selection */}
+        {}
         <div className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2 border-b border-gray-100 pb-2">
             <Building2 size={15} className="text-blue-600" />
@@ -306,7 +306,7 @@ export default function RecordClientPaymentPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Client Picker */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Select Client <span className="text-red-500">*</span>
@@ -333,7 +333,7 @@ export default function RecordClientPaymentPage() {
               )}
             </div>
 
-            {/* Milestone Picker */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Payment Milestone <span className="text-red-500">*</span>
@@ -364,7 +364,7 @@ export default function RecordClientPaymentPage() {
             </div>
           </div>
 
-          {/* Milestone Balance Live Overview Card */}
+          {}
           {selectedMilestone && (
             <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -395,7 +395,7 @@ export default function RecordClientPaymentPage() {
             </div>
           )}
 
-          {/* Optional Project Association */}
+          {}
           <div className="pt-1">
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               Related Project <span className="text-gray-400 font-normal">(Optional)</span>
@@ -424,7 +424,7 @@ export default function RecordClientPaymentPage() {
           </div>
         </div>
 
-        {/* Section 2: Payment Details */}
+        {}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2 border-b border-gray-100 pb-2">
             <CreditCard size={15} className="text-emerald-600" />
@@ -432,7 +432,7 @@ export default function RecordClientPaymentPage() {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Payment Date */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Payment Date <span className="text-red-500">*</span>
@@ -450,7 +450,7 @@ export default function RecordClientPaymentPage() {
               )}
             </div>
 
-            {/* Payment Method */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Payment Method <span className="text-red-500">*</span>
@@ -468,7 +468,7 @@ export default function RecordClientPaymentPage() {
               </select>
             </div>
 
-            {/* Payment Amount */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Payment Amount (₹) <span className="text-red-500">*</span>
@@ -497,7 +497,7 @@ export default function RecordClientPaymentPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Transaction Reference / UTR */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Transaction Reference / UTR <span className="text-red-500">*</span>
@@ -519,7 +519,7 @@ export default function RecordClientPaymentPage() {
               )}
             </div>
 
-            {/* Proof Upload */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Payment Proof / Voucher <span className="text-gray-400 font-normal">(Optional)</span>
@@ -540,7 +540,7 @@ export default function RecordClientPaymentPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-            {/* Received By */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Received By
@@ -554,7 +554,7 @@ export default function RecordClientPaymentPage() {
               />
             </div>
 
-            {/* Status */}
+            {}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Payment Verification Status <span className="text-red-500">*</span>
@@ -577,7 +577,7 @@ export default function RecordClientPaymentPage() {
           </div>
         </div>
 
-        {/* Section 3: GST Handling */}
+        {}
         <div className="space-y-4 pt-4 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
@@ -639,7 +639,7 @@ export default function RecordClientPaymentPage() {
                 </div>
               </div>
 
-              {/* Tax Calculation Live Breakdown */}
+              {}
               <div className="pt-2 border-t border-indigo-100 grid grid-cols-3 gap-3 text-xs">
                 <div>
                   <span className="text-[10px] text-gray-500 uppercase font-bold">Base Milestone Amount</span>
@@ -664,7 +664,7 @@ export default function RecordClientPaymentPage() {
           )}
         </div>
 
-        {/* Section 4: Remarks */}
+        {}
         <div className="space-y-2 pt-4 border-t border-gray-100">
           <label className="block text-xs font-semibold text-gray-700">
             Remarks & Finance Notes <span className="text-gray-400 font-normal">(Optional)</span>
@@ -678,7 +678,7 @@ export default function RecordClientPaymentPage() {
           />
         </div>
 
-        {/* Submit Actions */}
+        {}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
           <button
             type="button"

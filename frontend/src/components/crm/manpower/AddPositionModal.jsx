@@ -149,7 +149,7 @@ export function AddPositionModal({
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-200">
           <div>
-            {/* Modal Header */}
+            {}
             <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
@@ -173,7 +173,7 @@ export function AddPositionModal({
               </button>
             </div>
 
-            {/* Modal Body */}
+            {}
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputField
@@ -294,7 +294,7 @@ export function AddPositionModal({
               </div>
             </div>
 
-            {/* Modal Footer */}
+            {}
             <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-100">
               <button
                 type="button"

@@ -51,7 +51,7 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5">
-      {/* Quick Fill Demo */}
+      {}
       <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
         <span className="truncate mr-2">
           Demo Vendor: <span className="font-bold text-[#1877f2]">vendor@abcmanpower.com</span> &bull; Pass: <span className="font-mono font-bold">Password@123</span>

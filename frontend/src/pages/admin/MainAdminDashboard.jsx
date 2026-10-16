@@ -190,7 +190,7 @@ export function MainAdminDashboard() {
     }
   };
 
-  // 10 Color-Coded Summary Cards with Professional Hierarchy
+  
   const summaryCards = [
     {
       title: "Total HR",
@@ -290,7 +290,7 @@ export function MainAdminDashboard() {
       <div className="relative font-sans pb-6">
         <div className="space-y-4">
           
-          {/* Main Stats Header - Compact */}
+          {}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
             <div className="lg:col-span-1 p-4 sm:p-5 rounded-2xl bg-indigo-600 text-white shadow-md flex flex-col justify-between overflow-hidden relative">
               <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
@@ -343,7 +343,7 @@ export function MainAdminDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
-            {/* Operations & Manpower Command - Left Column */}
+            {}
             <div className="lg:col-span-1 space-y-3">
               <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-xl text-white shadow-xs relative overflow-hidden flex flex-col justify-between">
                 <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl"></div>
@@ -390,7 +390,7 @@ export function MainAdminDashboard() {
               </div>
             </div>
 
-            {/* Active Projects Pipeline - Right 2 Columns (Strictly 5 items + See All) */}
+            {}
             <div className="lg:col-span-2 space-y-4">
               
               <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col h-full">
@@ -468,7 +468,7 @@ export function MainAdminDashboard() {
                   )}
                 </div>
 
-                {/* See All Footer */}
+                {}
                 {projectsList.length > 5 && (
                   <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
                     <span className="text-slate-500 font-medium">
@@ -487,7 +487,7 @@ export function MainAdminDashboard() {
             </div>
           </div>
 
-          {/* FULL-WIDTH UNIFIED RECENT ACTIVITY & OPERATIONS FEED */}
+          {}
           <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden mt-1">
             <div className="p-3 sm:px-4 sm:py-2.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
@@ -500,7 +500,7 @@ export function MainAdminDashboard() {
                 </p>
               </div>
 
-              {/* Filter and Page controls */}
+              {}
               <div className="flex items-center gap-2 shrink-0">
                 <select
                   value={activityFilter}
@@ -630,7 +630,7 @@ export function MainAdminDashboard() {
               </div>
             )}
 
-            {/* Compact Pagination */}
+            {}
             {activityTotalPages > 1 && (
               <div className="px-4 py-2 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-[11px]">
                 <span className="text-slate-500 font-medium">

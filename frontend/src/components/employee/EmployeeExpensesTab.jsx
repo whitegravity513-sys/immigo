@@ -349,7 +349,7 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       </div>
 
-      {/* Slide-over Side Drawer for Adding Business Expense (No Popup) */}
+      {}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div

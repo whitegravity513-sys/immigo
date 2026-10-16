@@ -11,7 +11,7 @@ export const activityService = {
       console.warn("Failed to fetch admin activities from server:", err.message);
     }
 
-    // Local fallback
+    
     const raw = localStorage.getItem("crm_recent_activities_v1") || "[]";
     const list = JSON.parse(raw);
     const page = Number(params.page) || 1;

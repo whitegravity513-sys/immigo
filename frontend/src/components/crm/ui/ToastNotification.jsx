@@ -3,7 +3,7 @@ import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 
 export function ToastNotification({
   message,
-  type = "success", // "success" | "error" | "info"
+  type = "success", 
   onClose,
   duration = 4000,
 }) {

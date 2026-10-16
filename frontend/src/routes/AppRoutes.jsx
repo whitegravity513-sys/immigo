@@ -4,24 +4,24 @@ import { useAuth } from "../context/AuthContext.jsx";
 import ProtectedRoute from "../components/common/ProtectedRoute.jsx";
 import LoadingFallback from "../components/common/LoadingFallback.jsx";
 
-// Auth
+
 const UnifiedLogin = lazy(() => import("../pages/UnifiedLogin.jsx"));
 const AdminLoginPage = lazy(() => import("../pages/admin/AdminLoginPage.jsx"));
 const EmployeeLoginPage = lazy(() => import("../pages/employee/EmployeeLoginPage.jsx"));
 
-// 1. Main Admin Central Dashboard
+
 const MainAdminDashboard = lazy(() => import("../pages/admin/MainAdminDashboard.jsx"));
 
-// Existing Admin / Workforce Sub-Routes (attendance-all, workforce, leaves, etc.)
+
 const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
 
-// 2. Dedicated HR Module
+
 const HRDashboard = lazy(() => import("../pages/hr/HRDashboard.jsx"));
 
-// 3. Existing Employee Module
+
 const EmployeeDashboard = lazy(() => import("../pages/employee/EmployeeDashboard.jsx"));
 
-// 4. Dedicated Client Management Module
+
 const ClientLayout = lazy(() => import("../components/client/layout/ClientLayout.jsx"));
 const ProjectLayout = lazy(() => import("../components/project/layout/ProjectLayout.jsx"));
 const ClientDashboard = lazy(() => import("../pages/client/ClientDashboard.jsx"));
@@ -38,7 +38,7 @@ const RecordClientPaymentPage = lazy(() => import("../pages/crm/RecordClientPaym
 const RecordClientExpensePage = lazy(() => import("../pages/crm/RecordClientExpensePage.jsx"));
 const PaymentsExpensesPage = lazy(() => import("../pages/crm/PaymentsExpensesPage.jsx"));
 
-// 5. Vendor Module
+
 const VendorLogin = lazy(() => import("../pages/vendor/VendorLogin.jsx"));
 const VendorRegister = lazy(() => import("../pages/vendor/VendorRegister.jsx"));
 const VendorLayout = lazy(() => import("../components/vendor/layout/VendorLayout.jsx"));
@@ -62,7 +62,7 @@ const VendorEditCandidate = lazy(() => import("../pages/vendor/EditCandidate.jsx
 const VendorRefunds = lazy(() => import("../pages/vendor/VendorRefunds.jsx"));
 const VendorNewRefund = lazy(() => import("../pages/vendor/VendorNewRefund.jsx"));
 
-// Admin Vendor Management Module
+
 const VendorManagementLayout = lazy(() => import("../components/admin/layout/VendorManagementLayout.jsx"));
 const AdminVendorDashboard = lazy(() => import("../pages/admin/vendor/AdminVendorDashboard.jsx"));
 const AdminVendorsList = lazy(() => import("../pages/admin/vendor/AdminVendorsList.jsx"));
@@ -87,12 +87,12 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        {/* Dedicated Standalone Invoice Receipt Routes */}
+        {}
         <Route path="/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/vendor/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/admin/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
 
-        {/* Dedicated Standalone Auth Routes with distinct URLs */}
+        {}
         <Route
           path="/admin/login"
           element={
@@ -125,7 +125,7 @@ export default function AppRoutes() {
         />
         <Route path="/vendor/register" element={<VendorRegister />} />
 
-        {/* Central /login route: smart redirect or fallback */}
+        {}
         <Route
           path="/login"
           element={
@@ -146,7 +146,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* 1. Main Admin Central Dashboard (Default landing for Admin) */}
+        {}
         <Route
           path="/admin/dashboard"
           element={
@@ -158,7 +158,7 @@ export default function AppRoutes() {
 
         <Route path="/admin/dashboard/projects" element={<Navigate to="/client/projects" replace />} />
 
-        {/* Existing Admin / Workforce Sub-Routes (Preserving all employee CRM, attendance, leaves, etc.) */}
+        {}
         <Route
           path="/admin/dashboard/*"
           element={
@@ -168,12 +168,12 @@ export default function AppRoutes() {
           }
         />
 
-        {/* 2. HR Module (Connects directly to the original workforce & employee admin system) */}
+        {}
         <Route path="/hr" element={<Navigate to="/admin/dashboard/workforce" replace />} />
         <Route path="/hr/dashboard" element={<Navigate to="/admin/dashboard/workforce" replace />} />
         <Route path="/hr/*" element={<Navigate to="/admin/dashboard/workforce" replace />} />
 
-        {/* 3. Existing Employee Module (Accessible by employee and admin) */}
+        {}
         <Route
           path="/employee/dashboard"
           element={
@@ -183,7 +183,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* 4. Dedicated Client Management Module */}
+        {}
         <Route
           path="/client/dashboard"
           element={
@@ -450,7 +450,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Alternate routes for CRM backward-compatibility */}
+        {}
         <Route
           path="/clients"
           element={
@@ -564,7 +564,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* 5. Admin Vendor Management (Strictly Admin Access with Secondary Sidebar) */}
+        {}
         <Route
           path="/admin/vendor"
           element={
@@ -592,7 +592,7 @@ export default function AppRoutes() {
 
         <Route path="/admin/vendors" element={<Navigate to="/admin/vendor/vendors" replace />} />
 
-        {/* 6. Vendor Portal (Strictly External Vendor Role) */}
+        {}
         <Route
           path="/vendor"
           element={
@@ -627,10 +627,10 @@ export default function AppRoutes() {
           <Route path="profile" element={<VendorProfile />} />
         </Route>
 
-        {/* Top-level redirect */}
+        {}
         <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* Root Redirect */}
+        {}
         <Route
           path="/"
           element={
@@ -651,7 +651,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Fallback */}
+        {}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

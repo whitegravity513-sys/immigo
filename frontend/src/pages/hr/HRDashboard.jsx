@@ -342,7 +342,7 @@ export function HRDashboard() {
       ]}
     >
       <div className="space-y-6">
-        {/* Top HR KPI Cards (8 Cards) */}
+        {}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
           {hrCards.map((card) => (
             <Link
@@ -363,7 +363,7 @@ export function HRDashboard() {
           ))}
         </div>
 
-        {/* Section 1: Recent Employees Table */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -444,9 +444,9 @@ export function HRDashboard() {
           </div>
         </div>
 
-        {/* Section 2: Two-column Split (Pending Documents & Leave Requests) */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Pending Documents */}
+          {}
           <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
             <div>
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -486,7 +486,7 @@ export function HRDashboard() {
             </div>
           </div>
 
-          {/* Leave Requests */}
+          {}
           <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
             <div>
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -551,7 +551,7 @@ export function HRDashboard() {
           </div>
         </div>
 
-        {/* Section 3: Recent HR Activity Feed */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-xs sm:text-sm font-bold text-gray-900">Recent HR Activity</h2>
@@ -571,7 +571,7 @@ export function HRDashboard() {
           </div>
         </div>
 
-        {/* Edit Employee Modal */}
+        {}
         <HrEditEmployeeModal
           isOpen={Boolean(editingEmployee)}
           onClose={() => setEditingEmployee(null)}
@@ -580,7 +580,7 @@ export function HRDashboard() {
           saving={savingEmployee}
         />
 
-        {/* Delete Employee Confirmation Modal */}
+        {}
         <DeleteConfirmModal
           isOpen={Boolean(deleteTargetEmployee)}
           onClose={() => setDeleteTargetEmployee(null)}

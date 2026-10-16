@@ -27,10 +27,10 @@ export default function Payments() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Tabs: 'All' | 'Paid' | 'Due'
+  
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  // Track which candidate rows are expanded to view milestone details
+  
   const [expandedAppIds, setExpandedAppIds] = useState(new Set());
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function Payments() {
 
       const apps = await crmVendorService.getApplications(curVendor?.id);
 
-      // Selected or Completed candidates with payment plans
+      
       const selectedApps = (apps || []).filter(
         (a) => ["Selected", "Completed"].includes(a.status)
       );
@@ -66,7 +66,7 @@ export default function Payments() {
     });
   };
 
-  // Process applications with calculated financial figures per person
+  
   const candidateAccounts = applications.map((app) => {
     const milestones = app.processMilestones || [];
     let totalFee = 0;
@@ -139,7 +139,7 @@ export default function Payments() {
     };
   });
 
-  // Financial summary across all candidate accounts
+  
   const totalContractFee = candidateAccounts.reduce((acc, c) => acc + c.totalFee, 0);
   const totalPaidOverall = candidateAccounts.reduce((acc, c) => acc + c.paidAmount, 0);
   const totalDueOverall = candidateAccounts.reduce((acc, c) => acc + c.dueAmount, 0);
@@ -147,10 +147,10 @@ export default function Payments() {
   const fullyPaidCount = candidateAccounts.filter((c) => c.isFullyPaid).length;
   const dueAccountsCount = candidateAccounts.filter((c) => c.dueAmount > 0).length;
 
-  // Show 5 items by default with See All toggle
+  
   const [showAll, setShowAll] = useState(false);
 
-  // Filter candidate accounts
+  
   const filteredAccounts = candidateAccounts.filter((cand) => {
     if (activeTab === "Paid" && cand.paidAmount <= 0) return false;
     if (activeTab === "Due" && cand.dueAmount <= 0) return false;
@@ -175,7 +175,7 @@ export default function Payments() {
 
   return (
     <div className="p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 font-sans">
-      {/* Header (Compact Height & Refined Bold) */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 uppercase tracking-wider mb-0.5">
@@ -199,7 +199,7 @@ export default function Payments() {
         </button>
       </div>
 
-      {/* KPI Cards (Reduced Height & Sleek Boldness) */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
@@ -253,7 +253,7 @@ export default function Payments() {
         </div>
       </div>
 
-      {/* Tabs & Search Controls */}
+      {}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold w-full sm:w-auto">
           <button
@@ -300,7 +300,7 @@ export default function Payments() {
         </div>
       </div>
 
-      {/* Candidate Accounts Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -350,7 +350,7 @@ export default function Payments() {
                   return (
                     <React.Fragment key={cand.appId}>
                       <tr className="hover:bg-slate-50/70 transition group">
-                        {/* Candidate Name & ID */}
+                        {}
                         <td className="py-4 px-4">
                           <Link
                             to={`/vendor/candidates/${cand.candidateId}`}
@@ -363,7 +363,7 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {/* Project & Role */}
+                        {}
                         <td className="py-4 px-4">
                           <span className="font-bold text-slate-800 block truncate max-w-[170px]">
                             {cand.projectName}
@@ -373,7 +373,7 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {/* Total Fee */}
+                        {}
                         <td className="py-4 px-4 text-center whitespace-nowrap">
                           <span className="font-extrabold text-slate-900 text-sm">
                             ₹{cand.totalFee.toLocaleString()}
@@ -383,7 +383,7 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {/* Amount Paid */}
+                        {}
                         <td className="py-4 px-4 text-center whitespace-nowrap">
                           <span className="font-extrabold text-emerald-600 text-sm">
                             ₹{cand.paidAmount.toLocaleString()}
@@ -399,7 +399,7 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {/* Remaining Due */}
+                        {}
                         <td className="py-4 px-4 text-center whitespace-nowrap">
                           <span
                             className={`font-extrabold text-sm ${
@@ -419,7 +419,7 @@ export default function Payments() {
                           )}
                         </td>
 
-                        {/* Process Milestones (ek sath summary chips) */}
+                        {}
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-1.5 flex-wrap max-w-xs">
                             {cand.milestones.slice(0, 3).map((m) => (
@@ -454,7 +454,7 @@ export default function Payments() {
                           </div>
                         </td>
 
-                        {/* Overall Status */}
+                        {}
                         <td className="py-4 px-4 text-center whitespace-nowrap">
                           {cand.isFullyPaid ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -474,7 +474,7 @@ export default function Payments() {
                           )}
                         </td>
 
-                        {/* Actions */}
+                        {}
                         <td className="py-4 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
@@ -503,7 +503,7 @@ export default function Payments() {
                         </td>
                       </tr>
 
-                      {/* Expandable row: All milestones for this candidate shown together */}
+                      {}
                       {isExpanded && (
                         <tr className="bg-slate-50/90 border-b border-slate-200">
                           <td colSpan={8} className="p-4 sm:p-5">

@@ -19,7 +19,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
   const [milestones, setMilestones] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  // Initialize from application or generate defaults
+  
   useEffect(() => {
     if (application) {
       const rawMilestones =
@@ -58,7 +58,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           })
         );
       } else {
-        // Preset 3 milestones by default
+        
         applyPreset(3, 40000);
       }
     }
@@ -286,7 +286,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col font-sans max-h-[90vh]">
-        {/* Header */}
+        {}
         <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-300">
@@ -310,9 +310,9 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </button>
         </div>
 
-        {/* Content Body */}
+        {}
         <div className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
-          {/* Candidate & Project Header Banner */}
+          {}
           <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Candidate / Trade</span>
@@ -326,7 +326,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             </div>
           </div>
 
-          {/* Total Amount Input & Presets */}
+          {}
           <div className="bg-blue-50/60 rounded-2xl p-4 border border-blue-200 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -347,7 +347,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               </div>
             </div>
 
-            {/* Quick Presets */}
+            {}
             <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-blue-200/60">
               <span className="text-[10px] font-bold text-blue-900">Divide Into:</span>
               <button
@@ -373,7 +373,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               </button>
             </div>
 
-            {/* Live Amount Balance & Validation Card */}
+            {}
             <div className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold ${
               diffAmount === 0 
                 ? "bg-emerald-50 border-emerald-200 text-emerald-800"
@@ -407,7 +407,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             </div>
           </div>
 
-          {/* Milestones List */}
+          {}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-black text-slate-900 uppercase text-[11px] tracking-wider">
@@ -481,7 +481,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   </div>
                 </div>
 
-                {/* Stages Section inside Milestone */}
+                {}
                 <div className="mt-2 pt-2.5 border-t border-slate-100 bg-slate-50/70 -mx-4 -mb-4 p-3.5 rounded-b-2xl space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
@@ -501,7 +501,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                     </button>
                   </div>
 
-                  {/* Stages List */}
+                  {}
                   <div className="space-y-1.5">
                     {(!m.stages || m.stages.length === 0) ? (
                       <div className="p-2 bg-white rounded-xl border border-dashed border-slate-200 text-center text-[10px] text-slate-400">
@@ -540,7 +540,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             ))}
           </div>
 
-          {/* Notification Rule Summary */}
+          {}
           <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-2xl flex items-start gap-2.5 text-indigo-950">
             <Info size={16} className="text-indigo-600 shrink-0 mt-0.5" />
             <div className="space-y-0.5 text-[11px]">
@@ -558,7 +558,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
           <div className="text-xs">
             <span className="text-slate-500 font-medium">Total Configured: </span>

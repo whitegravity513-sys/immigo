@@ -361,7 +361,7 @@ export default function CalendarMeetings() {
 
               const isPastDate = dateStr < todayStr;
               const allDayMeetings = meetings.filter((m) => m.date === dateStr);
-              // Do NOT show past meetings in calendar boxes ("box ma nhi")
+              
               const displayMeetings = isPastDate ? [] : allDayMeetings;
 
               return (
@@ -397,7 +397,7 @@ export default function CalendarMeetings() {
                     )}
                   </div>
 
-                  {/* Meetings pills: only active/upcoming shown in boxes; past meetings listed in table/list below */}
+                  {}
                   <div className="flex-1 space-y-0.5 overflow-hidden">
                     {displayMeetings.slice(0, 2).map((m) => (
                       <div
@@ -441,8 +441,7 @@ export default function CalendarMeetings() {
         </div>
       )}
 
-      {/* Meetings List / Directory Section:
-          Strictly shown when in List View (viewMode === "list"), or when user clicks on a specific calendar day */}
+      {}
       {(viewMode === "list" || selectedDayMeetings) && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -629,7 +628,7 @@ export default function CalendarMeetings() {
       )}
         </>
       ) : (
-        /* Schedule / Edit Meeting Dedicated New Page (Zero Popups) */
+        
         <div className="space-y-4 max-w-4xl mx-auto animate-in fade-in duration-200">
           <button
             type="button"

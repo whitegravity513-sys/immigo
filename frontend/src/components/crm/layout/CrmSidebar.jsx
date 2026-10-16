@@ -125,7 +125,7 @@ export function CrmSidebar({
 
   return (
     <>
-      {/* Mobile Drawer Backdrop */}
+      {}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-2xs lg:hidden transition-opacity"
@@ -134,13 +134,13 @@ export function CrmSidebar({
         />
       )}
 
-      {/* Sidebar Aside */}
+      {}
       <aside
         className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen bg-white border-r border-gray-200 transition-all duration-200 ease-in-out select-none shadow-xs ${
           collapsed ? "w-[72px]" : "w-[260px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Brand / Logo Top Bar */}
+        {}
         <div className="h-16 px-4 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
           <Link
             to="/dashboard"
@@ -175,9 +175,9 @@ export function CrmSidebar({
           )}
         </div>
 
-        {/* Navigation Body */}
+        {}
         <div className="flex-1 px-3 py-4 space-y-6 overflow-y-auto custom-scrollbar">
-          {/* Main Dashboard item */}
+          {}
           <div className="space-y-1">
             {navItems.map((item) => {
               const active = isActive(item.path);
@@ -201,7 +201,7 @@ export function CrmSidebar({
             })}
           </div>
 
-          {/* Section: HR (Directly under Admin) */}
+          {}
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
@@ -231,7 +231,7 @@ export function CrmSidebar({
             })}
           </div>
 
-          {/* Section: Client (Under HR) */}
+          {}
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
@@ -280,7 +280,7 @@ export function CrmSidebar({
             })}
           </div>
 
-          {/* Section: Upcoming Modules */}
+          {}
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
@@ -311,10 +311,10 @@ export function CrmSidebar({
           </div>
         </div>
 
-        {/* Bottom Section: Admin Profile */}
+        {}
         <div className="p-3 border-t border-gray-100 bg-gray-50/60">
 
-          {/* Admin Profile Box */}
+          {}
           <div
             className={`flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-200 shadow-2xs ${
               collapsed ? "justify-center" : ""

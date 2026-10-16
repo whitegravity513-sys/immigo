@@ -27,7 +27,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Modal Top Bar */}
+        {}
         <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600/30 rounded-lg border border-blue-400/30">
@@ -62,12 +62,12 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
           </div>
         </div>
 
-        {/* Modal Printable Content Area */}
+        {}
         <div
           ref={printRef}
           className="flex-1 overflow-y-auto p-6 sm:p-10 font-serif text-slate-800 text-sm leading-relaxed space-y-6 select-text bg-white"
         >
-          {/* Document Header */}
+          {}
           <div className="text-center border-b-2 border-slate-900 pb-6 space-y-2">
             <div className="inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-blue-900 font-sans text-[11px] font-black uppercase tracking-wider mb-1">
               ImmiGo Global &bull; Vista Overseas Workforce
@@ -83,7 +83,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
             </div>
           </div>
 
-          {/* Parties Introduction */}
+          {}
           <div className="space-y-3 font-sans text-xs sm:text-sm bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-700">
             <p className="leading-relaxed">
               This Memorandum of Understanding (hereinafter referred to as the <b>"MOU"</b>) is entered into on this{" "}
@@ -104,7 +104,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
             </div>
           </div>
 
-          {/* Recitals & Clauses */}
+          {}
           <div className="space-y-4 font-sans text-xs sm:text-sm text-slate-700">
             <div>
               <h3 className="font-bold text-slate-900 font-sans text-sm uppercase tracking-wide border-b border-slate-200 pb-1 mb-2">
@@ -161,14 +161,14 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
             </div>
           </div>
 
-          {/* Signatures Block */}
+          {}
           <div className="pt-6 border-t-2 border-slate-300 font-sans">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 text-center">
               EXECUTED BY DULY AUTHORIZED REPRESENTATIVES
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* First Party Sign */}
+              {}
               <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase text-blue-900">FIRST PARTY (Licensor)</span>
@@ -186,7 +186,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
                 </div>
               </div>
 
-              {/* Second Party Sign */}
+              {}
               <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase text-slate-900">SECOND PARTY (Vendor Partner)</span>
@@ -234,7 +234,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
           </div>
         </div>
 
-        {/* Modal Bottom Actions */}
+        {}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
           <p className="text-xs text-slate-500">
             {vendor?.mouSigned

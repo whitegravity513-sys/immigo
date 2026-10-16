@@ -62,7 +62,7 @@ export function Projects() {
       });
       setProjects(res.projects || []);
 
-      // Also get clients for filter dropdown
+      
       const clientRes = await crmClientService.getClients({ limit: 100 });
       setClients(clientRes.clients || []);
     } catch (err) {
@@ -119,7 +119,7 @@ export function Projects() {
     }
   };
 
-  // Metrics
+  
   const totalProjects = projects.length;
   const activeProjects = projects.filter((p) => p.status === "Active").length;
   const inactiveProjects = projects.filter((p) => p.status === "Inactive").length;
@@ -131,7 +131,7 @@ export function Projects() {
   return (
     <div className="space-y-4 max-w-7xl mx-auto">
 
-      {/* Top Metrics Row */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         <StatCard
           title="Total Projects"
@@ -163,10 +163,10 @@ export function Projects() {
         />
       </div>
 
-      {/* Filter and Search Bar */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Search by Project ID or Name */}
+          {}
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search
               size={16}
@@ -181,7 +181,7 @@ export function Projects() {
             />
           </div>
 
-          {/* Client Filter */}
+          {}
           <div>
             <select
               value={clientFilter}
@@ -197,7 +197,7 @@ export function Projects() {
             </select>
           </div>
 
-          {/* Status Filter */}
+          {}
           <div>
             <select
               value={statusFilter}
@@ -211,7 +211,7 @@ export function Projects() {
             </select>
           </div>
 
-          {/* Country Filter */}
+          {}
           <div>
             <select
               value={countryFilter}
@@ -232,7 +232,7 @@ export function Projects() {
         </div>
       </div>
 
-      {/* Projects List Container */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-6">
@@ -261,7 +261,7 @@ export function Projects() {
           </div>
         ) : (
           <>
-            {/* Desktop Table View (>= 768px) */}
+            {}
             <div className="hidden md:block overflow-x-auto min-h-[340px] pb-16">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
@@ -285,7 +285,7 @@ export function Projects() {
                         key={proj.id}
                         className="hover:bg-blue-50/30 transition-colors"
                       >
-                        {/* Project ID */}
+                        {}
                         <td className="py-3.5 px-4 font-mono font-bold text-blue-700">
                           <Link
                             to={`/client/projects/${proj.id}`}
@@ -295,7 +295,7 @@ export function Projects() {
                           </Link>
                         </td>
 
-                        {/* Project Name & Type */}
+                        {}
                         <td className="py-3.5 px-4">
                           <Link
                             to={`/client/projects/${proj.id}`}
@@ -308,7 +308,7 @@ export function Projects() {
                           </span>
                         </td>
 
-                        {/* Client Company */}
+                        {}
                         <td className="py-3.5 px-4">
                           <div className="font-semibold text-gray-800 flex items-center gap-1.5">
                             <Building2 size={13} className="text-gray-400 shrink-0" />
@@ -319,7 +319,7 @@ export function Projects() {
                           </span>
                         </td>
 
-                        {/* Country & Location */}
+                        {}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5 text-gray-700 font-medium">
                             <MapPin size={13} className="text-blue-500 shrink-0" />
@@ -332,7 +332,7 @@ export function Projects() {
                           )}
                         </td>
 
-                        {/* Headcount */}
+                        {}
                         <td className="py-3.5 px-4 text-center">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 font-bold text-xs border border-blue-200">
                             {proj.totalManpower} Persons
@@ -342,7 +342,7 @@ export function Projects() {
                           </span>
                         </td>
 
-                        {/* Status & Quick Toggle */}
+                        {}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2 flex-wrap">
                             <StatusBadge status={proj.status} size="sm" />
@@ -359,7 +359,7 @@ export function Projects() {
                           </div>
                         </td>
 
-                        {/* Actions */}
+                        {}
                         <td className="py-3.5 px-4 text-center">
                           <div className="relative inline-flex items-center justify-center">
                             <button
@@ -449,7 +449,7 @@ export function Projects() {
               </table>
             </div>
 
-            {/* Mobile Cards View (< 768px) */}
+            {}
             <div className="md:hidden divide-y divide-gray-100">
               {projects.map((proj) => (
                 <div key={proj.id} className="p-4 space-y-3">
@@ -538,7 +538,7 @@ export function Projects() {
         )}
       </div>
 
-      {/* Delete Project Confirmation Modal */}
+      {}
       <DeleteConfirmModal
         isOpen={Boolean(deleteTargetProject)}
         onClose={() => setDeleteTargetProject(null)}

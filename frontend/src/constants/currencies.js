@@ -1,4 +1,4 @@
-// Comprehensive international currency list with codes and labels
+
 
 export const POPULAR_CURRENCIES = [
   { code: "AED", label: "AED - UAE Dirham" },

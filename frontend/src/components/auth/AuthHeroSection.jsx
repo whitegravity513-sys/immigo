@@ -3,19 +3,19 @@ import { Users, ShieldCheck, Zap, Headphones, Globe, Building, Smile, Star } fro
 export function AuthHeroHeadline({ isMobile = false }) {
   return (
     <div className={`space-y-3.5 text-left ${isMobile ? "w-full max-w-[430px] sm:max-w-xl mx-auto" : ""}`}>
-      {/* 1. International Hiring Badge */}
+      {}
       <div className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md border border-blue-200/80 px-3.5 py-1.5 rounded-full text-xs font-bold text-blue-900 shadow-xs">
         <span className="w-2.5 h-2.5 rounded-full bg-[#1877f2] animate-pulse" />
         <span>International Hiring &amp; Workforce Solutions</span>
       </div>
 
-      {/* 2. Main Headline */}
+      {}
       <h1 className="text-2xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-black text-slate-900 leading-[1.14] tracking-tight drop-shadow-xs">
         Supplying Skilled Talent<br />
         <span className="text-[#1877f2]">Across Foreign Borders</span>
       </h1>
 
-      {/* 3. Subtitle / Description */}
+      {}
       <p className="text-xs sm:text-sm lg:text-base text-slate-700 font-semibold max-w-xl leading-relaxed drop-shadow-xs">
         Connecting global businesses with verified talent for a stronger, more skilled tomorrow.
         Fast. Secure. Borderless.
@@ -61,7 +61,7 @@ export function AuthHeroFeatures({ isMobile = false }) {
 
   return (
     <div className={`space-y-4 text-left ${isMobile ? "w-full max-w-[430px] sm:max-w-xl mx-auto" : ""}`}>
-      {/* 4 Feature Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 max-w-xl pt-1">
         {featureCards.map((card, idx) => (
           <div
@@ -81,7 +81,7 @@ export function AuthHeroFeatures({ isMobile = false }) {
         ))}
       </div>
 
-      {/* Stats Bar */}
+      {}
       <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-sm p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-xl">
         {stats.map((s, idx) => (
           <div key={idx} className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export function AuthHeroFeatures({ isMobile = false }) {
         ))}
       </div>
 
-      {/* Trust Footer Badges */}
+      {}
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-800 pt-1 drop-shadow-2xs">
         <ShieldCheck size={16} className="text-[#1877f2]" />
         <span>Your Global Recruitment Partner</span>

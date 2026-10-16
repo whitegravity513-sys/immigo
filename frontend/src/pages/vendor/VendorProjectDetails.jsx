@@ -89,7 +89,7 @@ export default function VendorProjectDetails() {
 
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto">
-      {/* Top Breadcrumb & Navigation */}
+      {}
       <div className="flex items-center justify-between gap-3">
         <Link
           to="/vendor/projects"
@@ -102,7 +102,7 @@ export default function VendorProjectDetails() {
         </span>
       </div>
 
-      {/* Main Project Header Card */}
+      {}
       <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-5 sm:p-7 text-white shadow-md border border-slate-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="flex items-start gap-4">
@@ -150,7 +150,7 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {/* Key Metric Cards */}
+      {}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-blue-700 font-bold text-[11px] uppercase tracking-wider mb-1">
@@ -193,7 +193,7 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {/* Trades & Manpower Requirements Table */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -281,7 +281,7 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {/* Project Scope & Description */}
+      {}
       {project.description && (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-2">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function VendorProjectDetails() {
         </div>
       )}
 
-      {/* Additional Requirements & Compliance */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -351,7 +351,7 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {/* Footer Navigation Bar */}
+      {}
       <div className="pt-4 flex items-center justify-between border-t border-slate-200 flex-wrap gap-3">
         <Link
           to="/vendor/dashboard"

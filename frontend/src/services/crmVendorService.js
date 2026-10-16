@@ -1,5 +1,5 @@
-// crmVendorService.js
-// Dedicated storage and service layer for Vendor Portal and Admin Vendor Management
+
+
 import crmClientService from "./crmClientService.js";
 import { apiClient } from "./apiClient.js";
 import { initialClients } from "../data/mockClients.js";
@@ -13,18 +13,18 @@ const ADMIN_NOTIFICATIONS_KEY = "immigo_crm_admin_notifications_v3";
 
 const delay = (ms = 50) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// INITIAL SEED DATA
+
 const INITIAL_VENDORS = [];
 
 const INITIAL_CANDIDATES = [];
 
-// CANDIDATE APPLICATIONS / SUBMISSIONS (PER-PROJECT INDEPENDENT STATUS)
+
 const INITIAL_APPLICATIONS = [];
 
 const INITIAL_ADMIN_NOTIFICATIONS = [];
 const INITIAL_NOTIFICATIONS = [];
 
-// Automatic cleanup to clear all mock/demo business data across all modules
+
 if (typeof window !== "undefined") {
   try {
     const cleanKey = "immigo_cleaned_all_data_v9";
@@ -56,7 +56,7 @@ if (typeof window !== "undefined") {
   } catch {}
 }
 
-// Helper to load/save
+
 const loadData = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);
@@ -82,9 +82,9 @@ const saveData = (key, data) => {
 export const crmVendorService = {
   apiClient,
 
-  // ----------------------------------------------------
-  // VENDOR AUTH & PROFILE SYNC
-  // ----------------------------------------------------
+  
+  
+  
   getVendorMe: async () => {
     try {
       const response = await apiClient.get("/auth/vendor/me");
@@ -125,7 +125,7 @@ export const crmVendorService = {
       
       const newVendor = {
         ...response.data.vendor,
-        id: response.data.vendor.vendorId, // map vendorId to id for frontend usage
+        id: response.data.vendor.vendorId, 
       };
       
       const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
@@ -144,10 +144,10 @@ export const crmVendorService = {
       
       const vendor = {
         ...response.data.vendor,
-        id: response.data.vendor.vendorId, // map vendorId to id for frontend usage
+        id: response.data.vendor.vendorId, 
       };
 
-      // Also update local storage so other functions can work normally if they rely on it
+      
       const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
       const existingIdx = vendors.findIndex(v => v.email === vendor.email);
       if (existingIdx !== -1) {
@@ -189,7 +189,7 @@ export const crmVendorService = {
         }
       } catch {}
 
-      // Add Notification for Admin
+      
       crmVendorService.addAdminNotification({
         title: "Vendor Documents Submitted",
         message: `${updatedVendor.companyName || "Vendor"} (${updatedVendor.vendorId || updatedVendor.id}) submitted statutory documents for Admin verification.`,
@@ -200,7 +200,7 @@ export const crmVendorService = {
 
       return updatedVendor;
     } catch (err) {
-      // Local fallback
+      
       const cur = crmVendorService.getCurrentVendor();
       if (!cur) throw new Error(err.response?.data?.message || err.message);
       const updated = {
@@ -251,7 +251,7 @@ export const crmVendorService = {
         }
       } catch {}
 
-      // Add notification for Admin
+      
       crmVendorService.addAdminNotification({
         title: "MOU Signed by Vendor",
         message: `${updatedVendor.companyName || "Vendor"} (${updatedVendor.vendorId}) digitally signed and executed their MOU agreement!`,
@@ -262,7 +262,7 @@ export const crmVendorService = {
 
       return updatedVendor;
     } catch (err) {
-      // Local fallback
+      
       const cur = crmVendorService.getCurrentVendor();
       if (!cur) throw new Error(err.response?.data?.message || err.message);
       const updated = {
@@ -297,7 +297,7 @@ export const crmVendorService = {
       if (!stored) return null;
       const parsed = JSON.parse(stored);
       if (parsed?.role === "vendor" || parsed?.companyName) {
-        // Also ensure we read latest updated state from storage
+        
         const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
         const fresh = vendors.find(
           (v) =>
@@ -351,7 +351,7 @@ export const crmVendorService = {
       }
     } catch {}
 
-    // Add Notification for Admin in frontend store
+    
     crmVendorService.addAdminNotification({
       title: "Vendor Profile Updated",
       message: `${finalVendor.companyName || "Vendor"} updated their profile or compliance details.`,
@@ -389,9 +389,9 @@ export const crmVendorService = {
     return vendors[idx];
   },
 
-  // ----------------------------------------------------
-  // CANDIDATES CREATION & MANAGEMENT
-  // ----------------------------------------------------
+  
+  
+  
   createCandidate: async (vendorId, candidateData) => {
     await delay(120);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
@@ -441,10 +441,10 @@ export const crmVendorService = {
     return candidates[idx];
   },
 
-  // ----------------------------------------------------
-  // ----------------------------------------------------
-  // ADMIN VENDOR MANAGEMENT
-  // ----------------------------------------------------
+  
+  
+  
+  
   getVendorsSync: () => {
     return loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
   },
@@ -466,7 +466,7 @@ export const crmVendorService = {
       vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     }
 
-    // 7-Day Auto Rejection Enforcement
+    
     const now = Date.now();
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     vendors = vendors.map((v) => {
@@ -551,7 +551,7 @@ export const crmVendorService = {
 
       return updated;
     } catch (err) {
-      // Local fallback
+      
       return crmVendorService.signOrVerifyMOU(vendorId, "Sent");
     }
   },
@@ -841,9 +841,9 @@ export const crmVendorService = {
     return vendors[idx];
   },
 
-  // ----------------------------------------------------
-  // VENDOR CANDIDATES (POOL)
-  // ----------------------------------------------------
+  
+  
+  
   getCandidates: async (vendorId, { search = "", position = "All", country = "All", experience = "All" } = {}) => {
     try {
       const res = await apiClient.get(`/crm-sync/candidates${vendorId ? `?vendorId=${vendorId}` : ""}`);
@@ -922,7 +922,7 @@ export const crmVendorService = {
     const candidate = candidates.find((c) => c.id === candidateId);
     if (!candidate) return null;
 
-    // Attach submission history
+    
     const applications = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const history = applications.filter((a) => a.candidateId === candidateId);
 
@@ -1026,7 +1026,7 @@ export const crmVendorService = {
       candidates[idx].documents[docIndex].verifiedAt = new Date().toISOString();
     }
 
-    // Update overall candidate verification state
+    
     const allDocs = candidates[idx].documents;
     if (allDocs.some((d) => d.status === "Rejected")) {
       candidates[idx].verificationStatus = "Rejected";
@@ -1116,9 +1116,9 @@ export const crmVendorService = {
   },
 
 
-  // ----------------------------------------------------
-  // CANDIDATE SUBMISSION / APPLICATIONS (PER-PROJECT)
-  // ----------------------------------------------------
+  
+  
+  
   getApplications: async (vendorId, { status = "All", projectId = "All", search = "" } = {}) => {
     try {
       const res = await apiClient.get(`/crm-sync/applications${vendorId ? `?vendorId=${vendorId}` : ""}`);
@@ -1160,9 +1160,9 @@ export const crmVendorService = {
 
     let dataChanged = false;
 
-    // Auto-fix and initialize milestones for Selected / Completed candidates
+    
     apps = apps.map(app => {
-      // If candidate is Selected or Completed, ensure processMilestones are initialized with stages
+      
       if (["Selected", "Completed"].includes(app.status)) {
         if (!Array.isArray(app.processMilestones) || app.processMilestones.length === 0) {
           app.processMilestones = [
@@ -1212,7 +1212,7 @@ export const crmVendorService = {
           dataChanged = true;
         }
 
-        // Ensure sequential milestone status consistency
+        
         if (Array.isArray(app.processMilestones) && app.processMilestones.length > 0) {
           app.processMilestones.forEach((m, mIdx) => {
             const amt = Number(m.paymentAmount) || 0;
@@ -1231,24 +1231,24 @@ export const crmVendorService = {
                 }
               }
             } else {
-              // Milestone index > 0
+              
               const prevM = app.processMilestones[mIdx - 1];
               const prevComplete = prevM.status === "Completed" || (Array.isArray(prevM.stages) && prevM.stages.length > 0 && prevM.stages.every(s => s.status === "Completed"));
 
               if (!prevComplete) {
-                // Previous milestone is NOT complete -> strictly lock this milestone!
+                
                 m.status = "Locked";
                 if (m.paymentStatus !== "Approved") {
                   m.paymentStatus = "Locked";
                 }
-                // Lock uncompleted stages
+                
                 if (Array.isArray(m.stages)) {
                   m.stages.forEach(s => {
                     if (s.status !== "Completed") s.status = "Locked";
                   });
                 }
               } else {
-                // Previous milestone IS complete! Now this milestone can open
+                
                 if (m.status === "Locked") {
                   if (m.paymentStatus === "Approved" || amt === 0) {
                     m.status = "Active";
@@ -1269,7 +1269,7 @@ export const crmVendorService = {
           dataChanged = true;
         }
 
-        // Keep paymentPlan synchronized with processMilestones
+        
         const totalAmt = app.processMilestones.reduce((acc, m) => acc + (Number(m.paymentAmount) || 0), 0) || 40000;
         app.paymentPlan = {
           totalAmount: totalAmt,
@@ -1284,7 +1284,7 @@ export const crmVendorService = {
           }))
         };
 
-        // Synchronize app.processing and currentStageIndex
+        
         const allMStages = (app.processMilestones || []).flatMap((m) => m.stages || []);
         const compMStages = allMStages.filter((s) => s.status === "Completed" || s.completed).length;
         const allDone = (allMStages.length > 0 && compMStages === allMStages.length) ||
@@ -1342,7 +1342,7 @@ export const crmVendorService = {
     const candidate = candidates.find((c) => c.id === candidateId);
     if (!candidate) throw new Error("Candidate not found.");
 
-    // Retrieve real Client & Project details from crmClientService
+    
     let clientName = "Client Partner";
     let projectName = "Deployment Project";
     let country = "UAE";
@@ -1354,7 +1354,7 @@ export const crmVendorService = {
         country = proj.country || country;
         clientName = proj.client?.companyName || proj.clientName || clientName;
 
-        // Check if vendor has permission to submit to this project
+        
         if (proj.vendorVisibility === "specific") {
           const isAssigned = (proj.assignedVendorIds || []).includes(vendorId);
           if (!isAssigned) {
@@ -1362,7 +1362,7 @@ export const crmVendorService = {
           }
         }
 
-        // Validate that the position being submitted is actually required by the project
+        
         const validPosition = (proj.manpowerRequirements || []).some(
           req => req.position === position || req.positionTitle === position
         );
@@ -1374,10 +1374,10 @@ export const crmVendorService = {
       if (err.message.includes("permission") || err.message.includes("not a valid requirement")) {
         throw err;
       }
-      // fallback to sensible defaults
+      
     }
 
-    // Check if this candidate is already submitted to this EXACT project
+    
     const alreadySubmitted = apps.find(
       (a) =>
         a.candidateId === candidateId &&
@@ -1403,7 +1403,7 @@ export const crmVendorService = {
       position: position || candidate.currentPosition,
       country,
       submittedAt: new Date().toISOString(),
-      status: "Submitted", // Submitted, Under Review, Shortlisted, Selected, Rejected, Completed
+      status: "Submitted", 
       rejectionReason: "",
       selectionDate: null,
     };
@@ -1418,7 +1418,7 @@ export const crmVendorService = {
       }).catch(() => {});
     } catch {}
 
-    // Notify vendor
+    
     crmVendorService.addNotification({
       vendorId: newApp.vendorId,
       title: "Candidate Submitted",
@@ -1427,7 +1427,7 @@ export const crmVendorService = {
       link: "/vendor/applications",
     });
 
-    // Notify admin
+    
     crmVendorService.addAdminNotification({
       title: "New Candidate Submission 📄",
       message: `Vendor submitted ${candidate.fullName} for ${newApp.position} on project ${projectName}.`,
@@ -1533,7 +1533,7 @@ export const crmVendorService = {
       apps[idx].selectionDate = new Date().toISOString();
       apps[idx].rejectionReason = "";
 
-      // Initialize candidate milestone progress from project paymentMilestones if present
+      
       if (!apps[idx].processMilestones) {
         let milestonePlan = null;
         try {
@@ -1604,7 +1604,7 @@ export const crmVendorService = {
       apps[idx].rejectionDate = null;
     }
 
-    // Sync with backend API
+    
     try {
       const res = await apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]);
       if (res.data?.success && res.data.application) {
@@ -1672,7 +1672,7 @@ export const crmVendorService = {
     return apps[idx];
   },
 
-  // Advance / Update Processing Stage
+  
   completeStage: async (applicationId, milestoneId, stageId, remark = "", completedBy = "Admin") => {
     await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
@@ -1701,7 +1701,7 @@ export const crmVendorService = {
               return { ...stg, status: "Completed", completedAt: today, completedBy, remark };
             }
             if (nextStageUnlocked && stg.status === "Locked") {
-              nextStageUnlocked = false; // Only unlock the immediate next stage
+              nextStageUnlocked = false; 
               return { ...stg, status: "In Progress" };
             }
             return stg;
@@ -1711,7 +1711,7 @@ export const crmVendorService = {
       return milestone;
     });
 
-    // Check if milestone stages are all complete
+    
     const mIdx = apps[idx].processMilestones.findIndex(m => m.id === milestoneId);
     if (mIdx !== -1) {
       const allDone = apps[idx].processMilestones[mIdx].stages.every(s => s.status === "Completed");
@@ -1735,7 +1735,7 @@ export const crmVendorService = {
             }
           }
 
-          // Notify vendor that next milestone payment is unlocked
+          
           crmVendorService.addNotification({
             vendorId: apps[idx].vendorId,
             title: `Milestone ${mIdx + 1} Completed - Milestone ${mIdx + 2} Open 💳`,
@@ -1759,7 +1759,7 @@ export const crmVendorService = {
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    // Notify vendor
+    
     crmVendorService.addNotification({
       vendorId: apps[idx].vendorId,
       title: "Candidate Milestone Updated",
@@ -1791,7 +1791,7 @@ export const crmVendorService = {
       apps[idx].processMilestones[mIdx].paymentRemark = "Paid Online via Razorpay";
       apps[idx].processMilestones[mIdx].status = "Active";
 
-      // Unlock first stage if locked
+      
       if (apps[idx].processMilestones[mIdx].stages?.length > 0) {
         if (apps[idx].processMilestones[mIdx].stages[0].status === "Locked") {
           apps[idx].processMilestones[mIdx].stages[0].status = "In Progress";
@@ -1801,7 +1801,7 @@ export const crmVendorService = {
       apps[idx].processMilestones[mIdx].paymentStatus = "Submitted";
     }
 
-    // Keep paymentPlan synced
+    
     if (apps[idx].paymentPlan?.milestones?.[mIdx]) {
       apps[idx].paymentPlan.milestones[mIdx].status = isRazorpay ? "Paid" : "Submitted";
       apps[idx].paymentPlan.milestones[mIdx].paidDate = isRazorpay ? new Date().toISOString().split("T")[0] : null;
@@ -1812,7 +1812,7 @@ export const crmVendorService = {
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    // Notify admin
+    
     crmVendorService.addAdminNotification({
       title: "Milestone Payment Submitted 💳",
       message: `Payment submitted for candidate ${apps[idx].candidateName} on project ${apps[idx].projectName}.`,
@@ -1838,7 +1838,7 @@ export const crmVendorService = {
     apps[idx].processMilestones[mIdx].paymentRemark = remark;
     apps[idx].processMilestones[mIdx].status = "Active";
 
-    // Unlock first stage
+    
     if (apps[idx].processMilestones[mIdx].stages.length > 0) {
       apps[idx].processMilestones[mIdx].stages[0].status = "In Progress";
     }
@@ -1847,7 +1847,7 @@ export const crmVendorService = {
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    // Notify vendor
+    
     crmVendorService.addNotification({
       vendorId: apps[idx].vendorId,
       title: "Payment Approved ✅",
@@ -1885,7 +1885,7 @@ export const crmVendorService = {
 
     const isPaid = newStatus === "Paid";
 
-    // 1. Sync in paymentPlan.milestones
+    
     if (apps[idx].paymentPlan?.milestones) {
       const pmIdx = apps[idx].paymentPlan.milestones.findIndex(
         (m) => String(m.id) === String(milestoneId)
@@ -1901,7 +1901,7 @@ export const crmVendorService = {
       }
     }
 
-    // 2. Sync in processMilestones
+    
     if (apps[idx].processMilestones) {
       const mIdx = apps[idx].processMilestones.findIndex(
         (m) => String(m.id) === String(milestoneId)
@@ -1924,7 +1924,7 @@ export const crmVendorService = {
     apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]).catch(() => {});
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    // Notify vendor
+    
     crmVendorService.addNotification({
       vendorId: apps[idx].vendorId,
       title: isPaid ? "Milestone Payment Marked Paid ✅" : "Milestone Payment Reset to Pending ⏳",
@@ -1936,7 +1936,7 @@ export const crmVendorService = {
     return apps[idx];
   },
 
-  // Upload Official Visa document to a stage
+  
   uploadStageVisa: async (applicationId, milestoneId, stageId, visaUrl, fileName = "Visa_Document.pdf") => {
     await delay(60);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
@@ -1974,7 +1974,7 @@ export const crmVendorService = {
     apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]).catch(() => {});
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    // Notify vendor in real-time
+    
     crmVendorService.addNotification({
       vendorId: apps[idx].vendorId,
       title: "Visa Document Issued! ✈️",
@@ -1986,7 +1986,7 @@ export const crmVendorService = {
     return apps[idx];
   },
 
-  // Admin Override of Milestone amounts for an individual candidate
+  
   overrideMilestones: async (applicationId, totalAmount, milestones) => {
     await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
@@ -1997,7 +1997,7 @@ export const crmVendorService = {
     apps[idx].paymentPlan.totalAmount = totalAmount;
     apps[idx].paymentPlan.milestones = milestones;
 
-    // Map to processMilestones format so VendorTimeline can read it properly
+    
     apps[idx].processMilestones = milestones.map((m, mIdx) => {
       const isPaid = m.status === "Paid";
       const isFirst = mIdx === 0;
@@ -2009,7 +2009,7 @@ export const crmVendorService = {
       const stages = (m.stages || []).map((s, sIdx) => {
         let sStatus = s.status || "Locked";
         if (!isPaid && amt > 0) {
-          sStatus = "Locked"; // Locked until milestone payment is verified
+          sStatus = "Locked"; 
         } else if (isPaid && sStatus === "Locked" && sIdx === 0) {
           sStatus = "In Progress";
         }
@@ -2037,7 +2037,7 @@ export const crmVendorService = {
     apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]).catch(() => {});
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    // Notify vendor
+    
     crmVendorService.addNotification({
       vendorId: apps[idx].vendorId,
       title: "Milestone Plan Configured 📋",
@@ -2046,7 +2046,7 @@ export const crmVendorService = {
       link: `/vendor/processing/${apps[idx].id}`,
     });
 
-    // Notify admin
+    
     crmVendorService.addAdminNotification({
       title: "Candidate Milestones Set 🎯",
       message: `Milestone plan configured for ${apps[idx].candidateName} on ${apps[idx].projectName} (Total ₹${Number(totalAmount).toLocaleString()}).`,
@@ -2057,9 +2057,9 @@ export const crmVendorService = {
     return apps[idx];
   },
 
-  // ----------------------------------------------------
-  // VENDOR DASHBOARD STATS
-  // ----------------------------------------------------
+  
+  
+  
   getVendorDashboardStats: async (vendorId) => {
     await delay(50);
     try {
@@ -2092,7 +2092,7 @@ export const crmVendorService = {
     ).length;
     const completed = apps.filter((a) => a.status === "Completed" || a.processing?.currentStageIndex === 7).length;
 
-    // Financials
+    
     let totalPayment = 0;
     let paidAmount = 0;
     let pendingAmount = 0;
@@ -2113,7 +2113,7 @@ export const crmVendorService = {
 
     const recentActivity = apps.slice(0, 7);
 
-    // Fetch Available Projects based on visibility
+    
     let availableProjects = [];
     try {
       availableProjects = await crmVendorService.getAvailableProjects(vendorId);
@@ -2205,9 +2205,9 @@ export const crmVendorService = {
     return list;
   },
 
-  // ----------------------------------------------------
-  // NOTIFICATIONS
-  // ----------------------------------------------------
+  
+  
+  
   getNotifications: (vendorId) => {
     try {
       apiClient
@@ -2220,7 +2220,7 @@ export const crmVendorService = {
             res.data.notifications.forEach((n) => {
               const key = n.id || n._id;
               const prev = map.get(key) || {};
-              // Keep read: true if it was marked read locally
+              
               const isRead = Boolean(prev.read || n.read);
               map.set(key, { ...prev, ...n, read: isRead });
             });
@@ -2317,9 +2317,9 @@ export const crmVendorService = {
     } catch {}
   },
 
-  // ----------------------------------------------------
-  // ADMIN NOTIFICATIONS
-  // ----------------------------------------------------
+  
+  
+  
   getAdminNotifications: () => {
     try {
       apiClient.get("/crm-sync/notifications?role=ADMIN")
@@ -2385,9 +2385,9 @@ export const crmVendorService = {
     saveData(ADMIN_NOTIFICATIONS_KEY, []);
   },
 
-  // ----------------------------------------------------
-  // ADMIN ENTERPRISE OVERVIEW STATS (MATCHING CRM SPEC)
-  // ----------------------------------------------------
+  
+  
+  
   getAdminVendorOverviewStats: async () => {
     await delay(30);
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
@@ -2407,7 +2407,7 @@ export const crmVendorService = {
 
     const notifs = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
     
-    // Map notifications to activity format
+    
     const recentActivity = notifs.slice(0, 5).map((n) => ({
       id: n.id,
       type: n.title.toLowerCase().includes("submission") ? "submission" : n.title.toLowerCase().includes("payment") ? "payment" : "vendor",
@@ -2456,14 +2456,14 @@ export const crmVendorService = {
     };
   },
 
-  // Get full submissions history for a specific candidate across all projects
+  
   getCandidateSubmissionsHistory: async (candidateId) => {
     await delay(30);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     return apps.filter((a) => a.candidateId === candidateId);
   },
 
-  // Get all documents across vendors and candidates
+  
   getAllDocuments: async ({ vendorId = "All", candidateId = "All", type = "All", status = "All", search = "" } = {}) => {
     await delay(50);
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
@@ -2472,7 +2472,7 @@ export const crmVendorService = {
 
     const docs = [];
 
-    // Vendor statutory documents
+    
     vendors.forEach((v) => {
       (v.documents || []).forEach((d, idx) => {
         docs.push({
@@ -2493,7 +2493,7 @@ export const crmVendorService = {
       });
     });
 
-    // Candidate dossiers
+    
     candidates.forEach((c) => {
       const v = vendors.find((vend) => vend.id === c.vendorId);
       const candApps = apps.filter((a) => a.candidateId === c.id);

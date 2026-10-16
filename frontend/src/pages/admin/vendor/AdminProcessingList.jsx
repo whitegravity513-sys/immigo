@@ -34,7 +34,6 @@ export default function AdminProcessingList() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Stage Update Modal inside Full Page
   const [showStageModal, setShowStageModal] = useState(false);
   const [targetStageIdx, setTargetStageIdx] = useState(0);
   const [stageRemarks, setStageRemarks] = useState("");
@@ -62,8 +61,6 @@ export default function AdminProcessingList() {
     }
   };
 
-  // Remove old fixed stageMeta and old update stage handlers since we're using the new Timeline
-
   const handleTimelineUpdate = () => {
     loadData();
   };
@@ -80,16 +77,13 @@ export default function AdminProcessingList() {
     );
   });
 
-  // =========================================================================
-  // VIEW 2: FULL PAGE CANDIDATE PROCESSING TIMELINE & STAGE UPDATER
-  // =========================================================================
   if (selectedApp) {
     const currentStageIndex = selectedApp?.processing?.currentStageIndex ?? 0;
     const stages = selectedApp?.processing?.stages || [];
 
     return (
       <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-        {/* Top Back Navigation Bar */}
+        {}
         <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
           <button
             onClick={() => setSelectedApp(null)}
@@ -104,7 +98,7 @@ export default function AdminProcessingList() {
           </span>
         </div>
 
-        {/* CANDIDATE & DEPLOYMENT HEADER CARD */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">
@@ -137,10 +131,10 @@ export default function AdminProcessingList() {
             <div className="flex items-center gap-2">
             </div>
           </div>
-          {/* Stepper Overview Bar removed as it is replaced by CandidateProcessTimeline */}
+          {}
         </div>
 
-        {/* CANDIDATE PROCESS TIMELINE */}
+        {}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -156,19 +150,12 @@ export default function AdminProcessingList() {
             onUpdate={handleTimelineUpdate} 
           />
         </div>
-
-        {/* STAGE UPDATE MODAL removed */}
-
       </div>
     );
   }
 
-  // =========================================================================
-  // VIEW 1: PROCESSING CANDIDATES ROSTER LIST VIEW
-  // =========================================================================
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Processing Timeline & Stepper</h1>
@@ -184,7 +171,7 @@ export default function AdminProcessingList() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -196,7 +183,7 @@ export default function AdminProcessingList() {
         />
       </div>
 
-      {/* Candidates Roster Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

@@ -42,7 +42,7 @@ export function ProjectNavbar({
     <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 sticky top-0 z-30 flex items-center border-b border-blue-800/80 shadow-md shrink-0">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
-        {/* Left: Toggle + Logo + Title */}
+        {}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             type="button"
@@ -80,7 +80,7 @@ export function ProjectNavbar({
           </div>
         </div>
 
-        {/* Right: Actions */}
+        {}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             to="/admin/dashboard"

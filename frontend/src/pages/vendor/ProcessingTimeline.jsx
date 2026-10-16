@@ -63,7 +63,7 @@ export default function ProcessingTimeline() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <button
@@ -110,7 +110,7 @@ export default function ProcessingTimeline() {
         </div>
       ) : (
         <div className="w-full">
-          {/* Active Deployments Candidate List */}
+          {}
           <div className="space-y-4">
             <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
@@ -122,7 +122,7 @@ export default function ProcessingTimeline() {
                 </div>
               </div>
 
-              {/* Search Box */}
+              {}
               <div className="relative mb-4">
                 <Search size={16} className="absolute left-3.5 top-2.5 text-slate-400" />
                 <input
@@ -134,7 +134,7 @@ export default function ProcessingTimeline() {
                 />
               </div>
 
-              {/* Candidate Roster Cards */}
+              {}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredApps.length === 0 ? (
                   <div className="col-span-full p-6 text-center text-sm text-slate-400">
@@ -165,7 +165,7 @@ export default function ProcessingTimeline() {
                           <span className="font-bold text-indigo-600 shrink-0">{app.projectName}</span>
                         </div>
 
-                        {/* Progress Bar */}
+                        {}
                         <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                           <div
                             className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"

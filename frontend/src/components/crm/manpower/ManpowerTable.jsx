@@ -36,7 +36,7 @@ export function ManpowerTable({
     lastCompany: "",
   });
 
-  // Compute total manpower dynamically
+  
   const totalRequiredManpower = positions.reduce((acc, pos) => {
     return acc + (Number(pos.quantity) || 0);
   }, 0);
@@ -72,7 +72,7 @@ export function ManpowerTable({
     const nextPositions = [...positions, newItem];
     onChange(nextPositions);
 
-    // Reset inline form
+    
     const reset = {
       position: "",
       quantity: "",
@@ -99,7 +99,7 @@ export function ManpowerTable({
 
   return (
     <div className="space-y-4">
-      {/* Top action row */}
+      {}
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Positions Listed:
@@ -111,7 +111,7 @@ export function ManpowerTable({
 
       {!readOnly && (
         <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200 shadow-sm">
-          {/* Row 1: Position + Quantity */}
+          {}
           <div className="flex flex-col sm:flex-row items-end gap-3 mb-3">
             <div className="flex-1 w-full">
               <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Position Name <span className="text-red-500">*</span></label>
@@ -138,7 +138,7 @@ export function ManpowerTable({
             </div>
           </div>
 
-          {/* Row 2: Age Range + Qualification */}
+          {}
           <div className="flex flex-col sm:flex-row items-end gap-3">
             <div className="w-full sm:w-28">
               <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min Age</label>
@@ -192,7 +192,7 @@ export function ManpowerTable({
             </div>
           </div>
 
-          {/* Row 3: Experience + Add Button */}
+          {}
           <div className="flex flex-col sm:flex-row items-end gap-3 mt-3">
             <div className="w-full sm:w-48">
               <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min. Experience (Yrs)</label>
@@ -221,7 +221,7 @@ export function ManpowerTable({
         </div>
       )}
 
-      {/* Dynamic Table / Cards */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         {positions.length === 0 ? (
           <div className="p-6 text-center bg-gray-50/50">
@@ -317,7 +317,7 @@ export function ManpowerTable({
           </div>
         )}
 
-        {/* Automatic Total Bar at Bottom */}
+        {}
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <Users size={16} className="text-blue-600 shrink-0" />

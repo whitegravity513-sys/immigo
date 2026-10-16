@@ -63,7 +63,7 @@ export default function ProjectMilestoneBuilder({ milestones, onChange }) {
 
   return (
     <div className="space-y-3">
-      {/* Top Controller */}
+      {}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -79,7 +79,7 @@ export default function ProjectMilestoneBuilder({ milestones, onChange }) {
         {milestones.map((milestone, index) => (
           <div key={milestone.id} className="border border-slate-200 rounded-lg bg-white shadow-sm overflow-hidden flex flex-col">
             
-            {/* Milestone Header / Config - Unified Row */}
+            {}
             <div className="px-3 py-2 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center gap-2">
               <div className="flex-1 min-w-[150px]">
                 <input
@@ -119,7 +119,7 @@ export default function ProjectMilestoneBuilder({ milestones, onChange }) {
               </button>
             </div>
 
-            {/* Stages Row container */}
+            {}
             <div className="px-3 py-2 bg-white flex flex-wrap gap-1.5 items-center">
               <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Stages:</span>
               

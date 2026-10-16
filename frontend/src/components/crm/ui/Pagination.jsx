@@ -14,7 +14,7 @@ export function Pagination({
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
-  // Generate page numbers array with ellipsis
+  
   const getPageNumbers = () => {
     const pages = [];
     if (totalPages <= 7) {

@@ -24,7 +24,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
       return;
     }
 
-    // Generate a downloadable text/PDF placeholder blob for simulated files
+    
     const content = `OFFICIAL STATUTORY DOCUMENT\n==========================\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nAgency: ${vendor?.companyName || "Vendor Agency"}\nRegistration ID: ${vendor?.registrationNumber || vendor?.vendorId || "VND-VERIFIED"}\nUploaded Date: ${doc.uploadedAt || new Date().toISOString().split("T")[0]}\nStatus: ${doc.status || "Verified"}\n\nThis file is digitally authenticated on the Vista Manpower & Immigration Management System.`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -43,7 +43,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
 
   return (
     <div className="w-full space-y-6 pb-16 animate-fadeIn font-sans text-slate-800">
-      {/* Header Bar */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {onBack && (
@@ -104,7 +104,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
         </div>
       </div>
 
-      {/* Main Document Preview Container */}
+      {}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 sm:p-10 max-w-4xl mx-auto space-y-6">
         {doc.fileUrl && doc.fileUrl.startsWith("data:image") ? (
           <div className="flex justify-center p-4 bg-slate-50 rounded-xl border border-slate-200">
@@ -113,7 +113,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
         ) : doc.fileUrl && doc.fileUrl.startsWith("data:application/pdf") ? (
           <iframe src={doc.fileUrl} title={doc.name} className="w-full h-[75vh] rounded-xl border border-slate-200" />
         ) : (
-          /* High-Fidelity Verification Certificate Sheet */
+          
           <div className="border-4 border-double border-slate-300 p-8 sm:p-12 rounded-xl space-y-8 bg-slate-50/50">
             <div className="text-center border-b pb-6 space-y-2">
               <div className="w-16 h-16 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-inner">

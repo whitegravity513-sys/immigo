@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, User, Mail, Phone, Building2, Briefcase, Calendar, Save, Loader2, IndianRupee } from "lucide-react";
 
-/**
- * EditEmployeeModal
- * Enterprise modal component to edit workforce employee profiles and organizational data.
- */
+
 export default function EditEmployeeModal({
   isOpen,
   onClose,
@@ -81,7 +78,7 @@ export default function EditEmployeeModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
       <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
-        {/* Header */}
+        {}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold">
@@ -106,7 +103,7 @@ export default function EditEmployeeModal({
           </button>
         </div>
 
-        {/* Form Body */}
+        {}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
@@ -250,7 +247,7 @@ export default function EditEmployeeModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
+          {}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button
               type="button"

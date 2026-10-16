@@ -12,14 +12,14 @@ import crmVendorService from "../../services/crmVendorService.js";
 
 export default function MouFullPageView({
   vendor,
-  mode = "preview", // "draft" | "preview" | "sign"
+  mode = "preview", 
   onBack,
   onSuccess,
   onApprove,
 }) {
   const printRef = useRef(null);
 
-  // First Party (Fixed Immigo Legal Identity)
+  
   const firstPartyName = "IMMIGO EDUCARE LLP";
   const firstPartyLLPIN = "ACP - 1662";
   const firstPartyAddress =
@@ -27,7 +27,7 @@ export default function MouFullPageView({
   const firstPartyRep = "MR. HIMANSHU SINGH";
   const firstPartyDesignation = "MANAGING PARTNER";
 
-  // Dynamic Second Party (100% from vendor profile data)
+  
   const secondPartyName = (
     vendor?.companyName ||
     vendor?.agencyName ||
@@ -86,7 +86,7 @@ export default function MouFullPageView({
       : "MANAGING DIRECTOR")
   ).toUpperCase();
 
-  // Dynamic Date Formulation
+  
   const getFormattedDate = () => {
     if (vendor?.mouDocument?.agreementDate) {
       return vendor.mouDocument.agreementDate;
@@ -128,7 +128,7 @@ export default function MouFullPageView({
 
   const mouRefNumber = `MOU-VND-${vendor?.vendorId || vendor?.id || "5456"}-${new Date().getFullYear()}`;
 
-  // Vendor Signature States
+  
   const [signatoryName, setSignatoryName] = useState(secondPartyRep);
   const [designation, setDesignation] = useState(secondPartyDesignation);
   const [signatureText, setSignatureText] = useState(secondPartyRep);
@@ -192,7 +192,7 @@ export default function MouFullPageView({
         return;
       }
 
-      // Collect all current stylesheets & styles to preserve fonts & layout
+      
       const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
         .map((el) => el.outerHTML)
         .join("\n");
@@ -333,7 +333,7 @@ export default function MouFullPageView({
 
   return (
     <div className="w-full font-sans text-slate-900 bg-slate-100 min-h-screen">
-      {/* Strict Print CSS: Ensures no navbar, header, buttons or chrome appear in PDF */}
+      {}
       <style>{`
         @media print {
           @page {
@@ -382,7 +382,7 @@ export default function MouFullPageView({
         }
       `}</style>
 
-      {/* Top Header / Action Bar: Clean Bar with strictly Back & Download options */}
+      {}
       <div className="mou-print-hide print:hidden bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-8 py-2.5">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div>
@@ -441,7 +441,7 @@ export default function MouFullPageView({
         </div>
       </div>
 
-      {/* Alerts */}
+      {}
       {errorMsg && (
         <div className="mou-print-hide print:hidden max-w-4xl mx-auto mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
           <AlertCircle size={15} className="shrink-0 text-rose-600" />
@@ -455,11 +455,11 @@ export default function MouFullPageView({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 22-PAGE LEGAL MOU DOCUMENT (100% DYNAMIC VENDOR DATA) */}
-      {/* ========================================================================= */}
+      {}
+      {}
+      {}
       <div ref={printRef} className="mou-page-container pt-4 pb-12">
-        {/* PAGE 1 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <div className="text-center space-y-4">
@@ -514,7 +514,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">1</div>
         </div>
 
-        {/* PAGE 2 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <ol start={6} className="list-decimal pl-5 space-y-2.5">
@@ -569,7 +569,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">2</div>
         </div>
 
-        {/* PAGE 3 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -648,7 +648,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">4</div>
         </div>
 
-        {/* PAGE 5 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -676,7 +676,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">5</div>
         </div>
 
-        {/* PAGE 6 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -703,7 +703,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">6</div>
         </div>
 
-        {/* PAGE 7 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -739,7 +739,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">7</div>
         </div>
 
-        {/* PAGE 8 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -784,7 +784,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">8</div>
         </div>
 
-        {/* PAGE 9 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -815,7 +815,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">9</div>
         </div>
 
-        {/* PAGE 10 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -859,7 +859,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">10</div>
         </div>
 
-        {/* PAGE 11 */}
+        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>

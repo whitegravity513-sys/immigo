@@ -1,4 +1,4 @@
-// Comprehensive international countries list for global manpower supply
+
 
 export const GCC_COUNTRIES = [
   "UAE",
@@ -37,7 +37,7 @@ export const POPULAR_DESTINATIONS = [
 ];
 
 export const ALL_COUNTRIES = [
-  // GCC & Middle East
+  
   "UAE",
   "Saudi Arabia",
   "Qatar",
@@ -51,7 +51,7 @@ export const ALL_COUNTRIES = [
   "Israel",
   "Turkey",
 
-  // Europe
+  
   "United Kingdom",
   "Germany",
   "Poland",
@@ -83,7 +83,7 @@ export const ALL_COUNTRIES = [
   "Ireland",
   "Greece",
 
-  // Asia Pacific
+  
   "Singapore",
   "Malaysia",
   "Japan",
@@ -103,7 +103,7 @@ export const ALL_COUNTRIES = [
   "Hong Kong",
   "Taiwan",
 
-  // Americas
+  
   "United States",
   "Canada",
   "Mexico",
@@ -113,7 +113,7 @@ export const ALL_COUNTRIES = [
   "Colombia",
   "Panama",
 
-  // Africa
+  
   "South Africa",
   "Nigeria",
   "Kenya",

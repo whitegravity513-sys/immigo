@@ -1,11 +1,7 @@
 import React from "react";
 import { AlertTriangle, Trash2, X, Loader2 } from "lucide-react";
 
-/**
- * DeleteConfirmModal
- * Reusable modal for confirming destructive deletions across all modules
- * (Employees, Vendors, Clients, Projects).
- */
+
 export default function DeleteConfirmModal({
   isOpen,
   onClose,
@@ -25,7 +21,7 @@ export default function DeleteConfirmModal({
         role="dialog"
         aria-modal="true"
       >
-        {/* Modal Header */}
+        {}
         <div className="p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
             <AlertTriangle size={20} />
@@ -54,7 +50,7 @@ export default function DeleteConfirmModal({
           </button>
         </div>
 
-        {/* Modal Actions */}
+        {}
         <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
           <button
             type="button"

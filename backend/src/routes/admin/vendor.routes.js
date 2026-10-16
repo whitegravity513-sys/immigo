@@ -23,7 +23,7 @@ router.get("/vendors/:id", verifyAdmin, getVendorById);
 router.put("/vendors/:id", verifyAdmin, updateVendor);
 router.delete("/vendors/:id", verifyAdmin, deleteVendor);
 
-// Vendor Approval Workflow Routes
+
 router.put("/vendors/:id/approve-registration", verifyAdmin, approveRegistration);
 router.put("/vendors/:id/hold-registration", verifyAdmin, holdRegistration);
 router.post("/vendors/:id/send-mou", verifyAdmin, approveDocsAndSendMou);

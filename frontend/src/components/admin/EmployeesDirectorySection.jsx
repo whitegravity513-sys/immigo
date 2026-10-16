@@ -189,7 +189,7 @@ export default function EmployeesDirectorySection({
         </div>
       </div>
 
-      {/* Delete Employee Confirmation Modal */}
+      {}
       <DeleteConfirmModal
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}

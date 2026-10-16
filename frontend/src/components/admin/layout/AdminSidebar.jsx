@@ -33,7 +33,7 @@ export const AdminSidebar = ({
 }) => {
   return (
     <>
-      {/* Mobile Backdrop */}
+      {}
       {sidebarMobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs lg:hidden transition-opacity"
@@ -42,7 +42,7 @@ export const AdminSidebar = ({
         />
       )}
 
-      {/* Main Sidebar Aside */}
+      {}
       <aside
         className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none ${
           sidebarCollapsed ? "w-[72px]" : "w-[240px]"
@@ -63,7 +63,7 @@ export const AdminSidebar = ({
           )}
         </div>
 
-        {/* Main Admin Return Button & Menu */}
+        {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           <div className="mb-2.5">
             <Link
@@ -229,7 +229,7 @@ export const AdminSidebar = ({
           })}
         </div>
 
-        {/* Bottom Status bar — dark navy matching Client, Vendor & Project */}
+        {}
         <div
           className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
             sidebarCollapsed ? "justify-center" : "justify-between"

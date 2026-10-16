@@ -124,7 +124,7 @@ export function VendorDashboard() {
     },
   ];
 
-  // File Upload Logic
+  
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -139,10 +139,10 @@ export function VendorDashboard() {
       return;
     }
 
-    // Simulate upload and update vendor
+    
     try {
       const updated = await crmVendorService.updateVendorDocuments(vendor.id, true);
-      // Reload page to reflect changes
+      
       window.location.reload();
     } catch (err) {
       alert("Failed to upload document.");
@@ -163,7 +163,7 @@ export function VendorDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
+      {}
       <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-xl p-3.5 sm:p-4 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 border border-blue-800/60">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -216,7 +216,7 @@ export function VendorDashboard() {
         </div>
       </div>
 
-      {/* Summary Metric Cards (Strictly Single Row - 5 Cards) */}
+      {}
       <div className="grid grid-cols-5 gap-2 sm:gap-3.5 w-full">
         {CARDS.map((card) => {
           const Icon = card.icon;
@@ -245,7 +245,7 @@ export function VendorDashboard() {
         })}
       </div>
 
-      {/* Active Available Projects (Recent 5 with See All) */}
+      {}
       {(() => {
         const allProjects = stats?.availableProjects || [];
         const recentProjects = allProjects.slice(0, 5);

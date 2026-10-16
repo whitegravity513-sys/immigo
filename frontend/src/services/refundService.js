@@ -1,4 +1,4 @@
-// Dedicated Refund Management Service Layer
+
 const REFUNDS_STORAGE_KEY = "immigo_crm_refunds_v3";
 const APPLICATIONS_STORAGE_KEY = "immigo_crm_applications_v3";
 
@@ -24,7 +24,7 @@ const saveData = (key, data) => {
 const INITIAL_REFUNDS = [];
 
 export const refundService = {
-  // Get all refunds enriched with real payment data
+  
   getAllRefunds: async () => {
     await delay(50);
     const refunds = loadData(REFUNDS_STORAGE_KEY, INITIAL_REFUNDS);
@@ -61,7 +61,7 @@ export const refundService = {
 
       let calculatedTotalPaid = Number(r.totalPaid || 0);
 
-      // 1. Calculate from application milestones
+      
       if (app) {
         const milestones = app.processMilestones || app.paymentPlan?.milestones || [];
         const paidSum = milestones.reduce((sum, m) => {
@@ -83,7 +83,7 @@ export const refundService = {
         }
       }
 
-      // 2. Check candidate application milestones
+      
       if (calculatedTotalPaid === 0 && cand && Array.isArray(cand.applications)) {
         let candPaidSum = 0;
         cand.applications.forEach((ca) => {
@@ -104,12 +104,12 @@ export const refundService = {
         }
       }
 
-      // 3. Fallback to existing totalPaid
+      
       if (calculatedTotalPaid === 0 && Number(r.totalPaid) > 0) {
         calculatedTotalPaid = Number(r.totalPaid);
       }
 
-      // If refundAmount is not explicitly set or 0, default to calculatedTotalPaid
+      
       let refundAmount = Number(r.refundAmount || 0);
       if (refundAmount === 0 && calculatedTotalPaid > 0 && r.refundStatus !== "Rejected" && r.refundStatus !== "No Refund") {
         refundAmount = calculatedTotalPaid;
@@ -140,7 +140,7 @@ export const refundService = {
     return enriched;
   },
 
-  // Mark Candidate as "Did Not Join" and initiate refund request
+  
   markCandidateDidNotJoin: async ({
     applicationId,
     reason,
@@ -189,7 +189,7 @@ export const refundService = {
     return newRefund;
   },
 
-  // Vendor requests refund
+  
   requestRefund: async ({
     applicationId,
     candidateId,
@@ -204,12 +204,12 @@ export const refundService = {
     const refunds = loadData(REFUNDS_STORAGE_KEY, INITIAL_REFUNDS);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, []);
 
-    // Check if refund already exists
+    
     if (refunds.some(r => r.applicationId === applicationId)) {
       throw new Error("Refund request already exists for this application.");
     }
 
-    // Calculate actual total paid from milestones
+    
     const app = apps.find(
       (a) =>
         String(a.id) === String(applicationId) ||
@@ -250,7 +250,7 @@ export const refundService = {
     return newRefund;
   },
 
-  // Process/Complete refund status
+  
   updateRefundStatus: async (refundId, status, paymentRef = "", refundAmount = null, totalPaid = null) => {
     await delay(80);
     const refunds = loadData(REFUNDS_STORAGE_KEY, INITIAL_REFUNDS);
@@ -272,7 +272,7 @@ export const refundService = {
     return refunds[idx];
   },
 
-  // Generic update for editing after completion
+  
   updateRefund: async (refundId, updates) => {
     await delay(80);
     const refunds = loadData(REFUNDS_STORAGE_KEY, INITIAL_REFUNDS);

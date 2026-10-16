@@ -95,7 +95,7 @@ export function WorkforceAttendanceTable({
         </div>
       </div>
 
-      {/* Mobile Card List View */}
+      {}
       <div className="block lg:hidden p-3 sm:p-4 space-y-3">
         {displayedAttendance.length === 0 ? (
           <div className="py-12 text-center text-xs text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
@@ -234,7 +234,7 @@ export function WorkforceAttendanceTable({
         )}
       </div>
 
-      {/* Desktop Table View */}
+      {}
       <div className="hidden lg:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>

@@ -163,7 +163,7 @@ export default function AttendanceCalendarTab({
             let badge = null;
 
             if (isBeforeJoining) {
-              // Prior to joining: completely clean/muted cell without false absent flags
+              
               cellClass = "h-16 rounded-xl border border-slate-100 bg-slate-50/50 p-1.5 flex flex-col justify-between opacity-35";
               badge = null;
             } else if (holiday || record?.status === "Holiday") {

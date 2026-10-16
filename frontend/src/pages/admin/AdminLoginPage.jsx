@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
     setTimeout(() => setResetSuccessNotice(false), 8000);
   };
 
-  // Dedicated Admin Login Card (without any employee switcher or employee links)
+  
   const renderAdminLoginCard = () => (
     <div className="w-full max-w-[430px] bg-white rounded-[32px] shadow-[0_25px_60px_rgba(0,0,0,0.12)] border border-slate-200/90 p-5 sm:p-7 md:p-8 text-left relative mx-auto">
       <div className="flex items-center justify-between mb-4 sm:mb-5">
@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
         </div>
       )}
 
-      {/* Admin Login Form only (No employee switcher) */}
+      {}
       <AdminLoginForm
         onLoginSuccess={handleSuccess}
         onForgotPassword={() => setForgotModal(true)}
@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-50">
-      {/* Background Airport/Traveler Image exactly as before */}
+      {}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-40"
         style={{ backgroundImage: `url(${heroTravelerBg})` }}
@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
       <AuthHeader />
 
       <main className="relative z-10 w-full flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-12 xl:px-16 py-6 sm:py-8 max-w-7xl mx-auto">
-        {/* DESKTOP / LAPTOP: 2 Columns Side-by-Side with original image & hero section */}
+        {}
         <div className="hidden lg:flex w-full items-center justify-between gap-10 xl:gap-14">
           <AuthHeroSection />
           <div className="w-[45%] flex items-center justify-end">
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
           </div>
         </div>
 
-        {/* MOBILE & TABLET (< 1024px) */}
+        {}
         <div className="flex lg:hidden flex-col w-full items-center gap-6">
           <AuthHeroHeadline isMobile />
           <div className="w-full flex justify-center">
@@ -95,14 +95,14 @@ export default function AdminLoginPage() {
         </div>
       </main>
 
-      {/* Footer */}
+      {}
       <footer className="relative z-20 w-full px-6 py-3 text-center border-t border-slate-200 bg-white/70 backdrop-blur-md text-[11px] text-slate-600 font-medium">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
         <span className="mx-2 text-slate-400">&bull;</span>
         <span className="font-semibold text-slate-700">Designed by White Gravity Web Solutions</span>
       </footer>
 
-      {/* Admin OTP Forgot Password Modal */}
+      {}
       <ForgotPasswordOtpModal
         isOpen={forgotModal}
         onClose={() => setForgotModal(false)}

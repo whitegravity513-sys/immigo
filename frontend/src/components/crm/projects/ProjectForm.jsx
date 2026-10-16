@@ -68,7 +68,7 @@ export function ProjectForm({
   const [loadingClients, setLoadingClients] = useState(true);
   const [selectedClient, setSelectedClient] = useState(null);
 
-  // Vendor assignment
+  
   const [allVendors, setAllVendors] = useState([]);
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
   const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
@@ -110,11 +110,11 @@ export function ProjectForm({
     documents: initialData?.documents || [],
     manpowerRequirements: initialData?.manpowerRequirements || [],
 
-    // Vendor Assignment
+    
     vendorVisibility: (initialData?.vendorAssignmentType === "Specific Vendor") ? "specific" : "all",
     assignedVendorIds: initialData?.assignedVendors || [],
 
-    // Default Milestones / Workflow
+    
     paymentMilestones: initialData?.paymentMilestones || [
       {
         id: `m${Date.now()}-1`,
@@ -131,7 +131,7 @@ export function ProjectForm({
 
   const [errors, setErrors] = useState({});
 
-  // Compute headcount automatically from positions
+  
   useEffect(() => {
     const total = formData.manpowerRequirements.reduce(
       (sum, p) => sum + (Number(p.quantity) || 0),
@@ -140,14 +140,14 @@ export function ProjectForm({
     setFormData((prev) => ({ ...prev, totalHeadcount: total }));
   }, [formData.manpowerRequirements]);
 
-  // Fetch vendors for assignment dropdown
+  
   useEffect(() => {
     crmVendorService.getVendors({ status: "Approved" }).then((vendors) => {
       setAllVendors(vendors || []);
     }).catch(() => { });
   }, []);
 
-  // Fetch all existing clients for selection
+  
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -177,7 +177,7 @@ export function ProjectForm({
     fetchClients();
   }, [preSelectedClientId]);
 
-  // Handle client selection change
+  
   const handleClientChange = (e) => {
     const cId = e.target.value;
     const found = clients.find((c) => String(c.id) === String(cId));
@@ -301,7 +301,7 @@ export function ProjectForm({
 
   return (
     <div className="space-y-6">
-      {/* Top Header Card */}
+      {}
       <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
@@ -350,7 +350,7 @@ export function ProjectForm({
       </div>
 
       <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
-        {/* SECTION 1: SELECT EXISTING CLIENT OR ENTER CLIENT NAME */}
+        {}
         <FormSection
           id="client-select"
           title="Client Company Details"
@@ -413,7 +413,7 @@ export function ProjectForm({
                 )}
               </div>
 
-              {/* Selected Client Overview Card */}
+              {}
               {selectedClient ? (
                 <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -448,7 +448,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 2: PROJECT DETAILS */}
+        {}
         <FormSection
           id="project-info"
           title="Project Core Information"
@@ -536,7 +536,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 3: MANPOWER REQUIREMENTS */}
+        {}
         <FormSection
           id="manpower-requirements"
           title="Manpower Headcount & Positions"
@@ -558,7 +558,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 4: EMPLOYEE BENEFITS */}
+        {}
         <FormSection
           id="project-benefits"
           title="Employee Benefits / Allowances"
@@ -602,7 +602,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 5: ADDITIONAL REQUIREMENTS */}
+        {}
         <FormSection
           id="additional-requirements"
           title="Additional Recruitment Specifications"
@@ -656,7 +656,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 7: PAYMENT MILESTONES */}
+        {}
         <FormSection
           id="payment-milestones"
           title="Candidate Selection Payment Milestones & Stages"
@@ -671,7 +671,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* SECTION 8: VENDOR ASSIGNMENT */}
+        {}
         <FormSection
           id="vendor-assignment"
           title="Vendor / Agency Assignment"
@@ -717,7 +717,7 @@ export function ProjectForm({
                 </div>
               </div>
 
-              {/* Specific Vendor Multi-Select */}
+              {}
               {formData.vendorVisibility === 'specific' && (
                 <div className="mt-4 border-t border-slate-200 pt-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
@@ -786,7 +786,7 @@ export function ProjectForm({
                             </div>
                           )}
                           
-                          {/* Pagination Controls */}
+                          {}
                           {filteredVendors.length > 0 && (
                             <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
                               <span className="text-[10px] text-gray-500 font-medium">
@@ -827,7 +827,7 @@ export function ProjectForm({
           </div>
         </FormSection>
 
-        {/* Bottom Submission Bar */}
+        {}
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <button
             type="button"

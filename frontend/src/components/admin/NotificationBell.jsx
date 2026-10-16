@@ -380,7 +380,7 @@ export default function NotificationBell({ className }) {
             )}
           </div>
 
-          {/* View All & Footer */}
+          {}
           <Link
             to="/admin/dashboard/announcements"
             onClick={() => setIsOpen(false)}

@@ -12,7 +12,7 @@ export function CurrencySelectField({
   className = "",
 }) {
   const [isManual, setIsManual] = useState(() => {
-    // If current value is not in standard list, start in manual mode
+    
     return Boolean(value && !POPULAR_CURRENCIES.some((c) => c.code === value));
   });
 

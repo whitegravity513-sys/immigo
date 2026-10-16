@@ -79,7 +79,7 @@ const generatePresetMilestones = (parts, totalFee) => {
       { id: "M5", name: "Milestone 5 - On-Site Deployment", percentage: 20, amount: fee - portion * 4 },
     ];
   } else {
-    // Default 4 parts
+    
     const q = Math.round(fee / 4);
     return [
       { id: "M1", name: "Milestone 1 - Selection / Offer Letter", percentage: 25, amount: q },
@@ -137,12 +137,12 @@ export function AddProjectModal({
 
   const [errors, setErrors] = useState({});
 
-  // Vendor Assignment State
+  
   const [allVendors, setAllVendors] = useState([]);
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
   const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
 
-  // Fetch vendors
+  
   useEffect(() => {
     crmVendorService.getVendors({ status: "Approved" }).then((vendors) => {
       setAllVendors(vendors || []);
@@ -292,7 +292,7 @@ export function AddProjectModal({
       <div className="flex min-h-full items-center justify-center p-3 text-center sm:p-0">
         <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-200">
           <form onSubmit={handleSubmit}>
-            {/* Header */}
+            {}
             <div className="bg-gray-50/80 px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
@@ -316,7 +316,7 @@ export function AddProjectModal({
               </button>
             </div>
 
-            {/* Target Client Banner */}
+            {}
             {client && (
               <div className="bg-blue-50/70 border-b border-blue-100 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2 truncate">
@@ -334,9 +334,9 @@ export function AddProjectModal({
               </div>
             )}
 
-            {/* Body */}
+            {}
             <div className="p-4 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              {/* Basic Project Info */}
+              {}
               <div className="space-y-4">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Building2 size={15} className="text-blue-600" />
@@ -431,7 +431,7 @@ export function AddProjectModal({
                 </div>
               </div>
 
-              {/* Manpower Requirement Section */}
+              {}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
@@ -459,7 +459,7 @@ export function AddProjectModal({
                 </div>
               </div>
 
-              {/* Benefits Section */}
+              {}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Gift size={15} className="text-blue-600" />
@@ -502,7 +502,7 @@ export function AddProjectModal({
                 )}
               </div>
 
-              {/* Vendor Assignment Section */}
+              {}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Globe size={15} className="text-blue-600" />
@@ -651,7 +651,7 @@ export function AddProjectModal({
                 </div>
               </div>
 
-              {/* Selection Milestone Payment Plan Section */}
+              {}
               <div className="space-y-4 pt-4 border-t border-gray-100">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
@@ -720,7 +720,7 @@ export function AddProjectModal({
                     </div>
                   </div>
 
-                  {/* Milestones Table */}
+                  {}
                   <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
                     <table className="w-full text-left border-collapse">
                       <thead>
@@ -769,7 +769,7 @@ export function AddProjectModal({
               </div>
             </div>
 
-            {/* Footer */}
+            {}
             <div className="bg-gray-50 px-4 sm:px-6 py-3.5 flex items-center justify-end gap-3 border-t border-gray-100">
               <button
                 type="button"

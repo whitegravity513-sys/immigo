@@ -15,7 +15,7 @@ export function CountrySelectField({
   placeholder = "Select or type country",
 }) {
   const [isManual, setIsManual] = useState(() => {
-    // If initial value is not in standard list and not empty, start in manual mode
+    
     return Boolean(value && !ALL_COUNTRIES.includes(value));
   });
 

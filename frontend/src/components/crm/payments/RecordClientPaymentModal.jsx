@@ -74,7 +74,7 @@ export function RecordClientPaymentModal({
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Load clients list
+  
   useEffect(() => {
     if (!isOpen) return;
     const fetchClients = async () => {
@@ -84,7 +84,7 @@ export function RecordClientPaymentModal({
         const list = res.clients || [];
         setClients(list);
 
-        // Preselect client if provided
+        
         if (initialClientId) {
           const found = list.find((c) => String(c.id) === String(initialClientId));
           if (found) {
@@ -105,7 +105,7 @@ export function RecordClientPaymentModal({
     fetchClients();
   }, [isOpen, initialClientId]);
 
-  // Sync selected milestone when client changes or initialMilestoneId is set
+  
   useEffect(() => {
     if (selectedClient && selectedClient.paymentMilestones) {
       const msList = selectedClient.paymentMilestones || [];
@@ -124,7 +124,7 @@ export function RecordClientPaymentModal({
     }
   }, [selectedClient, initialMilestoneId]);
 
-  // Handle client selection change
+  
   const handleClientChange = (e) => {
     const cId = e.target.value;
     const found = clients.find((c) => String(c.id) === String(cId));
@@ -143,7 +143,7 @@ export function RecordClientPaymentModal({
     if (errors.clientId) setErrors((prev) => ({ ...prev, clientId: "" }));
   };
 
-  // Handle milestone selection change
+  
   const handleMilestoneChange = (e) => {
     const mId = e.target.value;
     const msList = selectedClient?.paymentMilestones || [];
@@ -158,7 +158,7 @@ export function RecordClientPaymentModal({
     if (errors.milestoneId) setErrors((prev) => ({ ...prev, milestoneId: "" }));
   };
 
-  // Calculate live financial numbers
+  
   const numericAmount = Math.max(0, Number(formData.amountPaid) || 0);
   let computedGstAmount = 0;
   let computedTotalTransaction = numericAmount;
@@ -178,7 +178,7 @@ export function RecordClientPaymentModal({
   const currentPaid = Number(selectedMilestone?.paidAmount) || 0;
   const remainingAfterPayment = Math.max(0, agreedAmount - (currentPaid + numericAmount));
 
-  // Handle file upload
+  
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -245,7 +245,7 @@ export function RecordClientPaymentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden my-6">
-        {/* Header */}
+        {}
         <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-6 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
@@ -267,7 +267,7 @@ export function RecordClientPaymentModal({
           </button>
         </div>
 
-        {/* Form Body */}
+        {}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
           {errors.form && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
@@ -276,7 +276,7 @@ export function RecordClientPaymentModal({
             </div>
           )}
 
-          {/* 1. Client & Milestone Selectors */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -323,7 +323,7 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {/* Milestone Status Highlight Banner */}
+          {}
           {selectedMilestone && (
             <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between text-xs flex-wrap gap-2">
               <div>
@@ -349,7 +349,7 @@ export function RecordClientPaymentModal({
             </div>
           )}
 
-          {/* 2. Optional Project & Candidate */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Related Project (Optional)</label>
@@ -377,7 +377,7 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {/* 3. Payment Amount, Method, Date, Reference */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -452,7 +452,7 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {/* 4. GST Section */}
+          {}
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -510,7 +510,7 @@ export function RecordClientPaymentModal({
               </div>
             )}
 
-            {/* Transparent Calculation Breakdown */}
+            {}
             <div className="mt-2 p-3 rounded-lg bg-white border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div>
                 <span className="text-[10px] text-slate-400 block uppercase">Agreed Milestone</span>
@@ -535,7 +535,7 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {/* 5. Remarks & Payment Proof Upload */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Remarks / Note</label>
@@ -570,7 +570,7 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
+          {}
           <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
             <span className="text-[11px] text-slate-500">
               Transaction reference will be validated to prevent accidental duplicate entries.

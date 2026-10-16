@@ -65,7 +65,7 @@ export function AdminMasterSidebar({
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Brand Top Bar — dark navy like HR */}
+        {}
         <div
           className={`h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
@@ -88,7 +88,7 @@ export function AdminMasterSidebar({
           )}
         </div>
 
-        {/* Nav Body */}
+        {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           {!collapsed && (
             <p className="text-[11px] font-extrabold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
@@ -123,7 +123,7 @@ export function AdminMasterSidebar({
           })}
         </div>
 
-        {/* Sidebar Footer Bar — dark navy like HR */}
+        {}
         <div
           className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"

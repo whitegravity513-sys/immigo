@@ -51,16 +51,16 @@ export default function PaymentsExpensesPage() {
   const initialTab = searchParams.get("tab") || "all";
   const { showToast } = useCrmToast() || { showToast: (msg) => console.log(msg) };
 
-  // Data states
+  
   const [payments, setPayments] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Active Tab
+  
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // Filters
+  
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState(initialClientId);
   const [selectedMethod, setSelectedMethod] = useState("All");
@@ -73,9 +73,9 @@ export default function PaymentsExpensesPage() {
   }, [searchParams]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [sortOrder, setSortOrder] = useState("desc"); // desc = newest first
+  const [sortOrder, setSortOrder] = useState("desc"); 
 
-  // Voucher Detail Modal
+  
   const [viewingTx, setViewingTx] = useState(null);
   const [viewingType, setViewingType] = useState("payment");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -113,12 +113,12 @@ export default function PaymentsExpensesPage() {
     }
   };
 
-  // Harmonized Transactions List
+  
   const unifiedTransactions = useMemo(() => {
     const pList = payments.map((p) => ({
       id: p.id || p._id || p.paymentId,
       rawId: p._id || p.id,
-      type: "payment", // Incoming
+      type: "payment", 
       date: p.paymentDate || p.createdAt,
       clientId: p.clientId,
       clientName: p.clientName || "Client",
@@ -139,7 +139,7 @@ export default function PaymentsExpensesPage() {
     const eList = expenses.map((e) => ({
       id: e.id || e._id,
       rawId: e._id || e.id,
-      type: "expense", // Outgoing
+      type: "expense", 
       date: e.date || e.createdAt,
       clientId: e.clientId,
       clientName: e.clientName || e.client?.name || e.client?.company || "Overhead / Internal",
@@ -160,7 +160,7 @@ export default function PaymentsExpensesPage() {
     return [...pList, ...eList];
   }, [payments, expenses]);
 
-  // Calculations for Summary Cards
+  
   const stats = useMemo(() => {
     const verifiedPayments = payments.filter(
       (p) =>
@@ -198,11 +198,11 @@ export default function PaymentsExpensesPage() {
     };
   }, [payments, expenses]);
 
-  // Filtered & Sorted Transactions
+  
   const filteredTransactions = useMemo(() => {
     return unifiedTransactions
       .filter((tx) => {
-        // Tab filtering
+        
         if (activeTab === "received" && tx.type !== "payment") return false;
         if (activeTab === "expenses" && tx.type !== "expense") return false;
         if (activeTab === "pending_verification") {
@@ -212,17 +212,17 @@ export default function PaymentsExpensesPage() {
           if (tx.type !== "expense" || tx.status === "Paid") return false;
         }
 
-        // Client filter
+        
         if (selectedClient && selectedClient !== "All" && selectedClient !== "") {
           if (String(tx.clientId) !== String(selectedClient)) return false;
         }
 
-        // Method filter
+        
         if (selectedMethod !== "All") {
           if (tx.paymentMethod?.toLowerCase() !== selectedMethod.toLowerCase()) return false;
         }
 
-        // Date range
+        
         if (startDate) {
           const txDate = new Date(tx.date).getTime();
           const start = new Date(startDate).getTime();
@@ -234,7 +234,7 @@ export default function PaymentsExpensesPage() {
           if (txDate > end) return false;
         }
 
-        // Search
+        
         if (search.trim()) {
           const q = search.toLowerCase();
           const matches =
@@ -257,7 +257,7 @@ export default function PaymentsExpensesPage() {
       });
   }, [unifiedTransactions, activeTab, selectedClient, selectedMethod, startDate, endDate, search, sortOrder]);
 
-  // Export to Excel / CSV
+  
   const handleExport = () => {
     if (filteredTransactions.length === 0) {
       showToast("No records to export", "info");
@@ -326,7 +326,7 @@ export default function PaymentsExpensesPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Header */}
+      {}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -363,7 +363,7 @@ export default function PaymentsExpensesPage() {
               <span>Export CSV/Excel</span>
             </button>
 
-            {/* Record Payment */}
+            {}
             <Link
               to="/client/payments/record"
               className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm shadow-emerald-600/25 transition-all cursor-pointer"
@@ -372,7 +372,7 @@ export default function PaymentsExpensesPage() {
               <span>Record Payment</span>
             </Link>
 
-            {/* Add Expense */}
+            {}
             <Link
               to="/client/expenses/add"
               className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm shadow-rose-600/25 transition-all cursor-pointer"
@@ -383,9 +383,9 @@ export default function PaymentsExpensesPage() {
           </div>
         </div>
 
-        {/* 5 KPI Metric Cards */}
+        {}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-6 pt-6 border-t border-gray-100">
-          {/* Verified Received */}
+          {}
           <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
               <Receipt size={12} />
@@ -399,7 +399,7 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {/* Expenses Paid */}
+          {}
           <div className="bg-rose-50/50 border border-rose-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
               <TrendingDown size={12} />
@@ -413,7 +413,7 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {/* Net Cash Flow */}
+          {}
           <div
             className={`border rounded-xl p-4 ${
               stats.netCashFlow >= 0
@@ -433,7 +433,7 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {/* Pending Verification */}
+          {}
           <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
               <Clock size={12} />
@@ -447,7 +447,7 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {/* Pending Expenses */}
+          {}
           <div className="bg-purple-50/50 border border-purple-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
               <AlertCircle size={12} />
@@ -463,9 +463,9 @@ export default function PaymentsExpensesPage() {
         </div>
       </div>
 
-      {/* Main Table Container */}
+      {}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
-        {/* Navigation Tabs */}
+        {}
         <div className="border-b border-gray-200 px-6 pt-3 flex items-center gap-2 overflow-x-auto bg-gray-50/50">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -485,9 +485,9 @@ export default function PaymentsExpensesPage() {
           })}
         </div>
 
-        {/* Filter Controls Bar */}
+        {}
         <div className="p-4 border-b border-gray-100 bg-white grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
-          {/* Search */}
+          {}
           <div className="relative lg:col-span-2">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -499,7 +499,7 @@ export default function PaymentsExpensesPage() {
             />
           </div>
 
-          {/* Client Filter */}
+          {}
           <div>
             <select
               value={selectedClient}
@@ -515,7 +515,7 @@ export default function PaymentsExpensesPage() {
             </select>
           </div>
 
-          {/* Payment Method */}
+          {}
           <div>
             <select
               value={selectedMethod}
@@ -530,7 +530,7 @@ export default function PaymentsExpensesPage() {
             </select>
           </div>
 
-          {/* Date Start */}
+          {}
           <div>
             <input
               type="date"
@@ -541,7 +541,7 @@ export default function PaymentsExpensesPage() {
             />
           </div>
 
-          {/* Date End */}
+          {}
           <div>
             <input
               type="date"
@@ -553,7 +553,7 @@ export default function PaymentsExpensesPage() {
           </div>
         </div>
 
-        {/* Table Content */}
+        {}
         {loading ? (
           <div className="p-8">
             <LoadingSkeleton type="card" count={3} />
@@ -588,7 +588,7 @@ export default function PaymentsExpensesPage() {
                   const isPayment = tx.type === "payment";
                   return (
                     <tr key={tx.id} className="hover:bg-gray-50/60 transition-colors">
-                      {/* Type Badge */}
+                      {}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -602,12 +602,12 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {/* Date */}
+                      {}
                       <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
                         {formatDate(tx.date)}
                       </td>
 
-                      {/* Client */}
+                      {}
                       <td className="py-3 px-4">
                         <Link
                           to={`/client/clients/${tx.clientId}?tab=milestones`}
@@ -617,12 +617,12 @@ export default function PaymentsExpensesPage() {
                         </Link>
                       </td>
 
-                      {/* Project */}
+                      {}
                       <td className="py-3 px-4 text-gray-700 max-w-xs truncate">
                         {tx.projectName}
                       </td>
 
-                      {/* Milestone / Category */}
+                      {}
                       <td className="py-3 px-4">
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${
@@ -635,7 +635,7 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {/* Amount */}
+                      {}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <span
                           className={`font-black text-sm ${
@@ -646,7 +646,7 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {/* Method & Ref */}
+                      {}
                       <td className="py-3 px-4">
                         <div className="text-gray-900 font-semibold">{tx.paymentMethod}</div>
                         <div className="font-mono text-[10px] text-gray-500 truncate max-w-[120px]">
@@ -654,12 +654,12 @@ export default function PaymentsExpensesPage() {
                         </div>
                       </td>
 
-                      {/* Payee / Receiver */}
+                      {}
                       <td className="py-3 px-4 text-gray-600 max-w-xs truncate">
                         {isPayment ? `Rec: ${tx.receivedBy}` : `To: ${tx.paidTo}`}
                       </td>
 
-                      {/* Status */}
+                      {}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadge(
@@ -670,7 +670,7 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      {}
                       <td className="py-3 px-4 text-right whitespace-nowrap space-x-1">
                         <button
                           type="button"
@@ -693,14 +693,14 @@ export default function PaymentsExpensesPage() {
           </div>
         )}
 
-        {/* Footer info */}
+        {}
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs text-gray-500">
           <span>Showing {filteredTransactions.length} of {unifiedTransactions.length} total entries</span>
           <span>Net Filtered Cash Flow: ₹{filteredTransactions.reduce((acc, t) => acc + (t.type === "payment" ? t.amount : -t.amount), 0).toLocaleString("en-IN")}</span>
         </div>
       </div>
 
-      {/* Transaction Detail Slide-over / Modal */}
+      {}
       <TransactionDetailModal
         isOpen={isModalOpen}
         onClose={() => {

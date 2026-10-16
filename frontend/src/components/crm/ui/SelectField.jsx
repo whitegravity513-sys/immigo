@@ -87,7 +87,7 @@ export function SelectField({
         </div>
       </div>
 
-      {/* Dynamic Other Input Field */}
+      {}
       {isOther && (
         <div className="pt-1.5 animate-fadeIn">
           <div className="relative">

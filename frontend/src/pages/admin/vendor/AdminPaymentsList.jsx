@@ -28,7 +28,6 @@ export default function AdminPaymentsList() {
     try {
       setLoading(true);
       const data = await crmVendorService.getApplications();
-      // Payments view applies to selected candidates with payment plans
       const filtered = (data || []).filter(
         (a) => (a.status === "Selected" || a.status === "Completed") && a.processMilestones
       );
@@ -40,7 +39,6 @@ export default function AdminPaymentsList() {
     }
   };
 
-  // Compute overall financial totals
   let totalPaymentOverall = 0;
   let totalPaidOverall = 0;
 
@@ -71,7 +69,7 @@ export default function AdminPaymentsList() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans">
-      {/* Header */}
+      {}
       <div className="border-b border-slate-200/80 pb-4">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Selected Candidates Payment Accounts</h1>
         <p className="text-xs text-slate-500 mt-0.5 font-medium">
@@ -79,7 +77,7 @@ export default function AdminPaymentsList() {
         </p>
       </div>
 
-      {/* Financial Summary Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -106,7 +104,7 @@ export default function AdminPaymentsList() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -118,7 +116,7 @@ export default function AdminPaymentsList() {
         />
       </div>
 
-      {/* Payments Table */}
+      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

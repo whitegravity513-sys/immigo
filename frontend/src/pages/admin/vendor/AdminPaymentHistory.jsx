@@ -63,7 +63,7 @@ export default function AdminPaymentHistory() {
           </div>
         </div>
 
-        {/* Individual Milestones List */}
+        {}
         <div className="space-y-4 text-xs">
           <h4 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
             Milestone Disbursement Logs

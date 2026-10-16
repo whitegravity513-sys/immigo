@@ -343,7 +343,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {/* Salary Calculation Section */}
+          {}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -390,7 +390,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           </div>
 
-          {/* Daily Attendance Details */}
+          {}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-6 py-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">

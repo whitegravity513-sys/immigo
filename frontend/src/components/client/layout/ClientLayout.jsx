@@ -48,7 +48,7 @@ export function ClientLayout({
             {children}
           </main>
 
-          {/* Footer */}
+          {}
           <AppFooter role="admin" />
         </div>
 
