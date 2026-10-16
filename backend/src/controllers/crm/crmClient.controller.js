@@ -117,9 +117,11 @@ export const deleteClient = asyncHandler(async (req, res) => {
   const deletedCrm = await CrmOverseasClient.findOneAndDelete({ $or: query });
 
   try {
-    await Client.deleteMany({
-      $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { company: id }, { clientId: id }],
-    });
+    const clientDeleteQuery = [{ company: id }, { clientId: id }];
+    if (typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id)) {
+      clientDeleteQuery.push({ _id: id });
+    }
+    await Client.deleteMany({ $or: clientDeleteQuery });
   } catch {}
 
   try {

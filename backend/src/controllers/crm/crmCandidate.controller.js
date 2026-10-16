@@ -18,9 +18,11 @@ export const saveCandidate = asyncHandler(async (req, res) => {
   const candData = req.body;
   const candidateId = candData.id || candData.candidateId || `CND-${Date.now().toString().slice(-5)}`;
 
-  let doc = await CrmCandidate.findOne({
-    $or: [{ candidateId }, { _id: candidateId.match(/^[0-9a-fA-F]{24}$/) ? candidateId : null }],
-  });
+  const query = [{ candidateId: String(candidateId) }, { id: String(candidateId) }];
+  if (typeof candidateId === "string" && /^[0-9a-fA-F]{24}$/.test(candidateId)) {
+    query.push({ _id: candidateId });
+  }
+  let doc = await CrmCandidate.findOne({ $or: query });
 
   if (doc) {
     Object.assign(doc, candData, { candidateId, updatedAt: new Date() });

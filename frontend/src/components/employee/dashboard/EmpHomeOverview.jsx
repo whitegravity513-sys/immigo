@@ -19,7 +19,10 @@ import {
   FileText,
   Megaphone,
   PartyPopper,
-  } from "lucide-react";
+  Camera,
+} from "lucide-react";
+import { apiClient } from "../../../services/apiClient.js";
+import { compressImage } from "../EmployeeProfileDocsTab.jsx";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
 import EmployeeRecentActivitySection from "./EmployeeRecentActivitySection.jsx";
@@ -110,8 +113,38 @@ export default function EmpHomeOverview({
       ? new Date(user.joiningDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
       : "Day 1";
 
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [currentAvatar, setCurrentAvatar] = useState(() => user?.profileImage || statusRecord?.profileImage || "");
+
+  useEffect(() => {
+    setCurrentAvatar(user?.profileImage || statusRecord?.profileImage || "");
+  }, [user?.profileImage, statusRecord?.profileImage]);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    try {
+      const compressedDataUrl = await compressImage(file, 1000, 0.85);
+      const res = await apiClient.put("/employee/profile/photo", {
+        profileImage: compressedDataUrl,
+      });
+      const newImg = res.data?.profileImage || compressedDataUrl;
+      setCurrentAvatar(newImg);
+      try {
+        const stored = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...stored, profileImage: newImg }));
+        window.dispatchEvent(new Event("user-updated"));
+      } catch {}
+    } catch (err) {
+      console.error("Failed to update profile photo", err);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   return (
-    <div className="space-y-2.5 w-full text-slate-800">
+    <div className="space-y-3.5 max-w-7xl mx-auto text-slate-800">
       {(status === "On Break" || isOnBreak) && (
         <div className="bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 border border-sky-400/50">
           <div className="flex items-center gap-3">
@@ -216,34 +249,42 @@ export default function EmpHomeOverview({
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="relative shrink-0">
-              {(() => {
-                const avatarUrl = user?.profileImage || statusRecord?.profileImage;
-                return (
-                  <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl  ${avatarUrl ? "bg-white" : "bg-gradient-to-tr from-slate-600 to-slate-700"} text-white font-black text-xl flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}>
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt={user?.name || "Employee"}
-                        className="w-full h-full object-cover rounded-2xl"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const fallback = e.currentTarget.parentElement?.querySelector(".banner-avatar-fallback");
-                          if (fallback) fallback.style.display = "flex";
-                        }}
-                      />
-                    ) : null}
-                    <span
-                      className="banner-avatar-fallback w-full h-full items-center justify-center font-black text-xl text-white select-none"
-                      style={{ display: avatarUrl ? "none" : "flex" }}
-                    >
-                      {(user?.name || "E")[0].toUpperCase()}
-                    </span>
-                  </div>
-                );
-              })()}
+            <div className="relative shrink-0 group">
+              <div
+                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
+                  currentAvatar ? "bg-white" : "bg-gradient-to-tr from-slate-600 to-slate-700"
+                } text-white font-black text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}
+              >
+                {currentAvatar ? (
+                  <img
+                    src={currentAvatar}
+                    alt={user?.name || "Employee"}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <span>{(user?.name || "E")[0].toUpperCase()}</span>
+                )}
+
+                <label
+                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer text-[9px] font-bold"
+                  title="Upload profile photo"
+                >
+                  <Camera size={14} className="mb-0.5" />
+                  <span>{photoUploading ? "..." : "Photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                    disabled={photoUploading}
+                  />
+                </label>
+              </div>
+
               <span
-                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${statusColor} ${status === "Active" || status === "On Break" ? "animate-pulse" : ""}`}
+                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${statusColor} ${
+                  status === "Active" || status === "On Break" ? "animate-pulse" : ""
+                }`}
                 title={status}
               />
             </div>
@@ -440,8 +481,45 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-start">
-        <div className="flex flex-col">
+      <div className="p-3 sm:p-3.5 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-start sm:items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
+              <ShieldCheck size={16} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                  Daily Attendance Verification
+                </span>
+                <span className="text-[11px] font-semibold text-slate-500">
+                  Today: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-xs font-semibold text-slate-800">
+                  Status: <strong className="text-blue-900 font-bold">{status}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-600">
+                  In: <strong className="font-semibold text-slate-800">{statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "Not marked"}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-600">
+                  Out: <strong className="font-semibold text-slate-800">{statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : (status === "Active" ? "In Progress" : "Pending")}</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-600">
+                  Worked: <strong className="font-semibold text-slate-800">{fmtDur(workSeconds)}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
+        <div className="lg:col-span-7 flex flex-col">
           <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-3.5 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -594,13 +672,10 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="lg:col-span-5 flex flex-col space-y-3.5">
           <DailyWorkLogSection />
+          <EmployeeRecentActivitySection user={user} />
         </div>
-      </div>
-
-      <div className="w-full">
-        <EmployeeRecentActivitySection user={user} />
       </div>
     </div>
   );

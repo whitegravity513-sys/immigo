@@ -27,51 +27,51 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto text-left">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="space-y-3 max-w-5xl mx-auto text-left">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Internal Company Announcements</h3>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Internal Company Announcements</h3>
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
             Official broadcasts, corporate notifications, and organizational updates
           </p>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         {announcements.map((a) => (
           <div
             key={a._id || a.id}
-            className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 hover:shadow-md transition-all space-y-3"
+            className="bg-white rounded-lg border border-slate-200/80 shadow-xs p-3 sm:p-3.5 hover:shadow-sm transition-all space-y-1.5"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center justify-between gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getCategoryBadge(
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getCategoryBadge(
                     a.category || "Company Notification"
                   )}`}
                 >
                   {a.category || "Company Notification"}
                 </span>
                 {a.priority && a.priority === "High" && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getPriorityBadge(a.priority)}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getPriorityBadge(a.priority)}`}>
                     High Priority
                   </span>
                 )}
               </div>
 
-              <span className="text-xs font-bold text-slate-400">
+              <span className="text-[10px] font-medium text-slate-400">
                 {a.date ? new Date(a.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : (fmtDate ? fmtDate(a.createdAt) : "—")}
               </span>
             </div>
 
-            <h4 className="text-base font-black text-slate-800 tracking-tight">{a.title}</h4>
-            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{a.message}</p>
+            <h4 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">{a.title}</h4>
+            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{a.message}</p>
           </div>
         ))}
 
         {announcements.length === 0 && (
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm flex flex-col items-center justify-center">
-            <AlertCircle size={36} className="text-slate-300 mb-3" />
+          <div className="bg-white rounded-lg border border-slate-200/80 shadow-xs p-8 text-center text-slate-400 font-medium text-xs flex flex-col items-center justify-center">
+            <AlertCircle size={28} className="text-slate-300 mb-2" />
             No announcements broadcasted yet.
           </div>
         )}

@@ -102,6 +102,20 @@ export class ActivityService {
       totalPages: Math.ceil(total / Number(limit)) || 1,
     };
   }
+
+  static async recordActivity(params = {}) {
+    return this.log({
+      userType: (params.performedByRole || "ADMIN").toUpperCase(),
+      userName: params.performedBy || "System Admin",
+      action: params.action || "UPDATE",
+      title: `${params.module || "CRM"} ${params.action || "Activity"}`,
+      description: params.description || "",
+      entityType: params.module || "CRM",
+      entityId: String(params.targetId || ""),
+      visibility: "ADMIN",
+      metadata: params,
+    });
+  }
 }
 
 export default ActivityService;

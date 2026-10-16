@@ -69,7 +69,7 @@ export default function EmpSidebar({
       >
         <div className="h-[68px] min-h-[68px] px-5 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
-            <ImmiGoLogo size="sm" subtitle="Workforce Suite" theme="light" />
+            <ImmiGoLogo size="sm" subtitle="Employee Dashboard" theme="light" />
           </div>
           <button
             onClick={() => setSidebarOpen(false)}

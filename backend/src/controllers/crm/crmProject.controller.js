@@ -161,42 +161,27 @@ export const deleteProject = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Project ID required" });
   }
 
+  const isHexId = typeof targetProjectId === "string" && /^[0-9a-fA-F]{24}$/.test(targetProjectId);
+  const pullQuery = isHexId
+    ? { $or: [{ id: String(targetProjectId) }, { projectId: String(targetProjectId) }, { _id: targetProjectId }] }
+    : { $or: [{ id: String(targetProjectId) }, { projectId: String(targetProjectId) }] };
+
   if (clientId) {
     const clientQuery = [{ clientId: String(clientId) }, { id: String(clientId) }];
     if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
       clientQuery.push({ _id: clientId });
     }
-    await CrmOverseasClient.updateMany(
-      { $or: clientQuery },
-      {
-        $pull: {
-          projects: {
-            $or: [{ id: String(targetProjectId) }, { _id: targetProjectId }],
-          },
-        },
-      }
-    );
+    await CrmOverseasClient.updateMany({ $or: clientQuery }, { $pull: { projects: pullQuery } });
   } else {
-    await CrmOverseasClient.updateMany(
-      {},
-      {
-        $pull: {
-          projects: {
-            $or: [{ id: String(targetProjectId) }, { _id: targetProjectId }],
-          },
-        },
-      }
-    );
+    await CrmOverseasClient.updateMany({}, { $pull: { projects: pullQuery } });
   }
 
   try {
-    await Project.deleteMany({
-      $or: [
-        { _id: targetProjectId.match(/^[0-9a-fA-F]{24}$/) ? targetProjectId : null },
-        { projectId: targetProjectId },
-        { id: targetProjectId },
-      ],
-    });
+    const projectDeleteQueries = [{ projectId: targetProjectId }, { id: targetProjectId }];
+    if (isHexId) {
+      projectDeleteQueries.push({ _id: targetProjectId });
+    }
+    await Project.deleteMany({ $or: projectDeleteQueries });
   } catch {}
 
   try {

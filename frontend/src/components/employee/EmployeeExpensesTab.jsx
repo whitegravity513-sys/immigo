@@ -170,24 +170,24 @@ export default function EmployeeExpensesTab({ user, token }) {
   });
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto text-left">
+    <div className="space-y-3.5 max-w-6xl mx-auto text-left">
       {errorMsg && (
-        <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-sm font-medium">
-          <AlertCircle size={16} className="shrink-0" />
+        <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-medium">
+          <AlertCircle size={15} className="shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
       {successMsg && (
-        <div className="flex items-center gap-2.5 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl text-sm font-medium">
-          <CheckCircle2 size={16} className="shrink-0" />
+        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-medium">
+          <CheckCircle2 size={15} className="shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
         <div>
           <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
-            <IndianRupee size={16} className="text-blue-600" /> Expense Claims & Reimbursements
+            <IndianRupee size={15} className="text-blue-600" /> Expense Claims & Reimbursements
           </h2>
           <p className="text-[11px] text-slate-500 font-medium mt-0.5">
             Submit business expenses, upload receipts, and track claim approval status
@@ -199,45 +199,45 @@ export default function EmployeeExpensesTab({ user, token }) {
           onClick={() => setIsModalOpen(true)}
           className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
         >
-          <Plus size={15} /> Submit New Expense
+          <Plus size={14} /> Submit New Expense
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Claimed</span>
-            <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">₹{totalSubmitted.toLocaleString("en-IN")}</div>
-            <span className="text-[11px] text-slate-500 font-semibold">{expenses.length} claims filed</span>
+            <div className="text-sm sm:text-base font-bold text-slate-800 mt-0.5">₹{totalSubmitted.toLocaleString("en-IN")}</div>
+            <span className="text-[10px] text-slate-500 font-medium">{expenses.length} claims filed</span>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <IndianRupee size={15} />
+          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <IndianRupee size={14} />
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Approved & Settled</span>
-            <div className="text-base sm:text-lg font-bold text-emerald-600 mt-0.5">₹{totalApproved.toLocaleString("en-IN")}</div>
-            <span className="text-[11px] text-emerald-700 font-semibold">
+            <div className="text-sm sm:text-base font-bold text-emerald-600 mt-0.5">₹{totalApproved.toLocaleString("en-IN")}</div>
+            <span className="text-[10px] text-emerald-700 font-medium">
               {expenses.filter((e) => e.status === "Approved").length} approved
             </span>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <CheckCircle2 size={15} />
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <CheckCircle2 size={14} />
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Under Review</span>
-            <div className="text-base sm:text-lg font-bold text-amber-600 mt-0.5">₹{totalPending.toLocaleString("en-IN")}</div>
-            <span className="text-[11px] text-amber-700 font-semibold">
+            <div className="text-sm sm:text-base font-bold text-amber-600 mt-0.5">₹{totalPending.toLocaleString("en-IN")}</div>
+            <span className="text-[10px] text-amber-700 font-medium">
               {expenses.filter((e) => e.status === "Pending").length} pending
             </span>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Clock size={15} />
+          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <Clock size={14} />
           </div>
         </div>
       </div>
@@ -349,7 +349,6 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       </div>
 
-      {}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div

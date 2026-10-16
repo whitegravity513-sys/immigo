@@ -75,7 +75,11 @@ export default function EmpTopbar({
         >
           <Menu size={20} />
         </button>
-
+        <div className="flex items-center gap-2">
+          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
+            Employee Dashboard
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">

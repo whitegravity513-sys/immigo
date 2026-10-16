@@ -34,7 +34,7 @@ export default function CheckInOutSection({
   const totalBreakSec = (lunchSeconds || 0) + (breakSeconds || 0);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5 text-slate-800">
+    <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto my-auto w-full py-4 space-y-4 text-slate-800">
       {isHolidayToday && (
         <div className="p-4 bg-indigo-50/80 border border-indigo-200 text-indigo-950 rounded-2xl text-xs font-semibold flex items-center gap-3 shadow-xs">
           <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">

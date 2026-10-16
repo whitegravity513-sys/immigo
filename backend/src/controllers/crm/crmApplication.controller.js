@@ -128,9 +128,11 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
           const clientId = app.clientId;
           let clientDoc = null;
           if (clientId) {
-            clientDoc = await CrmOverseasClient.findOne({
-              $or: [{ clientId: String(clientId) }, { _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }],
-            });
+            const clientQueries = [{ clientId: String(clientId) }, { id: String(clientId) }];
+            if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+              clientQueries.push({ _id: clientId });
+            }
+            clientDoc = await CrmOverseasClient.findOne({ $or: clientQueries });
           }
           if (!clientDoc && app.projectId) {
             clientDoc = await CrmOverseasClient.findOne({ "projects.id": app.projectId });

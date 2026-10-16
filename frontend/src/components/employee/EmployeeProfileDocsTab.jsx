@@ -283,25 +283,25 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
   const uploadedDocs = profile?.documents || [];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto text-slate-800">
+    <div className="space-y-3.5 max-w-6xl mx-auto text-slate-800 text-left">
       {errorMsg && (
-        <div className="flex items-center gap-2.5 p-4 bg-rose-50 border border-rose-100 text-rose-700 rounded-2xl text-sm font-medium">
-          <AlertCircle size={16} className="shrink-0" />
+        <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-medium">
+          <AlertCircle size={15} className="shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
       {successMsg && (
-        <div className="flex items-center gap-2.5 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl text-sm font-medium">
-          <CheckCircle2 size={16} className="shrink-0" />
+        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-medium">
+          <CheckCircle2 size={15} className="shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 md:p-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
-          <div className="flex items-center gap-5">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
+          <div className="flex items-center gap-3.5">
             <div className="relative group">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-3xl flex items-center justify-center shadow-md border-2 border-white">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl flex items-center justify-center shadow-xs border border-white">
                 {profile?.profileImage ? (
                   <img src={formatFileUrl(profile.profileImage)} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (
@@ -309,59 +309,59 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                 )}
               </div>
               <label
-                className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center text-white cursor-pointer text-[10px] font-bold"
+                className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center text-white cursor-pointer text-[9px] font-bold"
                 title="Change profile photo"
               >
-                <Camera size={18} className="mb-1" />
+                <Camera size={14} className="mb-0.5" />
                 <span>Upload</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
               </label>
             </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
                   {profile?.name}
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {profile?.status || "active"}
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-wrap text-sm text-slate-500 font-semibold">
+              <div className="flex items-center gap-1.5 flex-wrap text-xs text-slate-500 font-semibold">
                 <EmployeeIdBadge id={profile?.employeeId} />
                 <span>•</span>
                 <span className="text-blue-700 font-bold">{profile?.designation || "Employee"}</span>
                 <span>•</span>
                 <span className="text-slate-600 font-medium">{profile?.department || "General"}</span>
               </div>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5 pt-0.5">
-                <Mail size={13} className="text-slate-400" />
+              <p className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-0.5">
+                <Mail size={12} className="text-slate-400" />
                 <span>{profile?.email}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-center min-w-[100px]">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Joined</span>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center min-w-[80px]">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Joined</span>
               <span className="text-xs font-bold text-slate-800">
                 {profile?.joiningDate ? new Date(profile.joiningDate).toLocaleDateString("en-IN") : "—"}
               </span>
             </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-center min-w-[100px]">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Vault Documents</span>
-              <span className="text-lg font-black text-slate-800">{uploadedDocs.length}</span>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center min-w-[80px]">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Vault Documents</span>
+              <span className="text-sm sm:text-base font-bold text-slate-800">{uploadedDocs.length}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+        <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                <Phone size={16} className="text-blue-600" /> Contact Details
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Phone size={14} className="text-blue-600" /> Contact Details
               </h3>
               {!editingContact && (
                 <button
@@ -492,14 +492,14 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <FileCheck size={17} className="text-blue-600" /> Compliance Document Checklist
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <FileCheck size={15} className="text-blue-600" /> Compliance Document Checklist
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                   Mandatory documentation for legal payroll and identity verification
                 </p>
               </div>
@@ -510,13 +510,13 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                   setDocFileLabel("");
                   setUploadModalOpen(true);
                 }}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer transition-all"
               >
-                <Plus size={14} /> Upload Custom
+                <Plus size={13} /> Upload Custom
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {REQUIRED_DOC_TYPES.map((item) => {
                 const existingDoc = uploadedDocs.find((d) => d.type === item.type);
                 const isUploaded = Boolean(existingDoc);
@@ -605,12 +605,12 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+        <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div>
-            <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <FileText size={16} className="text-indigo-600" /> Uploaded Document Vault ({uploadedDocs.length})
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <FileText size={14} className="text-indigo-600" /> Uploaded Document Vault ({uploadedDocs.length})
             </h4>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-[11px] text-slate-500 font-medium">
               Securely stored electronic records and verification receipts
             </p>
           </div>
@@ -620,14 +620,14 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
           <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">
                   Document Title
                 </th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Category</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Uploaded By</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Uploaded Date</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Status</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider text-right">
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Category</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Uploaded By</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Uploaded Date</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Status</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider text-right">
                   Actions
                 </th>
               </tr>

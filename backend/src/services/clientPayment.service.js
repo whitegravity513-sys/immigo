@@ -15,9 +15,11 @@ export class ClientPaymentService {
     }
 
     let crmClient = await CrmOverseasClient.findOne({ $or: clientQuery });
-    let adminClient = await Client.findOne({
-      $or: [{ _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }, { company: clientId }],
-    });
+    const adminQueries = [{ company: clientId }];
+    if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+      adminQueries.push({ _id: clientId });
+    }
+    let adminClient = await Client.findOne({ $or: adminQueries });
 
     const clientIds = new Set([String(clientId)]);
     if (crmClient?._id) clientIds.add(String(crmClient._id));
@@ -113,9 +115,11 @@ export class ClientPaymentService {
     let clientDoc = await CrmOverseasClient.findOne({ $or: clientQuery });
     let adminClientDoc = null;
     if (!clientDoc) {
-      adminClientDoc = await Client.findOne({
-        $or: [{ _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null }],
-      });
+      const adminQueries = [{ company: clientId }, { clientId: String(clientId) }];
+      if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+        adminQueries.push({ _id: clientId });
+      }
+      adminClientDoc = await Client.findOne({ $or: adminQueries });
     }
 
     const effectiveClient = clientDoc || adminClientDoc;
@@ -248,10 +252,9 @@ export class ClientPaymentService {
 
   static async reversePayment(paymentId, reason, user = {}) {
     const idStr = String(paymentId);
-    const isHex = /^[0-9a-fA-F]{24}$/.test(idStr);
-    const payment = await ClientPayment.findOne({
-      $or: [{ paymentId: idStr }, { _id: isHex ? paymentId : null }],
-    });
+    const paymentQuery = [{ paymentId: idStr }];
+    if (isHex) paymentQuery.push({ _id: paymentId });
+    const payment = await ClientPayment.findOne({ $or: paymentQuery });
 
     if (!payment) throw new ApiError(404, "Payment record not found.");
     if (payment.isReversed) throw new ApiError(400, "This payment transaction is already reversed.");
@@ -278,11 +281,13 @@ export class ClientPaymentService {
     if (typeof payment.clientId === "string" && /^[0-9a-fA-F]{24}$/.test(payment.clientId)) {
       clientQuery.push({ _id: payment.clientId });
     }
+    const adminQueries = [{ company: payment.clientId }, { clientId: String(payment.clientId) }];
+    if (typeof payment.clientId === "string" && /^[0-9a-fA-F]{24}$/.test(payment.clientId)) {
+      adminQueries.push({ _id: payment.clientId });
+    }
     const clientDoc =
       (await CrmOverseasClient.findOne({ $or: clientQuery })) ||
-      (await Client.findOne({
-        $or: [{ _id: payment.clientId.match(/^[0-9a-fA-F]{24}$/) ? payment.clientId : null }],
-      }));
+      (await Client.findOne({ $or: adminQueries }));
 
     if (clientDoc && Array.isArray(clientDoc.paymentMilestones)) {
       const msIdx = clientDoc.paymentMilestones.findIndex(
@@ -322,10 +327,9 @@ export class ClientPaymentService {
 
   static async updatePayment(paymentId, updateData, user = {}) {
     const idStr = String(paymentId);
-    const isHex = /^[0-9a-fA-F]{24}$/.test(idStr);
-    const payment = await ClientPayment.findOne({
-      $or: [{ paymentId: idStr }, { _id: isHex ? paymentId : null }],
-    });
+    const paymentQuery = [{ paymentId: idStr }];
+    if (isHex) paymentQuery.push({ _id: paymentId });
+    const payment = await ClientPayment.findOne({ $or: paymentQuery });
     if (!payment) throw new ApiError(404, "Payment record not found.");
 
     const editorName =
@@ -444,12 +448,11 @@ export class ClientPaymentService {
 
     let crmQuery = {};
     if (clientId && clientId !== "ALL") {
-      crmQuery = {
-        $or: [
-          { clientId: String(clientId) },
-          { _id: clientId.match(/^[0-9a-fA-F]{24}$/) ? clientId : null },
-        ],
-      };
+      const crmQueries = [{ clientId: String(clientId) }];
+      if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
+        crmQueries.push({ _id: clientId });
+      }
+      crmQuery = { $or: crmQueries };
     }
     const crmClients = await CrmOverseasClient.find(crmQuery).lean();
 
