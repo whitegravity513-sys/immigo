@@ -469,7 +469,7 @@ export default function SubmitCandidate() {
   }
 
   return (
-    <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 font-sans">
+    <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
       {}
       <div className="mb-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -479,7 +479,7 @@ export default function SubmitCandidate() {
               <ChevronRight size={12} />
               <span className="font-bold text-slate-800">Assign Candidate</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
               <UserCheck className="text-blue-600" size={24} />
               <span>Assign Candidate to Project</span>
             </h1>
@@ -490,7 +490,7 @@ export default function SubmitCandidate() {
           <div className="flex items-center gap-2">
             <Link
               to="/vendor/candidates/add"
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold shadow-2xs transition cursor-pointer"
             >
               <Plus size={14} />
               <span>Register New Candidate</span>
@@ -502,66 +502,66 @@ export default function SubmitCandidate() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
           <div
             onClick={() => setCategoryFilter("All")}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2 rounded-lg border transition-all cursor-pointer ${
               categoryFilter === "All"
                 ? "bg-slate-100 border-slate-400 ring-2 ring-slate-400 shadow-xs"
                 : "bg-white border-slate-200 hover:bg-slate-50 shadow-2xs"
             }`}
           >
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Assignable</span>
-            <span className="text-lg font-black text-slate-900">{candidates.length}</span>
+            <span className="text-base sm:text-lg font-bold text-slate-900">{candidates.length}</span>
             <span className="text-[10px] text-slate-400 block">In available pool</span>
           </div>
           <div
             onClick={() => setCategoryFilter("fresh")}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2 rounded-lg border transition-all cursor-pointer ${
               categoryFilter === "fresh"
                 ? "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-500 shadow-xs"
                 : "bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/70 shadow-2xs"
             }`}
           >
             <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Fresh Candidates</span>
-            <span className="text-lg font-black text-emerald-800">{freshCount}</span>
+            <span className="text-base sm:text-lg font-bold text-emerald-800">{freshCount}</span>
             <span className="text-[10px] text-emerald-600 block">Never submitted</span>
           </div>
           <div
             onClick={() => setCategoryFilter("rejected")}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2 rounded-lg border transition-all cursor-pointer ${
               categoryFilter === "rejected"
                 ? "bg-rose-100 border-rose-400 ring-2 ring-rose-500 shadow-xs"
                 : "bg-rose-50/70 border-rose-200 hover:bg-rose-100/70 shadow-2xs"
             }`}
           >
             <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Rejected (Reusable)</span>
-            <span className="text-lg font-black text-rose-800">{rejectedCount}</span>
+            <span className="text-base sm:text-lg font-bold text-rose-800">{rejectedCount}</span>
             <span className="text-[10px] text-rose-600 block">Ready to re-assign</span>
           </div>
           <div
             onClick={() => setCategoryFilter("in_progress")}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2 rounded-lg border transition-all cursor-pointer ${
               categoryFilter === "in_progress"
                 ? "bg-indigo-100 border-indigo-400 ring-2 ring-indigo-500 shadow-xs"
                 : "bg-indigo-50/70 border-indigo-200 hover:bg-indigo-100/70 shadow-2xs"
             }`}
           >
             <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">In Progress / Active</span>
-            <span className="text-lg font-black text-indigo-800">{busyCandidates.length}</span>
+            <span className="text-base sm:text-lg font-bold text-indigo-800">{busyCandidates.length}</span>
             <span className="text-[10px] text-indigo-600 block">Click to view list ({busyCandidates.length})</span>
           </div>
         </div>
       </div>
 
       {submitSuccess && (
-        <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-300 shadow-xs">
+        <div className="p-5 rounded-lg bg-emerald-50 border border-emerald-300 shadow-xs">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-xs">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-xs">
               <CheckCircle2 size={22} />
             </div>
             <div className="flex-1">
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 mb-1">
                 Assignment Successful
               </span>
-              <h2 className="text-lg font-black text-slate-900">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900">
                 {submitSuccess.count} Candidate(s) Assigned to {submitSuccess.projectName}
               </h2>
               <p className="text-xs text-slate-700 mt-0.5">
@@ -571,7 +571,7 @@ export default function SubmitCandidate() {
               <div className="mt-4 flex flex-wrap gap-2.5">
                 <Link
                   to="/vendor/applications"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-2xs"
                 >
                   <FileText size={14} />
                   <span>View in Applications</span>
@@ -579,7 +579,7 @@ export default function SubmitCandidate() {
                 <button
                   type="button"
                   onClick={resetFormForNext}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
                 >
                   <RotateCcw size={14} className="text-slate-500" />
                   <span>Assign More Candidates</span>
@@ -591,7 +591,7 @@ export default function SubmitCandidate() {
       )}
 
       {errorMessage && (
-        <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-semibold flex items-center gap-2.5">
+        <div className="p-3 rounded-lg bg-rose-50 border border-rose-300 text-rose-800 text-xs font-semibold flex items-center gap-2.5">
           <AlertCircle size={16} className="shrink-0 text-rose-600" />
           <p>{errorMessage}</p>
         </div>
@@ -599,7 +599,7 @@ export default function SubmitCandidate() {
 
       {}
       {currentStep === 1 && !submitSuccess && (
-        <div className="bg-white rounded-xl border border-slate-300 shadow-xs w-full overflow-hidden flex flex-col">
+        <div className="bg-white rounded-lg border border-slate-300 shadow-xs w-full overflow-hidden flex flex-col">
           {}
           <div className="p-4 sm:p-5 border-b border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -614,7 +614,7 @@ export default function SubmitCandidate() {
               </div>
               <div className="flex items-center gap-2">
                 {selectedCandidateIds.length > 0 && (
-                  <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-200">
+                  <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200">
                     {selectedCandidateIds.length} Selected
                   </span>
                 )}
@@ -622,7 +622,7 @@ export default function SubmitCandidate() {
                   type="button"
                   onClick={handleNextStep}
                   disabled={selectedCandidateIds.length === 0}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs"
                 >
                   <span>Proceed to Assign ({selectedCandidateIds.length})</span>
                   <ArrowRight size={14} />
@@ -633,7 +633,7 @@ export default function SubmitCandidate() {
             {}
             <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               {}
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold overflow-x-auto">
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-bold overflow-x-auto">
                 <button
                   type="button"
                   onClick={() => setCategoryFilter("All")}
@@ -691,13 +691,13 @@ export default function SubmitCandidate() {
                   placeholder="Search by name, ID, trade, project..."
                   value={candidateSearch}
                   onChange={(e) => setCandidateSearch(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
+                  className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
                 />
               </div>
             </div>
 
             {categoryFilter === "in_progress" && (
-              <div className="mt-3 p-3 bg-indigo-50/90 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+              <div className="mt-3 p-3 bg-indigo-50/90 border border-indigo-200 rounded-lg text-xs text-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
                 <div className="flex items-center gap-2">
                   <Clock size={16} className="text-indigo-600 shrink-0" />
                   <span>
@@ -720,7 +720,7 @@ export default function SubmitCandidate() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
                 <tr>
-                  <th className="py-2 px-3 text-[10px] w-12 text-center">
+                  <th className="py-1 px-2 text-[10px] w-12 text-center">
                     {categoryFilter !== "in_progress" ? (
                       <input
                         type="checkbox"
@@ -733,13 +733,13 @@ export default function SubmitCandidate() {
                       <span className="text-[10px] font-bold text-slate-400">#</span>
                     )}
                   </th>
-                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Candidate Details</th>
-                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Trade / Position</th>
-                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Experience</th>
-                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Candidate Details</th>
+                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Trade / Position</th>
+                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Experience</th>
+                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">
                     {categoryFilter === "in_progress" ? "Active Status & Project" : "Eligibility Status"}
                   </th>
-                  <th className="py-2 px-3 text-[10px] text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Action</th>
+                  <th className="py-1 px-2 text-[10px] text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -778,7 +778,7 @@ export default function SubmitCandidate() {
                         selectedCandidateIds.includes(c.id) ? "bg-blue-50/40" : ""
                       }`}
                     >
-                      <td className="py-1.5 px-3 text-center">
+                      <td className="py-1 px-2 text-center">
                         {c.category === "in_progress" ? (
                           <span
                             className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-400 mx-auto"
@@ -795,7 +795,7 @@ export default function SubmitCandidate() {
                           />
                         )}
                       </td>
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2">
                         <div className="flex items-center gap-3">
                           {c.photo ? (
                             <img
@@ -820,17 +820,17 @@ export default function SubmitCandidate() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2">
                         <span className="font-bold text-slate-800 block">{c.currentPosition || "General Labor"}</span>
                       </td>
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2">
                         <div className="font-bold text-slate-700 flex items-center gap-1">
                           <Briefcase size={12} className="text-slate-400" />
                           <span>{c.experienceYears || 0} yrs</span>
                         </div>
                         <span className="text-[10px] text-slate-400 block">{c.qualification || "Trade Certified"}</span>
                       </td>
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2">
                         {c.category === "in_progress" ? (
                           <div>
                             {c.activeStatus === "Interview" || c.activeStatus === "Interview Scheduled" ? (
@@ -893,12 +893,12 @@ export default function SubmitCandidate() {
                           </div>
                         )}
                       </td>
-                      <td className="py-1.5 px-3 text-right whitespace-nowrap">
+                      <td className="py-1 px-2 text-right whitespace-nowrap">
                         {c.category === "in_progress" ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <Link
                               to="/vendor/applications"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition-colors"
                               title="View and track application"
                             >
                               <FileText size={12} />
@@ -906,7 +906,7 @@ export default function SubmitCandidate() {
                             </Link>
                             <Link
                               to={`/vendor/candidates/${c.id}`}
-                              className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
                               title="View Profile"
                             >
                               <Eye size={13} />
@@ -916,7 +916,7 @@ export default function SubmitCandidate() {
                           <button
                             type="button"
                             onClick={() => handleDirectAssignCandidate(c.id)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
                             title="Assign this candidate to a project"
                           >
                             <Send size={11} />
@@ -942,7 +942,7 @@ export default function SubmitCandidate() {
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Proceed with {selectedCandidateIds.length} candidate(s)</span>
                 <ArrowRight size={13} />
@@ -955,7 +955,7 @@ export default function SubmitCandidate() {
       {}
       {currentStep === 2 && !submitSuccess && (
         <form onSubmit={handleOpenConfirm} className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-4 sm:p-5">
+          <div className="bg-white rounded-lg border border-slate-300 shadow-xs p-4 sm:p-5">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
               <div>
                 <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
@@ -969,14 +969,14 @@ export default function SubmitCandidate() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
               >
                 Back to Candidates List
               </button>
             </div>
 
             {}
-            <div className="mb-4 p-3 bg-blue-50/50 rounded-xl border border-blue-200 text-xs">
+            <div className="mb-4 p-3 bg-blue-50/50 rounded-lg border border-blue-200 text-xs">
               <span className="font-bold text-blue-900 block mb-1">
                 Selected Candidate(s) for Assignment ({selectedCandidateIds.length}):
               </span>
@@ -1020,7 +1020,7 @@ export default function SubmitCandidate() {
                 <select
                   value={selectedProjectId}
                   onChange={(e) => handleSelectProjectByName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                   required
                 >
                   <option value="">
@@ -1044,7 +1044,7 @@ export default function SubmitCandidate() {
                   <select
                     value={selectedPosition}
                     onChange={(e) => setSelectedPosition(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                     required
                   >
                     <option value="">-- Select Project Position --</option>
@@ -1060,7 +1060,7 @@ export default function SubmitCandidate() {
                     value={selectedPosition}
                     onChange={(e) => setSelectedPosition(e.target.value)}
                     placeholder="Enter Trade / Position title..."
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
                     required
                   />
                 )}
@@ -1068,7 +1068,7 @@ export default function SubmitCandidate() {
             </div>
 
             {selectedProject && (
-              <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
                 <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-200 pb-1.5 mb-2">
                   <span>Project Overview & Vacancy Status</span>
                   <span className="text-blue-600 font-extrabold">{selectedProject.country}</span>
@@ -1097,7 +1097,7 @@ export default function SubmitCandidate() {
                 value={vendorNotes}
                 onChange={(e) => setVendorNotes(e.target.value)}
                 placeholder="Add trade qualification, GCC experience highlights or availability remarks for client review..."
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -1105,14 +1105,14 @@ export default function SubmitCandidate() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="py-2.5 px-4 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                className="py-2.5 px-4 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={!selectedProjectId || !selectedPosition}
-                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-black shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-xs font-black shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <UserCheck size={16} />
                 <span>Assign {selectedCandidateIds.length} Candidate(s)</span>
@@ -1125,9 +1125,9 @@ export default function SubmitCandidate() {
       {}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-300 space-y-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-5 shadow-2xl border border-slate-300 space-y-4">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold">
+              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold">
                 <UserCheck size={20} />
               </div>
               <div>
@@ -1138,7 +1138,7 @@ export default function SubmitCandidate() {
               </div>
             </div>
 
-            <div className="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div className="space-y-2 text-xs bg-slate-50 p-3.5 rounded-lg border border-slate-200">
               <div className="flex justify-between">
                 <span className="text-slate-500 font-medium">Candidates Selected:</span>
                 <span className="font-bold text-slate-900">{selectedCandidateIds.length} Candidates</span>
@@ -1163,7 +1163,7 @@ export default function SubmitCandidate() {
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                className="px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                className="px-3.5 py-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>
@@ -1171,7 +1171,7 @@ export default function SubmitCandidate() {
                 type="button"
                 onClick={handleFinalSubmit}
                 disabled={submitting}
-                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 {submitting ? (
                   <>

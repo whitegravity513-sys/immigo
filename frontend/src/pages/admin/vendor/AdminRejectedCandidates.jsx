@@ -49,14 +49,14 @@ export default function AdminRejectedCandidates() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Rejected Candidates</h1>
+        <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Rejected Candidates</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           History of candidates not selected for specific project demands. Candidate dossiers remain active and reusable for future projects.
         </p>
       </div>
 
       {}
-      <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+      <div className="p-2.5 rounded-lg bg-amber-50 text-xs border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
         <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
           <strong className="font-semibold text-amber-950 block">Candidate Reusability Guarantee:</strong>
@@ -72,7 +72,7 @@ export default function AdminRejectedCandidates() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Filter rejected applications by candidate, project, role, reason..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-xs"
+          className="w-full pl-10 pr-4 py-1.5 rounded-md border border-slate-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-xs"
         />
       </div>
 
@@ -89,38 +89,38 @@ export default function AdminRejectedCandidates() {
           <p className="text-xs text-slate-500 mt-1">No candidate applications are currently marked as rejected.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>
-                  <th className="py-2 px-3 text-[10px]">Vendor</th>
-                  <th className="py-2 px-3 text-[10px]">Project</th>
-                  <th className="py-2 px-3 text-[10px]">Requirement</th>
-                  <th className="py-2 px-3 text-[10px]">Position</th>
-                  <th className="py-2 px-3 text-[10px]">Rejection Reason</th>
-                  <th className="py-2 px-3 text-[10px]">Rejected Date</th>
-                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
+                  <th className="py-1 px-2 text-[10px] sm:px-6">Candidate</th>
+                  <th className="py-1 px-2 text-[10px]">Vendor</th>
+                  <th className="py-1 px-2 text-[10px]">Project</th>
+                  <th className="py-1 px-2 text-[10px]">Requirement</th>
+                  <th className="py-1 px-2 text-[10px]">Position</th>
+                  <th className="py-1 px-2 text-[10px]">Rejection Reason</th>
+                  <th className="py-1 px-2 text-[10px]">Rejected Date</th>
+                  <th className="py-1 px-2 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-1.5 px-3 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
-                    <td className="py-1.5 px-3 font-bold text-slate-900">{app.projectName}</td>
-                    <td className="py-1.5 px-3 font-mono text-xs text-slate-500">{app.requirementCode || "REQ-0008"}</td>
-                    <td className="py-1.5 px-3 font-semibold text-indigo-700">{app.position}</td>
-                    <td className="py-1.5 px-3 max-w-[220px]">
+                    <td className="py-1 px-2 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
+                    <td className="py-1 px-2 font-semibold text-slate-700">{app.vendorId}</td>
+                    <td className="py-1 px-2 font-bold text-slate-900">{app.projectName}</td>
+                    <td className="py-1 px-2 font-mono text-xs text-slate-500">{app.requirementCode || "REQ-0008"}</td>
+                    <td className="py-1 px-2 font-semibold text-indigo-700">{app.position}</td>
+                    <td className="py-1 px-2 max-w-[220px]">
                       <span className="text-xs text-rose-700 bg-rose-50 p-1.5 rounded border border-rose-100 block">
                         {app.rejectionReason || "Criteria not met"}
                       </span>
                     </td>
-                    <td className="py-1.5 px-3 text-slate-500 text-xs">
+                    <td className="py-1 px-2 text-slate-500 text-xs">
                       {app.rejectionDate ? new Date(app.rejectionDate).toLocaleDateString() : "2026-09-05"}
                     </td>
-                    <td className="py-1.5 px-3 text-right">
+                    <td className="py-1 px-2 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           to={`/admin/vendor/reassign?appId=${app.id}`}

@@ -55,11 +55,11 @@ export default function AdminSelectedCandidates() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
+    <div className="space-y-3 max-w-full w-full mx-auto font-sans antialiased text-slate-800">
       {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Selected Candidates & Milestone Management</h1>
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Selected Candidates & Milestone Management</h1>
           <p className="text-xs text-slate-500 mt-0.5 font-medium">
             Manage client-selected candidates, customize default project milestone payments, and track deployment progress.
           </p>
@@ -80,7 +80,7 @@ export default function AdminSelectedCandidates() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Filter selected candidates by candidate, project, role..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 shadow-2xs"
+          className="w-full pl-10 pr-4 py-1.5 rounded-md text-xs border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 shadow-2xs"
         />
       </div>
 
@@ -97,19 +97,19 @@ export default function AdminSelectedCandidates() {
           <p className="text-xs text-slate-500 mt-1">Candidates marked as Selected will appear here.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-2 px-3 text-[10px] sm:px-5">Candidate Name</th>
-                  <th className="py-2 px-3 text-[10px]">Vendor Partner</th>
-                  <th className="py-2 px-3 text-[10px]">Client Company</th>
-                  <th className="py-2 px-3 text-[10px]">Project Name</th>
-                  <th className="py-2 px-3 text-[10px]">Position</th>
-                  <th className="py-2 px-3 text-[10px]">Processing Stage</th>
-                  <th className="py-2 px-3 text-[10px]">Milestones & Payments</th>
-                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
+                  <th className="py-1 px-2 text-[10px] sm:px-5">Candidate Name</th>
+                  <th className="py-1 px-2 text-[10px]">Vendor Partner</th>
+                  <th className="py-1 px-2 text-[10px]">Client Company</th>
+                  <th className="py-1 px-2 text-[10px]">Project Name</th>
+                  <th className="py-1 px-2 text-[10px]">Position</th>
+                  <th className="py-1 px-2 text-[10px]">Processing Stage</th>
+                  <th className="py-1 px-2 text-[10px]">Milestones & Payments</th>
+                  <th className="py-1 px-2 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -145,16 +145,16 @@ export default function AdminSelectedCandidates() {
 
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                      <td className="py-1.5 px-3 sm:px-5 font-black text-slate-900">
+                      <td className="py-1 px-2 sm:px-5 font-black text-slate-900">
                         {app.candidateName}
                       </td>
 
-                      <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
-                      <td className="py-1.5 px-3 text-slate-800 font-medium">{app.clientName}</td>
-                      <td className="py-1.5 px-3 font-medium text-slate-800">{app.projectName}</td>
-                      <td className="py-1.5 px-3 font-medium text-slate-700">{app.position}</td>
+                      <td className="py-1 px-2 font-semibold text-slate-700">{app.vendorId}</td>
+                      <td className="py-1 px-2 text-slate-800 font-medium">{app.clientName}</td>
+                      <td className="py-1 px-2 font-medium text-slate-800">{app.projectName}</td>
+                      <td className="py-1 px-2 font-medium text-slate-700">{app.position}</td>
 
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
                           <Clock className="w-3.5 h-3.5 text-slate-500" />
                           {stageName} ({displayIndex}/{totalStagesCount || 8})
@@ -166,14 +166,14 @@ export default function AdminSelectedCandidates() {
                         )}
                       </td>
 
-                      <td className="py-1.5 px-3">
+                      <td className="py-1 px-2">
                         <div className="text-xs font-medium text-slate-700">
                           <span className="font-semibold text-slate-900">{paidCount}/{totalCount} Paid</span>
                           <span className="text-slate-500 ml-1.5">₹{Number(planTotal).toLocaleString()}</span>
                         </div>
                       </td>
 
-                      <td className="py-1.5 px-3 text-right">
+                      <td className="py-1 px-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/admin/vendor/milestones-manage?appId=${app.id}`}
