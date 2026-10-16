@@ -38,12 +38,7 @@ export function VendorLogin() {
   const [error, setError] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
 
-  const handleQuickFill = () => {
-    setEmailOrId("vendor@immigo.com");
-    setPassword("12345");
-    setError("");
-  };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -331,18 +326,7 @@ export function VendorLogin() {
               </p>
             </div>
 
-            <div className="mb-4 px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
-              <span className="truncate mr-2">
-                Vendor: <span className="font-bold text-[#1877f2]">vendor@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
-              </span>
-              <button
-                type="button"
-                onClick={handleQuickFill}
-                className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
-              >
-                Quick Fill
-              </button>
-            </div>
+            
 
             {error && (
               <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2 animate-shake">
