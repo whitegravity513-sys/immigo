@@ -78,7 +78,7 @@ export default function EmployeeLayout({
           onNewNotification={(n) => setLiveAdminNotification(n)}
         />
 
-        <main className="flex-1 flex flex-col p-3.5 sm:p-5 max-w-7xl w-full mx-auto">
+        <main className="flex-1 flex flex-col px-3 sm:px-5 py-2.5 sm:py-3.5 w-full">
           {errorMsg && (
             <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mb-3">
               <AlertCircle size={15} className="shrink-0" />

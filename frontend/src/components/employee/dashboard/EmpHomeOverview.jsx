@@ -111,7 +111,7 @@ export default function EmpHomeOverview({
       : "Day 1";
 
   return (
-    <div className="space-y-3 max-w-7xl mx-auto text-slate-800">
+    <div className="space-y-2.5 w-full text-slate-800">
       {(status === "On Break" || isOnBreak) && (
         <div className="bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 border border-sky-400/50">
           <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function EmpHomeOverview({
 
       {}
       {complianceInfo?.isComplianceOnHold && (
-        <div className="bg-amber-500/10 border border-amber-400/40 text-amber-950 rounded-xl px-4 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+        <div className="bg-amber-500/10 border border-amber-400/40 text-amber-950 rounded-lg px-3 py-1.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in fade-in duration-200">
           <div className="flex items-center gap-2.5 min-w-0">
             <AlertCircle size={18} className="text-amber-600 shrink-0" />
             <div className="min-w-0 text-xs">
@@ -160,7 +160,7 @@ export default function EmpHomeOverview({
           <button
             type="button"
             onClick={() => setView("profile-docs")}
-            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer self-start sm:self-auto"
+            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] rounded-md shadow-2xs transition-all flex items-center justify-center gap-1 shrink-0 cursor-pointer self-start sm:self-auto"
           >
             <span>Upload Documents</span>
             <ChevronRight size={13} />
@@ -208,7 +208,7 @@ export default function EmpHomeOverview({
       )}
 
       <div
-        className="text-white rounded-xl p-3 sm:p-3.5 shadow-sm shadow-blue-900/20 border border-blue-500/40 relative overflow-hidden"
+        className="text-white rounded-xl p-2.5 sm:p-3 shadow-sm shadow-blue-900/20 border border-blue-500/40 relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #1e40af 0%, #163883ff 50%, #1d4ed8 100%)" }}
       >
         <div className="absolute -top-16 -right-16 w-56 h-56 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
