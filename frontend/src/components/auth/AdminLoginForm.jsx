@@ -18,8 +18,6 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
   const adminPassRef = useRef(null);
 
   useEffect(() => {
-    setIdentifier("");
-    setPassword("");
     const clearBrowserAutofill = () => {
       if (adminInputRef.current) {
         const v = String(adminInputRef.current.value || "");
@@ -29,7 +27,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
         }
       }
       if (adminPassRef.current && adminInputRef.current && !adminInputRef.current.value) {
-        if (adminPassRef.current.value === "12345" || adminPassRef.current.value === "vesta") {
+        if (adminPassRef.current.value === "vesta") {
           adminPassRef.current.value = "";
           setPassword("");
         }
@@ -37,13 +35,12 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
     };
     clearBrowserAutofill();
     const interval = setInterval(clearBrowserAutofill, 50);
-    const stopTimer = setTimeout(() => clearInterval(interval), 2500);
+    const stopTimer = setTimeout(() => clearInterval(interval), 2000);
     return () => {
       clearInterval(interval);
       clearTimeout(stopTimer);
     };
   }, []);
-
 
   useEffect(() => {
     if (!error) return;
@@ -51,7 +48,12 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
     return () => clearTimeout(timer);
   }, [error]);
 
-  
+  const handleQuickFill = () => {
+    setIdentifier("admin@immigo.com");
+    setPassword("12345");
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -90,7 +92,18 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
-      
+      <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
+        <span className="truncate mr-2">
+          Admin: <span className="font-bold text-[#1877f2]">admin@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+        </span>
+        <button
+          type="button"
+          onClick={handleQuickFill}
+          className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
+        >
+          Quick Fill
+        </button>
+      </div>
 
       <AuthErrorMessage msg={error} />
 
@@ -101,12 +114,44 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
         <div className="relative">
           <Mail size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
           <input
+            ref={adminInputRef}
+            type="text"
+            required
+            autoFocus
+            value={identifier}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val.toUpperCase().includes("VESTA")) {
+                setIdentifier("");
+                if (adminInputRef.current) adminInputRef.current.value = "";
+                return;
+              }
+              setIdentifier(val);
+            }}
+            name="admin_system_email"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck="false"
+            placeholder="admin@immigo.com or 'admin'"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1">
+          Password
+        </label>
+        <div className="relative">
+          <Lock size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
+          <input
             ref={adminPassRef}
             type={showPassword ? "text" : "password"}
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            name="admin_master_key"
+            name="admin_system_pass"
             autoComplete="new-password"
             placeholder="Enter secure password"
             className="w-full pl-10 pr-10 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
@@ -139,7 +184,7 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
           <>
             <LogIn size={15} />
             <span>Sign In to Admin Portal</span>
-            <ArrowRight size={15} />
+            <ArrowRight size={14} className="ml-1" />
           </>
         )}
       </button>

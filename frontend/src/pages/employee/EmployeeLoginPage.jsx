@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import { employeeLogin } from "../../services/authService.js";
