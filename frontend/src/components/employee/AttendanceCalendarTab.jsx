@@ -61,8 +61,8 @@ export default function AttendanceCalendarTab({
     : "Joining Date";
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           {
             label: "Present Days",
@@ -89,20 +89,20 @@ export default function AttendanceCalendarTab({
             color: "bg-amber-50 text-amber-800 border-amber-200",
           },
         ].map((item) => (
-          <div key={item.label} className={`rounded-xl border p-4 shadow-2xs ${item.color}`}>
-            <div className="text-2xl font-black">{item.value}</div>
-            <div className="text-[11px] font-black uppercase tracking-wider mt-1">{item.label}</div>
-            {item.sub && <div className="text-[10px] font-semibold opacity-75 mt-0.5">{item.sub}</div>}
+          <div key={item.label} className={`rounded-xl border p-2.5 sm:p-3 shadow-2xs ${item.color}`}>
+            <div className="text-base sm:text-lg font-bold">{item.value}</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider mt-0.5">{item.label}</div>
+            {item.sub && <div className="text-[9px] font-medium opacity-80 mt-0.5">{item.sub}</div>}
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
           <div>
-            <h3 className="text-base font-black text-slate-800">Attendance Calendar</h3>
-            <p className="text-xs text-slate-500 font-medium">
-              See holidays, leaves, and your attendance for {monthNames[calendarMonth - 1]} {calendarYear}
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">Attendance Calendar</h3>
+            <p className="text-[11px] text-slate-500 font-medium">
+              Monthly shifts, leaves, and your attendance for {monthNames[calendarMonth - 1]} {calendarYear}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function AttendanceCalendarTab({
                   setCalendarMonth(calendarMonth - 1);
                 }
               }}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-sm font-bold hover:bg-slate-100 cursor-pointer"
+              className="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
             >
               ◀
             </button>
@@ -128,7 +128,7 @@ export default function AttendanceCalendarTab({
                   setCalendarMonth(calendarMonth + 1);
                 }
               }}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-sm font-bold hover:bg-slate-100 cursor-pointer"
+              className="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
             >
               ▶
             </button>
@@ -137,14 +137,14 @@ export default function AttendanceCalendarTab({
 
         {monthlyLoading && <div className="text-sm text-slate-500 mb-3">Loading calendar…</div>}
 
-        <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+        <div className="grid grid-cols-7 gap-2 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
             <div key={d}>{d}</div>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-2">
           {gridItems.map((day, idx) => {
-            if (day === null) return <div key={`blank-${idx}`} className="h-16 rounded-xl border border-slate-100 bg-slate-50/40" />;
+            if (day === null) return <div key={`blank-${idx}`} className="h-12 sm:h-13 rounded-xl border border-slate-100 bg-slate-50/40" />;
             const dateKey = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const holiday = holidays.find((h) => h.date === dateKey);
             const leaveOnDay = leaveHistory.some((lv) => isDateInLeaveRange(dateKey, lv));
@@ -159,36 +159,36 @@ export default function AttendanceCalendarTab({
             const isBeforeJoining = joiningDateStr && dateKey < joiningDateStr;
             const isFuture = dateKey > todayKey;
 
-            let cellClass = "h-16 rounded-xl border border-slate-200 bg-white p-1.5 flex flex-col justify-between";
+            let cellClass = "h-12 sm:h-13 rounded-xl border border-slate-200 bg-white p-1 flex flex-col justify-between";
             let badge = null;
 
             if (isBeforeJoining) {
               
-              cellClass = "h-16 rounded-xl border border-slate-100 bg-slate-50/50 p-1.5 flex flex-col justify-between opacity-35";
+              cellClass = "h-12 sm:h-13 rounded-xl border border-slate-100 bg-slate-50/50 p-1 flex flex-col justify-between opacity-35";
               badge = null;
             } else if (holiday || record?.status === "Holiday") {
-              cellClass = "h-16 rounded-xl border border-amber-200 bg-amber-50 p-1.5 flex flex-col justify-between";
-              badge = <span className="text-[8px] font-black uppercase bg-amber-600 text-white px-1.5 py-0.5 rounded-full">Holiday</span>;
+              cellClass = "h-12 sm:h-13 rounded-xl border border-amber-200 bg-amber-50 p-1 flex flex-col justify-between";
+              badge = <span className="text-[7.5px] font-bold uppercase bg-amber-600 text-white px-1.5 py-0.5 rounded-full">Holiday</span>;
             } else if (record?.status && ["Present", "Active", "Checked Out", "On Break", "Half Day"].includes(record.status)) {
-              cellClass = "h-16 rounded-xl border border-emerald-200 bg-emerald-50 p-1.5 flex flex-col justify-between";
-              badge = <span className="text-[8px] font-black uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-full">Present</span>;
+              cellClass = "h-12 sm:h-13 rounded-xl border border-emerald-200 bg-emerald-50 p-1 flex flex-col justify-between";
+              badge = <span className="text-[7.5px] font-bold uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-full">Present</span>;
             } else if (isWeeklyOff || record?.status === "Weekly Off" || record?.status === "Weekend") {
-              cellClass = "h-16 rounded-xl border border-slate-200 bg-slate-100/70 p-1.5 flex flex-col justify-between";
-              badge = <span className="text-[8px] font-black uppercase bg-slate-400 text-white px-1.5 py-0.5 rounded-full">OFF</span>;
+              cellClass = "h-12 sm:h-13 rounded-xl border border-slate-200 bg-slate-100/70 p-1 flex flex-col justify-between";
+              badge = <span className="text-[7.5px] font-bold uppercase bg-slate-400 text-white px-1.5 py-0.5 rounded-full">OFF</span>;
             } else if (leaveOnDay || record?.status === "On Leave") {
-              cellClass = "h-16 rounded-xl border border-blue-200 bg-blue-50 p-1.5 flex flex-col justify-between";
-              badge = <span className="text-[8px] font-black uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Leave</span>;
+              cellClass = "h-12 sm:h-13 rounded-xl border border-blue-200 bg-blue-50 p-1 flex flex-col justify-between";
+              badge = <span className="text-[7.5px] font-bold uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Leave</span>;
             } else if (isToday) {
-              cellClass = "h-16 rounded-xl border border-blue-400 bg-blue-50/50 p-1.5 flex flex-col justify-between shadow-xs";
-              badge = <span className="text-[8px] font-black uppercase bg-blue-700 text-white px-1.5 py-0.5 rounded-full">Today</span>;
+              cellClass = "h-12 sm:h-13 rounded-xl border border-blue-400 bg-blue-50/50 p-1 flex flex-col justify-between shadow-xs";
+              badge = <span className="text-[7.5px] font-bold uppercase bg-blue-700 text-white px-1.5 py-0.5 rounded-full">Today</span>;
             } else if (!isFuture && (record?.status === "Absent" || !record)) {
-              cellClass = "h-16 rounded-xl border border-rose-200 bg-rose-50 p-1.5 flex flex-col justify-between";
-              badge = <span className="text-[8px] font-black uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded-full">Absent</span>;
+              cellClass = "h-12 sm:h-13 rounded-xl border border-rose-200 bg-rose-50 p-1 flex flex-col justify-between";
+              badge = <span className="text-[7.5px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded-full">Absent</span>;
             }
 
             return (
               <div key={dateKey} className={cellClass}>
-                <div className="flex items-center justify-between text-[10px] font-black text-slate-700">
+                <div className="flex items-center justify-between text-[9px] font-bold text-slate-700">
                   <span>{day}</span>
                   {holiday && <span className="text-[8px] text-amber-700 max-w-[40px] truncate">{holiday.title}</span>}
                 </div>
@@ -207,9 +207,9 @@ export default function AttendanceCalendarTab({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-5">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <h3 className="text-base font-black text-slate-800">Today’s Snapshot</h3>
+          <h3 className="text-xs sm:text-sm font-bold text-slate-800">Today’s Snapshot</h3>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{getIndiaDateString()}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -219,9 +219,9 @@ export default function AttendanceCalendarTab({
             { label: "Check Out", value: statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : "—" },
             { label: "Lunch / Short", value: `${fmtDur(lunchSeconds)} / ${fmtDur(breakSeconds)}` },
           ].map((item) => (
-            <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div key={item.label} className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{item.label}</div>
-              <div className="text-sm font-black text-slate-800 mt-1">{item.value}</div>
+              <div className="text-xs font-bold text-slate-800 mt-0.5">{item.value}</div>
             </div>
           ))}
         </div>

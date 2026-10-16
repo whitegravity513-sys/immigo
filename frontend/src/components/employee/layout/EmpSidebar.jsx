@@ -80,10 +80,10 @@ export default function EmpSidebar({
         </div>
 
 
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-3 custom-scrollbar">
           {navSections.map((section, idx) => (
             <div key={idx}>
-              <div className="px-3 mb-1.5 text-[10px] font-black uppercase tracking-wider text-blue-900/60">
+              <div className="px-2.5 mb-1 text-[9px] font-black uppercase tracking-wider text-blue-900/60">
                 {section.title}
               </div>
               <div className="space-y-0.5">
@@ -100,14 +100,14 @@ export default function EmpSidebar({
                         setView(item.key);
                         setSidebarOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 cursor-pointer group ${isActive
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25 font-bold"
-                        : "text-slate-700 hover:text-blue-950 hover:bg-white/80 font-bold"
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] transition-all duration-150 cursor-pointer group ${isActive
+                        ? "bg-blue-600 text-white shadow-xs font-bold"
+                        : "text-slate-600 hover:text-blue-950 hover:bg-white/80 font-semibold"
                         }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Icon
-                          size={16}
+                          size={14}
                           className={`shrink-0 transition-colors ${isActive
                             ? "text-white"
                             : "text-blue-600/70 group-hover:text-blue-800"
@@ -128,25 +128,14 @@ export default function EmpSidebar({
           ))}
         </nav>
 
-        <div className="p-3 border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col gap-2 shadow-xs">
-          {user && (
-            <div className="flex items-center gap-2.5 px-2 py-1">
-              <div className="w-8 h-8 rounded-lg bg-blue-900/80 border border-blue-700/60 text-cyan-300 font-bold text-xs flex items-center justify-center shrink-0">
-                {(user.name?.charAt(0) || "E").toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate">{user.name || "Employee"}</p>
-                <p className="text-[10px] text-cyan-300 font-mono font-semibold truncate">{user.employeeCode || user.role || "Staff"}</p>
-              </div>
-            </div>
-          )}
+        <div className="h-[48px] min-h-[48px] px-3 border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-center shadow-md">
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/20 hover:bg-rose-500/30 hover:text-white border border-rose-400/30 transition-all cursor-pointer shadow-2xs group"
-            title="Sign out of your session"
+            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-300 bg-rose-500/20 hover:bg-rose-500/30 hover:text-white border border-rose-400/30 transition-all cursor-pointer shadow-2xs group"
+            title="Sign Out"
           >
-            <LogOut size={14} className="text-rose-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
+            <LogOut size={13} className="text-rose-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />
             <span>Sign Out</span>
           </button>
         </div>

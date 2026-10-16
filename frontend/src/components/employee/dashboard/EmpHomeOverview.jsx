@@ -111,7 +111,7 @@ export default function EmpHomeOverview({
       : "Day 1";
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto text-slate-800">
+    <div className="space-y-3 max-w-7xl mx-auto text-slate-800">
       {(status === "On Break" || isOnBreak) && (
         <div className="bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 border border-sky-400/50">
           <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ export default function EmpHomeOverview({
       )}
 
       <div
-        className="text-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-md shadow-blue-900/25 border border-blue-500/40 relative overflow-hidden"
+        className="text-white rounded-xl p-3 sm:p-3.5 shadow-sm shadow-blue-900/20 border border-blue-500/40 relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #1e40af 0%, #163883ff 50%, #1d4ed8 100%)" }}
       >
         <div className="absolute -top-16 -right-16 w-56 h-56 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
@@ -220,7 +220,7 @@ export default function EmpHomeOverview({
               {(() => {
                 const avatarUrl = user?.profileImage || statusRecord?.profileImage;
                 return (
-                  <div className={`w-14 h-14 sm:w-16 sm:h-16  ${avatarUrl ? "bg-white" : "bg-gradient-to-tr from-slate-600 to-slate-700"} text-white font-black text-xl flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}>
+                  <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl  ${avatarUrl ? "bg-white" : "bg-gradient-to-tr from-slate-600 to-slate-700"} text-white font-black text-xl flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}>
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
@@ -250,7 +250,7 @@ export default function EmpHomeOverview({
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">
+                <h2 className="text-xs sm:text-sm font-bold tracking-tight text-white">
                   {greeting}, {user?.name || "Employee"}!
                 </h2>
                 <span
@@ -292,7 +292,7 @@ export default function EmpHomeOverview({
             <button
               type="button"
               onClick={() => setView("leaves")}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/30 transition-all cursor-pointer backdrop-blur-xs active:scale-95 shadow-xs"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold border border-white/30 transition-all cursor-pointer backdrop-blur-xs active:scale-95 shadow-2xs"
             >
               <CalendarPlus size={15} />
               <span>Apply / View Leaves</span>
@@ -371,15 +371,15 @@ export default function EmpHomeOverview({
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-        <div className="bg-white rounded-xl border-2 border-emerald-300 hover:border-emerald-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border-2 border-emerald-300 hover:border-emerald-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider">Present Days</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
               <CheckCircle2 size={16} />
             </div>
           </div>
           <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
+            <div className="text-base sm:text-lg font-bold text-slate-950 tabular-nums">
               {attStats.presentDays ?? 0} <span className="text-[11px] font-bold text-emerald-800">Days</span>
             </div>
             <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
@@ -388,10 +388,10 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border-2 border-rose-300 hover:border-rose-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border-2 border-rose-300 hover:border-rose-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-rose-900 uppercase tracking-wider">Absent Days</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
               <AlertCircle size={16} />
             </div>
           </div>
@@ -405,10 +405,10 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border-2 border-blue-300 hover:border-blue-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border-2 border-blue-300 hover:border-blue-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-blue-900 uppercase tracking-wider">On Leave</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
               <CalendarPlus size={16} />
             </div>
           </div>
@@ -422,10 +422,10 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border-2 border-amber-300 hover:border-amber-400 p-3 sm:p-3.5 shadow-xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border-2 border-amber-300 hover:border-amber-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-amber-900 uppercase tracking-wider">Half Day</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
               <Clock size={16} />
             </div>
           </div>
@@ -441,7 +441,7 @@ export default function EmpHomeOverview({
       </div>
 
       {}
-      <div className="p-4 sm:p-4.5 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-xs">
+      <div className="p-3 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           <div className="flex items-start sm:items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">

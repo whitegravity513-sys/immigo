@@ -184,12 +184,12 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
         <div>
-          <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <IndianRupee size={22} className="text-blue-600" /> Expense Claims & Reimbursements
+          <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
+            <IndianRupee size={16} className="text-blue-600" /> Expense Claims & Reimbursements
           </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
             Submit business expenses, upload receipts, and track claim approval status
           </p>
         </div>
@@ -197,53 +197,53 @@ export default function EmployeeExpensesTab({ user, token }) {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm shadow-blue-500/20 transition-all"
+          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
         >
           <Plus size={15} /> Submit New Expense
         </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Claimed</span>
-            <div className="text-xl font-black text-slate-800 mt-0.5">₹{totalSubmitted.toLocaleString("en-IN")}</div>
+            <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">₹{totalSubmitted.toLocaleString("en-IN")}</div>
             <span className="text-[11px] text-slate-500 font-semibold">{expenses.length} claims filed</span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <IndianRupee size={22} />
+          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <IndianRupee size={15} />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Approved & Settled</span>
-            <div className="text-xl font-black text-emerald-600 mt-0.5">₹{totalApproved.toLocaleString("en-IN")}</div>
+            <div className="text-base sm:text-lg font-bold text-emerald-600 mt-0.5">₹{totalApproved.toLocaleString("en-IN")}</div>
             <span className="text-[11px] text-emerald-700 font-semibold">
               {expenses.filter((e) => e.status === "Approved").length} approved
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <CheckCircle2 size={22} />
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <CheckCircle2 size={15} />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Under Review</span>
-            <div className="text-xl font-black text-amber-600 mt-0.5">₹{totalPending.toLocaleString("en-IN")}</div>
+            <div className="text-base sm:text-lg font-bold text-amber-600 mt-0.5">₹{totalPending.toLocaleString("en-IN")}</div>
             <span className="text-[11px] text-amber-700 font-semibold">
               {expenses.filter((e) => e.status === "Pending").length} pending
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Clock size={22} />
+          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <Clock size={15} />
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+        <div className="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/50">
           <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
             {["ALL", "Pending", "Approved", "Rejected"].map((f) => (
               <button
@@ -266,11 +266,11 @@ export default function EmployeeExpensesTab({ user, token }) {
           <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Date</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Expense Item</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Category</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Amount</th>
-                <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider">Status</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Date</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Expense Item</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Category</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Amount</th>
+                <th className="px-3.5 py-2 text-slate-500 font-bold uppercase text-[9px] tracking-wider">Status</th>
                 <th className="px-6 py-3.5 text-slate-500 font-bold uppercase text-[10px] tracking-wider text-right">Actions</th>
               </tr>
             </thead>
