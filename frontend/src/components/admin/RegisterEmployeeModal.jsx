@@ -273,7 +273,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, name: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   />
                 </div>
 
@@ -292,7 +292,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, email: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   />
                   <span className="text-[10px] text-slate-400">Official company email provided for login</span>
                 </div>
@@ -311,7 +311,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, personalEmail: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   />
                   <span className="text-[10px] text-slate-400">Personal Gmail/Outlook ID for records</span>
                 </div>
@@ -326,7 +326,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, password: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   />
                 </div>
 
@@ -353,7 +353,7 @@ export const RegisterEmployeeModal = ({
                       const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
                       setEmployeeForm({ ...employeeForm, phone: digitsOnly });
                     }}
-                    className={`w-full bg-slate-50 border rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition ${
+                    className={`w-full bg-slate-50 border rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition ${
                       (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
                         ? "border-emerald-300 focus:border-emerald-500"
                         : "border-slate-200 focus:border-blue-500"
@@ -376,7 +376,7 @@ export const RegisterEmployeeModal = ({
                         employeeId: newId,
                       });
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                   />
                   <span className="text-[10px] text-slate-400">Day & Year forms ID prefix (e.g. 0926)</span>
                 </div>
@@ -401,7 +401,7 @@ export const RegisterEmployeeModal = ({
                         employeeId: newId,
                       });
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                   />
                   <span className="text-[10px] text-slate-400">Day & Year forms ID suffix (e.g. 1598)</span>
                 </div>
@@ -413,7 +413,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, status: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-semibold cursor-pointer"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-semibold cursor-pointer"
                   >
                     <option value="active">🟢 Active</option>
                     <option value="inactive">🔴 Inactive</option>
@@ -439,7 +439,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, role: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   />
                 </div>
 
@@ -450,7 +450,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, department: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition"
                   >
                     {departments.map((dept) => (
                       <option key={dept} value={dept}>
@@ -471,7 +471,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, address: e.target.value })
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition resize-none"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition resize-none"
                   />
                 </div>
               </div>
@@ -482,7 +482,7 @@ export const RegisterEmployeeModal = ({
                 <Award size={14} className="text-blue-600" />
                 3. Career History & Compensation Details
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 bg-slate-50/70 border border-slate-200/80 p-4 rounded-2xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 bg-slate-50/70 border border-slate-200/80 p-3 rounded-xl">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-600">Previous Company</label>
                   <input
@@ -492,7 +492,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, previousCompany: e.target.value })
                     }
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -505,7 +505,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, experience: e.target.value })
                     }
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -518,7 +518,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, previousPackage: e.target.value })
                     }
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
@@ -531,7 +531,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, currentPackage: e.target.value })
                     }
-                    className="w-full bg-white border border-blue-300 rounded-xl px-3 py-2 text-xs font-bold text-blue-700 placeholder-slate-400 focus:outline-none focus:border-blue-600"
+                    className="w-full bg-white border border-blue-300 rounded-md px-2.5 py-1.5 text-xs font-semibold text-blue-700 placeholder-slate-400 focus:outline-none focus:border-blue-600"
                   />
                 </div>
 
@@ -546,7 +546,7 @@ export const RegisterEmployeeModal = ({
                     onChange={(e) =>
                       setEmployeeForm({ ...employeeForm, monthlySalary: Number(e.target.value) })
                     }
-                    className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold text-emerald-700 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+                    className="w-full bg-white border border-emerald-300 rounded-md px-2.5 py-1.5 text-xs font-semibold text-emerald-700 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
                   />
                 </div>
               </div>
@@ -563,14 +563,14 @@ export const RegisterEmployeeModal = ({
                 </span>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-slate-600">Document Category</label>
                     <select
                       value={docCategory}
                       onChange={(e) => setDocCategory(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700"
+                      className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-700"
                     >
                       {docCategories.map((c) => (
                         <option key={c} value={c}>
@@ -587,7 +587,7 @@ export const RegisterEmployeeModal = ({
                       placeholder={`e.g. Official ${docCategory}`}
                       value={docTitle}
                       onChange={(e) => setDocTitle(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400"
+                      className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400"
                     />
                   </div>
 
@@ -650,7 +650,7 @@ export const RegisterEmployeeModal = ({
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3 shrink-0">
           <button
             type="button"
-            className="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl font-bold cursor-pointer text-xs transition"
+            className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-md font-bold cursor-pointer text-xs transition"
             onClick={onClose}
           >
             Cancel
@@ -658,7 +658,7 @@ export const RegisterEmployeeModal = ({
           <button
             type="submit"
             form="registerEmployeeForm"
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl cursor-pointer text-xs shadow-sm shadow-blue-500/20 transition flex items-center gap-2"
+            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md cursor-pointer text-xs shadow-xs transition flex items-center gap-1.5"
             disabled={loading}
           >
             <CheckCircle2 size={15} />

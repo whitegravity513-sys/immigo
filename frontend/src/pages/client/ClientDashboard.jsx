@@ -27,8 +27,9 @@ export function ClientDashboard() {
     async function loadData() {
       try {
         setLoading(true);
-        const data = await crmClientService.getClients();
-        setClients(data || []);
+        const data = await crmClientService.getClients({ limit: 1000 });
+        const list = Array.isArray(data) ? data : data?.clients || [];
+        setClients(list);
       } catch (err) {
         console.error("Error loading clients dashboard:", err);
       } finally {
@@ -38,12 +39,13 @@ export function ClientDashboard() {
     loadData();
   }, []);
 
-  const totalClients = clients.length;
-  const activeClients = clients.filter(
+  const clientList = Array.isArray(clients) ? clients : [];
+  const totalClients = clientList.length;
+  const activeClients = clientList.filter(
     (c) => (c.status || "active").toLowerCase() === "active"
   ).length;
 
-  const totalProjects = clients.reduce((acc, c) => {
+  const totalProjects = clientList.reduce((acc, c) => {
     return acc + (Array.isArray(c.projects) ? c.projects.length : 0);
   }, 0);
 
@@ -158,7 +160,7 @@ export function ClientDashboard() {
             <div className="p-4">
               <LoadingSkeleton type="table" count={5} />
             </div>
-          ) : clients.length === 0 ? (
+          ) : clientList.length === 0 ? (
             <div className="p-6 text-center text-gray-500">
               <Building2 size={28} className="mx-auto text-gray-300 mb-2" />
               <p className="text-xs font-semibold">No clients registered yet.</p>
@@ -184,7 +186,7 @@ export function ClientDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {clients.map((client) => {
+                  {clientList.map((client) => {
                     const primaryContact =
                       client.contacts?.find((c) => c.isPrimary) || client.contacts?.[0];
 

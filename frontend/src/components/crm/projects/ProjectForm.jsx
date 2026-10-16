@@ -129,7 +129,7 @@ export function ProjectForm({
     ]
   });
 
-  const [errors, setErrors] = useState();
+  const [errors, setErrors] = useState({});
 
   
   useEffect(() => {

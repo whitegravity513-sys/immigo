@@ -459,30 +459,30 @@ export function ClientForm({
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {}
-      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors mb-2 cursor-pointer font-medium"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors mb-1 cursor-pointer font-medium"
           >
-            <ArrowLeft size={14} />
+            <ArrowLeft size={13} />
             <span>Back</span>
           </button>
-          <h1 className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
             {isEdit ? "Edit Client Profile" : "Register New Client Organization"}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-500 mt-0.5">
             Fill all required fields (*). Projects and manpower requirements are created in the next step.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => navigate(-1)}
             disabled={loading}
-            className="px-4 py-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
+            className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
           >
             Cancel
           </button>
@@ -490,9 +490,9 @@ export function ClientForm({
             type="button"
             onClick={handleSubmit}
             disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-colors cursor-pointer flex-1 sm:flex-initial"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-xs transition-colors cursor-pointer flex-1 sm:flex-initial"
           >
-            <Save size={15} />
+            <Save size={14} />
             <span>{loading ? "Saving Client..." : isEdit ? "Update Client" : "Save Client"}</span>
           </button>
         </div>
@@ -1183,26 +1183,26 @@ export function ClientForm({
         </FormSection>
 
         {}
-        <div className="p-4 sm:p-5 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <p className="text-xs text-gray-500">
             Once saved, you can add deployment projects and trade manpower requirements directly under this client.
           </p>
 
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => navigate(-1)}
               disabled={loading}
-              className="px-4 py-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
+              className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer flex-1 sm:flex-initial text-center justify-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm shadow-blue-500/25 transition-colors cursor-pointer flex-1 sm:flex-initial"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-xs transition-colors cursor-pointer flex-1 sm:flex-initial"
             >
-              <Save size={15} />
+              <Save size={14} />
               <span>{loading ? "Saving Client..." : isEdit ? "Update Client" : "Save Client"}</span>
             </button>
           </div>
