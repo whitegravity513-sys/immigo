@@ -72,13 +72,13 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 sm:px-6">Project Name</th>
-                  <th className="py-3.5 px-4">Location / Country</th>
-                  <th className="py-3.5 px-4">Type</th>
-                  <th className="py-3.5 px-4 text-center">Required Manpower</th>
-                  <th className="py-3.5 px-4">Start Date</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-6">Project Name</th>
+                  <th className="py-2 px-3 text-[10px]">Location / Country</th>
+                  <th className="py-2 px-3 text-[10px]">Type</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Required Manpower</th>
+                  <th className="py-2 px-3 text-[10px]">Start Date</th>
+                  <th className="py-2 px-3 text-[10px]">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -91,7 +91,7 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
 
                   return (
                     <tr key={project.id} className="hover:bg-blue-50/30 transition-colors">
-                      <td className="py-3.5 px-4 sm:px-6">
+                      <td className="py-1.5 px-3 sm:px-6">
                         <Link
                           to={`/client/clients/${client.id}/projects/${project.id}`}
                           className="font-bold text-gray-900 hover:text-blue-600 text-xs block"
@@ -102,24 +102,24 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                           Duration: {project.duration || "24 Months"}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <span className="flex items-center gap-1 text-gray-700 font-medium">
                           <MapPin size={12} className="text-gray-400" />
                           {project.location || project.country}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600 font-medium">
+                      <td className="py-1.5 px-3 text-gray-600 font-medium">
                         {project.projectType || "General"}
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
                           {reqCount} Persons
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600">
+                      <td className="py-1.5 px-3 text-gray-600">
                         {project.startDate || "—"}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <StatusBadge status={project.status} size="sm" />
                           <button
@@ -134,14 +134,14 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                           </button>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <div className="relative inline-flex items-center justify-center">
                           <button
                             type="button"
                             onClick={() =>
                               setOpenMenuId(isMenuOpen ? null : project.id)
                             }
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                            className={`w-6 h-6 rounded-md flex items-center justify-center transition-all cursor-pointer ${
                               isMenuOpen
                                 ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
                                 : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"

@@ -31,7 +31,7 @@ export default function ProjectInvoiceForm({
 
   return (
     <form onSubmit={handleCreateInvoice} className="space-y-6">
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-base font-black text-slate-800">
@@ -154,7 +154,7 @@ export default function ProjectInvoiceForm({
         </div>
       </div>
 
-      <div className="bg-slate-50 rounded-2xl border border-slate-200/80 shadow-xs p-4">
+      <div className="bg-slate-50 rounded-xl border border-slate-200/80 shadow-xs p-4">
         <details>
           <summary className="cursor-pointer flex items-center gap-2 text-sm font-black text-slate-700 select-none">
             <Building2 size={15} className="text-green-600" />
@@ -191,7 +191,7 @@ export default function ProjectInvoiceForm({
         </details>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-black text-slate-800">Invoice Items (Description, SAC Code & Amount)</h3>
@@ -267,7 +267,7 @@ export default function ProjectInvoiceForm({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
         <h3 className="text-base font-black text-slate-800 border-b border-slate-100 pb-3">
           GST Calculation & Total
         </h3>

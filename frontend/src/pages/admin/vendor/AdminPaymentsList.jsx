@@ -79,7 +79,7 @@ export default function AdminPaymentsList() {
 
       {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
             Total Payment To Collect (Agreed Fee)
           </span>
@@ -87,7 +87,7 @@ export default function AdminPaymentsList() {
           <span className="text-[11px] text-slate-400 font-medium">Agreed contract fee across selected candidates</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
             Total Payment Released (Paid)
           </span>
@@ -95,7 +95,7 @@ export default function AdminPaymentsList() {
           <span className="text-[11px] text-emerald-700 font-medium">Disbursed to vendor accounts</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
             Remaining Balance (Pending Release)
           </span>
@@ -118,30 +118,30 @@ export default function AdminPaymentsList() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs text-slate-500">Loading payment accounts...</p>
         </div>
       ) : filteredApps.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <CreditCard className="w-10 h-10 text-slate-300 mx-auto mb-2" />
           <h3 className="text-sm font-bold text-slate-800">No payment records found</h3>
           <p className="text-xs text-slate-500 mt-1">Payment plans generate automatically when candidate applications are accepted as Selected.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-6">Candidate</th>
-                  <th className="py-3.5 px-4">Vendor</th>
-                  <th className="py-3.5 px-4">Project</th>
-                  <th className="py-3.5 px-4">Total Amount</th>
-                  <th className="py-3.5 px-4">Paid Amount</th>
-                  <th className="py-3.5 px-4">Remaining</th>
-                  <th className="py-3.5 px-4">Payment Status</th>
-                  <th className="py-3.5 px-4 text-right">Action</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>
+                  <th className="py-2 px-3 text-[10px]">Vendor</th>
+                  <th className="py-2 px-3 text-[10px]">Project</th>
+                  <th className="py-2 px-3 text-[10px]">Total Amount</th>
+                  <th className="py-2 px-3 text-[10px]">Paid Amount</th>
+                  <th className="py-2 px-3 text-[10px]">Remaining</th>
+                  <th className="py-2 px-3 text-[10px]">Payment Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -163,18 +163,18 @@ export default function AdminPaymentsList() {
 
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                      <td className="py-4 px-4 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
-                      <td className="py-4 px-4 font-semibold text-slate-700">{app.vendorId}</td>
-                      <td className="py-4 px-4 font-bold text-slate-900">{app.projectName}</td>
-                      <td className="py-4 px-4 font-bold text-slate-900">₹{total.toLocaleString()}</td>
-                      <td className="py-4 px-4 font-bold text-emerald-600">₹{paid.toLocaleString()}</td>
-                      <td className="py-4 px-4 font-bold text-slate-500">₹{remaining.toLocaleString()}</td>
-                      <td className="py-4 px-4">
+                      <td className="py-1.5 px-3 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
+                      <td className="py-1.5 px-3 font-bold text-slate-900">{app.projectName}</td>
+                      <td className="py-1.5 px-3 font-bold text-slate-900">₹{total.toLocaleString()}</td>
+                      <td className="py-1.5 px-3 font-bold text-emerald-600">₹{paid.toLocaleString()}</td>
+                      <td className="py-1.5 px-3 font-bold text-slate-500">₹{remaining.toLocaleString()}</td>
+                      <td className="py-1.5 px-3">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${statusBg}`}>
                           {statusLabel}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-1.5 px-3 text-right">
                         <Link
                           to={`/admin/vendor/payments/${app.id}`}
                           className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs transition inline-flex items-center gap-1 cursor-pointer"

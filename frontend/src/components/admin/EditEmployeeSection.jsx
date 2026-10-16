@@ -37,7 +37,7 @@ export default function EditEmployeeSection({
 
   if (!editingEmployee && !editForm?.name) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-8 text-center max-w-xl mx-auto space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-8 text-center max-w-xl mx-auto space-y-4">
         <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
           <User size={24} />
         </div>
@@ -90,7 +90,7 @@ export default function EditEmployeeSection({
   return (
     <div className="space-y-5 text-slate-800 max-w-5xl mx-auto pb-10">
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
@@ -137,7 +137,7 @@ export default function EditEmployeeSection({
       {}
       <form onSubmit={onSubmit} className="space-y-5">
         {}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
             <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <User size={16} />
@@ -226,7 +226,7 @@ export default function EditEmployeeSection({
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
             <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
               <Briefcase size={16} />
@@ -354,7 +354,7 @@ export default function EditEmployeeSection({
         </div>
 
         {}
-        <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 rounded-2xl border-2 border-blue-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 rounded-xl border-2 border-blue-200/90 p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-blue-100">
             <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
               <Lock size={16} />
@@ -480,7 +480,7 @@ export default function EditEmployeeSection({
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs text-slate-500 font-medium">
             Review all details before saving. All changes will be updated live across the database.
           </div>

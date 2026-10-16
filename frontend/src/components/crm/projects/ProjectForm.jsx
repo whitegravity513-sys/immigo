@@ -302,7 +302,7 @@ export function ProjectForm({
   return (
     <div className="space-y-6">
       {}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
             type="button"
@@ -663,7 +663,7 @@ export function ProjectForm({
           subtitle="Configure default payment milestones and their respective processing stages."
           icon={CreditCard}
         >
-          <div className="bg-gray-50/50 rounded-xl border border-gray-200 p-4">
+          <div className="bg-gray-50/50 rounded-xl border border-gray-200 p-2.5">
             <ProjectMilestoneBuilder 
               milestones={formData.paymentMilestones}
               onChange={(milestones) => setFormData(prev => ({ ...prev, paymentMilestones: milestones }))}
@@ -828,7 +828,7 @@ export function ProjectForm({
         </FormSection>
 
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-5 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => navigate(-1)}

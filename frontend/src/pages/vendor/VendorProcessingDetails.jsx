@@ -54,7 +54,7 @@ export default function VendorProcessingDetails() {
         <ArrowLeft size={14} /> Back to Selected Candidates
       </Link>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5 text-xs space-y-2.5 mb-6">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5 text-xs space-y-2.5 mb-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <span className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">Candidate Dossier</span>
           <Link
@@ -87,7 +87,7 @@ export default function VendorProcessingDetails() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-100 gap-2 mb-5">
           <div>
             <h2 className="text-base font-extrabold text-slate-900">Timeline & Milestones</h2>

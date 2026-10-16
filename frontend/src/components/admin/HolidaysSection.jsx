@@ -19,7 +19,7 @@ export default function HolidaysSection({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6 h-fit">
+        <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-6 h-fit">
           <h4 className="text-sm font-black text-slate-800 mb-4 uppercase tracking-wider">Declare New Holiday</h4>
           <form onSubmit={handleCreateHolidaySubmit} className="space-y-4">
             <div className="flex flex-col gap-1.5">
@@ -63,7 +63,7 @@ export default function HolidaysSection({
           </form>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden lg:col-span-2">
+        <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden lg:col-span-2">
           <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
             <h4 className="text-sm font-black text-slate-800">Declared Holidays ({holidays.length})</h4>
           </div>
@@ -81,16 +81,16 @@ export default function HolidaysSection({
               <tbody>
                 {holidays.map(h => (
                   <tr key={h._id} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-3.5 text-sm font-bold text-slate-700 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-sm font-bold text-slate-700 whitespace-nowrap">
                       {formatDate(h.date)}
                     </td>
-                    <td className="px-4 py-3.5 text-sm font-semibold text-slate-800">
+                    <td className="px-3 py-1.5 text-sm font-semibold text-slate-800">
                       {h.title}
                     </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-500 max-w-[200px] truncate" title={h.description}>
+                    <td className="px-3 py-1.5 text-xs text-slate-500 max-w-[200px] truncate" title={h.description}>
                       {h.description || <span className="italic text-slate-300">No description</span>}
                     </td>
-                    <td className="px-4 py-3.5 text-sm">
+                    <td className="px-3 py-1.5 text-sm">
                       <button
                         onClick={() => handleDeleteHoliday(h._id)}
                         className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-all border border-rose-100 cursor-pointer"

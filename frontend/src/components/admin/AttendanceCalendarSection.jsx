@@ -271,7 +271,7 @@ export default function AttendanceCalendarSection({
 
   return (
     <div className="space-y-6 text-slate-800">
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-sm">
@@ -376,7 +376,7 @@ export default function AttendanceCalendarSection({
                     key={dateStr}
                     type="button"
                     onClick={() => setSelectedDate(dateStr)}
-                    className={`h-24 p-2 rounded-2xl border text-left transition-all flex flex-col justify-between cursor-pointer relative group ${
+                    className={`h-24 p-2 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer relative group ${
                       isSelected
                         ? "bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20"
                         : isTodayDate
@@ -451,7 +451,7 @@ export default function AttendanceCalendarSection({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-6">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2">
@@ -591,24 +591,24 @@ export default function AttendanceCalendarSection({
             <p>Loading workforce records for {selectedDate}…</p>
           </div>
         ) : filteredRecords.length === 0 ? (
-          <div className="py-14 text-center text-slate-500 font-medium text-sm bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+          <div className="py-14 text-center text-slate-500 font-medium text-sm bg-slate-50 rounded-xl border border-dashed border-slate-200">
             <Users size={32} className="mx-auto text-slate-400 mb-2" />
             <p className="font-bold text-slate-700">No employees match the selected criteria.</p>
             <p className="text-xs text-slate-400 mt-0.5">Try resetting search or status filters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/90 shadow-2xs">
             <table className="w-full text-left border-collapse min-w-[850px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200/80 text-[11px] font-black uppercase tracking-wider text-slate-500">
-                  <th className="px-4 py-3.5">Employee</th>
-                  <th className="px-4 py-3.5">Contact Emails</th>
-                  <th className="px-4 py-3.5">Department</th>
-                  <th className="px-4 py-3.5">Attendance Status</th>
-                  <th className="px-4 py-3.5">Check In</th>
-                  <th className="px-4 py-3.5">Check Out</th>
-                  <th className="px-4 py-3.5">Work / Break Time</th>
-                  <th className="px-4 py-3.5 text-right">Actions</th>
+                  <th className="px-3 py-2 text-[10px]">Employee</th>
+                  <th className="px-3 py-2 text-[10px]">Contact Emails</th>
+                  <th className="px-3 py-2 text-[10px]">Department</th>
+                  <th className="px-3 py-2 text-[10px]">Attendance Status</th>
+                  <th className="px-3 py-2 text-[10px]">Check In</th>
+                  <th className="px-3 py-2 text-[10px]">Check Out</th>
+                  <th className="px-3 py-2 text-[10px]">Work / Break Time</th>
+                  <th className="px-3 py-2 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -633,7 +633,7 @@ export default function AttendanceCalendarSection({
 
                   return (
                     <tr key={emp.id || emp.employeeId} className="hover:bg-slate-50/60 transition">
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {emp.name ? emp.name.charAt(0).toUpperCase() : "E"}
@@ -658,7 +658,7 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <div className="space-y-0.5 font-medium">
                           <div className="text-slate-700 truncate max-w-[220px]" title={emp.email}>
                             {emp.email}
@@ -673,12 +673,12 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <div className="font-semibold text-slate-700">{emp.department || "General"}</div>
                         <div className="text-[11px] text-slate-400">{emp.designation || "Employee"}</div>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <div className="inline-flex items-center gap-1.5">
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border ${statusBg}`}>
                             {emp.status || "Absent"}
@@ -693,19 +693,19 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <span className="font-mono text-xs font-bold text-slate-800">
                           {emp.checkInTime ? formatTime12(emp.checkInTime) : "—"}
                         </span>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <span className="font-mono text-xs font-bold text-slate-800">
                           {emp.checkOutTime ? formatTime12(emp.checkOutTime) : "—"}
                         </span>
                       </td>
 
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <div className="space-y-0.5">
                           <div className="font-mono font-bold text-blue-700">
                             Work: {formatDuration(emp.totalWorkSeconds || 0)}
@@ -716,7 +716,7 @@ export default function AttendanceCalendarSection({
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-3 py-1.5 text-right">
                         <button
                           type="button"
                           onClick={() => {

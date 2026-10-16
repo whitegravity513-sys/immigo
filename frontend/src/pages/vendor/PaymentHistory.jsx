@@ -61,7 +61,7 @@ export default function PaymentHistory() {
         <ArrowLeft size={14} /> Back to Payments
       </Link>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 space-y-6">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-6 space-y-6">
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div>
             <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest block mb-1">

@@ -429,7 +429,7 @@ export function DocumentsList({
           {documents.map((doc, idx) => (
             <div
               key={doc.id || idx}
-              className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs hover:border-blue-300 transition-all duration-150 flex flex-col justify-between space-y-3"
+              className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs hover:border-blue-300 transition-all duration-150 flex flex-col justify-between space-y-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">

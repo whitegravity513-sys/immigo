@@ -34,7 +34,7 @@ export default function VendorDocumentsVaultView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={onBack}
@@ -60,7 +60,7 @@ export default function VendorDocumentsVaultView({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
@@ -125,7 +125,7 @@ export default function VendorDocumentsVaultView({
       </div>
 
       {isVerified && vendorDocs.length > 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Paperclip size={18} className="text-blue-600" />
@@ -138,7 +138,7 @@ export default function VendorDocumentsVaultView({
             {vendorDocs.map((doc, idx) => (
               <div
                 key={idx}
-                className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
+                className="p-5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ export default function VendorDocumentsVaultView({
           </div>
         </div>
       ) : vendorDocs.length > 0 && !isVerified ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Paperclip size={18} className="text-amber-600" />
@@ -211,7 +211,7 @@ export default function VendorDocumentsVaultView({
             {vendorDocs.map((doc, idx) => (
               <div
                 key={idx}
-                className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
+                className="p-5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -259,7 +259,7 @@ export default function VendorDocumentsVaultView({
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-8 text-center space-y-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-8 text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
             <Clock size={24} />
           </div>

@@ -7,7 +7,7 @@ export function LoadingSkeleton({ type = "table", count = 5 }) {
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-200 p-5 space-y-3"
+            className="bg-white rounded-xl border border-gray-200 p-3 space-y-3"
           >
             <div className="h-4 bg-gray-200 rounded w-1/2" />
             <div className="h-7 bg-gray-200 rounded w-1/3" />

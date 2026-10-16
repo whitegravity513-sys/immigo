@@ -23,7 +23,7 @@ export function EmployeeProfileHeader({
   if (!emp) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-6">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex items-start gap-4">
           {emp.profileImage ? (

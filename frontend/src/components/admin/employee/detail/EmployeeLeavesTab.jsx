@@ -8,7 +8,7 @@ export function EmployeeLeavesTab({
   openTextModal,
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h4 className="text-sm font-black text-slate-800">
@@ -53,21 +53,21 @@ export function EmployeeLeavesTab({
                 key={l._id}
                 className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0"
               >
-                <td className="px-4 py-3.5">
+                <td className="px-3 py-1.5">
                   <span className="text-xs font-bold bg-cyan-50 text-cyan-700 border border-cyan-200 px-2 py-0.5 rounded-lg">
                     {l.leaveType || "Casual"}
                   </span>
                 </td>
-                <td className="px-4 py-3.5 text-sm text-slate-700 font-semibold whitespace-nowrap">
+                <td className="px-3 py-1.5 text-sm text-slate-700 font-semibold whitespace-nowrap">
                   {formatDate(l.startDate)}
                 </td>
-                <td className="px-4 py-3.5 text-sm text-slate-700 font-semibold whitespace-nowrap">
+                <td className="px-3 py-1.5 text-sm text-slate-700 font-semibold whitespace-nowrap">
                   {formatDate(l.endDate)}
                 </td>
-                <td className="px-4 py-3.5 text-sm font-black text-slate-800 text-center">
+                <td className="px-3 py-1.5 text-sm font-black text-slate-800 text-center">
                   {l.totalDays}
                 </td>
-                <td className="px-4 py-3.5 text-sm text-slate-600 max-w-[200px]">
+                <td className="px-3 py-1.5 text-sm text-slate-600 max-w-[200px]">
                   <span
                     className="line-clamp-2 cursor-pointer text-green-700 hover:underline"
                     onClick={() => openTextModal("Leave Reason", l.reason)}
@@ -75,7 +75,7 @@ export function EmployeeLeavesTab({
                     {l.reason}
                   </span>
                 </td>
-                <td className="px-4 py-3.5">
+                <td className="px-3 py-1.5">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border ${l.status === "Approved"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -87,7 +87,7 @@ export function EmployeeLeavesTab({
                     {l.status}
                   </span>
                 </td>
-                <td className="px-4 py-3.5 text-xs max-w-[160px]">
+                <td className="px-3 py-1.5 text-xs max-w-[160px]">
                   {l.adminRemark ? (
                     <span
                       className={`block px-2 py-1 rounded-lg text-xs font-semibold cursor-pointer ${l.status === "Rejected"

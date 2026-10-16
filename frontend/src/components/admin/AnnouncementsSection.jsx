@@ -259,7 +259,7 @@ export default function AnnouncementsSection({
 
   return (
     <div className="space-y-5 text-slate-800">
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-5 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-2xs shrink-0">
@@ -334,7 +334,7 @@ export default function AnnouncementsSection({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="lg:col-span-5 xl:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70">
             <div className="grid grid-cols-2 p-1 bg-slate-200/70 rounded-xl gap-1">
               {FORM_TABS.map((t) => {
@@ -545,7 +545,7 @@ export default function AnnouncementsSection({
           </div>
         </div>
 
-        <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
               <button
@@ -692,11 +692,11 @@ export default function AnnouncementsSection({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                      <th className="px-4 py-3 whitespace-nowrap">Date</th>
+                      <th className="px-3 py-2 text-[10px] whitespace-nowrap">Date</th>
                       <th className="px-3 py-3 whitespace-nowrap">Category</th>
                       <th className="px-3 py-3 whitespace-nowrap">Priority</th>
-                      <th className="px-4 py-3">Title &amp; Broadcast Details</th>
-                      <th className="px-4 py-3 text-right whitespace-nowrap">Action</th>
+                      <th className="px-3 py-2 text-[10px]">Title &amp; Broadcast Details</th>
+                      <th className="px-3 py-2 text-[10px] text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
@@ -713,7 +713,7 @@ export default function AnnouncementsSection({
                     ) : (
                       filteredAnnouncements.map((a) => (
                         <tr key={a._id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="px-4 py-3 text-xs font-bold text-slate-700 whitespace-nowrap align-top">
+                          <td className="px-3 py-1.5 text-xs font-bold text-slate-700 whitespace-nowrap align-top">
                             {fmtDate(a.date || a.createdAt)}
                           </td>
                           <td className="px-3 py-3 whitespace-nowrap align-top">
@@ -734,7 +734,7 @@ export default function AnnouncementsSection({
                               {a.priority || "Medium"}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-left">
+                          <td className="px-3 py-1.5 text-left">
                             <span className="text-xs sm:text-sm font-black text-slate-900 block">
                               {a.title}
                             </span>
@@ -742,7 +742,7 @@ export default function AnnouncementsSection({
                               {a.message}
                             </p>
                           </td>
-                          <td className="px-4 py-3 text-right whitespace-nowrap align-top">
+                          <td className="px-3 py-1.5 text-right whitespace-nowrap align-top">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
@@ -849,11 +849,11 @@ export default function AnnouncementsSection({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
-                      <th className="px-4 py-3 whitespace-nowrap">Holiday Date</th>
+                      <th className="px-3 py-2 text-[10px] whitespace-nowrap">Holiday Date</th>
                       <th className="px-3 py-3">Holiday Name</th>
-                      <th className="px-4 py-3">Description &amp; Details</th>
+                      <th className="px-3 py-2 text-[10px]">Description &amp; Details</th>
                       <th className="px-3 py-3 whitespace-nowrap">Status</th>
-                      <th className="px-4 py-3 text-right whitespace-nowrap">Action</th>
+                      <th className="px-3 py-2 text-[10px] text-right whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
@@ -872,13 +872,13 @@ export default function AnnouncementsSection({
                         const isUpcoming = h.date >= todayStr;
                         return (
                           <tr key={h._id} className="hover:bg-slate-50/70 transition-colors">
-                            <td className="px-4 py-3 font-bold text-amber-800 whitespace-nowrap">
+                            <td className="px-3 py-1.5 font-bold text-amber-800 whitespace-nowrap">
                               {fmtDate(h.date)}
                             </td>
                             <td className="px-3 py-3 font-black text-slate-900">
                               {h.title}
                             </td>
-                            <td className="px-4 py-3 text-slate-600 max-w-sm">
+                            <td className="px-3 py-1.5 text-slate-600 max-w-sm">
                               {h.description || (
                                 <span className="italic text-slate-400">Official company-wide holiday</span>
                               )}
@@ -895,7 +895,7 @@ export default function AnnouncementsSection({
                                 </span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <td className="px-3 py-1.5 text-right whitespace-nowrap">
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   type="button"

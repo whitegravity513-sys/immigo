@@ -256,13 +256,13 @@ export function ManpowerTable({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3 px-4">Position</th>
-                  <th className="py-3 px-4 text-center">Qty</th>
-                  <th className="py-3 px-4 text-center">Age Range</th>
-                  <th className="py-3 px-4">Min. Qualification</th>
-                  <th className="py-3 px-4 text-center">Exp. (Yrs)</th>
+                  <th className="py-2 px-3 text-[10px]">Position</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Qty</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Age Range</th>
+                  <th className="py-2 px-3 text-[10px]">Min. Qualification</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Exp. (Yrs)</th>
 
-                  {!readOnly && <th className="py-3 px-4 text-center">Remove</th>}
+                  {!readOnly && <th className="py-2 px-3 text-[10px] text-center">Remove</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -271,35 +271,35 @@ export function ManpowerTable({
                     key={pos.id || idx}
                     className="hover:bg-blue-50/40 transition-colors duration-100"
                   >
-                    <td className="py-3 px-4 font-semibold text-gray-900">
+                    <td className="py-1.5 px-3 font-semibold text-gray-900">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                         <span>{pos.position}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-1.5 px-3 text-center">
                       <span className="inline-flex items-center justify-center min-w-7 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
                         {pos.quantity}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-center text-gray-600 font-medium">
+                    <td className="py-1.5 px-3 text-center text-gray-600 font-medium">
                       {pos.minAge || pos.maxAge
                         ? `${pos.minAge || "—"} – ${pos.maxAge || "—"} yrs`
                         : <span className="text-gray-300">—</span>
                       }
                     </td>
-                    <td className="py-3 px-4 text-gray-700 font-medium">
+                    <td className="py-1.5 px-3 text-gray-700 font-medium">
                       {pos.qualification || <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="py-3 px-4 text-center text-gray-600 font-medium">
+                    <td className="py-1.5 px-3 text-center text-gray-600 font-medium">
                       {pos.experienceYears ? `${pos.experienceYears} yr${Number(pos.experienceYears) !== 1 ? 's' : ''}` : <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="py-3 px-4 text-gray-600 font-medium max-w-[140px] truncate">
+                    <td className="py-1.5 px-3 text-gray-600 font-medium max-w-[140px] truncate">
                       {pos.lastCompany || <span className="text-gray-300">—</span>}
                     </td>
 
                     {!readOnly && (
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <button
                           type="button"
                           onClick={() => setDeleteIndex(idx)}

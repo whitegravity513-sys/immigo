@@ -5,7 +5,7 @@ export function EmployeePaymentsTab({ emp, formatDate }) {
   if (!emp) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
           <h4 className="text-base font-black text-slate-800 flex items-center gap-2">

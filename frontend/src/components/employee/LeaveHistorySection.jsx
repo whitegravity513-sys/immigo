@@ -10,7 +10,7 @@ export default function LeaveHistorySection({
   return (
     <div className="space-y-6">
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
           <h3 className="text-base font-black text-slate-800">Leave Request History</h3>
         </div>
@@ -34,7 +34,7 @@ export default function LeaveHistorySection({
                   key={lv._id}
                   className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0"
                 >
-                  <td className="px-6 py-4 text-xs font-semibold text-slate-700">
+                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-700">
                     <div>{fmtDate(lv.startDate)}</div>
                     {lv.startDate !== lv.endDate && (
                       <div className="text-slate-400 text-[10px]">
@@ -42,10 +42,10 @@ export default function LeaveHistorySection({
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-xs text-slate-600">
+                  <td className="px-3 py-1.5 text-xs text-slate-600">
                     {lv.reason}
                   </td>
-                  <td className="px-6 py-4 text-xs">
+                  <td className="px-3 py-1.5 text-xs">
                     {lv.document ? (
                       <button
                         onClick={() => setPreviewDoc(lv.document)}
@@ -57,7 +57,7 @@ export default function LeaveHistorySection({
                       <span className="text-xs text-slate-400 italic">None</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-3 py-1.5 text-sm">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border w-fit ${
                         lv.status === "Approved"

@@ -78,49 +78,49 @@ export default function AdminRejectedCandidates() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs text-slate-500">Loading rejected applications...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <XCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
           <h3 className="text-sm font-bold text-slate-800">No rejected candidates</h3>
           <p className="text-xs text-slate-500 mt-1">No candidate applications are currently marked as rejected.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-6">Candidate</th>
-                  <th className="py-3.5 px-4">Vendor</th>
-                  <th className="py-3.5 px-4">Project</th>
-                  <th className="py-3.5 px-4">Requirement</th>
-                  <th className="py-3.5 px-4">Position</th>
-                  <th className="py-3.5 px-4">Rejection Reason</th>
-                  <th className="py-3.5 px-4">Rejected Date</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>
+                  <th className="py-2 px-3 text-[10px]">Vendor</th>
+                  <th className="py-2 px-3 text-[10px]">Project</th>
+                  <th className="py-2 px-3 text-[10px]">Requirement</th>
+                  <th className="py-2 px-3 text-[10px]">Position</th>
+                  <th className="py-2 px-3 text-[10px]">Rejection Reason</th>
+                  <th className="py-2 px-3 text-[10px]">Rejected Date</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-4 px-4 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
-                    <td className="py-4 px-4 font-semibold text-slate-700">{app.vendorId}</td>
-                    <td className="py-4 px-4 font-bold text-slate-900">{app.projectName}</td>
-                    <td className="py-4 px-4 font-mono text-xs text-slate-500">{app.requirementCode || "REQ-0008"}</td>
-                    <td className="py-4 px-4 font-semibold text-indigo-700">{app.position}</td>
-                    <td className="py-4 px-4 max-w-[220px]">
+                    <td className="py-1.5 px-3 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
+                    <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
+                    <td className="py-1.5 px-3 font-bold text-slate-900">{app.projectName}</td>
+                    <td className="py-1.5 px-3 font-mono text-xs text-slate-500">{app.requirementCode || "REQ-0008"}</td>
+                    <td className="py-1.5 px-3 font-semibold text-indigo-700">{app.position}</td>
+                    <td className="py-1.5 px-3 max-w-[220px]">
                       <span className="text-xs text-rose-700 bg-rose-50 p-1.5 rounded border border-rose-100 block">
                         {app.rejectionReason || "Criteria not met"}
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-slate-500 text-xs">
+                    <td className="py-1.5 px-3 text-slate-500 text-xs">
                       {app.rejectionDate ? new Date(app.rejectionDate).toLocaleDateString() : "2026-09-05"}
                     </td>
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-1.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           to={`/admin/vendor/reassign?appId=${app.id}`}

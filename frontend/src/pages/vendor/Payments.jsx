@@ -302,12 +302,12 @@ export default function Payments() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs font-semibold text-slate-500">Loading candidate payment accounts...</p>
         </div>
       ) : filteredAccounts.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
           <CreditCard className="w-12 h-12 text-slate-300 mx-auto" />
           <h3 className="text-base font-bold text-slate-800">No candidates match selection</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
@@ -324,19 +324,19 @@ export default function Payments() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4">Candidate</th>
-                  <th className="py-3.5 px-4">Project & Role</th>
-                  <th className="py-3.5 px-4 text-center">Total Fee</th>
-                  <th className="py-3.5 px-4 text-center">Amount Paid</th>
-                  <th className="py-3.5 px-4 text-center">Remaining Due</th>
-                  <th className="py-3.5 px-4">Process Milestones</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 text-right">Action</th>
+                  <th className="py-2 px-3 text-[10px]">Candidate</th>
+                  <th className="py-2 px-3 text-[10px]">Project & Role</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Total Fee</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Amount Paid</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Remaining Due</th>
+                  <th className="py-2 px-3 text-[10px]">Process Milestones</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -351,7 +351,7 @@ export default function Payments() {
                     <React.Fragment key={cand.appId}>
                       <tr className="hover:bg-slate-50/70 transition group">
                         {}
-                        <td className="py-4 px-4">
+                        <td className="py-1.5 px-3">
                           <Link
                             to={`/vendor/candidates/${cand.candidateId}`}
                             className="font-extrabold text-slate-900 group-hover:text-blue-600 transition block text-sm"
@@ -364,7 +364,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4">
+                        <td className="py-1.5 px-3">
                           <span className="font-bold text-slate-800 block truncate max-w-[170px]">
                             {cand.projectName}
                           </span>
@@ -374,7 +374,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span className="font-extrabold text-slate-900 text-sm">
                             ₹{cand.totalFee.toLocaleString()}
                           </span>
@@ -384,7 +384,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span className="font-extrabold text-emerald-600 text-sm">
                             ₹{cand.paidAmount.toLocaleString()}
                           </span>
@@ -400,7 +400,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span
                             className={`font-extrabold text-sm ${
                               cand.dueAmount > 0 ? "text-amber-600" : "text-slate-400"
@@ -420,7 +420,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="flex items-center gap-1.5 flex-wrap max-w-xs">
                             {cand.milestones.slice(0, 3).map((m) => (
                               <span
@@ -455,7 +455,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           {cand.isFullyPaid ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <CheckCircle2 size={11} className="text-emerald-600" />
@@ -475,7 +475,7 @@ export default function Payments() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 text-right whitespace-nowrap">
+                        <td className="py-1.5 px-3 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => toggleExpand(cand.appId)}
@@ -507,7 +507,7 @@ export default function Payments() {
                       {isExpanded && (
                         <tr className="bg-slate-50/90 border-b border-slate-200">
                           <td colSpan={8} className="p-4 sm:p-5">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-2xs">
+                            <div className="bg-white rounded-xl border border-slate-200 p-2.5 space-y-3 shadow-2xs">
                               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                                 <div className="flex items-center gap-2">
                                   <Layers className="w-4 h-4 text-blue-600" />

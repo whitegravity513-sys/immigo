@@ -59,7 +59,7 @@ export default function VendorCandidateDossierView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={onBackToVendor}
@@ -83,7 +83,7 @@ export default function VendorCandidateDossierView({
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
@@ -132,7 +132,7 @@ export default function VendorCandidateDossierView({
           </div>
         </div>
 
-        <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-200/80 text-xs space-y-4">
+        <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-200/80 text-xs space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-blue-100 pb-3">
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase block">Applied Project</span>
@@ -235,7 +235,7 @@ export default function VendorCandidateDossierView({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-2xs">
+          <div className="p-5 rounded-xl bg-white border border-slate-200 space-y-2.5 shadow-2xs">
             <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">
               Personal Information
             </h3>
@@ -265,7 +265,7 @@ export default function VendorCandidateDossierView({
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-2xs">
+          <div className="p-5 rounded-xl bg-white border border-slate-200 space-y-2.5 shadow-2xs">
             <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-100 pb-2">
               Trade & Skill Information
             </h3>
@@ -295,7 +295,7 @@ export default function VendorCandidateDossierView({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -322,7 +322,7 @@ export default function VendorCandidateDossierView({
         </div>
 
         {candDocs.length === 0 ? (
-          <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-2">
+          <div className="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300 space-y-2">
             <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto">
               <FileText size={24} />
             </div>
@@ -341,7 +341,7 @@ export default function VendorCandidateDossierView({
               return (
                 <div
                   key={idx}
-                  className={`p-4 rounded-2xl border transition space-y-3 ${
+                  className={`p-4 rounded-xl border transition space-y-3 ${
                     isVerified
                       ? "border-emerald-200 bg-emerald-50/30"
                       : isRejected

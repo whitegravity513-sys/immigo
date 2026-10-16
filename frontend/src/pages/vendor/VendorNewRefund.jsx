@@ -91,7 +91,7 @@ export default function VendorNewRefund() {
         <ArrowLeft size={14} /> Back to Refunds
       </Link>
 
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
         <div className="mb-6 border-b border-slate-100 pb-4">
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Request New Refund</h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">

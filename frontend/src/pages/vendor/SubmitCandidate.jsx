@@ -599,7 +599,7 @@ export default function SubmitCandidate() {
 
       {}
       {currentStep === 1 && !submitSuccess && (
-        <div className="bg-white rounded-2xl border border-slate-300 shadow-xs w-full overflow-hidden flex flex-col">
+        <div className="bg-white rounded-xl border border-slate-300 shadow-xs w-full overflow-hidden flex flex-col">
           {}
           <div className="p-4 sm:p-5 border-b border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -720,7 +720,7 @@ export default function SubmitCandidate() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
                 <tr>
-                  <th className="py-3 px-4 w-12 text-center">
+                  <th className="py-2 px-3 text-[10px] w-12 text-center">
                     {categoryFilter !== "in_progress" ? (
                       <input
                         type="checkbox"
@@ -733,13 +733,13 @@ export default function SubmitCandidate() {
                       <span className="text-[10px] font-bold text-slate-400">#</span>
                     )}
                   </th>
-                  <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Candidate Details</th>
-                  <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Trade / Position</th>
-                  <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">Experience</th>
-                  <th className="py-3 px-4 font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Candidate Details</th>
+                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Trade / Position</th>
+                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Experience</th>
+                  <th className="py-2 px-3 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">
                     {categoryFilter === "in_progress" ? "Active Status & Project" : "Eligibility Status"}
                   </th>
-                  <th className="py-3 px-4 text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Action</th>
+                  <th className="py-2 px-3 text-[10px] text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -778,7 +778,7 @@ export default function SubmitCandidate() {
                         selectedCandidateIds.includes(c.id) ? "bg-blue-50/40" : ""
                       }`}
                     >
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         {c.category === "in_progress" ? (
                           <span
                             className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-400 mx-auto"
@@ -795,7 +795,7 @@ export default function SubmitCandidate() {
                           />
                         )}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="flex items-center gap-3">
                           {c.photo ? (
                             <img
@@ -820,17 +820,17 @@ export default function SubmitCandidate() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <span className="font-bold text-slate-800 block">{c.currentPosition || "General Labor"}</span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="font-bold text-slate-700 flex items-center gap-1">
                           <Briefcase size={12} className="text-slate-400" />
                           <span>{c.experienceYears || 0} yrs</span>
                         </div>
                         <span className="text-[10px] text-slate-400 block">{c.qualification || "Trade Certified"}</span>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         {c.category === "in_progress" ? (
                           <div>
                             {c.activeStatus === "Interview" || c.activeStatus === "Interview Scheduled" ? (
@@ -893,7 +893,7 @@ export default function SubmitCandidate() {
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-right whitespace-nowrap">
                         {c.category === "in_progress" ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <Link
@@ -955,7 +955,7 @@ export default function SubmitCandidate() {
       {}
       {currentStep === 2 && !submitSuccess && (
         <form onSubmit={handleOpenConfirm} className="space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-4 sm:p-5">
+          <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-4 sm:p-5">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
               <div>
                 <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">

@@ -236,7 +236,7 @@ export default function CalendarMeetings() {
     <div className="space-y-6">
       {!isModalOpen ? (
         <>
-          <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-100">
@@ -305,7 +305,7 @@ export default function CalendarMeetings() {
       )}
 
       {viewMode === "calendar" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/60">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-black text-slate-800">
@@ -443,7 +443,7 @@ export default function CalendarMeetings() {
 
       {}
       {(viewMode === "list" || selectedDayMeetings) && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2">
               <Video size={18} className="text-indigo-600" />
@@ -497,7 +497,7 @@ export default function CalendarMeetings() {
                 return (
                   <div
                     key={meeting._id || meeting.id}
-                    className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-md transition-all flex flex-col justify-between gap-3"
+                    className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-indigo-200 hover:shadow-md transition-all flex flex-col justify-between gap-3"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
@@ -639,7 +639,7 @@ export default function CalendarMeetings() {
             <span>Back to Meetings Calendar</span>
           </button>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2.5">
                 <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">

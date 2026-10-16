@@ -44,7 +44,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
   return (
     <div className="w-full space-y-6 pb-16 animate-fadeIn font-sans text-slate-800">
       {}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {onBack && (
             <button
@@ -105,7 +105,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 sm:p-10 max-w-4xl mx-auto space-y-6">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-md p-6 sm:p-10 max-w-4xl mx-auto space-y-6">
         {doc.fileUrl && doc.fileUrl.startsWith("data:image") ? (
           <div className="flex justify-center p-4 bg-slate-50 rounded-xl border border-slate-200">
             <img src={doc.fileUrl} alt={doc.name} className="max-h-[70vh] object-contain rounded-lg" />

@@ -266,7 +266,7 @@ export default function RecordClientExpensePage() {
 
       {}
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">1. Client & Project Details</h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -340,7 +340,7 @@ export default function RecordClientExpensePage() {
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">2. Expense Classification & Amount</h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -435,7 +435,7 @@ export default function RecordClientExpensePage() {
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">3. Payment Method & Status</h2>
             <p className="text-xs text-gray-500 mt-0.5">

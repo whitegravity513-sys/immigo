@@ -19,7 +19,7 @@ export default function CandidateTabsBar({ activeTab, onTabChange, counts = {} }
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
               isActive
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-slate-50 text-slate-700 hover:bg-slate-100"

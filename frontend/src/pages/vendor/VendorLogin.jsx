@@ -122,7 +122,7 @@ export function VendorLogin() {
             </p>
 
             <div className="block lg:hidden w-full my-3">
-              <div className="w-full max-w-[440px] bg-white rounded-2xl border border-slate-200/90 p-5 text-left shadow-lg relative mx-auto">
+              <div className="w-full max-w-[440px] bg-white rounded-xl border border-slate-200/90 p-3 text-left shadow-lg relative mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <ImmiGoLogo size="sm" />
                   <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black uppercase tracking-wider">
@@ -265,7 +265,7 @@ export function VendorLogin() {
               </div>
             </div>
 
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-sm p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 max-w-xl mt-3 sm:mt-4">
+            <div className="bg-white/95 backdrop-blur-md rounded-xl border border-slate-200/90 shadow-sm p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 max-w-xl mt-3 sm:mt-4">
               <div className="flex items-center gap-2 sm:gap-2.5">
                 <div className="p-1.5 sm:p-2 rounded-xl bg-blue-50 text-blue-600 shrink-0">
                   <Globe size={16} />

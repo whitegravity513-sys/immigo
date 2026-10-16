@@ -58,7 +58,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-5 sm:p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -82,7 +82,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
       </div>
 
       {meetings.length === 0 ? (
-        <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-400 shadow-xs">
+        <div className="bg-white p-12 rounded-xl border border-slate-200 text-center text-slate-400 shadow-xs">
           <Video size={40} className="mx-auto mb-3 opacity-30 text-slate-500" />
           <h3 className="text-base font-bold text-slate-700">No Meetings Scheduled</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
@@ -129,7 +129,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
     return (
       <div
         key={mId}
-        className={`p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 ${
+        className={`p-5 rounded-xl border transition-all flex flex-col justify-between gap-4 ${
           isToday
             ? "bg-emerald-50/40 border-emerald-300 shadow-md shadow-emerald-500/5"
             : "bg-white border-slate-200 shadow-xs hover:border-slate-300"
@@ -188,7 +188,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
             href={meeting.meetingLink}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-xs ${
               isPast
                 ? "bg-slate-200 text-slate-600 hover:bg-slate-300"
                 : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"

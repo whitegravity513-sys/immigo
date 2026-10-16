@@ -80,7 +80,7 @@ export default function VendorProjects() {
       </div>
 
       {}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -145,14 +145,14 @@ export default function VendorProjects() {
 
       {}
       {loading ? (
-        <div className="p-16 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
+        <div className="p-16 text-center bg-white rounded-xl border border-slate-200 space-y-3">
           <div className="w-9 h-9 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Loading assigned overseas projects...
           </p>
         </div>
       ) : filteredProjects.length === 0 ? (
-        <div className="p-16 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
+        <div className="p-16 text-center bg-white rounded-xl border border-slate-200 space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
             <FolderKanban size={28} />
           </div>
@@ -163,7 +163,7 @@ export default function VendorProjects() {
         </div>
       ) : viewMode === "list" ? (
         
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FolderKanban size={16} className="text-blue-600" />
@@ -180,13 +180,13 @@ export default function VendorProjects() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200/80">
                 <tr>
-                  <th className="py-3 px-4">Project & ID</th>
-                  <th className="py-3 px-4">Client / Employer</th>
-                  <th className="py-3 px-4">Country & Location</th>
-                  <th className="py-3 px-4">Required Trades & Roles</th>
-                  <th className="py-3 px-4 text-center">Vacancies</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px]">Project & ID</th>
+                  <th className="py-2 px-3 text-[10px]">Client / Employer</th>
+                  <th className="py-2 px-3 text-[10px]">Country & Location</th>
+                  <th className="py-2 px-3 text-[10px]">Required Trades & Roles</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Vacancies</th>
+                  <th className="py-2 px-3 text-[10px] text-center">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -198,7 +198,7 @@ export default function VendorProjects() {
                       className="hover:bg-blue-50/40 transition-colors group"
                     >
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="space-y-0.5">
                           <Link
                             to={`/vendor/projects/${proj.id}`}
@@ -220,7 +220,7 @@ export default function VendorProjects() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
                           <Building2 size={13} className="text-blue-600 shrink-0" />
                           <span className="truncate max-w-[140px]">{proj.clientName}</span>
@@ -228,7 +228,7 @@ export default function VendorProjects() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="space-y-0.5">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/80">
                             <MapPin size={10} className="text-blue-500" />
@@ -243,7 +243,7 @@ export default function VendorProjects() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         {trades.length > 0 ? (
                           <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
                             {trades.slice(0, 3).map((t, idx) => (
@@ -272,7 +272,7 @@ export default function VendorProjects() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <span className="inline-flex items-center gap-1 font-bold text-slate-800 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
                           <Users size={12} className="text-blue-600" />
                           <span>{proj.totalHeadcount || "Open"}</span>
@@ -280,7 +280,7 @@ export default function VendorProjects() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           <span>{proj.status || "Active Demand"}</span>
@@ -288,7 +288,7 @@ export default function VendorProjects() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-1.5 px-3 text-right">
                         <div className="flex items-center justify-end">
                           <Link
                             to={`/vendor/projects/${proj.id}`}
@@ -315,7 +315,7 @@ export default function VendorProjects() {
             return (
               <div
                 key={proj.id}
-                className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all p-5 flex flex-col justify-between space-y-4"
+                className="bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all p-5 flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
                   {}

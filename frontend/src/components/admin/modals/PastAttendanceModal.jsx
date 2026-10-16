@@ -23,7 +23,7 @@ export default function PastAttendanceModal({
       onClick={() => setPastAttendanceModal(null)}
     >
       <div
-        className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">

@@ -204,7 +204,7 @@ export default function EmployeeExpensesTab({ user, token }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Claimed</span>
             <div className="text-xl font-black text-slate-800 mt-0.5">₹{totalSubmitted.toLocaleString("en-IN")}</div>
@@ -215,7 +215,7 @@ export default function EmployeeExpensesTab({ user, token }) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Approved & Settled</span>
             <div className="text-xl font-black text-emerald-600 mt-0.5">₹{totalApproved.toLocaleString("en-IN")}</div>
@@ -228,7 +228,7 @@ export default function EmployeeExpensesTab({ user, token }) {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Under Review</span>
             <div className="text-xl font-black text-amber-600 mt-0.5">₹{totalPending.toLocaleString("en-IN")}</div>
@@ -242,7 +242,7 @@ export default function EmployeeExpensesTab({ user, token }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
           <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
             {["ALL", "Pending", "Approved", "Rejected"].map((f) => (
@@ -277,10 +277,10 @@ export default function EmployeeExpensesTab({ user, token }) {
             <tbody>
               {filteredExpenses.map((item) => (
                 <tr key={item._id || item.id} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
-                  <td className="px-6 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">
+                  <td className="px-3 py-1.5 text-xs font-bold text-slate-700 whitespace-nowrap">
                     {item.date ? new Date(item.date).toLocaleDateString("en-IN") : "—"}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-1.5">
                     <div className="font-bold text-slate-800 text-sm">{item.title}</div>
                     {item.description && item.description !== item.title && (
                       <div className="text-xs text-slate-500 truncate max-w-xs">{item.description}</div>
@@ -291,15 +291,15 @@ export default function EmployeeExpensesTab({ user, token }) {
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
+                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
                     <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                       {item.category?.name || "General"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-black text-slate-800 whitespace-nowrap">
+                  <td className="px-3 py-1.5 text-sm font-black text-slate-800 whitespace-nowrap">
                     ₹{Number(item.amount || 0).toLocaleString("en-IN")}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
                     <span
                       className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase border ${
                         item.status === "Approved"
@@ -312,7 +312,7 @@ export default function EmployeeExpensesTab({ user, token }) {
                       {item.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
                       {item.receipt ? (
                         <button
@@ -506,7 +506,7 @@ export default function EmployeeExpensesTab({ user, token }) {
           onClick={() => setPreviewReceipt(null)}
         >
           <div
-            className="bg-white w-full max-w-2xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white w-full max-w-2xl rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">

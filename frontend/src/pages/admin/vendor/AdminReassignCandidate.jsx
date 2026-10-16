@@ -102,7 +102,7 @@ export default function AdminReassignCandidate() {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="p-6 space-y-6">
           <div className="space-y-4">
             <div>

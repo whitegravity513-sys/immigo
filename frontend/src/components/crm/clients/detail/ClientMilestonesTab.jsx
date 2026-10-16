@@ -206,7 +206,7 @@ export function ClientMilestonesTab({
       {}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <IndianRupee size={12} className="text-blue-600" />
             Total Agreed
@@ -220,7 +220,7 @@ export function ClientMilestonesTab({
         </div>
 
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
             <Receipt size={12} className="text-emerald-600" />
             Received (Verified)
@@ -234,7 +234,7 @@ export function ClientMilestonesTab({
         </div>
 
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1">
             <TrendingUp size={12} className="text-amber-600" />
             Remaining Balance
@@ -248,7 +248,7 @@ export function ClientMilestonesTab({
         </div>
 
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <Layers size={12} className="text-purple-600" />
             Expenses Recorded
@@ -262,7 +262,7 @@ export function ClientMilestonesTab({
         </div>
 
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
             <TrendingDown size={12} className="text-rose-600" />
             Expenses Paid
@@ -276,7 +276,7 @@ export function ClientMilestonesTab({
         </div>
 
         {}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider flex items-center gap-1">
             <Clock size={12} className="text-orange-500" />
             Pending Expenses
@@ -323,7 +323,7 @@ export function ClientMilestonesTab({
       </div>
 
       {}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-2">
@@ -408,14 +408,14 @@ export function ClientMilestonesTab({
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="py-3 px-4">#</th>
-                  <th className="py-3 px-4">Milestone Name</th>
-                  <th className="py-3 px-4">Agreed Amount</th>
-                  <th className="py-3 px-4">Paid / Balance</th>
-                  <th className="py-3 px-4">Condition</th>
-                  <th className="py-3 px-4">Expected Date</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th className="py-2 px-3 text-[10px]">#</th>
+                  <th className="py-2 px-3 text-[10px]">Milestone Name</th>
+                  <th className="py-2 px-3 text-[10px]">Agreed Amount</th>
+                  <th className="py-2 px-3 text-[10px]">Paid / Balance</th>
+                  <th className="py-2 px-3 text-[10px]">Condition</th>
+                  <th className="py-2 px-3 text-[10px]">Expected Date</th>
+                  <th className="py-2 px-3 text-[10px]">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -430,17 +430,17 @@ export function ClientMilestonesTab({
 
                   return (
                     <tr key={m.id || idx} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3 px-4 font-mono text-gray-400">{idx + 1}</td>
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3 font-mono text-gray-400">{idx + 1}</td>
+                      <td className="py-1.5 px-3">
                         <div className="font-bold text-gray-900">{m.name || m.milestoneName}</div>
                         {m.remarks && (
                           <div className="text-[11px] text-gray-500 line-clamp-1">{m.remarks}</div>
                         )}
                       </td>
-                      <td className="py-3 px-4 font-bold text-gray-900">
+                      <td className="py-1.5 px-3 font-bold text-gray-900">
                         ₹{amount.toLocaleString("en-IN")}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="text-emerald-700 font-semibold">
                           ₹{paidAmt.toLocaleString("en-IN")}
                         </div>
@@ -450,15 +450,15 @@ export function ClientMilestonesTab({
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-gray-600 max-w-xs">
+                      <td className="py-1.5 px-3 text-gray-600 max-w-xs">
                         <span className="inline-block bg-gray-50 px-2 py-1 rounded border border-gray-100">
                           {m.condition || m.paymentCondition || "—"}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-600 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-600 whitespace-nowrap">
                         {m.timeline || (m.expectedDate ? formatDate(m.expectedDate) : "—")}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
                             statusColors[status] || "bg-gray-100 text-gray-700"
@@ -467,7 +467,7 @@ export function ClientMilestonesTab({
                           {status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-right whitespace-nowrap">
                         {status !== "Paid" ? (
                           <Link
                             to={`/client/payments/record?clientId=${client.id || client._id}&milestoneId=${m.id}`}
@@ -567,16 +567,16 @@ export function ClientMilestonesTab({
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Project</th>
-                  <th className="py-3 px-4">Milestone</th>
-                  <th className="py-3 px-4">Amount Received</th>
-                  <th className="py-3 px-4">Method</th>
-                  <th className="py-3 px-4">Reference / UTR</th>
-                  <th className="py-3 px-4">Received By</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Remarks</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px]">Date</th>
+                  <th className="py-2 px-3 text-[10px]">Project</th>
+                  <th className="py-2 px-3 text-[10px]">Milestone</th>
+                  <th className="py-2 px-3 text-[10px]">Amount Received</th>
+                  <th className="py-2 px-3 text-[10px]">Method</th>
+                  <th className="py-2 px-3 text-[10px]">Reference / UTR</th>
+                  <th className="py-2 px-3 text-[10px]">Received By</th>
+                  <th className="py-2 px-3 text-[10px]">Status</th>
+                  <th className="py-2 px-3 text-[10px]">Remarks</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -584,28 +584,28 @@ export function ClientMilestonesTab({
                   const status = p.status || p.paymentStatus || "Verified";
                   return (
                     <tr key={p._id || p.id} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {formatDate(p.paymentDate)}
                       </td>
-                      <td className="py-3 px-4 font-medium text-gray-900">
+                      <td className="py-1.5 px-3 font-medium text-gray-900">
                         {p.projectName || "General Project"}
                       </td>
-                      <td className="py-3 px-4 text-gray-800">
+                      <td className="py-1.5 px-3 text-gray-800">
                         {p.milestoneName || "Milestone Payment"}
                       </td>
-                      <td className="py-3 px-4 font-black text-emerald-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 font-black text-emerald-700 whitespace-nowrap">
                         ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")}
                       </td>
-                      <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {p.paymentMethod || "Bank Transfer"}
                       </td>
-                      <td className="py-3 px-4 font-mono font-bold text-blue-700 select-all">
+                      <td className="py-1.5 px-3 font-mono font-bold text-blue-700 select-all">
                         {p.transactionReference || "—"}
                       </td>
-                      <td className="py-3 px-4 text-gray-600">
+                      <td className="py-1.5 px-3 text-gray-600">
                         {p.receivedBy || p.recordedBy || "Admin"}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                             statusColors[status] || "bg-gray-100 text-gray-700"
@@ -614,10 +614,10 @@ export function ClientMilestonesTab({
                           {status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-500 max-w-xs truncate">
+                      <td className="py-1.5 px-3 text-gray-500 max-w-xs truncate">
                         {p.remarks || "—"}
                       </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-right whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => handleOpenVoucher(p, "payment")}
@@ -724,16 +724,16 @@ export function ClientMilestonesTab({
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Project</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4">Paid To</th>
-                  <th className="py-3 px-4">Amount</th>
-                  <th className="py-3 px-4">Method</th>
-                  <th className="py-3 px-4">Reference / UTR</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px]">Date</th>
+                  <th className="py-2 px-3 text-[10px]">Project</th>
+                  <th className="py-2 px-3 text-[10px]">Category</th>
+                  <th className="py-2 px-3 text-[10px]">Description</th>
+                  <th className="py-2 px-3 text-[10px]">Paid To</th>
+                  <th className="py-2 px-3 text-[10px]">Amount</th>
+                  <th className="py-2 px-3 text-[10px]">Method</th>
+                  <th className="py-2 px-3 text-[10px]">Reference / UTR</th>
+                  <th className="py-2 px-3 text-[10px]">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -742,33 +742,33 @@ export function ClientMilestonesTab({
                   const catName = exp.categoryName || exp.category?.name || "General";
                   return (
                     <tr key={exp._id || exp.id} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {formatDate(exp.date || exp.createdAt)}
                       </td>
-                      <td className="py-3 px-4 font-medium text-gray-900">
+                      <td className="py-1.5 px-3 font-medium text-gray-900">
                         {exp.projectName || "General Overhead"}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span className="inline-block bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[10px] border border-blue-200">
                           {catName}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-800 max-w-xs truncate">
+                      <td className="py-1.5 px-3 text-gray-800 max-w-xs truncate">
                         {exp.description || exp.title}
                       </td>
-                      <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {exp.paidTo || "—"}
                       </td>
-                      <td className="py-3 px-4 font-black text-rose-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 font-black text-rose-700 whitespace-nowrap">
                         ₹{Number(exp.amount || 0).toLocaleString("en-IN")}
                       </td>
-                      <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {exp.paymentMethod || exp.paymentMode || "Bank Transfer"}
                       </td>
-                      <td className="py-3 px-4 font-mono text-gray-600 select-all">
+                      <td className="py-1.5 px-3 font-mono text-gray-600 select-all">
                         {exp.transactionReference || exp.transactionRef || "—"}
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                             statusColors[status] || "bg-gray-100 text-gray-700"
@@ -777,7 +777,7 @@ export function ClientMilestonesTab({
                           {status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap space-x-1">
+                      <td className="py-1.5 px-3 text-right whitespace-nowrap space-x-1">
                         <button
                           type="button"
                           onClick={() => handleOpenVoucher(exp, "expense")}

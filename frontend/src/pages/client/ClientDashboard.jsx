@@ -186,10 +186,10 @@ export function ClientDashboard() {
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
                     <th className="py-3 px-5">Company Name</th>
-                    <th className="py-3 px-4">Country & City</th>
-                    <th className="py-3 px-4">Primary Contact</th>
-                    <th className="py-3 px-4">Contact Info</th>
-                    <th className="py-3 px-4">Status</th>
+                    <th className="py-2 px-3 text-[10px]">Country & City</th>
+                    <th className="py-2 px-3 text-[10px]">Primary Contact</th>
+                    <th className="py-2 px-3 text-[10px]">Contact Info</th>
+                    <th className="py-2 px-3 text-[10px]">Status</th>
                     <th className="py-3 px-5 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -222,7 +222,7 @@ export function ClientDashboard() {
                         </td>
 
                         {}
-                        <td className="py-3 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200 text-gray-700 font-medium text-[11px]">
                             <MapPin size={11} className="text-blue-500 shrink-0" />
                             <span>
@@ -233,7 +233,7 @@ export function ClientDashboard() {
                         </td>
 
                         {}
-                        <td className="py-3 px-4">
+                        <td className="py-1.5 px-3">
                           {primaryContact ? (
                             <div>
                               <p className="font-bold text-gray-800 text-xs truncate max-w-[150px]">
@@ -249,7 +249,7 @@ export function ClientDashboard() {
                         </td>
 
                         {}
-                        <td className="py-3 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="space-y-0.5">
                             {client.email && (
                               <div className="flex items-center gap-1 text-[11px] text-gray-600 truncate max-w-[180px]">
@@ -267,7 +267,7 @@ export function ClientDashboard() {
                         </td>
 
                         {}
-                        <td className="py-3 px-4">
+                        <td className="py-1.5 px-3">
                           <StatusBadge status={client.status || "Active"} size="sm" />
                         </td>
 

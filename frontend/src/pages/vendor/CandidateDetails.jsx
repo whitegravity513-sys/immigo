@@ -183,7 +183,7 @@ export function CandidateDetails() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative group shrink-0">
             {candidate.photo ? (
@@ -193,7 +193,7 @@ export function CandidateDetails() {
                 className="w-24 h-24 rounded-2xl object-cover border border-slate-200 shadow-sm"
               />
             ) : (
-              <div className="w-24 h-24 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-slate-400">
+              <div className="w-24 h-24 rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center text-slate-400">
                 <User size={32} />
               </div>
             )}
@@ -275,7 +275,7 @@ export function CandidateDetails() {
       {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3.5">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Personal Information
           </h3>
@@ -310,7 +310,7 @@ export function CandidateDetails() {
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3.5">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Professional Information
           </h3>
@@ -346,7 +346,7 @@ export function CandidateDetails() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
         <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
           Attached Compliance Documents ({candidate.documents?.length || 0})
         </h3>
@@ -389,7 +389,7 @@ export function CandidateDetails() {
         const int = activeApp.interviewDetails;
 
         return (
-          <div className="bg-white rounded-2xl border border-indigo-200 p-6 shadow-xs space-y-4 font-sans">
+          <div className="bg-white rounded-xl border border-indigo-200 p-6 shadow-xs space-y-4 font-sans">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest block">
@@ -458,7 +458,7 @@ export function CandidateDetails() {
         const progressPct = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
         return (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4 font-sans">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4 font-sans">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest block">
@@ -557,7 +557,7 @@ export function CandidateDetails() {
 
       {}
       {}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">
@@ -649,7 +649,7 @@ export function CandidateDetails() {
       </div>
 
       {}
-      <div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-slate-50/80 rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100/80 text-blue-700 flex items-center justify-center shrink-0 border border-blue-200/60 mt-0.5 sm:mt-0">

@@ -39,7 +39,7 @@ export default function VendorDetailView({
 }) {
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
@@ -53,7 +53,7 @@ export default function VendorDetailView({
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-slate-100 pb-5">
           <div className="flex items-start sm:items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
@@ -280,7 +280,7 @@ export default function VendorDetailView({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden space-y-5 p-6">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden space-y-5 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -418,7 +418,7 @@ export default function VendorDetailView({
             <button
               type="button"
               onClick={onShowViewMouPage}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer self-start sm:self-auto shrink-0"
+              className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer self-start sm:self-auto shrink-0"
             >
               View Agreement
             </button>

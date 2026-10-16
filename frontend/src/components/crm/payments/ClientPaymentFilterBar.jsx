@@ -15,7 +15,7 @@ export default function ClientPaymentFilterBar({
   setPage,
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs">
+    <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
       <form onSubmit={onSearchSubmit} className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-2.5 text-gray-400" size={15} />

@@ -108,12 +108,12 @@ export default function AdminDocumentsList() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-xs space-y-3">
         {}
         <div className="flex items-center gap-2 border-b border-slate-100 pb-3 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("All")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
               activeTab === "All"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-slate-50 text-slate-700 hover:bg-slate-100"
@@ -127,7 +127,7 @@ export default function AdminDocumentsList() {
 
           <button
             onClick={() => setActiveTab("Vendor Statutory")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
               activeTab === "Vendor Statutory"
                 ? "bg-blue-600 text-white shadow-xs"
                 : "bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200/70"
@@ -142,7 +142,7 @@ export default function AdminDocumentsList() {
 
           <button
             onClick={() => setActiveTab("Candidate Verification")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
               activeTab === "Candidate Verification"
                 ? "bg-indigo-600 text-white shadow-xs"
                 : "bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200/70"
@@ -201,40 +201,40 @@ export default function AdminDocumentsList() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs font-semibold text-slate-500">Loading document vault...</p>
         </div>
       ) : filteredDocs.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
           <h3 className="text-sm font-bold text-slate-800">No documents found</h3>
           <p className="text-xs text-slate-500 mt-1">No documents matched your active category or filter selection.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-5">Document Title</th>
-                  <th className="py-3.5 px-4">Entity Type</th>
-                  <th className="py-3.5 px-4">Owner / Subject</th>
-                  <th className="py-3.5 px-4">Vendor Partner</th>
-                  <th className="py-3.5 px-4">File Name</th>
-                  <th className="py-3.5 px-4">Verification Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-5">Document Title</th>
+                  <th className="py-2 px-3 text-[10px]">Entity Type</th>
+                  <th className="py-2 px-3 text-[10px]">Owner / Subject</th>
+                  <th className="py-2 px-3 text-[10px]">Vendor Partner</th>
+                  <th className="py-2 px-3 text-[10px]">File Name</th>
+                  <th className="py-2 px-3 text-[10px]">Verification Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredDocs.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-4 px-4 sm:px-5 font-extrabold text-slate-900">
+                    <td className="py-1.5 px-3 sm:px-5 font-extrabold text-slate-900">
                       {doc.title}
                       <span className="block font-mono text-[10px] text-slate-400 font-normal">{doc.type || "Document"}</span>
                     </td>
 
-                    <td className="py-4 px-4">
+                    <td className="py-1.5 px-3">
                       {doc.entityType === "Vendor Agency" ? (
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
                           Vendor Agency
@@ -246,15 +246,15 @@ export default function AdminDocumentsList() {
                       )}
                     </td>
 
-                    <td className="py-4 px-4">
+                    <td className="py-1.5 px-3">
                       <span className="font-extrabold text-slate-900 block">{doc.ownerName}</span>
                     </td>
 
-                    <td className="py-4 px-4 text-slate-700 font-semibold">{doc.vendorName}</td>
+                    <td className="py-1.5 px-3 text-slate-700 font-semibold">{doc.vendorName}</td>
 
-                    <td className="py-4 px-4 font-mono text-xs text-slate-500">{doc.fileName}</td>
+                    <td className="py-1.5 px-3 font-mono text-xs text-slate-500">{doc.fileName}</td>
 
-                    <td className="py-4 px-4">
+                    <td className="py-1.5 px-3">
                       {doc.status === "Verified" ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
@@ -273,7 +273,7 @@ export default function AdminDocumentsList() {
                       )}
                     </td>
 
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-1.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => alert(`Previewing file: ${doc.fileName}`)}

@@ -66,7 +66,7 @@ export function AuthHeroFeatures({ isMobile = false }) {
         {featureCards.map((card, idx) => (
           <div
             key={idx}
-            className="flex items-center gap-3 bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-white/90 shadow-sm"
+            className="flex items-center gap-3 bg-white/95 backdrop-blur-md p-3 rounded-xl border border-white/90 shadow-sm"
           >
             <div
               className={`w-9 h-9 rounded-full ${card.bg} flex items-center justify-center text-white shrink-0 shadow-sm`}
@@ -82,7 +82,7 @@ export function AuthHeroFeatures({ isMobile = false }) {
       </div>
 
       {}
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-sm p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-xl">
+      <div className="bg-white/95 backdrop-blur-md rounded-xl border border-slate-200/90 shadow-sm p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-xl">
         {stats.map((s, idx) => (
           <div key={idx} className="flex items-center gap-2">
             {s.icon}

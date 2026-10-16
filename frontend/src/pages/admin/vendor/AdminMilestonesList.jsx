@@ -167,7 +167,7 @@ export default function AdminMilestonesList() {
 
       {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
             Total Placement Fee (Agreed)
           </span>
@@ -179,7 +179,7 @@ export default function AdminMilestonesList() {
           </span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
             Total Fee Released (Paid)
           </span>
@@ -191,7 +191,7 @@ export default function AdminMilestonesList() {
           </span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
             Remaining Pending Due
           </span>
@@ -279,12 +279,12 @@ export default function AdminMilestonesList() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs text-slate-500">Loading milestone accounts...</p>
         </div>
       ) : filteredApps.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <Sliders className="w-10 h-10 text-slate-300 mx-auto mb-2" />
           <h3 className="text-sm font-bold text-slate-800">No candidate placements found</h3>
           <p className="text-xs text-slate-500 mt-1">
@@ -292,16 +292,16 @@ export default function AdminMilestonesList() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-6">Candidate & Project</th>
-                  <th className="py-3.5 px-4">Placement Fee & Balance</th>
-                  <th className="py-3.5 px-4">Milestones Breakdown</th>
-                  <th className="py-3.5 px-4">Payment Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-6">Candidate & Project</th>
+                  <th className="py-2 px-3 text-[10px]">Placement Fee & Balance</th>
+                  <th className="py-2 px-3 text-[10px]">Milestones Breakdown</th>
+                  <th className="py-2 px-3 text-[10px]">Payment Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -336,7 +336,7 @@ export default function AdminMilestonesList() {
                     <React.Fragment key={app.id}>
                       <tr className="hover:bg-slate-50/70 transition">
                         {}
-                        <td className="py-4 px-4 sm:px-6">
+                        <td className="py-1.5 px-3 sm:px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 font-bold flex items-center justify-center text-sm border border-slate-200 shrink-0">
                               {app.candidateName?.slice(0, 2).toUpperCase()}
@@ -353,7 +353,7 @@ export default function AdminMilestonesList() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 whitespace-nowrap">
+                        <td className="py-1.5 px-3 whitespace-nowrap">
                           <div className="font-bold text-slate-900 text-xs sm:text-sm">
                             ₹{totalAmt.toLocaleString()}
                           </div>
@@ -370,7 +370,7 @@ export default function AdminMilestonesList() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="flex flex-wrap items-center gap-1.5 max-w-md">
                             {milestones.map((m, mIdx) => {
                               const isPaid =
@@ -420,7 +420,7 @@ export default function AdminMilestonesList() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 whitespace-nowrap">
+                        <td className="py-1.5 px-3 whitespace-nowrap">
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 ${
                               isFullyPaid
@@ -439,7 +439,7 @@ export default function AdminMilestonesList() {
                         </td>
 
                         {}
-                        <td className="py-4 px-4 text-right whitespace-nowrap">
+                        <td className="py-1.5 px-3 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               type="button"
@@ -458,7 +458,7 @@ export default function AdminMilestonesList() {
                       {isExpanded && (
                         <tr className="bg-slate-50/80">
                           <td colSpan={5} className="p-4 sm:px-6">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+                            <div className="bg-white rounded-xl border border-slate-200 p-2.5 space-y-3">
                               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                                 <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
                                   Itemized Milestones for {app.candidateName}

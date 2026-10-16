@@ -195,7 +195,7 @@ export default function Documents() {
       {activeTab === "mou" ? (
         
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
             {}
             <div className="p-6 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -328,7 +328,7 @@ export default function Documents() {
           {companyDocs.map((doc, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between hover:shadow-sm transition"
+              className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between hover:shadow-sm transition"
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">

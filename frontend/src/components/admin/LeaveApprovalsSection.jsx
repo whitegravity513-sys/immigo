@@ -36,7 +36,7 @@ export default function LeaveApprovalsSection({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-5 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-base font-black text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
@@ -68,7 +68,7 @@ export default function LeaveApprovalsSection({
 
               return (
                 <tr key={leave._id || Math.random()} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
-                  <td className="px-4 sm:px-6 py-4 text-sm">
+                  <td className="px-3 sm:px-6 py-1.5 text-sm">
                     {empId ? (
                       <div>
                         <button
@@ -85,21 +85,21 @@ export default function LeaveApprovalsSection({
                       <span className="text-rose-600 font-semibold text-xs">{empName}</span>
                     )}
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-xs text-slate-700">
+                  <td className="px-3 sm:px-6 py-1.5 text-xs text-slate-700">
                     <div className="flex flex-col gap-0.5">
                       <div><strong className="text-slate-500">From:</strong> <span className="font-semibold">{formatDate(leave.startDate)}</span></div>
                       <div><strong className="text-slate-500">To:</strong> <span className="font-semibold">{formatDate(leave.endDate)}</span></div>
                     </div>
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-xs">
+                  <td className="px-3 sm:px-6 py-1.5 text-xs">
                     <span className="font-mono font-black text-slate-800 text-sm block">
                       {days} Day(s)
                     </span>
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-sm text-slate-600 max-w-[200px] truncate" title={leave.reason}>
+                  <td className="px-3 sm:px-6 py-1.5 text-sm text-slate-600 max-w-[200px] truncate" title={leave.reason}>
                     {leave.reason}
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-sm">
+                  <td className="px-3 sm:px-6 py-1.5 text-sm">
                     {leave.document ? (
                       <button
                         className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer w-fit transition"
@@ -111,7 +111,7 @@ export default function LeaveApprovalsSection({
                       <span className="text-xs text-slate-400 italic">None Attached</span>
                     )}
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-sm">
+                  <td className="px-3 sm:px-6 py-1.5 text-sm">
                     <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border w-fit ${leave.status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : leave.status === "Rejected" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                       {leave.status}
                     </span>
@@ -121,7 +121,7 @@ export default function LeaveApprovalsSection({
                       </div>
                     )}
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-sm">
+                  <td className="px-3 sm:px-6 py-1.5 text-sm">
                     {isRejectingThis ? (
                       <div className="flex flex-col gap-2 p-2.5 bg-rose-50/90 border border-rose-200 rounded-xl min-w-[250px] animate-in fade-in duration-150">
                         <span className="text-[11px] font-bold text-rose-800 flex items-center gap-1">

@@ -14,7 +14,7 @@ export default function ProjectInvoiceList({
   handleDeleteInvoice
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
       <div className="p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
         <div className="relative w-full sm:w-80">
           <Search size={16} className="absolute left-3.5 top-3 text-slate-400" />
@@ -54,13 +54,13 @@ export default function ProjectInvoiceList({
                   className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                   onClick={() => setSelectedInvoice(inv)}
                 >
-                  <td className="px-6 py-4 font-mono font-bold text-green-700">
+                  <td className="px-3 py-1.5 font-mono font-bold text-green-700">
                     {inv.invoiceNo}
                   </td>
-                  <td className="px-6 py-4 font-bold text-slate-800">
+                  <td className="px-3 py-1.5 font-bold text-slate-800">
                     {inv.projectName || project?.projectName || "—"}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-1.5">
                     <div className="font-bold text-slate-800">
                       {inv.clientName || clientNameVal || "—"}
                     </div>
@@ -70,13 +70,13 @@ export default function ProjectInvoiceList({
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-slate-600 text-xs">
+                  <td className="px-3 py-1.5 text-slate-600 text-xs">
                     {inv.date}
                   </td>
-                  <td className="px-6 py-4 font-black text-slate-900 text-base">
+                  <td className="px-3 py-1.5 font-black text-slate-900 text-base">
                     ₹{(inv.totalAmount || 0).toLocaleString("en-IN")}
                   </td>
-                  <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-1.5 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="inline-flex items-center gap-2 justify-end">
                       <button
                         onClick={() => setSelectedInvoice(inv)}

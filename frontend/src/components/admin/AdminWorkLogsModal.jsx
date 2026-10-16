@@ -87,7 +87,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-4xl rounded-2xl border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white w-full max-w-4xl rounded-xl border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/50 flex items-center justify-between gap-3">
@@ -164,7 +164,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
               <span>Fetching submitted work logs...</span>
             </div>
           ) : filteredLogs.length === 0 ? (
-            <div className="py-16 text-center text-xs text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <div className="py-16 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
               <FileText size={36} className="mx-auto mb-2 text-slate-300" />
               <p className="font-bold text-slate-700">No work logs submitted for this date.</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
@@ -181,7 +181,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0">
+                      <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0">
                         {emp.profileImage ? (
                           <img
                             src={emp.profileImage}

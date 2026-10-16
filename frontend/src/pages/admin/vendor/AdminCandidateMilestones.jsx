@@ -310,7 +310,7 @@ export default function AdminCandidateMilestones() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center shrink-0">
@@ -395,7 +395,7 @@ export default function AdminCandidateMilestones() {
 
       {}
       {currentMilestone && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           {}
           <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -471,7 +471,7 @@ export default function AdminCandidateMilestones() {
                 {/* Stage Cards List */}
                 <div className="space-y-3">
                   {currentStages.length === 0 ? (
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-500">
+                    <div className="p-6 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-center text-xs text-slate-500">
                       No stages added for this milestone yet. Click "+ Add Stage" above.
                     </div>
                   ) : (
@@ -676,7 +676,7 @@ export default function AdminCandidateMilestones() {
       )}
 
       {/* Save Action Sticky Footer */}
-      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-3xl border border-slate-200 shadow-xl flex items-center justify-between gap-3">
+      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-xl border border-slate-200 shadow-xl flex items-center justify-between gap-3">
         <div className="text-xs">
           <span className="text-slate-500 font-medium">Active Milestone: </span>
           <strong className="text-slate-900 font-black">

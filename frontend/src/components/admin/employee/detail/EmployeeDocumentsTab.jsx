@@ -113,7 +113,7 @@ export function EmployeeDocumentsTab({
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h4 className="text-base font-black text-slate-800 flex items-center gap-2">
             <FolderLock size={18} className="text-blue-600" />
@@ -131,7 +131,7 @@ export function EmployeeDocumentsTab({
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
@@ -159,7 +159,7 @@ export function EmployeeDocumentsTab({
                     key={doc._id}
                     className="hover:bg-slate-50/40 transition border-b border-slate-100 last:border-0"
                   >
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
                           <FileText size={16} />
@@ -174,17 +174,17 @@ export function EmployeeDocumentsTab({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                         {doc.type || "Other"}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-600 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs text-slate-600 whitespace-nowrap">
                       {doc.uploadedAt
                         ? new Date(doc.uploadedAt).toLocaleDateString()
                         : "—"}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <div className="space-y-1">
                         <span
                           className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${
@@ -214,7 +214,7 @@ export function EmployeeDocumentsTab({
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                           type="button"

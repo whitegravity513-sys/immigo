@@ -259,7 +259,7 @@ export default function ExpensesSection({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div
           onClick={() => setExpenseTargetFilter(expenseTargetFilter === "company" ? "all" : "company")}
-          className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
+          className={`bg-white p-5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
             expenseTargetFilter === "company" ? "ring-2 ring-blue-600 border-blue-500 bg-blue-50/20" : "border-slate-200/80 hover:border-slate-300"
           }`}
         >
@@ -279,7 +279,7 @@ export default function ExpensesSection({
 
         <div
           onClick={() => setExpenseTargetFilter(expenseTargetFilter === "client" ? "all" : "client")}
-          className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
+          className={`bg-white p-5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
             expenseTargetFilter === "client" ? "ring-2 ring-indigo-600 border-indigo-500 bg-indigo-50/20" : "border-slate-200/80 hover:border-slate-300"
           }`}
         >
@@ -299,7 +299,7 @@ export default function ExpensesSection({
 
         <div
           onClick={() => setExpenseTargetFilter(expenseTargetFilter === "employee" ? "all" : "employee")}
-          className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
+          className={`bg-white p-5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-between ${
             expenseTargetFilter === "employee" ? "ring-2 ring-emerald-600 border-emerald-500 bg-emerald-50/20" : "border-slate-200/80 hover:border-slate-300"
           }`}
         >
@@ -348,7 +348,7 @@ export default function ExpensesSection({
 
       {activeTab === "company" && (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white rounded-xl border border-slate-200/60 shadow-xs p-4">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Classification:</span>
               <button
@@ -410,7 +410,7 @@ export default function ExpensesSection({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-4 sm:p-5 h-fit lg:sticky lg:top-24">
+            <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 sm:p-5 h-fit lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
                   {safeForm._id ? "Edit Transaction" : "New Transaction"}
@@ -620,12 +620,12 @@ export default function ExpensesSection({
 
             <div className="lg:col-span-2 space-y-4">
               {expenseLoading ? (
-                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm">
+                <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm">
                   Loading transaction records...
                 </div>
               ) : sortedDates.length > 0 ? (
                 sortedDates.map(dateStr => (
-                  <div key={dateStr} className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+                  <div key={dateStr} className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
                     <div className="px-5 py-3.5 bg-slate-50/80 border-b border-slate-100 flex justify-between items-center">
                       <h4 className="text-sm font-black text-slate-800">{formatDate(dateStr)}</h4>
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider bg-slate-200/60 px-2.5 py-0.5 rounded-md">
@@ -718,7 +718,7 @@ export default function ExpensesSection({
                   </div>
                 ))
               ) : (
-                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm">
+                <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm">
                   No transactions recorded yet.
                 </div>
               )}
@@ -728,7 +728,7 @@ export default function ExpensesSection({
       )}
 
       {activeTab === "claims" && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h4 className="text-base font-black text-slate-800">Employee Expense Claims</h4>
@@ -756,21 +756,21 @@ export default function ExpensesSection({
 
                     return (
                       <tr key={claim._id} className="hover:bg-slate-50/40 border-b border-slate-100 last:border-0">
-                        <td className="px-4 py-3.5 text-sm">
+                        <td className="px-3 py-1.5 text-sm">
                           <span className="font-bold text-slate-800 block">{empName}</span>
                           <span className="text-[10px] text-slate-400">{claim.employee?.employeeId || "Staff"}</span>
                         </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-600 whitespace-nowrap">
+                        <td className="px-3 py-1.5 text-xs text-slate-600 whitespace-nowrap">
                           {formatDate(claim.date)}
                         </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-700 max-w-[200px]">
+                        <td className="px-3 py-1.5 text-xs text-slate-700 max-w-[200px]">
                           <span className="font-bold text-blue-700 block">{claim.category?.name || "General"}</span>
                           <span className="text-slate-500 truncate block">{claim.description}</span>
                         </td>
-                        <td className="px-4 py-3.5 text-sm font-black text-slate-900">
+                        <td className="px-3 py-1.5 text-sm font-black text-slate-900">
                           ₹{Number(claim.amount || 0).toLocaleString("en-IN")}
                         </td>
-                        <td className="px-4 py-3.5">
+                        <td className="px-3 py-1.5">
                           {claim.receipt ? (
                             <button
                               onClick={() => setReceiptModalUrl(claim.receipt)}
@@ -782,7 +782,7 @@ export default function ExpensesSection({
                             <span className="text-xs text-slate-400 italic">No bill</span>
                           )}
                         </td>
-                        <td className="px-4 py-3.5">
+                        <td className="px-3 py-1.5">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg border ${
                             claim.status === "Paid" ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-black" :
                             claim.status === "Approved" ? "bg-blue-50 text-blue-700 border-blue-200" :
@@ -793,7 +793,7 @@ export default function ExpensesSection({
                             {claim.status || "Pending"}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5">
+                        <td className="px-3 py-1.5">
                           <div className="flex items-center gap-2 flex-wrap">
                             {claim.status === "Pending" ? (
                               <button

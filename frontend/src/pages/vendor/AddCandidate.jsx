@@ -391,9 +391,9 @@ export function AddCandidate() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-            <div className="relative w-20 h-20 rounded-2xl bg-white border border-slate-300 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+            <div className="relative w-20 h-20 rounded-xl bg-white border border-slate-300 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
               {candidatePhoto ? (
                 <img
                   src={candidatePhoto}
@@ -628,7 +628,7 @@ export function AddCandidate() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Resume / CV Document</h3>
@@ -675,7 +675,7 @@ export function AddCandidate() {
           )}
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 flex items-center justify-between">
+        <div className="p-4 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
           <p className="text-xs text-slate-500">
             Candidate will be saved under your active vendor account and available for project allocations.
           </p>

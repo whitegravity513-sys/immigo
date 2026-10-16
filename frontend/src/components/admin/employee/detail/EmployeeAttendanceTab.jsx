@@ -68,7 +68,7 @@ export function EmployeeAttendanceTab({
 
     return (
       <div className="p-4 sm:p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/60">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -327,7 +327,7 @@ export function EmployeeAttendanceTab({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
           <h4 className="text-sm font-black text-slate-800">Attendance Log</h4>
@@ -474,21 +474,21 @@ export function EmployeeAttendanceTab({
                       key={idx}
                       className="bg-slate-50/40 border-b border-slate-100 last:border-0 opacity-60"
                     >
-                      <td className="px-4 py-3.5 text-sm font-semibold text-slate-500 whitespace-nowrap">
+                      <td className="px-3 py-1.5 text-sm font-semibold text-slate-500 whitespace-nowrap">
                         {a.date}
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-3 py-1.5">
                         <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-lg border bg-slate-100 text-slate-500 border-slate-200">
                           Pre-Joining (Joined{" "}
                           {emp.joiningDate ? formatDate(emp.joiningDate) : ""})
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
-                      <td className="px-4 py-3.5 text-slate-400 text-xs">—</td>
+                      <td className="px-3 py-1.5 text-slate-400 text-xs">—</td>
+                      <td className="px-3 py-1.5 text-slate-400 text-xs">—</td>
+                      <td className="px-3 py-1.5 text-slate-400 text-xs">—</td>
+                      <td className="px-3 py-1.5 text-slate-400 text-xs">—</td>
+                      <td className="px-3 py-1.5 text-slate-400 text-xs">—</td>
+                      <td className="px-3 py-1.5 text-slate-400 text-xs">—</td>
                     </tr>
                   );
                 }
@@ -498,10 +498,10 @@ export function EmployeeAttendanceTab({
                     key={idx}
                     className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0"
                   >
-                    <td className="px-4 py-3.5 text-sm font-bold text-slate-700 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-sm font-bold text-slate-700 whitespace-nowrap">
                       {a.date}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-lg border ${sColor(
                           a.status
@@ -510,21 +510,21 @@ export function EmployeeAttendanceTab({
                         {a.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
                       {a.checkInTime ? (
                         formatTime(a.checkInTime)
                       ) : (
                         <span className="text-slate-300">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
                       {a.checkOutTime ? (
                         formatTime(a.checkOutTime)
                       ) : (
                         <span className="text-slate-300">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <span
                         className={`text-xs font-black ${
                           workSec > 0 && workSec < 28800
@@ -535,10 +535,10 @@ export function EmployeeAttendanceTab({
                         {fmtDur(workSec)}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-500 font-semibold">
+                    <td className="px-3 py-1.5 text-xs text-slate-500 font-semibold">
                       {fmtDur(a.totalBreakSeconds)}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       {hasTimes ||
                       ["Present", "Checked Out", "Active"].includes(a.status) ? (
                         <span
@@ -554,7 +554,7 @@ export function EmployeeAttendanceTab({
                         <span className="text-slate-300 text-xs">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 max-w-[180px]">
+                    <td className="px-3 py-1.5 max-w-[180px]">
                       {a.checkOutNote ? (
                         <div className="flex items-center gap-1.5 justify-between">
                           <span

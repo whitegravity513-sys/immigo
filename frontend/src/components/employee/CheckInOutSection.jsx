@@ -55,7 +55,7 @@ export default function CheckInOutSection({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5">
+        <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
@@ -208,7 +208,7 @@ export default function CheckInOutSection({
         </div>
 
         <div className="lg:col-span-5 space-y-3">
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs space-y-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
               Shift Timings
             </h3>

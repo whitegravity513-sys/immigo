@@ -22,7 +22,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
           For security and audit compliance, password resets are processed by system administrators.
         </p>
 
-        <div className="mt-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-1.5">
+        <div className="mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1.5">
           <div className="font-bold text-slate-900">IT Helpdesk Contact:</div>
           <div>Email: <span className="font-semibold text-[#1877f2]">it-support@immigo.com</span></div>
           <div>Internal Extension: <span className="font-semibold text-slate-900">Ext. 4040</span></div>

@@ -113,7 +113,7 @@ export default function DailyWorkLogSection() {
   };
 
   return (
-    <div id="daily-worklog-section" className="bg-white rounded-2xl border-2 border-slate-300 shadow-xs overflow-hidden h-full flex flex-col justify-between">
+    <div id="daily-worklog-section" className="bg-white rounded-xl border-2 border-slate-300 shadow-xs overflow-hidden h-full flex flex-col justify-between">
       <div className="p-3.5 sm:p-4 bg-slate-100/90 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">

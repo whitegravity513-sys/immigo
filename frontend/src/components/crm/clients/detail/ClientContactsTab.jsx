@@ -8,7 +8,7 @@ export function ClientContactsTab({ client }) {
       {(client.contacts || []).map((contact, idx) => (
         <div
           key={contact.id || idx}
-          className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs space-y-3"
+          className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs space-y-3"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

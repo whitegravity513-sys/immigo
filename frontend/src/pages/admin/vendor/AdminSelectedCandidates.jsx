@@ -86,30 +86,30 @@ export default function AdminSelectedCandidates() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs font-semibold text-slate-500">Loading selected candidates...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <UserCheck className="w-10 h-10 text-slate-300 mx-auto mb-2" />
           <h3 className="text-sm font-bold text-slate-800">No selected candidates</h3>
           <p className="text-xs text-slate-500 mt-1">Candidates marked as Selected will appear here.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-5">Candidate Name</th>
-                  <th className="py-3.5 px-4">Vendor Partner</th>
-                  <th className="py-3.5 px-4">Client Company</th>
-                  <th className="py-3.5 px-4">Project Name</th>
-                  <th className="py-3.5 px-4">Position</th>
-                  <th className="py-3.5 px-4">Processing Stage</th>
-                  <th className="py-3.5 px-4">Milestones & Payments</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-5">Candidate Name</th>
+                  <th className="py-2 px-3 text-[10px]">Vendor Partner</th>
+                  <th className="py-2 px-3 text-[10px]">Client Company</th>
+                  <th className="py-2 px-3 text-[10px]">Project Name</th>
+                  <th className="py-2 px-3 text-[10px]">Position</th>
+                  <th className="py-2 px-3 text-[10px]">Processing Stage</th>
+                  <th className="py-2 px-3 text-[10px]">Milestones & Payments</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -145,16 +145,16 @@ export default function AdminSelectedCandidates() {
 
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                      <td className="py-4 px-4 sm:px-5 font-black text-slate-900">
+                      <td className="py-1.5 px-3 sm:px-5 font-black text-slate-900">
                         {app.candidateName}
                       </td>
 
-                      <td className="py-4 px-4 font-semibold text-slate-700">{app.vendorId}</td>
-                      <td className="py-4 px-4 text-slate-800 font-medium">{app.clientName}</td>
-                      <td className="py-4 px-4 font-medium text-slate-800">{app.projectName}</td>
-                      <td className="py-4 px-4 font-medium text-slate-700">{app.position}</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
+                      <td className="py-1.5 px-3 text-slate-800 font-medium">{app.clientName}</td>
+                      <td className="py-1.5 px-3 font-medium text-slate-800">{app.projectName}</td>
+                      <td className="py-1.5 px-3 font-medium text-slate-700">{app.position}</td>
 
-                      <td className="py-4 px-4">
+                      <td className="py-1.5 px-3">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
                           <Clock className="w-3.5 h-3.5 text-slate-500" />
                           {stageName} ({displayIndex}/{totalStagesCount || 8})
@@ -166,14 +166,14 @@ export default function AdminSelectedCandidates() {
                         )}
                       </td>
 
-                      <td className="py-4 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="text-xs font-medium text-slate-700">
                           <span className="font-semibold text-slate-900">{paidCount}/{totalCount} Paid</span>
                           <span className="text-slate-500 ml-1.5">₹{Number(planTotal).toLocaleString()}</span>
                         </div>
                       </td>
 
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-1.5 px-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/admin/vendor/milestones-manage?appId=${app.id}`}

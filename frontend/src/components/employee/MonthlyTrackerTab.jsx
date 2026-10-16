@@ -88,7 +88,7 @@ export default function MonthlyTrackerTab({
             valueClass: "text-2xl sm:text-3xl font-black tabular-nums tracking-tight text-slate-900",
           },
         ].map((c) => (
-          <div key={c.label} className="bg-white rounded-2xl border border-slate-300 shadow-xs hover:shadow-md transition-all p-5 flex items-center gap-4">
+          <div key={c.label} className="bg-white rounded-xl border border-slate-300 shadow-xs hover:shadow-md transition-all p-5 flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${c.color} shadow-xs`}>
               {c.icon}
             </div>
@@ -109,7 +109,7 @@ export default function MonthlyTrackerTab({
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6">
+      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
             <span className={`w-3 h-3 rounded-full ${statusColor} animate-pulse`} />
@@ -215,7 +215,7 @@ export default function MonthlyTrackerTab({
         )}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock size={18} className="text-blue-600" />

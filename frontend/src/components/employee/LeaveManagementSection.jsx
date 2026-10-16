@@ -49,7 +49,7 @@ export default function LeaveManagementSection({
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Applied</span>
             <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
@@ -62,7 +62,7 @@ export default function LeaveManagementSection({
           <div className="text-[11px] text-slate-500 font-semibold mt-1">All time applications</div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Approved</span>
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
@@ -75,7 +75,7 @@ export default function LeaveManagementSection({
           <div className="text-[11px] text-emerald-700 font-semibold mt-1">HR verified & granted</div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Review</span>
             <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
@@ -90,7 +90,7 @@ export default function LeaveManagementSection({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 sticky top-24">
+        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 sm:p-6 sticky top-24">
           <div className="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-100">
             <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
               <CalendarPlus size={18} />
@@ -203,7 +203,7 @@ export default function LeaveManagementSection({
           </form>
         </div>
 
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-black text-slate-900">Leave Applications History</h3>
@@ -232,16 +232,16 @@ export default function LeaveManagementSection({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-100">
-                  <th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                  <th className="px-3 py-2 text-[10px] text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                     Dates & Duration
                   </th>
-                  <th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                  <th className="px-3 py-2 text-[10px] text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                     Reason
                   </th>
-                  <th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                  <th className="px-3 py-2 text-[10px] text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                     Doc
                   </th>
-                  <th className="px-4 py-3 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                  <th className="px-3 py-2 text-[10px] text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                     Status
                   </th>
                 </tr>
@@ -249,7 +249,7 @@ export default function LeaveManagementSection({
               <tbody className="divide-y divide-slate-100 text-xs">
                 {filteredHistory.map((lv) => (
                   <tr key={lv._id} className="hover:bg-slate-50/40 transition-colors">
-                    <td className="px-4 py-3.5 font-semibold text-slate-700 whitespace-nowrap">
+                    <td className="px-3 py-1.5 font-semibold text-slate-700 whitespace-nowrap">
                       <div>{fmtDate(lv.startDate)}</div>
                       <div className="text-slate-400 text-[11px]">to {fmtDate(lv.endDate)}</div>
                       {lv.totalDays && (
@@ -259,7 +259,7 @@ export default function LeaveManagementSection({
                       )}
                     </td>
 
-                    <td className="px-4 py-3.5 text-slate-700 max-w-[180px]">
+                    <td className="px-3 py-1.5 text-slate-700 max-w-[180px]">
                       <span className="leading-snug block line-clamp-2">{lv.reason}</span>
                       {lv.leaveType && (
                         <span className="mt-1 inline-block text-[9px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded">
@@ -268,7 +268,7 @@ export default function LeaveManagementSection({
                       )}
                     </td>
 
-                    <td className="px-4 py-3.5 whitespace-nowrap">
+                    <td className="px-3 py-1.5 whitespace-nowrap">
                       {lv.document ? (
                         <button
                           type="button"
@@ -282,7 +282,7 @@ export default function LeaveManagementSection({
                       )}
                     </td>
 
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-1.5">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-lg border ${
                           lv.status === "Approved"

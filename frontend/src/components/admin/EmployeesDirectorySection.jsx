@@ -122,25 +122,25 @@ export default function EmployeesDirectorySection({
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs font-bold text-slate-700 whitespace-nowrap">
                       <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                         {emp.department || "General"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs font-semibold text-slate-700 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs font-semibold text-slate-700 whitespace-nowrap">
                       <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold">
                         {emp.designation || emp.role || "Employee"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-1 text-xs font-black uppercase rounded-lg border ${statusColor}`}>
                         {emp.status || "active"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
                       {formatDate(emp.joiningDate)}
                     </td>
-                    <td className="px-5 py-4 whitespace-nowrap">
+                    <td className="px-3 py-1.5 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <button
                           className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors"

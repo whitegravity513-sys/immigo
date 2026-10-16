@@ -383,7 +383,7 @@ export function Candidates() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-10 text-center text-slate-400 text-xs font-semibold">Loading candidates...</div>
         ) : candidates.length === 0 ? (

@@ -1602,7 +1602,7 @@ export default function MouFullPageView({
       {(mode === "sign" || (!isSigned && mode === "preview" && vendor?.role === "vendor")) && (
         <form
           onSubmit={handleVendorSignSubmit}
-          className="mou-print-hide print:hidden max-w-4xl mx-auto bg-white rounded-2xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6 mb-12"
+          className="mou-print-hide print:hidden max-w-4xl mx-auto bg-white rounded-xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6 mb-12"
         >
           <div className="border-b border-indigo-100 pb-4">
             <h3 className="text-base font-black text-slate-900 flex items-center gap-2">

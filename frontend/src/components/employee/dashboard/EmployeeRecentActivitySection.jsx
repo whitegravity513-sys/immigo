@@ -38,7 +38,7 @@ export default function EmployeeRecentActivitySection({ user }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">

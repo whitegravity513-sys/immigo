@@ -16,7 +16,7 @@ export default function LeaveActionModal({
       onClick={() => setLeaveActionModal(null)}
     >
       <div
-        className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div

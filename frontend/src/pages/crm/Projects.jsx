@@ -164,7 +164,7 @@ export function Projects() {
       </div>
 
       {}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs space-y-3">
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {}
           <div className="relative sm:col-span-2 lg:col-span-1">
@@ -367,7 +367,7 @@ export function Projects() {
                               onClick={() =>
                                 setOpenMenuId(isMenuOpen ? null : proj.id)
                               }
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                              className={`w-6 h-6 rounded-md flex items-center justify-center transition-all cursor-pointer ${
                                 isMenuOpen
                                   ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
                                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"

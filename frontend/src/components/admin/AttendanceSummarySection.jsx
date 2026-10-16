@@ -49,7 +49,7 @@ export default function AttendanceSummarySection({
           </button>
         </div>
       </div>
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
@@ -70,17 +70,17 @@ export default function AttendanceSummarySection({
 
                 return (
                   <tr key={empId} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-1.5">
                       <button className="text-sm font-bold text-green-700 hover:underline cursor-pointer text-left" onClick={() => openEmployeeDetail(empId, "summary")}>
                         {typeof emp?.name === 'string' ? emp.name : (emp?.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp?.name || ""))}
                       </button>
                       <div className="text-xs text-slate-500">{emp.employeeId || emp.employeeCode || "-"} • {emp.designation || "-"}</div>
                       {emp.status === "inactive" && <span className="text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 rounded-md uppercase mt-0.5 inline-block">Deactivated</span>}
                     </td>
-                    <td className="px-4 py-4 text-center"><span className="text-sm font-black text-emerald-600">{presentDays}</span></td>
-                    <td className="px-4 py-4 text-center"><span className="text-sm font-black text-amber-600">{halfDays}</span></td>
-                    <td className="px-4 py-4 text-center"><span className={`text-sm font-black ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>
-                    <td className="px-4 py-4 text-center"><span className="text-sm font-bold text-blue-600">{leaveDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className="text-sm font-black text-emerald-600">{presentDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className="text-sm font-black text-amber-600">{halfDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className={`text-sm font-black ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className="text-sm font-bold text-blue-600">{leaveDays}</span></td>
                   </tr>
                 );
               })}

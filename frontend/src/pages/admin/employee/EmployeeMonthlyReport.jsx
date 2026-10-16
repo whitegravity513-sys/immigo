@@ -493,12 +493,12 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                   <tbody>
                     {monthlyData.leaves.map((leave, idx) => (
                       <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-slate-900">{leave.leaveType}</td>
-                        <td className="px-6 py-4 text-slate-700">{formatDate(leave.startDate)}</td>
-                        <td className="px-6 py-4 text-slate-700">{formatDate(leave.endDate)}</td>
-                        <td className="px-6 py-4 font-bold text-slate-900">{leave.totalDays}</td>
-                        <td className="px-6 py-4 text-slate-700 max-w-xs truncate">{leave.reason}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 py-1.5 font-bold text-slate-900">{leave.leaveType}</td>
+                        <td className="px-3 py-1.5 text-slate-700">{formatDate(leave.startDate)}</td>
+                        <td className="px-3 py-1.5 text-slate-700">{formatDate(leave.endDate)}</td>
+                        <td className="px-3 py-1.5 font-bold text-slate-900">{leave.totalDays}</td>
+                        <td className="px-3 py-1.5 text-slate-700 max-w-xs truncate">{leave.reason}</td>
+                        <td className="px-3 py-1.5">
                           <span
                             className={`px-3 py-1 rounded-lg text-xs font-bold border ${
                               leave.status === "Approved"

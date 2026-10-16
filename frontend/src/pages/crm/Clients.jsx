@@ -218,7 +218,7 @@ export function Clients() {
       </div>
 
       {}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-2xs space-y-3">
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex-1 min-w-0 max-w-lg">
             <SearchInput
@@ -364,14 +364,14 @@ export function Clients() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-center font-bold text-gray-700">
+                      <td className="py-1.5 px-3 text-center font-bold text-gray-700">
                         <span className="inline-flex items-center justify-center min-w-6 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
                           {client.projects?.length || 0}
                         </span>
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
                           {manpowerCount.toLocaleString()}
                         </span>
@@ -383,12 +383,12 @@ export function Clients() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-gray-500 font-medium">
+                      <td className="py-1.5 px-3 text-gray-500 font-medium">
                         {formatDate(client.createdAt)}
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4 text-center">
+                      <td className="py-1.5 px-3 text-center">
                         <div className="relative inline-flex items-center justify-center">
                           <button type="button" onClick={() => setOpenMenuId(isMenuOpen ? null : client.id)} className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                               isMenuOpen

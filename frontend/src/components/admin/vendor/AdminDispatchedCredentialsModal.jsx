@@ -29,7 +29,7 @@ export function AdminDispatchedCredentialsModal({
         </div>
 
         {}
-        <div className="bg-slate-50/90 rounded-2xl border border-slate-200 p-4 text-left text-xs space-y-3">
+        <div className="bg-slate-50/90 rounded-xl border border-slate-200 p-2.5 text-left text-xs space-y-3">
           <div className="flex justify-between items-center border-b border-slate-200 pb-2">
             <span className="text-slate-500 font-semibold">Agency Name:</span>
             <span className="font-bold text-slate-900">{dispatchedVendor.companyName}</span>

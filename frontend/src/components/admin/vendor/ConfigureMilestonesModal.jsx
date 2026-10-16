@@ -426,7 +426,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             {milestones.map((m, mIdx) => (
               <div
                 key={m.id || mIdx}
-                className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3"
+                className="bg-white rounded-xl border border-slate-200 p-2.5 shadow-2xs space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-1.5">

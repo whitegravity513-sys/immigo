@@ -30,7 +30,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
             Total Projects
           </p>
@@ -40,7 +40,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
           <p className="text-xs text-gray-500 mt-1">Deployment work sites</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
             Total Required Manpower
           </p>
@@ -50,7 +50,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
           <p className="text-xs text-gray-500 mt-1">Sum across all trades & projects</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-2xs">
+        <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
             Active Requirements
           </p>

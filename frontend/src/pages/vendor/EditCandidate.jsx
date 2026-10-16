@@ -293,9 +293,9 @@ export default function EditCandidate() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-            <div className="relative w-20 h-20 rounded-2xl bg-white border border-slate-300 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+            <div className="relative w-20 h-20 rounded-xl bg-white border border-slate-300 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
               {photo ? (
                 <img
                   src={photo}
@@ -531,7 +531,7 @@ export default function EditCandidate() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
             <div>
               <h3 className="text-sm font-bold text-slate-900">

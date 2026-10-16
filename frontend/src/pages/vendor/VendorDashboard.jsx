@@ -251,7 +251,7 @@ export function VendorDashboard() {
         const recentProjects = allProjects.slice(0, 5);
 
         return (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
             <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -276,12 +276,12 @@ export function VendorDashboard() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
                   <tr>
-                    <th className="py-3 px-4">Project Name</th>
-                    <th className="py-3 px-4">Client</th>
-                    <th className="py-3 px-4">Country</th>
-                    <th className="py-3 px-4">Trades / Roles</th>
-                    <th className="py-3 px-4">Headcount Req.</th>
-                    <th className="py-3 px-4 text-right">Action</th>
+                    <th className="py-2 px-3 text-[10px]">Project Name</th>
+                    <th className="py-2 px-3 text-[10px]">Client</th>
+                    <th className="py-2 px-3 text-[10px]">Country</th>
+                    <th className="py-2 px-3 text-[10px]">Trades / Roles</th>
+                    <th className="py-2 px-3 text-[10px]">Headcount Req.</th>
+                    <th className="py-2 px-3 text-[10px] text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -290,7 +290,7 @@ export function VendorDashboard() {
                       const trades = proj.manpowerRequirements || [];
                       return (
                         <tr key={proj.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-3 px-4 font-bold text-slate-900 truncate max-w-[200px]">
+                          <td className="py-1.5 px-3 font-bold text-slate-900 truncate max-w-[200px]">
                             <Link
                               to={`/vendor/projects/${proj.id}`}
                               className="hover:text-blue-600 hover:underline text-left font-bold transition-colors block truncate"
@@ -298,16 +298,16 @@ export function VendorDashboard() {
                               {proj.projectName}
                             </Link>
                           </td>
-                          <td className="py-3 px-4 text-slate-700 truncate max-w-[150px]">
+                          <td className="py-1.5 px-3 text-slate-700 truncate max-w-[150px]">
                             {proj.clientName}
                           </td>
-                          <td className="py-3 px-4 text-slate-600">
+                          <td className="py-1.5 px-3 text-slate-600">
                             <div className="flex items-center gap-1">
                               <MapPin size={12} className="text-blue-500 shrink-0" />
                               <span>{proj.country}</span>
                             </div>
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-1.5 px-3">
                             {trades.length > 0 ? (
                               <div className="flex flex-wrap items-center gap-1 max-w-[280px]">
                                 {trades.slice(0, 2).map((t, idx) => (
@@ -332,13 +332,13 @@ export function VendorDashboard() {
                               <span className="text-slate-400 italic text-[11px]">General / All Trades</span>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-slate-700 font-semibold">
+                          <td className="py-1.5 px-3 text-slate-700 font-semibold">
                             <span className="inline-flex items-center gap-1">
                               <Users size={12} className="text-slate-400" />
                               <span>{proj.totalHeadcount || "N/A"}</span>
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-right">
+                          <td className="py-1.5 px-3 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <Link
                                 to={`/vendor/projects/${proj.id}`}

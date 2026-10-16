@@ -93,12 +93,12 @@ export default function RejectedCandidates() {
 
       {/* Table / List */}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs text-slate-500">Loading rejected applications...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200/80 shadow-sm">
           <XCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-bold text-slate-800">No rejected applications</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
@@ -108,24 +108,24 @@ export default function RejectedCandidates() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50/80 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200/80">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-6">Candidate</th>
-                  <th className="py-3.5 px-4">Applied Project</th>
-                  <th className="py-3.5 px-4">Role / Trade</th>
-                  <th className="py-3.5 px-4">Rejection Reason</th>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4 text-right">Reuse / Action</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>
+                  <th className="py-2 px-3 text-[10px]">Applied Project</th>
+                  <th className="py-2 px-3 text-[10px]">Role / Trade</th>
+                  <th className="py-2 px-3 text-[10px]">Rejection Reason</th>
+                  <th className="py-2 px-3 text-[10px]">Date</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Reuse / Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50/70 transition">
                     {/* Candidate */}
-                    <td className="py-4 px-4 sm:px-6">
+                    <td className="py-1.5 px-3 sm:px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-rose-50 text-rose-700 font-bold flex items-center justify-center text-xs shrink-0 border border-rose-200">
                           {app.candidateName?.slice(0, 2).toUpperCase()}
@@ -145,7 +145,7 @@ export default function RejectedCandidates() {
                     </td>
 
                     {/* Applied Project */}
-                    <td className="py-4 px-4">
+                    <td className="py-1.5 px-3">
                       <div className="font-semibold text-slate-800">{app.projectName}</div>
                       <div className="text-[11px] text-slate-500 flex items-center gap-1">
                         <Building2 className="w-3 h-3 text-slate-400" />
@@ -156,10 +156,10 @@ export default function RejectedCandidates() {
                     </td>
 
                     {/* Trade */}
-                    <td className="py-4 px-4 font-medium text-slate-700">{app.position}</td>
+                    <td className="py-1.5 px-3 font-medium text-slate-700">{app.position}</td>
 
                     {/* Reason */}
-                    <td className="py-4 px-4 max-w-[240px]">
+                    <td className="py-1.5 px-3 max-w-[240px]">
                       <div className="p-2 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 text-xs">
                         <span className="font-semibold block text-[10px] uppercase tracking-wider text-rose-600">
                           Feedback:
@@ -169,7 +169,7 @@ export default function RejectedCandidates() {
                     </td>
 
                     {/* Date */}
-                    <td className="py-4 px-4 text-slate-500 text-xs">
+                    <td className="py-1.5 px-3 text-slate-500 text-xs">
                       {app.rejectionDate
                         ? new Date(app.rejectionDate).toLocaleDateString()
                         : app.submittedAt
@@ -178,7 +178,7 @@ export default function RejectedCandidates() {
                     </td>
 
                     {/* Reuse action */}
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-1.5 px-3 text-right">
                       <Link
                         to={`/vendor/candidates/submit?candidateId=${app.candidateId}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-sm"

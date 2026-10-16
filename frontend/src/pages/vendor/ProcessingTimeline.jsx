@@ -96,12 +96,12 @@ export default function ProcessingTimeline() {
       </div>
 
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs text-slate-500">Loading deployment roster...</p>
         </div>
       ) : applications.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200 shadow-xs">
           <UserCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-bold text-slate-800">No candidates in deployment processing</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
@@ -112,7 +112,7 @@ export default function ProcessingTimeline() {
         <div className="w-full">
           {}
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">

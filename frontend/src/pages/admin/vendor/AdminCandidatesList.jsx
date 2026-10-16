@@ -570,7 +570,7 @@ export default function AdminCandidatesList() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-xs space-y-3">
         <CandidateTabsBar
           activeTab={activeTab}
           onTabChange={setActiveTab}

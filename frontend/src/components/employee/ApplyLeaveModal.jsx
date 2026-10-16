@@ -13,7 +13,7 @@ export default function ApplyLeaveModal({
   return (
     <div className="max-w-lg mx-auto space-y-6">
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-6">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-6">
         <h3 className="text-base font-black text-slate-800 mb-5">Apply for Leave</h3>
         <form onSubmit={handleLeaveSubmit} className="space-y-4">
           <div className="flex flex-col gap-1.5">

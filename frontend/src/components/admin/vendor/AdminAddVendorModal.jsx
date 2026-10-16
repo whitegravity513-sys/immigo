@@ -44,7 +44,7 @@ export function AdminAddVendorModal({
 
         <form onSubmit={handleAddVendorSubmit} className="space-y-6 text-xs">
           {}
-          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Building2 size={14} className="text-blue-600" />
               <span>1. Agency Legal & Statutory Information</span>
@@ -157,7 +157,7 @@ export function AdminAddVendorModal({
           </div>
 
           {}
-          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <UserCheck size={14} className="text-blue-600" />
               <span>2. Contact Person & Office Location</span>
@@ -304,7 +304,7 @@ export function AdminAddVendorModal({
           </div>
 
           {}
-          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Briefcase size={14} className="text-blue-600" />
               <span>3. Operational Capacities & Trades</span>
@@ -381,7 +381,7 @@ export function AdminAddVendorModal({
           </div>
 
           {}
-          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+          <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Paperclip size={14} className="text-blue-600" />
               <span>4. Statutory Document Uploads & Credentials</span>
@@ -560,7 +560,7 @@ export function AdminAddVendorModal({
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50/90 rounded-2xl border border-blue-200 text-blue-900 flex items-start gap-2.5">
+          <div className="p-4 bg-blue-50/90 rounded-xl border border-blue-200 text-blue-900 flex items-start gap-2.5">
             <Mail size={20} className="text-blue-600 shrink-0 mt-0.5" />
             <p className="text-[11px] font-semibold leading-relaxed">
               Upon creation, vendor account status will be set to <strong>Approved</strong>. An automated dispatch notification containing Vendor ID, Password, and Login URL will be generated and ready to copy.

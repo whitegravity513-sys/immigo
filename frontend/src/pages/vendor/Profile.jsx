@@ -181,7 +181,7 @@ export default function Profile() {
       </div>
 
       {}
-      <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="p-5 rounded-xl bg-white border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="relative group shrink-0">
             {profileImage ? (
@@ -228,7 +228,7 @@ export default function Profile() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-7">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6 sm:p-7">
         <h3 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
           <Building2 className="w-5 h-5 text-indigo-600" />
           <span>Company & Contact Details</span>
@@ -394,7 +394,7 @@ export default function Profile() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-7">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6 sm:p-7">
         <h3 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
           <Lock className="w-5 h-5 text-indigo-600" />
           <span>Security & Password</span>

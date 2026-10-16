@@ -87,25 +87,25 @@ export default function ClientPaymentTable({
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3 px-4">Payment ID & Date</th>
-                <th className="py-3 px-4">Client Name</th>
-                <th className="py-3 px-4">Milestone</th>
-                <th className="py-3 px-4">Amount Paid</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-2 px-3 text-[10px]">Payment ID & Date</th>
+                <th className="py-2 px-3 text-[10px]">Client Name</th>
+                <th className="py-2 px-3 text-[10px]">Milestone</th>
+                <th className="py-2 px-3 text-[10px]">Amount Paid</th>
+                <th className="py-2 px-3 text-[10px]">Status</th>
+                <th className="py-2 px-3 text-[10px] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {payments.map((p) => (
                 <tr key={p._id || p.id} className="hover:bg-blue-50/40 transition-colors">
-                  <td className="py-3.5 px-4 whitespace-nowrap">
+                  <td className="py-1.5 px-3 whitespace-nowrap">
                     <div className="font-mono font-bold text-blue-700">
                       {p.paymentId || (p._id ? p._id.slice(-8) : "—")}
                     </div>
                     <div className="text-[11px] text-gray-500 mt-0.5">{formatDate(p.paymentDate)}</div>
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-1.5 px-3">
                     <Link
                       to={`/client/clients/${p.clientId}`}
                       className="font-bold text-gray-900 hover:text-blue-600 flex items-center gap-1"
@@ -116,7 +116,7 @@ export default function ClientPaymentTable({
                     {p.projectName && <div className="text-[11px] text-gray-500 mt-0.5">{p.projectName}</div>}
                   </td>
 
-                  <td className="py-3.5 px-4">
+                  <td className="py-1.5 px-3">
                     <div className="font-semibold text-gray-900">{p.milestoneName}</div>
                     {p.candidateName ? (
                       <div className="text-[11px] text-blue-600 font-medium mt-0.5">
@@ -127,7 +127,7 @@ export default function ClientPaymentTable({
                     ) : null}
                   </td>
 
-                  <td className="py-3.5 px-4 whitespace-nowrap font-mono">
+                  <td className="py-1.5 px-3 whitespace-nowrap font-mono">
                     <div className="font-black text-gray-950 text-sm">
                       ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")}
                     </div>
@@ -142,7 +142,7 @@ export default function ClientPaymentTable({
                     )}
                   </td>
 
-                  <td className="py-3.5 px-4 whitespace-nowrap">
+                  <td className="py-1.5 px-3 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                         STATUS_COLORS[p.paymentStatus] || "bg-gray-100 text-gray-700"
@@ -155,7 +155,7 @@ export default function ClientPaymentTable({
                     )}
                   </td>
 
-                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                  <td className="py-1.5 px-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         type="button"

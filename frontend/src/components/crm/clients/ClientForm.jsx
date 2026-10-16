@@ -459,7 +459,7 @@ export function ClientForm({
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
             type="button"

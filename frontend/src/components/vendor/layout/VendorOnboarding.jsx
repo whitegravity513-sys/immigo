@@ -275,7 +275,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 animate-fadeIn">
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 uppercase tracking-wider">
@@ -331,7 +331,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stepsList.map((s, idx) => (
             <div
@@ -384,7 +384,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       {}
       {}
       {currentStep === 1 && (
-        <form onSubmit={handleDocsSubmit} className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+        <form onSubmit={handleDocsSubmit} className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
               <UploadCloud className="w-5 h-5 text-blue-600" />
@@ -545,7 +545,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       {}
       {}
       {currentStep === 2 && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-8 shadow-xs text-center space-y-6">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-8 shadow-xs text-center space-y-6">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto border border-blue-200">
             <Clock size={32} className="animate-pulse" />
           </div>
@@ -588,7 +588,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       {}
       {}
       {currentStep === 3 && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-950">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-600 text-white rounded-xl">

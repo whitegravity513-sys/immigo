@@ -297,7 +297,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       )}
 
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 md:p-8">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 md:p-8">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 justify-between">
           <div className="flex items-center gap-5">
             <div className="relative group">
@@ -357,7 +357,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
+        <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -492,7 +492,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
               <div>
@@ -526,7 +526,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                 return (
                   <div
                     key={item.type}
-                    className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 ${
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                       isRejected
                         ? "bg-rose-50/50 border-rose-200"
                         : isVerified
@@ -604,7 +604,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div>
             <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -635,20 +635,20 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
             <tbody>
               {uploadedDocs.map((doc) => (
                 <tr key={doc._id || doc.id} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
-                  <td className="px-6 py-4 text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <td className="px-3 py-1.5 text-sm font-bold text-slate-800 flex items-center gap-2">
                     <FileText size={16} className="text-blue-600 shrink-0" />
                     <span className="truncate max-w-[220px]">{doc.name}</span>
                   </td>
-                  <td className="px-6 py-4 text-xs font-bold text-slate-600">
+                  <td className="px-3 py-1.5 text-xs font-bold text-slate-600">
                     <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
                       {doc.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs font-semibold text-slate-600">{doc.uploadedBy || "Employee"}</td>
-                  <td className="px-6 py-4 text-xs font-semibold text-slate-500">
+                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-600">{doc.uploadedBy || "Employee"}</td>
+                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-500">
                     {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString("en-IN") : "—"}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-1.5">
                     <div className="space-y-1">
                       <span
                         className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase border ${doc.status === "Verified"
@@ -667,7 +667,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-3 py-1.5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
@@ -716,7 +716,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
           onClick={() => setUploadModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-md rounded-3xl border border-slate-200 shadow-2xl overflow-hidden"
+            className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -808,7 +808,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
           onClick={() => setPreviewDoc(null)}
         >
           <div
-            className="bg-white w-full max-w-3xl rounded-3xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white w-full max-w-3xl rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">

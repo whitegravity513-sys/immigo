@@ -152,7 +152,7 @@ export default function VendorProjectDetails() {
 
       {}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-blue-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Users size={14} /> Total Headcount
           </div>
@@ -160,7 +160,7 @@ export default function VendorProjectDetails() {
           <div className="text-[10px] text-slate-500 mt-0.5">Approved Manpower Target</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Briefcase size={14} /> Trades Defined
           </div>
@@ -168,7 +168,7 @@ export default function VendorProjectDetails() {
           <div className="text-[10px] text-slate-500 mt-0.5">Job Positions & Roles</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Globe size={14} /> Work Location
           </div>
@@ -180,7 +180,7 @@ export default function VendorProjectDetails() {
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-purple-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Calendar size={14} /> Duration / Timeline
           </div>
@@ -194,7 +194,7 @@ export default function VendorProjectDetails() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -214,50 +214,50 @@ export default function VendorProjectDetails() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
               <tr>
-                <th className="py-3 px-4">#</th>
-                <th className="py-3 px-4">Trade / Position Role</th>
-                <th className="py-3 px-4">Quantity Req.</th>
-                <th className="py-3 px-4">Age Criteria</th>
-                <th className="py-3 px-4">Min Qualification</th>
-                <th className="py-3 px-4">Experience</th>
-                <th className="py-3 px-4">Last / Preferred Company</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-2 px-3 text-[10px]">#</th>
+                <th className="py-2 px-3 text-[10px]">Trade / Position Role</th>
+                <th className="py-2 px-3 text-[10px]">Quantity Req.</th>
+                <th className="py-2 px-3 text-[10px]">Age Criteria</th>
+                <th className="py-2 px-3 text-[10px]">Min Qualification</th>
+                <th className="py-2 px-3 text-[10px]">Experience</th>
+                <th className="py-2 px-3 text-[10px]">Last / Preferred Company</th>
+                <th className="py-2 px-3 text-[10px] text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {trades.length > 0 ? (
                 trades.map((pos, idx) => (
                   <tr key={pos.id || idx} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 px-4 text-slate-400 font-bold">{idx + 1}</td>
-                    <td className="py-3 px-4 font-bold text-slate-900">
+                    <td className="py-1.5 px-3 text-slate-400 font-bold">{idx + 1}</td>
+                    <td className="py-1.5 px-3 font-bold text-slate-900">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
                         <span className="text-sm">{pos.position || pos.positionTitle || "General Role"}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-bold text-blue-700">
+                    <td className="py-1.5 px-3 font-bold text-blue-700">
                       <span className="px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200/70">
                         {pos.quantity} Pax
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-700 font-medium">
+                    <td className="py-1.5 px-3 text-slate-700 font-medium">
                       {pos.minAge || pos.maxAge
                         ? `${pos.minAge || "Any"} - ${pos.maxAge || "Any"} Yrs`
                         : "No restriction"}
                     </td>
-                    <td className="py-3 px-4 text-slate-700 font-medium">
+                    <td className="py-1.5 px-3 text-slate-700 font-medium">
                       <span className="inline-flex items-center gap-1">
                         <GraduationCap size={12} className="text-slate-400" />
                         {pos.qualification || "Any"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-700 font-medium">
+                    <td className="py-1.5 px-3 text-slate-700 font-medium">
                       {pos.experienceYears ? `${pos.experienceYears} Years` : "Any"}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 italic">
+                    <td className="py-1.5 px-3 text-slate-600 italic">
                       {pos.lastCompany || "-"}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-1.5 px-3 text-right">
                       <Link
                         to={`/vendor/submit-candidate?project=${project.id}&position=${encodeURIComponent(
                           pos.position || pos.positionTitle || ""
@@ -283,7 +283,7 @@ export default function VendorProjectDetails() {
 
       {}
       {project.description && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-2">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 space-y-2">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <FileText size={16} className="text-blue-600" />
             Project Scope & Job Description
@@ -296,7 +296,7 @@ export default function VendorProjectDetails() {
 
       {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 space-y-3">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <ShieldCheck size={16} className="text-emerald-600" />
             Required Documents & Verification
@@ -326,7 +326,7 @@ export default function VendorProjectDetails() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 space-y-3">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Award size={16} className="text-indigo-600" />
             Benefits & Working Facilities

@@ -157,7 +157,7 @@ export const RegisterEmployeeSection = ({
   return (
     <div className="w-full space-y-6 text-left">
       {}
-      <div className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <button
             type="button"
@@ -205,7 +205,7 @@ export const RegisterEmployeeSection = ({
       {}
       <form onSubmit={onSubmit} className="space-y-6">
         {}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-slate-50 border border-slate-200/80 rounded-2xl">
             <div className="flex items-center gap-4">
               <div className="relative group shrink-0">
@@ -655,7 +655,7 @@ export const RegisterEmployeeSection = ({
         </div>
 
         {}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onCancel}

@@ -84,7 +84,7 @@ export default function AdminProcessingList() {
     return (
       <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
         {}
-        <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
           <button
             onClick={() => setSelectedApp(null)}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
@@ -99,7 +99,7 @@ export default function AdminProcessingList() {
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-5">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
@@ -135,7 +135,7 @@ export default function AdminProcessingList() {
         </div>
 
         {}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Clock size={18} className="text-indigo-600" />
@@ -185,29 +185,29 @@ export default function AdminProcessingList() {
 
       {}
       {loading ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
           <p className="text-xs font-semibold text-slate-500">Loading processing timeline...</p>
         </div>
       ) : filteredApps.length === 0 ? (
-        <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <Clock className="w-10 h-10 text-slate-300 mx-auto mb-2" />
           <h3 className="text-sm font-bold text-slate-800">No candidates in active processing</h3>
           <p className="text-xs text-slate-500 mt-1">Candidates marked as Selected will appear here.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3.5 px-4 sm:px-5">Candidate Name</th>
-                  <th className="py-3.5 px-4">Position</th>
-                  <th className="py-3.5 px-4">Vendor Partner</th>
-                  <th className="py-3.5 px-4">Client Company</th>
-                  <th className="py-3.5 px-4">Project Name</th>
-                  <th className="py-3.5 px-4">Current Processing Stage</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px] sm:px-5">Candidate Name</th>
+                  <th className="py-2 px-3 text-[10px]">Position</th>
+                  <th className="py-2 px-3 text-[10px]">Vendor Partner</th>
+                  <th className="py-2 px-3 text-[10px]">Client Company</th>
+                  <th className="py-2 px-3 text-[10px]">Project Name</th>
+                  <th className="py-2 px-3 text-[10px]">Current Processing Stage</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -218,24 +218,24 @@ export default function AdminProcessingList() {
                       onClick={() => setSelectedApp(app)}
                       className="hover:bg-indigo-50/40 transition cursor-pointer group"
                     >
-                      <td className="py-4 px-4 sm:px-5 font-black text-slate-900 group-hover:text-indigo-600 transition">
+                      <td className="py-1.5 px-3 sm:px-5 font-black text-slate-900 group-hover:text-indigo-600 transition">
                         {app.candidateName}
                         <span className="block font-mono text-[10px] text-slate-400 font-normal">{app.id}</span>
                       </td>
 
-                      <td className="py-4 px-4 font-bold text-indigo-700">{app.position}</td>
-                      <td className="py-4 px-4 font-semibold text-slate-700">{app.vendorId}</td>
-                      <td className="py-4 px-4 text-slate-800 font-medium">{app.clientName}</td>
-                      <td className="py-4 px-4 font-bold text-slate-900">{app.projectName}</td>
+                      <td className="py-1.5 px-3 font-bold text-indigo-700">{app.position}</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
+                      <td className="py-1.5 px-3 text-slate-800 font-medium">{app.clientName}</td>
+                      <td className="py-1.5 px-3 font-bold text-slate-900">{app.projectName}</td>
 
-                      <td className="py-4 px-4">
+                      <td className="py-1.5 px-3">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
                           <Clock className="w-3.5 h-3.5 text-indigo-600" />
                           Processing
                         </span>
                       </td>
 
-                      <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-1.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setSelectedApp(app)}
                           className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer ml-auto"

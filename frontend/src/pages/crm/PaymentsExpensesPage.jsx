@@ -327,7 +327,7 @@ export default function PaymentsExpensesPage() {
   return (
     <div className="space-y-6 pb-12">
       {}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-1">
@@ -464,7 +464,7 @@ export default function PaymentsExpensesPage() {
       </div>
 
       {}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         {}
         <div className="border-b border-gray-200 px-6 pt-3 flex items-center gap-2 overflow-x-auto bg-gray-50/50">
           {TABS.map((tab) => {
@@ -571,16 +571,16 @@ export default function PaymentsExpensesPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
-                  <th className="py-3 px-4">Type</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Client Organization</th>
-                  <th className="py-3 px-4">Project</th>
-                  <th className="py-3 px-4">Milestone / Category</th>
-                  <th className="py-3 px-4">Amount</th>
-                  <th className="py-3 px-4">Method & Ref</th>
-                  <th className="py-3 px-4">Paid To / By</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3 text-[10px]">Type</th>
+                  <th className="py-2 px-3 text-[10px]">Date</th>
+                  <th className="py-2 px-3 text-[10px]">Client Organization</th>
+                  <th className="py-2 px-3 text-[10px]">Project</th>
+                  <th className="py-2 px-3 text-[10px]">Milestone / Category</th>
+                  <th className="py-2 px-3 text-[10px]">Amount</th>
+                  <th className="py-2 px-3 text-[10px]">Method & Ref</th>
+                  <th className="py-2 px-3 text-[10px]">Paid To / By</th>
+                  <th className="py-2 px-3 text-[10px]">Status</th>
+                  <th className="py-2 px-3 text-[10px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -589,7 +589,7 @@ export default function PaymentsExpensesPage() {
                   return (
                     <tr key={tx.id} className="hover:bg-gray-50/60 transition-colors">
                       {}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                             isPayment
@@ -603,12 +603,12 @@ export default function PaymentsExpensesPage() {
                       </td>
 
                       {}
-                      <td className="py-3 px-4 text-gray-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {formatDate(tx.date)}
                       </td>
 
                       {}
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <Link
                           to={`/client/clients/${tx.clientId}?tab=milestones`}
                           className="font-bold text-gray-900 hover:text-blue-600 transition-colors line-clamp-1"
@@ -618,12 +618,12 @@ export default function PaymentsExpensesPage() {
                       </td>
 
                       {}
-                      <td className="py-3 px-4 text-gray-700 max-w-xs truncate">
+                      <td className="py-1.5 px-3 text-gray-700 max-w-xs truncate">
                         {tx.projectName}
                       </td>
 
                       {}
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${
                             isPayment
@@ -636,7 +636,7 @@ export default function PaymentsExpensesPage() {
                       </td>
 
                       {}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`font-black text-sm ${
                             isPayment ? "text-emerald-700" : "text-rose-700"
@@ -647,7 +647,7 @@ export default function PaymentsExpensesPage() {
                       </td>
 
                       {}
-                      <td className="py-3 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="text-gray-900 font-semibold">{tx.paymentMethod}</div>
                         <div className="font-mono text-[10px] text-gray-500 truncate max-w-[120px]">
                           {tx.transactionReference}
@@ -655,12 +655,12 @@ export default function PaymentsExpensesPage() {
                       </td>
 
                       {}
-                      <td className="py-3 px-4 text-gray-600 max-w-xs truncate">
+                      <td className="py-1.5 px-3 text-gray-600 max-w-xs truncate">
                         {isPayment ? `Rec: ${tx.receivedBy}` : `To: ${tx.paidTo}`}
                       </td>
 
                       {}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadge(
                             tx.status
@@ -671,7 +671,7 @@ export default function PaymentsExpensesPage() {
                       </td>
 
                       {}
-                      <td className="py-3 px-4 text-right whitespace-nowrap space-x-1">
+                      <td className="py-1.5 px-3 text-right whitespace-nowrap space-x-1">
                         <button
                           type="button"
                           onClick={() => {

@@ -41,7 +41,7 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
         {announcements.map((a) => (
           <div
             key={a._id || a.id}
-            className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 hover:shadow-md transition-all space-y-3"
+            className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 hover:shadow-md transition-all space-y-3"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap">
@@ -70,7 +70,7 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
         ))}
 
         {announcements.length === 0 && (
-          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm flex flex-col items-center justify-center">
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-12 text-center text-slate-400 font-semibold text-sm flex flex-col items-center justify-center">
             <AlertCircle size={36} className="text-slate-300 mb-3" />
             No announcements broadcasted yet.
           </div>

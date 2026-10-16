@@ -266,19 +266,19 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-100 text-slate-900 border-b-2 border-slate-800 text-[11px] font-black uppercase tracking-wider">
-                  <th className="px-4 py-3 border-r border-slate-400 w-12 text-center">#</th>
-                  <th className="px-4 py-3 border-r border-slate-400">DESCRIPTION</th>
-                  <th className="px-4 py-3 border-r border-slate-400 w-32 text-center">SAC CODE</th>
-                  <th className="px-4 py-3 w-36 text-right">AMOUNT (INR)</th>
+                  <th className="px-3 py-2 text-[10px] border-r border-slate-400 w-12 text-center">#</th>
+                  <th className="px-3 py-2 text-[10px] border-r border-slate-400">DESCRIPTION</th>
+                  <th className="px-3 py-2 text-[10px] border-r border-slate-400 w-32 text-center">SAC CODE</th>
+                  <th className="px-3 py-2 text-[10px] w-36 text-right">AMOUNT (INR)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-300 text-xs sm:text-sm">
                 {parsedItems.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-center border-r border-slate-300 text-slate-600 font-semibold">{idx + 1}</td>
-                    <td className="px-4 py-3 border-r border-slate-300 font-semibold text-slate-900">{item.description || "—"}</td>
-                    <td className="px-4 py-3 text-center border-r border-slate-300 font-mono text-xs text-slate-700">{item.sacCode || "—"}</td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-900">
+                    <td className="px-3 py-1.5 text-center border-r border-slate-300 text-slate-600 font-semibold">{idx + 1}</td>
+                    <td className="px-3 py-1.5 border-r border-slate-300 font-semibold text-slate-900">{item.description || "—"}</td>
+                    <td className="px-3 py-1.5 text-center border-r border-slate-300 font-mono text-xs text-slate-700">{item.sacCode || "—"}</td>
+                    <td className="px-3 py-1.5 text-right font-bold text-slate-900">
                       ₹{(Number(item.amount) || 0).toLocaleString("en-IN")}
                     </td>
                   </tr>

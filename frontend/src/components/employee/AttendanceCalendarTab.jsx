@@ -89,7 +89,7 @@ export default function AttendanceCalendarTab({
             color: "bg-amber-50 text-amber-800 border-amber-200",
           },
         ].map((item) => (
-          <div key={item.label} className={`rounded-2xl border p-4 shadow-2xs ${item.color}`}>
+          <div key={item.label} className={`rounded-xl border p-4 shadow-2xs ${item.color}`}>
             <div className="text-2xl font-black">{item.value}</div>
             <div className="text-[11px] font-black uppercase tracking-wider mt-1">{item.label}</div>
             {item.sub && <div className="text-[10px] font-semibold opacity-75 mt-0.5">{item.sub}</div>}
@@ -97,7 +97,7 @@ export default function AttendanceCalendarTab({
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-5">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
             <h3 className="text-base font-black text-slate-800">Attendance Calendar</h3>
@@ -207,7 +207,7 @@ export default function AttendanceCalendarTab({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-xs p-5">
+      <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
           <h3 className="text-base font-black text-slate-800">Today’s Snapshot</h3>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{getIndiaDateString()}</span>

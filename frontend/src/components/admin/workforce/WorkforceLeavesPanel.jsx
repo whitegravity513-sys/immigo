@@ -10,7 +10,7 @@ export function WorkforceLeavesPanel({
   formatDate,
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
       <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-rose-50/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">

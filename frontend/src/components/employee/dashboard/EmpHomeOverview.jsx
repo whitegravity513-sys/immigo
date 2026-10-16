@@ -304,7 +304,7 @@ export default function EmpHomeOverview({
       {}
       {activeHoliday && (
         <div
-          className={`p-4 sm:p-5 rounded-2xl border transition-all animate-in fade-in duration-200 ${
+          className={`p-4 sm:p-5 rounded-xl border transition-all animate-in fade-in duration-200 ${
             holidayAcknowledged
               ? "bg-amber-50/70 border-amber-200/90 text-amber-950"
               : "bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/70 border-amber-300 shadow-sm text-slate-800"
@@ -441,7 +441,7 @@ export default function EmpHomeOverview({
       </div>
 
       {}
-      <div className="p-4 sm:p-4.5 rounded-2xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-xs">
+      <div className="p-4 sm:p-4.5 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           <div className="flex items-start sm:items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
@@ -480,7 +480,7 @@ export default function EmpHomeOverview({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
         <div className="lg:col-span-7 flex flex-col">
-          <div className="bg-white rounded-2xl border-2 border-slate-300 p-3.5 sm:p-4 shadow-xs h-full flex flex-col justify-between">
+          <div className="bg-white rounded-xl border-2 border-slate-300 p-3.5 sm:p-4 shadow-xs h-full flex flex-col justify-between">
             <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center">
