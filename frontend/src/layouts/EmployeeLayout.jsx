@@ -26,7 +26,7 @@ export default function EmployeeLayout({
   children,
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans relative overflow-x-hidden">
+    <div className="flex h-screen max-h-screen w-screen overflow-hidden bg-slate-50 font-sans relative">
       <DashboardWatermark />
 
       <HolidayAnnouncementModals
@@ -65,7 +65,7 @@ export default function EmployeeLayout({
         setSidebarOpen={setSidebarOpen}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+      <div className="flex-1 flex flex-col h-screen max-h-screen overflow-hidden min-w-0">
         <EmpTopbar
           view={view}
           setView={setView}
@@ -78,7 +78,7 @@ export default function EmployeeLayout({
           onNewNotification={(n) => setLiveAdminNotification(n)}
         />
 
-        <main className="flex-1 flex flex-col px-3 sm:px-5 py-2.5 sm:py-3.5 w-full">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 w-full custom-scrollbar flex flex-col">
           {errorMsg && (
             <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mb-3">
               <AlertCircle size={15} className="shrink-0" />
