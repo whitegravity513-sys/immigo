@@ -301,28 +301,29 @@ export default function WorkforceDashboardSection({
   };
 
   return (
-    <div className="space-y-5 text-slate-800">
+    <div className="space-y-3.5 text-slate-800">
       {isFullRegisterPage ? (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="bg-white rounded-xl border border-slate-200/90 px-3.5 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
               onClick={() => navigateTo("workforce")}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
               title="Return to Main Dashboard"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={14} />
               <span>Back</span>
             </button>
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
+            <div className="min-w-0 flex items-center gap-2 flex-wrap">
+              <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                 <span>Daily Attendance</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
                   {filteredAttendance.length} Total
                 </span>
               </h1>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                Daily staff attendance tracker, shift punches & status logs
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <p className="text-[11px] text-slate-500 font-medium truncate">
+                Shift punches, work time & status logs
               </p>
             </div>
           </div>
@@ -336,19 +337,19 @@ export default function WorkforceDashboardSection({
                   fetchDateAttendance(selectedDate);
                 }
               }}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
               title="Refresh data"
             >
-              <RefreshCw size={13} className={loadingDateAttendance ? "animate-spin" : ""} />
+              <RefreshCw size={12} className={loadingDateAttendance ? "animate-spin" : ""} />
               <span>Refresh</span>
             </button>
             <button
               type="button"
               onClick={handleExportCSV}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
               title="Download attendance CSV"
             >
-              <Download size={13} />
+              <Download size={12} />
               <span>Export CSV</span>
             </button>
           </div>
