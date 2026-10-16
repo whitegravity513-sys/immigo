@@ -21,7 +21,7 @@ import EditAttendance from "../../components/admin/EditAttendance.jsx";
 import NotificationBell from "../../components/admin/NotificationBell.jsx";
 import AnnouncementsSection from "../../components/admin/AnnouncementsSection.jsx";
 import CalendarMeetings from "./meetings/CalendarMeetings.jsx";
-import EmployeeMonthlyReport from "./employees/EmployeeMonthlyReport.jsx";
+import EmployeeMonthlyReport from "./employee/EmployeeMonthlyReport.jsx";
 
 import {
   LiveAttendanceSection,

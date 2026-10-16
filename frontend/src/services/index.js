@@ -7,3 +7,5 @@ export { default as invoiceService } from "./invoiceService.js";
 export { default as paymentService } from "./paymentService.js";
 export { default as projectService } from "./projectService.js";
 export { default as crmClientService } from "./crmClientService.js";
+export { default as crmVendorService } from "./crmVendorService.js";
+export { default as refundService } from "./refundService.js";
