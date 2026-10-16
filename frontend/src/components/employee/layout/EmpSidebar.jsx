@@ -64,7 +64,7 @@ export default function EmpSidebar({
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-64 bg-gradient-to-b from-[#eef5ff] via-[#e4f0fe] to-[#edf5ff] text-slate-800 border-r border-blue-200/90 shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-64 sm:w-72 bg-gradient-to-b from-[#eef5ff] via-[#e4f0fe] to-[#edf5ff] text-slate-800 border-r border-blue-200/90 shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
       >
         <div className="h-[68px] min-h-[68px] px-5 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">
@@ -80,13 +80,13 @@ export default function EmpSidebar({
         </div>
 
 
-        <nav className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-3 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-4 custom-scrollbar">
           {navSections.map((section, idx) => (
             <div key={idx}>
-              <div className="px-2.5 mb-1 text-[9px] font-black uppercase tracking-wider text-blue-900/60">
+              <div className="px-3 mb-2 text-xs font-extrabold uppercase tracking-wider text-blue-900/70">
                 {section.title}
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-1.5">
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -100,14 +100,14 @@ export default function EmpSidebar({
                         setView(item.key);
                         setSidebarOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] transition-all duration-150 cursor-pointer group ${isActive
-                        ? "bg-blue-600 text-white shadow-xs font-bold"
-                        : "text-slate-600 hover:text-blue-950 hover:bg-white/80 font-semibold"
+                      className={`w-full flex items-center justify-between px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-[13px] transition-all duration-150 cursor-pointer group ${isActive
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/30 font-bold"
+                        : "text-slate-700 hover:text-blue-950 hover:bg-white/90 font-bold"
                         }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Icon
-                          size={14}
+                          size={18}
                           className={`shrink-0 transition-colors ${isActive
                             ? "text-white"
                             : "text-blue-600/70 group-hover:text-blue-800"
@@ -132,7 +132,7 @@ export default function EmpSidebar({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-300 bg-rose-500/20 hover:bg-rose-500/30 hover:text-white border border-rose-400/30 transition-all cursor-pointer shadow-2xs group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/20 hover:bg-rose-500/30 hover:text-white border border-rose-400/30 transition-all cursor-pointer shadow-2xs group"
             title="Sign Out"
           >
             <LogOut size={13} className="text-rose-400 group-hover:text-white group-hover:-translate-x-0.5 transition-transform" />

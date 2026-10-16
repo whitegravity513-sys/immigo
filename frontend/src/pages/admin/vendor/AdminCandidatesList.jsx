@@ -548,21 +548,21 @@ export default function AdminCandidatesList() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+    <div className="space-y-3.5 max-w-7xl mx-auto font-sans antialiased text-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-2.5">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Candidates Roster</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Candidates Roster</h1>
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
             Central candidate database. Review profiles, verify documents and manage the selection pipeline.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold">
+          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold">
             Total Candidates: {candidates.length}
           </span>
           <button
             onClick={() => setDownloadModalOpen(true)}
-            className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+            className="px-2.5 py-1 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-[11px] font-bold shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
           >
             <Download size={14} />
             <span>Download Data</span>

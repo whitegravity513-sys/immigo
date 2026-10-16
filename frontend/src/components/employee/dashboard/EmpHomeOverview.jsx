@@ -478,72 +478,72 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
-        <div className="lg:col-span-7 flex flex-col">
-          <div className="bg-white rounded-xl border-2 border-slate-300 p-3.5 sm:p-4 shadow-xs h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-start">
+        <div className="flex flex-col">
+          <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-3.5 shadow-xs flex flex-col justify-between">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center">
-                  <Timer size={15} />
+                <div className="w-6 h-6 rounded-md bg-blue-600/10 text-blue-600 flex items-center justify-center">
+                  <Timer size={14} />
                 </div>
                 <div>
-                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 leading-tight">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 leading-tight">
                     Today's Shift & Break Activity
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-semibold">Live punch tracking & shift duration</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Live punch tracking & shift duration</p>
                 </div>
               </div>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${status === "Active"
-                  ? "bg-emerald-50 text-emerald-800 border-emerald-400"
+                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${status === "Active"
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                   : status === "On Break"
-                    ? "bg-amber-50 text-amber-800 border-amber-400"
+                    ? "bg-amber-50 text-amber-800 border-amber-300"
                     : status === "Checked Out"
-                      ? "bg-slate-100 text-slate-800 border-slate-400"
-                      : "bg-rose-50 text-rose-800 border-rose-400"
+                      ? "bg-slate-100 text-slate-800 border-slate-300"
+                      : "bg-rose-50 text-rose-800 border-rose-300"
                   }`}
               >
                 {status}
               </span>
             </div>
 
-            <div className="my-2.5 grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
-              <div className="sm:col-span-6 p-2.5 bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100/60 rounded-xl border border-blue-200 flex flex-col justify-center text-center">
-                <div className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">
+            <div className="my-2 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+              <div className="sm:col-span-6 p-2 bg-gradient-to-br from-blue-50 via-sky-50 to-blue-100/60 rounded-lg border border-blue-200/70 flex flex-col justify-center text-center">
+                <div className="text-[9px] font-bold text-blue-900 uppercase tracking-wider">
                   Net Work Duration
                 </div>
-                <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight tabular-nums text-blue-950 my-0.5">
+                <div className="text-xl sm:text-2xl font-bold font-mono tracking-tight tabular-nums text-blue-950 my-0.5">
                   {fmtDur(workSeconds)}
                 </div>
-                <div className="text-[10px] font-bold">
+                <div className="text-[9px] font-semibold">
                   {status === "On Break" || isOnBreak ? (
-                    <span className="text-amber-700 font-bold">⏸ Break Paused</span>
+                    <span className="text-amber-700">⏸ Break Paused</span>
                   ) : status === "Active" ? (
-                    <span className="text-emerald-700 font-bold">▶ Counting Live</span>
+                    <span className="text-emerald-700">▶ Counting Live</span>
                   ) : status === "Checked Out" ? (
-                    <span className="text-slate-600 font-bold">✓ Shift Done</span>
+                    <span className="text-slate-600">✓ Shift Done</span>
                   ) : (
-                    <span className="text-slate-500 font-bold">Inactive</span>
+                    <span className="text-slate-500">Inactive</span>
                   )}
                 </div>
               </div>
 
-              <div className="sm:col-span-6 grid grid-cols-3 gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <div className="sm:col-span-6 grid grid-cols-3 gap-1 p-1.5 bg-slate-50 rounded-lg border border-slate-200/80 text-center">
                 <div className="p-1">
                   <div className="text-[9px] text-slate-500 font-bold uppercase">In</div>
-                  <div className="text-xs font-black text-slate-900 tabular-nums mt-0.5">
+                  <div className="text-xs font-bold text-slate-900 tabular-nums mt-0.5">
                     {statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "—"}
                   </div>
                 </div>
-                <div className="p-1 border-x border-slate-200">
+                <div className="p-1 border-x border-slate-200/80">
                   <div className="text-[9px] text-slate-500 font-bold uppercase">Out</div>
-                  <div className="text-xs font-black text-slate-900 tabular-nums mt-0.5">
+                  <div className="text-xs font-bold text-slate-900 tabular-nums mt-0.5">
                     {statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : "—"}
                   </div>
                 </div>
                 <div className="p-1">
                   <div className="text-[9px] text-slate-500 font-bold uppercase">Break</div>
-                  <div className="text-xs font-black text-sky-900 tabular-nums mt-0.5">
+                  <div className="text-xs font-bold text-sky-900 tabular-nums mt-0.5">
                     {fmtDur(totalBreakSeconds)}
                   </div>
                 </div>
@@ -552,25 +552,25 @@ export default function EmpHomeOverview({
 
             <div className="pt-2 border-t border-slate-100">
               {errorMsg && (
-                <div className="mb-2 p-1.5 bg-rose-50 border border-rose-300 text-rose-800 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
-                  <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                <div className="mb-2 p-1.5 bg-rose-50 border border-rose-300 text-rose-800 rounded-lg text-[10px] font-bold flex items-center gap-1.5">
+                  <AlertCircle size={12} className="shrink-0 text-rose-600" />
                   <span>{errorMsg}</span>
                 </div>
               )}
               {successMsg && (
-                <div className="mb-2 p-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
-                  <CheckCircle2 size={13} className="shrink-0 text-emerald-600" />
+                <div className="mb-2 p-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-lg text-[10px] font-bold flex items-center gap-1.5">
+                  <CheckCircle2 size={12} className="shrink-0 text-emerald-600" />
                   <span>{successMsg}</span>
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {(status !== "Active" && status !== "On Break" && status !== "Checked Out") && (
                   <button
                     type="button"
                     onClick={() => handleCheckIn && handleCheckIn()}
                     disabled={loading}
-                    className="flex-1 min-w-[130px] py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    className="flex-1 min-w-[120px] py-1.5 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                   >
                     <LogIn size={13} />
                     <span>{loading ? "Checking In…" : "Check In Shift"}</span>
@@ -578,7 +578,7 @@ export default function EmpHomeOverview({
                 )}
 
                 {status === "Checked Out" && (
-                  <div className="flex-1 min-w-[170px] py-2 px-3 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">
+                  <div className="flex-1 min-w-[150px] py-1.5 px-2.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">
                     <span>🔒 Shift Completed (Checked Out)</span>
                   </div>
                 )}
@@ -588,7 +588,7 @@ export default function EmpHomeOverview({
                     type="button"
                     onClick={() => handleBreakStart && handleBreakStart("Break")}
                     disabled={loading}
-                    className="flex-1 py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    className="flex-1 py-1.5 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                     title="Take Break"
                   >
                     <Coffee size={13} />
@@ -601,7 +601,7 @@ export default function EmpHomeOverview({
                     type="button"
                     onClick={() => handleBreakEnd && handleBreakEnd()}
                     disabled={loading}
-                    className="flex-1 min-w-[130px] py-2 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50 animate-pulse"
+                    className="flex-1 min-w-[120px] py-1.5 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50 animate-pulse"
                   >
                     <Play size={13} className="fill-current" />
                     <span>Break In (Resume)</span>
@@ -613,7 +613,7 @@ export default function EmpHomeOverview({
                     type="button"
                     onClick={() => handleCheckOut && handleCheckOut()}
                     disabled={loading}
-                    className="py-2 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                    className="py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
                     title="Check Out Shift"
                   >
                     <LogOut size={13} />
@@ -622,8 +622,8 @@ export default function EmpHomeOverview({
                 )}
 
                 {status === "Checked Out" && (
-                  <div className="w-full py-1.5 px-2.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-xl text-[11px] font-bold text-center flex items-center justify-center gap-1.5">
-                    <CheckCircle2 size={13} className="text-emerald-700 shrink-0" />
+                  <div className="w-full py-1 px-2 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-[10px] font-bold text-center flex items-center justify-center gap-1.5">
+                    <CheckCircle2 size={12} className="text-emerald-700 shrink-0" />
                     <span>Completed at {fmtTime(statusRecord?.checkOutTime)}. Re-Check In anytime if needed.</span>
                   </div>
                 )}
@@ -632,11 +632,13 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        {/* Daily Work Log Section */}
-        <div className="lg:col-span-5 flex flex-col space-y-5">
+        <div className="flex flex-col">
           <DailyWorkLogSection />
-          <EmployeeRecentActivitySection user={user} />
         </div>
+      </div>
+
+      <div className="w-full">
+        <EmployeeRecentActivitySection user={user} />
       </div>
     </div>
   );

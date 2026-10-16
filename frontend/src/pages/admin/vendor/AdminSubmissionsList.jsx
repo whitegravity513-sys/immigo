@@ -193,13 +193,13 @@ export default function AdminSubmissionsList() {
   const isFinalized = reviewSub && ["Selected", "Rejected", "Processing", "Completed"].includes(reviewSub.status);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
       {!reviewSub ? (
         <>
       {}
       <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Candidate Submissions & Verification</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Candidate Submissions & Verification</h1>
+        <p className="text-[11px] text-slate-500 mt-0.5">
           Verify candidate compliance documents, shortlist candidates with remarks, schedule interviews, and finalize project selections.
         </p>
       </div>

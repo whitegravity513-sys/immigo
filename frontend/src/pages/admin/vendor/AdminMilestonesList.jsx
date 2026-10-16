@@ -144,61 +144,55 @@ export default function AdminMilestonesList() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
       {}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-2.5">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             Milestone Payment Management
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
             Track and manage recruitment milestone stages, fee disbursements, and payment settlements per candidate.
           </p>
         </div>
 
-        <button
-          onClick={() => setShowBulkModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-        >
-          <Sliders className="w-4 h-4 text-cyan-300" />
-          <span>Apply Bulk Template</span>
-        </button>
+        
       </div>
 
       {}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
             Total Placement Fee (Agreed)
           </span>
-          <div className="text-xl font-bold text-slate-900 mt-1">
+          <div className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
             ₹{totalFeeToCollect.toLocaleString()}
           </div>
-          <span className="text-[11px] text-slate-400 font-medium">
+          <span className="text-[10px] text-slate-400 font-medium">
             Across {applications.length} selected candidates
           </span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
             Total Fee Released (Paid)
           </span>
-          <div className="text-xl font-bold text-emerald-700 mt-1">
+          <div className="text-base sm:text-lg font-bold text-emerald-700 mt-0.5">
             ₹{totalFeeReleased.toLocaleString()}
           </div>
-          <span className="text-[11px] text-emerald-700 font-medium">
+          <span className="text-[10px] text-emerald-700 font-medium">
             Paid & verified across milestones
           </span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">
             Remaining Pending Due
           </span>
-          <div className="text-xl font-bold text-slate-800 mt-1">
+          <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
             ₹{totalRemainingPending.toLocaleString()}
           </div>
-          <span className="text-[11px] text-slate-500 font-medium">
+          <span className="text-[10px] text-slate-500 font-medium">
             Awaiting upcoming milestone completion
           </span>
         </div>
@@ -345,7 +339,7 @@ export default function AdminMilestonesList() {
                               <span className="font-bold text-slate-900 block text-sm">
                                 {app.candidateName}
                               </span>
-                              <span className="text-[11px] text-slate-500 font-medium">
+                              <span className="text-[10px] text-slate-500 font-medium">
                                 {app.projectName} • {app.vendorName || app.vendorId || "VND"}
                               </span>
                             </div>

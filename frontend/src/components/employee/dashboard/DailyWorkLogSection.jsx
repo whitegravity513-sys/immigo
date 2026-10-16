@@ -113,17 +113,17 @@ export default function DailyWorkLogSection() {
   };
 
   return (
-    <div id="daily-worklog-section" className="bg-white rounded-xl border-2 border-slate-300 shadow-xs overflow-hidden h-full flex flex-col justify-between">
-      <div className="p-3.5 sm:p-4 bg-slate-100/90 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
+    <div id="daily-worklog-section" className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+      <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
-            <FileText size={17} />
+          <div className="w-6 h-6 rounded-md bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
+            <FileText size={13} />
           </div>
           <div>
-            <h3 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 leading-tight flex items-center gap-1.5">
               Today's Work Log
             </h3>
-            <p className="text-[10px] text-slate-600 font-bold">
+            <p className="text-[9px] text-slate-500 font-medium">
               Save your daily tasks & accomplishments for Admin & Team Lead review
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function DailyWorkLogSection() {
         </div>
       </div>
 
-      <div className="p-3.5 sm:p-4 space-y-2.5 flex-1 flex flex-col justify-between">
+      <div className="p-2.5 sm:p-3 space-y-2">
         {statusMsg.text && (
           <div
             className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 ${statusMsg.type === "success"
@@ -174,9 +174,9 @@ export default function DailyWorkLogSection() {
               <textarea
                 value={logText}
                 onChange={(e) => setLogText(e.target.value)}
-                rows={3}
+                rows={2}
                 placeholder="List your tasks, accomplishments, or project progress today..."
-                className="w-full text-xs text-slate-900 bg-white hover:bg-slate-50/50 focus:bg-white border-2 border-slate-300 focus:border-blue-600 rounded-xl p-3 outline-none transition-all placeholder:text-slate-400 font-medium leading-relaxed resize-y min-h-[88px]"
+                className="w-full text-xs text-slate-900 bg-white hover:bg-slate-50/50 focus:bg-white border-2 border-slate-300 focus:border-blue-600 rounded-lg p-2 outline-none transition-all placeholder:text-slate-400 font-medium leading-relaxed resize-y min-h-[58px] border border-slate-200 focus:border-blue-500"
               />
 
               <div className="flex items-center justify-between pt-1 text-[11px] text-slate-600 font-medium">
@@ -220,7 +220,7 @@ export default function DailyWorkLogSection() {
             type="button"
             onClick={handleSave}
             disabled={saving || !logText.trim()}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all shadow-xs cursor-pointer ${saving || !logText.trim()
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer ${saving || !logText.trim()
               ? "bg-slate-200 text-slate-400 cursor-not-allowed"
               : isDirty
                 ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/25 active:scale-95"

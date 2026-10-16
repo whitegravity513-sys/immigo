@@ -94,8 +94,8 @@ export default function AdminDocumentsList() {
       {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Central Document Verification Repository</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Central Document Verification Repository</h1>
+          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
             Central repository of vendor statutory credentials (RA Licenses, Registrations) and candidate verified documents (Resumes, Passports, Aadhaar Cards).
           </p>
         </div>

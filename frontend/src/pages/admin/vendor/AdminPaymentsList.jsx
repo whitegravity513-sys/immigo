@@ -68,39 +68,39 @@ export default function AdminPaymentsList() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+    <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
       {}
-      <div className="border-b border-slate-200/80 pb-4">
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Selected Candidates Payment Accounts</h1>
-        <p className="text-xs text-slate-500 mt-0.5 font-medium">
+      <div className="border-b border-slate-200/80 pb-2.5">
+        <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Selected Candidates Payment Accounts</h1>
+        <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
           Comprehensive financial ledger tracking agreed placement fees, approved milestone disbursements, and outstanding balances.
         </p>
       </div>
 
       {}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
             Total Payment To Collect (Agreed Fee)
           </span>
-          <div className="text-2xl font-black text-slate-900 mt-1">₹{totalPaymentOverall.toLocaleString()}</div>
-          <span className="text-[11px] text-slate-400 font-medium">Agreed contract fee across selected candidates</span>
+          <div className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">₹{totalPaymentOverall.toLocaleString()}</div>
+          <span className="text-[10px] text-slate-400 font-medium">Agreed contract fee across selected candidates</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
             Total Payment Released (Paid)
           </span>
-          <div className="text-2xl font-black text-emerald-600 mt-1">₹{totalPaidOverall.toLocaleString()}</div>
-          <span className="text-[11px] text-emerald-700 font-medium">Disbursed to vendor accounts</span>
+          <div className="text-base sm:text-lg font-bold text-emerald-600 mt-0.5">₹{totalPaidOverall.toLocaleString()}</div>
+          <span className="text-[10px] text-emerald-700 font-medium">Disbursed to vendor accounts</span>
         </div>
 
-        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 shadow-2xs">
+        <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
             Remaining Balance (Pending Release)
           </span>
-          <div className="text-2xl font-black text-amber-600 mt-1">₹{totalRemainingBalance.toLocaleString()}</div>
-          <span className="text-[11px] text-amber-700 font-medium">Pending upcoming milestone triggers</span>
+          <div className="text-base sm:text-lg font-bold text-amber-600 mt-0.5">₹{totalRemainingBalance.toLocaleString()}</div>
+          <span className="text-[10px] text-amber-700 font-medium">Pending upcoming milestone triggers</span>
         </div>
       </div>
 

@@ -179,23 +179,23 @@ export default function AdminRefundsList() {
   const totalRefundAmount = refunds.reduce((acc, r) => acc + (Number(r.refundAmount) || 0), 0);
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto font-sans p-3 sm:p-5">
+    <div className="space-y-3 max-w-7xl mx-auto font-sans p-3 sm:p-4">
       {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Refund Management</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Refund Management</h1>
+          <p className="text-[11px] text-slate-500 mt-0.5">
             Manage refund requests for selected candidates who did not join or deploy on project site.
           </p>
         </div>
 
-        <div className="px-3.5 py-2 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5">
+        <div className="px-2.5 py-1.5 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2.5">
           <TrendingDown size={18} className="text-rose-600 shrink-0" />
           <div>
             <span className="text-[9px] font-semibold text-rose-700 uppercase tracking-wider block">
               Total Refund Pool
             </span>
-            <span className="text-base font-bold text-rose-900 leading-none">
+            <span className="text-xs sm:text-sm font-bold text-rose-900 leading-none">
               ₹{totalRefundAmount.toLocaleString()}
             </span>
           </div>
