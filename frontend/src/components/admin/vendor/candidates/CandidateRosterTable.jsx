@@ -14,8 +14,8 @@ export default function CandidateRosterTable({
 }) {
   if (loading) {
     return (
-      <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
-        <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+      <div className="p-8 text-center bg-white rounded-xl border border-slate-200">
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <p className="text-xs font-semibold text-slate-500">Loading candidates roster...</p>
       </div>
     );
@@ -23,27 +23,27 @@ export default function CandidateRosterTable({
 
   if (candidates.length === 0) {
     return (
-      <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
-        <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-        <h3 className="text-sm font-bold text-slate-800">No candidates found</h3>
-        <p className="text-xs text-slate-500 mt-1">No candidate records matched your tab selection or filters.</p>
+      <div className="p-8 text-center bg-white rounded-xl border border-slate-200">
+        <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+        <h3 className="text-xs font-bold text-slate-800">No candidates found</h3>
+        <p className="text-[11px] text-slate-400 mt-0.5">No candidate records matched your tab selection or filters.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs sm:text-sm">
-          <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+        <table className="w-full text-left text-xs border-collapse">
+          <thead className="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
             <tr>
-              <th className="py-3.5 px-4 sm:px-5">Candidate</th>
-              <th className="py-3.5 px-4">Vendor Partner</th>
-              <th className="py-3.5 px-4">Trade Position</th>
-              <th className="py-3.5 px-4">Experience</th>
-              <th className="py-3.5 px-4">Destination</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4 text-right">Actions</th>
+              <th className="py-2 px-3">Candidate</th>
+              <th className="py-2 px-3">Vendor Partner</th>
+              <th className="py-2 px-3">Trade Position</th>
+              <th className="py-2 px-3">Experience</th>
+              <th className="py-2 px-3">Destination</th>
+              <th className="py-2 px-3">Status</th>
+              <th className="py-2 px-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -55,11 +55,11 @@ export default function CandidateRosterTable({
                 <tr
                   key={c.id}
                   onClick={() => onViewCandidate(c)}
-                  className="hover:bg-blue-50/40 transition cursor-pointer group"
+                  className="hover:bg-blue-50/30 transition-colors cursor-pointer group"
                 >
-                  <td className="py-4 px-4 sm:px-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 border border-blue-200 overflow-hidden font-black text-xs flex items-center justify-center shrink-0">
+                  <td className="py-1.5 px-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-blue-100 text-blue-800 border border-blue-200 overflow-hidden font-bold text-[10px] flex items-center justify-center shrink-0">
                         {c.photo ? (
                           <img src={c.photo} alt={c.fullName} className="w-full h-full object-cover" />
                         ) : (
@@ -67,29 +67,29 @@ export default function CandidateRosterTable({
                         )}
                       </div>
                       <div>
-                        <span className="font-extrabold text-slate-900 group-hover:text-blue-600 transition block">
+                        <span className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors block text-xs leading-tight">
                           {c.fullName}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-[10px] text-slate-400 font-mono leading-none">
                           {c.id} • {c.phone}
                         </span>
                       </div>
                     </div>
                   </td>
 
-                  <td className="py-4 px-4">
+                  <td className="py-1.5 px-3">
                     <div>
-                      <span className="font-extrabold text-slate-900 block">{vendorName}</span>
-                      <span className="font-mono text-[10px] text-slate-400">{c.vendorId}</span>
+                      <span className="font-semibold text-slate-800 block text-xs leading-tight">{vendorName}</span>
+                      <span className="font-mono text-[10px] text-slate-400 leading-none">{c.vendorId}</span>
                     </div>
                   </td>
 
-                  <td className="py-4 px-4 font-semibold text-slate-800">{c.currentPosition}</td>
-                  <td className="py-4 px-4 text-slate-600 font-medium">{c.experienceYears} Yrs</td>
-                  <td className="py-4 px-4 font-bold text-indigo-700">{c.preferredCountry}</td>
+                  <td className="py-1.5 px-3 font-medium text-slate-800 text-xs">{c.currentPosition}</td>
+                  <td className="py-1.5 px-3 text-slate-600 text-xs">{c.experienceYears} Yrs</td>
+                  <td className="py-1.5 px-3 font-semibold text-indigo-700 text-xs">{c.preferredCountry}</td>
 
-                  <td className="py-4 px-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-block ${statusBadgeClass(overallStatus)}`}>
+                  <td className="py-1.5 px-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-block ${statusBadgeClass(overallStatus)}`}>
                       {overallStatus}
                     </span>
                     {overallStatus === "Rejected" && (() => {
@@ -101,8 +101,7 @@ export default function CandidateRosterTable({
                             ? rejectedApp.rejectionReason
                             : rejectedApp.rejectionReason?.rejectionReason || "Not specified";
                         return (
-                          <div className="text-[10px] text-rose-600 mt-2 font-medium bg-rose-50/50 p-1.5 rounded-lg border border-rose-100">
-                            <span className="block font-bold">Stage: {rejectedApp.rejectionStage || "Verification"}</span>
+                          <div className="text-[9px] text-rose-600 mt-1 font-medium bg-rose-50/50 px-1.5 py-0.5 rounded border border-rose-100">
                             Reason: {reasonStr}
                           </div>
                         );
@@ -111,22 +110,22 @@ export default function CandidateRosterTable({
                     })()}
                   </td>
 
-                  <td className="py-4 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="py-1.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1.5">
                       {overallStatus === "Rejected" && (
                         <button
                           onClick={() => onReuseCandidate(c.id)}
                           disabled={actionLoading === c.id + "_reuse"}
-                          className="px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 font-bold text-[11px] shadow-2xs transition inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                          className="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 font-bold text-[10px] shadow-2xs transition inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
                         >
                           <span>{actionLoading === c.id + "_reuse" ? "..." : "Reuse"}</span>
                         </button>
                       )}
                       <button
                         onClick={() => onViewCandidate(c)}
-                        className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                        className="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] shadow-2xs transition inline-flex items-center gap-1 cursor-pointer"
                       >
-                        <Eye size={14} />
+                        <Eye size={12} />
                         <span>Review</span>
                       </button>
                     </div>

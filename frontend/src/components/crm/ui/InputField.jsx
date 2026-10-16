@@ -19,11 +19,11 @@ export function InputField({
   autoComplete,
 }) {
   return (
-    <div className={`space-y-1.5 ${className}`}>
+    <div className={`space-y-1 ${className}`}>
       {label && (
         <label
           htmlFor={name}
-          className="block text-xs font-semibold text-gray-700 tracking-wide"
+          className="block text-[11px] font-semibold text-gray-700 tracking-wide"
         >
           {label}
           {required && <span className="text-red-500 ml-1 font-bold">*</span>}
@@ -32,8 +32,8 @@ export function InputField({
 
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <Icon size={16} />
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400">
+            <Icon size={14} />
           </div>
         )}
 
@@ -49,22 +49,22 @@ export function InputField({
           max={max}
           step={step}
           autoComplete={autoComplete}
-          className={`w-full text-sm rounded-lg border transition-all duration-150 py-2.5 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
-            Icon ? "pl-9.5 pr-3.5" : "px-3.5"
+          className={`w-full text-xs rounded-md border transition-all duration-150 py-1.5 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
+            Icon ? "pl-8 pr-3" : "px-2.5"
           } ${
             error
               ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-              : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
+              : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 focus:outline-none"
           }`}
         />
       </div>
 
       {error ? (
-        <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
+        <p className="text-[10px] text-red-600 font-medium flex items-center gap-1 mt-0.5">
           {error}
         </p>
       ) : helperText ? (
-        <p className="text-xs text-gray-500 mt-1">{helperText}</p>
+        <p className="text-[10px] text-gray-400 mt-0.5">{helperText}</p>
       ) : null}
     </div>
   );

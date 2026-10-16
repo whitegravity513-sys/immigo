@@ -383,39 +383,39 @@ export function HRDashboard() {
             <table className="w-full text-left text-xs border-collapse min-w-[550px]">
               <thead>
                 <tr className="bg-gray-50/70 border-b border-gray-100 text-gray-400 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="py-2.5 px-4">Employee Name</th>
-                  <th className="py-2.5 px-3">Employee ID</th>
-                  <th className="py-2.5 px-3">Department</th>
-                  <th className="py-2.5 px-3">Designation</th>
-                  <th className="py-2.5 px-3">Joining Date</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-4 text-right">Actions</th>
+                  <th className="py-1.5 px-3">Employee Name</th>
+                  <th className="py-1.5 px-2.5">Employee ID</th>
+                  <th className="py-1.5 px-2.5">Department</th>
+                  <th className="py-1.5 px-2.5">Designation</th>
+                  <th className="py-1.5 px-2.5">Joining Date</th>
+                  <th className="py-1.5 px-2.5">Status</th>
+                  <th className="py-1.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {recentEmployees.map((emp) => (
                   <tr key={emp.id} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="py-2.5 px-4 font-bold text-gray-900">
+                    <td className="py-1.5 px-3 font-bold text-gray-900 text-xs">
                       {emp.name}
                     </td>
-                    <td className="py-2.5 px-3 font-mono font-bold text-blue-600">
+                    <td className="py-1.5 px-2.5 text-xs font-mono font-bold text-blue-600">
                       {emp.employeeId}
                     </td>
-                    <td className="py-2.5 px-3 text-gray-600">
+                    <td className="py-1.5 px-2.5 text-xs text-gray-600">
                       {emp.department}
                     </td>
-                    <td className="py-2.5 px-3 text-gray-600">
+                    <td className="py-1.5 px-2.5 text-xs text-gray-600">
                       {emp.designation}
                     </td>
-                    <td className="py-2.5 px-3 text-gray-500">
+                    <td className="py-1.5 px-2.5 text-xs text-gray-500">
                       {emp.joiningDate}
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-1.5 px-2.5 text-xs">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {emp.status}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 text-right">
+                    <td className="py-1.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"

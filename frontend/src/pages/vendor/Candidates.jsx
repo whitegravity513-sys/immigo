@@ -337,7 +337,7 @@ export function Candidates() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200 p-2.5 shadow-2xs space-y-2">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div className="relative sm:col-span-2 lg:col-span-2">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -346,7 +346,7 @@ export function Candidates() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               placeholder="Search candidate by name, ID, skill, trade, experience, tags..."
-              className="w-full pl-10 pr-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600 bg-white"
+              className="w-full pl-8 pr-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-600 bg-white text-xs"
             />
           </div>
 
@@ -354,7 +354,7 @@ export function Candidates() {
             <select
               value={positionFilter}
               onChange={(e) => { setPositionFilter(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600 bg-white cursor-pointer font-semibold"
+              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-600 bg-white cursor-pointer font-medium text-xs"
             >
               <option value="All">All Trade Positions</option>
               <option value="Electrician">Electrician</option>
@@ -370,7 +370,7 @@ export function Candidates() {
             <select
               value={countryFilter}
               onChange={(e) => { setCountryFilter(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-600 bg-white cursor-pointer font-semibold"
+              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-blue-600 bg-white cursor-pointer font-medium text-xs"
             >
               <option value="All">All Preferred Countries</option>
               <option value="UAE">UAE</option>
@@ -411,28 +411,28 @@ export function Candidates() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
                   <tr>
-                    <th className="py-3 px-4">Candidate</th>
-                    <th className="py-3 px-4">Trade / Position</th>
-                    <th className="py-3 px-4">Availability & Reusability</th>
-                    <th className="py-3 px-4">Experience & Qual.</th>
-                    <th className="py-3 px-4">Skills & Tags</th>
-                    <th className="py-3 px-4">Pref. Country</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-2 px-3">Candidate</th>
+                    <th className="py-2 px-3">Trade / Position</th>
+                    <th className="py-2 px-3">Availability & Reusability</th>
+                    <th className="py-2 px-3">Experience & Qual.</th>
+                    <th className="py-2 px-3">Skills & Tags</th>
+                    <th className="py-2 px-3">Pref. Country</th>
+                    <th className="py-2 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {paginatedCandidates.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="flex items-center gap-3">
                           {c.photo ? (
                             <img
                               src={c.photo}
                               alt={c.fullName}
-                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0"
+                              className="w-6 h-6 rounded-md object-cover border border-slate-200 shadow-2xs shrink-0"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                            <div className="w-6 h-6 rounded-md bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
                               {c.fullName ? c.fullName.slice(0, 2).toUpperCase() : "CD"}
                             </div>
                           )}
@@ -450,13 +450,13 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <span className="font-semibold text-slate-800 block">
                           {c.currentPosition}
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         {c.poolStatus === "Rejected" ? (
                           <div>
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
@@ -507,7 +507,7 @@ export function Candidates() {
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-slate-600">
+                      <td className="py-1.5 px-3 text-slate-600">
                         <div className="font-medium text-slate-800 flex items-center gap-1">
                           <Briefcase size={12} className="text-slate-400" />
                           <span>{c.experienceYears} Years Exp</span>
@@ -517,7 +517,7 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="flex flex-wrap gap-1 max-w-[180px]">
                           {(c.tags || c.skills || []).slice(0, 3).map((tag, i) => (
                             <span
@@ -530,14 +530,14 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <div className="flex items-center gap-1 font-medium text-slate-700">
                           <MapPin size={12} className="text-blue-500" />
                           <span>{c.preferredCountry || "Gulf"}</span>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-right space-x-1.5 whitespace-nowrap">
+                      <td className="py-1.5 px-3 text-right space-x-1 whitespace-nowrap">
                         <Link
                           to={`/vendor/candidates/${c.id}`}
                           className="inline-flex items-center px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"

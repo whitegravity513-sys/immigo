@@ -14,18 +14,18 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
   ).length;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
       <div
         onClick={() => onSelectFilter("Registered")}
-        className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+        className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-2xs ${
           statusFilter === "Registered" || statusFilter === "Pending Verification"
-            ? "bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-400"
+            ? "bg-amber-500 text-white border-amber-600 shadow-xs"
             : "bg-white border-amber-200/90 hover:bg-amber-50/50"
         }`}
       >
         <div className="flex items-center justify-between">
           <span
-            className={`text-[11px] font-bold uppercase tracking-wider ${
+            className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Registered" || statusFilter === "Pending Verification"
                 ? "text-amber-100"
                 : "text-amber-700"
@@ -34,7 +34,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             1. Newly Registered
           </span>
           <span
-            className={`p-1.5 rounded-lg text-xs font-bold ${
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
               statusFilter === "Registered" || statusFilter === "Pending Verification"
                 ? "bg-white/20 text-white"
                 : "bg-amber-100 text-amber-800"
@@ -43,91 +43,77 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             Pending Review
           </span>
         </div>
-        <div className="mt-2.5 flex items-baseline justify-between">
+        <div className="mt-1 flex items-baseline justify-between">
           <span
-            className={`text-2xl sm:text-3xl font-black ${
+            className={`text-xl font-bold ${
               statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-white" : "text-slate-900"
             }`}
           >
             {pendingCount}
           </span>
           <span
-            className={`text-xs font-semibold ${
+            className={`text-[11px] font-semibold ${
               statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-amber-100" : "text-slate-500"
             }`}
           >
             Agencies Registered
           </span>
         </div>
-        <p
-          className={`text-[11px] mt-1.5 font-medium ${
-            statusFilter === "Registered" || statusFilter === "Pending Verification" ? "text-amber-100" : "text-slate-500"
-          }`}
-        >
-          Awaiting compliance verification or MOU issuance
-        </p>
       </div>
 
       <div
         onClick={() => onSelectFilter("Approved")}
-        className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+        className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-2xs ${
           statusFilter === "Approved"
-            ? "bg-emerald-600 text-white border-emerald-700 shadow-md ring-2 ring-emerald-400"
+            ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
             : "bg-white border-emerald-200/90 hover:bg-emerald-50/50"
         }`}
       >
         <div className="flex items-center justify-between">
           <span
-            className={`text-[11px] font-bold uppercase tracking-wider ${
+            className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Approved" ? "text-emerald-100" : "text-emerald-700"
             }`}
           >
             2. Verified & Approved
           </span>
           <span
-            className={`p-1.5 rounded-lg text-xs font-bold ${
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
               statusFilter === "Approved" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
             }`}
           >
             Active Partner
           </span>
         </div>
-        <div className="mt-2.5 flex items-baseline justify-between">
+        <div className="mt-1 flex items-baseline justify-between">
           <span
-            className={`text-2xl sm:text-3xl font-black ${
+            className={`text-xl font-bold ${
               statusFilter === "Approved" ? "text-white" : "text-slate-900"
             }`}
           >
             {approvedCount}
           </span>
           <span
-            className={`text-xs font-semibold ${
+            className={`text-[11px] font-semibold ${
               statusFilter === "Approved" ? "text-emerald-100" : "text-slate-500"
             }`}
           >
             Verified Vendors
           </span>
         </div>
-        <p
-          className={`text-[11px] mt-1.5 font-medium ${
-            statusFilter === "Approved" ? "text-emerald-100" : "text-slate-500"
-          }`}
-        >
-          Client verified, MOU signed, and authorized to deploy
-        </p>
       </div>
 
       <div
         onClick={() => onSelectFilter("Suspended & Rejected")}
-        className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-xs ${
+        className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-2xs ${
           statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
-            ? "bg-slate-900 text-white border-slate-950 shadow-md ring-2 ring-slate-400"
+            ? "bg-slate-900 text-white border-slate-950 shadow-xs"
             : "bg-white border-slate-300 hover:bg-slate-50/50"
         }`}
       >
         <div className="flex items-center justify-between">
           <span
-            className={`text-[11px] font-bold uppercase tracking-wider ${
+            className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
                 ? "text-slate-200"
                 : "text-slate-700"
@@ -136,18 +122,18 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             3. Suspended & Rejected
           </span>
           <span
-            className={`p-1.5 rounded-lg text-xs font-bold ${
+            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
               statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
                 ? "bg-white/20 text-white"
                 : "bg-rose-100 text-rose-800"
             }`}
           >
-            On Hold / Declined
+            Declined
           </span>
         </div>
-        <div className="mt-2.5 flex items-baseline justify-between">
+        <div className="mt-1 flex items-baseline justify-between">
           <span
-            className={`text-2xl sm:text-3xl font-black ${
+            className={`text-xl font-bold ${
               statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
                 ? "text-white"
                 : "text-slate-900"
@@ -156,7 +142,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             {inactiveCount}
           </span>
           <span
-            className={`text-xs font-semibold ${
+            className={`text-[11px] font-semibold ${
               statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
                 ? "text-slate-300"
                 : "text-slate-500"
@@ -165,15 +151,6 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             Inactive Agencies
           </span>
         </div>
-        <p
-          className={`text-[11px] mt-1.5 font-medium ${
-            statusFilter === "Suspended & Rejected" || statusFilter === "Suspended" || statusFilter === "Rejected"
-              ? "text-slate-300"
-              : "text-slate-500"
-          }`}
-        >
-          Suspended verified vendors or rejected applications
-        </p>
       </div>
     </div>
   );

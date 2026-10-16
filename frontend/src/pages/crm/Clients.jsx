@@ -294,15 +294,15 @@ export function Clients() {
           <div className="overflow-x-auto min-h-[360px] pb-16">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 sm:px-6">Company</th>
-                  <th className="py-3.5 px-4">Primary Contact</th>
-                  <th className="py-3.5 px-4">Country</th>
-                  <th className="py-3.5 px-4 text-center">Projects</th>
-                  <th className="py-3.5 px-4 text-center">Manpower</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Created Date</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
+                  <th className="py-2 px-3">Company</th>
+                  <th className="py-2 px-3">Primary Contact</th>
+                  <th className="py-2 px-3">Country</th>
+                  <th className="py-2 px-3 text-center">Projects</th>
+                  <th className="py-2 px-3 text-center">Manpower</th>
+                  <th className="py-2 px-3">Status</th>
+                  <th className="py-2 px-3">Created</th>
+                  <th className="py-2 px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -319,20 +319,20 @@ export function Clients() {
                       className="hover:bg-blue-50/30 transition-colors duration-100"
                     >
                       {}
-                      <td className="py-3.5 px-4 sm:px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 font-bold text-xs flex items-center justify-center shrink-0">
+                      <td className="py-1.5 px-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[10px] flex items-center justify-center shrink-0">
                             {client.companyName.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <Link
                               to={`/client/clients/${client.id}`}
-                              className="font-bold text-gray-900 hover:text-blue-600 text-xs block truncate max-w-[200px]"
+                              className="font-bold text-gray-900 hover:text-blue-600 text-xs block truncate max-w-[180px] leading-tight"
                               title={client.companyName}
                             >
                               {client.companyName}
                             </Link>
-                            <span className="text-[11px] text-gray-400 font-normal">
+                            <span className="text-[10px] text-gray-400 font-normal leading-none">
                               {client.companyType || "Enterprise"}
                             </span>
                           </div>
@@ -340,7 +340,7 @@ export function Clients() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         {primaryContact ? (
                           <div className="min-w-0">
                             <p className="font-semibold text-gray-800 text-xs truncate max-w-[160px]">
@@ -356,7 +356,7 @@ export function Clients() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200 text-gray-700 font-medium text-[11px]">
                           <MapPin size={11} className="text-blue-500" />
                           <span>{client.country}</span>
@@ -378,7 +378,7 @@ export function Clients() {
                       </td>
 
                       {}
-                      <td className="py-3.5 px-4">
+                      <td className="py-1.5 px-3">
                         <StatusBadge status={client.status} size="sm" />
                       </td>
 
@@ -390,12 +390,7 @@ export function Clients() {
                       {}
                       <td className="py-3.5 px-4 text-center">
                         <div className="relative inline-flex items-center justify-center">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setOpenMenuId(isMenuOpen ? null : client.id)
-                            }
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                          <button type="button" onClick={() => setOpenMenuId(isMenuOpen ? null : client.id)} className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                               isMenuOpen
                                 ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
                                 : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"

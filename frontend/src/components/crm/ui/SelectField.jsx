@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, Tag } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 export function SelectField({
   label,
@@ -35,11 +35,11 @@ export function SelectField({
   };
 
   return (
-    <div className={`space-y-1.5 ${className}`}>
+    <div className={`space-y-1 ${className}`}>
       {label && (
         <label
           htmlFor={name}
-          className="block text-xs font-semibold text-gray-700 tracking-wide"
+          className="block text-[11px] font-semibold text-gray-700 tracking-wide"
         >
           {label}
           {required && <span className="text-red-500 ml-1 font-bold">*</span>}
@@ -53,10 +53,10 @@ export function SelectField({
           value={value ?? ""}
           onChange={onChange}
           disabled={disabled}
-          className={`w-full appearance-none text-sm rounded-lg border transition-all duration-150 py-2.5 pl-3.5 pr-9 bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed cursor-pointer ${
+          className={`w-full appearance-none text-xs rounded-md border transition-all duration-150 py-1.5 pl-2.5 pr-8 bg-white text-gray-900 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed cursor-pointer ${
             error
               ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-              : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
+              : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 focus:outline-none"
           }`}
         >
           {placeholder && (
@@ -64,52 +64,42 @@ export function SelectField({
               {placeholder}
             </option>
           )}
-
-          {children ||
-            options.map((opt) => {
-              if (typeof opt === "string") {
+          {options.length > 0
+            ? options.map((opt) => {
+                const optVal = typeof opt === "string" ? opt : opt.value;
+                const optLabel = typeof opt === "string" ? opt : opt.label;
                 return (
-                  <option key={opt} value={opt}>
-                    {opt}
+                  <option key={optVal} value={optVal}>
+                    {optLabel}
                   </option>
                 );
-              }
-              return (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              );
-            })}
+              })
+            : children}
         </select>
 
-        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-          <ChevronDown size={16} />
+        <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-gray-400">
+          <ChevronDown size={13} />
         </div>
       </div>
 
-      {}
       {isOther && (
-        <div className="pt-1.5 animate-fadeIn">
-          <div className="relative">
-            <Tag className="w-3.5 h-3.5 text-blue-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              name={`${name}Other`}
-              value={otherValue !== undefined ? otherValue : internalOther}
-              onChange={handleCustomChange}
-              placeholder={`Specify custom ${label || "value"} type...`}
-              className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-blue-300 bg-blue-50/50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs font-medium"
-            />
-          </div>
+        <div className="mt-1">
+          <input
+            type="text"
+            value={otherValue !== undefined ? otherValue : internalOther}
+            onChange={handleCustomChange}
+            placeholder={`Specify custom ${label || "option"}...`}
+            className="w-full text-xs rounded-md border border-blue-400 py-1.5 px-2.5 bg-blue-50/20 text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          />
         </div>
       )}
 
       {error ? (
-        <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
+        <p className="text-[10px] text-red-600 font-medium flex items-center gap-1 mt-0.5">
           {error}
         </p>
       ) : helperText ? (
-        <p className="text-xs text-gray-500 mt-1">{helperText}</p>
+        <p className="text-[10px] text-gray-400 mt-0.5">{helperText}</p>
       ) : null}
     </div>
   );

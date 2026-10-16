@@ -44,7 +44,7 @@ export default function EmployeesDirectorySection({
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
@@ -60,7 +60,7 @@ export default function EmployeesDirectorySection({
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-5 py-4 text-slate-500 font-bold uppercase text-[10px] tracking-wider whitespace-nowrap"
+                    className="px-3 py-2 text-slate-500 font-bold uppercase text-[10px] tracking-wider whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -90,14 +90,14 @@ export default function EmployeesDirectorySection({
                     key={emp._id}
                     className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0"
                   >
-                    <td className="px-5 py-4 text-sm whitespace-nowrap">
+                    <td className="px-3 py-1.5 text-xs whitespace-nowrap">
                       <EmployeeIdBadge
                         id={emp.employeeId}
                         onClick={() => openEmployeeDetail(emp._id, "employees")}
                         title="Click to view employee profile details"
                       />
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 py-1.5">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
                           {emp.profileImage ? (

@@ -265,14 +265,14 @@ export function Projects() {
             <div className="hidden md:block overflow-x-auto min-h-[340px] pb-16">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
-                    <th className="py-3 px-4">Project ID</th>
-                    <th className="py-3 px-4">Project Name & Type</th>
-                    <th className="py-3 px-4">Client Company</th>
-                    <th className="py-3 px-4">Country & Location</th>
-                    <th className="py-3 px-4 text-center">Headcount</th>
-                    <th className="py-3 px-4">Status & Toggle</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
+                  <tr className="bg-gray-50/80 border-b border-gray-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-2 px-3">Project ID</th>
+                    <th className="py-2 px-3">Project Name & Type</th>
+                    <th className="py-2 px-3">Client Company</th>
+                    <th className="py-2 px-3">Country & Location</th>
+                    <th className="py-2 px-3 text-center">Headcount</th>
+                    <th className="py-2 px-3">Status</th>
+                    <th className="py-2 px-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -286,7 +286,7 @@ export function Projects() {
                         className="hover:bg-blue-50/30 transition-colors"
                       >
                         {}
-                        <td className="py-3.5 px-4 font-mono font-bold text-blue-700">
+                        <td className="py-1.5 px-3 font-mono font-bold text-blue-700 text-xs">
                           <Link
                             to={`/client/projects/${proj.id}`}
                             className="hover:underline bg-blue-50 px-2 py-0.5 rounded border border-blue-100"
@@ -296,7 +296,7 @@ export function Projects() {
                         </td>
 
                         {}
-                        <td className="py-3.5 px-4">
+                        <td className="py-1.5 px-3">
                           <Link
                             to={`/client/projects/${proj.id}`}
                             className="font-bold text-gray-900 hover:text-blue-600 block text-xs"
@@ -309,7 +309,7 @@ export function Projects() {
                         </td>
 
                         {}
-                        <td className="py-3.5 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="font-semibold text-gray-800 flex items-center gap-1.5">
                             <Building2 size={13} className="text-gray-400 shrink-0" />
                             <span className="truncate max-w-[160px]">{proj.clientName}</span>
@@ -320,7 +320,7 @@ export function Projects() {
                         </td>
 
                         {}
-                        <td className="py-3.5 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="flex items-center gap-1.5 text-gray-700 font-medium">
                             <MapPin size={13} className="text-blue-500 shrink-0" />
                             <span>{proj.country}</span>
@@ -333,7 +333,7 @@ export function Projects() {
                         </td>
 
                         {}
-                        <td className="py-3.5 px-4 text-center">
+                        <td className="py-1.5 px-3 text-center">
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 font-bold text-xs border border-blue-200">
                             {proj.totalManpower} Persons
                           </span>
@@ -343,7 +343,7 @@ export function Projects() {
                         </td>
 
                         {}
-                        <td className="py-3.5 px-4">
+                        <td className="py-1.5 px-3">
                           <div className="flex items-center gap-2 flex-wrap">
                             <StatusBadge status={proj.status} size="sm" />
                             <button
@@ -360,7 +360,7 @@ export function Projects() {
                         </td>
 
                         {}
-                        <td className="py-3.5 px-4 text-center">
+                        <td className="py-1.5 px-3 text-center">
                           <div className="relative inline-flex items-center justify-center">
                             <button
                               type="button"

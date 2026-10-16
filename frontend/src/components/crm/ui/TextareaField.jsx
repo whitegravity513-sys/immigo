@@ -5,7 +5,7 @@ export function TextareaField({
   name,
   value,
   onChange,
-  rows = 3,
+  rows = 2,
   placeholder = "",
   required = false,
   error = "",
@@ -14,11 +14,11 @@ export function TextareaField({
   className = "",
 }) {
   return (
-    <div className={`space-y-1.5 ${className}`}>
+    <div className={`space-y-1 ${className}`}>
       {label && (
         <label
           htmlFor={name}
-          className="block text-xs font-semibold text-gray-700 tracking-wide"
+          className="block text-[11px] font-semibold text-gray-700 tracking-wide"
         >
           {label}
           {required && <span className="text-red-500 ml-1 font-bold">*</span>}
@@ -33,19 +33,19 @@ export function TextareaField({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full text-sm rounded-lg border transition-all duration-150 p-3 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
+        className={`w-full text-xs rounded-md border transition-all duration-150 p-2 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
           error
             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-            : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
+            : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 focus:outline-none"
         }`}
       />
 
       {error ? (
-        <p className="text-xs text-red-600 font-medium flex items-center gap-1 mt-1">
+        <p className="text-[10px] text-red-600 font-medium flex items-center gap-1 mt-0.5">
           {error}
         </p>
       ) : helperText ? (
-        <p className="text-xs text-gray-500 mt-1">{helperText}</p>
+        <p className="text-[10px] text-gray-400 mt-0.5">{helperText}</p>
       ) : null}
     </div>
   );
