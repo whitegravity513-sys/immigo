@@ -287,21 +287,21 @@ export function MainAdminDashboard() {
 
   return (
     <AdminMasterLayout title="Overview" subtitle="Real-time Operational Command Center">
-      <div className="relative font-sans pb-6">
-        <div className="space-y-4">
+      <div className="relative font-sans pb-3.5 w-full max-w-full overflow-hidden">
+        <div className="space-y-3">
           
           {}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <div className="lg:col-span-1 p-4 sm:p-5 rounded-2xl bg-indigo-600 text-white shadow-md flex flex-col justify-between overflow-hidden relative">
+            <div className="lg:col-span-1 p-3 sm:p-3.5 rounded-lg bg-indigo-600 text-white shadow-xs flex flex-col justify-between overflow-hidden relative">
               <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
               <div>
                 <h2 className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">Company Workforce</h2>
-                <div className="text-3xl font-black mt-1">{stats.totalEmployees}</div>
+                <div className="text-2xl font-black mt-0.5">{stats.totalEmployees}</div>
                 <div className="text-[11px] text-indigo-100 mt-1.5 font-medium bg-white/15 inline-block px-2.5 py-0.5 rounded-full">
                   {stats.newEmployeesThisMonth > 0 ? `+${stats.newEmployeesThisMonth} new this month` : "Active staff"}
                 </div>
               </div>
-              <Link to="/admin/dashboard/workforce" className="mt-4 pt-3 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
+              <Link to="/admin/dashboard/workforce" className="mt-3 pt-2 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
                 <span>View HR Dashboard</span>
                 <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-colors">
                   <ArrowRight size={12} />
@@ -316,7 +316,7 @@ export function MainAdminDashboard() {
                   <Link
                     key={card.title}
                     to={card.to}
-                    className="p-3 sm:p-3.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-indigo-300 transition-all duration-200 group flex flex-col justify-between relative overflow-hidden"
+                    className="p-2.5 sm:p-3 bg-white rounded-lg border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-indigo-300 transition-all duration-200 group flex flex-col justify-between relative overflow-hidden"
                   >
                     <div className="flex items-center justify-between gap-1 mb-2 relative z-10">
                       <span className={`p-1.5 rounded-lg border font-bold ${card.badgeBg}`}>
@@ -328,7 +328,7 @@ export function MainAdminDashboard() {
                     </div>
 
                     <div className="relative z-10">
-                      <p className="text-2xl font-black text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
+                      <p className="text-lg font-black text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
                         {card.value}
                       </p>
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">
@@ -345,43 +345,43 @@ export function MainAdminDashboard() {
             
             {}
             <div className="lg:col-span-1 space-y-3">
-              <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-xl text-white shadow-xs relative overflow-hidden flex flex-col justify-between">
+              <div className="p-3 sm:p-3.5 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-lg text-white shadow-xs relative overflow-hidden flex flex-col justify-between">
                 <div className="absolute -right-6 -bottom-6 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl"></div>
                 <div>
                   <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider block">
                     Overseas Manpower Demand
                   </span>
                   <div className="flex items-baseline gap-2 mt-1 mb-3">
-                    <span className="text-3xl font-black text-white">{stats.totalRequiredManpower}</span>
+                    <span className="text-2xl font-black text-white">{stats.totalRequiredManpower}</span>
                     <span className="text-[11px] text-slate-300 font-medium">Active Open Positions</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs font-bold">
+                <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-white/10 text-xs font-bold">
                   <Link
                     to="/client/clients/new"
-                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    className="flex items-center justify-between px-2 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white text-xs"
                   >
                     <span>+ Client</span>
                     <Plus size={12} />
                   </Link>
                   <Link
                     to="/client/projects/new"
-                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    className="flex items-center justify-between px-2 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white text-xs"
                   >
                     <span>+ Project</span>
                     <Plus size={12} />
                   </Link>
                   <Link
                     to="/admin/vendor"
-                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    className="flex items-center justify-between px-2 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white text-xs"
                   >
                     <span>Vendors</span>
                     <ArrowRight size={12} />
                   </Link>
                   <Link
                     to="/client/ledger"
-                    className="flex items-center justify-between p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                    className="flex items-center justify-between px-2 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-white text-xs"
                   >
                     <span>Ledger</span>
                     <ArrowRight size={12} />
@@ -393,8 +393,8 @@ export function MainAdminDashboard() {
             {}
             <div className="lg:col-span-2 space-y-4">
               
-              <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col h-full">
-                <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col h-full">
+                <div className="p-2.5 sm:p-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                       <FolderKanban size={17} className="text-indigo-600" />
@@ -404,7 +404,7 @@ export function MainAdminDashboard() {
                   </div>
                   <Link
                     to="/client/projects"
-                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+                    className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-md transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
                   >
                     <span>See All ({projectsList.length})</span>
                     <ArrowRight size={13} />
@@ -423,17 +423,17 @@ export function MainAdminDashboard() {
                     <table className="w-full text-left text-xs">
                       <thead>
                         <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                          <th className="py-2.5 px-3.5">Project</th>
-                          <th className="py-2.5 px-3">Client</th>
-                          <th className="py-2.5 px-3 text-center">Positions</th>
-                          <th className="py-2.5 px-3">Status</th>
-                          <th className="py-2.5 px-3.5 text-right">Action</th>
+                          <th className="py-1.5 px-3">Project</th>
+                          <th className="py-1.5 px-3">Client</th>
+                          <th className="py-1.5 px-3 text-center">Positions</th>
+                          <th className="py-1.5 px-3">Status</th>
+                          <th className="py-1.5 px-3 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {projectsList.slice(0, 5).map((proj) => (
                           <tr key={proj.id} className="hover:bg-slate-50/70 transition-colors group">
-                            <td className="py-2.5 px-3.5">
+                            <td className="py-1.5 px-3">
                               <span className="font-bold text-slate-800 block group-hover:text-indigo-600 transition-colors truncate max-w-[200px]">
                                 {proj.projectName}
                               </span>
@@ -441,18 +441,18 @@ export function MainAdminDashboard() {
                                 <MapPin size={10} className="text-slate-400" /> {proj.country}
                               </span>
                             </td>
-                            <td className="py-2.5 px-3 font-semibold text-slate-700 truncate max-w-[140px]">
+                            <td className="py-1.5 px-3 font-semibold text-slate-700 truncate max-w-[140px]">
                               {proj.clientName}
                             </td>
-                            <td className="py-2.5 px-3 text-center">
+                            <td className="py-1.5 px-3 text-center">
                               <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px]">
                                 {proj.requiredManpower} Reqs
                               </span>
                             </td>
-                            <td className="py-2.5 px-3">
+                            <td className="py-1.5 px-3">
                               <StatusBadge status={proj.status} size="sm" />
                             </td>
-                            <td className="py-2.5 px-3.5 text-right">
+                            <td className="py-1.5 px-3 text-right">
                               <Link
                                 to={`/client/clients/${proj.clientId}/projects/${proj.id}`}
                                 className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors ml-auto shadow-2xs"
@@ -488,8 +488,8 @@ export function MainAdminDashboard() {
           </div>
 
           {}
-          <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden mt-1">
-            <div className="p-3 sm:px-4 sm:py-2.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="w-full bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden mt-1">
+            <div className="p-2.5 sm:px-3 sm:py-2 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Activity size={15} className="text-blue-600" />
@@ -535,7 +535,7 @@ export function MainAdminDashboard() {
                 No activity recorded yet for the selected filter.
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto">
+              <div className="divide-y divide-slate-100 max-h-[240px] overflow-y-auto">
                 {activities.map((act) => {
                   const entityColors = {
                     VENDOR: "bg-purple-50 text-purple-700 border-purple-200",
@@ -581,7 +581,7 @@ export function MainAdminDashboard() {
                   return (
                     <div
                       key={act._id || act.id}
-                      className="px-3 py-2 sm:px-4 sm:py-2 flex items-center justify-between gap-2.5 hover:bg-slate-50/80 transition-colors text-xs"
+                      className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 flex items-center justify-between gap-2 hover:bg-slate-50/80 transition-colors text-xs"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">

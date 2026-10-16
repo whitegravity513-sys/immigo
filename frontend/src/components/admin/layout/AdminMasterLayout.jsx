@@ -36,7 +36,7 @@ export function AdminMasterLayout({
         />
 
         {}
-        <main className="flex-1 p-4 sm:p-5 w-full overflow-y-auto">
+        <main className="flex-1 p-2.5 sm:p-3.5 w-full overflow-y-auto max-w-full overflow-x-hidden">
           {children}
         </main>
 

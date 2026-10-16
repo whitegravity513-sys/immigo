@@ -231,8 +231,10 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     try {
       const r = await apiClient.get(`/admin/expenses`);
       setExpenses(r.data || []);
-    } catch {
-      setErrorMsg("Failed to load expense records.");
+    } catch (err) {
+      if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+        setErrorMsg("Failed to load expense records.");
+      }
     } finally {
       setExpenseLoading(false);
     }

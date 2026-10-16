@@ -58,7 +58,8 @@ apiClient.interceptors.response.use(
       originalRequest?.url?.includes("/register") ||
       originalRequest?.url?.includes("/refresh-token");
 
-    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthUrl) {
+    const isAuthError = error.response?.status === 401 || (error.response?.status === 403 && (error.response?.data?.message?.toLowerCase().includes("token") || error.response?.data?.message?.toLowerCase().includes("expired")));
+    if (isAuthError && !originalRequest?._retry && !isAuthUrl) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

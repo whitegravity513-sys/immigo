@@ -355,14 +355,14 @@ export default function WorkforceDashboardSection({
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-lg border border-slate-200/90 p-2.5 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold shadow-2xs shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold shadow-2xs shrink-0">
                 <Users size={18} />
               </div>
               <div className="min-w-0">
-                <h1 className="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
+                <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">
                   Workforce Operations Dashboard
                 </h1>
                 <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">

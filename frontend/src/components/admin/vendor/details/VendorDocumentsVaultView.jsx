@@ -33,12 +33,12 @@ export default function VendorDocumentsVaultView({
   );
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
+    <div className="space-y-3.5 w-full max-w-full overflow-hidden font-sans antialiased text-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/90 shadow-2xs">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
           >
             <ArrowLeft size={16} />
             <span>Back to Vendor Profile</span>
@@ -46,7 +46,7 @@ export default function VendorDocumentsVaultView({
 
           <button
             onClick={onBackToAll}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer"
           >
             <ArrowLeft size={16} className="text-blue-600" />
             <span>Back to All Vendors</span>
@@ -60,15 +60,15 @@ export default function VendorDocumentsVaultView({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-lg border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
               <FileCheck size={26} />
             </div>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                   {selectedVendor.companyName}
                 </h1>
                 <VendorStatusBadge status={selectedVendor.status} />
@@ -101,21 +101,21 @@ export default function VendorDocumentsVaultView({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Commercial Reg No</span>
             <span className="text-slate-900 font-bold">{selectedVendor.registrationNumber || "CR-887412"}</span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Business Specialization</span>
             <span className="text-slate-900 font-bold">{selectedVendor.specialization || "Technical Trades & Manpower"}</span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Contact Email</span>
             <span className="text-slate-900 font-bold truncate block">
               {selectedVendor.contactPersonEmail || selectedVendor.email}
             </span>
           </div>
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
+          <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Registered Location</span>
             <span className="text-slate-900 font-bold">
               {selectedVendor.city ? `${selectedVendor.city}, ${selectedVendor.state}` : "India"}
@@ -125,7 +125,7 @@ export default function VendorDocumentsVaultView({
       </div>
 
       {isVerified && vendorDocs.length > 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-6 space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-3">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Paperclip size={18} className="text-blue-600" />
@@ -138,7 +138,7 @@ export default function VendorDocumentsVaultView({
             {vendorDocs.map((doc, idx) => (
               <div
                 key={idx}
-                className="p-5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
+                className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-2.5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -211,7 +211,7 @@ export default function VendorDocumentsVaultView({
             {vendorDocs.map((doc, idx) => (
               <div
                 key={idx}
-                className="p-5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-3"
+                className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-white transition shadow-2xs space-y-2.5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">

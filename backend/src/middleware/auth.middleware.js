@@ -35,7 +35,7 @@ export const verifyToken = (req, res, next) => {
         process.env.JWT_ACCESS_SECRET || "default_access_secret_change_in_production"
       );
     } catch (err2) {
-      return res.status(403).json({ success: false, message: "Invalid or expired token" });
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
   }
 

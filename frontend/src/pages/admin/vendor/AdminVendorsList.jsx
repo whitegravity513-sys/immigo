@@ -686,22 +686,22 @@ export default function AdminVendorsList() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
+    <div className="space-y-3.5 w-full max-w-full overflow-hidden font-sans antialiased text-slate-800">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">All Vendors</h1>
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">All Vendors</h1>
           <p className="text-xs text-slate-500 mt-0.5 font-medium">
             Review manpower agency partners, statutory credentials, and candidate submission statistics.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold">
+          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-xs font-bold">
             Total Agencies: {vendors.length}
           </span>
           <button
             onClick={() => setShowAddVendorModal(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer"
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
           >
             <Plus size={16} />
             <span>Add Vendor</span>

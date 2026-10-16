@@ -69,7 +69,7 @@ export class AdminAuthService {
     const accessToken = jwt.sign(
       { id: admin._id.toString(), role: "ADMIN", email: admin.email },
       env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "30d" }
     );
 
     const refreshToken = jwt.sign(
@@ -116,7 +116,7 @@ export class AdminAuthService {
     const accessToken = jwt.sign(
       { id: admin._id.toString(), role: "ADMIN", email: admin.email },
       env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "30d" }
     );
 
     const refreshToken = jwt.sign(
@@ -198,7 +198,7 @@ export class AdminAuthService {
     const accessToken = jwt.sign(
       { id: decoded.id, role: "ADMIN" },
       env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "30d" }
     );
 
     const newRefreshToken = jwt.sign(
