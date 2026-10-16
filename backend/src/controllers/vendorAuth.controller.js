@@ -7,6 +7,7 @@ import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
 import { requestAndSendOtp, verifyOtp } from "../services/otp.service.js";
+import Notification from "../models/Notification.js";
 import { OTP_PURPOSES } from "../models/Otp.js";
 
 export const vendorRegister = asyncHandler(async (req, res) => {
@@ -66,7 +67,6 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   });
 
   try {
-    const Notification = (await import("../models/Notification.js")).default;
     await Notification.create({
       type: "VENDOR_REGISTERED",
       title: `New Vendor Registered: ${newVendor.companyName}`,

@@ -86,7 +86,7 @@ export const approveRegistration = asyncHandler(async (req, res) => {
   });
 
   return res.status(200).json({
-    message: `Vendor ${vendor.companyName} (${vendor.vendorId}) registration verify ho gaya hai. Portal URL email bhej di gayi hai (bina password ke). Aap ab aage compliance documents verify kar sakte hain.`,
+    message: `Vendor ${vendor.companyName} (${vendor.vendorId}) registration verified successfully. Welcome portal notification has been dispatched.`,
     vendor,
   });
 });
