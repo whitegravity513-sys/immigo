@@ -24,7 +24,7 @@ export default function BreaksSection({
   const breaksList = statusRecord?.breaks || [];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="flex-1 flex flex-col justify-center max-w-3xl mx-auto my-auto w-full py-4 space-y-4">
 
       <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

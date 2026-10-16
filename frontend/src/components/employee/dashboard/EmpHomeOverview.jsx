@@ -370,109 +370,71 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-        <div className="bg-white rounded-xl border-2 border-emerald-300 hover:border-emerald-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider">Present Days</span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <CheckCircle2 size={16} />
+            <span className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">Present Days</span>
+            <div className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <CheckCircle2 size={12} />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-base sm:text-lg font-bold text-slate-950 tabular-nums">
-              {attStats.presentDays ?? 0} <span className="text-[11px] font-bold text-emerald-800">Days</span>
+          <div className="mt-1">
+            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
+              {attStats.presentDays ?? 0} <span className="text-[10px] font-bold text-emerald-800">Days</span>
             </div>
-            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
               <span>● Since Joining ({formattedJoiningDate})</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border-2 border-rose-300 hover:border-rose-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-rose-200/90 hover:border-rose-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-rose-900 uppercase tracking-wider">Absent Days</span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <AlertCircle size={16} />
+            <span className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">Absent Days</span>
+            <div className="w-5 h-5 rounded-md bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <AlertCircle size={12} />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
-              {attStats.absentDays ?? 0} <span className="text-[11px] font-bold text-rose-800">Days</span>
+          <div className="mt-1">
+            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
+              {attStats.absentDays ?? 0} <span className="text-[10px] font-bold text-rose-800">Days</span>
             </div>
-            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
               <span>● Working Days Missed</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border-2 border-blue-300 hover:border-blue-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-blue-200/90 hover:border-blue-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-blue-900 uppercase tracking-wider">On Leave</span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <CalendarPlus size={16} />
+            <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">On Leave</span>
+            <div className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <CalendarPlus size={12} />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
-              {attStats.leaveDays ?? 0} <span className="text-[11px] font-bold text-blue-800">Days</span>
+          <div className="mt-1">
+            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
+              {attStats.leaveDays ?? 0} <span className="text-[10px] font-bold text-blue-800">Days</span>
             </div>
-            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
               <span>● Approved Leaves Taken</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border-2 border-amber-300 hover:border-amber-400 p-2.5 sm:p-3 shadow-2xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-amber-200/90 hover:border-amber-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black text-amber-900 uppercase tracking-wider">Half Day</span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Clock size={16} />
+            <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">Half Day</span>
+            <div className="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <Clock size={12} />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-xl sm:text-2xl font-black text-slate-950 tabular-nums">
-              {attStats.halfDays ?? 0} <span className="text-[11px] font-bold text-amber-800">Days</span>
+          <div className="mt-1">
+            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
+              {attStats.halfDays ?? 0} <span className="text-[10px] font-bold text-amber-800">Days</span>
             </div>
-            <div className="text-[10px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
               <span>● Shifts Under 8 Hours</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {}
-      <div className="p-3 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                  Daily Attendance Verification
-                </span>
-                <span className="text-xs font-bold text-slate-500">
-                  Today: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
-                <span className="text-xs font-bold text-slate-800">
-                  Status: <strong className="text-blue-900 font-black">{status}</strong>
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-600">
-                  In: <strong className="font-semibold text-slate-800">{statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "Not marked"}</strong>
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-600">
-                  Out: <strong className="font-semibold text-slate-800">{statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : (status === "Active" ? "In Progress" : "Pending")}</strong>
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-600">
-                  Worked: <strong className="font-semibold text-slate-800">{fmtDur(workSeconds)}</strong>
-                </span>
-              </div>
             </div>
           </div>
         </div>
