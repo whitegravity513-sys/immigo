@@ -172,6 +172,12 @@ export default function EmployeeLoginPage() {
     return () => clearTimeout(timer);
   }, [error]);
 
+    const handleQuickFill = () => {
+    setEmployeeId("IMMI-001");
+    setPassword("12345");
+    setError("");
+  };
+
   const handleIdChange = (e) => {
     const val = e.target.value;
     setEmployeeId(val);
@@ -285,25 +291,81 @@ export default function EmployeeLoginPage() {
 
             {}
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-              {}
+              <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
+              <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
+
+              <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-200/80 rounded-xl flex items-center justify-between text-[11px] text-indigo-950">
+                <span className="truncate mr-2">
+                  Employee: <span className="font-bold text-[#3b2875]">IMMI-001</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleQuickFill}
+                  className="font-bold text-[#3b2875] hover:underline cursor-pointer ml-2 text-xs shrink-0"
+                >
+                  Quick Fill
+                </button>
+              </div>
+
               <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Employee ID
+                </label>
                 <div className="relative">
                   <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                  <input
+                    ref={empInputRef}
+                    type="text"
+                    required
+                    autoFocus
+                    value={employeeId}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.toUpperCase().includes("VESTA")) {
+                        setEmployeeId("");
+                        if (empInputRef.current) empInputRef.current.value = "";
+                        return;
+                      }
+                      handleIdChange(e);
+                    }}
+                    name="emp_staff_id_code"
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck="false"
+                    placeholder="e.g. IMMI-001"
+                    className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 cursor-pointer p-0.5"
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                   <input
                     ref={empPassRef}
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    name="workforce_user_secret"
+                    name="emp_staff_secret_pass"
                     autoComplete="new-password"
-                    placeholder="Password"
+                    placeholder="Enter your password"
                     className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                   />
                 </div>
               </div>
 
-              {}
               <div className="flex items-center text-xs pt-0.5 px-1 text-slate-400 font-medium">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
@@ -316,7 +378,6 @@ export default function EmployeeLoginPage() {
                 </label>
               </div>
 
-              {}
               <button
                 type="submit"
                 disabled={loading}

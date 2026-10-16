@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Users, Lock, Eye, EyeOff, LogIn, ArrowRight } from "lucide-react";
 import { employeeLogin } from "../../services/authService.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -37,6 +37,12 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
   
 
 
+    const handleQuickFill = () => {
+    setIdentifier("IMMI-001");
+    setPassword("12345");
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -70,6 +76,19 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
+      <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
+        <span className="truncate mr-2">
+          Employee: <span className="font-bold text-[#1877f2]">IMMI-001</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
+        </span>
+        <button
+          type="button"
+          onClick={handleQuickFill}
+          className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
+        >
+          Quick Fill
+        </button>
+      </div>
+
       
 
       <AuthErrorMessage msg={error} />

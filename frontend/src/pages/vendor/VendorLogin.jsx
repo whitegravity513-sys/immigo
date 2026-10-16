@@ -72,6 +72,12 @@ export function VendorLogin() {
   const [showForgotModal, setShowForgotModal] = useState(false);
 
   
+    const handleQuickFill = () => {
+    setEmailOrId("vendor@immigo.com");
+    setPassword("12345");
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -355,6 +361,8 @@ export function VendorLogin() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+              <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
+              <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   Registered Email Address
