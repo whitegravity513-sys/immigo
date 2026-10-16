@@ -46,46 +46,46 @@ export default function LeaveManagementSection({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div className="space-y-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
 
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-2 sm:p-2.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Applied</span>
-            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
-              <FileText size={16} />
+            <div className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
+              <FileText size={12} />
             </div>
           </div>
-          <div className="text-2xl font-black text-slate-900 mt-2">
-            {leaveHistory.length} <span className="text-xs font-semibold text-slate-400">Requests</span>
+          <div className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
+            {leaveHistory.length} <span className="text-[10px] font-semibold text-slate-400">Requests</span>
           </div>
-          <div className="text-[11px] text-slate-500 font-semibold mt-1">All time applications</div>
+          <div className="text-[9px] text-slate-500 font-medium mt-0.5">All time applications</div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-2 sm:p-2.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Approved</span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-              <CheckCircle2 size={16} />
+            <div className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+              <CheckCircle2 size={12} />
             </div>
           </div>
-          <div className="text-2xl font-black text-emerald-600 mt-2">
-            {approvedCount} <span className="text-xs font-semibold text-slate-400">Requests</span>
+          <div className="text-sm sm:text-base font-bold text-emerald-600 mt-0.5">
+            {approvedCount} <span className="text-[10px] font-semibold text-slate-400">Requests</span>
           </div>
-          <div className="text-[11px] text-emerald-700 font-semibold mt-1">HR verified & granted</div>
+          <div className="text-[9px] text-emerald-700 font-medium mt-0.5">HR verified & granted</div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-2 sm:p-2.5 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pending Review</span>
-            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
-              <Clock size={16} />
+            <div className="w-5 h-5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
+              <Clock size={12} />
             </div>
           </div>
-          <div className="text-2xl font-black text-amber-600 mt-2">
-            {pendingCount} <span className="text-xs font-semibold text-slate-400">Requests</span>
+          <div className="text-sm sm:text-base font-bold text-amber-600 mt-0.5">
+            {pendingCount} <span className="text-[10px] font-semibold text-slate-400">Requests</span>
           </div>
-          <div className="text-[11px] text-amber-700 font-semibold mt-1">Awaiting management approval</div>
+          <div className="text-[9px] text-amber-700 font-medium mt-0.5">Awaiting management approval</div>
         </div>
       </div>
 
