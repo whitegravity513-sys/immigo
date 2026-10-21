@@ -25,7 +25,13 @@ export default function ContactPage() {
 
   const handleWhatsappSubmit = (e) => {
     e.preventDefault();
-    const text = `Hello Immigo Team,%0A%0A*Name:* ${encodeURIComponent(form.name || "Client/Candidate")}%0A*Phone:* ${encodeURIComponent(form.phone || "Not provided")}%0A*Email:* ${encodeURIComponent(form.email || "Not provided")}%0A*Inquiry:* ${encodeURIComponent(form.inquiryType)}%0A*Message:* ${encodeURIComponent(form.message || "I want to inquire about overseas manpower deployment.")}`;
+    const customMsg = form.message?.trim();
+    const namePart = form.name?.trim() ? ` (From: ${form.name.trim()})` : "";
+    const messageBody = customMsg
+      ? `Hello, I want to know more about your overseas recruitment services. ${customMsg}${namePart}`
+      : `Hello, I want to know more about your overseas recruitment and manpower supply services.${namePart}`;
+
+    const text = encodeURIComponent(messageBody);
     window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
     setSubmitted(true);
   };
