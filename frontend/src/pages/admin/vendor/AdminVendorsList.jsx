@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 import MouFullPageView from "../../../components/vendor/MouFullPageView.jsx";
 import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
 import EditVendorModal from "../../../components/admin/modals/EditVendorModal.jsx";
 import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal.jsx";
+import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
 import {
   AdminRejectVendorModal,
   AdminAddVendorModal,
@@ -49,6 +50,27 @@ const DEFAULT_NEW_VENDOR = {
   panDocName: "",
 };
 
+const VENDOR_EXPORT_FIELDS = [
+  { key: "companyName", label: "Agency Name", category: "Company Info", defaultSelected: true },
+  { key: "id", label: "Vendor ID", category: "Company Info", defaultSelected: true, extractor: (v) => v.id || v.vendorId || "—" },
+  { key: "contactPersonName", label: "Contact Person", category: "Contact", defaultSelected: true },
+  { key: "email", label: "Official Email", category: "Contact", defaultSelected: true },
+  { key: "phone", label: "Mobile Number", category: "Contact", defaultSelected: true },
+  { key: "alternatePhone", label: "Alternate Phone", category: "Contact", defaultSelected: false },
+  { key: "businessType", label: "Business Type", category: "Company Info", defaultSelected: true },
+  { key: "state", label: "State", category: "Address", defaultSelected: true },
+  { key: "city", label: "City", category: "Address", defaultSelected: true },
+  { key: "address", label: "Registered Address", category: "Address", defaultSelected: true },
+  { key: "pan", label: "PAN Number", category: "Statutory", defaultSelected: true },
+  { key: "gstin", label: "GSTIN", category: "Statutory", defaultSelected: true },
+  { key: "status", label: "Status", category: "Status", defaultSelected: true },
+  { key: "mouStatus", label: "MOU Status", category: "Status", defaultSelected: true },
+  { key: "countriesServed", label: "Countries Served", category: "Capacity", defaultSelected: false },
+  { key: "experienceYears", label: "Experience (Years)", category: "Capacity", defaultSelected: false },
+  { key: "monthlyCapacity", label: "Monthly Capacity", category: "Capacity", defaultSelected: false },
+  { key: "createdAt", label: "Registration Date", category: "System", defaultSelected: true, extractor: (v) => (v.createdAt ? new Date(v.createdAt).toLocaleDateString("en-GB") : "—") },
+];
+
 export default function AdminVendorsList() {
   const [vendors, setVendors] = useState([]);
   const [candidates, setCandidates] = useState([]);
@@ -58,6 +80,7 @@ export default function AdminVendorsList() {
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [addVendorLoading, setAddVendorLoading] = useState(false);
   const [dispatchedVendor, setDispatchedVendor] = useState(null);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const [verificationSuccessModal, setVerificationSuccessModal] = useState({
@@ -695,10 +718,18 @@ export default function AdminVendorsList() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-xs font-bold">
             Total Agencies: {vendors.length}
           </span>
+          <button
+            onClick={() => setExportModalOpen(true)}
+            className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-md text-xs font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+            title="Download Vendors list in Excel/CSV"
+          >
+            <Download size={14} className="text-slate-500" />
+            <span>Export Data</span>
+          </button>
           <button
             onClick={() => setShowAddVendorModal(true)}
             className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
@@ -815,6 +846,17 @@ export default function AdminVendorsList() {
             setShowDocsPage(true);
           }
         }}
+      />
+
+      <ExcelExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        title="Export Vendor Agencies"
+        subtitle="Select the fields you want to include in the exported vendor list."
+        availableFields={VENDOR_EXPORT_FIELDS}
+        data={vendors}
+        filenamePrefix="Vendors_Directory"
+        sheetName="Vendors"
       />
     </div>
   );

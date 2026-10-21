@@ -12,6 +12,25 @@ import {
   Clock
 } from "lucide-react";
 import { useEmployeeMonthlyReport } from "../../../hooks/useEmployeeMonthlyReport";
+import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
+
+const EMPLOYEE_REPORT_FIELDS = [
+  { key: "employeeId", label: "Employee ID", category: "Employee", defaultSelected: true },
+  { key: "name", label: "Employee Name", category: "Employee", defaultSelected: true },
+  { key: "email", label: "Email Address", category: "Employee", defaultSelected: true },
+  { key: "designation", label: "Designation", category: "Employee", defaultSelected: true },
+  { key: "month", label: "Report Month", category: "Period", defaultSelected: true },
+  { key: "totalWorkingDays", label: "Total Working Days", category: "Attendance", defaultSelected: true },
+  { key: "presentDays", label: "Present Days", category: "Attendance", defaultSelected: true },
+  { key: "halfDays", label: "Half Days", category: "Attendance", defaultSelected: true },
+  { key: "absentDays", label: "Absent Days", category: "Attendance", defaultSelected: true },
+  { key: "totalLeaveDays", label: "Approved Leave Days", category: "Attendance", defaultSelected: true },
+  { key: "totalBreakHours", label: "Total Break Hours", category: "Attendance", defaultSelected: false },
+  { key: "monthlySalary", label: "Monthly Base Salary", category: "Salary", defaultSelected: true },
+  { key: "perDaySalary", label: "Per Day Salary", category: "Salary", defaultSelected: true },
+  { key: "paidDays", label: "Total Paid Days", category: "Salary", defaultSelected: true },
+  { key: "earnedSalary", label: "Final Payable Salary", category: "Salary", defaultSelected: true },
+];
 
 const datePickerStyles = `
   .react-datepicker-wrapper {
@@ -108,6 +127,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
   } = useEmployeeMonthlyReport(token);
 
   const [useDateRange, setUseDateRange] = React.useState(false);
+  const [exportModalOpen, setExportModalOpen] = React.useState(false);
 
   const handleSetJoiningToToday = () => {
     if (!selectedEmployee?.joiningDate) return;
@@ -291,7 +311,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </button>
             {monthlyData && (
               <button
-                onClick={downloadReport}
+                onClick={() => setExportModalOpen(true)}
                 className="w-full px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-md hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs text-xs"
               >
                 <Download className="w-3.5 h-3.5" />
@@ -519,6 +539,37 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
             </div>
           )}
         </div>
+      )}
+
+      {monthlyData && (
+        <ExcelExportModal
+          isOpen={exportModalOpen}
+          onClose={() => setExportModalOpen(false)}
+          title={`Export Monthly Report — ${monthlyData.employee?.name || selectedEmployee?.name || "Employee"}`}
+          subtitle="Select the metrics and payroll figures you want to include in the report."
+          availableFields={EMPLOYEE_REPORT_FIELDS}
+          data={[
+            {
+              employeeId: monthlyData.employee?.employeeId || selectedEmployee?.employeeId || "—",
+              name: monthlyData.employee?.name || selectedEmployee?.name || "—",
+              email: monthlyData.employee?.email || selectedEmployee?.email || "—",
+              designation: monthlyData.employee?.designation || selectedEmployee?.designation || "—",
+              month: `${monthlyData.month}/${monthlyData.year}`,
+              totalWorkingDays: monthlyData.summary?.totalWorkingDays ?? 0,
+              presentDays: monthlyData.summary?.presentDays ?? 0,
+              halfDays: monthlyData.summary?.halfDays ?? 0,
+              absentDays: monthlyData.summary?.absentDays ?? 0,
+              totalLeaveDays: monthlyData.summary?.totalLeaveDays ?? 0,
+              totalBreakHours: monthlyData.summary?.totalBreakHours ?? "0h 0m",
+              monthlySalary: `Rs. ${monthlyData.summary?.monthlySalary ?? 0}`,
+              perDaySalary: `Rs. ${Math.round(monthlyData.summary?.perDaySalary ?? 0)}`,
+              paidDays: monthlyData.summary?.paidDays ?? 0,
+              earnedSalary: `Rs. ${monthlyData.summary?.earnedSalary ?? 0}`,
+            },
+          ]}
+          filenamePrefix={`Employee_Report_${monthlyData.employee?.employeeId || "EMP"}_${monthlyData.month}-${monthlyData.year}`}
+          sheetName="Monthly Summary"
+        />
       )}
     </div>
   );

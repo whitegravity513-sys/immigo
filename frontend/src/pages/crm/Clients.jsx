@@ -14,7 +14,9 @@ import {
   Phone,
   RotateCcw,
   Users,
+  Download,
 } from "lucide-react";
+import ExcelExportModal from "../../components/common/ExcelExportModal.jsx";
 import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import SearchInput from "../../components/crm/ui/SearchInput.jsx";
 import SelectField from "../../components/crm/ui/SelectField.jsx";
@@ -37,6 +39,23 @@ const STATUS_OPTIONS = [
   { value: "Active", label: "Active" },
   { value: "Inactive", label: "Inactive" },
   { value: "On Hold", label: "On Hold" },
+];
+
+const CLIENT_EXPORT_FIELDS = [
+  { key: "companyName", label: "Company / Client Name", category: "Organization", defaultSelected: true },
+  { key: "clientId", label: "Client ID", category: "Organization", defaultSelected: true, extractor: (c) => c.clientId || c.id || "—" },
+  { key: "contactPerson", label: "Contact Person", category: "Contact", defaultSelected: true },
+  { key: "email", label: "Email Address", category: "Contact", defaultSelected: true },
+  { key: "phone", label: "Phone Number", category: "Contact", defaultSelected: true },
+  { key: "country", label: "Country", category: "Location", defaultSelected: true },
+  { key: "city", label: "City", category: "Location", defaultSelected: true },
+  { key: "address", label: "Address", category: "Location", defaultSelected: false },
+  { key: "industry", label: "Industry / Sector", category: "Organization", defaultSelected: true },
+  { key: "status", label: "Client Status", category: "Status", defaultSelected: true },
+  { key: "activeProjects", label: "Active Projects Count", category: "Operations", defaultSelected: true, extractor: (c) => (c.projects ? c.projects.length : 0) },
+  { key: "totalRequirements", label: "Total Manpower Demand", category: "Operations", defaultSelected: true, extractor: (c) => calculateClientManpower(c).total },
+  { key: "website", label: "Website", category: "Organization", defaultSelected: false },
+  { key: "createdAt", label: "Created Date", category: "System", defaultSelected: true, extractor: (c) => (c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-GB") : "—") },
 ];
 
 export function Clients() {
@@ -63,6 +82,7 @@ export function Clients() {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteClientTarget, setDeleteClientTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   useEffect(() => {
     fetchClients();
@@ -206,6 +226,14 @@ export function Clients() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <button
+            onClick={() => setExportModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
+            title="Export Clients list to Excel/CSV"
+          >
+            <Download size={14} className="text-gray-500" />
+            <span>Export Data</span>
+          </button>
           <Link
             to="/projects"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
@@ -488,13 +516,23 @@ export function Clients() {
         variant="danger"
       />
 
-      {}
       <AddProjectModal
         isOpen={Boolean(addProjectTargetClient)}
         onClose={() => setAddProjectTargetClient(null)}
         onSave={handleSaveProjectFromModal}
         client={addProjectTargetClient}
         clientCountry={addProjectTargetClient?.country}
+      />
+
+      <ExcelExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        title="Export Clients Directory"
+        subtitle="Select the client details and operations fields to export."
+        availableFields={CLIENT_EXPORT_FIELDS}
+        data={clients}
+        filenamePrefix="Clients_Directory"
+        sheetName="Clients"
       />
     </div>
   );

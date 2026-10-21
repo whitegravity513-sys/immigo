@@ -430,7 +430,7 @@ export default function AdminCandidatesList() {
     getVendorName,
   ]);
 
-  const handleDownloadExcel = (filters, format = "csv") => {
+  const handleDownloadExcel = (filters, format = "csv", selectedFields = null) => {
     let data = [...candidates];
 
     if (filters?.status && filters.status !== "All") {
@@ -443,25 +443,40 @@ export default function AdminCandidatesList() {
       data = data.filter((c) => new Date(c.createdAt || Date.now()) <= new Date(filters.dateTo));
     }
 
+    const fieldMap = {
+      fullName: { label: "Name", get: (c) => c.fullName || "—" },
+      passportNumber: { label: "Passport No.", get: (c) => c.passportNumber || "—" },
+      passportIssueDate: { label: "Date of issue", get: (c) => c.passportIssueDate || c.dateOfIssue || "—" },
+      passportExpiryDate: { label: "Date of Expiry", get: (c) => c.passportExpiryDate || c.passportExpiry || "—" },
+      dob: { label: "DOB", get: (c) => c.dob || c.birthDate || "—" },
+      gender: { label: "Gender", get: (c) => c.gender || "Male" },
+      trade: { label: "Trade", get: (c) => c.trade || c.currentPosition || "—" },
+      project: { label: "Project", get: (c, app) => app?.projectName || c.project || c.projectName || "Not Assigned" },
+      qualification: { label: "Qualification", get: (c) => c.qualification || "—" },
+      experienceYears: { label: "Experience", get: (c) => (c.experienceYears != null ? (typeof c.experienceYears === "number" ? `${c.experienceYears} Years` : c.experienceYears) : "—") },
+      vendorName: { label: "Vendor", get: (c) => getVendorName(c.vendorId) || c.vendorName || "—" },
+      skills: { label: "Skill", get: (c) => (Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—")) },
+      state: { label: "State", get: (c) => c.state || "—" },
+      status: { label: "Status", get: (c) => getCandidateOverallStatus(c.id) || "—" },
+      mobile: { label: "Mobile Number", get: (c) => c.mobile || c.phone || "—" },
+      email: { label: "Email Address", get: (c) => c.email || "—" },
+    };
+
+    const activeKeys = selectedFields && selectedFields.length > 0
+      ? selectedFields
+      : Object.keys(fieldMap);
+
     const excelRows = data.map((c) => {
       const candApps = applications.filter((a) => a.candidateId === c.id);
       const app = candApps[candApps.length - 1];
 
-      return {
-        "Name": c.fullName || "—",
-        "Passport No.": c.passportNumber || "—",
-        "Date of issue": c.passportIssueDate || c.dateOfIssue || "—",
-        "Date of Expiry": c.passportExpiryDate || c.passportExpiry || "—",
-        "DOB": c.dob || c.birthDate || "—",
-        "Gender": c.gender || "Male",
-        "Trade": c.trade || c.currentPosition || "—",
-        "Project": app?.projectName || c.project || c.projectName || "Not Assigned",
-        "Qualification": c.qualification || "—",
-        "Experience": c.experienceYears != null ? (typeof c.experienceYears === "number" ? `${c.experienceYears} Years` : c.experienceYears) : "—",
-        "Vendor": getVendorName(c.vendorId) || c.vendorName || "—",
-        "Skill": Array.isArray(c.skills) ? c.skills.join(", ") : (c.skills || "—"),
-        "State": c.state || "—",
-      };
+      const row = {};
+      activeKeys.forEach((key) => {
+        if (fieldMap[key]) {
+          row[fieldMap[key].label] = fieldMap[key].get(c, app);
+        }
+      });
+      return row;
     });
 
     if (format === "csv") {

@@ -16,8 +16,27 @@ import {
   ExternalLink,
   Briefcase,
   Award,
+  Download,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
+import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
+
+const ALL_CANDIDATES_EXPORT_FIELDS = [
+  { key: "candidateId", label: "Candidate ID", category: "Identification", defaultSelected: true },
+  { key: "fullName", label: "Full Name", category: "Personal", defaultSelected: true },
+  { key: "email", label: "Email Address", category: "Contact", defaultSelected: true },
+  { key: "phone", label: "Mobile / Phone", category: "Contact", defaultSelected: true },
+  { key: "trade", label: "Trade / Preferred Role", category: "Professional", defaultSelected: true, extractor: (c) => c.profile?.trade || c.profile?.preferredJobRole || "—" },
+  { key: "accountStatus", label: "Account Status", category: "Compliance", defaultSelected: true },
+  { key: "documentStatus", label: "Document Status", category: "Compliance", defaultSelected: true },
+  { key: "jobApplicationAccess", label: "Job Access Status", category: "Compliance", defaultSelected: true },
+  { key: "profileCompletion", label: "Profile Completion", category: "Profile", defaultSelected: true, extractor: (c) => (c.profileCompletionPercentage ? `${c.profileCompletionPercentage}%` : "0%") },
+  { key: "experience", label: "Total Experience", category: "Professional", defaultSelected: true, extractor: (c) => (c.profile?.totalExperienceYears ? `${c.profile.totalExperienceYears} Years` : "—") },
+  { key: "state", label: "State", category: "Personal", defaultSelected: true, extractor: (c) => c.profile?.state || "—" },
+  { key: "city", label: "City", category: "Personal", defaultSelected: true, extractor: (c) => c.profile?.city || "—" },
+  { key: "passportNumber", label: "Passport Number", category: "Compliance", defaultSelected: false, extractor: (c) => c.profile?.passportNumber || "—" },
+  { key: "registeredAt", label: "Registration Date", category: "System", defaultSelected: true, extractor: (c) => (c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-GB") : "—") },
+];
 
 export default function AdminAllCandidates() {
   const [candidates, setCandidates] = useState([]);
@@ -31,6 +50,7 @@ export default function AdminAllCandidates() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const fetchCandidates = async () => {
     setLoading(true);
@@ -127,6 +147,15 @@ export default function AdminAllCandidates() {
             <option value="Verified">Verified</option>
             <option value="Re-upload Required">Re-upload Required</option>
           </select>
+
+          <button
+            onClick={() => setExportModalOpen(true)}
+            className="px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Download Candidates in Excel/CSV"
+          >
+            <Download size={13} className="text-slate-500" />
+            <span>Export Data</span>
+          </button>
 
           <button
             onClick={fetchCandidates}
@@ -454,6 +483,17 @@ export default function AdminAllCandidates() {
           </div>
         </div>
       )}
+
+      <ExcelExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        title="Export Candidate Directory"
+        subtitle="Select the candidate fields you want to include in the exported file."
+        availableFields={ALL_CANDIDATES_EXPORT_FIELDS}
+        data={candidates}
+        filenamePrefix="Candidates_Directory"
+        sheetName="Candidates"
+      />
     </div>
   );
 }
