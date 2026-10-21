@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
@@ -9,10 +9,12 @@ import {
   ArrowRight,
   ArrowLeft,
   ShieldCheck,
+  HardHat,
+  Sparkles,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
-import vendorManpowerBanner from "../../assets/vendor-manpower-banner.jpg";
+import vendorConstructionManpower from "../../assets/vendor-construction-manpower.jpg";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -63,6 +65,16 @@ export function VendorRegister() {
   const [generalError, setGeneralError] = useState("");
   const [successSubmitted, setSuccessSubmitted] = useState(false);
   const [submittedVendor, setSubmittedVendor] = useState(null);
+
+  // Slow 3D Flip entrance animation state (1.6s duration)
+  const [animationDone, setAnimationDone] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimationDone(true);
+    }, 1700);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -116,7 +128,7 @@ export function VendorRegister() {
     if (!panClean) {
       errors.pan = "PAN is required";
     } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panClean)) {
-      errors.pan = "Invalid PAN format";
+      errors.pan = "Invalid PAN (e.g. ABCDE1234F)";
     }
 
     if (formData.gstin.trim()) {
@@ -184,48 +196,97 @@ export function VendorRegister() {
   };
 
   return (
-    <div className="min-h-screen lg:h-screen w-full flex flex-col lg:flex-row overflow-x-hidden bg-white">
-      <div className="hidden lg:block lg:w-1/2 h-screen relative overflow-hidden bg-slate-900 border-r border-slate-200 select-none shrink-0">
+    <div className="h-screen max-h-screen w-full relative flex flex-col justify-between overflow-hidden font-sans select-none">
+      <style>{`
+        @keyframes vendorSlowFlipEntrance {
+          0% {
+            opacity: 0;
+            transform: perspective(1400px) rotateY(-105deg) scale(0.82) translateY(20px);
+          }
+          35% {
+            opacity: 0.7;
+            transform: perspective(1400px) rotateY(-45deg) scale(0.92) translateY(10px);
+          }
+          70% {
+            opacity: 1;
+            transform: perspective(1400px) rotateY(12deg) scale(1.015);
+          }
+          85% {
+            transform: perspective(1400px) rotateY(-4deg) scale(0.995);
+          }
+          100% {
+            opacity: 1;
+            transform: perspective(1400px) rotateY(0deg) scale(1) translateY(0);
+          }
+        }
+        .animate-vendor-slow-flip {
+          animation: vendorSlowFlipEntrance 1.6s cubic-bezier(0.2, 0.85, 0.35, 1) forwards;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+        }
+      `}</style>
+
+      {/* Clear High-Resolution Construction Manpower Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden select-none pointer-events-none">
         <img
-          src={vendorManpowerBanner}
-          alt="Partner With Us - Build Global Opportunities"
-          className="w-full h-full object-cover object-top block"
+          src={vendorConstructionManpower}
+          alt="Vendor Construction Manpower Recruitment"
+          className="w-full h-full object-cover object-center scale-100"
         />
+        {/* Crisp subtle overlay so construction workers and cranes remain crystal clear */}
+        <div className="absolute inset-0 bg-slate-950/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50" />
       </div>
 
-      <div className="w-full lg:w-1/2 min-h-screen lg:h-screen flex flex-col justify-between px-6 sm:px-10 xl:px-14 py-5 overflow-y-auto bg-white">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
-          <ImmiGoLogo size="sm" subtitle="Partner Network" />
-          <div className="flex items-center gap-3">
-            <Link
-              to="/vendor/login"
-              className="text-xs text-blue-600 hover:text-blue-800 font-semibold hidden sm:inline"
-            >
-              Sign In Instead
-            </Link>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 bg-white hover:bg-blue-50/80 px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
-              title="Return to Main Website"
-            >
-              <ArrowLeft size={14} className="text-slate-500" />
-              <span>Back to Home</span>
-            </Link>
-          </div>
+      {/* Top Header Bar */}
+      <header className="relative z-20 w-full px-5 sm:px-10 py-2.5 flex items-center justify-between border-b border-white/15 bg-slate-950/55 backdrop-blur-md shrink-0 text-white shadow-xs">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="inline-block">
+            <ImmiGoLogo size="sm" theme="light" subtitle="Partner Network" />
+          </Link>
+          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 text-[11px] font-semibold">
+            <HardHat size={12} className="text-amber-400" />
+            <span>Manpower Supply & Construction Partner Portal</span>
+          </span>
         </div>
 
-        <div className="my-auto w-full max-w-xl mx-auto py-3">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/vendor/login"
+            className="text-xs text-blue-300 hover:text-white font-semibold hidden sm:inline transition-colors"
+          >
+            Sign In Instead
+          </Link>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
+            title="Return to Main Website"
+          >
+            <ArrowLeft size={13} className="text-blue-300" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* Main Container - Single Screen Height with 3D Slow Flip Card */}
+      <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-6 py-2 min-h-0 overflow-hidden">
+        <div
+          className={`w-full max-w-2xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65)] border border-white/90 p-4 sm:p-5 max-h-[calc(100vh-80px)] overflow-y-auto ${
+            !animationDone ? "animate-vendor-slow-flip" : ""
+          }`}
+          style={animationDone ? { transform: "none" } : undefined}
+        >
           {successSubmitted ? (
-            <div className="text-center py-6 space-y-4">
-              <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-xs">
-                <CheckCircle2 size={30} />
+            <div className="text-center py-5 space-y-3">
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-xs">
+                <CheckCircle2 size={26} />
               </div>
 
               <div className="space-y-1">
-                <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                   Registration Submitted
                 </span>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-lg font-bold text-slate-900">
                   Application Received
                 </h2>
                 <p className="text-xs text-slate-600 max-w-md mx-auto">
@@ -233,20 +294,20 @@ export function VendorRegister() {
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs text-slate-700 max-w-md mx-auto space-y-1.5">
-                <div className="flex items-center gap-1.5 text-slate-900 font-semibold">
-                  <ShieldCheck size={14} className="text-blue-600" />
+              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-left text-xs text-slate-700 max-w-md mx-auto space-y-1">
+                <div className="flex items-center gap-1.5 text-slate-900 font-semibold text-[11px]">
+                  <ShieldCheck size={13} className="text-blue-600" />
                   <span>Next Steps</span>
                 </div>
-                <p className="text-[11px] text-slate-600">
+                <p className="text-[10px] text-slate-600">
                   Our administrative team will review your agency credentials. Passwords are never sent via email for security. You will use your portal link to log in and upload compliance documents.
                 </p>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-1">
                 <Link
-                  to="/login"
-                  className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition"
+                  to="/vendor/login"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition cursor-pointer"
                 >
                   <span>Go to Login</span>
                   <ArrowRight size={13} />
@@ -254,28 +315,36 @@ export function VendorRegister() {
               </div>
             </div>
           ) : (
-            <div className="space-y-3.5">
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Building2 size={18} className="text-blue-600" />
-                  <span>Vendor / Agency Registration</span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Enter your agency details. Compliance documents will be submitted after admin verification.
-                </p>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <Building2 size={16} />
+                    </div>
+                    <span>Vendor / Agency Registration</span>
+                  </h2>
+                  <p className="text-[11px] text-slate-500">
+                    Register your recruitment agency to supply skilled workforce across foreign borders.
+                  </p>
+                </div>
+                <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold">
+                  <Sparkles size={11} className="text-blue-600" />
+                  <span>Verified Network</span>
+                </div>
               </div>
 
               {generalError && (
-                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-center gap-2">
+                <div className="p-2 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-center gap-2">
                   <AlertCircle size={14} className="shrink-0" />
                   <span>{generalError}</span>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-2.5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2">
+              <form onSubmit={handleSubmit} className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1.5">
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Agency / Company Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -284,9 +353,9 @@ export function VendorRegister() {
                       value={formData.companyName}
                       onChange={handleInputChange}
                       placeholder="e.g. Apex Global Overseas Pvt Ltd"
-                      className={`w-full px-3 py-1.5 text-xs rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs rounded-lg border transition-all ${
                         fieldErrors.companyName ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.companyName && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.companyName}</p>
@@ -294,7 +363,7 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Contact Person Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -303,9 +372,9 @@ export function VendorRegister() {
                       value={formData.contactPersonName}
                       onChange={handleInputChange}
                       placeholder="e.g. Rajesh Sharma"
-                      className={`w-full px-3 py-1.5 text-xs rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs rounded-lg border transition-all ${
                         fieldErrors.contactPersonName ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.contactPersonName && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.contactPersonName}</p>
@@ -313,11 +382,11 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Mobile Number <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1.5 text-xs text-slate-400 font-medium">
+                      <span className="absolute left-2.5 top-1 text-xs text-slate-400 font-medium">
                         +91
                       </span>
                       <input
@@ -327,9 +396,9 @@ export function VendorRegister() {
                         value={formData.mobile}
                         onChange={handleInputChange}
                         placeholder="9876543210"
-                        className={`w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border transition-all ${
+                        className={`w-full pl-9 pr-2.5 py-1 text-xs rounded-lg border transition-all ${
                           fieldErrors.mobile ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                        } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                        } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                       />
                     </div>
                     {fieldErrors.mobile && (
@@ -338,7 +407,7 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Official Email (Login ID) <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -347,9 +416,9 @@ export function VendorRegister() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="contact@agency.com"
-                      className={`w-full px-3 py-1.5 text-xs rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs rounded-lg border transition-all ${
                         fieldErrors.email ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.email && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.email}</p>
@@ -357,14 +426,14 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       State <span className="text-rose-500">*</span>
                     </label>
                     <select
                       name="state"
                       value={formData.state}
                       onChange={handleInputChange}
-                      className={`w-full px-2.5 py-1.5 text-xs rounded-lg border transition-all bg-white cursor-pointer ${
+                      className={`w-full px-2 py-1 text-xs rounded-lg border transition-all bg-white cursor-pointer ${
                         fieldErrors.state ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
                       } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
                     >
@@ -381,7 +450,7 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       City <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -390,9 +459,9 @@ export function VendorRegister() {
                       value={formData.city}
                       onChange={handleInputChange}
                       placeholder="e.g. Mumbai"
-                      className={`w-full px-3 py-1.5 text-xs rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs rounded-lg border transition-all ${
                         fieldErrors.city ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.city && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.city}</p>
@@ -400,7 +469,7 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       PAN Number <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -413,9 +482,9 @@ export function VendorRegister() {
                         handleInputChange(e);
                       }}
                       placeholder="ABCDE1234F"
-                      className={`w-full px-3 py-1.5 text-xs font-mono uppercase rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs font-mono uppercase rounded-lg border transition-all ${
                         fieldErrors.pan ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.pan && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.pan}</p>
@@ -423,7 +492,7 @@ export function VendorRegister() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       GSTIN <span className="text-slate-400 font-normal">(Optional)</span>
                     </label>
                     <input
@@ -436,9 +505,9 @@ export function VendorRegister() {
                         handleInputChange(e);
                       }}
                       placeholder="27ABCDE1234F1Z5"
-                      className={`w-full px-3 py-1.5 text-xs font-mono uppercase rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs font-mono uppercase rounded-lg border transition-all ${
                         fieldErrors.gstin ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.gstin && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.gstin}</p>
@@ -446,7 +515,7 @@ export function VendorRegister() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Office Address <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -455,9 +524,9 @@ export function VendorRegister() {
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="Office No, Street, Commercial Area"
-                      className={`w-full px-3 py-1.5 text-xs rounded-lg border transition-all ${
+                      className={`w-full px-2.5 py-1 text-xs rounded-lg border transition-all ${
                         fieldErrors.address ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                      } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                     />
                     {fieldErrors.address && (
                       <p className="text-[10px] text-rose-500 mt-0.5">{fieldErrors.address}</p>
@@ -465,7 +534,7 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Password <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
@@ -475,14 +544,14 @@ export function VendorRegister() {
                         value={formData.password}
                         onChange={handleInputChange}
                         placeholder="Min 6 characters"
-                        className={`w-full px-3 py-1.5 pr-8 text-xs rounded-lg border transition-all ${
+                        className={`w-full px-2.5 py-1 pr-7 text-xs rounded-lg border transition-all ${
                           fieldErrors.password ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                        } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                        } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((p) => !p)}
-                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
                       </button>
@@ -493,7 +562,7 @@ export function VendorRegister() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
                       Confirm Password <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
@@ -503,14 +572,14 @@ export function VendorRegister() {
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
                         placeholder="Re-enter password"
-                        className={`w-full px-3 py-1.5 pr-8 text-xs rounded-lg border transition-all ${
+                        className={`w-full px-2.5 py-1 pr-7 text-xs rounded-lg border transition-all ${
                           fieldErrors.confirmPassword ? "border-rose-400 bg-rose-50/20" : "border-slate-300 hover:border-slate-400"
-                        } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none`}
+                        } focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:outline-none bg-white`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword((p) => !p)}
-                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showConfirmPassword ? <EyeOff size={13} /> : <Eye size={13} />}
                       </button>
@@ -521,11 +590,11 @@ export function VendorRegister() {
                   </div>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-1.5">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     {loading ? (
                       <span>Submitting Registration...</span>
@@ -538,31 +607,32 @@ export function VendorRegister() {
                   </button>
                 </div>
 
-                <div className="pt-3 border-t border-dashed border-slate-200 text-center">
-                  <span className="text-[11px] text-slate-500 block mb-1">
+                <div className="pt-2 border-t border-dashed border-slate-200 text-center">
+                  <span className="text-[10px] text-slate-500 block">
                     Looking for overseas employment as an individual candidate?
                   </span>
                   <Link
                     to="/register"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
                   >
                     <span>Register as Candidate</span>
-                    <ArrowRight size={12} />
+                    <ArrowRight size={11} />
                   </Link>
                 </div>
               </form>
             </div>
           )}
         </div>
+      </main>
 
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
-          <span>&copy; {new Date().getFullYear()} ImmiGo CRM &bull; Designed by White Gravity Web Solutions</span>
-          <span className="flex items-center gap-1 text-slate-500">
-            <ShieldCheck size={12} className="text-emerald-600" />
-            <span>SSL Secured</span>
-          </span>
-        </div>
-      </div>
+      {/* Footer */}
+      <footer className="relative z-20 px-5 sm:px-10 py-1.5 border-t border-white/10 bg-slate-950/55 backdrop-blur-md flex items-center justify-between text-[11px] text-slate-300 shrink-0">
+        <span>&copy; {new Date().getFullYear()} ImmiGo CRM &bull; Designed by White Gravity Web Solutions</span>
+        <span className="flex items-center gap-1 text-slate-300">
+          <ShieldCheck size={12} className="text-emerald-400" />
+          <span>SSL 256-Bit Encrypted</span>
+        </span>
+      </footer>
     </div>
   );
 }
