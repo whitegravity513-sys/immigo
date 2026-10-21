@@ -137,7 +137,7 @@ export default function LandingPage() {
               Process
             </a>
             <a href="#contact" className="hover:text-cyan-300 transition-colors">
-              Contact & Inquiry
+              Contact Us
             </a>
           </nav>
 
@@ -430,7 +430,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-7xl mx-auto">
             {[
               {
                 step: "01",
