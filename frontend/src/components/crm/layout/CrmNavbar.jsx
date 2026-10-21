@@ -136,13 +136,20 @@ export function CrmNavbar({
           )}
         </div>
 
-        {}
         <NotificationBell className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer border border-gray-200" />
 
-        {}
         <div className="flex items-center gap-2.5 pl-2 border-l border-gray-200">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-            {adminName.charAt(0).toUpperCase()}
+          <div className={`w-8 h-8 rounded-lg ${user?.profileImage || user?.avatar ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+            {user?.profileImage || user?.avatar ? (
+              <img
+                src={user.profileImage || user.avatar}
+                alt={adminName}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              />
+            ) : (
+              adminName.charAt(0).toUpperCase()
+            )}
           </div>
           <div className="hidden lg:block text-left">
             <p className="text-xs font-bold text-gray-900 leading-tight truncate max-w-[120px]">

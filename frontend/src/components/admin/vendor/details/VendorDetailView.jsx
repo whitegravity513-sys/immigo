@@ -56,8 +56,12 @@ export default function VendorDetailView({
       <div className="bg-white rounded-lg border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-start sm:items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
-              {selectedVendor.companyName?.substring(0, 2).toUpperCase() || "VN"}
+            <div className={`w-10 h-10 rounded-lg ${selectedVendor.logo || selectedVendor.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-black text-sm shadow-xs shrink-0 overflow-hidden`}>
+              {selectedVendor.logo || selectedVendor.profileImage ? (
+                <img src={selectedVendor.logo || selectedVendor.profileImage} alt="" className="w-full h-full object-cover" />
+              ) : (
+                selectedVendor.companyName?.substring(0, 2).toUpperCase() || "VN"
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">

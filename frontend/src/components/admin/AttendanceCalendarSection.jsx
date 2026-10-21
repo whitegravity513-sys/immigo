@@ -635,8 +635,12 @@ export default function AttendanceCalendarSection({
                     <tr key={emp.id || emp.employeeId} className="hover:bg-slate-50/60 transition">
                       <td className="px-3 py-1.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {emp.name ? emp.name.charAt(0).toUpperCase() : "E"}
+                          <div className={`w-8 h-8 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+                            {emp.profileImage ? (
+                              <img src={emp.profileImage} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              emp.name ? emp.name.charAt(0).toUpperCase() : "E"
+                            )}
                           </div>
                           <div>
                             <button

@@ -497,10 +497,304 @@ export const sendCredentialsEmail = async ({
   }
 };
 
+export const sendCandidateApprovalEmail = async ({
+  to,
+  candidateName = "Candidate",
+  candidateId = "",
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/candidate/login`;
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Congratulations! Your Immigo Account Has Been Approved</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 24px; }
+    .card { max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 36px 32px; box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08); }
+    .badge { display: inline-block; padding: 6px 14px; border-radius: 9999px; background-color: #e0f2fe; color: #0369a1; font-size: 12px; font-weight: 700; margin-bottom: 20px; border: 1px solid #bae6fd; }
+    .title { font-size: 22px; font-weight: 800; color: #0f2744; margin-bottom: 16px; line-height: 1.3; }
+    .text { font-size: 14px; line-height: 1.7; color: #334155; margin-bottom: 20px; }
+    .steps-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 24px; margin-bottom: 24px; }
+    .steps-card h3 { font-size: 15px; font-weight: 700; color: #0f2744; margin-top: 0; margin-bottom: 12px; }
+    .steps-list { margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.8; color: #334155; }
+    .notice-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 18px; border-radius: 6px; font-size: 13px; color: #92400e; line-height: 1.6; margin-bottom: 26px; }
+    .btn { display: inline-block; background-color: #0f2744; color: #ffffff !important; font-weight: 700; font-size: 15px; padding: 14px 32px; border-radius: 8px; text-decoration: none; margin-bottom: 24px; text-align: center; }
+    .signature { font-size: 14px; line-height: 1.6; color: #0f2744; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+    .footer { padding-top: 16px; font-size: 11px; color: #94a3b8; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="margin-bottom: 24px;">
+      <span style="font-size: 28px; font-weight: 900; color: #0f2744; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #0284c7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span>
+      <div style="font-size: 11px; font-weight: 700; color: #0284c7; letter-spacing: 1px; text-transform: uppercase; margin-top: 3px;">
+        Your Global Career Partner
+      </div>
+    </div>
+
+    <div class="badge">&check; Registration Approved &bull; ID: ${candidateId}</div>
+    <div class="title">Congratulations! Your Immigo Account Has Been Approved</div>
+    
+    <div class="text">
+      Dear <strong>${candidateName}</strong>,<br><br>
+      Congratulations!<br><br>
+      We are pleased to inform you that your registration with Immigo has been approved. Your account is now active, and you can log in to your candidate portal to continue with the next steps.
+    </div>
+
+    <div class="steps-card">
+      <h3>What happens next?</h3>
+      <ol class="steps-list">
+        <li>Log in to your Immigo Candidate Portal using your registered email address and password.</li>
+        <li>Complete your candidate profile with the required personal, educational, and professional information.</li>
+        <li>Upload the required documents, including your resume and other documents requested by Immigo.</li>
+        <li>Wait for our team to review and verify your submitted documents.</li>
+        <li>Once your required documents are verified, you will be able to explore eligible job opportunities and apply for projects matching your skills and experience.</li>
+      </ol>
+    </div>
+
+    <div class="notice-box">
+      <strong>Important Notice:</strong> Please note that account approval does not guarantee job selection. Job application access depends on successful document verification and the eligibility requirements of each project.
+    </div>
+
+    <div style="text-align: center;">
+      <a href="${finalPortalUrl}" class="btn">Login to Candidate Portal</a>
+    </div>
+
+    <div class="text" style="font-size: 13px; color: #64748b; text-align: center;">
+      Candidate Portal Login: <a href="${finalPortalUrl}" style="color: #0284c7; word-break: break-all;">${finalPortalUrl}</a>
+    </div>
+
+    <div class="signature">
+      We look forward to supporting you on your international career journey.<br><br>
+      Best regards,<br>
+      <strong>Team Immigo</strong><br>
+      Your Global Career Partner
+    </div>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} Immigo. All rights reserved. | Empowering People, Building Global Careers.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const textContent = `Dear ${candidateName},
+
+Congratulations!
+
+We are pleased to inform you that your registration with Immigo has been approved. Your account is now active, and you can log in to your candidate portal to continue with the next steps.
+
+What happens next?
+
+1. Log in to your Immigo Candidate Portal using your registered email address and password.
+2. Complete your candidate profile with the required personal, educational, and professional information.
+3. Upload the required documents, including your resume and other documents requested by Immigo.
+4. Wait for our team to review and verify your submitted documents.
+5. Once your required documents are verified, you will be able to explore eligible job opportunities and apply for projects matching your skills and experience.
+
+Please note that account approval does not guarantee job selection. Job application access depends on successful document verification and the eligibility requirements of each project.
+
+We look forward to supporting you on your international career journey.
+
+Best regards,  
+Team Immigo  
+Your Global Career Partner
+
+Candidate Portal Login: ${finalPortalUrl}`;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to,
+    subject: "Congratulations! Your Immigo Account Has Been Approved",
+    html: htmlContent,
+    text: textContent,
+  };
+
+  logger.info(`[CANDIDATE APPROVAL EMAIL] Destination: ${to} | Candidate: ${candidateId} (${candidateName})`);
+
+  if (!transporter) {
+    logger.info("Transporter not active. Simulated candidate approval email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(`Candidate approval email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send candidate approval email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendCandidateRejectionEmail = async ({
+  to,
+  candidateName = "Candidate",
+  candidateId = "",
+  reason = "Requirements not met",
+}) => {
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Immigo Registration Update</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 24px; }
+    .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+    .reason-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13.5px; line-height: 1.6; color: #991b1b; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="margin-bottom: 20px;">
+      <span style="font-size: 26px; font-weight: 900; color: #0f2744;">immi</span><span style="font-size: 26px; font-weight: 900; color: #0284c7;">Go</span>
+    </div>
+    <div class="title">Immigo Registration Status Update</div>
+    <div class="text">
+      Dear <strong>${candidateName}</strong>,<br><br>
+      Thank you for your interest in Immigo. Our administrative team has reviewed your registration application (${candidateId}).
+      Unfortunately, we are unable to approve your account at this time.
+    </div>
+
+    <div class="reason-box">
+      <strong>Reason for Decision:</strong><br>
+      ${reason}
+    </div>
+
+    <div class="text">
+      If you believe this decision was made in error or would like further information, you may contact our support desk.
+    </div>
+
+    <div class="text">
+      Best regards,<br>
+      <strong>Team Immigo</strong>
+    </div>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} Immigo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to,
+    subject: "Update Regarding Your Immigo Registration",
+    html: htmlContent,
+    text: `Dear ${candidateName},\n\nThank you for your interest in Immigo. Our administrative team has reviewed your registration application (${candidateId}). Unfortunately, we are unable to approve your account at this time.\n\nReason: ${reason}\n\nBest regards,\nTeam Immigo`,
+  };
+
+  logger.info(`[CANDIDATE REJECTION EMAIL] Destination: ${to} | Candidate: ${candidateId}`);
+
+  if (!transporter) {
+    logger.info("Transporter not active. Simulated candidate rejection email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send candidate rejection email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendCandidateInterviewEmail = async ({
+  to,
+  candidateName = "Candidate",
+  projectName = "",
+  position = "",
+  interview = {},
+}) => {
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interview Scheduled - Immigo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 24px; }
+    .card { max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .title { font-size: 20px; font-weight: 800; color: #0f2744; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 20px; }
+    .details-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 18px 20px; margin-bottom: 24px; font-size: 13.5px; line-height: 1.8; color: #166534; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="margin-bottom: 20px;">
+      <span style="font-size: 26px; font-weight: 900; color: #0f2744;">immi</span><span style="font-size: 26px; font-weight: 900; color: #0284c7;">Go</span>
+    </div>
+    <div class="title">Interview Scheduled for ${position || "Selected Position"}</div>
+    <div class="text">
+      Dear <strong>${candidateName}</strong>,<br><br>
+      We are pleased to inform you that your interview for project <strong>${projectName}</strong> has been scheduled.
+    </div>
+
+    <div class="details-box">
+      <strong>Position:</strong> ${position}<br>
+      <strong>Date:</strong> ${interview.scheduledDate || "TBA"}<br>
+      <strong>Time:</strong> ${interview.scheduledTime || "TBA"}<br>
+      <strong>Interview Mode:</strong> ${interview.mode || "Online Video"}<br>
+      <strong>Link / Venue:</strong> ${interview.locationOrLink || "Will be shared by recruiter"}<br>
+      ${interview.remarks ? `<strong>Special Notes:</strong> ${interview.remarks}` : ""}
+    </div>
+
+    <div class="text">
+      Please ensure you are available on time and have all relevant documents ready.<br><br>
+      Best regards,<br>
+      <strong>Team Immigo Recruitment</strong>
+    </div>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} Immigo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to,
+    subject: `Interview Scheduled: ${position || "Position"} - ${projectName}`,
+    html: htmlContent,
+    text: `Dear ${candidateName},\n\nYour interview for ${position} (${projectName}) is scheduled.\nDate: ${interview.scheduledDate}\nTime: ${interview.scheduledTime}\nMode: ${interview.mode}\nLink/Venue: ${interview.locationOrLink}\n\nBest regards,\nTeam Immigo`,
+  };
+
+  if (!transporter) {
+    logger.info("Transporter not active. Simulated interview email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send interview email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 export default {
   sendOtpEmail,
   sendVendorRegistrationApprovedEmail,
   sendVendorActivationEmail,
   sendCredentialsEmail,
+  sendCandidateApprovalEmail,
+  sendCandidateRejectionEmail,
+  sendCandidateInterviewEmail,
 };
 

@@ -3,6 +3,7 @@ import Client from "../../models/Client.js";
 import ClientPayment from "../../models/ClientPayment.js";
 import ActivityService from "../../services/activity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { generateNextClientId } from "../../utils/idGenerator.js";
 
 export const getClients = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).sort({ createdAt: -1 }).lean();
@@ -17,7 +18,10 @@ export const getClients = asyncHandler(async (req, res) => {
 
 export const saveClient = asyncHandler(async (req, res) => {
   const clientData = req.body;
-  const clientId = clientData.id || clientData.clientId || `cli-${Date.now().toString().slice(-6)}`;
+  let clientId = clientData.id || clientData.clientId;
+  if (!clientId || String(clientId).startsWith("cli-")) {
+    clientId = await generateNextClientId();
+  }
 
   const queryConditions = [{ clientId: String(clientId) }];
   if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {

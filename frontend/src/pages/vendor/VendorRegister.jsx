@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
@@ -195,13 +196,22 @@ export function VendorRegister() {
       <div className="w-full lg:w-1/2 min-h-screen lg:h-screen flex flex-col justify-between px-6 sm:px-10 xl:px-14 py-5 overflow-y-auto bg-white">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
           <ImmiGoLogo size="sm" subtitle="Partner Network" />
-          <Link
-            to="/login"
-            className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 transition-colors"
-          >
-            <span>Already registered? Log In</span>
-            <ArrowRight size={13} />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/vendor/login"
+              className="text-xs text-blue-600 hover:text-blue-800 font-semibold hidden sm:inline"
+            >
+              Sign In Instead
+            </Link>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-blue-600 bg-white hover:bg-blue-50/80 px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs transition-all cursor-pointer"
+              title="Return to Main Website"
+            >
+              <ArrowLeft size={14} className="text-slate-500" />
+              <span>Back to Home</span>
+            </Link>
+          </div>
         </div>
 
         <div className="my-auto w-full max-w-xl mx-auto py-3">
@@ -526,6 +536,19 @@ export function VendorRegister() {
                       </>
                     )}
                   </button>
+                </div>
+
+                <div className="pt-3 border-t border-dashed border-slate-200 text-center">
+                  <span className="text-[11px] text-slate-500 block mb-1">
+                    Looking for overseas employment as an individual candidate?
+                  </span>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    <span>Register as Candidate</span>
+                    <ArrowRight size={12} />
+                  </Link>
                 </div>
               </form>
             </div>

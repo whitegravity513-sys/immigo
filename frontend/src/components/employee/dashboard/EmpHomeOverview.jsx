@@ -251,9 +251,7 @@ export default function EmpHomeOverview({
           <div className="flex items-center gap-4">
             <div className="relative shrink-0 group">
               <div
-                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${
-                  currentAvatar ? "bg-white" : "bg-gradient-to-tr from-slate-600 to-slate-700"
-                } text-white font-black text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}
+                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white text-blue-600 font-black text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}
               >
                 {currentAvatar ? (
                   <img
@@ -262,7 +260,7 @@ export default function EmpHomeOverview({
                     className="w-full h-full object-cover rounded-xl"
                   />
                 ) : (
-                  <span>{(user?.name || "E")[0].toUpperCase()}</span>
+                  <span className="text-blue-600 font-black">{(user?.name || "E")[0].toUpperCase()}</span>
                 )}
 
                 <label
@@ -519,7 +517,7 @@ export default function EmpHomeOverview({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
-        <div className="lg:col-span-7 flex flex-col">
+        <div className="lg:col-span-6 flex flex-col">
           <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-3.5 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -662,9 +660,9 @@ export default function EmpHomeOverview({
                 )}
 
                 {status === "Checked Out" && (
-                  <div className="w-full py-1 px-2 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-[10px] font-bold text-center flex items-center justify-center gap-1.5">
+                  <div className="w-full py-1.5 px-2 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-[10px] font-bold text-center flex items-center justify-center gap-1.5 shadow-2xs">
                     <CheckCircle2 size={12} className="text-emerald-700 shrink-0" />
-                    <span>Completed at {fmtTime(statusRecord?.checkOutTime)}. Re-Check In anytime if needed.</span>
+                    <span>Shift completed at {fmtTime(statusRecord?.checkOutTime)}. Check-in for next shift will be active after 12:00 AM midnight.</span>
                   </div>
                 )}
               </div>
@@ -672,10 +670,18 @@ export default function EmpHomeOverview({
           </div>
         </div>
 
-        <div className="lg:col-span-5 flex flex-col space-y-3.5">
-          <DailyWorkLogSection />
-          <EmployeeRecentActivitySection user={user} />
+        <div className="lg:col-span-6 flex flex-col">
+          <DailyWorkLogSection
+            status={status}
+            statusRecord={statusRecord}
+            isCheckedOut={isCheckedOut || status === "Checked Out" || Boolean(statusRecord?.checkOutTime)}
+          />
         </div>
+      </div>
+
+      {/* Full Width My Recent Activity */}
+      <div className="w-full">
+        <EmployeeRecentActivitySection user={user} />
       </div>
     </div>
   );

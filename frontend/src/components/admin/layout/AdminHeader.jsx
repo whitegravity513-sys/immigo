@@ -43,7 +43,7 @@ export const AdminHeader = ({
   };
 
   return (
-    <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center border-b border-blue-800/80 shadow-md">
+    <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white backdrop-blur-md px-4 sm:px-6 sticky top-0 z-30 flex items-center border-b border-blue-800/80 shadow-md">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">

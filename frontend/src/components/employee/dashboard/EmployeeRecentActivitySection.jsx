@@ -13,7 +13,7 @@ export default function EmployeeRecentActivitySection({ user }) {
   const loadMyActivities = async () => {
     setLoading(true);
     try {
-      const res = await activityService.getEmployeeActivities({ limit: 6 });
+      const res = await activityService.getEmployeeActivities({ limit: 10 });
       setActivities(res.activities || []);
     } catch (err) {
       console.error("Error loading employee activities:", err);
@@ -38,7 +38,7 @@ export default function EmployeeRecentActivitySection({ user }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
+    <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">

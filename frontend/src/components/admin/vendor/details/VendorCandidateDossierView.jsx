@@ -86,7 +86,7 @@ export default function VendorCandidateDossierView({
       <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
+            <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
               {selectedCandidate.photo ? (
                 <img
                   src={selectedCandidate.photo}

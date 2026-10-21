@@ -28,7 +28,14 @@ export default function AppFooter({
     ? navItems
     : (role === "employee" ? defaultEmployeeLinks : defaultAdminLinks);
 
-  const portalLabel = role === "employee" ? "Employee Portal" : "Enterprise Admin";
+  const portalLabel =
+    role === "employee"
+      ? "Employee Portal"
+      : role === "vendor"
+      ? "Vendor Portal"
+      : role === "candidate"
+      ? "Candidate Portal"
+      : "Enterprise Admin";
 
   return (
     <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">

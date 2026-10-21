@@ -73,7 +73,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
       {}
       <div className="p-3.5 mx-3 mt-3 bg-blue-100/70 rounded-xl border border-blue-300 shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs overflow-hidden border border-blue-400/60">
+          <div className={`w-9 h-9 rounded-xl ${vendorLogo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 shadow-xs overflow-hidden`}>
             {vendorLogo ? (
               <img src={vendorLogo} alt={vendorName} className="w-full h-full object-cover" />
             ) : (

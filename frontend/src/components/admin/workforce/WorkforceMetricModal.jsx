@@ -96,7 +96,7 @@ export function WorkforceMetricModal({
                   className="pt-2.5 first:pt-0 p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                    <div className={`w-10 h-10 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-sm flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
                       {emp.profileImage ? (
                         <img src={emp.profileImage} alt="" className="w-full h-full object-cover" />
                       ) : (

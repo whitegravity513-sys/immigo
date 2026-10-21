@@ -91,8 +91,17 @@ export function HrNavbar({
           </div>
 
           <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-              {adminName.charAt(0).toUpperCase()}
+            <div className={`w-8 h-8 rounded-lg ${user?.profileImage || user?.avatar ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
+              {user?.profileImage || user?.avatar ? (
+                <img
+                  src={user.profileImage || user.avatar}
+                  alt={adminName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              ) : (
+                adminName.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="hidden sm:block text-left min-w-0">
               <div className="text-xs font-bold text-gray-900 truncate leading-tight">

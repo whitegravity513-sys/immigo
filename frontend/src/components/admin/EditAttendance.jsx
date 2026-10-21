@@ -153,8 +153,12 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar text-slate-800">
           {}
           <div className="p-3 bg-slate-50/80 border border-slate-200/90 rounded-xl flex items-center gap-3">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
-              {String(empName).charAt(0).toUpperCase()}
+            <div className={`w-6 h-6 rounded-md ${attendance?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+              {attendance?.profileImage ? (
+                <img src={attendance.profileImage} alt="" className="w-full h-full object-cover" />
+              ) : (
+                String(empName).charAt(0).toUpperCase()
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-bold text-slate-900 truncate">{empName}</div>

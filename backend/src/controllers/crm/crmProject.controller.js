@@ -3,6 +3,7 @@ import Project from "../../models/Project.js";
 import CrmNotification from "../../models/CrmNotification.js";
 import ActivityService from "../../services/activity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { generateNextClientId } from "../../utils/idGenerator.js";
 
 export const getAvailableProjects = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).lean();
@@ -74,7 +75,7 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
   }
 
   if (!clientId || String(clientId).trim() === "") {
-    clientId = project.clientId || `cli-${Date.now().toString().slice(-6)}`;
+    clientId = project.clientId || (await generateNextClientId());
   }
 
   const queryConditions = [{ clientId: String(clientId) }];

@@ -35,24 +35,40 @@ export function MainAdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState({
+    // HR / Workforce
     totalEmployees: 0,
     newEmployeesThisMonth: 0,
     presentToday: 0,
     onLeaveToday: 0,
     pendingLeaves: 0,
-    pendingDocuments: 0,
+
+    // CRM Clients & Projects
     totalClients: 0,
     activeClients: 0,
     totalProjects: 0,
     activeProjects: 0,
     totalRequiredManpower: 0,
     activeRequirements: 0,
+
+    // Vendors
     totalVendors: 0,
     pendingVendors: 0,
+
+    // Candidate Management & Recruitment Pipeline
     totalCandidates: 0,
-    pendingCandidates: 0,
+    pendingRegistrations: 0,
+    approvedAccounts: 0,
+    pendingDocuments: 0,
+    eligibleCandidates: 0,
+    totalApplications: 0,
+    interviewsScheduled: 0,
     selectedCandidates: 0,
-    inProcessing: 0,
+    rejectedApplications: 0,
+
+    // Payments & Ledger
+    totalReceived: 0,
+    totalReceivable: 0,
+    totalInvoiced: 0,
     pendingPayments: 0,
     deployedCandidates: 0,
   });
@@ -96,33 +112,37 @@ export function MainAdminDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [crmRes, clientsRes, empRes, attRes, leavesRes, vendorRes] = await Promise.allSettled([
-        crmClientService.getDashboardStats(),
-        crmClientService.getClients({ limit: 50 }),
+      const [clientsRes, empRes, attRes, leavesRes, vendorRes, candRes, payRes] = await Promise.allSettled([
+        crmClientService.getClients({ limit: 1000 }),
         employeeService.getEmployees(),
         apiClient.get("/admin/attendance"),
         apiClient.get("/admin/leaves"),
         crmVendorService.getAdminVendorOverviewStats(),
+        apiClient.get("/admin/candidates/stats"),
+        apiClient.get("/admin/client-payments/stats"),
       ]);
 
       let allProjects = [];
+      let clientList = [];
 
-      if (clientsRes.status === "fulfilled" && clientsRes.value?.clients) {
-        const clients = clientsRes.value.clients;
-        setRecentClients(clients.slice(0, 5));
+      if (clientsRes.status === "fulfilled") {
+        clientList = Array.isArray(clientsRes.value)
+          ? clientsRes.value
+          : clientsRes.value?.clients || [];
+        setRecentClients(clientList.slice(0, 5));
 
-        clients.forEach((c) => {
+        clientList.forEach((c) => {
           (c.projects || []).forEach((p) => {
             allProjects.push({
               id: p.id,
               projectName: p.projectName,
               projectType: p.projectType,
-              clientName: c.companyName,
+              clientName: c.companyName || "Direct Overseas Client",
               clientId: c.id,
               country: p.country || c.country || "",
               location: p.location || c.city || "",
               requiredManpower: calculateProjectManpower(p) || 0,
-              status: p.status || "Pending",
+              status: p.status || "Active",
               createdAt: p.startDate || c.createdAt || "",
             });
           });
@@ -134,29 +154,42 @@ export function MainAdminDashboard() {
       setStats((prev) => {
         let updated = { ...prev };
 
-        if (crmRes.status === "fulfilled" && crmRes.value) {
-          const crm = crmRes.value;
-          updated.totalClients = crm.totalClients || prev.totalClients;
-          updated.activeClients = crm.activeClients || prev.activeClients;
-          updated.totalProjects = crm.totalProjects || prev.totalProjects;
-          updated.activeProjects = crm.activeProjects || prev.activeProjects;
-          updated.totalRequiredManpower = crm.totalRequiredManpower || prev.totalRequiredManpower;
-          updated.activeRequirements = crm.activeRequirements || prev.activeRequirements;
-        }
+        // 1. Clients & Projects Real Data
+        updated.totalClients = clientList.length;
+        updated.activeClients = clientList.filter(
+          (c) => (c.status || "active").toLowerCase() === "active"
+        ).length;
+        updated.totalProjects = allProjects.length;
+        updated.activeProjects = allProjects.filter(
+          (p) => (p.status || "active").toLowerCase() === "active" || p.status === "in_progress"
+        ).length;
+        updated.totalRequiredManpower = allProjects.reduce(
+          (sum, p) => sum + (Number(p.requiredManpower) || 0),
+          0
+        );
+        updated.activeRequirements = updated.activeProjects;
 
+        // 2. HR & Workforce Real Data
         if (empRes.status === "fulfilled") {
           const empList = empRes.value?.employees || (Array.isArray(empRes.value) ? empRes.value : []);
-          if (empList.length > 0) {
-            updated.totalEmployees = empList.length;
-          }
+          updated.totalEmployees = empList.length;
+          const currentMonth = new Date().getMonth();
+          const currentYear = new Date().getFullYear();
+          updated.newEmployeesThisMonth = empList.filter((e) => {
+            if (!e.createdAt && !e.joiningDate) return false;
+            const d = new Date(e.joiningDate || e.createdAt);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          }).length;
         }
 
         if (attRes.status === "fulfilled" && Array.isArray(attRes.value?.data)) {
           const att = attRes.value.data;
-          const present = att.filter((r) => r.status === "Active" || r.status === "Present" || r.status === "Checked Out").length;
-          const onLeave = att.filter((r) => r.status === "Leave" || r.status === "On Leave").length;
-          if (present > 0) updated.presentToday = present;
-          if (onLeave > 0) updated.onLeaveToday = onLeave;
+          updated.presentToday = att.filter(
+            (r) => r.status === "Active" || r.status === "Present" || r.status === "Checked Out"
+          ).length;
+          updated.onLeaveToday = att.filter(
+            (r) => r.status === "Leave" || r.status === "On Leave"
+          ).length;
         }
 
         if (leavesRes.status === "fulfilled") {
@@ -165,20 +198,38 @@ export function MainAdminDashboard() {
             : Array.isArray(leavesRes.value?.data)
             ? leavesRes.value.data
             : [];
-          const pending = leaves.filter((l) => l.status === "Pending").length;
-          if (pending > 0) updated.pendingLeaves = pending;
+          updated.pendingLeaves = leaves.filter((l) => l.status === "Pending").length;
         }
 
+        // 3. Vendor Management Real Data
         if (vendorRes.status === "fulfilled" && vendorRes.value) {
           const v = vendorRes.value;
-          updated.totalVendors = v.totalVendors;
-          updated.pendingVendors = v.pendingVendors;
-          updated.totalCandidates = v.totalCandidates;
-          updated.pendingCandidates = v.pendingCandidates;
-          updated.selectedCandidates = v.selectedCandidates;
-          updated.inProcessing = v.inProcessing;
-          updated.pendingPayments = v.pendingPayments;
+          updated.totalVendors = v.totalVendors || 0;
+          updated.pendingVendors = v.pendingVendors || 0;
           updated.deployedCandidates = v.deployedCandidates || 0;
+        }
+
+        // 4. Candidate Portal Management Real Data
+        if (candRes.status === "fulfilled" && candRes.value?.data?.stats) {
+          const cStats = candRes.value.data.stats;
+          updated.totalCandidates = cStats.totalCandidates || 0;
+          updated.pendingRegistrations = cStats.pendingRegistrations || 0;
+          updated.approvedAccounts = cStats.approvedAccounts || 0;
+          updated.pendingDocuments = cStats.pendingDocuments || 0;
+          updated.eligibleCandidates = cStats.eligibleCandidates || 0;
+          updated.totalApplications = cStats.totalApplications || 0;
+          updated.interviewsScheduled = cStats.interviewsScheduled || 0;
+          updated.selectedCandidates = cStats.selectedCandidates || 0;
+          updated.rejectedApplications = cStats.rejectedApplications || 0;
+        }
+
+        // 5. Client Payment & Ledger Stats Real Data
+        if (payRes.status === "fulfilled" && payRes.value?.data?.stats) {
+          const pStats = payRes.value.data.stats;
+          updated.totalReceived = pStats.totalReceived || 0;
+          updated.totalReceivable = pStats.totalReceivable || 0;
+          updated.totalInvoiced = pStats.totalInvoiced || 0;
+          updated.pendingPayments = pStats.totalReceivable || 0;
         }
 
         return updated;
@@ -199,7 +250,7 @@ export function MainAdminDashboard() {
       trend: stats.totalEmployees > 0 ? `${stats.totalEmployees} active` : "0 active",
       icon: UserCheck,
       badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
-      to: "/admin/employees",
+      to: "/admin/dashboard/workforce",
     },
     {
       title: "Total Clients",
@@ -208,13 +259,13 @@ export function MainAdminDashboard() {
       trend: stats.totalClients > 0 ? `${stats.activeClients || stats.totalClients} active` : "0 active",
       icon: Building2,
       badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
-      to: "/client/dashboard",
+      to: "/client/clients",
     },
     {
       title: "Total Vendors",
       value: stats.totalVendors || 0,
       subtitle: "Registered Agencies",
-      trend: stats.pendingVendors > 0 ? `${stats.pendingVendors} pending review` : stats.totalVendors > 0 ? "All approved" : "0 registered",
+      trend: stats.pendingVendors > 0 ? `${stats.pendingVendors} pending review` : stats.totalVendors > 0 ? `${stats.totalVendors} approved` : "0 registered",
       icon: Briefcase,
       badgeBg: "bg-amber-50 text-amber-800 border-amber-200",
       to: "/admin/vendor/vendors",
@@ -229,68 +280,49 @@ export function MainAdminDashboard() {
       to: "/client/projects",
     },
     {
-      title: "Total Candidates",
+      title: "Candidate Pool",
       value: stats.totalCandidates || 0,
-      subtitle: "Candidate Roster Pool",
-      trend: stats.totalCandidates > 0 ? `${stats.totalCandidates} pooled` : "0 candidates",
+      subtitle: "Candidate Portal Roster",
+      trend: stats.pendingRegistrations > 0 ? `${stats.pendingRegistrations} need approval` : `${stats.totalCandidates} registered`,
       icon: Users,
       badgeBg: "bg-teal-50 text-teal-700 border-teal-200",
-      to: "/admin/vendor/candidates",
+      to: "/admin/candidates/all",
     },
     {
-      title: "Shortlisted Candidates",
-      value: stats.pendingCandidates || 0,
-      subtitle: "Under Document Review",
-      trend: stats.pendingCandidates > 0 ? `${stats.pendingCandidates} in review` : "0 in review",
+      title: "Job Applications",
+      value: stats.totalApplications || 0,
+      subtitle: "Project Applications",
+      trend: `${stats.totalApplications} submitted`,
       icon: Clock,
       badgeBg: "bg-yellow-50 text-yellow-800 border-yellow-200",
-      to: "/admin/vendor/submissions?status=Shortlisted",
-    },
-    {
-      title: "Interview Scheduled",
-      value: stats.selectedCandidates || 0,
-      subtitle: "Upcoming Client Interviews",
-      trend: stats.selectedCandidates > 0 ? `${stats.selectedCandidates} scheduled` : "0 scheduled",
-      icon: Calendar,
-      badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
-      to: "/admin/vendor/submissions?status=Interview Scheduled",
+      to: "/admin/candidates/applications",
     },
     {
       title: "Selected Candidates",
       value: stats.selectedCandidates || 0,
-      subtitle: "Client Selection Cleared",
-      trend: stats.selectedCandidates > 0 ? "In processing" : "0 selected",
+      subtitle: "Recruitment Cleared",
+      trend: stats.selectedCandidates > 0 ? `${stats.selectedCandidates} selected` : "0 selected",
       icon: CheckCircle2,
       badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      to: "/admin/vendor/selected",
+      to: "/admin/candidates/selected",
     },
     {
-      title: "Pending Payments",
-      value: stats.pendingPayments ? `₹${(stats.pendingPayments / 100000).toFixed(1)}L` : "₹0",
-      subtitle: "Milestone Fee Pipeline",
-      trend: stats.pendingPayments > 0 ? "Due this milestone" : "No pending dues",
+      title: "Inward Receipts",
+      value: stats.totalReceived > 0 ? `₹${(stats.totalReceived / 100000).toFixed(1)}L` : "₹0",
+      subtitle: "Client Inward Receipts",
+      trend: stats.totalReceivable > 0 ? `₹${(stats.totalReceivable / 100000).toFixed(1)}L due` : "All settled",
       icon: TrendingUp,
-      badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
-      to: "/admin/vendor/payments",
-    },
-    {
-      title: "Candidates Joined",
-      value: stats.deployedCandidates || 0,
-      subtitle: "Successfully Deployed",
-      trend: stats.deployedCandidates > 0 ? `${stats.deployedCandidates} joined` : "0 joined",
-      icon: Award,
-      badgeBg: "bg-green-50 text-green-800 border-green-200",
-      to: "/admin/vendor/candidates?tab=Selected",
+      badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      to: "/client/ledger",
     },
   ];
-
 
   return (
     <AdminMasterLayout title="Overview" subtitle="Real-time Operational Command Center">
       <div className="relative font-sans pb-3.5 w-full max-w-full overflow-hidden">
         <div className="space-y-3">
           
-          {}
+          {/* Top Section: Workforce Card + 6 Management Summary Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
             <div className="lg:col-span-1 p-3 sm:p-3.5 rounded-lg bg-indigo-600 text-white shadow-xs flex flex-col justify-between overflow-hidden relative">
               <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
@@ -298,7 +330,7 @@ export function MainAdminDashboard() {
                 <h2 className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">Company Workforce</h2>
                 <div className="text-2xl font-black mt-0.5">{stats.totalEmployees}</div>
                 <div className="text-[11px] text-indigo-100 mt-1.5 font-medium bg-white/15 inline-block px-2.5 py-0.5 rounded-full">
-                  {stats.newEmployeesThisMonth > 0 ? `+${stats.newEmployeesThisMonth} new this month` : "Active staff"}
+                  {stats.presentToday > 0 ? `${stats.presentToday} present today` : stats.newEmployeesThisMonth > 0 ? `+${stats.newEmployeesThisMonth} new this month` : "Active staff"}
                 </div>
               </div>
               <Link to="/admin/dashboard/workforce" className="mt-3 pt-2 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
@@ -339,6 +371,105 @@ export function MainAdminDashboard() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Real-time Candidate & Recruitment Operations Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+            <Link
+              to="/admin/candidates/new-registrations"
+              className="p-2 sm:p-2.5 bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/70 rounded-lg transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-amber-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider">New Registrations</span>
+                <Clock size={12} className="text-amber-600" />
+              </div>
+              <div className="text-base sm:text-lg font-black text-amber-950 mt-1">
+                {stats.pendingRegistrations}
+              </div>
+              <span className="text-[9px] text-amber-700/80 font-semibold group-hover:underline">
+                Review &rarr;
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/candidates/documents"
+              className="p-2 sm:p-2.5 bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/70 rounded-lg transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-indigo-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Pending Docs</span>
+                <FileText size={12} className="text-indigo-600" />
+              </div>
+              <div className="text-base sm:text-lg font-black text-indigo-950 mt-1">
+                {stats.pendingDocuments}
+              </div>
+              <span className="text-[9px] text-indigo-700/80 font-semibold group-hover:underline">
+                Verify docs &rarr;
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/candidates/applications"
+              className="p-2 sm:p-2.5 bg-sky-50/70 hover:bg-sky-100/80 border border-sky-200/70 rounded-lg transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-sky-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Applications</span>
+                <Briefcase size={12} className="text-sky-600" />
+              </div>
+              <div className="text-base sm:text-lg font-black text-sky-950 mt-1">
+                {stats.totalApplications}
+              </div>
+              <span className="text-[9px] text-sky-700/80 font-semibold group-hover:underline">
+                View pipeline &rarr;
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/candidates/interviews"
+              className="p-2 sm:p-2.5 bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/70 rounded-lg transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-purple-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Interviews</span>
+                <Calendar size={12} className="text-purple-600" />
+              </div>
+              <div className="text-base sm:text-lg font-black text-purple-950 mt-1">
+                {stats.interviewsScheduled}
+              </div>
+              <span className="text-[9px] text-purple-700/80 font-semibold group-hover:underline">
+                Schedule &rarr;
+              </span>
+            </Link>
+
+            <Link
+              to="/admin/candidates/selected"
+              className="p-2 sm:p-2.5 bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/70 rounded-lg transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-emerald-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Selected</span>
+                <Award size={12} className="text-emerald-600" />
+              </div>
+              <div className="text-base sm:text-lg font-black text-emerald-950 mt-1">
+                {stats.selectedCandidates}
+              </div>
+              <span className="text-[9px] text-emerald-700/80 font-semibold group-hover:underline">
+                Deployments &rarr;
+              </span>
+            </Link>
+
+            <Link
+              to="/client/ledger"
+              className="p-2 sm:p-2.5 bg-teal-50/70 hover:bg-teal-100/80 border border-teal-200/70 rounded-lg transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between text-teal-800">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Total Inward</span>
+                <TrendingUp size={12} className="text-teal-600" />
+              </div>
+              <div className="text-base sm:text-lg font-black text-teal-950 mt-1">
+                {stats.totalReceived > 0 ? `₹${(stats.totalReceived / 100000).toFixed(1)}L` : "₹0"}
+              </div>
+              <span className="text-[9px] text-teal-700/80 font-semibold group-hover:underline">
+                Open ledger &rarr;
+              </span>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

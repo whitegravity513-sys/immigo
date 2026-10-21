@@ -102,8 +102,12 @@ export default function AdminProcessingList() {
         <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
-                <UserCheck size={26} />
+              <div className={`w-14 h-14 rounded-2xl ${selectedApp.candidatePhoto || selectedApp.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-black text-xl shadow-xs overflow-hidden shrink-0`}>
+                {selectedApp.candidatePhoto || selectedApp.photo ? (
+                  <img src={selectedApp.candidatePhoto || selectedApp.photo} alt={selectedApp.candidateName} className="w-full h-full object-cover" />
+                ) : (
+                  selectedApp.candidateName?.charAt(0).toUpperCase() || <UserCheck size={26} />
+                )}
               </div>
               <div>
                 <div className="flex items-center gap-3 flex-wrap">

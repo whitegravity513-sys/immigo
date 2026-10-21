@@ -73,7 +73,7 @@ export default function VendorLoginForm({ onLoginSuccess, onForgotPassword }) {
             autoFocus
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            name="vnd_login_identity" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="e.g. vendor@abcmanpower.com or VND-1001" className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
+            name="vnd_login_identity" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck="false" placeholder="e.g. vendor@abcmanpower.com or IMM-VND-00001" className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>
       </div>

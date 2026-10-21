@@ -146,7 +146,13 @@ export const crmClientService = {
   getClientById: async (id) => {
     await delay(60);
     const all = loadClientsFromStorage();
-    const found = all.find((c) => String(c.id) === String(id));
+    const target = String(id).trim().toLowerCase();
+    const found = all.find(
+      (c) =>
+        String(c.id || "").trim().toLowerCase() === target ||
+        String(c.clientId || "").trim().toLowerCase() === target ||
+        String(c._id || "").trim().toLowerCase() === target
+    );
     return found || null;
   },
 
@@ -155,7 +161,24 @@ export const crmClientService = {
     await delay(120);
     const all = loadClientsFromStorage();
 
-    const clientId = `cli-${Date.now().toString().slice(-6)}`;
+    const yy = new Date().getFullYear().toString().slice(-2);
+    const prefix = `IMCL-${yy}-`;
+    let maxNum = 0;
+    for (const c of all) {
+      const cid = c.id || c.clientId;
+      if (typeof cid === "string" && cid.startsWith(prefix)) {
+        const num = parseInt(cid.slice(-4), 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    }
+    const nextNum = maxNum + 1;
+    const clientId =
+      (payload.clientId && String(payload.clientId).startsWith("IMCL-"))
+        ? payload.clientId
+        : (payload.id && String(payload.id).startsWith("IMCL-"))
+        ? payload.id
+        : `${prefix}${String(nextNum).padStart(4, "0")}`;
+
     const now = new Date().toISOString();
 
     

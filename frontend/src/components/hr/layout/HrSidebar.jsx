@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -26,7 +26,13 @@ export function HrSidebar({
   setCollapsed = () => {},
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/admin/login", { replace: true });
+  };
   const currentPath = location.pathname;
 
   const hrNavItems = [
@@ -195,8 +201,17 @@ export function HrSidebar({
               collapsed ? "justify-center" : ""
             }`}
           >
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-              {adminName.charAt(0).toUpperCase()}
+            <div className={`w-8 h-8 rounded-lg ${user?.profileImage || user?.avatar ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
+              {user?.profileImage || user?.avatar ? (
+                <img
+                  src={user.profileImage || user.avatar}
+                  alt={adminName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              ) : (
+                adminName.charAt(0).toUpperCase()
+              )}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
@@ -213,7 +228,7 @@ export function HrSidebar({
 
           <button
             type="button"
-            onClick={logout}
+            onClick={handleLogout}
             className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer ${
               collapsed ? "justify-center" : ""
             }`}

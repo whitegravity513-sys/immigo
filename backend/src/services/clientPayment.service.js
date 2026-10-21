@@ -26,6 +26,7 @@ export class ClientPaymentService {
     if (crmClient?.id) clientIds.add(String(crmClient.id));
     if (crmClient?.clientId) clientIds.add(String(crmClient.clientId));
     if (adminClient?._id) clientIds.add(String(adminClient._id));
+    if (adminClient?.clientId) clientIds.add(String(adminClient.clientId));
     if (adminClient?.company) clientIds.add(String(adminClient.company));
 
     const successfulPayments = await ClientPayment.find({

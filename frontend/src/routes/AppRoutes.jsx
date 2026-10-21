@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ProtectedRoute from "../components/common/ProtectedRoute.jsx";
 import LoadingFallback from "../components/common/LoadingFallback.jsx";
@@ -81,8 +81,59 @@ const AdminRefundsList = lazy(() => import("../pages/admin/vendor/AdminRefundsLi
 const AdminMasterLayout = lazy(() => import("../components/admin/layout/AdminMasterLayout.jsx"));
 const InvoiceReceiptPage = lazy(() => import("../pages/common/InvoiceReceiptPage.jsx"));
 
+const LandingPage = lazy(() => import("../pages/public/LandingPage.jsx"));
+const ContactPage = lazy(() => import("../pages/public/ContactPage.jsx"));
+const RegisterPage = lazy(() => import("../pages/public/RegisterPage.jsx"));
+const CandidateLogin = lazy(() => import("../pages/candidate/CandidateLogin.jsx"));
+const CandidateDashboard = lazy(() => import("../pages/candidate/CandidateDashboard.jsx"));
+const CandidateManagementLayout = lazy(() => import("../components/admin/layout/CandidateManagementLayout.jsx"));
+const AdminCandidateDashboard = lazy(() => import("../pages/admin/candidate/AdminCandidateDashboard.jsx"));
+const AdminNewRegistrations = lazy(() => import("../pages/admin/candidate/AdminNewRegistrations.jsx"));
+const AdminAllCandidates = lazy(() => import("../pages/admin/candidate/AdminAllCandidates.jsx"));
+const AdminDocumentVerification = lazy(() => import("../pages/admin/candidate/AdminDocumentVerification.jsx"));
+const AdminJobApplications = lazy(() => import("../pages/admin/candidate/AdminJobApplications.jsx"));
+const AdminShortlistedCandidates = lazy(() => import("../pages/admin/candidate/AdminShortlistedCandidates.jsx"));
+const AdminInterviews = lazy(() => import("../pages/admin/candidate/AdminInterviews.jsx"));
+const AdminCandidateSelected = lazy(() => import("../pages/admin/candidate/AdminSelectedCandidates.jsx"));
+const AdminRejectedApplications = lazy(() => import("../pages/admin/candidate/AdminRejectedApplications.jsx"));
+
+function LoginRouteHandler({ isAuthenticated, isAdmin, isVendor, isCandidate }) {
+  const [searchParams] = useSearchParams();
+  if (isAuthenticated) {
+    return (
+      <Navigate
+        to={
+          isAdmin
+            ? "/admin/dashboard"
+            : isVendor
+            ? "/vendor/dashboard"
+            : isCandidate
+            ? "/candidate/dashboard"
+            : "/employee/dashboard"
+        }
+        replace
+      />
+    );
+  }
+
+  const roleParam = (searchParams.get("role") || searchParams.get("tab") || "").toLowerCase();
+  if (roleParam === "admin") {
+    return <Navigate to="/admin/login" replace />;
+  }
+  if (roleParam === "vendor") {
+    return <Navigate to="/vendor/login" replace />;
+  }
+  if (roleParam === "candidate") {
+    return <Navigate to="/candidate/login" replace />;
+  }
+  if (roleParam === "employee") {
+    return <Navigate to="/employee/login" replace />;
+  }
+  return <Navigate to="/candidate/login" replace />;
+}
+
 export default function AppRoutes() {
-  const { token, user, logout, isAuthenticated, isAdmin, isVendor } = useAuth();
+  const { token, user, logout, isAuthenticated, isAdmin, isVendor, isCandidate } = useAuth();
 
   return (
     <Suspense fallback={<LoadingFallback />}>
@@ -92,7 +143,17 @@ export default function AppRoutes() {
         <Route path="/vendor/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/admin/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
 
-        {}
+        {/* Dedicated Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            isAuthenticated && isAdmin ? (
+              <Navigate to="/admin/dashboard" replace />
+            ) : (
+              <Navigate to="/admin/login" replace />
+            )
+          }
+        />
         <Route
           path="/admin/login"
           element={
@@ -124,27 +185,44 @@ export default function AppRoutes() {
           }
         />
         <Route path="/vendor/register" element={<VendorRegister />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact-us" element={<ContactPage />} />
 
-        {}
+        <Route path="/candidate" element={<LandingPage />} />
+        <Route path="/candidate/portal" element={<LandingPage />} />
+        <Route path="/candidate/register" element={<RegisterPage />} />
         <Route
-          path="/login"
+          path="/candidate/login"
           element={
-            isAuthenticated ? (
-              <Navigate
-                to={
-                  isVendor
-                    ? "/vendor/dashboard"
-                    : isAdmin
-                    ? "/admin/dashboard"
-                    : "/employee/dashboard"
-                }
-                replace
-              />
+            isAuthenticated && isCandidate ? (
+              <Navigate to="/candidate/dashboard" replace />
             ) : (
-              <Navigate to="/admin/login" replace />
+              <CandidateLogin />
             )
           }
         />
+        <Route
+          path="/candidate/dashboard"
+          element={
+            <ProtectedRoute allowedRole={["candidate", "admin"]}>
+              <CandidateDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <LoginRouteHandler
+              isAuthenticated={isAuthenticated}
+              isAdmin={isAdmin}
+              isVendor={isVendor}
+              isCandidate={isCandidate}
+            />
+          }
+        />
+
 
         {}
         <Route
@@ -627,10 +705,28 @@ export default function AppRoutes() {
           <Route path="profile" element={<VendorProfile />} />
         </Route>
 
-        {}
+        <Route
+          path="/admin/candidates"
+          element={
+            <ProtectedRoute allowedRole="admin">
+              <CandidateManagementLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/candidates/dashboard" replace />} />
+          <Route path="dashboard" element={<AdminCandidateDashboard />} />
+          <Route path="new-registrations" element={<AdminNewRegistrations />} />
+          <Route path="all" element={<AdminAllCandidates />} />
+          <Route path="documents" element={<AdminDocumentVerification />} />
+          <Route path="applications" element={<AdminJobApplications />} />
+          <Route path="shortlisted" element={<AdminShortlistedCandidates />} />
+          <Route path="interviews" element={<AdminInterviews />} />
+          <Route path="selected" element={<AdminCandidateSelected />} />
+          <Route path="rejected" element={<AdminRejectedApplications />} />
+        </Route>
+
         <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {}
         <Route
           path="/"
           element={
@@ -639,6 +735,8 @@ export default function AppRoutes() {
                 to={
                   isVendor
                     ? "/vendor/dashboard"
+                    : isCandidate
+                    ? "/candidate/dashboard"
                     : isAdmin
                     ? "/admin/dashboard"
                     : "/employee/dashboard"
@@ -646,12 +744,11 @@ export default function AppRoutes() {
                 replace
               />
             ) : (
-              <Navigate to="/login" replace />
+              <LandingPage />
             )
           }
         />
 
-        {}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

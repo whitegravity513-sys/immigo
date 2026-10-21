@@ -449,8 +449,12 @@ export function Dashboard() {
                         className="py-2 flex items-center justify-between gap-2 hover:bg-gray-50/60 rounded px-1 transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 font-black text-xs flex items-center justify-center shrink-0">
-                            {empName.charAt(0).toUpperCase()}
+                          <div className={`w-7 h-7 rounded-lg ${rec.profileImage || rec.employeeId?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
+                            {rec.profileImage || rec.employeeId?.profileImage ? (
+                              <img src={rec.profileImage || rec.employeeId?.profileImage} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              empName.charAt(0).toUpperCase()
+                            )}
                           </div>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-gray-900 truncate">

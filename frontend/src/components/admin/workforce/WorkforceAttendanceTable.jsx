@@ -109,8 +109,12 @@ export function WorkforceAttendanceTable({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                      {safeName.charAt(0).toUpperCase()}
+                    <div className={`w-6 h-6 rounded-md ${rep.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+                      {rep.profileImage ? (
+                        <img src={rep.profileImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        safeName.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -248,8 +252,12 @@ export function WorkforceAttendanceTable({
                   >
                     <td className="px-3 py-1.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs">
-                          {safeName.charAt(0).toUpperCase()}
+                        <div className={`w-6 h-6 rounded-md ${rep.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+                          {rep.profileImage ? (
+                            <img src={rep.profileImage} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            safeName.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">

@@ -9,6 +9,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
 import { requestAndSendOtp, verifyOtp } from "../services/otp.service.js";
 import { OTP_PURPOSES } from "../models/Otp.js";
+import { generateNextVendorId } from "../utils/idGenerator.js";
 
 export const vendorRegister = asyncHandler(async (req, res) => {
   const {
@@ -46,7 +47,7 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const vendorId = `VND-${Math.floor(1000 + Math.random() * 9000)}`;
+  const vendorId = await generateNextVendorId();
 
   const newVendor = await Vendor.create({
     vendorId,

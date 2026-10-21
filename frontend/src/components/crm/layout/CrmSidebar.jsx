@@ -103,16 +103,44 @@ export function CrmSidebar({
     },
   ];
 
-  const upcomingItems = [
+  const candidateManagementItems = [
+    {
+      title: "Candidate Dashboard",
+      icon: LayoutDashboard,
+      path: "/admin/candidates/dashboard",
+    },
+    {
+      title: "New Registrations",
+      icon: Users,
+      path: "/admin/candidates/new-registrations",
+    },
+    {
+      title: "All Candidates",
+      icon: Contact,
+      path: "/admin/candidates/all",
+    },
+    {
+      title: "Document Verification",
+      icon: FileText,
+      path: "/admin/candidates/documents",
+    },
+    {
+      title: "Job Applications",
+      icon: Briefcase,
+      path: "/admin/candidates/applications",
+    },
+    {
+      title: "Interviews",
+      icon: Clock,
+      path: "/admin/candidates/interviews",
+    },
+  ];
+
+  const vendorManagementItems = [
     {
       title: "Vendor Network",
       icon: Briefcase,
-      badge: "Soon",
-    },
-    {
-      title: "Candidate Pool",
-      icon: Contact,
-      badge: "Soon",
+      path: "/admin/vendor/dashboard",
     },
   ];
 
@@ -284,28 +312,57 @@ export function CrmSidebar({
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                Upcoming Modules
+                Candidate Management
               </p>
             )}
 
-            {upcomingItems.map((item) => {
+            {candidateManagementItems.map((item) => {
+              const active = currentPath === item.path || (item.path === "/admin/candidates/dashboard" && currentPath.startsWith("/admin/candidates"));
               const Icon = item.icon;
               return (
-                <div
-                  key={item.title}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-gray-400 bg-gray-50/50 cursor-not-allowed select-none"
-                  title={`${item.title} (Phase 2)`}
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                    active
+                      ? "bg-blue-600 text-white shadow-2xs shadow-blue-500/30"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  title={collapsed ? item.title : undefined}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Icon size={16} className="shrink-0 text-gray-400" />
-                    {!collapsed && <span className="truncate">{item.title}</span>}
-                  </div>
-                  {!collapsed && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
-                      Soon
-                    </span>
-                  )}
-                </div>
+                  <Icon size={16} className="shrink-0" />
+                  {!collapsed && <span className="truncate">{item.title}</span>}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                Vendor
+              </p>
+            )}
+
+            {vendorManagementItems.map((item) => {
+              const active = currentPath.startsWith("/admin/vendor");
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                    active
+                      ? "bg-blue-600 text-white shadow-2xs shadow-blue-500/30"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  title={collapsed ? item.title : undefined}
+                >
+                  <Icon size={16} className="shrink-0" />
+                  {!collapsed && <span className="truncate">{item.title}</span>}
+                </Link>
               );
             })}
           </div>
@@ -313,15 +370,22 @@ export function CrmSidebar({
 
         {}
         <div className="p-3 border-t border-gray-100 bg-gray-50/60">
-
-          {}
           <div
             className={`flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-200 shadow-2xs ${
               collapsed ? "justify-center" : ""
             }`}
           >
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-              {adminName.charAt(0).toUpperCase()}
+            <div className={`w-8 h-8 rounded-lg ${user?.profileImage || user?.avatar ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
+              {user?.profileImage || user?.avatar ? (
+                <img
+                  src={user.profileImage || user.avatar}
+                  alt={adminName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              ) : (
+                adminName.charAt(0).toUpperCase()
+              )}
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">

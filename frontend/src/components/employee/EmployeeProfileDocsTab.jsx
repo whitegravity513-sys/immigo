@@ -301,7 +301,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
           <div className="flex items-center gap-3.5">
             <div className="relative group">
-              <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl flex items-center justify-center shadow-xs border border-white">
+              <div className={`w-14 h-14 rounded-xl overflow-hidden ${profile?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xl flex items-center justify-center shadow-xs`}>
                 {profile?.profileImage ? (
                   <img src={formatFileUrl(profile.profileImage)} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (

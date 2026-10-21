@@ -29,8 +29,13 @@ export function AdminMasterNavbar({
     user?.email?.split("@")[0] ||
     "Admin";
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/admin/login", { replace: true });
+  };
+
   return (
-    <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 flex items-center border-b border-blue-800/80 shadow-md shrink-0">
+    <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 flex items-center border-b border-blue-800/80 shadow-md shrink-0">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
         {}
@@ -91,7 +96,7 @@ export function AdminMasterNavbar({
 
           <button
             type="button"
-            onClick={logout}
+            onClick={handleLogout}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs group"
             title="Sign Out"
           >

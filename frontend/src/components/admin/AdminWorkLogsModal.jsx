@@ -181,7 +181,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0">
+                      <div className={`w-6 h-6 rounded-md ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0`}>
                         {emp.profileImage ? (
                           <img
                             src={emp.profileImage}

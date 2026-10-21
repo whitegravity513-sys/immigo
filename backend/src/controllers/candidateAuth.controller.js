@@ -1,0 +1,520 @@
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import env from "../config/env.js";
+import Candidate from "../models/Candidate.js";
+import CandidateApplication from "../models/CandidateApplication.js";
+import Project from "../models/Project.js";
+import CrmOverseasClient from "../models/CrmOverseasClient.js";
+import ActivityLog from "../models/ActivityLog.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { generateNextCandidateId, generateNextCandidateApplicationId } from "../utils/idGenerator.js";
+import { saveBase64File } from "../utils/fileStorage.js";
+
+const calculateProfileCompletion = (candidate) => {
+  let score = 20;
+  const p = candidate.profile || {};
+
+  if (p.dob && p.gender) score += 10;
+  if (p.address && p.city && p.state) score += 10;
+  if (p.trade || p.preferredJobRole) score += 15;
+  if (p.skills && p.skills.length > 0) score += 10;
+  if (p.education && p.education.length > 0) score += 10;
+  if (p.experienceYears !== undefined && p.experienceYears > 0) score += 10;
+  if (p.passportNumber) score += 10;
+  if (candidate.documents && candidate.documents.length > 0) score += 15;
+
+  return Math.min(100, score);
+};
+
+export const registerCandidate = asyncHandler(async (req, res) => {
+  const {
+    fullName,
+    email,
+    phone,
+    password,
+    confirmPassword,
+    termsAccepted,
+    dob,
+    gender,
+    trade,
+    experienceYears,
+    passportNumber,
+    city,
+    state,
+    address,
+    skills,
+    preferredJobRole,
+  } = req.body;
+
+  if (!fullName || !String(fullName).trim()) {
+    return res.status(400).json({ success: false, message: "Full Name is required." });
+  }
+
+  if (!email || !String(email).trim()) {
+    return res.status(400).json({ success: false, message: "Email address is required." });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (!emailRegex.test(normalizedEmail)) {
+    return res.status(400).json({ success: false, message: "Please enter a valid email address." });
+  }
+
+  if (!phone || !String(phone).trim()) {
+    return res.status(400).json({ success: false, message: "Mobile number is required." });
+  }
+
+  if (!password || String(password).length < 6) {
+    return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+  }
+
+  if (confirmPassword && password !== confirmPassword) {
+    return res.status(400).json({ success: false, message: "Passwords do not match." });
+  }
+
+  const existingEmail = await Candidate.findOne({ email: normalizedEmail });
+  if (existingEmail) {
+    return res.status(409).json({
+      success: false,
+      message: "An account with this email address already exists. Please log in or use a different email.",
+    });
+  }
+
+  const candidateId = await generateNextCandidateId(dob, new Date());
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const initialProfile = {
+    dob: dob || "",
+    gender: gender || "",
+    trade: trade || "",
+    experienceYears: Number(experienceYears) || 0,
+    passportNumber: passportNumber ? String(passportNumber).trim().toUpperCase() : "",
+    city: city || "",
+    state: state || "",
+    address: address || "",
+    preferredJobRole: preferredJobRole || trade || "",
+    skills: Array.isArray(skills)
+      ? skills
+      : skills
+      ? String(skills)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    profileCompletionPercent: 30,
+  };
+
+  const candidate = await Candidate.create({
+    candidateId,
+    fullName: String(fullName).trim(),
+    email: normalizedEmail,
+    phone: String(phone).trim(),
+    password: hashedPassword,
+    termsAccepted: termsAccepted !== false,
+    accountStatus: "Pending Approval",
+    documentStatus: "Not Submitted",
+    jobApplicationAccess: "Locked",
+    profile: initialProfile,
+  });
+
+  // Calculate actual completion score based on provided details
+  candidate.profile.profileCompletionPercent = calculateProfileCompletion(candidate);
+  await candidate.save();
+
+  try {
+    await ActivityLog.create({
+      action: "REGISTER",
+      module: "CANDIDATE",
+      targetId: candidate.candidateId,
+      description: `New candidate registration submitted: ${candidate.fullName} (${candidate.candidateId})`,
+      performedBy: candidate.fullName,
+      performedByRole: "candidate",
+    });
+  } catch {}
+
+  return res.status(201).json({
+    success: true,
+    message:
+      "Your registration has been submitted successfully. Your account is awaiting administrative approval. You will receive an email notification once your registration has been reviewed.",
+    candidateId: candidate.candidateId,
+    candidate: {
+      candidateId: candidate.candidateId,
+      fullName: candidate.fullName,
+      email: candidate.email,
+      phone: candidate.phone,
+      accountStatus: candidate.accountStatus,
+      documentStatus: candidate.documentStatus,
+      jobApplicationAccess: candidate.jobApplicationAccess,
+    },
+  });
+});
+
+export const loginCandidate = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Email and password are required." });
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const candidate = await Candidate.findOne({ email: normalizedEmail });
+
+  if (!candidate) {
+    return res.status(401).json({ success: false, message: "Invalid email address or password." });
+  }
+
+  const isMatch = await bcrypt.compare(password, candidate.password);
+  if (!isMatch) {
+    return res.status(401).json({ success: false, message: "Invalid email address or password." });
+  }
+
+  if (candidate.accountStatus === "Pending Approval") {
+    return res.status(403).json({
+      success: false,
+      accountStatus: "Pending Approval",
+      message:
+        "Your account is awaiting administrative approval. You will receive an email notification once your registration has been reviewed.",
+    });
+  }
+
+  if (candidate.accountStatus === "Rejected") {
+    return res.status(403).json({
+      success: false,
+      accountStatus: "Rejected",
+      message: `Your registration was not approved. Reason: ${candidate.rejectionReason || "Criteria not met"}.`,
+    });
+  }
+
+  const tokenPayload = {
+    id: candidate._id.toString(),
+    candidateId: candidate.candidateId,
+    email: candidate.email,
+    name: candidate.fullName,
+    role: "candidate",
+  };
+
+  const token = jwt.sign(tokenPayload, env.JWT_SECRET, { expiresIn: "7d" });
+
+  const candidateData = candidate.toJSON();
+
+  return res.status(200).json({
+    success: true,
+    message: "Login successful.",
+    token,
+    role: "candidate",
+    candidate: candidateData,
+  });
+});
+
+export const findCandidateFromRequest = async (req) => {
+  if (req.candidate) return req.candidate;
+  const candidateId = req.user?.id || req.user?._id || req.user?.candidateId;
+  const email = req.user?.email;
+
+  const orList = [];
+  if (candidateId) {
+    if (typeof candidateId === "string" && /^[0-9a-fA-F]{24}$/.test(candidateId)) {
+      orList.push({ _id: candidateId });
+    }
+    orList.push({ candidateId: String(candidateId) });
+  }
+  if (email) {
+    orList.push({ email: String(email).trim().toLowerCase() });
+  }
+
+  if (orList.length === 0) return null;
+  return await Candidate.findOne({ $or: orList });
+};
+
+export const getCandidateProfile = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const candidateObj = candidate.toJSON();
+  candidateObj.profile.profileCompletionPercent = calculateProfileCompletion(candidate);
+
+  return res.status(200).json({
+    success: true,
+    candidate: candidateObj,
+  });
+});
+
+export const updateCandidateProfile = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const { fullName, phone, profile } = req.body;
+
+  if (fullName && String(fullName).trim()) {
+    candidate.fullName = String(fullName).trim();
+  }
+  if (phone && String(phone).trim()) {
+    candidate.phone = String(phone).trim();
+  }
+
+  if (profile && typeof profile === "object") {
+    candidate.profile = {
+      ...(candidate.profile || {}),
+      ...profile,
+    };
+  }
+
+  candidate.profile.profileCompletionPercent = calculateProfileCompletion(candidate);
+  if (candidate.profile.profileCompletionPercent >= 80) {
+    candidate.profile.profileCompleted = true;
+  }
+  const hasDocs = Array.isArray(candidate.documents) && candidate.documents.length > 0;
+  if (candidate.profile.profileCompletionPercent >= 80 && hasDocs) {
+    candidate.jobApplicationAccess = "Unlocked";
+  }
+
+  await candidate.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Profile updated successfully.",
+    candidate: candidate.toJSON(),
+  });
+});
+
+export const uploadCandidateDocument = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const { docType, name, fileData, fileName, fileSize } = req.body;
+
+  if (!docType || !fileData) {
+    return res.status(400).json({ success: false, message: "Document type and file content are required." });
+  }
+
+  const savedUrl = saveBase64File(fileData, "documents", fileName || `${docType}.pdf`);
+
+  const existingIndex = (candidate.documents || []).findIndex(
+    (d) => d.docType === docType || (d.id && d.id === req.body.documentId)
+  );
+
+  const docItem = {
+    id: `doc-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    docType,
+    name: name || docType.replace(/_/g, " ").toUpperCase(),
+    fileUrl: savedUrl,
+    fileName: fileName || `${docType}.pdf`,
+    fileSize: fileSize || 0,
+    status: "Pending Verification",
+    rejectionReason: "",
+    uploadedAt: new Date(),
+    verifiedAt: null,
+    verifiedBy: "",
+  };
+
+  if (existingIndex !== -1) {
+    candidate.documents[existingIndex] = docItem;
+  } else {
+    candidate.documents.push(docItem);
+  }
+
+  candidate.documentStatus = "Pending Verification";
+  candidate.profile.profileCompletionPercent = calculateProfileCompletion(candidate);
+  if (candidate.profile.profileCompletionPercent >= 80 || candidate.profile.profileCompleted) {
+    candidate.jobApplicationAccess = "Unlocked";
+  }
+  await candidate.save();
+
+  try {
+    await ActivityLog.create({
+      action: "UPLOAD_DOCUMENT",
+      module: "CANDIDATE",
+      targetId: candidate.candidateId,
+      description: `${candidate.fullName} uploaded document "${docItem.name}" for verification.`,
+      performedBy: candidate.fullName,
+      performedByRole: "candidate",
+    });
+  } catch {}
+
+  return res.status(200).json({
+    success: true,
+    message: "Document uploaded successfully and submitted for administrative verification.",
+    documents: candidate.documents,
+    documentStatus: candidate.documentStatus,
+    profileCompletionPercent: candidate.profile.profileCompletionPercent,
+  });
+});
+
+export const getPublicAvailableProjects = asyncHandler(async (req, res) => {
+  const clients = await CrmOverseasClient.find({}).lean();
+  const directProjects = await Project.find({}).populate("clientId").lean().catch(() => []);
+
+  const list = [];
+  const seenIds = new Set();
+
+  (clients || []).forEach((c) => {
+    (c.projects || []).forEach((p) => {
+      const status = (p.status || "Active").toLowerCase();
+      if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
+        const pId = String(p.id || p.projectId || p._id?.toString() || "");
+        if (pId && !seenIds.has(pId)) {
+          seenIds.add(pId);
+          list.push({
+            id: pId,
+            projectId: p.projectId || pId,
+            projectName: p.projectName || p.name || p.title || "International Project",
+            clientId: c.clientId || c._id.toString(),
+            clientName: c.companyName || c.name || p.clientName || "International Employer",
+            destinationCountry: p.country || c.country || "Overseas",
+            position: p.requiredPosition || p.projectType || p.industryName || "General Worker / Skilled Trade",
+            vacancies: p.vacancies || p.totalHeadcount || 10,
+            experienceRequired: p.experienceRequired || "1-3 Years Experience",
+            salary: p.salary || "$500 - $1,200 / Month",
+            deadline: p.deadline || null,
+            status: p.status || "Active",
+            skills: p.skills || ["Reliability", "Trade Knowledge", "Communication"],
+            eligibility: p.eligibility || "Valid Passport & Document Verification Required",
+            manpowerRequirements: p.manpowerRequirements || [],
+          });
+        }
+      }
+    });
+  });
+
+  (directProjects || []).forEach((dp) => {
+    const pId = String(dp.projectId || dp.id || dp._id?.toString() || "");
+    if (pId && !seenIds.has(pId)) {
+      const status = (dp.status || "Pending").toLowerCase();
+      if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
+        seenIds.add(pId);
+        list.push({
+          id: pId,
+          projectId: dp.projectId || pId,
+          projectName: dp.title || dp.projectName || "International Project",
+          clientName: dp.clientId?.companyName || dp.clientId?.name || dp.clientName || "Direct Overseas Client",
+          clientId: String(dp.clientId?.clientId || dp.clientId?._id?.toString() || "cli-admin"),
+          destinationCountry: dp.country || dp.clientId?.country || "Overseas",
+          position: dp.projectType || dp.industryName || dp.title || "Skilled Specialist",
+          vacancies: dp.totalHeadcount || dp.manpower || 5,
+          experienceRequired: "2+ Years Experience",
+          salary: dp.budget ? `$${dp.budget} Monthly` : "$600 - $1,500 / Month",
+          deadline: dp.deadline || null,
+          status: dp.status || "Active",
+          skills: ["Trade Certification", "Technical Competence"],
+          eligibility: "Complete Profile & Verified Documents Required",
+          manpowerRequirements: dp.manpowerRequirements || [],
+        });
+      }
+    }
+  });
+
+  return res.status(200).json({ success: true, projects: list.reverse() });
+});
+
+export const applyForProject = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  if (candidate.accountStatus !== "Approved") {
+    return res.status(403).json({
+      success: false,
+      message: "Your account is not approved. You cannot apply for projects at this time.",
+    });
+  }
+
+  const hasDocuments = Array.isArray(candidate.documents) && candidate.documents.length > 0;
+  const isProfileComplete = candidate.profile?.profileCompleted || (candidate.profile?.profileCompletionPercent || 0) >= 80;
+
+  if (!isProfileComplete || !hasDocuments) {
+    return res.status(403).json({
+      success: false,
+      message:
+        "Please complete your profile (at least 80%) and upload your required documents before applying for projects.",
+    });
+  }
+
+  candidate.jobApplicationAccess = "Unlocked";
+  await candidate.save();
+
+  const { projectId, projectName, clientName, destinationCountry, position, salary } = req.body;
+
+  if (!projectId) {
+    return res.status(400).json({ success: false, message: "Project ID is required." });
+  }
+
+  const existingApp = await CandidateApplication.findOne({
+    candidateId: candidate.candidateId,
+    projectId: String(projectId),
+    status: { $ne: "Rejected" },
+  });
+
+  if (existingApp) {
+    return res.status(409).json({
+      success: false,
+      message: "You have already applied for this project. Check 'My Applications' to track progress.",
+    });
+  }
+
+  const applicationId = await generateNextCandidateApplicationId();
+
+  const application = await CandidateApplication.create({
+    applicationId,
+    candidateId: candidate.candidateId,
+    candidateObjectId: candidate._id,
+    candidateName: candidate.fullName,
+    candidateEmail: candidate.email,
+    candidatePhone: candidate.phone,
+    projectId: String(projectId),
+    projectName: projectName || "International Deployment Project",
+    clientName: clientName || "Immigo Global Partner",
+    destinationCountry: destinationCountry || "Overseas",
+    position: position || "Specialist",
+    salary: salary || "Competitive Package",
+    status: "Applied",
+    statusHistory: [
+      {
+        status: "Applied",
+        updatedBy: candidate.fullName,
+        note: "Application submitted via Candidate Portal.",
+        date: new Date(),
+      },
+    ],
+  });
+
+  try {
+    await ActivityLog.create({
+      action: "JOB_APPLICATION",
+      module: "CANDIDATE",
+      targetId: application.applicationId,
+      description: `${candidate.fullName} (${candidate.candidateId}) applied for project "${application.projectName}"`,
+      performedBy: candidate.fullName,
+      performedByRole: "candidate",
+    });
+  } catch {}
+
+  return res.status(201).json({
+    success: true,
+    message: "Application submitted successfully! Our recruitment team will review your application.",
+    application,
+  });
+});
+
+export const getMyApplications = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const applications = await CandidateApplication.find({ candidateId: candidate.candidateId })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    applications,
+  });
+});

@@ -14,7 +14,17 @@ export default function ProtectedRoute({ children, allowedRole, allowedRoles: al
     const defaultRole = Array.isArray(allowedRole)
       ? allowedRole[0]
       : (allowedRole?.split(",")[0]?.trim() || "admin");
-    const loginUrl = defaultRole === "vendor" ? "/vendor/login" : `/login?role=${defaultRole}`;
+    const normalizedDefault = defaultRole?.toLowerCase();
+    const loginUrl =
+      normalizedDefault === "admin"
+        ? "/admin/login"
+        : normalizedDefault === "vendor"
+        ? "/vendor/login"
+        : normalizedDefault === "candidate"
+        ? "/candidate/login"
+        : normalizedDefault === "employee"
+        ? "/employee/login"
+        : "/admin/login";
     return <Navigate to={loginUrl} state={{ from: location }} replace />;
   }
 
@@ -35,6 +45,8 @@ export default function ProtectedRoute({ children, allowedRole, allowedRoles: al
         ? "/admin/dashboard"
         : normalizedRole === "vendor"
         ? "/vendor/dashboard"
+        : normalizedRole === "candidate"
+        ? "/candidate/dashboard"
         : "/employee/dashboard";
     return <Navigate to={redirectUrl} replace />;
   }

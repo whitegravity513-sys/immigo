@@ -33,7 +33,7 @@ export function EmployeeProfileHeader({
               className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-black text-3xl shadow-md shrink-0">
+            <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-black text-3xl shadow-xs shrink-0">
               {safeEmpName.charAt(0).toUpperCase()}
             </div>
           )}

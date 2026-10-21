@@ -55,7 +55,7 @@ export function WorkforceLeavesPanel({
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xs font-black flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+                    <div className={`w-8 h-8 rounded-lg ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} text-xs font-black flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
                       {emp.profileImage ? (
                         <img
                           src={emp.profileImage}

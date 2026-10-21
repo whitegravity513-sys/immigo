@@ -277,7 +277,8 @@ export function ProjectForm({
     if (!asDraft && !validate()) return;
 
     const { list, headcount } = getResolvedRequirementsAndHeadcount();
-    const resolvedClientId = formData.clientId || `cli-${Date.now().toString().slice(-6)}`;
+    const currentYear = new Date().getFullYear().toString().slice(-2);
+    const resolvedClientId = formData.clientId || selectedClient?.id || selectedClient?.clientId || `IMCL-${currentYear}-0001`;
     const resolvedClientName = selectedClient?.companyName || formData.clientName?.trim() || "Direct Overseas Client";
 
     const payload = {

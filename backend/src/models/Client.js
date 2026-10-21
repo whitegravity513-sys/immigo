@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const clientSchema = new mongoose.Schema(
   {
+    clientId: {
+      type: String,
+      sparse: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,

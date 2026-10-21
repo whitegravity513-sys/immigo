@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import Admin from "../models/Admin.js";
 import Employee from "../models/Employee.js";
 import Vendor from "../models/Vendor.js";
+import Candidate from "../models/Candidate.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { verifyAccessToken } from "../utils/jwt.js";
@@ -150,11 +151,58 @@ export const verifyVendorActive = (req, res, next) => {
   });
 };
 
+export const verifyCandidate = (req, res, next) => {
+  verifyToken(req, res, async () => {
+    const role = (req.user?.role || "").toLowerCase();
+    if (role === "admin" || role === "super_admin") {
+      return next();
+    }
+    if (role !== "candidate") {
+      return res.status(403).json({ success: false, message: "Access forbidden. Candidate role required." });
+    }
+
+    try {
+      const candidateId = req.user.id || req.user._id || req.user.candidateId;
+      const isObjectId = typeof candidateId === "string" && /^[0-9a-fA-F]{24}$/.test(candidateId);
+      const orList = [];
+      if (candidateId) {
+        if (isObjectId) orList.push({ _id: candidateId });
+        orList.push({ candidateId: String(candidateId) });
+      }
+      if (req.user.email) {
+        orList.push({ email: String(req.user.email).trim().toLowerCase() });
+      }
+
+      const candidate = orList.length > 0 ? await Candidate.findOne({ $or: orList }) : null;
+
+      if (!candidate) {
+        return res.status(404).json({ success: false, message: "Candidate account not found. Please log in again." });
+      }
+
+      if (candidate.accountStatus !== "Approved") {
+        return res.status(403).json({
+          success: false,
+          message: candidate.accountStatus === "Rejected"
+            ? `Your registration was rejected: ${candidate.rejectionReason || "Requirements not met"}`
+            : "Your account is awaiting administrative approval.",
+          accountStatus: candidate.accountStatus,
+        });
+      }
+
+      req.candidate = candidate;
+      next();
+    } catch (err) {
+      return res.status(500).json({ success: false, message: "Error verifying candidate status." });
+    }
+  });
+};
+
 export default {
   verifyToken,
   verifyAdmin,
   verifyEmployee,
   verifyVendorActive,
+  verifyCandidate,
   authenticate,
   authorizeRoles,
 };

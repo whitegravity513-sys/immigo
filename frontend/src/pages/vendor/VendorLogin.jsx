@@ -13,6 +13,7 @@ import {
   Lock,
   Mail,
   ArrowRight,
+  ArrowLeft,
   AlertCircle,
   Eye,
   EyeOff,
@@ -127,18 +128,29 @@ export function VendorLogin() {
           </span>
         </div>
 
-        <div className="flex items-center gap-5 text-xs font-semibold text-slate-200">
-          <span className="hidden md:flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
-            <Globe size={14} className="text-blue-400" /> Work Abroad
-          </span>
-          <span className="hidden md:inline text-slate-700">|</span>
-          <span className="hidden md:flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
-            <Users size={14} className="text-blue-400" /> Recruit Talent
-          </span>
-          <span className="hidden md:inline text-slate-700">|</span>
-          <span className="hidden sm:flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
-            <ShieldCheck size={14} className="text-blue-400" /> Build the Future
-          </span>
+        <div className="flex items-center gap-4 text-xs font-semibold text-slate-200">
+          <div className="hidden md:flex items-center gap-5">
+            <span className="flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
+              <Globe size={14} className="text-blue-400" /> Work Abroad
+            </span>
+            <span className="text-slate-700">|</span>
+            <span className="flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
+              <Users size={14} className="text-blue-400" /> Recruit Talent
+            </span>
+            <span className="text-slate-700">|</span>
+            <span className="flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
+              <ShieldCheck size={14} className="text-blue-400" /> Build the Future
+            </span>
+          </div>
+
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
+            title="Return to Main Website"
+          >
+            <ArrowLeft size={14} className="text-blue-300" />
+            <span>Back to Home</span>
+          </Link>
         </div>
       </header>
 
@@ -475,6 +487,20 @@ export function VendorLogin() {
                   className="font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline"
                 >
                   <span>Register Agency</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+
+              <div className="pt-2 text-center border-t border-dashed border-slate-200">
+                <span className="text-[11px] text-slate-500 block mb-1">
+                  Looking for overseas jobs as an individual candidate?
+                </span>
+                <Link
+                  to="/candidate/login"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition-colors"
+                >
+                  <Users size={13} />
+                  <span>Sign In as Candidate</span>
                   <ArrowRight size={12} />
                 </Link>
               </div>

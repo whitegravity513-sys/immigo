@@ -42,9 +42,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem(appConfig.STORAGE_KEYS.SESSION_TIMESTAMP, Date.now().toString());
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (customRedirect) => {
+    const previousRole = (role || "").toLowerCase();
     try {
-      if (role === "admin") {
+      if (previousRole === "admin") {
         await apiClient.post("/auth/admin/logout", {});
       }
     } catch {
@@ -58,6 +59,10 @@ export const AuthProvider = ({ children }) => {
         appConfig.STORAGE_KEYS.ROLE,
         appConfig.STORAGE_KEYS.SESSION_TIMESTAMP,
       ].forEach((key) => localStorage.removeItem(key));
+
+      if (customRedirect) {
+        window.location.href = customRedirect;
+      }
     }
   }, [role]);
 
@@ -78,6 +83,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin: role === "admin" || role === "ADMIN",
     isEmployee: role === "employee",
     isVendor: role === "vendor" || role === "VENDOR",
+    isCandidate: role === "candidate" || role === "CANDIDATE",
     login,
     logout,
     updateUser,

@@ -170,87 +170,88 @@ export default function EmployeeExpensesTab({ user, token }) {
   });
 
   return (
-    <div className="space-y-3.5 max-w-6xl mx-auto text-left">
+    <div className="w-full min-h-[calc(100vh-125px)] flex flex-col space-y-2.5 text-left">
       {errorMsg && (
-        <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-medium">
-          <AlertCircle size={15} className="shrink-0" />
+        <div className="flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-medium">
+          <AlertCircle size={14} className="shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
       {successMsg && (
-        <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-medium">
-          <CheckCircle2 size={15} className="shrink-0" />
+        <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-medium">
+          <CheckCircle2 size={14} className="shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-        <div>
-          <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
-            <IndianRupee size={15} className="text-blue-600" /> Expense Claims & Reimbursements
-          </h2>
-          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-            Submit business expenses, upload receipts, and track claim approval status
-          </p>
+      <div className="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
+            <IndianRupee size={13} />
+          </div>
+          <div>
+            <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
+              <span>Expense Claims & Reimbursements</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                {expenses.length} Claims
+              </span>
+            </h2>
+            <p className="text-[10px] text-slate-500 font-medium">
+              Submit business expenses, upload receipts, and track claim approval status
+            </p>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+          className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95"
         >
-          <Plus size={14} /> Submit New Expense
+          <Plus size={13} /> Submit New Expense
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 shrink-0">
+        <div className="bg-white px-3 py-2 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Claimed</span>
-            <div className="text-sm sm:text-base font-bold text-slate-800 mt-0.5">₹{totalSubmitted.toLocaleString("en-IN")}</div>
-            <span className="text-[10px] text-slate-500 font-medium">{expenses.length} claims filed</span>
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Claimed</span>
+            <div className="text-xs sm:text-sm font-bold text-slate-800">₹{totalSubmitted.toLocaleString("en-IN")}</div>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <IndianRupee size={14} />
-          </div>
+          <span className="text-[10px] text-slate-500 font-medium bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">
+            {expenses.length} claims
+          </span>
         </div>
 
-        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white px-3 py-2 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Approved & Settled</span>
-            <div className="text-sm sm:text-base font-bold text-emerald-600 mt-0.5">₹{totalApproved.toLocaleString("en-IN")}</div>
-            <span className="text-[10px] text-emerald-700 font-medium">
-              {expenses.filter((e) => e.status === "Approved").length} approved
-            </span>
+            <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider block">Approved & Settled</span>
+            <div className="text-xs sm:text-sm font-bold text-emerald-700">₹{totalApproved.toLocaleString("en-IN")}</div>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <CheckCircle2 size={14} />
-          </div>
+          <span className="text-[10px] text-emerald-700 font-medium bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
+            {expenses.filter((e) => e.status === "Approved").length} approved
+          </span>
         </div>
 
-        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white px-3 py-2 rounded-lg border border-slate-200/80 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Under Review</span>
-            <div className="text-sm sm:text-base font-bold text-amber-600 mt-0.5">₹{totalPending.toLocaleString("en-IN")}</div>
-            <span className="text-[10px] text-amber-700 font-medium">
-              {expenses.filter((e) => e.status === "Pending").length} pending
-            </span>
+            <span className="text-[9px] font-bold text-amber-600 uppercase tracking-wider block">Under Review</span>
+            <div className="text-xs sm:text-sm font-bold text-amber-700">₹{totalPending.toLocaleString("en-IN")}</div>
           </div>
-          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Clock size={14} />
-          </div>
+          <span className="text-[10px] text-amber-700 font-medium bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded">
+            {expenses.filter((e) => e.status === "Pending").length} pending
+          </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 bg-slate-50/50">
-          <div className="flex items-center gap-1.5 bg-slate-200/60 p-1 rounded-xl">
+      <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden flex-1 flex flex-col">
+        <div className="px-3.5 py-2 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50 shrink-0">
+          <div className="flex items-center gap-1 bg-slate-200/60 p-0.5 rounded-lg text-xs font-semibold">
             {["ALL", "Pending", "Approved", "Rejected"].map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setActiveFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
                   activeFilter === f ? "bg-white text-slate-800 shadow-2xs" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -259,10 +260,10 @@ export default function EmployeeExpensesTab({ user, token }) {
             ))}
           </div>
 
-          <span className="text-xs text-slate-500 font-medium">Showing {filteredExpenses.length} records</span>
+          <span className="text-[11px] text-slate-500 font-medium">Showing {filteredExpenses.length} records</span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">

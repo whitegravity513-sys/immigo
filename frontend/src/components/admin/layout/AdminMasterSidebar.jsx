@@ -33,6 +33,7 @@ export function AdminMasterSidebar({
     if (path === "/client/ledger") return currentPath.startsWith("/client/ledger") || currentPath.startsWith("/admin/client-ledger");
     if (path === "/client/projects") return currentPath.startsWith("/client/projects") || currentPath.includes("/projects");
     if (path === "/admin/vendor") return currentPath.startsWith("/admin/vendor");
+    if (path === "/admin/candidates/dashboard") return currentPath.startsWith("/admin/candidates");
     if (path === "/admin/settings") return currentPath.startsWith("/admin/settings");
     return currentPath === path;
   };
@@ -43,6 +44,7 @@ export function AdminMasterSidebar({
     { title: "Client", icon: Building2, path: "/client/dashboard" },
     { title: "Projects", icon: FolderKanban, path: "/client/projects" },
     { title: "Vendor", icon: Briefcase, path: "/admin/vendor" },
+    { title: "Candidates", icon: Users, path: "/admin/candidates/dashboard" },
   ];
 
   const adminName =
@@ -67,7 +69,7 @@ export function AdminMasterSidebar({
       >
         {}
         <div
-          className={`h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
+          className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >

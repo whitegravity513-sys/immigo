@@ -216,9 +216,9 @@ export const RegisterEmployeeSection = ({
                     className="w-14 h-14 rounded-xl object-cover border-2 border-blue-500 shadow-sm"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center shadow-inner border border-blue-400">
-                    <Camera size={26} className="opacity-80" />
-                    <span className="text-[10px] font-bold mt-1">Photo</span>
+                  <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex flex-col items-center justify-center shadow-xs">
+                    <Camera size={24} className="text-blue-600" />
+                    <span className="text-[10px] font-bold mt-1 text-blue-600">Photo</span>
                   </div>
                 )}
                 <input

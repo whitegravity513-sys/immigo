@@ -99,7 +99,7 @@ export default function EmployeesDirectorySection({
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                        <div className={`w-8 h-8 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs`}>
                           {emp.profileImage ? (
                             <img src={emp.profileImage} alt={safeName} className="w-full h-full object-cover" />
                           ) : (

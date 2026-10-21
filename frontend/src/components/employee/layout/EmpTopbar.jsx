@@ -65,18 +65,18 @@ export default function EmpTopbar({
   };
 
   return (
-    <header className="h-[68px] min-h-[68px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4 shadow-md">
+    <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4 shadow-md">
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden p-2 rounded-xl text-white hover:bg-blue-800/60 transition-colors cursor-pointer"
+          className="lg:hidden p-1.5 rounded-lg text-white hover:bg-blue-800/60 transition-colors cursor-pointer"
           aria-label="Open Navigation"
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
         <div className="flex items-center gap-2">
-          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
+          <h1 className="text-xs sm:text-sm font-bold text-white tracking-tight">
             Employee Dashboard
           </h1>
         </div>
@@ -97,7 +97,7 @@ export default function EmpTopbar({
             onClick={() => setProfileOpen(!profileOpen)}
             className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-xl border border-blue-700/60 hover:border-blue-500/80 bg-blue-900/40 hover:bg-blue-900/80 text-white transition-all cursor-pointer shadow-xs"
           >
-            <div className={`w-8 h-8 rounded-lg ${user?.profileImage ? "bg-white" : "bg-gradient-to-tr from-blue-600 to-indigo-600"} text-white font-bold text-xs flex items-center justify-center shadow-xs overflow-hidden`}>
+            <div className={`w-8 h-8 rounded-lg ${user?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shadow-xs overflow-hidden`}>
               {user?.profileImage ? (
                 <img
                   src={user.profileImage}

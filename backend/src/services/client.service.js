@@ -1,5 +1,6 @@
 import Client from "../models/Client.js";
 import { ApiError } from "../utils/apiError.js";
+import { generateNextClientId } from "../utils/idGenerator.js";
 
 export class ClientService {
   static async createClient(data) {
@@ -41,7 +42,13 @@ export class ClientService {
 
     const totalAgreed = formattedMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
 
+    let clientId = data.clientId || data.id;
+    if (!clientId || String(clientId).startsWith("cli-")) {
+      clientId = await generateNextClientId();
+    }
+
     const client = await Client.create({
+      clientId,
       name: finalName.trim(),
       email: finalEmail.trim().toLowerCase(),
       phone: phone || mobile || "",
