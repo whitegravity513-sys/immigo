@@ -66,13 +66,13 @@ export function VendorRegister() {
   const [successSubmitted, setSuccessSubmitted] = useState(false);
   const [submittedVendor, setSubmittedVendor] = useState(null);
 
-  // Slow 3D Flip entrance animation state (1.6s duration)
+  // 3D Flip entrance animation state for the side card
   const [animationDone, setAnimationDone] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationDone(true);
-    }, 1700);
+    }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -198,53 +198,51 @@ export function VendorRegister() {
   return (
     <div className="h-screen max-h-screen w-full relative flex flex-col justify-between overflow-hidden font-sans select-none">
       <style>{`
-        @keyframes vendorSlowFlipEntrance {
+        @keyframes vendorSideFlipEntrance {
           0% {
             opacity: 0;
-            transform: perspective(1400px) rotateY(-105deg) scale(0.82) translateY(20px);
+            transform: perspective(1400px) rotateY(-85deg) scale(0.88) translateX(60px);
           }
-          35% {
-            opacity: 0.7;
-            transform: perspective(1400px) rotateY(-45deg) scale(0.92) translateY(10px);
+          50% {
+            opacity: 0.85;
+            transform: perspective(1400px) rotateY(-25deg) scale(0.96) translateX(15px);
           }
-          70% {
+          75% {
             opacity: 1;
-            transform: perspective(1400px) rotateY(12deg) scale(1.015);
+            transform: perspective(1400px) rotateY(8deg) scale(1.01) translateX(0);
           }
-          85% {
-            transform: perspective(1400px) rotateY(-4deg) scale(0.995);
+          90% {
+            transform: perspective(1400px) rotateY(-3deg) scale(0.997);
           }
           100% {
             opacity: 1;
-            transform: perspective(1400px) rotateY(0deg) scale(1) translateY(0);
+            transform: perspective(1400px) rotateY(0deg) scale(1) translateX(0);
           }
         }
-        .animate-vendor-slow-flip {
-          animation: vendorSlowFlipEntrance 1.6s cubic-bezier(0.2, 0.85, 0.35, 1) forwards;
+        .animate-vendor-side-flip {
+          animation: vendorSideFlipEntrance 1.4s cubic-bezier(0.2, 0.85, 0.35, 1) forwards;
           transform-style: preserve-3d;
           backface-visibility: hidden;
+          transform-origin: right center;
         }
       `}</style>
 
-      {/* Clear High-Resolution Construction Manpower Background */}
+      {/* 100% Crystal-Clear Background Photo with Zero Color Tint Overlays */}
       <div className="fixed inset-0 z-0 overflow-hidden select-none pointer-events-none">
         <img
           src={vendorConstructionManpower}
           alt="Vendor Construction Manpower Recruitment"
           className="w-full h-full object-cover object-center scale-100"
         />
-        {/* Crisp subtle overlay so construction workers and cranes remain crystal clear */}
-        <div className="absolute inset-0 bg-slate-950/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50" />
       </div>
 
       {/* Top Header Bar */}
-      <header className="relative z-20 w-full px-5 sm:px-10 py-2.5 flex items-center justify-between border-b border-white/15 bg-slate-950/55 backdrop-blur-md shrink-0 text-white shadow-xs">
+      <header className="relative z-20 w-full px-5 sm:px-10 py-2.5 flex items-center justify-between border-b border-white/20 bg-slate-900/75 backdrop-blur-md shrink-0 text-white shadow-xs">
         <div className="flex items-center gap-3">
           <Link to="/" className="inline-block">
             <ImmiGoLogo size="sm" theme="light" subtitle="Partner Network" />
           </Link>
-          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 text-[11px] font-semibold">
+          <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/25 border border-blue-400/40 text-blue-200 text-[11px] font-semibold">
             <HardHat size={12} className="text-amber-400" />
             <span>Manpower Supply & Construction Partner Portal</span>
           </span>
@@ -268,11 +266,11 @@ export function VendorRegister() {
         </div>
       </header>
 
-      {/* Main Container - Single Screen Height with 3D Slow Flip Card */}
-      <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-6 py-2 min-h-0 overflow-hidden">
+      {/* Main Container - Card positioned on the SIDE with 3D Flip entrance */}
+      <main className="relative z-10 w-full flex-1 flex items-center justify-end px-4 sm:px-8 lg:px-12 xl:px-16 py-2 min-h-0 overflow-hidden">
         <div
-          className={`w-full max-w-2xl bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65)] border border-white/90 p-4 sm:p-5 max-h-[calc(100vh-80px)] overflow-y-auto ${
-            !animationDone ? "animate-vendor-slow-flip" : ""
+          className={`w-full max-w-lg lg:max-w-xl bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/90 p-4 sm:p-5 max-h-[calc(100vh-75px)] overflow-y-auto ${
+            !animationDone ? "animate-vendor-side-flip" : ""
           }`}
           style={animationDone ? { transform: "none" } : undefined}
         >
@@ -325,7 +323,7 @@ export function VendorRegister() {
                     <span>Vendor / Agency Registration</span>
                   </h2>
                   <p className="text-[11px] text-slate-500">
-                    Register your recruitment agency to supply skilled workforce across foreign borders.
+                    Register your agency to supply certified manpower across foreign borders.
                   </p>
                 </div>
                 <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold">
@@ -626,7 +624,7 @@ export function VendorRegister() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-20 px-5 sm:px-10 py-1.5 border-t border-white/10 bg-slate-950/55 backdrop-blur-md flex items-center justify-between text-[11px] text-slate-300 shrink-0">
+      <footer className="relative z-20 px-5 sm:px-10 py-1 border-t border-white/15 bg-slate-900/75 backdrop-blur-md flex items-center justify-between text-[11px] text-slate-300 shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo CRM &bull; Designed by White Gravity Web Solutions</span>
         <span className="flex items-center gap-1 text-slate-300">
           <ShieldCheck size={12} className="text-emerald-400" />
