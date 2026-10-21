@@ -144,6 +144,15 @@ export function VendorLogin() {
           </div>
 
           <Link
+            to="/candidate/login"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-500/20 hover:bg-blue-500/30 px-3 py-1.5 rounded-lg border border-blue-400/40 shadow-2xs transition-all cursor-pointer"
+            title="Candidate Portal"
+          >
+            <Users size={13} className="text-blue-300" />
+            <span>Candidate Sign In</span>
+          </Link>
+
+          <Link
             to="/"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
             title="Return to Main Website"
@@ -344,6 +353,26 @@ export function VendorLogin() {
                 </div>
               </div>
             </div>
+
+            {/* Candidate Portal Box - Positioned on the side outside the form */}
+            <div className="mt-4 p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-xl">
+              <div>
+                <span className="text-[11px] font-semibold text-slate-500 block">
+                  Looking for overseas jobs as an individual candidate?
+                </span>
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 mt-0.5">
+                  <Users size={13} className="text-blue-600" />
+                  <span>Candidate Self-Service Portal</span>
+                </span>
+              </div>
+              <Link
+                to="/candidate/login"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold border border-blue-200 transition-colors shrink-0"
+              >
+                <span>Sign In as Candidate</span>
+                <ArrowRight size={12} />
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -487,20 +516,6 @@ export function VendorLogin() {
                   className="font-bold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 hover:underline"
                 >
                   <span>Register Agency</span>
-                  <ArrowRight size={12} />
-                </Link>
-              </div>
-
-              <div className="pt-2 text-center border-t border-dashed border-slate-200">
-                <span className="text-[11px] text-slate-500 block mb-1">
-                  Looking for overseas jobs as an individual candidate?
-                </span>
-                <Link
-                  to="/candidate/login"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition-colors"
-                >
-                  <Users size={13} />
-                  <span>Sign In as Candidate</span>
                   <ArrowRight size={12} />
                 </Link>
               </div>
