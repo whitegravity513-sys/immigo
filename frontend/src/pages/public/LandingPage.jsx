@@ -738,10 +738,6 @@ export default function LandingPage() {
                 Vendor Portal
               </Link>
               <span>&bull;</span>
-              <Link to="/admin/login" className="hover:text-white">
-                Admin Portal
-              </Link>
-              <span>&bull;</span>
               <Link to="/register" className="hover:text-white">
                 Candidate Register
               </Link>
