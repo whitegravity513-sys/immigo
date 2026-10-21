@@ -47,7 +47,7 @@ const breakSchema = new mongoose.Schema(
 const attendanceSchema = new mongoose.Schema(
   {
     employeeId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: "Employee",
       required: true,
       index: true,
