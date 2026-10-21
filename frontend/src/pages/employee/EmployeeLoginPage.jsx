@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
+  Zap,
 } from "lucide-react";
 
 
@@ -143,14 +144,15 @@ export default function EmployeeLoginPage() {
     setPassword("");
     const clearBrowserAutofill = () => {
       if (empInputRef.current) {
-        const v = String(empInputRef.current.value || "");
-        if (v.toUpperCase().includes("VESTA")) {
+        const v = String(empInputRef.current.value || "").trim();
+        if (v.toUpperCase().includes("VESTA") || v.toUpperCase().includes("VISTA")) {
           empInputRef.current.value = "";
           setEmployeeId("");
         }
       }
-      if (empPassRef.current && empInputRef.current && !empInputRef.current.value) {
-        if (empPassRef.current.value === "12345" || empPassRef.current.value === "vesta") {
+      if (empPassRef.current) {
+        const p = String(empPassRef.current.value || "").trim();
+        if (p.toLowerCase().includes("vesta") || p.toLowerCase().includes("vista") || (empInputRef.current && !empInputRef.current.value && p === "12345")) {
           empPassRef.current.value = "";
           setPassword("");
         }
@@ -172,10 +174,24 @@ export default function EmployeeLoginPage() {
     return () => clearTimeout(timer);
   }, [error]);
 
-    const handleQuickFill = () => {
-    setEmployeeId("IMMI-0124-1598");
-    setPassword("12345");
+    const handleDemoLogin = async () => {
     setError("");
+    setLoading(true);
+    try {
+      const data = await employeeLogin("IMMI-0124-1598", "12345");
+      const token = data?.token || data?.accessToken;
+      if (token) {
+        const empData = { ...(data.employee || {}), role: "employee" };
+        login(token, empData, "employee");
+        navigate("/employee/dashboard", { replace: true });
+      } else {
+        setError("Employee demo login failed.");
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || "Demo login failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleIdChange = (e) => {
@@ -294,18 +310,7 @@ export default function EmployeeLoginPage() {
               <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
               <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
 
-              <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-200/80 rounded-xl flex items-center justify-between text-[11px] text-indigo-950">
-                <span className="truncate mr-2">
-                  Employee ID: <span className="font-bold text-[#3b2875]">IMMI-0124-1598</span> <span className="text-[10px] text-slate-500 font-medium">(IMMI-DOJ-DOB)</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={handleQuickFill}
-                  className="font-bold text-[#3b2875] hover:underline cursor-pointer ml-2 text-xs shrink-0"
-                >
-                  Quick Fill
-                </button>
-              </div>
+
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -389,6 +394,18 @@ export default function EmployeeLoginPage() {
                   <span>Login</span>
                 )}
               </button>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 rounded-full border border-dashed border-[#3b2875]/40 hover:border-[#3b2875] bg-purple-50/70 hover:bg-purple-100/70 text-[#3b2875] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
+                >
+                  <Zap size={14} className="text-amber-500 fill-amber-500" />
+                  <span>1-Click Demo Login (Employee)</span>
+                </button>
+              </div>
             </form>
           </div>
         </div>

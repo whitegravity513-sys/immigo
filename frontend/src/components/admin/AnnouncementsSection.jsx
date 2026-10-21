@@ -490,7 +490,7 @@ export default function AnnouncementsSection({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Diwali, Republic Day, Eid-ul-Fitr, Christmas"
+                    placeholder="e.g. Diwali, Holi, Republic Day, Independence Day"
                     required
                     value={holidayForm?.title || ""}
                     onChange={(e) => setHolidayForm({ ...holidayForm, title: e.target.value })}

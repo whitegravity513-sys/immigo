@@ -57,7 +57,7 @@ export function HRDashboard() {
     },
     {
       id: "emp-2",
-      name: "Mohammed Tariq",
+      name: "Rahul Verma",
       employeeId: "WG-EMP-1049",
       department: "Operations",
       designation: "Site Supervisor",
@@ -96,7 +96,7 @@ export function HRDashboard() {
   const [pendingDocs, setPendingDocs] = useState([
     {
       id: "doc-1",
-      employee: "Mohammed Tariq (WG-EMP-1049)",
+      employee: "Rahul Verma (WG-EMP-1049)",
       document: "Passport Copy & UAE Visa Stamp",
       status: "Pending Verification",
       submittedDate: "26 Sep 2026",
@@ -117,7 +117,7 @@ export function HRDashboard() {
     },
     {
       id: "doc-4",
-      employee: "Faizan Sheikh (WG-EMP-1045)",
+      employee: "Amit Kumar (WG-EMP-1045)",
       document: "Medical Fitness Certificate",
       status: "Pending Approval",
       submittedDate: "23 Sep 2026",
@@ -135,7 +135,7 @@ export function HRDashboard() {
     },
     {
       id: "lv-2",
-      employee: "Bilal Hussain (WG-EMP-1028)",
+      employee: "Vikas Sharma (WG-EMP-1028)",
       leaveType: "Sick Leave",
       from: "28 Sep 2026",
       to: "30 Sep 2026",

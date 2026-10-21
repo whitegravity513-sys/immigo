@@ -611,7 +611,7 @@ export function ClientForm({
                 name="directorName"
                 value={formData.directorName}
                 onChange={handleFieldChange}
-                placeholder="e.g. Mohammed Al-Rashid"
+                placeholder="e.g. Rajesh Sharma"
                 className={`w-full px-3 py-2.5 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors ${
                   errors.directorName ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
                 }`}
@@ -758,7 +758,7 @@ export function ClientForm({
                       type="text"
                       value={contact.name}
                       onChange={(e) => handleContactChange(idx, "name", e.target.value)}
-                      placeholder="e.g. Mohammed Ahmed Al-Mansoor"
+                      placeholder="e.g. Ramesh Kumar Verma"
                       className={`w-full px-3 py-2.5 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                         errors[`contact_${idx}_name`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
                       }`}
@@ -792,7 +792,7 @@ export function ClientForm({
                       type="email"
                       value={contact.email}
                       onChange={(e) => handleContactChange(idx, "email", e.target.value)}
-                      placeholder="m.ahmed@company.com"
+                      placeholder="ramesh.verma@company.com"
                       className={`w-full px-3 py-2.5 border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                         errors[`contact_${idx}_email`] ? "border-red-400 bg-red-50" : "border-gray-300 bg-white"
                       }`}

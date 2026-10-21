@@ -46,18 +46,17 @@ export function VendorLogin() {
     setPassword("");
     const clearBrowserAutofill = () => {
       if (emailInputRef.current) {
-        const v = String(emailInputRef.current.value || "");
-        if (v.toUpperCase().includes("VESTA")) {
+        const v = String(emailInputRef.current.value || "").trim();
+        if (v.toUpperCase().includes("VESTA") || v.toUpperCase().includes("VISTA")) {
           emailInputRef.current.value = "";
           setEmailOrId("");
         }
       }
       if (passwordInputRef.current) {
-        if (emailInputRef.current && !emailInputRef.current.value) {
-          if (passwordInputRef.current.value === "12345" || passwordInputRef.current.value === "vesta") {
-            passwordInputRef.current.value = "";
-            setPassword("");
-          }
+        const p = String(passwordInputRef.current.value || "").trim();
+        if (p.toLowerCase().includes("vesta") || p.toLowerCase().includes("vista") || (emailInputRef.current && !emailInputRef.current.value && p === "12345")) {
+          passwordInputRef.current.value = "";
+          setPassword("");
         }
       }
     };
@@ -107,6 +106,21 @@ export function VendorLogin() {
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || "Failed to authenticate vendor.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await crmVendorService.loginVendor("vendor@immigo.com", "12345");
+      login(res.token, { ...res.vendor, role: "vendor" }, "vendor");
+      const from = location.state?.from?.pathname || "/vendor/dashboard";
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err.message || "Vendor demo login failed.");
     } finally {
       setLoading(false);
     }
@@ -392,18 +406,7 @@ export function VendorLogin() {
               </p>
             </div>
 
-            <div className="mb-4 px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
-              <span className="truncate mr-2">
-                Vendor: <span className="font-bold text-[#1877f2]">vendor@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
-              </span>
-              <button
-                type="button"
-                onClick={handleQuickFill}
-                className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
-              >
-                Quick Fill
-              </button>
-            </div>
+
 
             {error && (
               <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2 animate-shake">
@@ -508,6 +511,18 @@ export function VendorLogin() {
                   </>
                 )}
               </button>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/70 text-slate-700 hover:text-blue-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
+                >
+                  <Zap size={14} className="text-amber-500 fill-amber-500" />
+                  <span>1-Click Demo Login (Vendor)</span>
+                </button>
+              </div>
 
               <div className="text-center pt-3 border-t border-slate-100 text-xs text-slate-500">
                 <span>Don't have a vendor account? </span>

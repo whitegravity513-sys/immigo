@@ -402,7 +402,7 @@ export function ProjectForm({
                     name="clientName"
                     value={formData.clientName || ""}
                     onChange={handleFieldChange}
-                    placeholder="Enter Client / Company Name (e.g. Al-Futtaim Construction)..."
+                    placeholder="Enter Client / Company Name (e.g. L&T Infrastructure / Apex Construction)..."
                     className="w-full text-xs rounded-md border border-gray-300 py-1.5 px-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
                     required
                   />
@@ -634,7 +634,7 @@ export function ProjectForm({
               name="languageRequirements"
               value={formData.additionalRequirements.languageRequirements}
               onChange={handleRequirementsChange}
-              placeholder="e.g. Basic English and Hindi/Urdu for site coordination"
+              placeholder="e.g. Basic English and Hindi for site coordination"
             />
 
             <InputField

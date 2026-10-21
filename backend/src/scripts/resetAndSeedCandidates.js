@@ -23,7 +23,7 @@ export const resetAndSeedCandidates = async (exitOnComplete = true) => {
     // 3. Create pre-approved verified demo candidate
     const demoCandidate = await Candidate.create({
       candidateId: "CAN-2026-0001",
-      fullName: "Mohammad Al-Arabi",
+      fullName: "Rahul Sharma",
       email: "candidate@immigo.com",
       phone: "+91 98765 43210",
       password: hashedPassword,
@@ -36,7 +36,7 @@ export const resetAndSeedCandidates = async (exitOnComplete = true) => {
       profile: {
         dob: "1996-05-14",
         gender: "Male",
-        address: "402, Al-Rahman Heights, Andheri West",
+        address: "402, Surya Heights, Andheri West",
         city: "Mumbai",
         state: "Maharashtra",
         pincode: "400058",

@@ -43,7 +43,7 @@ const DEFAULT_NEW_VENDOR = {
   experienceYears: "5",
   availableCandidates: "150",
   monthlyCapacity: "50",
-  password: "Password@123",
+  password: "",
   tradeLicenseDocName: "",
   recruitmentLicenseDocName: "",
   gstDocName: "",

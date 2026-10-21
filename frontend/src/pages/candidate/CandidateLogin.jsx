@@ -16,6 +16,7 @@ import {
   Clock,
   XCircle,
   Key,
+  Zap,
 } from "lucide-react";
 
 export default function CandidateLogin() {
@@ -30,9 +31,7 @@ export default function CandidateLogin() {
   const [errorMsg, setErrorMsg] = useState("");
   const [statusNotice, setStatusNotice] = useState(null);
 
-  const handleQuickDemoLogin = async () => {
-    setEmail("candidate@immigo.com");
-    setPassword("Password@123");
+  const handleDemoLogin = async () => {
     setErrorMsg("");
     setStatusNotice(null);
     setLoading(true);
@@ -41,10 +40,11 @@ export default function CandidateLogin() {
         email: "candidate@immigo.com",
         password: "Password@123",
       });
-
       if (res.data?.success) {
         login(res.data.token, res.data.candidate, "candidate");
         navigate("/candidate/dashboard");
+      } else {
+        setErrorMsg("Candidate demo login failed.");
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || "Demo login failed.");
@@ -52,6 +52,8 @@ export default function CandidateLogin() {
       setLoading(false);
     }
   };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -158,27 +160,6 @@ export default function CandidateLogin() {
               </p>
             </div>
 
-            {/* Quick Demo Candidate Pill */}
-            <div className="mb-3.5 p-2.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex items-center justify-between gap-2 text-xs">
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
-                  <Key size={13} className="text-amber-600 shrink-0" />
-                  <span>Demo Candidate Login</span>
-                </div>
-                <div className="text-[10px] text-amber-800/80 font-mono truncate">
-                  candidate@immigo.com &bull; Password@123
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleQuickDemoLogin}
-                disabled={loading}
-                className="shrink-0 px-2.5 py-1 rounded-full bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-[10px] shadow-xs cursor-pointer transition disabled:opacity-50"
-              >
-                1-Click Demo
-              </button>
-            </div>
-
             {/* Error Message */}
             {errorMsg && (
               <div className="mb-4 p-2.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
@@ -211,7 +192,10 @@ export default function CandidateLogin() {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
+              {/* Hidden dummy inputs to trap browser autofill */}
+              <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
+              <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
               {/* Email Address */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -284,6 +268,18 @@ export default function CandidateLogin() {
                   <span>Login</span>
                 )}
               </button>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 rounded-full border border-dashed border-[#3b2875]/40 hover:border-[#3b2875] bg-purple-50/70 hover:bg-purple-100/70 text-[#3b2875] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
+                >
+                  <Zap size={14} className="text-amber-500 fill-amber-500" />
+                  <span>1-Click Demo Login (Candidate)</span>
+                </button>
+              </div>
 
               {/* Registration Link */}
               <div className="pt-2 text-center text-xs text-slate-500">

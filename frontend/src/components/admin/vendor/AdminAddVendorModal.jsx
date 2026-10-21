@@ -551,7 +551,7 @@ export function AdminAddVendorModal({
                 onChange={(e) =>
                   setNewVendorForm({ ...newVendorForm, password: e.target.value })
                 }
-                placeholder="Password@123"
+                placeholder="Enter temporary password"
                 className="w-full p-2.5 rounded-xl border border-slate-300 font-mono font-bold focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white text-blue-900"
               />
               <p className="text-[10px] text-slate-500 mt-1 font-medium">

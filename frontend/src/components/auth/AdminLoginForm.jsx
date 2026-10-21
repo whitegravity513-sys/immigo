@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Zap } from "lucide-react";
 import { adminLogin } from "../../services/authService.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import AuthErrorMessage from "./AuthErrorMessage.jsx";
@@ -20,22 +20,23 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
   useEffect(() => {
     const clearBrowserAutofill = () => {
       if (adminInputRef.current) {
-        const v = String(adminInputRef.current.value || "");
-        if (v.toUpperCase().includes("VESTA")) {
+        const v = String(adminInputRef.current.value || "").trim();
+        if (v.toUpperCase().includes("VESTA") || v.toUpperCase().includes("VISTA")) {
           adminInputRef.current.value = "";
           setIdentifier("");
         }
       }
-      if (adminPassRef.current && adminInputRef.current && !adminInputRef.current.value) {
-        if (adminPassRef.current.value === "vesta") {
+      if (adminPassRef.current) {
+        const p = String(adminPassRef.current.value || "").trim();
+        if (p.toLowerCase().includes("vesta") || p.toLowerCase().includes("vista")) {
           adminPassRef.current.value = "";
           setPassword("");
         }
       }
     };
     clearBrowserAutofill();
-    const interval = setInterval(clearBrowserAutofill, 50);
-    const stopTimer = setTimeout(() => clearInterval(interval), 2000);
+    const interval = setInterval(clearBrowserAutofill, 40);
+    const stopTimer = setTimeout(() => clearInterval(interval), 3000);
     return () => {
       clearInterval(interval);
       clearTimeout(stopTimer);
@@ -48,10 +49,26 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
     return () => clearTimeout(timer);
   }, [error]);
 
-  const handleQuickFill = () => {
-    setIdentifier("admin@immigo.com");
-    setPassword("12345");
+  const handleDemoLogin = async () => {
     setError("");
+    setLoading(true);
+    try {
+      const data = await adminLogin("admin@immigo.com", "12345");
+      const token = data?.accessToken || data?.token;
+      if (token) {
+        const adminData = { ...(data.admin || {}), role: "admin" };
+        login(token, adminData, "admin");
+        if (onLoginSuccess) {
+          onLoginSuccess(token, adminData, "admin");
+        }
+      } else {
+        setError("Admin authentication failed. Please verify credentials.");
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || "Demo login failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -92,18 +109,9 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
-      <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
-        <span className="truncate mr-2">
-          Admin: <span className="font-bold text-[#1877f2]">admin@immigo.com</span> &bull; Pass: <span className="font-mono font-bold">12345</span>
-        </span>
-        <button
-          type="button"
-          onClick={handleQuickFill}
-          className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
-        >
-          Quick Fill
-        </button>
-      </div>
+      {/* Hidden dummy inputs to trap browser autofill */}
+      <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
+      <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
 
       <AuthErrorMessage msg={error} />
 
@@ -188,6 +196,18 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
           </>
         )}
       </button>
+
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={loading}
+          className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/70 text-slate-700 hover:text-blue-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
+        >
+          <Zap size={14} className="text-amber-500 fill-amber-500" />
+          <span>1-Click Demo Login (Admin)</span>
+        </button>
+      </div>
     </form>
   );
 }

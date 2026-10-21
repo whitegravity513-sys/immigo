@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Briefcase, Lock, Eye, EyeOff, LogIn, ArrowRight } from "lucide-react";
+import { Briefcase, Lock, Eye, EyeOff, LogIn, ArrowRight, Zap } from "lucide-react";
 import crmClientService from "../../services/crmClientService.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import AuthErrorMessage from "./AuthErrorMessage.jsx";
@@ -20,11 +20,30 @@ export default function ClientLoginForm({ onLoginSuccess, onForgotPassword }) {
     return () => clearTimeout(timer);
   }, [error]);
 
-  const handleQuickFill = () => {
-    setIdentifier("client@binladin.com");
-    setPassword("Password@123");
+  const handleDemoLogin = () => {
     setError("");
+    setLoading(true);
+    try {
+      const token = `clt-token-${Date.now()}`;
+      const clientPayload = {
+        id: "CLT-1001",
+        companyName: "Apex Global Infrastructure Group",
+        email: "client@apexinfra.com",
+        country: "UAE",
+        role: "client",
+      };
+      login(token, clientPayload, "client");
+      if (onLoginSuccess) {
+        onLoginSuccess(token, clientPayload, "client");
+      }
+    } catch (err) {
+      setError("Client demo login failed.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,7 +62,7 @@ export default function ClientLoginForm({ onLoginSuccess, onForgotPassword }) {
       const token = `clt-token-${Date.now()}`;
       const clientPayload = client || {
         id: "CLT-1001",
-        companyName: "Al-Habtoor Construction Group",
+        companyName: "Apex Global Infrastructure Group",
         email: cleanId,
         country: "UAE",
         role: "client",
@@ -62,20 +81,10 @@ export default function ClientLoginForm({ onLoginSuccess, onForgotPassword }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3.5">
-      {}
-      <div className="px-3 py-1.5 bg-blue-50/70 border border-blue-200/70 rounded-xl flex items-center justify-between text-[11px] text-blue-900">
-        <span className="truncate mr-2">
-          Demo Client: <span className="font-bold text-[#1877f2]">client@binladin.com</span> &bull; Pass: <span className="font-mono font-bold">Password@123</span>
-        </span>
-        <button
-          type="button"
-          onClick={handleQuickFill}
-          className="font-bold text-[#1877f2] hover:underline cursor-pointer ml-2 text-xs shrink-0"
-        >
-          Quick Fill
-        </button>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
+      {/* Hidden dummy inputs to trap browser autofill */}
+      <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
+      <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
 
       <AuthErrorMessage msg={error} />
 
@@ -89,9 +98,10 @@ export default function ClientLoginForm({ onLoginSuccess, onForgotPassword }) {
             type="text"
             required
             autoFocus
+            autoComplete="off"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="e.g. client@binladin.com or CLT-1001"
+            placeholder="e.g. client@apexinfra.com or CLT-1001"
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>
@@ -143,6 +153,18 @@ export default function ClientLoginForm({ onLoginSuccess, onForgotPassword }) {
           </>
         )}
       </button>
+
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={loading}
+          className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/70 text-slate-700 hover:text-blue-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
+        >
+          <Zap size={14} className="text-amber-500 fill-amber-500" />
+          <span>1-Click Demo Login (Client)</span>
+        </button>
+      </div>
     </form>
   );
 }

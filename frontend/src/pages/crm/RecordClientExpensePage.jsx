@@ -403,7 +403,7 @@ export default function RecordClientExpensePage() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. Al-Mansoor Travel Agency"
+                placeholder="e.g. Surya Global Logistics / Shanti Travels"
                 value={formData.paidTo}
                 onChange={(e) => setFormData((prev) => ({ ...prev, paidTo: e.target.value }))}
                 className="w-full px-3.5 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
