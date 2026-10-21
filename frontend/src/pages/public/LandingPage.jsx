@@ -110,7 +110,11 @@ export default function LandingPage() {
       : `Hello, I want to know more about your overseas recruitment and manpower services. (From: ${inquiryForm.name})`;
 
     const text = encodeURIComponent(messageBody);
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
+    const phone = import.meta.env.VITE_WHATSAPP_NUMBER;
+    const url = phone
+      ? `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${text}`
+      : `https://api.whatsapp.com/send?text=${text}`;
+    window.open(url, "_blank");
     setInquirySubmitted(true);
     setTimeout(() => setInquirySubmitted(false), 8000);
   };
@@ -795,7 +799,11 @@ export default function LandingPage() {
 
       {/* Floating WhatsApp Quick-Contact Button */}
       <a
-        href="https://wa.me/919876543210?text=Hello%2C%20I%20want%20to%20know%20more%20about%20your%20services."
+        href={
+          import.meta.env.VITE_WHATSAPP_NUMBER
+            ? `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER.replace(/[^0-9]/g, "")}?text=Hello%2C%20I%20want%20to%20know%20more%20about%20your%20services.`
+            : `https://api.whatsapp.com/send?text=Hello%2C%20I%20want%20to%20know%20more%20about%20your%20services.`
+        }
         target="_blank"
         rel="noreferrer"
         className="fixed bottom-6 right-6 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-full shadow-lg shadow-emerald-950/30 flex items-center gap-2 transition-transform hover:scale-105 cursor-pointer"

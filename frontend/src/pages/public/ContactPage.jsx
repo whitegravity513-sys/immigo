@@ -32,7 +32,11 @@ export default function ContactPage() {
       : `Hello, I want to know more about your overseas recruitment and manpower supply services.${namePart}`;
 
     const text = encodeURIComponent(messageBody);
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
+    const phone = import.meta.env.VITE_WHATSAPP_NUMBER;
+    const url = phone
+      ? `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${text}`
+      : `https://api.whatsapp.com/send?text=${text}`;
+    window.open(url, "_blank");
     setSubmitted(true);
   };
 
@@ -155,7 +159,7 @@ export default function ContactPage() {
               <div className="pb-3 border-b border-slate-100">
                 <h2 className="text-base font-bold text-[#0f2744]">Direct Inquiry Form</h2>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Fills your message and redirects directly to WhatsApp (+91 9876543210)
+                  Fills your inquiry message and connects directly via WhatsApp
                 </p>
               </div>
 
