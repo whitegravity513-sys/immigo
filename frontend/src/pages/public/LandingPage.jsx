@@ -117,6 +117,19 @@ export default function LandingPage() {
     setTimeout(() => setInquirySubmitted(false), 8000);
   };
 
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const navHeight = 65;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+      window.scrollTo({
+        top: id === "home" ? 0 : offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-600 selection:text-white flex flex-col justify-between">
       {/* Top Navigation Header */}
@@ -127,18 +140,34 @@ export default function LandingPage() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-10 sm:gap-12 text-xs font-semibold text-blue-100">
-            <a href="#home" className="hover:text-cyan-300 transition-colors">
+            <button
+              type="button"
+              onClick={() => scrollToSection("home")}
+              className="hover:text-cyan-300 transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-blue-100"
+            >
               Home
-            </a>
-            <a href="#about" className="hover:text-cyan-300 transition-colors">
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("about")}
+              className="hover:text-cyan-300 transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-blue-100"
+            >
               About Us
-            </a>
-            <a href="#process" className="hover:text-cyan-300 transition-colors">
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("process")}
+              className="hover:text-cyan-300 transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-blue-100"
+            >
               Process
-            </a>
-            <a href="#contact" className="hover:text-cyan-300 transition-colors">
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection("contact")}
+              className="hover:text-cyan-300 transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-blue-100"
+            >
               Contact Us
-            </a>
+            </button>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -687,18 +716,34 @@ export default function LandingPage() {
                 Quick Navigation
               </span>
               <nav className="flex flex-col md:items-center gap-2 text-xs font-semibold text-slate-300">
-                <a href="#home" className="hover:text-white transition-colors">
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("home")}
+                  className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-slate-300"
+                >
                   Home
-                </a>
-                <a href="#about" className="hover:text-white transition-colors">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("about")}
+                  className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-slate-300"
+                >
                   About Us
-                </a>
-                <a href="#process" className="hover:text-white transition-colors">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("process")}
+                  className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-slate-300"
+                >
                   Process
-                </a>
-                <a href="#contact" className="hover:text-white transition-colors">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("contact")}
+                  className="hover:text-white transition-colors cursor-pointer bg-transparent border-none p-0 text-xs font-semibold text-slate-300"
+                >
                   Contact Us
-                </a>
+                </button>
               </nav>
             </div>
 
