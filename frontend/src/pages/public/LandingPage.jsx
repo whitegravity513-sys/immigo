@@ -163,8 +163,8 @@ export default function LandingPage() {
         id="home"
         className="relative bg-white text-slate-900 overflow-hidden select-none"
       >
-        {/* Slideshow Container: 100% Full-Width Cover with reduced compact height */}
-        <div className="relative min-h-[420px] sm:min-h-[460px] lg:min-h-[490px] w-full overflow-hidden flex flex-col justify-between">
+        {/* Slideshow Container: 100% Full-Width Cover with slightly increased balanced height */}
+        <div className="relative min-h-[460px] sm:min-h-[500px] lg:min-h-[535px] w-full overflow-hidden flex flex-col justify-between">
           {/* Book-Style Opening Reveal from Center in Royal Blue upon Page Load */}
           {!curtainRemoved && (
             <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden flex">
@@ -209,7 +209,7 @@ export default function LandingPage() {
           </div>
 
           {/* Inner Content Grid: Aligned with site max-w-7xl grid */}
-          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-between h-full min-h-[420px] sm:min-h-[460px] lg:min-h-[490px] pointer-events-none">
+          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-between h-full min-h-[460px] sm:min-h-[500px] lg:min-h-[535px] pointer-events-none">
             {/* Upper Content: On the left side in the clear sky area */}
             <div className="max-w-2xl text-left space-y-2 sm:space-y-3 pt-2 sm:pt-4 pointer-events-auto">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
@@ -697,7 +697,7 @@ export default function LandingPage() {
                   Process
                 </a>
                 <a href="#contact" className="hover:text-white transition-colors">
-                  Contact & Inquiry
+                  Contact Us
                 </a>
               </nav>
             </div>
@@ -736,6 +736,10 @@ export default function LandingPage() {
               <span>&bull;</span>
               <Link to="/vendor/login" className="hover:text-white">
                 Vendor Portal
+              </Link>
+              <span>&bull;</span>
+              <Link to="/admin/login" className="hover:text-white">
+                Admin Portal
               </Link>
               <span>&bull;</span>
               <Link to="/register" className="hover:text-white">
