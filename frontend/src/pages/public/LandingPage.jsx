@@ -163,8 +163,8 @@ export default function LandingPage() {
         id="home"
         className="relative bg-white text-slate-900 overflow-hidden select-none"
       >
-        {/* Slideshow Container: 100% Full-Width Cover */}
-        <div className="relative min-h-[500px] sm:min-h-[550px] lg:min-h-[580px] w-full overflow-hidden flex flex-col justify-between">
+        {/* Slideshow Container: 100% Full-Width Cover with reduced compact height */}
+        <div className="relative min-h-[420px] sm:min-h-[460px] lg:min-h-[490px] w-full overflow-hidden flex flex-col justify-between">
           {/* Book-Style Opening Reveal from Center in Royal Blue upon Page Load */}
           {!curtainRemoved && (
             <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden flex">
@@ -187,24 +187,29 @@ export default function LandingPage() {
             </div>
           )}
 
-          <div
-            className="flex h-full w-full absolute inset-0 transition-transform duration-1000 ease-in-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-          >
-            {heroSlides.map((slide) => (
-              <div key={slide.id} className="min-w-full w-full h-full relative shrink-0">
-                {/* 100% Full Width Cover Image */}
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className="w-full h-full object-cover object-center"
-                />
-              </div>
-            ))}
+          {/* Smooth Crossfade Slides: Fades 1 -> 2 -> 3 -> 4 -> 1 seamlessly without any sliding motion */}
+          <div className="absolute inset-0 w-full h-full overflow-hidden">
+            {heroSlides.map((slide, index) => {
+              const isActive = index === currentSlide;
+              return (
+                <div
+                  key={slide.id}
+                  className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
+                    isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                  }`}
+                >
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {/* Inner Content Grid: Aligned with site max-w-7xl grid */}
-          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex flex-col justify-between h-full min-h-[500px] sm:min-h-[550px] lg:min-h-[580px] pointer-events-none">
+          <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-between h-full min-h-[420px] sm:min-h-[460px] lg:min-h-[490px] pointer-events-none">
             {/* Upper Content: On the left side in the clear sky area */}
             <div className="max-w-2xl text-left space-y-2 sm:space-y-3 pt-2 sm:pt-4 pointer-events-auto">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
