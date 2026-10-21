@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   ShieldCheck,
   HardHat,
-  Sparkles,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
@@ -327,7 +326,7 @@ export function VendorRegister() {
                   </p>
                 </div>
                 <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold">
-                  <Sparkles size={11} className="text-blue-600" />
+                  <ShieldCheck size={11} className="text-blue-600" />
                   <span>Verified Network</span>
                 </div>
               </div>
