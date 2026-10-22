@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {
-  Users,
-  UserPlus,
-  Clock,
-  FileText,
-  FileCheck,
-  Building,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Calendar,
-  ArrowRight,
-  Search,
-  Filter,
-  Eye,
-  Check,
-  X,
-  Edit2,
-  Trash2,
-} from "lucide-react";
 import HrLayout from "../../components/hr/layout/HrLayout.jsx";
 import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
 import HrEditEmployeeModal from "../../components/hr/modals/HrEditEmployeeModal.jsx";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
+import {
+  HrStatsCards,
+  HrRecentEmployeesTable,
+  HrPendingDocsList,
+  HrLeaveRequestsList,
+  HrRecentActivityList,
+} from "../../components/hr/dashboard/index.js";
 
 export function HRDashboard() {
   const [loading, setLoading] = useState(true);
@@ -159,7 +145,7 @@ export function HRDashboard() {
     },
   ]);
 
-  const [recentHrActivity, setRecentHrActivity] = useState([
+  const [recentHrActivity] = useState([
     {
       id: "hact-1",
       title: "New Employee Onboarded",
@@ -268,7 +254,7 @@ export function HRDashboard() {
     }
   };
 
-  const handleLeaveAction = (id, action) => {
+  const handleLeaveAction = (id) => {
     setLeaveRequests((prev) => prev.filter((item) => item.id !== id));
     setHrStats((prev) => ({ ...prev, leaveRequests: Math.max(0, prev.leaveRequests - 1) }));
   };
@@ -321,14 +307,14 @@ export function HRDashboard() {
   };
 
   const hrCards = [
-    { title: "Total Employees", value: hrStats.totalEmployees, sub: "Registered Staff", color: "blue", to: "/admin/dashboard/employees" },
-    { title: "New This Month", value: `+${hrStats.newThisMonth}`, sub: "Onboarded", color: "emerald", to: "/admin/dashboard/workforce" },
-    { title: "Pending Onboarding", value: hrStats.pendingOnboarding, sub: "In-progress docs", color: "amber", to: "/admin/dashboard/workforce" },
-    { title: "Pending Documents", value: hrStats.pendingDocuments, sub: "Awaiting HR review", color: "rose", to: "/admin/dashboard/workforce" },
-    { title: "Present Today", value: hrStats.presentToday, sub: `${Math.round((hrStats.presentToday / hrStats.totalEmployees) * 100)}% Turnout`, color: "emerald", to: "/admin/dashboard/attendance-all" },
-    { title: "On Leave Today", value: hrStats.onLeaveToday, sub: "Approved Absences", color: "purple", to: "/admin/dashboard/leaves" },
-    { title: "Leave Requests", value: hrStats.leaveRequests, sub: "Pending Action", color: "amber", to: "/admin/dashboard/leaves" },
-    { title: "Departments", value: hrStats.departments, sub: "Active Divisions", color: "indigo", to: "/admin/dashboard/workforce" },
+    { title: "Total Employees", value: hrStats.totalEmployees, sub: "Registered Staff", to: "/admin/dashboard/employees" },
+    { title: "New This Month", value: `+${hrStats.newThisMonth}`, sub: "Onboarded", to: "/admin/dashboard/workforce" },
+    { title: "Pending Onboarding", value: hrStats.pendingOnboarding, sub: "In-progress docs", to: "/admin/dashboard/workforce" },
+    { title: "Pending Documents", value: hrStats.pendingDocuments, sub: "Awaiting HR review", to: "/admin/dashboard/workforce" },
+    { title: "Present Today", value: hrStats.presentToday, sub: `${Math.round((hrStats.presentToday / (hrStats.totalEmployees || 1)) * 100)}% Turnout`, to: "/admin/dashboard/attendance-all" },
+    { title: "On Leave Today", value: hrStats.onLeaveToday, sub: "Approved Absences", to: "/admin/dashboard/leaves" },
+    { title: "Leave Requests", value: hrStats.leaveRequests, sub: "Pending Action", to: "/admin/dashboard/leaves" },
+    { title: "Departments", value: hrStats.departments, sub: "Active Divisions", to: "/admin/dashboard/workforce" },
   ];
 
   return (
@@ -342,236 +328,24 @@ export function HRDashboard() {
       ]}
     >
       <div className="space-y-6">
-        {}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-          {hrCards.map((card) => (
-            <Link
-              key={card.title}
-              to={card.to}
-              className="p-3 bg-white rounded-xl border border-gray-200/90 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all duration-150 block text-left group"
-            >
-              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 truncate">
-                {card.title}
-              </p>
-              <p className="text-lg font-black text-gray-900 tracking-tight mt-1 leading-none group-hover:text-blue-600 transition-colors">
-                {card.value}
-              </p>
-              <p className="text-[10px] text-gray-500 mt-1 truncate">
-                {card.sub}
-              </p>
-            </Link>
-          ))}
-        </div>
+        <HrStatsCards hrCards={hrCards} />
 
-        {}
-        <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-blue-600" />
-              <h2 className="text-xs sm:text-sm font-bold text-gray-900">Recent Employees</h2>
-            </div>
-            <Link
-              to="/admin/dashboard/employees"
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md transition-colors"
-            >
-              <span>View All Directory</span>
-              <ArrowRight size={11} />
-            </Link>
-          </div>
+        <HrRecentEmployeesTable
+          recentEmployees={recentEmployees}
+          onEditEmployee={(emp) => setEditingEmployee(emp)}
+          onDeleteEmployee={(emp) => setDeleteTargetEmployee(emp)}
+        />
 
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left text-xs border-collapse min-w-[550px]">
-              <thead>
-                <tr className="bg-gray-50/70 border-b border-gray-100 text-gray-400 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="py-1.5 px-3">Employee Name</th>
-                  <th className="py-1.5 px-2.5">Employee ID</th>
-                  <th className="py-1.5 px-2.5">Department</th>
-                  <th className="py-1.5 px-2.5">Designation</th>
-                  <th className="py-1.5 px-2.5">Joining Date</th>
-                  <th className="py-1.5 px-2.5">Status</th>
-                  <th className="py-1.5 px-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {recentEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="py-1.5 px-3 font-bold text-gray-900 text-xs">
-                      {emp.name}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-xs font-mono font-bold text-blue-600">
-                      {emp.employeeId}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-xs text-gray-600">
-                      {emp.department}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-xs text-gray-600">
-                      {emp.designation}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-xs text-gray-500">
-                      {emp.joiningDate}
-                    </td>
-                    <td className="py-1.5 px-2.5 text-xs">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {emp.status}
-                      </span>
-                    </td>
-                    <td className="py-1.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setEditingEmployee(emp)}
-                          className="px-2.5 py-1 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
-                          title="Edit Employee Profile"
-                        >
-                          <Edit2 size={11} />
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTargetEmployee(emp)}
-                          className="px-2.5 py-1 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-md font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
-                          title="Delete Employee Record"
-                        >
-                          <Trash2 size={11} />
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {}
-          <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
-            <div>
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileCheck size={16} className="text-amber-600" />
-                  <h2 className="text-xs sm:text-sm font-bold text-gray-900">Pending Documents</h2>
-                </div>
-                <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
-                  {pendingDocs.length} Pending
-                </span>
-              </div>
-
-              <div className="p-3 divide-y divide-gray-100">
-                {pendingDocs.map((doc) => (
-                  <div key={doc.id} className="py-2.5 px-2 flex items-center justify-between gap-3 text-xs">
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate">{doc.employee}</p>
-                      <p className="text-[11px] text-gray-500 truncate mt-0.5">{doc.document}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">Submitted: {doc.submittedDate}</p>
-                    </div>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-                      {doc.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-3 bg-gray-50/70 border-t border-gray-100">
-              <Link
-                to="/admin/dashboard/workforce"
-                className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-blue-600 hover:text-blue-800"
-              >
-                <span>Open Document Verification Center</span>
-                <ArrowRight size={12} />
-              </Link>
-            </div>
-          </div>
-
-          {}
-          <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden flex flex-col justify-between">
-            <div>
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText size={16} className="text-purple-600" />
-                  <h2 className="text-xs sm:text-sm font-bold text-gray-900">Leave Requests</h2>
-                </div>
-                <Link
-                  to="/admin/dashboard/leaves"
-                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
-                >
-                  Manage All
-                </Link>
-              </div>
-
-              <div className="p-3 divide-y divide-gray-100">
-                {leaveRequests.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-6">All leave applications reviewed.</p>
-                ) : (
-                  leaveRequests.map((lv) => (
-                    <div key={lv.id} className="py-2.5 px-2 flex items-center justify-between gap-3 text-xs">
-                      <div className="min-w-0">
-                        <p className="font-bold text-gray-900 truncate">{lv.employee}</p>
-                        <p className="text-[11px] text-purple-700 font-semibold truncate mt-0.5">
-                          {lv.leaveType} ({lv.from} - {lv.to})
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleLeaveAction(lv.id, "Approved")}
-                          className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-md cursor-pointer transition-colors"
-                          title="Approve"
-                        >
-                          <Check size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleLeaveAction(lv.id, "Rejected")}
-                          className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-md cursor-pointer transition-colors"
-                          title="Reject"
-                        >
-                          <X size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="p-3 bg-gray-50/70 border-t border-gray-100">
-              <Link
-                to="/admin/dashboard/leaves"
-                className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-purple-700 hover:text-purple-900"
-              >
-                <span>Open Leave Approvals Desk</span>
-                <ArrowRight size={12} />
-              </Link>
-            </div>
-          </div>
+          <HrPendingDocsList pendingDocs={pendingDocs} />
+          <HrLeaveRequestsList
+            leaveRequests={leaveRequests}
+            onLeaveAction={handleLeaveAction}
+          />
         </div>
 
-        {}
-        <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-xs sm:text-sm font-bold text-gray-900">Recent HR Activity</h2>
-            <span className="text-[10px] text-gray-400">Chronological event log</span>
-          </div>
+        <HrRecentActivityList recentHrActivity={recentHrActivity} />
 
-          <div className="divide-y divide-gray-100">
-            {recentHrActivity.map((act) => (
-              <div key={act.id} className="px-4 py-3 flex items-center justify-between gap-3 text-xs hover:bg-gray-50/50 transition-colors">
-                <div>
-                  <p className="font-bold text-gray-900">{act.title}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">{act.desc}</p>
-                </div>
-                <span className="text-[10px] text-gray-400 shrink-0">{act.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {}
         <HrEditEmployeeModal
           isOpen={Boolean(editingEmployee)}
           onClose={() => setEditingEmployee(null)}
@@ -580,7 +354,6 @@ export function HRDashboard() {
           saving={savingEmployee}
         />
 
-        {}
         <DeleteConfirmModal
           isOpen={Boolean(deleteTargetEmployee)}
           onClose={() => setDeleteTargetEmployee(null)}

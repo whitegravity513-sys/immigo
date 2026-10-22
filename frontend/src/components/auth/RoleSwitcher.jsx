@@ -9,7 +9,7 @@ export default function RoleSwitcher({ role, onChange }) {
         onClick={() => onChange("admin")}
         className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
           role === "admin"
-            ? "bg-[#1877f2] text-white shadow-sm shadow-blue-500/20 font-extrabold"
+            ? "bg-[#1877f2] text-white shadow-sm shadow-blue-500/20 font-bold"
             : "text-slate-600 hover:text-slate-900 bg-transparent"
         }`}
       >
@@ -20,7 +20,7 @@ export default function RoleSwitcher({ role, onChange }) {
         onClick={() => onChange("employee")}
         className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
           role === "employee"
-            ? "bg-[#1877f2] text-white shadow-sm shadow-blue-500/20 font-extrabold"
+            ? "bg-[#1877f2] text-white shadow-sm shadow-blue-500/20 font-bold"
             : "text-slate-600 hover:text-slate-900 bg-transparent"
         }`}
       >

@@ -30,9 +30,9 @@ export function WorkforceMetricModal({
               {metricModal.icon}
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 <span>{metricModal.title}</span>
-                <span className={`text-xs px-2.5 py-0.5 rounded-full font-black ${metricModal.color}`}>
+                <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${metricModal.color}`}>
                   {metricModal.list.length}
                 </span>
               </h3>
@@ -96,7 +96,7 @@ export function WorkforceMetricModal({
                   className="pt-2.5 first:pt-0 p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-sm flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+                    <div className={`w-10 h-10 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
                       {emp.profileImage ? (
                         <img src={emp.profileImage} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -133,7 +133,7 @@ export function WorkforceMetricModal({
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider ${info.badgeClass}`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${info.badgeClass}`}
                     >
                       {info.icon}
                       {info.label}

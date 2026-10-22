@@ -274,8 +274,8 @@ export default function InvoiceReceiptPage() {
           <div className="flex-1 p-4 border-b sm:border-b-0 sm:border-r border-slate-900 flex items-start gap-3">
             <div className="shrink-0 pt-0.5">
               <div className="flex items-baseline">
-                <span className="text-3xl font-black tracking-tight text-slate-950">immi</span>
-                <span className="text-3xl font-black tracking-tight text-sky-500">G</span>
+                <span className="text-3xl font-bold tracking-tight text-slate-950">immi</span>
+                <span className="text-3xl font-bold tracking-tight text-sky-500">G</span>
                 <span className="w-5 h-5 rounded-full border-3 border-sky-500 bg-sky-500 inline-flex items-center justify-center -ml-0.5 relative top-0.5">
                   <span className="w-2 h-2 rounded-full bg-white"></span>
                 </span>
@@ -286,7 +286,7 @@ export default function InvoiceReceiptPage() {
             </div>
 
             <div className="text-[10px] text-slate-800 space-y-0.5 pl-2 leading-tight">
-              <h2 className="text-xs font-black uppercase text-slate-950">
+              <h2 className="text-xs font-bold uppercase text-slate-950">
                 IMMIGO EDUCARE LLP
               </h2>
               <p>C - 76, Phase - II, Sector - 88, Noida</p>
@@ -298,7 +298,7 @@ export default function InvoiceReceiptPage() {
           {}
           <div className="w-full sm:w-[320px] bg-slate-50/70 p-3.5 flex flex-col justify-between">
             <div className="text-center sm:text-right border-b border-slate-300 pb-1.5 mb-1.5">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-950 block">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-950 block">
                 OFFICIAL PAYMENT RECEIPT
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full mt-1">
@@ -405,7 +405,7 @@ export default function InvoiceReceiptPage() {
                 <td className="py-2 px-3 text-right font-bold border-r border-slate-900">
                   Total Paid:
                 </td>
-                <td className="py-2 px-3 text-right font-black text-slate-950 font-mono text-xs">
+                <td className="py-2 px-3 text-right font-bold text-slate-950 font-mono text-xs">
                   ₹ {paidAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                 </td>
               </tr>
@@ -450,7 +450,7 @@ export default function InvoiceReceiptPage() {
             {}
             <div className="py-1 flex items-center justify-end">
               <div className="w-28 h-14 border-2 border-dashed border-blue-600/70 rounded-full flex flex-col items-center justify-center p-1 text-blue-700 rotate-[-3deg] select-none pointer-events-none">
-                <span className="text-[7px] font-black tracking-widest uppercase">
+                <span className="text-[7px] font-bold tracking-widest uppercase">
                   IMMIGO EDUCARE LLP
                 </span>
                 <svg className="w-16 h-5 text-blue-800 my-[-2px]" viewBox="0 0 100 30" fill="none" stroke="currentColor" strokeWidth="2">

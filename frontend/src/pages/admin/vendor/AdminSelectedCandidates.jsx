@@ -145,7 +145,7 @@ export default function AdminSelectedCandidates() {
 
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                      <td className="py-1 px-2 sm:px-5 font-black text-slate-900">
+                      <td className="py-1 px-2 sm:px-5 font-bold text-slate-900">
                         {app.candidateName}
                       </td>
 

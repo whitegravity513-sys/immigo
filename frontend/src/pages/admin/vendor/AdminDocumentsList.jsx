@@ -229,7 +229,7 @@ export default function AdminDocumentsList() {
               <tbody className="divide-y divide-slate-100">
                 {filteredDocs.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-1.5 px-3 sm:px-5 font-extrabold text-slate-900">
+                    <td className="py-1.5 px-3 sm:px-5 font-bold text-slate-900">
                       {doc.title}
                       <span className="block font-mono text-[10px] text-slate-400 font-normal">{doc.type || "Document"}</span>
                     </td>
@@ -247,7 +247,7 @@ export default function AdminDocumentsList() {
                     </td>
 
                     <td className="py-1.5 px-3">
-                      <span className="font-extrabold text-slate-900 block">{doc.ownerName}</span>
+                      <span className="font-bold text-slate-900 block">{doc.ownerName}</span>
                     </td>
 
                     <td className="py-1.5 px-3 text-slate-700 font-semibold">{doc.vendorName}</td>

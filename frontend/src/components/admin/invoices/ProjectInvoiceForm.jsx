@@ -34,7 +34,7 @@ export default function ProjectInvoiceForm({
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-base font-black text-slate-800">
+            <h3 className="text-base font-bold text-slate-800">
               {editingInvoiceId ? `Editing Official Invoice (${editingInvoiceNo})` : "1. Client Contact & Billing Details"}
             </h3>
             <p className="text-xs text-slate-500">
@@ -156,7 +156,7 @@ export default function ProjectInvoiceForm({
 
       <div className="bg-slate-50 rounded-xl border border-slate-200/80 shadow-xs p-4">
         <details>
-          <summary className="cursor-pointer flex items-center gap-2 text-sm font-black text-slate-700 select-none">
+          <summary className="cursor-pointer flex items-center gap-2 text-sm font-bold text-slate-700 select-none">
             <Building2 size={15} className="text-green-600" />
             2. Our Agency / Company Details
             <span className="ml-auto text-[10px] text-slate-400 font-normal">(click to expand/edit)</span>
@@ -194,7 +194,7 @@ export default function ProjectInvoiceForm({
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-base font-black text-slate-800">Invoice Items (Description, SAC Code & Amount)</h3>
+            <h3 className="text-base font-bold text-slate-800">Invoice Items (Description, SAC Code & Amount)</h3>
             <p className="text-xs text-slate-500">
               Fully editable descriptions and amounts for each installment or milestone service
             </p>
@@ -268,7 +268,7 @@ export default function ProjectInvoiceForm({
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-        <h3 className="text-base font-black text-slate-800 border-b border-slate-100 pb-3">
+        <h3 className="text-base font-bold text-slate-800 border-b border-slate-100 pb-3">
           GST Calculation & Total
         </h3>
 
@@ -332,7 +332,7 @@ export default function ProjectInvoiceForm({
           </div>
           <div className="text-right">
             <div className="text-xs font-bold text-black-500 uppercase tracking-wider">Final Total Amount</div>
-            <div className="text-2xl font-black text-black-700">
+            <div className="text-2xl font-bold text-black-700">
               ₹{totalAmount.toLocaleString("en-IN")}
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function ProjectInvoiceForm({
         <button
           type="submit"
           disabled={loading}
-          className="px-8 py-3.5 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-xl text-sm shadow-lg shadow-green-600/30 transition-all cursor-pointer"
+          className="px-8 py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-sm shadow-lg shadow-green-600/30 transition-all cursor-pointer"
         >
           {loading
             ? editingInvoiceId

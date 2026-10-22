@@ -144,7 +144,7 @@ export default function EmployeeDetailSection({
           <ChevronLeft size={16} /> Back
         </button>
         <div>
-          <h2 className="text-xl font-black text-slate-800">
+          <h2 className="text-xl font-bold text-slate-800">
             Employee Profile & Management
           </h2>
           <p className="text-xs text-slate-500">
@@ -209,7 +209,7 @@ export default function EmployeeDetailSection({
               }`}
             >
               <FolderLock size={16} /> Corporate Document Vault
-              <span className="px-2 py-0.5 rounded-full text-xs font-black bg-blue-100 text-blue-700">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
                 {emp.documents?.length || 0}
               </span>
             </button>
@@ -222,7 +222,7 @@ export default function EmployeeDetailSection({
               }`}
             >
               <Briefcase size={16} /> Leave Applications
-              <span className="px-2 py-0.5 rounded-full text-xs font-black bg-slate-100 text-slate-700">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
                 {leaves.length}
               </span>
             </button>

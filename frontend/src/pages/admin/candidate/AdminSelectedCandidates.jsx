@@ -260,7 +260,7 @@ export default function AdminSelectedCandidates() {
                       {/* Candidate Column */}
                       <td className="py-2 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-blue-900 text-cyan-300 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                          <div className="w-8 h-8 rounded-xl bg-blue-900 text-cyan-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                             {(app.candidateName || "C").charAt(0).toUpperCase()}
                           </div>
                           <div>

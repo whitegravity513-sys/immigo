@@ -211,7 +211,7 @@ export function ClientMilestonesTab({
             <IndianRupee size={12} className="text-blue-600" />
             Total Agreed
           </p>
-          <p className="text-lg font-black text-gray-900 mt-1 truncate">
+          <p className="text-lg font-bold text-gray-900 mt-1 truncate">
             ₹{Number(totalAgreed).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-gray-500 mt-0.5 truncate">
@@ -225,7 +225,7 @@ export function ClientMilestonesTab({
             <Receipt size={12} className="text-emerald-600" />
             Received (Verified)
           </p>
-          <p className="text-lg font-black text-emerald-600 mt-1 truncate">
+          <p className="text-lg font-bold text-emerald-600 mt-1 truncate">
             ₹{Number(totalVerifiedReceived).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-emerald-700/80 font-semibold mt-0.5">
@@ -239,7 +239,7 @@ export function ClientMilestonesTab({
             <TrendingUp size={12} className="text-amber-600" />
             Remaining Balance
           </p>
-          <p className="text-lg font-black text-amber-600 mt-1 truncate">
+          <p className="text-lg font-bold text-amber-600 mt-1 truncate">
             ₹{Number(remainingClientPayment).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-gray-400 mt-0.5 truncate">
@@ -253,7 +253,7 @@ export function ClientMilestonesTab({
             <Layers size={12} className="text-purple-600" />
             Expenses Recorded
           </p>
-          <p className="text-lg font-black text-gray-900 mt-1 truncate">
+          <p className="text-lg font-bold text-gray-900 mt-1 truncate">
             ₹{Number(totalExpensesRecorded).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-gray-500 mt-0.5 truncate">
@@ -267,7 +267,7 @@ export function ClientMilestonesTab({
             <TrendingDown size={12} className="text-rose-600" />
             Expenses Paid
           </p>
-          <p className="text-lg font-black text-rose-600 mt-1 truncate">
+          <p className="text-lg font-bold text-rose-600 mt-1 truncate">
             ₹{Number(totalExpensesPaid).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-gray-400 mt-0.5 truncate">
@@ -281,7 +281,7 @@ export function ClientMilestonesTab({
             <Clock size={12} className="text-orange-500" />
             Pending Expenses
           </p>
-          <p className="text-lg font-black text-orange-600 mt-1 truncate">
+          <p className="text-lg font-bold text-orange-600 mt-1 truncate">
             ₹{Number(pendingExpenses).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-gray-400 mt-0.5 truncate">
@@ -306,7 +306,7 @@ export function ClientMilestonesTab({
             Net Cash Flow
           </p>
           <p
-            className={`text-lg font-black mt-1 truncate ${
+            className={`text-lg font-bold mt-1 truncate ${
               netCashFlow >= 0 ? "text-emerald-700" : "text-rose-700"
             }`}
           >
@@ -593,7 +593,7 @@ export function ClientMilestonesTab({
                       <td className="py-1.5 px-3 text-gray-800">
                         {p.milestoneName || "Milestone Payment"}
                       </td>
-                      <td className="py-1.5 px-3 font-black text-emerald-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 font-bold text-emerald-700 whitespace-nowrap">
                         ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")}
                       </td>
                       <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
@@ -759,7 +759,7 @@ export function ClientMilestonesTab({
                       <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {exp.paidTo || "—"}
                       </td>
-                      <td className="py-1.5 px-3 font-black text-rose-700 whitespace-nowrap">
+                      <td className="py-1.5 px-3 font-bold text-rose-700 whitespace-nowrap">
                         ₹{Number(exp.amount || 0).toLocaleString("en-IN")}
                       </td>
                       <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">

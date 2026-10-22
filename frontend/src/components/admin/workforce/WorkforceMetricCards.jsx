@@ -21,7 +21,7 @@ export function WorkforceMetricCards({
           <span className="group-hover:text-blue-600 transition-colors">Total Staff</span>
           <Users size={15} className="text-blue-600 group-hover:scale-110 transition-transform" />
         </div>
-        <div className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+        <div className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">
           {totalEmployeesCount}
         </div>
         <div className="text-[10px] text-slate-500 font-semibold mt-0.5 flex items-center justify-between">
@@ -41,7 +41,7 @@ export function WorkforceMetricCards({
           <span>{selectedDate === todayDate ? "Present Today" : "Present on Date"}</span>
           <UserCheck size={15} className="text-emerald-600 group-hover:scale-110 transition-transform" />
         </div>
-        <div className="text-xl sm:text-2xl font-black text-emerald-900 mt-1">
+        <div className="text-xl sm:text-2xl font-bold text-emerald-900 mt-1">
           {presentCount}
         </div>
         <div className="text-[10px] text-emerald-700 font-semibold mt-0.5 flex items-center justify-between">
@@ -61,7 +61,7 @@ export function WorkforceMetricCards({
           <span>On Leave</span>
           <Calendar size={15} className="text-purple-600 group-hover:scale-110 transition-transform" />
         </div>
-        <div className="text-xl sm:text-2xl font-black text-purple-900 mt-1">
+        <div className="text-xl sm:text-2xl font-bold text-purple-900 mt-1">
           {onLeaveCount}
         </div>
         <div className="text-[10px] text-purple-700 font-semibold mt-0.5 flex items-center justify-between">
@@ -81,7 +81,7 @@ export function WorkforceMetricCards({
           <span>Absent</span>
           <AlertCircle size={15} className="text-rose-600 group-hover:scale-110 transition-transform" />
         </div>
-        <div className="text-xl sm:text-2xl font-black text-rose-900 mt-1">
+        <div className="text-xl sm:text-2xl font-bold text-rose-900 mt-1">
           {absentCount}
         </div>
         <div className="text-[10px] text-rose-700 font-semibold mt-0.5 flex items-center justify-between">

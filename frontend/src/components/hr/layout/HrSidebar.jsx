@@ -121,7 +121,7 @@ export function HrSidebar({
               <div className="flex items-center gap-2.5">
                 <ImmiGoIcon size="md" />
                 <div className="flex flex-col">
-                  <span className="font-extrabold text-sm text-gray-900 tracking-tight leading-tight">
+                  <span className="font-bold text-sm text-gray-900 tracking-tight leading-tight">
                     ImmiGo HR
                   </span>
                   <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">
@@ -161,7 +161,7 @@ export function HrSidebar({
         {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           {!collapsed && (
-            <p className="px-3 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">
+            <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
               HR Operations
             </p>
           )}

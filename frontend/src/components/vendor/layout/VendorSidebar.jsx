@@ -49,8 +49,8 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
           </div>
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 leading-none">
-              <span className="font-extrabold text-white text-base tracking-tight">immi</span>
-              <span className="font-extrabold text-cyan-400 text-base tracking-tight">Go</span>
+              <span className="font-bold text-white text-base tracking-tight">immi</span>
+              <span className="font-bold text-cyan-400 text-base tracking-tight">Go</span>
             </div>
             <span className="text-[10px] uppercase font-bold text-blue-200/80 tracking-wider mt-0.5">
               Vendor Portal
@@ -73,7 +73,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
       {}
       <div className="p-3.5 mx-3 mt-3 bg-blue-100/70 rounded-xl border border-blue-300 shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-9 h-9 rounded-xl ${vendorLogo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 shadow-xs overflow-hidden`}>
+          <div className={`w-9 h-9 rounded-xl ${vendorLogo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 shadow-xs overflow-hidden`}>
             {vendorLogo ? (
               <img src={vendorLogo} alt={vendorName} className="w-full h-full object-cover" />
             ) : (
@@ -81,7 +81,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="text-xs font-black text-slate-900 truncate leading-tight">
+            <h4 className="text-xs font-bold text-slate-900 truncate leading-tight">
               {vendorName}
             </h4>
             <div className="flex items-center gap-1 mt-0.5">
@@ -96,7 +96,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
       {}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <NavLink to="/vendor/dashboard" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+        <NavLink to="/vendor/dashboard" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <LayoutDashboard size={16} /> <span>Dashboard</span>
         </NavLink>
 
@@ -107,7 +107,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
           className={({ isActive }) =>
             `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${
               isActive
-                ? "bg-blue-600 text-white shadow-md font-extrabold"
+                ? "bg-blue-600 text-white shadow-md font-bold"
                 : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"
             }`
           }
@@ -139,17 +139,17 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
         </div>
 
         {}
-        <NavLink to="/vendor/payments" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+        <NavLink to="/vendor/payments" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <CreditCard size={16} className={window.location.pathname.includes('/payments') ? "text-white" : "text-slate-500"} /> <span>Payments</span>
         </NavLink>
-        <NavLink to="/vendor/refunds" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+        <NavLink to="/vendor/refunds" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <RotateCcw size={16} className={window.location.pathname.includes('/refunds') ? "text-white" : "text-slate-500"} /> <span>Refunds</span>
         </NavLink>
 
-        <NavLink to="/vendor/documents" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+        <NavLink to="/vendor/documents" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <FileCheck size={16} className={window.location.pathname.includes('/documents') ? "text-white" : "text-slate-500"} /> <span>Documents / MOU</span>
         </NavLink>
-        <NavLink to="/vendor/profile" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-extrabold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+        <NavLink to="/vendor/profile" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <UserCheck size={16} className={window.location.pathname.includes('/profile') ? "text-white" : "text-slate-500"} /> <span>Profile</span>
         </NavLink>
       </nav>

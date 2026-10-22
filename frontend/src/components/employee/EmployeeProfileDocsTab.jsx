@@ -541,7 +541,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-xs font-bold text-slate-800 truncate">{item.type}</span>
                           {item.required && !isUploaded && (
-                            <span className="text-[9px] font-black text-rose-500 uppercase">Required</span>
+                            <span className="text-[9px] font-bold text-rose-500 uppercase">Required</span>
                           )}
                         </div>
                         <span className="text-[10px] text-slate-500 block truncate">{item.desc}</span>
@@ -559,7 +559,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                               <Eye size={14} />
                             </button>
                             <span
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
                                 isVerified
                                   ? "bg-emerald-100 text-emerald-800"
                                   : isRejected
@@ -651,7 +651,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                   <td className="px-3 py-1.5">
                     <div className="space-y-1">
                       <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase border ${doc.status === "Verified"
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${doc.status === "Verified"
                           ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                           : doc.status === "Rejected"
                             ? "bg-rose-50 text-rose-800 border-rose-200"
@@ -720,7 +720,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                 <UploadCloud size={18} className="text-blue-600" /> Upload Document to Vault
               </h3>
               <button
@@ -814,7 +814,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-blue-600" />
-                <h3 className="text-base font-black text-slate-800 truncate">{previewDoc.name}</h3>
+                <h3 className="text-base font-bold text-slate-800 truncate">{previewDoc.name}</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
                   {previewDoc.type}
                 </span>

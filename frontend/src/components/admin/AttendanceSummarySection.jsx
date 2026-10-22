@@ -21,7 +21,7 @@ export default function AttendanceSummarySection({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h3 className="text-base font-black text-slate-800 tracking-tight">Attendance Summary</h3>
+          <h3 className="text-base font-bold text-slate-800 tracking-tight">Attendance Summary</h3>
           <p className="text-[11px] text-slate-500 font-medium mt-0.5">
             Monthly per-employee breakdown • Calculated strictly from Joining Date onwards, excluding Weekends (2nd & 4th Sat + Sunday) and Declared Holidays
           </p>
@@ -77,9 +77,9 @@ export default function AttendanceSummarySection({
                       <div className="text-[10px] text-slate-500">{emp.employeeId || emp.employeeCode || "-"} • {emp.designation || "-"}</div>
                       {emp.status === "inactive" && <span className="text-[9px] font-bold bg-rose-50 text-rose-600 border border-rose-100 px-1.5 py-0.5 rounded-md uppercase mt-0.5 inline-block">Deactivated</span>}
                     </td>
-                    <td className="px-3 py-1.5 text-center"><span className="text-xs font-black text-emerald-600">{presentDays}</span></td>
-                    <td className="px-3 py-1.5 text-center"><span className="text-xs font-black text-amber-600">{halfDays}</span></td>
-                    <td className="px-3 py-1.5 text-center"><span className={`text-xs font-black ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className="text-xs font-bold text-emerald-600">{presentDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className="text-xs font-bold text-amber-600">{halfDays}</span></td>
+                    <td className="px-3 py-1.5 text-center"><span className={`text-xs font-bold ${absentDays > 0 ? "text-rose-600" : "text-slate-500"}`}>{absentDays}</span></td>
                     <td className="px-3 py-1.5 text-center"><span className="text-xs font-bold text-blue-600">{leaveDays}</span></td>
                   </tr>
                 );

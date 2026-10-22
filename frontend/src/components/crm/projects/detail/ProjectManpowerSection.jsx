@@ -36,7 +36,7 @@ export function ProjectManpowerSection({
             <span className="text-xs font-bold text-blue-900 uppercase tracking-wider block">
               Required Workforce Size
             </span>
-            <span className="text-2xl font-black text-blue-800 leading-none">
+            <span className="text-2xl font-bold text-blue-800 leading-none">
               {totalRequired} Persons
             </span>
             {project.workforceNotes && (

@@ -96,7 +96,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
               <FileText size={20} />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight flex items-center gap-2">
                 Daily Work Logs & Accomplishments
                 <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
                   {logs.length} Submitted
@@ -181,7 +181,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-md ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0`}>
+                      <div className={`w-6 h-6 rounded-md ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shadow-2xs overflow-hidden shrink-0`}>
                         {emp.profileImage ? (
                           <img
                             src={emp.profileImage}
@@ -194,7 +194,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-black text-slate-800">
+                          <span className="text-xs font-bold text-slate-800">
                             {emp.name || "Employee"}
                           </span>
                           <EmployeeIdBadge id={emp.employeeId} size="xs" />

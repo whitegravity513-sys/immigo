@@ -169,7 +169,7 @@ export const RegisterEmployeeModal = ({
               <User size={20} className="text-blue-300" />
             </div>
             <div>
-              <h3 className="text-base font-black tracking-tight text-white">
+              <h3 className="text-base font-bold tracking-tight text-white">
                 Register New Employee
               </h3>
               <p className="text-[11px] text-blue-200 font-medium">
@@ -248,7 +248,7 @@ export const RegisterEmployeeModal = ({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Generated System Code
                 </span>
-                <span className="text-base font-black text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl tracking-wide mt-0.5 font-mono">
+                <span className="text-base font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-xl tracking-wide mt-0.5 font-mono">
                   {employeeForm.employeeId || computeImmiId(employeeForm.joiningDate, employeeForm.dob)}
                 </span>
                 <span className="text-[9px] text-slate-400 mt-0.5">
@@ -258,7 +258,7 @@ export const RegisterEmployeeModal = ({
             </div>
 
             <div>
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <User size={14} className="text-blue-600" />
                 1. Core Identity & Portal Credentials
               </h4>
@@ -424,7 +424,7 @@ export const RegisterEmployeeModal = ({
             </div>
 
             <div>
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Briefcase size={14} className="text-blue-600" />
                 2. Corporate Role & Residential Address
               </h4>
@@ -478,7 +478,7 @@ export const RegisterEmployeeModal = ({
             </div>
 
             <div>
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Award size={14} className="text-blue-600" />
                 3. Career History & Compensation Details
               </h4>
@@ -554,7 +554,7 @@ export const RegisterEmployeeModal = ({
 
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                   <FileText size={14} className="text-blue-600" />
                   4. Employee Documents Vault (Attach Multiple)
                 </h4>

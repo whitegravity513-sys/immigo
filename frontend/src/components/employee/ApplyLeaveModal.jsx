@@ -14,7 +14,7 @@ export default function ApplyLeaveModal({
     <div className="max-w-lg mx-auto space-y-6">
 
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 sm:p-5">
-        <h3 className="text-sm font-black text-slate-800 mb-3.5">Apply for Leave</h3>
+        <h3 className="text-sm font-bold text-slate-800 mb-3.5">Apply for Leave</h3>
         <form onSubmit={handleLeaveSubmit} className="space-y-3">
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">

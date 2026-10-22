@@ -416,7 +416,7 @@ export default function AdminMilestonesList() {
                         {}
                         <td className="py-1.5 px-3 whitespace-nowrap">
                           <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 ${
+                            className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
                               isFullyPaid
                                 ? "bg-emerald-100 text-emerald-800"
                                 : isPartiallyPaid
@@ -454,7 +454,7 @@ export default function AdminMilestonesList() {
                           <td colSpan={5} className="p-4 sm:px-6">
                             <div className="bg-white rounded-xl border border-slate-200 p-2.5 space-y-3">
                               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                                   Itemized Milestones for {app.candidateName}
                                 </h4>
                                 <span className="text-xs font-bold text-slate-500">
@@ -482,11 +482,11 @@ export default function AdminMilestonesList() {
                                       }`}
                                     >
                                       <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1.5 gap-1">
-                                        <span className="font-extrabold text-slate-700">Milestone {mIdx + 1}</span>
+                                        <span className="font-bold text-slate-700">Milestone {mIdx + 1}</span>
                                         <select
                                           value={isPaid ? "Paid" : "Pending"}
                                           onChange={(e) => handleQuickStatusChange(app.id, m.id, e.target.value)}
-                                          className={`px-2 py-0.5 rounded-lg font-black text-[10px] border cursor-pointer focus:outline-none transition ${
+                                          className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border cursor-pointer focus:outline-none transition ${
                                             isPaid
                                               ? "bg-emerald-100 text-emerald-800 border-emerald-300"
                                               : "bg-amber-100 text-amber-800 border-amber-300"
@@ -497,10 +497,10 @@ export default function AdminMilestonesList() {
                                           <option value="Paid">Paid</option>
                                         </select>
                                       </div>
-                                      <h5 className="font-extrabold text-slate-900 text-xs truncate">
+                                      <h5 className="font-bold text-slate-900 text-xs truncate">
                                         {m.name}
                                       </h5>
-                                      <div className="text-sm font-black text-slate-900 mt-1">
+                                      <div className="text-sm font-bold text-slate-900 mt-1">
                                         ₹{mAmt.toLocaleString()}
                                       </div>
                                       {m.paymentRef && (

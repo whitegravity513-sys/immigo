@@ -310,7 +310,7 @@ export default function AdminAllCandidates() {
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-extrabold text-[#0f2744]">
+                <h3 className="text-base font-bold text-[#0f2744]">
                   {selectedCandidate.fullName}
                 </h3>
                 <span className="text-xs font-mono font-bold text-blue-600">

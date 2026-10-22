@@ -315,10 +315,10 @@ export default function AdminSubmissionsList() {
             {}
             <div className="flex items-start justify-between border-b border-slate-100 pb-3.5">
               <div>
-                <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest block">
+                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block">
                   Application Review & Verification
                 </span>
-                <h3 className="text-lg font-black text-slate-900">
+                <h3 className="text-lg font-bold text-slate-900">
                   {reviewSub.candidateName} — {reviewSub.position}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">

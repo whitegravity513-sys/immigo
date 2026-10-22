@@ -56,7 +56,7 @@ export default function VendorProcessingDetails() {
 
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5 text-xs space-y-2.5 mb-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <span className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">Candidate Dossier</span>
+          <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">Candidate Dossier</span>
           <Link
             to={`/vendor/candidates/${currentApp.candidateId}`}
             className="text-indigo-600 font-bold hover:underline flex items-center gap-1 text-xs"
@@ -90,7 +90,7 @@ export default function VendorProcessingDetails() {
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-100 gap-2 mb-5">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900">Timeline & Milestones</h2>
+            <h2 className="text-base font-bold text-slate-900">Timeline & Milestones</h2>
             <p className="text-[11px] text-slate-500 mt-0.5">Step-by-step mobilization process.</p>
           </div>
         </div>

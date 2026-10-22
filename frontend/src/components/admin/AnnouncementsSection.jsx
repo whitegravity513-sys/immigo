@@ -642,7 +642,7 @@ export default function AnnouncementsSection({
                             {a.category || "Company Notification"}
                           </span>
                           <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded border ${getPriorityPill(
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getPriorityPill(
                               a.priority
                             )}`}
                           >
@@ -671,7 +671,7 @@ export default function AnnouncementsSection({
                       </div>
 
                       <div>
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
                           {a.title}
                         </h4>
                         <p className="text-xs text-slate-600 leading-relaxed mt-1 whitespace-pre-line">
@@ -691,7 +691,7 @@ export default function AnnouncementsSection({
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
+                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                       <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Date</th>
                       <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Category</th>
                       <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Priority</th>
@@ -727,7 +727,7 @@ export default function AnnouncementsSection({
                           </td>
                           <td className="px-3 py-1.5 whitespace-nowrap align-top">
                             <span
-                              className={`text-[10px] font-black px-2 py-0.5 rounded border ${getPriorityPill(
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded border ${getPriorityPill(
                                 a.priority
                               )}`}
                             >
@@ -735,7 +735,7 @@ export default function AnnouncementsSection({
                             </span>
                           </td>
                           <td className="px-3 py-1.5 text-left">
-                            <span className="text-xs sm:text-sm font-black text-slate-900 block">
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 block">
                               {a.title}
                             </span>
                             <p className="text-xs text-slate-600 leading-relaxed mt-1 max-w-lg line-clamp-3">
@@ -793,21 +793,21 @@ export default function AnnouncementsSection({
                       >
                         <div className="flex items-start gap-3 min-w-0">
                           <div className="w-10 h-10 rounded-lg bg-amber-50 border border-amber-200 flex flex-col items-center justify-center shrink-0 shadow-2xs">
-                            <span className="text-[9px] font-black text-amber-700 leading-none">
+                            <span className="text-[9px] font-bold text-amber-700 leading-none">
                               {cal.month}
                             </span>
-                            <span className="text-base font-black text-amber-900 leading-tight">
+                            <span className="text-base font-bold text-amber-900 leading-tight">
                               {cal.day}
                             </span>
                           </div>
 
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                                 {h.title}
                               </h4>
                               {isUpcoming && (
-                                <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800">
                                   Upcoming
                                 </span>
                               )}
@@ -848,7 +848,7 @@ export default function AnnouncementsSection({
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-wider">
+                    <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                       <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Holiday Date</th>
                       <th className="px-3 py-1.5 text-[10px]">Holiday Name</th>
                       <th className="px-3 py-1.5 text-[10px]">Description &amp; Details</th>
@@ -885,7 +885,7 @@ export default function AnnouncementsSection({
                             </td>
                             <td className="px-3 py-1.5 whitespace-nowrap">
                               {isUpcoming ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                   Upcoming
                                 </span>

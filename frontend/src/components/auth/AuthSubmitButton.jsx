@@ -6,7 +6,7 @@ export default function AuthSubmitButton({ loading, label }) {
     <button
       type="submit"
       disabled={loading}
-      className="group w-full flex items-center justify-center gap-2 py-3.5 mt-2 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600 hover:from-blue-700 hover:to-blue-800 disabled:opacity-60 text-white text-sm font-extrabold rounded-xl transition-all duration-200 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.99] cursor-pointer"
+      className="group w-full flex items-center justify-center gap-2 py-3.5 mt-2 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600 hover:from-blue-700 hover:to-blue-800 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.99] cursor-pointer"
     >
       {loading ? (
         <span className="inline-flex items-center gap-2">

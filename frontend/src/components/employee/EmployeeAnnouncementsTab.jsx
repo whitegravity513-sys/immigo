@@ -134,7 +134,7 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
                             {a.category || "Company Notification"}
                           </span>
                           {isHigh && (
-                            <span className="px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase tracking-wider bg-rose-600 text-white">
+                            <span className="px-1.5 py-0.2 rounded-full text-[8px] font-bold uppercase tracking-wider bg-rose-600 text-white">
                               High Priority
                             </span>
                           )}

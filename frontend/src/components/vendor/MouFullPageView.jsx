@@ -1605,7 +1605,7 @@ export default function MouFullPageView({
           className="mou-print-hide print:hidden max-w-4xl mx-auto bg-white rounded-xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6 mb-12"
         >
           <div className="border-b border-indigo-100 pb-4">
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <PenTool className="w-5 h-5 text-indigo-600" />
               <span>Digital Execution & Acceptance of Partnership MOU</span>
             </h3>
@@ -1648,7 +1648,7 @@ export default function MouFullPageView({
           <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
             <label className="text-xs font-bold text-indigo-950 block">Digital Signature Stamp Preview</label>
             <div className="p-4 bg-white rounded-lg border border-indigo-200 text-center">
-              <p className="font-serif italic text-2xl text-indigo-900 font-black tracking-wide">
+              <p className="font-serif italic text-2xl text-indigo-900 font-bold tracking-wide">
                 {signatureText || signatoryName || "Your Signature"}
               </p>
               <p className="text-[10px] text-slate-400 font-mono mt-1">

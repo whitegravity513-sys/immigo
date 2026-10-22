@@ -150,7 +150,7 @@ export default function RegisterPage() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-200">
                     Registration Submitted
                   </span>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight pt-1">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight pt-1">
                     Welcome to ImmiGo!
                   </h2>
                   <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
@@ -163,7 +163,7 @@ export default function RegisterPage() {
                     <span className="text-[11px] font-semibold text-slate-500 block">
                       Your Unique Candidate ID
                     </span>
-                    <span className="text-base font-black font-mono text-[#0f2744] tracking-wider block">
+                    <span className="text-base font-bold font-mono text-[#0f2744] tracking-wider block">
                       {registeredSuccess.candidateId}
                     </span>
                   </div>
@@ -193,7 +193,7 @@ export default function RegisterPage() {
               <>
                 {/* Header */}
                 <div className="mb-4 space-y-1">
-                  <h1 className="text-2xl sm:text-[26px] font-black text-[#261b4d] tracking-tight leading-tight">
+                  <h1 className="text-2xl sm:text-[26px] font-bold text-[#261b4d] tracking-tight leading-tight">
                     Candidate Registration
                   </h1>
                   <p className="text-xs text-slate-400 font-medium leading-relaxed">

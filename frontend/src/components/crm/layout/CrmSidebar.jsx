@@ -181,7 +181,7 @@ export function CrmSidebar({
               <div className="flex items-center gap-2.5">
                 <ImmiGoIcon size="md" />
                 <div className="flex flex-col">
-                  <span className="font-extrabold text-sm text-gray-900 tracking-tight leading-tight">
+                  <span className="font-bold text-sm text-gray-900 tracking-tight leading-tight">
                     ImmiGo CRM
                   </span>
                   <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">

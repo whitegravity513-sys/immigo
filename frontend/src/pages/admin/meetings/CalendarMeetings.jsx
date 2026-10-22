@@ -308,7 +308,7 @@ export default function CalendarMeetings() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/60">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-black text-slate-800">
+              <h2 className="text-sm font-bold text-slate-800">
                 {monthNames[currentMonth]} {currentYear}
               </h2>
               <button
@@ -427,7 +427,7 @@ export default function CalendarMeetings() {
                     {displayMeetings.length > 2 && (
                       <button
                         onClick={() => setSelectedDayMeetings(allDayMeetings)}
-                        className="text-[9px] text-slate-900 font-extrabold hover:text-indigo-700 hover:underline px-0.5 cursor-pointer"
+                        className="text-[9px] text-slate-900 font-bold hover:text-indigo-700 hover:underline px-0.5 cursor-pointer"
                       >
                         +{displayMeetings.length - 2} more
                       </button>
@@ -500,11 +500,11 @@ export default function CalendarMeetings() {
                     <div>
                       <div className="flex items-center justify-between gap-1.5 mb-1.5 flex-wrap">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
                             {meeting.platform || "Google Meet"}
                           </span>
                           <span
-                            className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded border tracking-wider ${
+                            className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border tracking-wider ${
                               meeting.targetType === "ALL"
                                 ? "bg-purple-100 text-purple-800 border-purple-200"
                                 : "bg-emerald-100 text-emerald-800 border-emerald-200"

@@ -33,13 +33,13 @@ export function EmployeeProfileHeader({
               className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-black text-3xl shadow-xs shrink-0">
+            <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-3xl shadow-xs shrink-0">
               {safeEmpName.charAt(0).toUpperCase()}
             </div>
           )}
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
                 {safeEmpName}
               </h3>
               <span
@@ -188,7 +188,7 @@ export function EmployeeProfileHeader({
             <span className="font-bold text-slate-400 block uppercase text-[10px]">
               Current Package / CTC
             </span>
-            <span className="font-bold text-emerald-700 font-black">
+            <span className="font-bold text-emerald-700 font-bold">
               {emp.currentPackage || "N/A"}
             </span>
           </div>
@@ -197,7 +197,7 @@ export function EmployeeProfileHeader({
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
         <div className="flex flex-col items-center bg-blue-50 rounded-xl py-3 border border-blue-100">
-          <span className="text-2xl font-black text-blue-700">
+          <span className="text-2xl font-bold text-blue-700">
             {postDojWorkingDays}
           </span>
           <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide mt-0.5">
@@ -205,7 +205,7 @@ export function EmployeeProfileHeader({
           </span>
         </div>
         <div className="flex flex-col items-center bg-emerald-50 rounded-xl py-3 border border-emerald-100">
-          <span className="text-2xl font-black text-emerald-600">
+          <span className="text-2xl font-bold text-emerald-600">
             {presentCount}
           </span>
           <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide mt-0.5">
@@ -213,7 +213,7 @@ export function EmployeeProfileHeader({
           </span>
         </div>
         <div className="flex flex-col items-center bg-amber-50 rounded-xl py-3 border border-amber-100">
-          <span className="text-2xl font-black text-amber-600">
+          <span className="text-2xl font-bold text-amber-600">
             {halfDayCount}
           </span>
           <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mt-0.5">
@@ -221,7 +221,7 @@ export function EmployeeProfileHeader({
           </span>
         </div>
         <div className="flex flex-col items-center bg-rose-50 rounded-xl py-3 border border-rose-100">
-          <span className="text-2xl font-black text-rose-600">
+          <span className="text-2xl font-bold text-rose-600">
             {absentCount}
           </span>
           <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wide mt-0.5">

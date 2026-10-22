@@ -337,7 +337,7 @@ export default function PaymentsExpensesPage() {
               <span>/</span>
               <span className="text-gray-900 font-bold">Payments & Expenses</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
               <Receipt size={24} className="text-blue-600" />
               <span>Payments & Expense Management</span>
             </h1>
@@ -391,7 +391,7 @@ export default function PaymentsExpensesPage() {
               <Receipt size={12} />
               Total Received (Verified)
             </p>
-            <p className="text-xl font-black text-emerald-800 mt-1">
+            <p className="text-xl font-bold text-emerald-800 mt-1">
               ₹{stats.totalReceived.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-emerald-700/70 mt-0.5 font-medium">
@@ -399,13 +399,12 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {}
           <div className="bg-rose-50/50 border border-rose-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
               <TrendingDown size={12} />
               Total Expenses Paid
             </p>
-            <p className="text-xl font-black text-rose-800 mt-1">
+            <p className="text-xl font-bold text-rose-800 mt-1">
               ₹{stats.totalExpensesPaid.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-rose-700/70 mt-0.5 font-medium">
@@ -413,7 +412,6 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {}
           <div
             className={`border rounded-xl p-4 ${
               stats.netCashFlow >= 0
@@ -425,7 +423,7 @@ export default function PaymentsExpensesPage() {
               {stats.netCashFlow >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
               Net Cash Flow
             </p>
-            <p className="text-xl font-black mt-1">
+            <p className="text-xl font-bold mt-1">
               {stats.netCashFlow < 0 ? "-" : "+"}₹{Math.abs(stats.netCashFlow).toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] opacity-75 mt-0.5 font-medium">
@@ -433,13 +431,12 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {}
           <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
               <Clock size={12} />
               Pending Verification
             </p>
-            <p className="text-xl font-black text-amber-800 mt-1">
+            <p className="text-xl font-bold text-amber-800 mt-1">
               ₹{stats.totalPendingVerification.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-amber-700/70 mt-0.5 font-medium">
@@ -447,13 +444,12 @@ export default function PaymentsExpensesPage() {
             </p>
           </div>
 
-          {}
           <div className="bg-purple-50/50 border border-purple-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
               <AlertCircle size={12} />
               Pending Expenses
             </p>
-            <p className="text-xl font-black text-purple-800 mt-1">
+            <p className="text-xl font-bold text-purple-800 mt-1">
               ₹{stats.totalPendingExpenses.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-purple-700/70 mt-0.5 font-medium">
@@ -638,7 +634,7 @@ export default function PaymentsExpensesPage() {
                       {}
                       <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
-                          className={`font-black text-sm ${
+                          className={`font-semibold text-sm ${
                             isPayment ? "text-emerald-700" : "text-rose-700"
                           }`}
                         >

@@ -191,7 +191,7 @@ export default function Profile() {
                 className="w-10 h-10 rounded-lg object-cover border border-slate-200 shadow-xs"
               />
             ) : (
-              <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-black text-sm">
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-semibold text-sm">
                 {vendor.companyName?.slice(0, 2).toUpperCase()}
               </div>
             )}

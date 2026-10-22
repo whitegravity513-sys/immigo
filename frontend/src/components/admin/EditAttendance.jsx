@@ -129,7 +129,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
               <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
                 <Clock size={15} />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight">Edit Attendance</h3>
+              <h3 className="text-sm font-bold text-slate-900 tracking-tight">Edit Attendance</h3>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
                 Quick Panel
               </span>
@@ -153,7 +153,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar text-slate-800">
           {}
           <div className="p-3 bg-slate-50/80 border border-slate-200/90 rounded-xl flex items-center gap-3">
-            <div className={`w-6 h-6 rounded-md ${attendance?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+            <div className={`w-6 h-6 rounded-md ${attendance?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
               {attendance?.profileImage ? (
                 <img src={attendance.profileImage} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -173,7 +173,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             <div className="flex items-start gap-2.5 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs">
               <ShieldAlert size={16} className="text-rose-500 mt-0.5 shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="font-black text-rose-800 uppercase text-[10px] tracking-wide">
+                <div className="font-bold text-rose-800 uppercase text-[10px] tracking-wide">
                   Penalty Absent Active
                 </div>
                 <div className="text-[11px] text-rose-700 mt-0.5 leading-relaxed">
@@ -207,7 +207,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
           {}
           <div className="grid grid-cols-2 gap-2.5">
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
+              <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
                 Date
               </label>
               <input
@@ -219,7 +219,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
 
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
+              <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
                 Status
               </label>
               <select
@@ -238,7 +238,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
+            <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
               Shift Day Type
             </label>
             <select
@@ -253,7 +253,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
+              <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center gap-1">
                 <Clock size={11} className="text-emerald-600" />
                 <span>Check‑In Time</span>
               </label>
@@ -266,7 +266,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
             </div>
 
             <div className="flex flex-col gap-0.5">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
+              <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center gap-1">
                 <Clock size={11} className="text-rose-600" />
                 <span>Check‑Out Time</span>
               </label>

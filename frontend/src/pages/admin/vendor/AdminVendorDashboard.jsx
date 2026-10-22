@@ -60,7 +60,7 @@ export default function AdminVendorDashboard() {
         {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Vendors</span>
-          <div className="text-xl font-black text-slate-900 mt-0.5">{stats.totalVendors}</div>
+          <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.totalVendors}</div>
           <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5">
             <span className="text-amber-600 font-semibold">{stats.pendingVendors} Pending</span>
             <span>•</span>
@@ -71,28 +71,28 @@ export default function AdminVendorDashboard() {
         {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Candidates</span>
-          <div className="text-xl font-black text-indigo-600 mt-0.5">{stats.totalCandidates}</div>
+          <div className="text-xl font-bold text-indigo-600 mt-0.5">{stats.totalCandidates}</div>
           <span className="text-[10px] text-slate-500 mt-0.5 block">In candidate pool</span>
         </div>
 
         {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Review</span>
-          <div className="text-xl font-black text-amber-600 mt-0.5">{stats.pendingCandidates}</div>
+          <div className="text-xl font-bold text-amber-600 mt-0.5">{stats.pendingCandidates}</div>
           <span className="text-[10px] text-amber-700 block">Submissions awaiting review</span>
         </div>
 
         {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selected / Processing</span>
-          <div className="text-xl font-black text-emerald-600 mt-0.5">{stats.selectedCandidates}</div>
+          <div className="text-xl font-bold text-emerald-600 mt-0.5">{stats.selectedCandidates}</div>
           <span className="text-[10px] text-slate-500 block truncate">{stats.inProcessing} in 8-stage pipeline</span>
         </div>
 
         {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Payments</span>
-          <div className="text-xl font-black text-slate-900 mt-0.5">₹{(stats.pendingPayments || 0).toLocaleString()}</div>
+          <div className="text-xl font-bold text-slate-900 mt-0.5">₹{(stats.pendingPayments || 0).toLocaleString()}</div>
           <span className="text-[10px] text-rose-600 font-semibold block truncate">Overdue: ₹{(stats.overduePayments || 0).toLocaleString()}</span>
         </div>
       </div>

@@ -169,7 +169,7 @@ export const RegisterEmployeeSection = ({
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                 Register New Employee
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
@@ -186,7 +186,7 @@ export const RegisterEmployeeSection = ({
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             System Employee ID
           </span>
-          <span className="text-base sm:text-lg font-black text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1 rounded-xl tracking-wide mt-0.5 font-mono shadow-xs">
+          <span className="text-base sm:text-lg font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3.5 py-1 rounded-xl tracking-wide mt-0.5 font-mono shadow-xs">
             {generatedId}
           </span>
           <span className="text-[10px] text-slate-400 mt-0.5 font-medium">
@@ -265,7 +265,7 @@ export const RegisterEmployeeSection = ({
 
           
           <div>
-            <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <User size={15} className="text-blue-600" />
               1. Core Identity & Portal Credentials
             </h4>
@@ -432,7 +432,7 @@ export const RegisterEmployeeSection = ({
 
           
           <div className="pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Briefcase size={15} className="text-blue-600" />
               2. Corporate Role & Residential Address
             </h4>
@@ -487,7 +487,7 @@ export const RegisterEmployeeSection = ({
 
           
           <div className="pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Award size={15} className="text-blue-600" />
               3. Career History & Compensation Details
             </h4>
@@ -565,7 +565,7 @@ export const RegisterEmployeeSection = ({
 
           
           <div className="pt-4 border-t border-slate-100">
-            <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <FileText size={15} className="text-blue-600" />
               4. Compliance & Statutory Document Repository
             </h4>

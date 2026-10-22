@@ -639,7 +639,7 @@ export default function SubmitCandidate() {
                   onClick={() => setCategoryFilter("All")}
                   className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                     categoryFilter === "All"
-                      ? "bg-white text-blue-700 shadow-2xs font-extrabold"
+                      ? "bg-white text-blue-700 shadow-2xs font-bold"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -650,7 +650,7 @@ export default function SubmitCandidate() {
                   onClick={() => setCategoryFilter("fresh")}
                   className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                     categoryFilter === "fresh"
-                      ? "bg-white text-emerald-700 shadow-2xs font-extrabold"
+                      ? "bg-white text-emerald-700 shadow-2xs font-bold"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -662,7 +662,7 @@ export default function SubmitCandidate() {
                   onClick={() => setCategoryFilter("rejected")}
                   className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                     categoryFilter === "rejected"
-                      ? "bg-white text-rose-700 shadow-2xs font-extrabold"
+                      ? "bg-white text-rose-700 shadow-2xs font-bold"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -674,7 +674,7 @@ export default function SubmitCandidate() {
                   onClick={() => setCategoryFilter("in_progress")}
                   className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
                     categoryFilter === "in_progress"
-                      ? "bg-white text-indigo-700 shadow-2xs font-extrabold"
+                      ? "bg-white text-indigo-700 shadow-2xs font-bold"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >

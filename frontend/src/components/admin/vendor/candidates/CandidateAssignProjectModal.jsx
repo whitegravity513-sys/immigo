@@ -17,7 +17,7 @@ export default function CandidateAssignProjectModal({
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
         <div className="flex items-start justify-between border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-base font-black text-slate-900">Assign Project to Candidate</h3>
+            <h3 className="text-base font-bold text-slate-900">Assign Project to Candidate</h3>
             <p className="text-xs text-slate-500 mt-1">Assign {candidate.fullName} to an available project.</p>
           </div>
           <button

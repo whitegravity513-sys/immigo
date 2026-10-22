@@ -73,7 +73,7 @@ export function ClientNavbar({
 
           <div className="flex flex-col justify-center min-w-0">
             <div className="flex items-center gap-2 truncate">
-              <span className="hidden sm:flex items-end gap-0.5 select-none font-black text-lg tracking-tighter leading-none text-white">
+              <span className="hidden sm:flex items-end gap-0.5 select-none font-bold text-lg tracking-tighter leading-none text-white">
                 <span>immi</span>
                 <span className="text-cyan-400">Go</span>
                 <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
@@ -81,7 +81,7 @@ export function ClientNavbar({
                 </svg>
               </span>
               <ChevronRight size={13} className="text-blue-400 shrink-0 hidden sm:inline" />
-              <span className="text-white font-extrabold text-sm sm:text-[15px] tracking-tight truncate drop-shadow-2xs">
+              <span className="text-white font-bold text-sm sm:text-[15px] tracking-tight truncate drop-shadow-2xs">
                 {getTitle()}
               </span>
             </div>
@@ -99,7 +99,7 @@ export function ClientNavbar({
             <span className="hidden sm:inline">Admin Dashboard</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-black text-cyan-300 uppercase tracking-widest">
+          <div className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-bold text-cyan-300 uppercase tracking-widest">
             <Shield size={11} className="text-cyan-400" />
             <span>Admin</span>
           </div>

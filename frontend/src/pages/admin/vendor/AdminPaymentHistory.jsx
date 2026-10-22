@@ -56,7 +56,7 @@ export default function AdminPaymentHistory() {
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block mb-1">
               Payment Audit Trail
             </span>
-            <h3 className="text-xl font-black text-slate-900">{app.candidateName}</h3>
+            <h3 className="text-xl font-bold text-slate-900">{app.candidateName}</h3>
             <p className="text-xs text-slate-500 font-medium mt-1">
               Project: {app.projectName} • Vendor: {app.vendorId}
             </p>
@@ -78,7 +78,7 @@ export default function AdminPaymentHistory() {
                   className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between shadow-sm hover:border-indigo-300 transition-colors"
                 >
                   <div className="space-y-1">
-                    <span className="font-extrabold text-slate-900 block text-sm">{m.name}</span>
+                    <span className="font-bold text-slate-900 block text-sm">{m.name}</span>
                     <span className="text-[11px] text-slate-500 block">
                       Amount: <strong className="text-slate-900 font-bold">₹{Number(m.amount).toLocaleString()}</strong> • Status: <span className={m.status === "Paid" ? "text-emerald-600 font-bold" : "text-amber-600"}>{m.status}</span>
                     </span>

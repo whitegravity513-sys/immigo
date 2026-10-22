@@ -225,7 +225,7 @@ export function EmployeeAttendanceTab({
 
               statusPill = (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${pillBg}`}
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${pillBg}`}
                 >
                   {statusText}
                 </span>
@@ -245,7 +245,7 @@ export function EmployeeAttendanceTab({
               cardBg = "bg-indigo-50/20 hover:bg-indigo-50/40 border border-indigo-100";
               statusPill = (
                 <span
-                  className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-100 text-indigo-800 border border-indigo-200"
+                  className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-indigo-100 text-indigo-800 border border-indigo-200"
                   title={holiday.description}
                 >
                   Holiday
@@ -254,7 +254,7 @@ export function EmployeeAttendanceTab({
             } else if (isWeekendOff) {
               cardBg = "bg-slate-50 hover:bg-slate-100/80 border border-slate-150";
               statusPill = (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-slate-200 text-slate-500 border border-slate-300">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-200 text-slate-500 border border-slate-300">
                   Off
                 </span>
               );
@@ -301,7 +301,7 @@ export function EmployeeAttendanceTab({
                 <div className="flex flex-col gap-0.5">
                   {holiday && (
                     <span
-                      className="text-[9px] text-indigo-700 font-extrabold truncate w-full"
+                      className="text-[9px] text-indigo-700 font-bold truncate w-full"
                       title={holiday.title}
                     >
                       {holiday.title}
@@ -330,7 +330,7 @@ export function EmployeeAttendanceTab({
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
-          <h4 className="text-sm font-black text-slate-800">Attendance Log</h4>
+          <h4 className="text-sm font-bold text-slate-800">Attendance Log</h4>
           <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/40">
             <button
               className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
@@ -526,7 +526,7 @@ export function EmployeeAttendanceTab({
                     </td>
                     <td className="px-3 py-1.5">
                       <span
-                        className={`text-xs font-black ${
+                        className={`text-xs font-bold ${
                           workSec > 0 && workSec < 28800
                             ? "text-amber-600 font-bold"
                             : "text-slate-700"
@@ -542,7 +542,7 @@ export function EmployeeAttendanceTab({
                       {hasTimes ||
                       ["Present", "Checked Out", "Active"].includes(a.status) ? (
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
                             isHalfDay
                               ? "bg-amber-50 text-amber-800 border-amber-200"
                               : "bg-emerald-50 text-emerald-800 border-emerald-200"

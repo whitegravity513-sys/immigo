@@ -243,7 +243,7 @@ export default function LandingPage() {
           <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-between h-full min-h-[460px] sm:min-h-[500px] lg:min-h-[535px] pointer-events-none">
             {/* Upper Content: On the left side in the clear sky area */}
             <div className="max-w-2xl text-left space-y-2 sm:space-y-3 pt-2 sm:pt-4 pointer-events-auto">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white tracking-tight leading-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
                 {heroSlides[currentSlide].title}
               </h1>
               <p className="text-xs sm:text-sm sm:text-base text-white/95 leading-relaxed font-semibold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] max-w-xl">
@@ -269,25 +269,25 @@ export default function LandingPage() {
         <div className="relative z-30 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-t border-b border-blue-700/60 shadow-lg backdrop-blur-md py-3 sm:py-5">
           <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 grid grid-cols-4 gap-1 sm:gap-4 text-center divide-x divide-blue-800/50">
             <div className="space-y-0.5 px-1 sm:px-2">
-              <span className="text-sm sm:text-2xl lg:text-3xl font-black text-white block">15,000+</span>
+              <span className="text-sm sm:text-2xl lg:text-3xl font-bold text-white block">15,000+</span>
               <span className="text-[8px] sm:text-[11px] text-blue-200 block font-medium leading-tight">
                 Candidates Deployed
               </span>
             </div>
             <div className="space-y-0.5 px-1 sm:px-2">
-              <span className="text-sm sm:text-2xl lg:text-3xl font-black text-cyan-300 block">100%</span>
+              <span className="text-sm sm:text-2xl lg:text-3xl font-bold text-cyan-300 block">100%</span>
               <span className="text-[8px] sm:text-[11px] text-blue-200 block font-medium leading-tight">
                 Legal Work Visas & Emigration
               </span>
             </div>
             <div className="space-y-0.5 px-1 sm:px-2">
-              <span className="text-sm sm:text-2xl lg:text-3xl font-black text-emerald-300 block">50+</span>
+              <span className="text-sm sm:text-2xl lg:text-3xl font-bold text-emerald-300 block">50+</span>
               <span className="text-[8px] sm:text-[11px] text-blue-200 block font-medium leading-tight">
                 Global Enterprise Clients
               </span>
             </div>
             <div className="space-y-0.5 px-1 sm:px-2">
-              <span className="text-sm sm:text-2xl lg:text-3xl font-black text-amber-300 block">25+</span>
+              <span className="text-sm sm:text-2xl lg:text-3xl font-bold text-amber-300 block">25+</span>
               <span className="text-[8px] sm:text-[11px] text-blue-200 block font-medium leading-tight">
                 Authorized Trade Test Centers
               </span>
@@ -300,7 +300,7 @@ export default function LandingPage() {
       <section id="about" className="py-14 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-2 mb-10 sm:mb-14">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">
               About Us
             </h2>
             <div className="w-16 h-1.5 bg-blue-600 mx-auto rounded-full" />
@@ -313,7 +313,7 @@ export default function LandingPage() {
                 <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
                   International Placement & Manpower Supply
                 </span>
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
                   Bridging Global Employers with Certified Skilled Professionals
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
@@ -458,7 +458,7 @@ export default function LandingPage() {
             <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
               Transparent 4-Step Cycle
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
               Overseas Deployment Process
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
@@ -504,7 +504,7 @@ export default function LandingPage() {
                       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
                         <Icon size={18} />
                       </div>
-                      <span className="text-xl sm:text-2xl font-black text-slate-200">
+                      <span className="text-xl sm:text-2xl font-bold text-slate-200">
                         {st.step}
                       </span>
                     </div>
@@ -532,7 +532,7 @@ export default function LandingPage() {
       <section id="contact" className="py-14 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-2 mb-8 sm:mb-12">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight">
               Contact Us
             </h2>
             <div className="w-16 h-1.5 bg-blue-600 mx-auto rounded-full" />

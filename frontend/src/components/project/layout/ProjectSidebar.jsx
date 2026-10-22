@@ -93,7 +93,7 @@ export function ProjectSidebar({
           </div>
 
           {!collapsed && (
-            <p className="text-[11px] font-extrabold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
+            <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
               Project Management
             </p>
           )}

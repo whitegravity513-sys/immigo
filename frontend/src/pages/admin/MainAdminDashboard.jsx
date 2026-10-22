@@ -328,7 +328,7 @@ export function MainAdminDashboard() {
               <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
               <div>
                 <h2 className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">Company Workforce</h2>
-                <div className="text-2xl font-black mt-0.5">{stats.totalEmployees}</div>
+                <div className="text-2xl font-bold mt-0.5">{stats.totalEmployees}</div>
                 <div className="text-[11px] text-indigo-100 mt-1.5 font-medium bg-white/15 inline-block px-2.5 py-0.5 rounded-full">
                   {stats.presentToday > 0 ? `${stats.presentToday} present today` : stats.newEmployeesThisMonth > 0 ? `+${stats.newEmployeesThisMonth} new this month` : "Active staff"}
                 </div>
@@ -360,7 +360,7 @@ export function MainAdminDashboard() {
                     </div>
 
                     <div className="relative z-10">
-                      <p className="text-lg font-black text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
+                      <p className="text-lg font-bold text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
                         {card.value}
                       </p>
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">
@@ -383,7 +383,7 @@ export function MainAdminDashboard() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">New Registrations</span>
                 <Clock size={12} className="text-amber-600" />
               </div>
-              <div className="text-base sm:text-lg font-black text-amber-950 mt-1">
+              <div className="text-base sm:text-lg font-bold text-amber-950 mt-1">
                 {stats.pendingRegistrations}
               </div>
               <span className="text-[9px] text-amber-700/80 font-semibold group-hover:underline">
@@ -399,7 +399,7 @@ export function MainAdminDashboard() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Pending Docs</span>
                 <FileText size={12} className="text-indigo-600" />
               </div>
-              <div className="text-base sm:text-lg font-black text-indigo-950 mt-1">
+              <div className="text-base sm:text-lg font-bold text-indigo-950 mt-1">
                 {stats.pendingDocuments}
               </div>
               <span className="text-[9px] text-indigo-700/80 font-semibold group-hover:underline">
@@ -415,7 +415,7 @@ export function MainAdminDashboard() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Applications</span>
                 <Briefcase size={12} className="text-sky-600" />
               </div>
-              <div className="text-base sm:text-lg font-black text-sky-950 mt-1">
+              <div className="text-base sm:text-lg font-bold text-sky-950 mt-1">
                 {stats.totalApplications}
               </div>
               <span className="text-[9px] text-sky-700/80 font-semibold group-hover:underline">
@@ -431,7 +431,7 @@ export function MainAdminDashboard() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Interviews</span>
                 <Calendar size={12} className="text-purple-600" />
               </div>
-              <div className="text-base sm:text-lg font-black text-purple-950 mt-1">
+              <div className="text-base sm:text-lg font-bold text-purple-950 mt-1">
                 {stats.interviewsScheduled}
               </div>
               <span className="text-[9px] text-purple-700/80 font-semibold group-hover:underline">
@@ -447,7 +447,7 @@ export function MainAdminDashboard() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Selected</span>
                 <Award size={12} className="text-emerald-600" />
               </div>
-              <div className="text-base sm:text-lg font-black text-emerald-950 mt-1">
+              <div className="text-base sm:text-lg font-bold text-emerald-950 mt-1">
                 {stats.selectedCandidates}
               </div>
               <span className="text-[9px] text-emerald-700/80 font-semibold group-hover:underline">
@@ -463,7 +463,7 @@ export function MainAdminDashboard() {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Total Inward</span>
                 <TrendingUp size={12} className="text-teal-600" />
               </div>
-              <div className="text-base sm:text-lg font-black text-teal-950 mt-1">
+              <div className="text-base sm:text-lg font-bold text-teal-950 mt-1">
                 {stats.totalReceived > 0 ? `₹${(stats.totalReceived / 100000).toFixed(1)}L` : "₹0"}
               </div>
               <span className="text-[9px] text-teal-700/80 font-semibold group-hover:underline">
@@ -483,7 +483,7 @@ export function MainAdminDashboard() {
                     Overseas Manpower Demand
                   </span>
                   <div className="flex items-baseline gap-2 mt-1 mb-3">
-                    <span className="text-2xl font-black text-white">{stats.totalRequiredManpower}</span>
+                    <span className="text-2xl font-bold text-white">{stats.totalRequiredManpower}</span>
                     <span className="text-[11px] text-slate-300 font-medium">Active Open Positions</span>
                   </div>
                 </div>

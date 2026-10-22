@@ -469,7 +469,7 @@ export function ClientForm({
             <ArrowLeft size={13} />
             <span>Back</span>
           </button>
-          <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
             {isEdit ? "Edit Client Profile" : "Register New Client Organization"}
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -984,7 +984,7 @@ export function ClientForm({
                       value={totalPaymentInput}
                       onChange={handleTotalPaymentChange}
                       placeholder="e.g. 50000"
-                      className="w-full pl-8 pr-3 py-1.5 text-lg font-black text-blue-950 font-mono bg-white border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs"
+                      className="w-full pl-8 pr-3 py-1.5 text-lg font-bold text-blue-950 font-mono bg-white border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs"
                     />
                   </div>
 

@@ -25,7 +25,7 @@ export function AdminAddVendorModal({
       <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative max-h-[90vh] overflow-y-auto font-sans">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Building2 className="text-blue-600" size={22} />
               <span>Register New Vendor Agency</span>
             </h3>
@@ -45,7 +45,7 @@ export function AdminAddVendorModal({
         <form onSubmit={handleAddVendorSubmit} className="space-y-6 text-xs">
           {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
-            <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
+            <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Building2 size={14} className="text-blue-600" />
               <span>1. Agency Legal & Statutory Information</span>
             </h4>
@@ -158,7 +158,7 @@ export function AdminAddVendorModal({
 
           {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
-            <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
+            <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <UserCheck size={14} className="text-blue-600" />
               <span>2. Contact Person & Office Location</span>
             </h4>
@@ -305,7 +305,7 @@ export function AdminAddVendorModal({
 
           {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
-            <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
+            <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Briefcase size={14} className="text-blue-600" />
               <span>3. Operational Capacities & Trades</span>
             </h4>
@@ -382,7 +382,7 @@ export function AdminAddVendorModal({
 
           {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
-            <h4 className="font-extrabold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
+            <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Paperclip size={14} className="text-blue-600" />
               <span>4. Statutory Document Uploads & Credentials</span>
             </h4>
@@ -578,7 +578,7 @@ export function AdminAddVendorModal({
             <button
               type="submit"
               disabled={addVendorLoading}
-              className="py-2.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-md transition cursor-pointer flex items-center gap-2"
+              className="py-2.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md transition cursor-pointer flex items-center gap-2"
             >
               {addVendorLoading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

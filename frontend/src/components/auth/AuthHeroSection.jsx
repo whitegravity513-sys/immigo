@@ -10,7 +10,7 @@ export function AuthHeroHeadline({ isMobile = false }) {
       </div>
 
       {}
-      <h1 className="text-2xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-black text-slate-900 leading-[1.14] tracking-tight drop-shadow-xs">
+      <h1 className="text-2xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-bold text-slate-900 leading-[1.14] tracking-tight drop-shadow-xs">
         Supplying Skilled Talent<br />
         <span className="text-[#1877f2]">Across Foreign Borders</span>
       </h1>
@@ -87,7 +87,7 @@ export function AuthHeroFeatures({ isMobile = false }) {
           <div key={idx} className="flex items-center gap-2">
             {s.icon}
             <div>
-              <div className="text-sm sm:text-base font-black text-slate-900 leading-none">{s.value}</div>
+              <div className="text-sm sm:text-base font-bold text-slate-900 leading-none">{s.value}</div>
               <div className="text-[10px] text-slate-600 font-medium mt-0.5">{s.label}</div>
             </div>
           </div>

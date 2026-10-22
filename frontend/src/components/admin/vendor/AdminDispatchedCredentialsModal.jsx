@@ -17,13 +17,13 @@ export function AdminDispatchedCredentialsModal({
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-xl font-black text-slate-900 tracking-tight">
+          <h3 className="text-xl font-bold text-slate-900 tracking-tight">
             Vendor Account Created & Credentials Dispatched! 🎉
           </h3>
           <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
             Login ID, Password, and direct portal access link have been dispatched to:
           </p>
-          <p className="text-sm font-extrabold text-blue-700 underline">
+          <p className="text-sm font-bold text-blue-700 underline">
             {dispatchedVendor.email}
           </p>
         </div>

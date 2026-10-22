@@ -102,7 +102,7 @@ export default function AdminProcessingList() {
         <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl ${selectedApp.candidatePhoto || selectedApp.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-black text-xl shadow-xs overflow-hidden shrink-0`}>
+              <div className={`w-14 h-14 rounded-2xl ${selectedApp.candidatePhoto || selectedApp.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-bold text-xl shadow-xs overflow-hidden shrink-0`}>
                 {selectedApp.candidatePhoto || selectedApp.photo ? (
                   <img src={selectedApp.candidatePhoto || selectedApp.photo} alt={selectedApp.candidateName} className="w-full h-full object-cover" />
                 ) : (
@@ -111,10 +111,10 @@ export default function AdminProcessingList() {
               </div>
               <div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                     {selectedApp.candidateName}
                   </h1>
-                  <span className="font-mono text-xs font-extrabold px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg">
+                  <span className="font-mono text-xs font-bold px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg">
                     {selectedApp.position}
                   </span>
                   <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-bold text-xs rounded-full border border-emerald-200">
@@ -162,7 +162,7 @@ export default function AdminProcessingList() {
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Processing Timeline & Stepper</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Processing Timeline & Stepper</h1>
           <p className="text-xs text-slate-500 mt-0.5 font-medium">
             Post-selection mobilization tracking across all 8 deployment stages. Select any candidate to view & update full processing timeline.
           </p>
@@ -222,7 +222,7 @@ export default function AdminProcessingList() {
                       onClick={() => setSelectedApp(app)}
                       className="hover:bg-indigo-50/40 transition cursor-pointer group"
                     >
-                      <td className="py-1.5 px-3 sm:px-5 font-black text-slate-900 group-hover:text-indigo-600 transition">
+                      <td className="py-1.5 px-3 sm:px-5 font-bold text-slate-900 group-hover:text-indigo-600 transition">
                         {app.candidateName}
                         <span className="block font-mono text-[10px] text-slate-400 font-normal">{app.id}</span>
                       </td>

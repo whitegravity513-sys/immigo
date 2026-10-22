@@ -313,7 +313,7 @@ export function ProjectForm({
             <ArrowLeft size={14} />
             <span>Back</span>
           </button>
-          <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
             {isEdit ? "Edit Project Details" : "Add Project to Client"}
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">

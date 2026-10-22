@@ -114,7 +114,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
             <Building2 size={18} className="text-blue-400" />
             <span className="text-xs font-bold text-slate-300">Vendor Operations</span>
           </div>
-          <h1 className="text-sm sm:text-base font-extrabold text-white tracking-tight">
+          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
             {title}
           </h1>
         </div>
@@ -153,7 +153,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
           >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-black text-white shadow-md animate-pulse">
+              <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow-md animate-pulse">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}

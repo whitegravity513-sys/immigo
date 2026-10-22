@@ -55,7 +55,7 @@ export function ProjectDetailHeader({
 
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                   {project.projectName}
                 </h1>
                 <StatusBadge status={project.status} />
@@ -100,7 +100,7 @@ export function ProjectDetailHeader({
                 <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block">
                   Total Required Headcount
                 </span>
-                <span className="text-xl font-extrabold text-blue-700 leading-tight">
+                <span className="text-xl font-bold text-blue-700 leading-tight">
                   {Number(totalRequired || 0).toLocaleString()} Persons
                 </span>
               </div>

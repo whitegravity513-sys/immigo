@@ -61,7 +61,7 @@ export default function CheckInOutSection({
               <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
                 <Clock size={16} />
               </div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-slate-800">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">
                 Shift Check In / Out Terminal
               </h2>
             </div>
@@ -85,7 +85,7 @@ export default function CheckInOutSection({
           </div>
 
           <div className="text-center py-5 bg-blue-50/50 rounded-xl border border-blue-100/80">
-            <div className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-blue-950 mb-1">
+            <div className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight text-blue-950 mb-1">
               {fmtDur(workSeconds)}
             </div>
             <div className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
@@ -194,7 +194,7 @@ export default function CheckInOutSection({
                   <CheckCircle size={26} className="text-emerald-600" />
                 </div>
                 <div>
-                  <div className="text-base font-black text-emerald-900 tracking-tight">Shift Completed For Today</div>
+                  <div className="text-base font-bold text-emerald-900 tracking-tight">Shift Completed For Today</div>
                   <div className="text-xs text-emerald-800 font-semibold mt-1">
                     Checked out at <strong className="underline">{fmtTime(statusRecord?.checkOutTime)}</strong>
                   </div>
@@ -209,7 +209,7 @@ export default function CheckInOutSection({
 
         <div className="lg:col-span-5 space-y-3">
           <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Shift Timings
             </h3>
 
@@ -218,7 +218,7 @@ export default function CheckInOutSection({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Check In
                 </span>
-                <span className="text-sm font-black text-slate-800 mt-1 block tabular-nums">
+                <span className="text-sm font-bold text-slate-800 mt-1 block tabular-nums">
                   {statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "—"}
                 </span>
               </div>
@@ -227,7 +227,7 @@ export default function CheckInOutSection({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Check Out
                 </span>
-                <span className="text-sm font-black text-slate-800 mt-1 block tabular-nums">
+                <span className="text-sm font-bold text-slate-800 mt-1 block tabular-nums">
                   {statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : "—"}
                 </span>
               </div>
@@ -236,7 +236,7 @@ export default function CheckInOutSection({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Total Break
                 </span>
-                <span className="text-sm font-black text-amber-700 mt-1 block tabular-nums">
+                <span className="text-sm font-bold text-amber-700 mt-1 block tabular-nums">
                   {fmtDur(totalBreakSec)}
                 </span>
               </div>
@@ -245,7 +245,7 @@ export default function CheckInOutSection({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Work Duration
                 </span>
-                <span className="text-sm font-black text-blue-700 mt-1 block tabular-nums">
+                <span className="text-sm font-bold text-blue-700 mt-1 block tabular-nums">
                   {fmtDur(workSeconds)}
                 </span>
               </div>

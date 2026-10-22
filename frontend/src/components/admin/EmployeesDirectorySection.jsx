@@ -34,13 +34,13 @@ export default function EmployeesDirectorySection({
     <div className="space-y-6 text-left">
       <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h3 className="text-xl font-black text-slate-800 tracking-tight">Enterprise Workforce Directory</h3>
+          <h3 className="text-xl font-bold text-slate-800 tracking-tight">Enterprise Workforce Directory</h3>
           <p className="text-xs text-slate-500 font-medium">
             Manage employee profiles, contact details, designations, departments, and documents
           </p>
         </div>
         <div className="px-3.5 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-700 shadow-2xs">
-          Total Employees: <span className="font-black text-blue-900">{employees.length}</span>
+          Total Employees: <span className="font-bold text-blue-900">{employees.length}</span>
         </div>
       </div>
 
@@ -99,7 +99,7 @@ export default function EmployeesDirectorySection({
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs`}>
+                        <div className={`w-8 h-8 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs`}>
                           {emp.profileImage ? (
                             <img src={emp.profileImage} alt={safeName} className="w-full h-full object-cover" />
                           ) : (
@@ -133,7 +133,7 @@ export default function EmployeesDirectorySection({
                       </span>
                     </td>
                     <td className="px-3 py-1.5 text-xs whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-black uppercase rounded-lg border ${statusColor}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase rounded-lg border ${statusColor}`}>
                         {emp.status || "active"}
                       </span>
                     </td>

@@ -251,7 +251,7 @@ export default function EditCandidate() {
             <ArrowLeft size={14} />
             <span>Back to Candidate Details</span>
           </button>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Edit Candidate Profile
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">

@@ -12,7 +12,7 @@ export default function LeaveHistorySection({
 
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="px-6 py-5 border-b border-slate-100">
-          <h3 className="text-base font-black text-slate-800">Leave Request History</h3>
+          <h3 className="text-base font-bold text-slate-800">Leave Request History</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[500px]">

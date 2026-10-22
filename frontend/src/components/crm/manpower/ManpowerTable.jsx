@@ -328,7 +328,7 @@ export function ManpowerTable({
             <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
               Total Required Manpower:
             </span>
-            <span className="text-base font-extrabold text-blue-700 bg-blue-100/70 border border-blue-200 px-3.5 py-1 rounded-lg shadow-2xs">
+            <span className="text-base font-bold text-blue-700 bg-blue-100/70 border border-blue-200 px-3.5 py-1 rounded-lg shadow-2xs">
               {(totalRequiredManpower > 0 ? totalRequiredManpower : Number(inlineForm.quantity) || 0).toLocaleString()} Persons
             </span>
           </div>

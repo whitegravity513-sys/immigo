@@ -76,7 +76,7 @@ export function ImmiGoLogo({
         </svg>
 
         {showBadge && badgeText && (
-          <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200/80 mb-1">
+          <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200/80 mb-1">
             {badgeText}
           </span>
         )}
@@ -98,7 +98,7 @@ export function ImmiGoLogo({
 export function ImmiGoIcon({ size = "md", className = "" }) {
   return (
     <div
-      className={`rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-black shadow-sm shrink-0 select-none ${
+      className={`rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold shadow-sm shrink-0 select-none ${
         size === "sm" ? "w-7 h-7 text-xs" : "w-8 h-8 text-sm"
       } ${className}`}
     >

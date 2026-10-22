@@ -623,7 +623,7 @@ export default function AdminCandidateMilestones() {
                     <div className="flex items-center gap-2.5 text-emerald-900 font-bold">
                       <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
                       <div>
-                        <p className="font-extrabold text-sm text-emerald-950">
+                        <p className="font-bold text-sm text-emerald-950">
                           Milestone {activeMilestoneIdx + 1} All Stages Completed!
                         </p>
                         <p className="text-[11px] text-emerald-800">
@@ -638,7 +638,7 @@ export default function AdminCandidateMilestones() {
                       <button
                         type="button"
                         onClick={() => setActiveMilestoneIdx(activeMilestoneIdx + 1)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs shrink-0"
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs shrink-0"
                       >
                         <span>Next Milestone {activeMilestoneIdx + 2}</span>
                         <ChevronRight size={14} />
@@ -679,7 +679,7 @@ export default function AdminCandidateMilestones() {
       <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-xl border border-slate-200 shadow-xl flex items-center justify-between gap-3">
         <div className="text-xs">
           <span className="text-slate-500 font-medium">Active Milestone: </span>
-          <strong className="text-slate-900 font-black">
+          <strong className="text-slate-900 font-bold">
             {currentMilestone?.name} ({currentStagesDoneCount}/{currentStages.length} Done)
           </strong>
         </div>
@@ -696,7 +696,7 @@ export default function AdminCandidateMilestones() {
             type="button"
             onClick={handleSave}
             disabled={saveLoading}
-            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-black transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             {saveLoading ? (
               <span>Saving...</span>

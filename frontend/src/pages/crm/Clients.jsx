@@ -217,7 +217,7 @@ export function Clients() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
             Client Management
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">

@@ -5,10 +5,10 @@ export default function LoadingFallback({ message = "Loading secure portal…" }
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden">
       <div className="relative z-10 flex flex-col items-center gap-4">
         <div className="flex items-end gap-0.5 select-none animate-pulse">
-          <span className="font-black text-3xl text-slate-900 tracking-tighter leading-none">
+          <span className="font-bold text-3xl text-slate-900 tracking-tighter leading-none">
             immi
           </span>
-          <span className="font-black text-3xl text-blue-600 tracking-tighter leading-none">
+          <span className="font-bold text-3xl text-blue-600 tracking-tighter leading-none">
             Go
           </span>
           <svg

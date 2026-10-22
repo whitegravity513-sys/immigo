@@ -83,7 +83,7 @@ export default function EmpSidebar({
         <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-4 custom-scrollbar">
           {navSections.map((section, idx) => (
             <div key={idx}>
-              <div className="px-3 mb-2 text-xs font-extrabold uppercase tracking-wider text-blue-900/70">
+              <div className="px-3 mb-2 text-xs font-bold uppercase tracking-wider text-blue-900/70">
                 {section.title}
               </div>
               <div className="space-y-1.5">
@@ -116,7 +116,7 @@ export default function EmpSidebar({
                         <span className="truncate">{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
                           {item.badge}
                         </span>
                       )}

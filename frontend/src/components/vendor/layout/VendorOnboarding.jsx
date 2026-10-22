@@ -278,14 +278,14 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 uppercase tracking-wider">
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 uppercase tracking-wider">
               Vendor Onboarding & Verification
             </span>
             <span className="text-xs font-mono text-slate-500 font-bold">
               ID: {vendor?.id || vendor?.vendorId || "VND-PENDING"}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             {vendor?.companyName || "Recruitment Agency"}
           </h1>
           <p className="text-xs text-slate-500">
@@ -346,7 +346,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             >
               <div className="flex items-center justify-between">
                 <span
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     s.done
                       ? "bg-blue-600 text-white"
                       : currentStep === s.num
@@ -386,7 +386,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       {currentStep === 1 && (
         <form onSubmit={handleDocsSubmit} className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
-            <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <UploadCloud className="w-5 h-5 text-blue-600" />
               <span>Step 2: Upload Compliance Documents</span>
             </h2>
@@ -471,7 +471,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
 
           {}
           <div className="pt-4 border-t border-slate-100 space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
               Agency Bank Settlement Account Details
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -551,7 +551,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
           </div>
 
           <div className="space-y-1.5 max-w-md mx-auto">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               Documents Submitted & Under Review
             </h2>
             <p className="text-xs text-slate-500">
@@ -615,7 +615,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
           {}
           <form onSubmit={handleMouSignSubmit} className="space-y-5 border-t border-slate-100 pt-5">
             <div>
-              <h2 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 <PenTool className="w-5 h-5 text-indigo-600" />
                 <span>Execute Digital Signature</span>
               </h2>
@@ -658,7 +658,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
               <label className="text-xs font-bold text-indigo-950 block">Digital Signature Stamp</label>
               <div className="p-4 bg-white rounded-lg border border-indigo-200 text-center">
-                <p className="font-serif italic text-2xl text-indigo-900 font-black tracking-wide">
+                <p className="font-serif italic text-2xl text-indigo-900 font-bold tracking-wide">
                   {signatureText || signatoryName || "Your Signature"}
                 </p>
                 <p className="text-[10px] text-slate-400 font-mono mt-1">

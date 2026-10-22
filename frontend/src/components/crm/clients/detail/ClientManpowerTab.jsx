@@ -37,7 +37,7 @@ export function ClientManpowerTab({ client }) {
                 <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Project Headcount:
                 </span>
-                <span className="text-sm font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-0.5 rounded-lg">
+                <span className="text-sm font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-0.5 rounded-lg">
                   {projTotal} Persons
                 </span>
               </div>

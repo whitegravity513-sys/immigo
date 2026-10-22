@@ -63,7 +63,7 @@ export default function VendorDocumentsVaultView({
       <div className="bg-white rounded-lg border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
               <FileCheck size={26} />
             </div>
             <div>
@@ -146,7 +146,7 @@ export default function VendorDocumentsVaultView({
                       <FileText size={20} />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-900 text-sm">{doc.name}</h3>
+                      <h3 className="font-bold text-slate-900 text-sm">{doc.name}</h3>
                       <span className="text-[11px] text-slate-500 font-mono block mt-0.5">
                         {doc.fileName} • {doc.size || "1.2 MB"}
                       </span>
@@ -219,7 +219,7 @@ export default function VendorDocumentsVaultView({
                       <FileText size={20} />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-900 text-sm">{doc.name}</h3>
+                      <h3 className="font-bold text-slate-900 text-sm">{doc.name}</h3>
                       <span className="text-[11px] text-slate-500 font-mono block mt-0.5">
                         {doc.fileName} • {doc.size || "1.2 MB"}
                       </span>

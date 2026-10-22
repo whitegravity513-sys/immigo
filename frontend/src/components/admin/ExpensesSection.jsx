@@ -267,7 +267,7 @@ export default function ExpensesSection({
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
               🏢 Company Overhead
             </span>
-            <div className="text-lg font-black text-blue-700">₹{totalCompanyAmount.toLocaleString("en-IN")}</div>
+            <div className="text-lg font-bold text-blue-700">₹{totalCompanyAmount.toLocaleString("en-IN")}</div>
             <p className="text-[10px] text-slate-500 font-medium">
               {companyExpenses.length} records &bull; Office & operations
             </p>
@@ -287,7 +287,7 @@ export default function ExpensesSection({
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
               🤝 Client Hospitality
             </span>
-            <div className="text-lg font-black text-indigo-700">₹{totalClientAmount.toLocaleString("en-IN")}</div>
+            <div className="text-lg font-bold text-indigo-700">₹{totalClientAmount.toLocaleString("en-IN")}</div>
             <p className="text-[10px] text-slate-500 font-medium">
               {clientExpenses.length} records &bull; Meetings & visits
             </p>
@@ -307,7 +307,7 @@ export default function ExpensesSection({
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
               👥 Employee Claims
             </span>
-            <div className="text-lg font-black text-emerald-700">₹{totalEmployeeAmount.toLocaleString("en-IN")}</div>
+            <div className="text-lg font-bold text-emerald-700">₹{totalEmployeeAmount.toLocaleString("en-IN")}</div>
             <p className="text-[10px] text-slate-500 font-medium">
               {employeeExpenses.length} records &bull; Travel & welfare
             </p>
@@ -339,7 +339,7 @@ export default function ExpensesSection({
         >
           <Users size={14} /> Employee Claims Review
           {pendingClaims.length > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
               {pendingClaims.length}
             </span>
           )}
@@ -412,7 +412,7 @@ export default function ExpensesSection({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
             <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-3 sm:p-3.5 h-fit lg:sticky lg:top-20">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                   {safeForm._id ? "Edit Transaction" : "New Transaction"}
                 </h4>
                 {safeForm._id && (
@@ -642,7 +642,7 @@ export default function ExpensesSection({
                           <div key={rec._id} className="p-2.5 sm:p-3 flex flex-wrap justify-between items-center gap-2.5 hover:bg-slate-50/30 transition-colors">
                             <div className="space-y-1 text-left flex-1 min-w-[200px]">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                                   isExpense ? "bg-rose-50 text-rose-700 border border-rose-200" :
                                   isIncome ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
                                   "bg-amber-50 text-amber-700 border border-amber-200"
@@ -651,15 +651,15 @@ export default function ExpensesSection({
                                 </span>
 
                                 {rec.client ? (
-                                  <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
                                     🤝 Client: {rec.client.name || rec.client.companyName || "Client"}
                                   </span>
                                 ) : rec.employee ? (
-                                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
                                     👥 Employee: {rec.employee.name || "Staff"}
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] font-black text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md flex items-center gap-1">
                                     🏢 Company Overhead
                                   </span>
                                 )}
@@ -690,7 +690,7 @@ export default function ExpensesSection({
                                 </button>
                               )}
 
-                              <div className={`text-base font-black ${isExpense ? "text-rose-600" : isIncome ? "text-emerald-600" : "text-amber-600"}`}>
+                              <div className={`text-base font-bold ${isExpense ? "text-rose-600" : isIncome ? "text-emerald-600" : "text-amber-600"}`}>
                                 ₹{Number(rec.amount || 0).toLocaleString("en-IN")}
                               </div>
 
@@ -767,7 +767,7 @@ export default function ExpensesSection({
                           <span className="font-bold text-blue-700 block">{claim.category?.name || "General"}</span>
                           <span className="text-slate-500 truncate block">{claim.description}</span>
                         </td>
-                        <td className="px-3 py-1.5 text-sm font-black text-slate-900">
+                        <td className="px-3 py-1.5 text-sm font-bold text-slate-900">
                           ₹{Number(claim.amount || 0).toLocaleString("en-IN")}
                         </td>
                         <td className="px-3 py-1.5">
@@ -784,7 +784,7 @@ export default function ExpensesSection({
                         </td>
                         <td className="px-3 py-1.5">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg border ${
-                            claim.status === "Paid" ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-black" :
+                            claim.status === "Paid" ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-bold" :
                             claim.status === "Approved" ? "bg-blue-50 text-blue-700 border-blue-200" :
                             claim.status === "Rejected" ? "bg-rose-50 text-rose-700 border-rose-200" :
                             "bg-amber-50 text-amber-700 border-amber-200"
@@ -822,7 +822,7 @@ export default function ExpensesSection({
                                   setReviewSuccess("");
                                   setReviewModalOpen(true);
                                 }}
-                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95"
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95"
                                 title="Record payment transfer into employee bank account"
                               >
                                 💳 Disburse / Mark Paid
@@ -939,7 +939,7 @@ export default function ExpensesSection({
 
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Claim Amount</span>
-                    <span className="text-lg font-black text-slate-900 font-mono">
+                    <span className="text-lg font-bold text-slate-900 font-mono">
                       ₹{Number(selectedClaim.amount || 0).toLocaleString("en-IN")}
                     </span>
                   </div>
@@ -981,7 +981,7 @@ export default function ExpensesSection({
 
                 {}
                 <div className="space-y-3 pt-2">
-                  <label className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+                  <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                     Update Claim Status & Payment
                   </label>
 
@@ -1033,7 +1033,7 @@ export default function ExpensesSection({
                   {}
                   {reviewAction === "Paid" && (
                     <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
-                      <span className="text-[11px] font-black text-emerald-900 uppercase tracking-wider block">
+                      <span className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider block">
                         Payment Disbursal Info
                       </span>
                       <div className="space-y-1">
@@ -1124,7 +1124,7 @@ export default function ExpensesSection({
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h4 className="text-base font-black text-slate-800 flex items-center gap-2">
+              <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
                 <Receipt size={18} className="text-blue-600" />
                 Bill Receipt Viewer
               </h4>

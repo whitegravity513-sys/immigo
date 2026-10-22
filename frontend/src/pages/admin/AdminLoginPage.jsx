@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
         Admin Portal
       </h2>
       <p className="text-xs text-slate-500 font-medium mt-0.5 mb-5">

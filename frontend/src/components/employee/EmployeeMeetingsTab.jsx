@@ -199,7 +199,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
                           {m.title}
                         </span>
                         {isToday && (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-600 text-white">
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-600 text-white">
                             Today
                           </span>
                         )}

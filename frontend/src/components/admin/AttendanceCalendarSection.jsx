@@ -278,9 +278,9 @@ export default function AttendanceCalendarSection({
               <CalendarIcon size={22} />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 Workforce Attendance Calendar
-                <span className="text-[10px] uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-extrabold">
+                <span className="text-[10px] uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-bold">
                   Date-Wise
                 </span>
               </h2>
@@ -347,7 +347,7 @@ export default function AttendanceCalendarSection({
 
         <div className="overflow-x-auto pb-1">
           <div className="min-w-[700px]">
-            <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <span className="text-rose-600">Sun</span>
               <span>Mon</span>
               <span>Tue</span>
@@ -388,7 +388,7 @@ export default function AttendanceCalendarSection({
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className={`text-[11px] font-black rounded w-5 h-5 flex items-center justify-center ${
+                        className={`text-[11px] font-bold rounded w-5 h-5 flex items-center justify-center ${
                           isSelected
                             ? "bg-blue-600 text-white"
                             : isTodayDate
@@ -400,7 +400,7 @@ export default function AttendanceCalendarSection({
                       </span>
 
                       {isHoliday ? (
-                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 truncate max-w-[75px]" title={stats?.holidayTitle}>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 truncate max-w-[75px]" title={stats?.holidayTitle}>
                           {stats?.holidayTitle || "Holiday"}
                         </span>
                       ) : isOffDay ? (
@@ -408,7 +408,7 @@ export default function AttendanceCalendarSection({
                           Off
                         </span>
                       ) : isTodayDate ? (
-                        <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900">
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900">
                           Today
                         </span>
                       ) : null}
@@ -419,19 +419,19 @@ export default function AttendanceCalendarSection({
                         {stats.presentCount > 0 ? (
                           <div className="flex items-center justify-between text-emerald-700">
                             <span>Present:</span>
-                            <span className="tabular-nums font-extrabold">{stats.presentCount}</span>
+                            <span className="tabular-nums font-bold">{stats.presentCount}</span>
                           </div>
                         ) : null}
                         {stats.absentCount > 0 ? (
                           <div className="flex items-center justify-between text-rose-600">
                             <span>Absent:</span>
-                            <span className="tabular-nums font-extrabold">{stats.absentCount}</span>
+                            <span className="tabular-nums font-bold">{stats.absentCount}</span>
                           </div>
                         ) : null}
                         {stats.leaveCount > 0 ? (
                           <div className="flex items-center justify-between text-blue-600">
                             <span>Leave:</span>
-                            <span className="tabular-nums font-extrabold">{stats.leaveCount}</span>
+                            <span className="tabular-nums font-bold">{stats.leaveCount}</span>
                           </div>
                         ) : null}
                         {!stats.presentCount && !stats.absentCount && !stats.leaveCount && (
@@ -455,16 +455,16 @@ export default function AttendanceCalendarSection({
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
                 Selected Date View
               </span>
               {selectedDate === todayStr && (
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
                   Live Today
                 </span>
               )}
             </div>
-            <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-1.5">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight mt-1.5">
               {formattedSelectedDate}
             </h3>
           </div>
@@ -508,7 +508,7 @@ export default function AttendanceCalendarSection({
               <span className="text-[10px] font-bold uppercase tracking-wider">Total Staff</span>
               <Users size={14} />
             </div>
-            <div className="text-lg font-black text-slate-900">{dateMetrics.totalStaff}</div>
+            <div className="text-lg font-bold text-slate-900">{dateMetrics.totalStaff}</div>
             <div className="text-[10px] text-slate-400 mt-0.5">Eligible employees</div>
           </div>
 
@@ -517,7 +517,7 @@ export default function AttendanceCalendarSection({
               <span className="text-[10px] font-bold uppercase tracking-wider">Active / Present</span>
               <UserCheck size={14} />
             </div>
-            <div className="text-lg font-black text-emerald-950">{dateMetrics.presentCount}</div>
+            <div className="text-lg font-bold text-emerald-950">{dateMetrics.presentCount}</div>
             <div className="text-[10px] text-emerald-700 mt-0.5">Checked in & worked</div>
           </div>
 
@@ -526,7 +526,7 @@ export default function AttendanceCalendarSection({
               <span className="text-[10px] font-bold uppercase tracking-wider">Absent</span>
               <UserX size={14} />
             </div>
-            <div className="text-lg font-black text-rose-950">{dateMetrics.absentCount}</div>
+            <div className="text-lg font-bold text-rose-950">{dateMetrics.absentCount}</div>
             <div className="text-[10px] text-rose-700 mt-0.5">Did not attend shift</div>
           </div>
 
@@ -535,7 +535,7 @@ export default function AttendanceCalendarSection({
               <span className="text-[10px] font-bold uppercase tracking-wider">Approved Leave</span>
               <Briefcase size={14} />
             </div>
-            <div className="text-lg font-black text-blue-950">{dateMetrics.leaveCount}</div>
+            <div className="text-lg font-bold text-blue-950">{dateMetrics.leaveCount}</div>
             <div className="text-[10px] text-blue-700 mt-0.5">Approved time-off</div>
           </div>
 
@@ -544,7 +544,7 @@ export default function AttendanceCalendarSection({
               <span className="text-[10px] font-bold uppercase tracking-wider">Half Day</span>
               <Clock size={14} />
             </div>
-            <div className="text-lg font-black text-amber-950">{dateMetrics.halfDayCount}</div>
+            <div className="text-lg font-bold text-amber-950">{dateMetrics.halfDayCount}</div>
             <div className="text-[10px] text-amber-700 mt-0.5">Under 8 hours</div>
           </div>
         </div>
@@ -600,7 +600,7 @@ export default function AttendanceCalendarSection({
           <div className="overflow-x-auto rounded-xl border border-slate-200/90 shadow-2xs">
             <table className="w-full text-left border-collapse min-w-[850px]">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200/80 text-[11px] font-black uppercase tracking-wider text-slate-500">
+                <tr className="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="px-3 py-2 text-[10px]">Employee</th>
                   <th className="px-3 py-2 text-[10px]">Contact Emails</th>
                   <th className="px-3 py-2 text-[10px]">Department</th>
@@ -653,7 +653,7 @@ export default function AttendanceCalendarSection({
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <EmployeeIdBadge id={emp.employeeCode || emp.employeeId} size="xs" />
                               {emp.employeeStatus === "inactive" && (
-                                <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-rose-50 text-rose-600 border border-rose-200 uppercase">
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-600 border border-rose-200 uppercase">
                                   Inactive
                                 </span>
                               )}
@@ -684,15 +684,15 @@ export default function AttendanceCalendarSection({
 
                       <td className="px-3 py-1.5">
                         <div className="inline-flex items-center gap-1.5">
-                          <span className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider border ${statusBg}`}>
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${statusBg}`}>
                             {emp.status || "Absent"}
                           </span>
                         </div>
                         <div className="text-[10px] font-bold text-slate-500 mt-1">
                           {isPresent ? (
-                            <span className="text-emerald-600 font-extrabold">Active on Date ✓</span>
+                            <span className="text-emerald-600 font-bold">Active on Date ✓</span>
                           ) : (
-                            <span className="text-rose-500 font-extrabold">Not Active ✕</span>
+                            <span className="text-rose-500 font-bold">Not Active ✕</span>
                           )}
                         </div>
                       </td>

@@ -131,7 +131,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
                   {isPayment ? "Total Received Amount" : "Expense Amount Paid"}
                 </p>
                 <p
-                  className={`text-3xl font-black mt-1 ${
+                  className={`text-3xl font-bold mt-1 ${
                     isPayment ? "text-emerald-700" : "text-rose-700"
                   }`}
                 >
@@ -219,19 +219,19 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="bg-white p-2.5 rounded-lg border border-gray-200">
                   <span className="text-[10px] text-gray-500 uppercase font-bold block">Total Milestone</span>
-                  <span className="text-sm font-black text-gray-900 mt-0.5 block">
+                  <span className="text-sm font-bold text-gray-900 mt-0.5 block">
                     ₹{Number(transaction.totalMilestoneAmount || transaction.agreedMilestoneAmount || 0).toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="bg-white p-2.5 rounded-lg border border-gray-200">
                   <span className="text-[10px] text-gray-500 uppercase font-bold block">Previously Received</span>
-                  <span className="text-sm font-black text-blue-600 mt-0.5 block">
+                  <span className="text-sm font-bold text-blue-600 mt-0.5 block">
                     ₹{Number(transaction.previouslyReceivedAmount || 0).toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="bg-white p-2.5 rounded-lg border border-gray-200">
                   <span className="text-[10px] text-gray-500 uppercase font-bold block">Remaining Balance</span>
-                  <span className="text-sm font-black text-amber-600 mt-0.5 block">
+                  <span className="text-sm font-bold text-amber-600 mt-0.5 block">
                     ₹{Number(transaction.remainingMilestoneAmount !== undefined ? transaction.remainingMilestoneAmount : transaction.remainingMilestoneBalance || 0).toLocaleString("en-IN")}
                   </span>
                 </div>

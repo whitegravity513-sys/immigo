@@ -10,7 +10,7 @@ export default function SecurityTrustBadge() {
           Enterprise Security &bull; ISO 27001 Certified &bull; Anti-Bruteforce Guard
         </span>
       </div>
-      <span className="hidden sm:inline-block text-[10px] font-extrabold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-md uppercase tracking-wider">
+      <span className="hidden sm:inline-block text-[10px] font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-md uppercase tracking-wider">
         Active
       </span>
     </div>

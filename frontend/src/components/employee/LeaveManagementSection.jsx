@@ -96,7 +96,7 @@ export default function LeaveManagementSection({
               <CalendarPlus size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-black text-slate-900">Apply for Leave</h3>
+              <h3 className="text-sm font-bold text-slate-900">Apply for Leave</h3>
               <p className="text-[10px] text-slate-500 font-medium">Submit your leave request for approval</p>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default function LeaveManagementSection({
         <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-black text-slate-900">Leave Applications History</h3>
+              <h3 className="text-base font-bold text-slate-900">Leave Applications History</h3>
               <p className="text-[11px] text-slate-500 font-medium">Track your previous leave approvals and remarks</p>
             </div>
 
@@ -263,7 +263,7 @@ export default function LeaveManagementSection({
                     <td className="px-3 py-1.5 text-slate-700 max-w-[180px]">
                       <span className="leading-snug block line-clamp-2">{lv.reason}</span>
                       {lv.leaveType && (
-                        <span className="mt-1 inline-block text-[9px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded">
+                        <span className="mt-1 inline-block text-[9px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 rounded">
                           {lv.leaveType}
                         </span>
                       )}

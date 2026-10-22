@@ -242,7 +242,7 @@ export function ClientPaymentLedger() {
               <span className="text-gray-300">/</span>
               <span className="text-gray-900 font-bold">Client Payment Ledger</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
               <Receipt className="text-blue-600" size={26} />
               <span>Client Payment Ledger</span>
             </h1>

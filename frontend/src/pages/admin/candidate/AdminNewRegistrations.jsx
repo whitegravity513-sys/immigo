@@ -324,7 +324,7 @@ export default function AdminNewRegistrations() {
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-extrabold text-[#0f2744]">
+                <h3 className="text-base font-bold text-[#0f2744]">
                   Candidate Registration Review
                 </h3>
                 <span className="text-xs font-mono font-bold text-blue-600">

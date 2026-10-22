@@ -58,7 +58,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
           )}
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
                 {doc.type || "Statutory Document"}
               </span>
               <span className="text-xs font-mono text-slate-400">File: {doc.fileName || "document.pdf"}</span>
@@ -66,7 +66,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
                 <CheckCircle2 size={12} /> {doc.status || "Verified"}
               </span>
             </div>
-            <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-1">
+            <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight mt-1">
               {doc.name || "Verification Document"}
             </h1>
             <p className="text-xs text-slate-500">
@@ -119,7 +119,7 @@ export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack 
               <div className="w-16 h-16 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-inner">
                 <FileText size={32} />
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight uppercase">
                 {doc.name || "Statutory Document Record"}
               </h2>
               <p className="text-xs text-slate-500 font-mono">

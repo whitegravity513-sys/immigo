@@ -160,7 +160,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
               <div className="flex items-center justify-start gap-3.5 mb-2">
                 <img src="/wg-logo.png" alt="VESTA Logo" className="h-12 w-12 object-contain shrink-0" />
                 <div>
-                  <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight uppercase leading-tight">
+                  <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight uppercase leading-tight">
                     {adminComp}
                   </h1>
                   <p className="text-[10px] font-semibold text-slate-500 italic mt-0.5">
@@ -181,13 +181,13 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             </div>
 
             <div className="flex flex-col justify-between h-full sm:text-right sm:ml-auto">
-              <h2 className="text-3xl sm:text-4xl font-black tracking-widest text-slate-400 uppercase select-none sm:text-right">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-widest text-slate-400 uppercase select-none sm:text-right">
                 INVOICE
               </h2>
               <div className="text-xs font-bold text-slate-800 space-y-1.5 mt-4">
                 <div className="flex gap-3 sm:justify-end">
                   <span className="text-slate-500">INVOICE #:</span>
-                  <span className="font-mono font-black text-slate-900">{invoice.invoiceNo}</span>
+                  <span className="font-mono font-bold text-slate-900">{invoice.invoiceNo}</span>
                 </div>
                 <div className="flex gap-3 sm:justify-end">
                   <span className="text-slate-500">DATE:</span>
@@ -205,7 +205,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-1 pb-2">
             <div className="space-y-1 text-xs text-slate-800">
-              <div className="font-black text-slate-900 uppercase tracking-wider text-xs pb-1 border-b border-slate-200">
+              <div className="font-bold text-slate-900 uppercase tracking-wider text-xs pb-1 border-b border-slate-200">
                 BILL TO:
               </div>
               <div className="font-bold text-sm text-slate-900 pt-1">{clientName}</div>
@@ -221,7 +221,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
             </div>
 
             <div className="text-xs text-slate-800 sm:border-l sm:border-slate-200 sm:pl-6">
-              <div className="font-black text-slate-900 uppercase tracking-wider text-xs pb-1 border-b border-slate-200">
+              <div className="font-bold text-slate-900 uppercase tracking-wider text-xs pb-1 border-b border-slate-200">
                 PROJECT DETAILS:
               </div>
               <div className="pt-2 space-y-1.5">
@@ -265,7 +265,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
           <div className="border-2 border-slate-800 rounded-lg overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-900 border-b-2 border-slate-800 text-[11px] font-black uppercase tracking-wider">
+                <tr className="bg-slate-100 text-slate-900 border-b-2 border-slate-800 text-[11px] font-bold uppercase tracking-wider">
                   <th className="px-3 py-2 text-[10px] border-r border-slate-400 w-12 text-center">#</th>
                   <th className="px-3 py-2 text-[10px] border-r border-slate-400">DESCRIPTION</th>
                   <th className="px-3 py-2 text-[10px] border-r border-slate-400 w-32 text-center">SAC CODE</th>
@@ -378,10 +378,10 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
               })()}
 
               <div className="border-t-2 border-slate-800 pt-4 mt-2 flex justify-between items-center">
-                <span className="text-sm font-black uppercase tracking-wider text-slate-900">
+                <span className="text-sm font-bold uppercase tracking-wider text-slate-900">
                   TOTAL DUE:
                 </span>
-                <span className="text-lg font-black text-slate-900">
+                <span className="text-lg font-bold text-slate-900">
                   ₹{(Number(invoice.totalAmount) || 0).toLocaleString("en-IN")}
                 </span>
               </div>
@@ -389,7 +389,7 @@ export default function ProfessionalInvoiceModal({ invoice, project, onClose }) 
           </div>
 
           <div className="pt-8 border-t border-slate-300 text-center space-y-4 print:break-inside-avoid">
-            <div className="text-base font-black tracking-wide text-slate-900 uppercase">
+            <div className="text-base font-bold tracking-wide text-slate-900 uppercase">
               Thank you for your business!
             </div>
             <div className="text-[10px] text-slate-500 pt-2 font-medium italic border-t border-slate-100">

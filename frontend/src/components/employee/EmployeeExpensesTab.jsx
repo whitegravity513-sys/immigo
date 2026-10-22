@@ -297,12 +297,12 @@ export default function EmployeeExpensesTab({ user, token }) {
                       {item.category?.name || "General"}
                     </span>
                   </td>
-                  <td className="px-3 py-1.5 text-sm font-black text-slate-800 whitespace-nowrap">
+                  <td className="px-3 py-1.5 text-sm font-bold text-slate-800 whitespace-nowrap">
                     ₹{Number(item.amount || 0).toLocaleString("en-IN")}
                   </td>
                   <td className="px-3 py-1.5 whitespace-nowrap">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black uppercase border ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase border ${
                         item.status === "Approved"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                           : item.status === "Rejected"
@@ -360,7 +360,7 @@ export default function EmployeeExpensesTab({ user, token }) {
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
               <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-xs">
-                <h3 className="text-base font-black flex items-center gap-2">
+                <h3 className="text-base font-bold flex items-center gap-2">
                   <IndianRupee size={18} className="text-amber-300" /> Submit Business Expense
                 </h3>
                 <button
@@ -512,7 +512,7 @@ export default function EmployeeExpensesTab({ user, token }) {
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-blue-600" />
-                <h3 className="text-base font-black text-slate-800 truncate">{previewReceipt.title} — Bill Receipt</h3>
+                <h3 className="text-base font-bold text-slate-800 truncate">{previewReceipt.title} — Bill Receipt</h3>
               </div>
               <button
                 type="button"

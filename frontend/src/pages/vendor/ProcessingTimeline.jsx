@@ -78,7 +78,7 @@ export default function ProcessingTimeline() {
             <Clock className="w-4 h-4" />
             <span>Deployment Tracker</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             8-Stage Processing Timeline
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -152,7 +152,7 @@ export default function ProcessingTimeline() {
                         className="block p-4 rounded-xl border text-left cursor-pointer transition-all duration-150 bg-white border-slate-200 hover:border-indigo-300 hover:shadow-md"
                       >
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="font-extrabold text-sm text-slate-900 truncate">
+                          <span className="font-bold text-sm text-slate-900 truncate">
                             {app.candidateName}
                           </span>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100/80 text-indigo-800 shrink-0">

@@ -125,7 +125,7 @@ export default function ProjectMilestoneBuilder({ milestones, onChange }) {
               
               {milestone.stages.map((stage, sIdx) => (
                 <div key={stage.id} className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 group">
-                  <span className="text-[9px] font-black text-slate-400">{sIdx + 1}.</span>
+                  <span className="text-[9px] font-bold text-slate-400">{sIdx + 1}.</span>
                   <input
                     type="text"
                     value={stage.name}

@@ -528,7 +528,7 @@ export function RecordClientPaymentModal({
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 block uppercase">Total Transaction</span>
-                <span className="font-mono font-extrabold text-emerald-700 text-sm">
+                <span className="font-mono font-bold text-emerald-700 text-sm">
                   ₹{computedTotalTransaction.toLocaleString()}
                 </span>
               </div>

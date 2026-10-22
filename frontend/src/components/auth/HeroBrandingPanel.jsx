@@ -36,10 +36,10 @@ export default function HeroBrandingPanel() {
 
       <div className="relative z-10 h-full flex flex-col justify-between p-6 xl:p-10 text-white drop-shadow-sm">
         <div className="flex items-end gap-0.5 select-none drop-shadow-md">
-          <span className="font-black text-2xl xl:text-3xl text-white tracking-tighter leading-none">
+          <span className="font-bold text-2xl xl:text-3xl text-white tracking-tighter leading-none">
             immi
           </span>
-          <span className="font-black text-2xl xl:text-3xl text-blue-300 tracking-tighter leading-none">
+          <span className="font-bold text-2xl xl:text-3xl text-blue-300 tracking-tighter leading-none">
             Go
           </span>
           <svg
@@ -58,12 +58,12 @@ export default function HeroBrandingPanel() {
         </div>
 
         <div>
-          <div className="inline-flex items-center gap-2 text-[10px] xl:text-[11px] font-extrabold text-blue-200 uppercase tracking-[0.16em] mb-2.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-full border border-white/15">
+          <div className="inline-flex items-center gap-2 text-[10px] xl:text-[11px] font-bold text-blue-200 uppercase tracking-[0.16em] mb-2.5 bg-black/25 backdrop-blur-md px-3 py-1 rounded-full border border-white/15">
             <Globe2 size={12} className="text-orange-400" />
             <span>Overseas Manpower &bull; Foreign Recruitment &bull; Global Mobility</span>
           </div>
 
-          <h1 className="text-2xl xl:text-4xl font-black leading-tight mb-2 drop-shadow-md">
+          <h1 className="text-2xl xl:text-4xl font-bold leading-tight mb-2 drop-shadow-md">
             Supplying Skilled Talent
             <br />
             <span className="text-blue-300">Across Foreign Borders</span>
@@ -99,7 +99,7 @@ export default function HeroBrandingPanel() {
                 key={label}
                 className="text-center p-1.5 xl:p-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15"
               >
-                <div className="text-base xl:text-lg font-black text-white leading-none">{value}</div>
+                <div className="text-base xl:text-lg font-bold text-white leading-none">{value}</div>
                 <div className="text-[9px] xl:text-[10px] text-blue-200 font-semibold mt-0.5">{label}</div>
               </div>
             ))}

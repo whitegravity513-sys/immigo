@@ -17,7 +17,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }) {
           <ShieldAlert size={24} />
         </div>
 
-        <h3 className="text-lg font-black text-slate-900 tracking-tight">Forgot Password?</h3>
+        <h3 className="text-lg font-bold text-slate-900 tracking-tight">Forgot Password?</h3>
         <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
           For security and audit compliance, password resets are processed by system administrators.
         </p>

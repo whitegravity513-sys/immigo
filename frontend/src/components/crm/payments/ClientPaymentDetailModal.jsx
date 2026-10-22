@@ -89,7 +89,7 @@ export default function ClientPaymentDetailModal({
               </div>
               <div>
                 <span className="text-gray-500 text-[10px] block">Amount Paid</span>
-                <span className="font-black text-emerald-700 text-sm font-mono">
+                <span className="font-bold text-emerald-700 text-sm font-mono">
                   ₹{Number(viewingPayment.amountPaid || 0).toLocaleString("en-IN")}
                 </span>
               </div>

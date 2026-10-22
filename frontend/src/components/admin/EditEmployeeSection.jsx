@@ -102,7 +102,7 @@ export default function EditEmployeeSection({
             <span>Back</span>
           </button>
           <div className="min-w-0">
-            <h1 className="text-sm sm:text-base font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
+            <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
               <span>Edit Employee Details</span>
               {editingEmployee?.employeeId && (
                 <EmployeeIdBadge id={editingEmployee.employeeId} size="sm" />
@@ -116,7 +116,7 @@ export default function EditEmployeeSection({
 
         <div className="flex items-center gap-2 shrink-0">
           <span
-            className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
+            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
               editForm.status === "active"
                 ? "bg-emerald-100 text-emerald-800"
                 : "bg-rose-100 text-rose-800"
@@ -141,7 +141,7 @@ export default function EditEmployeeSection({
               <User size={14} />
             </div>
             <div>
-              <h2 className="text-xs font-black text-slate-900">Personal & Contact Information</h2>
+              <h2 className="text-xs font-bold text-slate-900">Personal & Contact Information</h2>
               <p className="text-[10px] text-slate-400 font-medium">
                 Primary identity and personal contact channels
               </p>
@@ -229,7 +229,7 @@ export default function EditEmployeeSection({
               <Briefcase size={14} />
             </div>
             <div>
-              <h2 className="text-xs font-black text-slate-900">Employment & Role Details</h2>
+              <h2 className="text-xs font-bold text-slate-900">Employment & Role Details</h2>
               <p className="text-[10px] text-slate-400 font-medium">
                 Designation, department, salary & service timeline
               </p>
@@ -356,7 +356,7 @@ export default function EditEmployeeSection({
               <Lock size={14} />
             </div>
             <div>
-              <h2 className="text-xs font-black text-slate-900">Login Credentials & Password Management</h2>
+              <h2 className="text-xs font-bold text-slate-900">Login Credentials & Password Management</h2>
               <p className="text-[10px] text-slate-500 font-medium">
                 View current/previous password and configure new access password
               </p>

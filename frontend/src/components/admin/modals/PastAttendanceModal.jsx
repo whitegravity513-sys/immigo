@@ -27,7 +27,7 @@ export default function PastAttendanceModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <h3 className="text-base font-black text-slate-800">
+          <h3 className="text-base font-bold text-slate-800">
             Add/Update Past Attendance
           </h3>
           <button

@@ -48,7 +48,7 @@ export function WorkforceAttendanceTable({
             <button
               type="button"
               onClick={() => handleDateChange(todayDate)}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold bg-blue-600 text-white shadow-2xs hover:bg-blue-700 transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-600 text-white shadow-2xs hover:bg-blue-700 transition-all cursor-pointer shrink-0"
               title="Jump back to today's live shift"
             >
               <span>Go to Today</span>
@@ -288,7 +288,7 @@ export function WorkforceAttendanceTable({
 
                     <td className="px-2.5 py-1.5">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold border uppercase tracking-wider ${info.badgeClass}`}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${info.badgeClass}`}
                       >
                         {info.icon}
                         {info.label}

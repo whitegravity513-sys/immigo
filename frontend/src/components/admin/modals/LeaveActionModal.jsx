@@ -26,13 +26,13 @@ export default function LeaveActionModal({
         >
           <div className="flex items-center gap-2">
             <span
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-base ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-base ${
                 isApproved ? "bg-emerald-600" : "bg-rose-600"
               }`}
             >
               {isApproved ? "✓" : "✕"}
             </span>
-            <h3 className="text-base font-black text-slate-800">
+            <h3 className="text-base font-bold text-slate-800">
               {isApproved ? "Approve Leave Application" : "Reject Leave Application"}
             </h3>
           </div>

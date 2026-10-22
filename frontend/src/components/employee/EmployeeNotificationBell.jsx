@@ -179,7 +179,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
       >
         <Bell size={18} className={className ? "text-blue-200 hover:text-white" : "text-slate-700"} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-black text-white shadow-md animate-bounce">
+          <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow-md animate-bounce">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -190,7 +190,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
           <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell size={16} className="text-emerald-600" />
-              <h3 className="font-extrabold text-sm text-slate-900 tracking-tight">
+              <h3 className="font-bold text-sm text-slate-900 tracking-tight">
                 Notifications
               </h3>
               {unreadCount > 0 && (
@@ -256,7 +256,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
                           <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" title="Unread" />
                         )}
                         <span
-                          className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border ${
+                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md border ${
                             isMeeting
                               ? "bg-purple-100 border-purple-200 text-purple-800"
                               : "bg-blue-100 border-blue-200 text-blue-800"

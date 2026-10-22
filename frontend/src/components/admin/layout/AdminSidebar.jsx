@@ -79,7 +79,7 @@ export const AdminSidebar = ({
           </div>
 
           {!sidebarCollapsed && (
-            <p className="text-[11px] font-extrabold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
+            <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
               HR Management
             </p>
           )}
@@ -219,7 +219,7 @@ export const AdminSidebar = ({
                   isActive ? (
                     <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                   ) : isRegisterEmp ? (
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 border border-blue-200">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 border border-blue-200">
                       New
                     </span>
                   ) : null

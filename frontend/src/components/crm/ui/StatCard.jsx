@@ -73,7 +73,7 @@ export function StatCard({
               />
             )}
           </div>
-          <h3 className="text-lg sm:text-xl font-black text-gray-900 mt-0.5 tracking-tight truncate leading-tight">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 tracking-tight truncate leading-tight">
             {value}
           </h3>
           {subtitle && (

@@ -289,7 +289,7 @@ export function Candidates() {
           onClick={() => { setStatusTab("Available"); setCurrentPage(1); }}
           className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
             statusTab === "Available"
-              ? "bg-white text-blue-700 shadow-2xs font-extrabold"
+              ? "bg-white text-blue-700 shadow-2xs font-bold"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
@@ -300,7 +300,7 @@ export function Candidates() {
           onClick={() => { setStatusTab("Selected"); setCurrentPage(1); }}
           className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
             statusTab === "Selected"
-              ? "bg-white text-emerald-700 shadow-2xs font-extrabold"
+              ? "bg-white text-emerald-700 shadow-2xs font-bold"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
@@ -311,7 +311,7 @@ export function Candidates() {
           onClick={() => { setStatusTab("All"); setCurrentPage(1); }}
           className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
             statusTab === "All"
-              ? "bg-white text-slate-900 shadow-2xs font-extrabold"
+              ? "bg-white text-slate-900 shadow-2xs font-bold"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
@@ -414,7 +414,7 @@ export function Candidates() {
                               className="w-6 h-6 rounded-md object-cover border border-slate-200 shadow-2xs shrink-0"
                             />
                           ) : (
-                            <div className="w-6 h-6 rounded-md bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                            <div className="w-6 h-6 rounded-md bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center font-semibold text-xs shrink-0 shadow-2xs">
                               {c.fullName ? c.fullName.slice(0, 2).toUpperCase() : "CD"}
                             </div>
                           )}

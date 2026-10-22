@@ -11,7 +11,7 @@ export function EmployeeLeavesTab({
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-black text-slate-800">
+          <h4 className="text-sm font-bold text-slate-800">
             Leave History{" "}
             <span className="text-slate-500 font-semibold text-xs">
               ({leaves.length} applications)
@@ -64,7 +64,7 @@ export function EmployeeLeavesTab({
                 <td className="px-3 py-1.5 text-sm text-slate-700 font-semibold whitespace-nowrap">
                   {formatDate(l.endDate)}
                 </td>
-                <td className="px-3 py-1.5 text-sm font-black text-slate-800 text-center">
+                <td className="px-3 py-1.5 text-sm font-bold text-slate-800 text-center">
                   {l.totalDays}
                 </td>
                 <td className="px-3 py-1.5 text-sm text-slate-600 max-w-[200px]">

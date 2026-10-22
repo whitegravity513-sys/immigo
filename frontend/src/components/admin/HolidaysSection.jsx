@@ -13,14 +13,14 @@ export default function HolidaysSection({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-slate-800 tracking-tight">Holiday Management</h3>
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight">Holiday Management</h3>
           <p className="text-xs text-slate-500 font-medium mt-0.5">Declare official company holidays</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-3.5 sm:p-4 h-fit">
-          <h4 className="text-xs font-black text-slate-800 mb-3 uppercase tracking-wider">Declare New Holiday</h4>
+          <h4 className="text-xs font-bold text-slate-800 mb-3 uppercase tracking-wider">Declare New Holiday</h4>
           <form onSubmit={handleCreateHolidaySubmit} className="space-y-3">
             <div className="flex flex-col gap-0.5">
               <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Holiday Date</label>
@@ -65,7 +65,7 @@ export default function HolidaysSection({
 
         <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden lg:col-span-2">
           <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
-            <h4 className="text-sm font-black text-slate-800">Declared Holidays ({holidays.length})</h4>
+            <h4 className="text-sm font-bold text-slate-800">Declared Holidays ({holidays.length})</h4>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">

@@ -39,7 +39,7 @@ export default function LeaveApprovalsSection({
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-3 sm:px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-black text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
+          <h3 className="text-sm font-bold text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
           <p className="text-[11px] text-slate-500">Review employee leave claims and approve or reject inline directly (No popups)</p>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function LeaveApprovalsSection({
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-1.5 text-xs">
-                    <span className="font-mono font-black text-slate-800 text-sm block">
+                    <span className="font-mono font-bold text-slate-800 text-sm block">
                       {days} Day(s)
                     </span>
                   </td>

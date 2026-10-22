@@ -31,7 +31,7 @@ export class ErrorBoundary extends React.Component {
           <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4 shadow-xs">
             <AlertTriangle size={32} />
           </div>
-          <h2 className="text-xl font-black text-slate-800 tracking-tight mb-2">Something went wrong in this section</h2>
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight mb-2">Something went wrong in this section</h2>
           <p className="text-sm text-slate-500 max-w-md mb-4">
             An unexpected error occurred while rendering this data. You can try refreshing or returning to the live overview.
           </p>

@@ -18,7 +18,7 @@ export default function EditEmployeeModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h3 className="text-sm font-black text-slate-800">Edit Employee Details</h3>
+          <h3 className="text-sm font-bold text-slate-800">Edit Employee Details</h3>
           <button
             className="text-slate-400 hover:text-slate-700 text-lg cursor-pointer p-1"
             onClick={() => setEditingEmployee(null)}

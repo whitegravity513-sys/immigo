@@ -316,7 +316,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Candidate / Trade</span>
-              <span className="font-black text-slate-900">{application.candidateName}</span>
+              <span className="font-bold text-slate-900">{application.candidateName}</span>
               <span className="text-slate-500 font-medium ml-1.5">• {application.position || "Staff"}</span>
             </div>
             <div className="text-right">
@@ -330,7 +330,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           <div className="bg-blue-50/60 rounded-2xl p-4 border border-blue-200 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <label className="text-[11px] font-black uppercase text-blue-900 tracking-wider block">
+                <label className="text-[11px] font-bold uppercase text-blue-900 tracking-wider block">
                   Total Placement / Processing Amount (₹)
                 </label>
                 <p className="text-[10px] text-blue-700">Enter total client/placement amount to divide into milestones.</p>
@@ -341,7 +341,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   type="number"
                   value={totalAmount}
                   onChange={(e) => handleTotalAmountChange(e.target.value)}
-                  className="w-32 font-black text-slate-900 text-sm focus:outline-none"
+                  className="w-32 font-bold text-slate-900 text-sm focus:outline-none"
                   placeholder="40000"
                 />
               </div>
@@ -410,7 +410,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           {}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="font-black text-slate-900 uppercase text-[11px] tracking-wider">
+              <span className="font-bold text-slate-900 uppercase text-[11px] tracking-wider">
                 Configured Milestones & Processing Stages ({milestones.length})
               </span>
               <button
@@ -562,7 +562,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
           <div className="text-xs">
             <span className="text-slate-500 font-medium">Total Configured: </span>
-            <strong className="text-slate-900 font-black">₹{totalCalculated.toLocaleString()}</strong>
+            <strong className="text-slate-900 font-bold">₹{totalCalculated.toLocaleString()}</strong>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -576,7 +576,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <CheckCircle2 size={14} />
               <span>{saving ? "Saving..." : "Confirm & Save Milestones"}</span>

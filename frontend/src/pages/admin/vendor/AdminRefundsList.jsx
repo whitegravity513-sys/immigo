@@ -434,7 +434,7 @@ export default function AdminRefundsList() {
                   value={processRefundAmount}
                   onChange={(e) => setProcessRefundAmount(e.target.value)}
                   placeholder="Enter amount to refund..."
-                  className="w-full pl-8 pr-3 py-2.5 rounded-xl border-2 border-rose-300 text-sm font-mono font-black text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-rose-50/30"
+                  className="w-full pl-8 pr-3 py-2.5 rounded-xl border-2 border-rose-300 text-sm font-mono font-bold text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-rose-50/30"
                 />
               </div>
 

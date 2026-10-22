@@ -327,18 +327,18 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
             <div className="bg-white rounded-xl shadow-xs p-3 border-l-4 border-blue-500">
               <div className="text-xs text-slate-600 font-bold">Working Days</div>
-              <div className="text-lg font-black text-slate-900 mt-0.5">{monthlyData.summary?.totalWorkingDays ?? 0} Days</div>
+              <div className="text-lg font-bold text-slate-900 mt-0.5">{monthlyData.summary?.totalWorkingDays ?? 0} Days</div>
               <div className="text-[10px] text-slate-400 font-medium mt-0.5">
                 Excludes weekends & declared holidays
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-xs p-3 border-l-4 border-emerald-500">
               <div className="text-xs text-slate-600 font-bold">Present Days</div>
-              <div className="text-lg font-black text-emerald-600">{monthlyData.summary?.presentDays ?? 0}</div>
+              <div className="text-lg font-bold text-emerald-600">{monthlyData.summary?.presentDays ?? 0}</div>
             </div>
             <div className="bg-white rounded-xl shadow-xs p-3 border-l-4 border-amber-500">
               <div className="text-xs text-slate-600 font-bold">Absent Days</div>
-              <div className="text-lg font-black text-amber-600">{monthlyData.summary?.absentDays ?? 0}</div>
+              <div className="text-lg font-bold text-amber-600">{monthlyData.summary?.absentDays ?? 0}</div>
             </div>
           </div>
 
@@ -347,7 +347,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs text-slate-600 font-bold mb-0.5">Half Days</div>
-                  <div className="text-xl font-black text-cyan-700">{monthlyData.summary?.halfDays ?? 0}</div>
+                  <div className="text-xl font-bold text-cyan-700">{monthlyData.summary?.halfDays ?? 0}</div>
                 </div>
                 <Calendar className="w-6 h-6 text-cyan-400 opacity-50" />
               </div>
@@ -356,7 +356,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs text-slate-600 font-bold mb-0.5">Leave Days</div>
-                  <div className="text-xl font-black text-rose-700">{monthlyData.summary?.totalLeaveDays ?? 0}</div>
+                  <div className="text-xl font-bold text-rose-700">{monthlyData.summary?.totalLeaveDays ?? 0}</div>
                 </div>
                 <CheckCircle className="w-6 h-6 text-rose-400 opacity-50" />
               </div>
@@ -374,19 +374,19 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                 <div>
                   <div className="text-xs text-slate-500 font-bold mb-0.5">Monthly Base Salary</div>
-                  <div className="text-lg font-black text-slate-800">
+                  <div className="text-lg font-bold text-slate-800">
                     ₹{monthlyData.summary?.monthlySalary?.toLocaleString() ?? 0}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-slate-500 font-bold mb-0.5">Per Day Salary</div>
-                  <div className="text-lg font-black text-slate-800">
+                  <div className="text-lg font-bold text-slate-800">
                     ₹{Math.round(monthlyData.summary?.perDaySalary ?? 0).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-slate-500 font-bold mb-0.5">Total Paid Days</div>
-                  <div className="text-lg font-black text-blue-600">
+                  <div className="text-lg font-bold text-blue-600">
                     {monthlyData.summary?.paidDays ?? 0}
                   </div>
                   <div className="text-[10px] text-slate-400 font-bold mt-0.5">
@@ -395,7 +395,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 </div>
                 <div className="bg-emerald-50 rounded-lg p-2.5 border border-emerald-100">
                   <div className="text-xs text-emerald-600 font-bold mb-0.5">Final Payable Salary</div>
-                  <div className="text-xl font-black text-emerald-700">
+                  <div className="text-xl font-bold text-emerald-700">
                     ₹{monthlyData.summary?.earnedSalary?.toLocaleString() ?? 0}
                   </div>
                 </div>

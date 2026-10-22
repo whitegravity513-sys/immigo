@@ -167,7 +167,7 @@ export default function VendorProjects() {
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FolderKanban size={16} className="text-blue-600" />
-              <h2 className="text-sm font-extrabold text-slate-900">
+              <h2 className="text-sm font-bold text-slate-900">
                 All Available Projects List ({filteredProjects.length})
               </h2>
             </div>
@@ -202,7 +202,7 @@ export default function VendorProjects() {
                         <div className="space-y-0.5">
                           <Link
                             to={`/vendor/projects/${proj.id}`}
-                            className="font-extrabold text-slate-900 text-xs hover:text-blue-600 transition-colors block"
+                            className="font-bold text-slate-900 text-xs hover:text-blue-600 transition-colors block"
                           >
                             {proj.projectName}
                           </Link>
@@ -332,7 +332,7 @@ export default function VendorProjects() {
                           ID: {proj.id}
                         </span>
                       </div>
-                      <h3 className="font-extrabold text-slate-900 text-base mt-1.5 leading-snug">
+                      <h3 className="font-bold text-slate-900 text-base mt-1.5 leading-snug">
                         {proj.projectName}
                       </h3>
                       <p className="text-xs text-blue-700 font-semibold flex items-center gap-1 mt-0.5">
@@ -360,7 +360,7 @@ export default function VendorProjects() {
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">
                         Total Vacancies
                       </span>
-                      <span className="text-slate-900 font-extrabold flex items-center gap-1">
+                      <span className="text-slate-900 font-bold flex items-center gap-1">
                         <Users size={12} className="text-blue-600" />
                         <span>{proj.totalHeadcount || "Open Demands"}</span>
                       </span>

@@ -115,7 +115,7 @@ export function EmployeeDocumentsTab({
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h4 className="text-base font-black text-slate-800 flex items-center gap-2">
+          <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <FolderLock size={18} className="text-blue-600" />
             Employee Document Vault & Verification
           </h4>
@@ -287,7 +287,7 @@ export function EmployeeDocumentsTab({
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                 <UploadCloud size={18} className="text-blue-600" />
                 Upload Employee Document
               </h3>
@@ -392,7 +392,7 @@ export function EmployeeDocumentsTab({
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-black text-slate-800">
+                <h3 className="text-base font-bold text-slate-800">
                   {previewDocModal.name}
                 </h3>
                 <span className="text-xs text-blue-600 font-bold">
@@ -455,7 +455,7 @@ export function EmployeeDocumentsTab({
                   <XCircle size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800">
                     Reject Compliance Document
                   </h3>
                   <p className="text-xs text-slate-500">{rejectDocModal.docName}</p>

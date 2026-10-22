@@ -437,12 +437,12 @@ export default function AdminDirectCandidateMilestones() {
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 rounded-2xl p-4 sm:p-5 text-white shadow-md">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 text-cyan-300 font-extrabold text-base flex items-center justify-center shrink-0 shadow-inner">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 text-cyan-300 font-bold text-base flex items-center justify-center shrink-0 shadow-inner">
               {(application.candidateName || "C").charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base font-extrabold tracking-tight text-white">{application.candidateName}</h2>
+                <h2 className="text-base font-bold tracking-tight text-white">{application.candidateName}</h2>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
                   {application.status || "Selected"}
                 </span>
@@ -466,7 +466,7 @@ export default function AdminDirectCandidateMilestones() {
             </div>
             <div className="border-l border-white/20 pl-3">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Fees Collected</span>
-              <span className="font-extrabold text-emerald-400 text-sm">
+              <span className="font-bold text-emerald-400 text-sm">
                 ₹{totalPaid.toLocaleString()} / ₹{Number(totalAmount).toLocaleString()}
               </span>
             </div>
@@ -515,7 +515,7 @@ export default function AdminDirectCandidateMilestones() {
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Phase {idx + 1}
                   </span>
                   <span
@@ -544,7 +544,7 @@ export default function AdminDirectCandidateMilestones() {
           {/* Milestone Sub-Header */}
           <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex-1 max-w-lg">
-              <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 Milestone Name
               </label>
               <input
@@ -561,7 +561,7 @@ export default function AdminDirectCandidateMilestones() {
 
             <div className="flex items-center gap-3">
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                   Milestone Amount
                 </label>
                 <div className="relative">

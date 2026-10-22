@@ -119,7 +119,7 @@ export function HrNavbar({
       {}
       <div className="px-4 sm:px-6 py-2.5 bg-slate-50/70 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
         <div>
-          <h1 className="text-sm sm:text-base font-extrabold text-gray-900 tracking-tight leading-tight">
+          <h1 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-tight">
             {title}
           </h1>
           <p className="text-[11px] text-gray-500 mt-0.5">

@@ -13,7 +13,7 @@ export default function DocPreviewModal({ previewDoc, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-base font-black text-slate-800">Supporting Document</h3>
+          <h3 className="text-base font-bold text-slate-800">Supporting Document</h3>
           <button className="text-slate-500 text-xl cursor-pointer p-1" onClick={onClose}>
             ×
           </button>

@@ -9,7 +9,7 @@ const StatCard = ({ icon, color, val, label }) => (
   <div className="bg-white p-3.5 sm:p-4 rounded-xl border-2 border-slate-300 shadow-xs flex items-center gap-3">
     <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 ${color}`}>{icon}</div>
     <div className="flex flex-col min-w-0">
-      <span className="text-lg sm:text-xl font-black text-slate-900 leading-none mb-0.5">{val}</span>
+      <span className="text-lg sm:text-xl font-bold text-slate-900 leading-none mb-0.5">{val}</span>
       <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">{label}</span>
     </div>
   </div>
@@ -48,10 +48,10 @@ function ActiveBreakRow({ rep, formatTime, openEmployeeDetail, currentPath }) {
         <span className="text-[10px] text-slate-500 truncate">{rep.designation || "Employee"}</span>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <span className={`px-2 py-0.5 text-[9px] font-extrabold rounded-full uppercase tracking-wider ${isLunch ? "bg-amber-200 text-amber-900" : "bg-cyan-200 text-cyan-900"}`}>
+        <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full uppercase tracking-wider ${isLunch ? "bg-amber-200 text-amber-900" : "bg-cyan-200 text-cyan-900"}`}>
           {activeBreak?.type || "Short"} Break
         </span>
-        <span className="font-mono text-xs font-black px-2 py-0.5 rounded-lg border border-slate-300 bg-white shadow-2xs tabular-nums text-slate-900">
+        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-lg border border-slate-300 bg-white shadow-2xs tabular-nums text-slate-900">
           {fmtMS(elapsed)}
         </span>
       </div>
@@ -85,7 +85,7 @@ export default function LiveAttendanceSection({
 
       {attendanceReport.filter(r => r.status === "On Break").length > 0 && (
         <div className="bg-white p-4 rounded-xl border-2 border-slate-300 shadow-xs">
-          <h4 className="flex items-center gap-1.5 text-amber-800 font-black text-xs mb-3 uppercase tracking-wider">
+          <h4 className="flex items-center gap-1.5 text-amber-800 font-bold text-xs mb-3 uppercase tracking-wider">
             <Coffee size={14} className="text-amber-700" /> Live Break Tracker (Real-time)
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
@@ -105,7 +105,7 @@ export default function LiveAttendanceSection({
       <div className="bg-white rounded-xl border-2 border-slate-300 shadow-xs overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-300 bg-slate-50/70 flex flex-wrap items-center gap-3 justify-between">
           <div className="flex flex-col">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight">Shift Activity Log</h3>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight">Shift Activity Log</h3>
             {(filterStart || filterEnd)
               ? <span className="text-[11px] text-blue-600 font-semibold">{filterStart ? filterStart.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '...'} → {filterEnd ? filterEnd.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '...'}</span>
               : <span className="text-[11px] text-slate-500 font-medium">Showing today's real-time live attendance</span>}
@@ -140,7 +140,7 @@ export default function LiveAttendanceSection({
             <thead>
               <tr className="bg-slate-100/90 border-b border-slate-300">
                 {["Employee", "Check-In", "Check-Out", "Note", "Lunch", "Break", "Total Break", "Net Work", "Status", ""].map((h, i) => (
-                  <th key={i} className="px-3 py-2 text-slate-600 font-black uppercase text-[10px] tracking-wider whitespace-nowrap">
+                  <th key={i} className="px-3 py-2 text-slate-600 font-bold uppercase text-[10px] tracking-wider whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -174,7 +174,7 @@ export default function LiveAttendanceSection({
 
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-slate-800 tabular-nums text-xs">
+                      <span className="font-bold text-slate-800 tabular-nums text-xs">
                         {formatTime(rep.checkInTime)}
                       </span>
                       {rep.checkInTime && rep.checkInLocation && (rep.checkInLocation.latitude || rep.checkInLocation.longitude) && (
@@ -193,7 +193,7 @@ export default function LiveAttendanceSection({
 
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-extrabold text-slate-800 tabular-nums text-xs">
+                      <span className="font-bold text-slate-800 tabular-nums text-xs">
                         {formatTime(rep.checkOutTime)}
                       </span>
                       {rep.checkOutTime && rep.checkOutLocation && (rep.checkOutLocation.latitude || rep.checkOutLocation.longitude) && (
@@ -220,30 +220,30 @@ export default function LiveAttendanceSection({
                     )}
                   </td>
 
-                  <td className="px-3 py-2 text-xs font-extrabold text-amber-700 tabular-nums whitespace-nowrap">
+                  <td className="px-3 py-2 text-xs font-bold text-amber-700 tabular-nums whitespace-nowrap">
                     {formatDuration(rep.lunchBreakSeconds)}
                   </td>
 
-                  <td className="px-3 py-2 text-xs font-extrabold text-cyan-700 tabular-nums whitespace-nowrap">
+                  <td className="px-3 py-2 text-xs font-bold text-cyan-700 tabular-nums whitespace-nowrap">
                     {formatDuration(rep.otherBreakSeconds)}
                   </td>
 
                   <td className="px-3 py-2 text-xs tabular-nums whitespace-nowrap">
-                    <span className={`font-extrabold ${(rep.lunchBreakSeconds + rep.otherBreakSeconds) > 3600 ? "text-rose-600 font-black" : "text-slate-800"}`}>
+                    <span className={`font-bold ${(rep.lunchBreakSeconds + rep.otherBreakSeconds) > 3600 ? "text-rose-600 font-bold" : "text-slate-800"}`}>
                       {formatDuration(rep.lunchBreakSeconds + rep.otherBreakSeconds)}
                     </span>
                     {(rep.lunchBreakSeconds + rep.otherBreakSeconds) > 3600 && (
-                      <span className="ml-1 text-[9px] font-black bg-rose-100 text-rose-800 px-1 py-0.2 rounded uppercase">Over 1h</span>
+                      <span className="ml-1 text-[9px] font-bold bg-rose-100 text-rose-800 px-1 py-0.2 rounded uppercase">Over 1h</span>
                     )}
                   </td>
 
-                  <td className="px-3 py-2 text-xs font-black text-slate-900 tabular-nums whitespace-nowrap">
+                  <td className="px-3 py-2 text-xs font-bold text-slate-900 tabular-nums whitespace-nowrap">
                     {formatDuration(rep.totalWorkSeconds || 0)}
                   </td>
 
                   <td className="px-3 py-2 text-xs whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-black rounded-md border ${
+                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-md border ${
                         rep.status === "Active"
                           ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                           : rep.status === "On Break"
@@ -255,7 +255,7 @@ export default function LiveAttendanceSection({
                         {rep.status}
                       </span>
                       {rep.status === "Checked Out" && (
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
                           rep.halfSalaryDeduct
                             ? "bg-amber-50 text-amber-700 border-amber-200"
                             : "bg-emerald-50 text-emerald-700 border-emerald-200"

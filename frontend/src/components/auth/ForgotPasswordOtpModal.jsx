@@ -157,10 +157,10 @@ export default function ForgotPasswordOtpModal({
             </div>
 
             <div className="space-y-1 mb-5">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider">
                 {portalName} Recovery
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Forgot Password?</h3>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Forgot Password?</h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 Enter your {isVendor ? "registered email or Vendor ID" : "administrator email"}. We will send a secure 6-digit OTP code from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong>.
               </p>
@@ -218,10 +218,10 @@ export default function ForgotPasswordOtpModal({
             </div>
 
             <div className="space-y-1 mb-5">
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
                 OTP Verification
               </span>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Enter OTP Code</h3>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Enter OTP Code</h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 6-digit OTP code sent to <strong className="text-slate-800">{email}</strong> via <strong className="text-blue-600">abhishekyadav36219@gmail.com</strong>.
               </p>
@@ -253,7 +253,7 @@ export default function ForgotPasswordOtpModal({
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder="&bull; &bull; &bull; &bull; &bull; &bull;"
-                  className="w-full text-center tracking-[8px] font-mono text-lg font-black py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-slate-900 focus:outline-none transition"
+                  className="w-full text-center tracking-[8px] font-mono text-lg font-bold py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-slate-900 focus:outline-none transition"
                 />
               </div>
 
@@ -344,7 +344,7 @@ export default function ForgotPasswordOtpModal({
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Password Reset Complete!</h3>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Password Reset Complete!</h3>
               <p className="text-xs text-slate-600 max-w-xs mx-auto leading-relaxed">
                 Your password has been successfully updated in the database. You can now log into your account using your new credentials.
               </p>

@@ -152,7 +152,7 @@ export default function CandidateLogin() {
           <div className="w-full max-w-[430px] sm:max-w-[450px] bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_25px_60px_rgba(20,60,100,0.14)] border border-white/90 p-7 sm:p-9 text-left relative">
             {/* Header */}
             <div className="mb-4 space-y-1">
-              <h1 className="text-2xl sm:text-[28px] font-black text-[#261b4d] tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-[28px] font-bold text-[#261b4d] tracking-tight leading-tight">
                 Welcome To Family
               </h1>
               <p className="text-xs text-slate-400 font-medium leading-relaxed">

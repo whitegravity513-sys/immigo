@@ -17,7 +17,7 @@ export function WorkforceLeavesPanel({
             <Calendar size={15} />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
               Leave Applications
               <span className="text-[10px] px-2 py-0.2 rounded-full bg-rose-100 text-rose-800 font-bold">
                 {pendingLeaves.length} Pending
@@ -55,7 +55,7 @@ export function WorkforceLeavesPanel({
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-8 h-8 rounded-lg ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} text-xs font-black flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
+                    <div className={`w-8 h-8 rounded-lg ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} text-xs font-bold flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
                       {emp.profileImage ? (
                         <img
                           src={emp.profileImage}
@@ -96,7 +96,7 @@ export function WorkforceLeavesPanel({
                       {formatDate(leave.startDate)} → {formatDate(leave.endDate)}
                     </span>
                   </div>
-                  <span className="font-black text-blue-700 text-xs">
+                  <span className="font-bold text-blue-700 text-xs">
                     {leave.totalDays} Day{leave.totalDays > 1 ? "s" : ""}
                   </span>
                 </div>

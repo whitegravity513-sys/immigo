@@ -42,12 +42,12 @@ export function ClientDetailHeader({
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 font-extrabold text-xl flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 font-bold text-xl flex items-center justify-center shrink-0">
               {client.companyName.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                   {client.companyName}
                 </h1>
                 <StatusBadge status={client.status} />

@@ -152,12 +152,12 @@ export default function EmpHomeOverview({
               <Coffee size={22} className="animate-bounce text-white" />
             </div>
             <div>
-              <div className="text-xs font-black uppercase tracking-wider text-amber-100">
+              <div className="text-xs font-bold uppercase tracking-wider text-amber-100">
                 You are Currently on Break • Work Timer Paused
               </div>
               <div className="text-sm font-bold text-white flex items-center gap-2 mt-0.5">
                 <span>Break Elapsed:</span>
-                <strong className="font-mono text-base font-black underline bg-black/20 px-2 py-0.5 rounded-lg tabular-nums">
+                <strong className="font-mono text-base font-bold underline bg-black/20 px-2 py-0.5 rounded-lg tabular-nums">
                   {fmtDur(totalBreakSeconds)}
                 </strong>
               </div>
@@ -168,7 +168,7 @@ export default function EmpHomeOverview({
             type="button"
             onClick={() => handleBreakEnd && handleBreakEnd()}
             disabled={loading}
-            className="px-5 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 shadow-md border border-emerald-300"
+            className="px-5 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 shadow-md border border-emerald-300"
           >
             <Play size={14} className="fill-current text-emerald-700" />
             <span>Break In (Resume Work)</span>
@@ -182,7 +182,7 @@ export default function EmpHomeOverview({
           <div className="flex items-center gap-2.5 min-w-0">
             <AlertCircle size={18} className="text-amber-600 shrink-0" />
             <div className="min-w-0 text-xs">
-              <span className="font-extrabold text-amber-900 mr-1.5">Compliance Notice:</span>
+              <span className="font-bold text-amber-900 mr-1.5">Compliance Notice:</span>
               <span className="text-amber-800 font-medium">
                 Mandatory employee profile verification documents pending
                 {complianceInfo.missingDocs?.length > 0 && ` (${complianceInfo.missingDocs.length} missing)`}
@@ -210,7 +210,7 @@ export default function EmpHomeOverview({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-1.5 py-0.5 rounded">Meeting Scheduled</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-1.5 py-0.5 rounded">Meeting Scheduled</span>
                 <span className="text-xs text-purple-200 font-bold">{unacknowledgedMeeting.startTime} • {unacknowledgedMeeting.date}</span>
               </div>
               <h4 className="text-xs font-bold text-white mt-0.5 truncate max-w-md">{unacknowledgedMeeting.title}</h4>
@@ -220,7 +220,7 @@ export default function EmpHomeOverview({
             <button
               type="button"
               onClick={() => handleAcknowledgeMeeting(unacknowledgedMeeting._id || unacknowledgedMeeting.id)}
-              className="px-3 py-1.5 bg-white text-purple-900 hover:bg-purple-50 rounded-lg text-xs font-black shadow-xs cursor-pointer transition-all flex items-center gap-1"
+              className="px-3 py-1.5 bg-white text-purple-900 hover:bg-purple-50 rounded-lg text-xs font-bold shadow-xs cursor-pointer transition-all flex items-center gap-1"
             >
               <CheckCircle2 size={13} className="text-emerald-600" />
               <span>Acknowledge</span>
@@ -251,7 +251,7 @@ export default function EmpHomeOverview({
           <div className="flex items-center gap-4">
             <div className="relative shrink-0 group">
               <div
-                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white text-blue-600 font-black text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}
+                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white text-blue-600 font-bold text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}
               >
                 {currentAvatar ? (
                   <img
@@ -260,7 +260,7 @@ export default function EmpHomeOverview({
                     className="w-full h-full object-cover rounded-xl"
                   />
                 ) : (
-                  <span className="text-blue-600 font-black">{(user?.name || "E")[0].toUpperCase()}</span>
+                  <span className="text-blue-600 font-bold">{(user?.name || "E")[0].toUpperCase()}</span>
                 )}
 
                 <label
@@ -293,7 +293,7 @@ export default function EmpHomeOverview({
                   {greeting}, {user?.name || "Employee"}!
                 </h2>
                 <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${status === "Active"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${status === "Active"
                     ? "bg-emerald-500/30 text-emerald-200 border border-emerald-400"
                     : status === "On Break"
                       ? "bg-amber-500/30 text-amber-200 border border-amber-400"
@@ -312,11 +312,11 @@ export default function EmpHomeOverview({
                   onClick={() => setView("profile-docs")}
                   title="Click to view My Profile & Documents"
                 />
-                <span className="text-white/80 font-black">•</span>
+                <span className="text-white/80 font-bold">•</span>
                 <span className="text-white font-bold bg-white/20 px-2.5 py-0.5 rounded-md border border-white/30 text-[11px]">
                   {user?.department || "Staff"}
                 </span>
-                <span className="text-white/80 font-black">•</span>
+                <span className="text-white/80 font-bold">•</span>
                 <span className="text-slate-100 font-semibold">{user?.designation || "Employee"}</span>
                 {isHolidayToday && (
                   <span className="text-amber-300 font-bold bg-amber-400/25 px-2 py-0.5 rounded-md border border-amber-400/40 text-[10px] flex items-center gap-1">
@@ -356,7 +356,7 @@ export default function EmpHomeOverview({
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 flex items-center gap-1">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 flex items-center gap-1">
                     <Calendar size={11} className="text-amber-700" />
                     Official Company Holiday
                   </span>
@@ -371,7 +371,7 @@ export default function EmpHomeOverview({
                       : "Today"}
                   </span>
                 </div>
-                <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight mt-0.5">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5">
                   {activeHoliday.title || "Holiday Celebration"}
                 </h3>
                 <p className="text-xs text-slate-600 mt-0.5 max-w-2xl leading-relaxed">
@@ -391,7 +391,7 @@ export default function EmpHomeOverview({
                 <button
                   type="button"
                   onClick={handleAcknowledgeHoliday}
-                  className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-black rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                 >
                   <CheckCircle2 size={15} />
                   <span>Acknowledge Holiday</span>

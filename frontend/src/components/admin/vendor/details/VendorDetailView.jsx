@@ -56,7 +56,7 @@ export default function VendorDetailView({
       <div className="bg-white rounded-lg border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-start sm:items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg ${selectedVendor.logo || selectedVendor.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-black text-sm shadow-xs shrink-0 overflow-hidden`}>
+            <div className={`w-10 h-10 rounded-lg ${selectedVendor.logo || selectedVendor.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-bold text-sm shadow-xs shrink-0 overflow-hidden`}>
               {selectedVendor.logo || selectedVendor.profileImage ? (
                 <img src={selectedVendor.logo || selectedVendor.profileImage} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -68,7 +68,7 @@ export default function VendorDetailView({
                 <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                   {selectedVendor.companyName}
                 </h1>
-                <span className="font-mono text-[10px] font-extrabold px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">
+                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">
                   {selectedVendor.id}
                 </span>
                 <VendorStatusBadge status={selectedVendor.status} />

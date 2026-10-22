@@ -39,13 +39,13 @@ export default function AdminUpdateToast({ notification, onClose, onView }) {
 
           <div className="flex-1 min-w-0 pr-6">
             <div className="flex items-center gap-2 mb-1">
-              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${badge.bg}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${badge.bg}`}>
                 {badge.label}
               </span>
               <span className="text-[10px] text-slate-400 font-bold">Just Now</span>
             </div>
 
-            <h4 className="text-xs font-black text-slate-900 leading-snug truncate">
+            <h4 className="text-xs font-bold text-slate-900 leading-snug truncate">
               {notification.title || "Admin Update Received"}
             </h4>
 

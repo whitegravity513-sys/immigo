@@ -9,7 +9,7 @@ export default function ClientPaymentStatsCards({ stats = {} }) {
           <IndianRupee size={13} className="text-blue-600" />
           Total Agreed
         </p>
-        <p className="text-2xl font-black text-gray-900 mt-1">
+        <p className="text-2xl font-bold text-gray-900 mt-1">
           ₹{Number(stats.totalAgreedPayments || 0).toLocaleString("en-IN")}
         </p>
         <p className="text-xs text-gray-500 mt-1">Sum of configured milestones</p>
@@ -20,7 +20,7 @@ export default function ClientPaymentStatsCards({ stats = {} }) {
           <CreditCard size={13} className="text-emerald-600" />
           Total Paid
         </p>
-        <p className="text-2xl font-black text-emerald-600 mt-1">
+        <p className="text-2xl font-bold text-emerald-600 mt-1">
           ₹{Number(stats.totalPaymentsMade || 0).toLocaleString("en-IN")}
         </p>
         <p className="text-xs text-emerald-600 font-medium mt-1">
@@ -33,7 +33,7 @@ export default function ClientPaymentStatsCards({ stats = {} }) {
           <TrendingUp size={13} className="text-amber-600" />
           Total Outstanding
         </p>
-        <p className="text-2xl font-black text-amber-600 mt-1">
+        <p className="text-2xl font-bold text-amber-600 mt-1">
           ₹{Number(stats.totalOutstandingAmount || 0).toLocaleString("en-IN")}
         </p>
         <p className="text-xs text-gray-500 mt-1">Remaining company liability</p>
@@ -44,7 +44,7 @@ export default function ClientPaymentStatsCards({ stats = {} }) {
           <Clock size={13} className="text-indigo-600" />
           Payments Due
         </p>
-        <p className="text-2xl font-black text-indigo-600 mt-1">
+        <p className="text-2xl font-bold text-indigo-600 mt-1">
           {stats.paymentsDueCount || 0}
         </p>
         <p className="text-xs text-gray-500 mt-1">Milestones awaiting payment</p>
@@ -55,7 +55,7 @@ export default function ClientPaymentStatsCards({ stats = {} }) {
           <AlertCircle size={13} className="text-rose-600" />
           Overdue Payments
         </p>
-        <p className="text-2xl font-black text-rose-600 mt-1">
+        <p className="text-2xl font-bold text-rose-600 mt-1">
           {stats.overduePaymentsCount || 0}
         </p>
         <p className="text-xs text-rose-600 font-medium mt-1">Past expected schedule</p>

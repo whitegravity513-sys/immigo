@@ -8,7 +8,7 @@ export function EmployeePaymentsTab({ emp, formatDate }) {
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
-          <h4 className="text-base font-black text-slate-800 flex items-center gap-2">
+          <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
             <Award size={18} className="text-blue-600" />
             Employee Compensation & Package Records
           </h4>
@@ -23,7 +23,7 @@ export function EmployeePaymentsTab({ emp, formatDate }) {
           <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">
             Current Package (CTC)
           </span>
-          <span className="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">
+          <span className="text-xl sm:text-2xl font-bold text-slate-900 mt-1 block">
             {emp?.currentPackage ||
               (emp?.salary
                 ? `₹${Number(emp.salary * 12).toLocaleString()} / yr`
@@ -38,7 +38,7 @@ export function EmployeePaymentsTab({ emp, formatDate }) {
           <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
             Monthly Net Salary
           </span>
-          <span className="text-xl sm:text-2xl font-black text-emerald-600 mt-1 block">
+          <span className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1 block">
             {emp?.monthlySalary
               ? `₹${Number(emp.monthlySalary).toLocaleString()}`
               : emp?.salary
@@ -54,7 +54,7 @@ export function EmployeePaymentsTab({ emp, formatDate }) {
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
             Previous Package (CTC)
           </span>
-          <span className="text-xl sm:text-2xl font-black text-slate-800 mt-1 block">
+          <span className="text-xl sm:text-2xl font-bold text-slate-800 mt-1 block">
             {emp?.previousPackage || "N/A"}
           </span>
           <span className="text-[11px] text-slate-500 font-medium">

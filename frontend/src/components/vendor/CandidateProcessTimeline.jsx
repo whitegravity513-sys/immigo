@@ -261,7 +261,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
           >
             <div className="flex items-start justify-between mb-4 pb-4 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-black flex items-center gap-2">
+                <h3 className="text-sm font-bold flex items-center gap-2">
                   {isCompleted ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> :
                    isLocked ? <Lock className="w-4 h-4 text-slate-400" /> :
                    <Circle className="w-4 h-4 text-indigo-600 fill-indigo-600" />}
@@ -525,8 +525,8 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                     {paymentAction.action === "Submit" ? (
                       <div className="space-y-3">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                          <h4 className="text-sm font-black text-slate-800">Submit Payment Details</h4>
-                          <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                          <h4 className="text-sm font-bold text-slate-800">Submit Payment Details</h4>
+                          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
                             Milestone Due: ₹{amt.toLocaleString()}
                           </span>
                         </div>

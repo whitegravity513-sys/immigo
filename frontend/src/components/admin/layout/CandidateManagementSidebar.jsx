@@ -144,7 +144,7 @@ export function CandidateManagementSidebar({
           </div>
 
           {!collapsed && (
-            <p className="text-[11px] font-extrabold text-blue-900/70 uppercase tracking-[0.14em] px-3 mb-2 mt-2">
+            <p className="text-[11px] font-bold text-blue-900/70 uppercase tracking-[0.14em] px-3 mb-2 mt-2">
               Candidate Operations
             </p>
           )}

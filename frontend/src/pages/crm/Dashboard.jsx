@@ -147,7 +147,7 @@ export function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white px-4 py-3 rounded-xl border border-gray-200/90 shadow-2xs">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight leading-tight">
+            <h1 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight leading-tight">
               Admin Master Dashboard
             </h1>
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60">
@@ -240,7 +240,7 @@ export function Dashboard() {
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
               <Briefcase size={14} />
             </span>
-            <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100/80 text-amber-800">
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100/80 text-amber-800">
               Phase 2
             </span>
           </div>
@@ -261,7 +261,7 @@ export function Dashboard() {
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
               <Contact size={14} />
             </span>
-            <span className="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100/80 text-indigo-800">
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100/80 text-indigo-800">
               Phase 2
             </span>
           </div>
@@ -449,7 +449,7 @@ export function Dashboard() {
                         className="py-2 flex items-center justify-between gap-2 hover:bg-gray-50/60 rounded px-1 transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className={`w-7 h-7 rounded-lg ${rec.profileImage || rec.employeeId?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
+                          <div className={`w-7 h-7 rounded-lg ${rec.profileImage || rec.employeeId?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
                             {rec.profileImage || rec.employeeId?.profileImage ? (
                               <img src={rec.profileImage || rec.employeeId?.profileImage} alt="" className="w-full h-full object-cover" />
                             ) : (

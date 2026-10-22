@@ -86,7 +86,7 @@ export default function VendorCandidateDossierView({
       <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
+            <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
               {selectedCandidate.photo ? (
                 <img
                   src={selectedCandidate.photo}
@@ -99,10 +99,10 @@ export default function VendorCandidateDossierView({
             </div>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                   {selectedCandidate.fullName}
                 </h1>
-                <span className="font-mono text-xs font-extrabold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg">
+                <span className="font-mono text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg">
                   {selectedCandidate.id}
                 </span>
                 <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-bold text-xs rounded-full border border-emerald-200">
@@ -127,7 +127,7 @@ export default function VendorCandidateDossierView({
 
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-right">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Sourcing Partner</span>
-            <span className="font-extrabold text-slate-900 text-sm block">{selectedVendor.companyName}</span>
+            <span className="font-bold text-slate-900 text-sm block">{selectedVendor.companyName}</span>
             <span className="font-mono text-slate-500 text-[11px] block">{selectedVendor.id}</span>
           </div>
         </div>
@@ -150,9 +150,9 @@ export default function VendorCandidateDossierView({
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-slate-700 text-xs">Application Status:</span>
+              <span className="font-bold text-slate-700 text-xs">Application Status:</span>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-extrabold ${
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
                   appStatus === "Selected"
                     ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                     : appStatus === "Shortlisted"
@@ -271,7 +271,7 @@ export default function VendorCandidateDossierView({
             </h3>
             <div className="flex justify-between">
               <span className="text-slate-400">Trade Position:</span>
-              <span className="font-extrabold text-blue-700 text-sm">
+              <span className="font-bold text-blue-700 text-sm">
                 {selectedCandidate.currentPosition || "Technician"}
               </span>
             </div>
@@ -355,7 +355,7 @@ export default function VendorCandidateDossierView({
                         <FileText size={18} />
                       </div>
                       <div>
-                        <span className="font-extrabold text-slate-900 block text-xs">{doc.name}</span>
+                        <span className="font-bold text-slate-900 block text-xs">{doc.name}</span>
                         <span className="text-[10px] text-slate-400 font-mono block">
                           {doc.fileName} • {doc.size || "1.2 MB"}
                         </span>

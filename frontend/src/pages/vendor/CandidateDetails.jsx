@@ -172,7 +172,7 @@ export function CandidateDetails() {
             <ArrowLeft size={14} />
             <span>Back to Candidates</span>
           </button>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <span>{candidate.fullName}</span>
             <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
               {candidate.id}
@@ -212,7 +212,7 @@ export function CandidateDetails() {
 
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="text-lg font-extrabold text-slate-900">{candidate.fullName}</h2>
+              <h2 className="text-lg font-bold text-slate-900">{candidate.fullName}</h2>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
                 {candidate.currentPosition}
               </span>
@@ -392,10 +392,10 @@ export function CandidateDetails() {
           <div className="bg-white rounded-xl border border-indigo-200 p-6 shadow-xs space-y-4 font-sans">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest block">
+                <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-widest block">
                   Project Recruitment Status & Interview Schedule
                 </span>
-                <h3 className="text-base font-black text-slate-900">
+                <h3 className="text-base font-bold text-slate-900">
                   {activeApp.projectName} — {activeApp.position}
                 </h3>
               </div>
@@ -461,10 +461,10 @@ export function CandidateDetails() {
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4 font-sans">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
-                <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest block">
+                <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest block">
                   Placement Financial Breakdown
                 </span>
-                <h3 className="text-base font-black text-slate-900">
+                <h3 className="text-base font-bold text-slate-900">
                   Recruitment Fee & Milestone Payments
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -479,13 +479,12 @@ export function CandidateDetails() {
               </div>
             </div>
 
-            {}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Total Placement Fee
                 </span>
-                <span className="text-xl font-black text-slate-900 mt-0.5 block">
+                <span className="text-xl font-bold text-slate-900 mt-0.5 block">
                   ₹{totalAmount.toLocaleString()}
                 </span>
                 <span className="text-[10px] text-slate-400 font-medium">Agreed contract fee</span>
@@ -495,7 +494,7 @@ export function CandidateDetails() {
                 <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
                   Total Released (Paid)
                 </span>
-                <span className="text-xl font-black text-emerald-600 mt-0.5 block">
+                <span className="text-xl font-bold text-emerald-600 mt-0.5 block">
                   ₹{paidAmount.toLocaleString()}
                 </span>
                 <span className="text-[10px] text-emerald-700 font-medium">Released to vendor account</span>
@@ -505,7 +504,7 @@ export function CandidateDetails() {
                 <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
                   Remaining Balance
                 </span>
-                <span className="text-xl font-black text-amber-600 mt-0.5 block">
+                <span className="text-xl font-bold text-amber-600 mt-0.5 block">
                   ₹{remainingAmount.toLocaleString()}
                 </span>
                 <span className="text-[10px] text-amber-700 font-medium">Pending upcoming stage completion</span>

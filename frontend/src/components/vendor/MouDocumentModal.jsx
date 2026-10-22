@@ -69,10 +69,10 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
         >
           {}
           <div className="text-center border-b-2 border-slate-900 pb-6 space-y-2">
-            <div className="inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-blue-900 font-sans text-[11px] font-black uppercase tracking-wider mb-1">
+            <div className="inline-block px-3 py-1 rounded bg-blue-50 border border-blue-200 text-blue-900 font-sans text-[11px] font-bold uppercase tracking-wider mb-1">
               ImmiGo Global Overseas Workforce
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-950 tracking-wide font-sans uppercase">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-950 tracking-wide font-sans uppercase">
               MEMORANDUM OF UNDERSTANDING (MOU)
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 font-sans font-medium">

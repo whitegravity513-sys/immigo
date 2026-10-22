@@ -128,7 +128,7 @@ export default function ClientPaymentTable({
                   </td>
 
                   <td className="py-1.5 px-3 whitespace-nowrap font-mono">
-                    <div className="font-black text-gray-950 text-sm">
+                    <div className="font-bold text-gray-950 text-sm">
                       ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")}
                     </div>
                     {p.gstAmount > 0 ? (

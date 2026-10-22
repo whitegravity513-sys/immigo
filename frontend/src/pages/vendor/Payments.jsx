@@ -354,7 +354,7 @@ export default function Payments() {
                         <td className="py-1.5 px-3">
                           <Link
                             to={`/vendor/candidates/${cand.candidateId}`}
-                            className="font-extrabold text-slate-900 group-hover:text-blue-600 transition block text-sm"
+                            className="font-bold text-slate-900 group-hover:text-blue-600 transition block text-sm"
                           >
                             {cand.candidateName}
                           </Link>
@@ -375,7 +375,7 @@ export default function Payments() {
 
                         {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
-                          <span className="font-extrabold text-slate-900 text-sm">
+                          <span className="font-bold text-slate-900 text-sm">
                             ₹{cand.totalFee.toLocaleString()}
                           </span>
                           <span className="text-[10px] text-slate-400 block font-medium">
@@ -385,7 +385,7 @@ export default function Payments() {
 
                         {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
-                          <span className="font-extrabold text-emerald-600 text-sm">
+                          <span className="font-bold text-emerald-600 text-sm">
                             ₹{cand.paidAmount.toLocaleString()}
                           </span>
                           <div className="w-20 bg-slate-100 rounded-full h-1.5 mx-auto mt-1.5 overflow-hidden">
@@ -402,7 +402,7 @@ export default function Payments() {
                         {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span
-                            className={`font-extrabold text-sm ${
+                            className={`font-bold text-sm ${
                               cand.dueAmount > 0 ? "text-amber-600" : "text-slate-400"
                             }`}
                           >
@@ -511,7 +511,7 @@ export default function Payments() {
                               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                                 <div className="flex items-center gap-2">
                                   <Layers className="w-4 h-4 text-blue-600" />
-                                  <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                                  <h4 className="font-bold text-slate-900 text-xs sm:text-sm">
                                     All Process Milestones for {cand.candidateName}
                                   </h4>
                                 </div>

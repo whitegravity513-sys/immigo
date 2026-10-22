@@ -82,7 +82,7 @@ export default function CandidateMasterProfileView({
       <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-black text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
+            <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
               {selectedCandidate.photo ? (
                 <img
                   src={selectedCandidate.photo}
@@ -95,10 +95,10 @@ export default function CandidateMasterProfileView({
             </div>
             <div>
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                   {selectedCandidate.fullName}
                 </h1>
-                <span className="font-mono text-xs font-extrabold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg">
+                <span className="font-mono text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg">
                   {selectedCandidate.id}
                 </span>
                 <span
@@ -144,7 +144,7 @@ export default function CandidateMasterProfileView({
             <Building2 size={22} className="text-blue-600 shrink-0" />
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase block">Source Vendor Partner</span>
-              <span className="font-extrabold text-slate-900 text-sm">{vendorName}</span>
+              <span className="font-bold text-slate-900 text-sm">{vendorName}</span>
               <span className="font-mono text-slate-500 text-[11px] block">
                 Vendor ID: {selectedCandidate.vendorId}
               </span>
@@ -195,7 +195,7 @@ export default function CandidateMasterProfileView({
             </h3>
             <div className="flex justify-between">
               <span className="text-slate-400">Trade Position:</span>
-              <span className="font-extrabold text-blue-700 text-sm">
+              <span className="font-bold text-blue-700 text-sm">
                 {selectedCandidate.currentPosition}
               </span>
             </div>
@@ -246,7 +246,7 @@ export default function CandidateMasterProfileView({
 
           {candDocs.length > 0 &&
             (allDocsVerified ? (
-              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-extrabold text-xs border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+              <span className="px-3.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
                 <CheckCircle2 size={14} className="text-emerald-600" />
                 <span>All Documents Verified</span>
               </span>
@@ -295,7 +295,7 @@ export default function CandidateMasterProfileView({
                         <FileText size={18} />
                       </div>
                       <div>
-                        <span className="font-extrabold text-slate-900 block text-xs">{doc.name}</span>
+                        <span className="font-bold text-slate-900 block text-xs">{doc.name}</span>
                         <span className="text-[10px] text-slate-400 font-mono block">
                           {doc.fileName} • {doc.size || "—"}
                         </span>
@@ -344,7 +344,7 @@ export default function CandidateMasterProfileView({
                     </div>
 
                     {isVerified ? (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs border border-emerald-200 shadow-2xs">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200 shadow-2xs">
                         <CheckCircle2 size={14} className="text-emerald-600" />
                         <span>Verified</span>
                       </div>
@@ -468,7 +468,7 @@ export default function CandidateMasterProfileView({
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="flex-1">
                         <span className="font-mono text-[10px] font-bold text-slate-400 block">{sub.id}</span>
-                        <h4 className="font-black text-slate-900 text-base mt-0.5">{sub.projectName}</h4>
+                        <h4 className="font-bold text-slate-900 text-base mt-0.5">{sub.projectName}</h4>
                         <p className="text-xs text-slate-600 mt-1 font-semibold">
                           Client: <strong className="text-slate-900">{sub.clientName}</strong>
                           {" • "}Position: {sub.position}
@@ -516,7 +516,7 @@ export default function CandidateMasterProfileView({
                       </div>
 
                       <span
-                        className={`px-4 py-1.5 rounded-full text-xs font-black shadow-2xs self-start ${statusBadgeClass(
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-2xs self-start ${statusBadgeClass(
                           sub.status
                         )}`}
                       >
@@ -686,7 +686,7 @@ export default function CandidateMasterProfileView({
                 <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">
                   Interview Scheduling
                 </span>
-                <h3 className="text-base font-black text-slate-900">Schedule Interview</h3>
+                <h3 className="text-base font-bold text-slate-900">Schedule Interview</h3>
               </div>
               <button
                 onClick={() => setInterviewModal(null)}
@@ -775,7 +775,7 @@ export default function CandidateMasterProfileView({
                 <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">
                   Reject Application
                 </span>
-                <h3 className="text-base font-black text-slate-900">Reject Candidate from Project</h3>
+                <h3 className="text-base font-bold text-slate-900">Reject Candidate from Project</h3>
               </div>
               <button
                 onClick={() => setRejectAppModal(null)}
