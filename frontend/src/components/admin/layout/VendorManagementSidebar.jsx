@@ -114,7 +114,7 @@ export function VendorManagementSidebar({
       >
         {}
         <div
-          className={`h-[68px] min-h-[68px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${collapsed ? "justify-center" : "justify-between"
+          className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${collapsed ? "justify-center" : "justify-between"
             }`}
         >
           <Link

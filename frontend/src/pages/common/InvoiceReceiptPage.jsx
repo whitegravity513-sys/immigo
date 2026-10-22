@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ArrowLeft, Download, Printer, CheckCircle2 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import apiClient from "../../services/apiClient.js";
 
 
 function numberToWords(num) {
@@ -73,9 +74,20 @@ export default function InvoiceReceiptPage() {
     try {
       setLoading(true);
       const apps = await crmVendorService.getApplications();
-      const app = (apps || []).find(
+      let app = (apps || []).find(
         (a) => String(a.id) === String(appId) || String(a.applicationId) === String(appId)
       );
+
+      if (!app) {
+        try {
+          const res = await apiClient.get(`/admin/candidates/applications/${appId}/milestones`).catch(() => null)
+            || await apiClient.get(`/candidate/applications/${appId}/milestones`).catch(() => null);
+          if (res?.data?.application) {
+            app = res.data.application;
+          }
+        } catch {}
+      }
+
       if (app) {
         setApplication(app);
         const m =

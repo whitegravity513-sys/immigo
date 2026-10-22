@@ -96,6 +96,19 @@ const candidateApplicationSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    processMilestones: {
+      type: Array,
+      default: [],
+    },
+    paymentPlan: {
+      totalAmount: { type: Number, default: 40000 },
+      currency: { type: String, default: "INR" },
+      milestones: { type: Array, default: [] },
+    },
+    payments: {
+      type: Array,
+      default: [],
+    },
     statusHistory: [
       {
         status: String,
@@ -106,6 +119,7 @@ const candidateApplicationSchema = new mongoose.Schema(
     ],
   },
   {
+    strict: false,
     timestamps: true,
     toJSON: {
       virtuals: true,

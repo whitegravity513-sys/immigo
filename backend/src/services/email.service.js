@@ -788,6 +788,168 @@ export const sendCandidateInterviewEmail = async ({
   }
 };
 
+export const sendCandidateSelectionEmail = async ({
+  to,
+  candidateName,
+  projectName,
+  position,
+  totalAmount = 40000,
+}) => {
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
+  <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2 style="color: #0f172a; margin: 0;">🎉 Congratulations, ${candidateName}!</h2>
+      <p style="color: #10b981; font-weight: bold; margin-top: 4px;">You have been officially SELECTED!</p>
+    </div>
+    <p>Dear <strong>${candidateName}</strong>,</p>
+    <p>We are thrilled to inform you that you have been selected for the position of <strong>${position || "Specialist"}</strong> on project <strong>${projectName}</strong>.</p>
+    
+    <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <h4 style="margin: 0 0 10px 0; color: #0f172a;">Next Steps & Milestone Processing:</h4>
+      <p style="margin: 4px 0; font-size: 14px;">• Your overseas deployment pipeline and processing milestones have been initiated.</p>
+      <p style="margin: 4px 0; font-size: 14px;">• Step 1: Selection & Document Clearance.</p>
+      <p style="margin: 4px 0; font-size: 14px;">• Track all milestones, upload proofs, and manage payments directly in your Candidate Portal.</p>
+    </div>
+
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="http://localhost:5173/candidate/dashboard" style="background: #0f2744; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+        View Process & Milestones
+      </a>
+    </div>
+
+    <p style="font-size: 13px; color: #64748b;">If you have any questions, our recruitment desk is always available to support you.</p>
+    <div style="border-top: 1px solid #e2e8f0; margin-top: 24px; padding-top: 12px; font-size: 12px; color: #94a3b8; text-align: center;">
+      &copy; ${new Date().getFullYear()} Immigo Overseas Careers. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to,
+    subject: `🎉 Congratulations! Selected for ${projectName} (${position || "Role"})`,
+    html: htmlContent,
+    text: `Congratulations ${candidateName}! You have been selected for ${position} on ${projectName}. Please login to your Candidate Portal to view your processing milestones.`,
+  };
+
+  if (!transporter) {
+    logger.info(`Simulated selection email dispatched to ${to}`);
+    return { success: true, simulated: true };
+  }
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send selection email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendCandidateMilestoneUpdateEmail = async ({
+  to,
+  candidateName,
+  projectName,
+  milestoneName,
+  stageName,
+  stageStatus,
+  remarks,
+}) => {
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
+  <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px;">
+    <h3 style="color: #0f2744; margin-top: 0;">Processing Stage Update 🚀</h3>
+    <p>Dear <strong>${candidateName}</strong>,</p>
+    <p>Your processing status for project <strong>${projectName}</strong> has progressed.</p>
+    
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin: 16px 0;">
+      <p style="margin: 4px 0;"><strong>Milestone:</strong> ${milestoneName}</p>
+      <p style="margin: 4px 0;"><strong>Stage:</strong> ${stageName}</p>
+      <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color: #2563eb; font-weight: bold;">${stageStatus}</span></p>
+      ${remarks ? `<p style="margin: 4px 0;"><strong>Remarks:</strong> ${remarks}</p>` : ""}
+    </div>
+
+    <p style="font-size: 14px;">Log in to your Candidate Portal to check your updated timeline and download clearance certificates.</p>
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="http://localhost:5173/candidate/dashboard" style="background: #2563eb; color: #ffffff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">
+        Open Candidate Portal
+      </a>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  if (!transporter) return { success: true, simulated: true };
+  try {
+    const info = await transporter.sendMail({
+      from: DEFAULT_FROM,
+      to,
+      subject: `Processing Update: ${stageName} is now ${stageStatus} - ${projectName}`,
+      html: htmlContent,
+      text: `Processing Update for ${candidateName}: ${stageName} is now ${stageStatus} on ${projectName}.`,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send milestone update email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendCandidatePaymentReceiptEmail = async ({
+  to,
+  candidateName,
+  projectName,
+  milestoneName,
+  amount,
+  receiptNumber,
+  paymentMode,
+}) => {
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
+  <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px;">
+    <h3 style="color: #10b981; margin-top: 0;">Payment Receipt Confirmation ✅</h3>
+    <p>Dear <strong>${candidateName}</strong>,</p>
+    <p>We have successfully verified and received your payment for project <strong>${projectName}</strong>.</p>
+    
+    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
+      <p style="margin: 4px 0;"><strong>Receipt #:</strong> ${receiptNumber || "N/A"}</p>
+      <p style="margin: 4px 0;"><strong>Milestone:</strong> ${milestoneName}</p>
+      <p style="margin: 4px 0;"><strong>Amount Paid:</strong> ₹${Number(amount).toLocaleString()}</p>
+      <p style="margin: 4px 0;"><strong>Payment Mode:</strong> ${paymentMode || "Online Transfer"}</p>
+      <p style="margin: 4px 0;"><strong>Status:</strong> Verified & Approved</p>
+    </div>
+
+    <p style="font-size: 13px; color: #64748b;">The next processing stage for your overseas deployment has been unlocked.</p>
+  </div>
+</body>
+</html>
+  `;
+
+  if (!transporter) return { success: true, simulated: true };
+  try {
+    const info = await transporter.sendMail({
+      from: DEFAULT_FROM,
+      to,
+      subject: `Payment Receipt: ₹${Number(amount).toLocaleString()} for ${milestoneName}`,
+      html: htmlContent,
+      text: `Payment Receipt: ₹${amount} received for ${milestoneName} on ${projectName}.`,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send payment receipt email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 export default {
   sendOtpEmail,
   sendVendorRegistrationApprovedEmail,
@@ -796,5 +958,8 @@ export default {
   sendCandidateApprovalEmail,
   sendCandidateRejectionEmail,
   sendCandidateInterviewEmail,
+  sendCandidateSelectionEmail,
+  sendCandidateMilestoneUpdateEmail,
+  sendCandidatePaymentReceiptEmail,
 };
 

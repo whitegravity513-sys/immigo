@@ -6,6 +6,9 @@ import CandidateApplication from "../models/CandidateApplication.js";
 import Project from "../models/Project.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import ActivityLog from "../models/ActivityLog.js";
+import Notification from "../models/Notification.js";
+import CrmNotification from "../models/CrmNotification.js";
+import { sendCandidatePaymentReceiptEmail } from "../services/email.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { generateNextCandidateId, generateNextCandidateApplicationId } from "../utils/idGenerator.js";
 import { saveBase64File } from "../utils/fileStorage.js";
@@ -518,3 +521,217 @@ export const getMyApplications = asyncHandler(async (req, res) => {
     applications,
   });
 });
+
+export const getCandidateApplicationMilestones = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const { id } = req.params;
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
+
+  const app = await CandidateApplication.findOne({
+    ...query,
+    candidateId: candidate.candidateId,
+  });
+
+  if (!app) {
+    return res.status(404).json({ success: false, message: "Application not found for your profile." });
+  }
+
+  return res.status(200).json({
+    success: true,
+    application: app.toJSON(),
+    processMilestones: app.processMilestones || [],
+    paymentPlan: app.paymentPlan || { totalAmount: 40000, currency: "INR", milestones: [] },
+    payments: app.payments || [],
+  });
+});
+
+export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const { id } = req.params;
+  const { milestoneId, amount, paymentMode = "Online UPI", referenceNumber = "", paymentNotes = "", isInstantMock = true } = req.body;
+
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
+
+  const app = await CandidateApplication.findOne({
+    ...query,
+    candidateId: candidate.candidateId,
+  });
+
+  if (!app) {
+    return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const milestones = [...(app.processMilestones || [])];
+  const mIdx = milestones.findIndex((m) => String(m.id) === String(milestoneId));
+  if (mIdx === -1) {
+    return res.status(404).json({ success: false, message: "Milestone not found." });
+  }
+
+  const paidAmt = Number(amount) || Number(milestones[mIdx].paymentAmount) || 15000;
+  const refNum = referenceNumber.trim() || `TXN-${Date.now().toString().slice(-8)}`;
+  const receiptNum = `INV-${app.applicationId || app.id}-${milestoneId}`;
+  const payDate = new Date().toISOString().split("T")[0];
+
+  const isAutoApproved = isInstantMock || paymentMode === "Online UPI" || paymentMode === "Card";
+
+  if (isAutoApproved) {
+    milestones[mIdx].paymentStatus = "Approved";
+    milestones[mIdx].status = "Active";
+    milestones[mIdx].paymentAmount = paidAmt;
+    milestones[mIdx].paymentRef = refNum;
+    milestones[mIdx].paymentDate = payDate;
+    milestones[mIdx].approvedBy = "Online Auto-Verify";
+    milestones[mIdx].paymentRemark = paymentNotes || `Paid online via ${paymentMode}`;
+
+    if (Array.isArray(milestones[mIdx].stages) && milestones[mIdx].stages.length > 0) {
+      if (milestones[mIdx].stages[0].status === "Locked") {
+        milestones[mIdx].stages[0].status = "In Progress";
+      }
+    }
+  } else {
+    milestones[mIdx].paymentStatus = "Submitted";
+    milestones[mIdx].paymentRef = refNum;
+    milestones[mIdx].paymentRemark = paymentNotes || `Payment reference submitted by candidate (${paymentMode})`;
+  }
+
+  if (!Array.isArray(app.payments)) {
+    app.payments = [];
+  }
+
+  const paymentRecord = {
+    id: `pay-${Date.now()}`,
+    milestoneId,
+    milestoneName: milestones[mIdx].name,
+    amount: paidAmt,
+    paymentMode,
+    referenceNumber: refNum,
+    receiptNumber: receiptNum,
+    paymentDate: payDate,
+    status: isAutoApproved ? "Verified" : "Pending Verification",
+    verifiedBy: isAutoApproved ? "Online Auto-Verify" : "Pending Admin Verification",
+    notes: paymentNotes || `Candidate payment via ${paymentMode}`,
+    createdAt: new Date(),
+  };
+
+  app.payments.push(paymentRecord);
+  app.processMilestones = milestones;
+  if (app.paymentPlan) {
+    app.paymentPlan.milestones = milestones;
+  }
+  app.markModified("processMilestones");
+  app.markModified("paymentPlan");
+  app.markModified("payments");
+
+  await app.save();
+
+  try {
+    await Notification.create({
+      type: "EXPENSE_UPDATE",
+      title: isAutoApproved ? "Candidate Milestone Paid Online! 💳" : "Candidate Submitted Payment Reference 📋",
+      message: `${candidate.fullName} paid ₹${Number(paidAmt).toLocaleString()} for "${milestones[mIdx].name}" on project ${app.projectName} (Ref: ${refNum}).`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+    });
+
+    await CrmNotification.create({
+      notificationId: `notif-cand-${Date.now()}`,
+      recipientRole: "CANDIDATE",
+      candidateId: candidate.candidateId,
+      title: isAutoApproved ? "Payment Successful! 🎉" : "Payment Reference Submitted ⏳",
+      message: isAutoApproved
+        ? `Payment of ₹${Number(paidAmt).toLocaleString()} for ${milestones[mIdx].name} confirmed. Receipt #: ${receiptNum}`
+        : `Your payment reference ${refNum} for ₹${Number(paidAmt).toLocaleString()} has been submitted for admin verification.`,
+      link: isAutoApproved ? `/invoice/${app.applicationId}/${milestoneId}` : "/candidate/dashboard",
+      type: "success",
+    });
+
+    if (isAutoApproved) {
+      await sendCandidatePaymentReceiptEmail({
+        to: candidate.email,
+        candidateName: candidate.fullName,
+        projectName: app.projectName,
+        milestoneName: milestones[mIdx].name,
+        amount: paidAmt,
+        receiptNumber: receiptNum,
+        paymentMode,
+      });
+    }
+
+    await ActivityLog.create({
+      action: "CANDIDATE_PAYMENT",
+      module: "CANDIDATE",
+      targetId: app.applicationId,
+      description: `${candidate.fullName} paid ₹${Number(paidAmt).toLocaleString()} for ${milestones[mIdx].name}`,
+      performedBy: candidate.fullName,
+      performedByRole: "candidate",
+    });
+  } catch (notifErr) {
+    console.warn("Notification error during candidate payment:", notifErr);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: isAutoApproved
+      ? "Payment completed successfully! Milestone unlocked and receipt generated."
+      : "Payment reference submitted! Verification in progress.",
+    application: app.toJSON(),
+    receiptNumber: receiptNum,
+    payment: paymentRecord,
+  });
+});
+
+export const getCandidateNotifications = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  const notifications = await CrmNotification.find({
+    recipientRole: { $in: ["CANDIDATE", "ALL"] },
+    $or: [
+      { candidateId: candidate.candidateId },
+      { candidateId: null },
+      { candidateId: { $exists: false } },
+    ],
+  })
+    .sort({ createdAt: -1 })
+    .limit(30)
+    .lean();
+
+  const formatted = (notifications || []).map((n) => ({
+    ...n,
+    id: n.notificationId || n._id.toString(),
+  }));
+
+  const unreadCount = formatted.filter((n) => !n.read).length;
+
+  return res.status(200).json({
+    success: true,
+    notifications: formatted,
+    unreadCount,
+  });
+});
+
+export const markCandidateNotificationAsRead = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { notificationId: id }] } : { notificationId: id };
+
+  await CrmNotification.updateOne(query, { $set: { read: true } });
+
+  return res.status(200).json({
+    success: true,
+    message: "Notification marked as read.",
+  });
+});
+

@@ -28,6 +28,13 @@ import {
   Menu,
   X,
   LayoutDashboard,
+  Bell,
+  CreditCard,
+  DollarSign,
+  Download,
+  ArrowRight,
+  Layers,
+  Eye,
 } from "lucide-react";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import AppFooter from "../../components/common/AppFooter.jsx";
@@ -45,6 +52,24 @@ export default function CandidateDashboard() {
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  // In-app Notifications State
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+
+  // Selected App & Processing Milestones State
+  const [selectedAppForProcessing, setSelectedAppForProcessing] = useState(null);
+  const [milestonesData, setMilestonesData] = useState(null);
+  const [milestonesLoading, setMilestonesLoading] = useState(false);
+
+  // Candidate Milestone Payment Modal State
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [selectedMilestoneToPay, setSelectedMilestoneToPay] = useState(null);
+  const [paymentTypeTab, setPaymentTypeTab] = useState("online"); // "online" | "manual"
+  const [paymentRefInput, setPaymentRefInput] = useState("");
+  const [paymentNotesInput, setPaymentNotesInput] = useState("");
+  const [submittingPayment, setSubmittingPayment] = useState(false);
 
   const [profileForm, setProfileForm] = useState({
     fullName: "",
@@ -72,6 +97,41 @@ export default function CandidateDashboard() {
   const [docFile, setDocFile] = useState(null);
   const [docFileName, setDocFileName] = useState("");
   const [uploadingDoc, setUploadingDoc] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await apiClient.get("/candidate/notifications");
+      if (res.data?.success) {
+        setNotifications(res.data.notifications || []);
+        setUnreadNotifCount(res.data.unreadCount || 0);
+      }
+    } catch {}
+  };
+
+  const handleMarkNotificationRead = async (notifId) => {
+    try {
+      await apiClient.patch(`/candidate/notifications/${notifId}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notifId ? { ...n, read: true } : n))
+      );
+      setUnreadNotifCount((prev) => Math.max(0, prev - 1));
+    } catch {}
+  };
+
+  const fetchAppMilestones = async (appId) => {
+    if (!appId) return;
+    setMilestonesLoading(true);
+    try {
+      const res = await apiClient.get(`/candidate/applications/${appId}/milestones`);
+      if (res.data?.success) {
+        setMilestonesData(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to load milestones:", err);
+    } finally {
+      setMilestonesLoading(false);
+    }
+  };
 
   const fetchCandidateData = async () => {
     setLoading(true);
@@ -108,13 +168,21 @@ export default function CandidateDashboard() {
           passportIssueCountry: p.passportIssueCountry || "",
         });
       }
-
       if (projRes.data?.projects) {
         setProjects(projRes.data.projects);
       }
       if (appRes.data?.applications) {
-        setApplications(appRes.data.applications);
+        const apps = appRes.data.applications;
+        setApplications(apps);
+
+        const selectedApp = apps.find((a) => a.status === "Selected" || a.status === "Completed");
+        if (selectedApp) {
+          setSelectedAppForProcessing(selectedApp);
+          fetchAppMilestones(selectedApp.applicationId || selectedApp.id);
+        }
       }
+
+      fetchNotifications();
     } catch (err) {
       console.error("Error loading candidate dashboard:", err);
       if (err.response?.status === 404 || err.response?.status === 401) {
@@ -295,9 +363,47 @@ export default function CandidateDashboard() {
     navigate("/candidate/login");
   };
 
-  const completionPercent = candidate?.profile?.profileCompletionPercent || 20;
+  const handlePayMilestone = async (isInstant = true) => {
+    if (!selectedAppForProcessing || !selectedMilestoneToPay) return;
+    setSubmittingPayment(true);
+    try {
+      const res = await apiClient.post(
+        `/candidate/applications/${selectedAppForProcessing.applicationId || selectedAppForProcessing.id}/pay-milestone`,
+        {
+          milestoneId: selectedMilestoneToPay.id,
+          amount: selectedMilestoneToPay.paymentAmount || selectedMilestoneToPay.amount,
+          paymentMode: isInstant ? "Online UPI" : "Bank Transfer",
+          referenceNumber: paymentRefInput || `TXN-${Date.now().toString().slice(-8)}`,
+          paymentNotes: paymentNotesInput,
+          isInstantMock: isInstant,
+        }
+      );
+      if (res.data?.success) {
+        setNotification({
+          type: "success",
+          message: res.data.message || "Payment processed successfully! Milestone unlocked.",
+        });
+        setPayModalOpen(false);
+        setPaymentRefInput("");
+        setPaymentNotesInput("");
+        fetchCandidateData();
+        fetchNotifications();
+        fetchAppMilestones(selectedAppForProcessing.applicationId || selectedAppForProcessing.id);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Payment submission failed.");
+    } finally {
+      setSubmittingPayment(false);
+      setTimeout(() => setNotification(null), 5000);
+    }
+  };
 
+  const completionPercent = candidate?.profile?.profileCompletionPercent || 20;
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const selectedApps = (applications || []).filter(
+    (a) => a.status === "Selected" || a.status === "Completed"
+  );
 
   const navItems = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard },
@@ -305,6 +411,7 @@ export default function CandidateDashboard() {
     { id: "documents", label: "Upload Documents", icon: Upload },
     { id: "jobs", label: "Available Jobs", icon: Briefcase, badge: projects.length },
     { id: "applications", label: "My Applications", icon: Calendar, badge: applications.length },
+    { id: "processing", label: "Processing & Milestones", icon: Award, badge: selectedApps.length },
   ];
 
   return (
@@ -323,7 +430,7 @@ export default function CandidateDashboard() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Sidebar Header: Identical h-16 and gradient matching main header */}
+        {/* Sidebar Header: Standard clean h-16 matching top header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-900/70 border border-blue-700/50 text-cyan-400 flex items-center justify-center font-bold shadow-xs">
@@ -409,7 +516,7 @@ export default function CandidateDashboard() {
           })}
         </nav>
 
-        {/* Sidebar Footer Widget: Matching h-[48px] with dashboard footer */}
+        {/* Sidebar Footer Widget */}
         <div className="h-[48px] min-h-[48px] px-4 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-t border-blue-800/80 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-1.5 text-[11px] font-bold text-cyan-300">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -428,25 +535,93 @@ export default function CandidateDashboard() {
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-full overflow-hidden">
-        {/* Top Navbar: Identical h-16, gradient, and border matching sidebar header */}
-        <header className="h-16 px-4 sm:px-6 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white flex items-center justify-between shrink-0 z-30 shadow-xs">
-          <div className="flex items-center gap-3">
+        {/* Top Navbar */}
+        <header className="h-14 px-4 sm:px-6 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white flex items-center justify-between shrink-0 z-30 shadow-xs">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-2 text-white hover:bg-white/10 rounded-xl cursor-pointer"
+              className="lg:hidden p-1.5 text-white hover:bg-white/10 rounded-lg cursor-pointer"
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
-            <h1 className="text-sm sm:text-base font-extrabold text-white tracking-tight">
+            <h1 className="text-xs sm:text-sm font-bold text-white tracking-tight">
               {navItems.find((n) => n.id === activeTab)?.label || "Candidate Portal"}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-cyan-300 border border-white/15 text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-cyan-300 border border-white/15 text-[11px] font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Status: {candidate?.accountStatus || "Active"}</span>
+            </div>
+
+            {/* In-app Notification Bell */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotifDropdownOpen((prev) => !prev)}
+                className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer transition flex items-center justify-center"
+                title="Notifications"
+              >
+                <Bell size={16} />
+                {unreadNotifCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
+                    {unreadNotifCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Dropdown */}
+              {notifDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 text-slate-800 overflow-hidden animate-fade-in">
+                  <div className="p-3.5 bg-slate-900 text-white flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bell size={14} className="text-cyan-400" />
+                      <span className="text-xs font-bold">Candidate Notifications</span>
+                    </div>
+                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded font-mono">
+                      {unreadNotifCount} Unread
+                    </span>
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-400">
+                        No notifications yet.
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          onClick={() => {
+                            if (!n.read) handleMarkNotificationRead(n.id);
+                            if (n.link) {
+                              setNotifDropdownOpen(false);
+                              if (n.link.includes("invoice")) {
+                                window.open(n.link, "_blank");
+                              } else {
+                                setActiveTab("processing");
+                              }
+                            }
+                          }}
+                          className={`p-3 text-xs hover:bg-slate-50 transition cursor-pointer ${
+                            !n.read ? "bg-blue-50/50" : ""
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <span className="font-bold text-slate-900 text-[11px] truncate">{n.title}</span>
+                            <span className="text-[9px] text-slate-400 font-mono">
+                              {n.createdAt ? new Date(n.createdAt).toLocaleDateString() : ""}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 line-clamp-2">{n.message}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5 pl-3 border-l border-blue-800/80">
@@ -475,112 +650,96 @@ export default function CandidateDashboard() {
         </header>
 
         {/* Scrollable Dashboard Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
           {notification && (
             <div
-              className={`p-3 rounded-xl border flex items-center justify-between shadow-xs transition-all text-xs ${
+              className={`p-2.5 rounded-lg border flex items-center justify-between shadow-xs transition-all text-xs ${
                 notification.type === "success"
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                   : "bg-rose-50 border-rose-200 text-rose-800"
               }`}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 {notification.type === "success" ? (
-                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
                 ) : (
-                  <AlertCircle size={16} className="text-rose-600 shrink-0" />
+                  <AlertCircle size={15} className="text-rose-600 shrink-0" />
                 )}
-                <span className="font-semibold">{notification.message}</span>
+                <span className="font-semibold text-xs">{notification.message}</span>
               </div>
               <button
                 onClick={() => setNotification(null)}
-                className="p-1 hover:bg-black/5 rounded-lg cursor-pointer"
+                className="p-1 hover:bg-black/5 rounded cursor-pointer"
               >
-                <XCircle size={14} />
+                <XCircle size={13} />
               </button>
             </div>
           )}
 
-          {/* Compact Welcome Banner - Light Blue Slate Theme */}
-          <div className="bg-gradient-to-r from-sky-50 via-blue-50/80 to-indigo-50/60 border border-sky-200/90 rounded-2xl p-4 sm:p-5 text-slate-900 shadow-2xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1 z-10">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold">
-                <CheckCircle2 size={12} className="text-emerald-600" />
-                <span>Account Status: {candidate?.accountStatus || "Approved"}</span>
-              </div>
-              <h1 className="text-lg sm:text-xl font-extrabold text-[#0f2744] tracking-tight">
+          {/* Compact Top Welcome & Eligibility Strip */}
+          <div className="bg-gradient-to-r from-sky-50 via-blue-50/70 to-indigo-50/50 border border-sky-200/80 rounded-lg px-3 py-2 text-slate-900 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                <CheckCircle2 size={10} className="text-emerald-600" />
+                <span>{candidate?.accountStatus || "Approved"}</span>
+              </span>
+              <span className="text-xs font-bold text-[#0f2744] tracking-tight">
                 Welcome back, {candidate?.fullName}!
-              </h1>
-              <p className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
-                <Mail size={12} className="text-blue-600" />
-                <span>{candidate?.email || user?.email}</span>
-              </p>
-            </div>
-
-            <div className="bg-white/95 rounded-xl p-3 border border-sky-200 shadow-2xs flex items-center gap-3 z-10 self-start md:self-auto">
-              <div className="w-11 h-11 rounded-full border-3 border-blue-600 flex items-center justify-center font-bold text-xs text-blue-700 bg-blue-50/70">
-                {completionPercent}%
-              </div>
-              <div>
-                <span className="text-xs font-bold text-slate-900 block">Profile Completion</span>
-                <span className="text-[11px] text-slate-500 block font-medium">
-                  {canApply ? "Ready to Apply" : "Incomplete & Pending"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Compact Unlock Banner */}
-          <div className="p-3.5 sm:p-4 bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 border border-blue-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <ShieldCheck size={16} />
-              </div>
-              <div>
-                <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">
-                  {canApply
-                    ? "Your profile and documents are ready! You can now apply for open international projects."
-                    : "Complete your profile (80%) and upload required documents to unlock application access."}
-                </h2>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  Application access:{" "}
-                  <strong className={canApply ? "text-emerald-700" : "text-amber-700"}>
-                    {canApply ? "Unlocked (Eligible to Apply)" : "Locked (Complete Profile & Upload Docs)"}
-                  </strong>
-                </p>
-              </div>
+              </span>
+              <span className="text-[10px] text-slate-500 font-medium hidden sm:inline">&bull; {candidate?.email || user?.email}</span>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              {!isProfileComplete && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white rounded border border-sky-200 text-[10px] font-bold text-slate-700 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />
+                <span>Profile: <strong>{completionPercent}%</strong></span>
+                <span className="text-[9px] text-slate-400">({canApply ? "Eligible" : "Pending"})</span>
+              </div>
+
+              {!canApply && !isProfileComplete && (
                 <button
                   onClick={() => setActiveTab("profile")}
-                  className="px-3 py-1.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-xs transition-colors cursor-pointer"
+                  className="px-2 py-0.5 text-[10px] font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded shadow-xs cursor-pointer"
                 >
                   Complete Profile
                 </button>
               )}
-              {!hasUploadedDocs && (
+              {!canApply && !hasUploadedDocs && (
                 <button
                   onClick={() => setActiveTab("documents")}
-                  className="px-3 py-1.5 text-xs font-bold text-[#0f2744] bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                  className="px-2 py-0.5 text-[10px] font-bold text-[#0f2744] bg-white hover:bg-slate-50 border border-slate-300 rounded shadow-2xs cursor-pointer"
                 >
-                  Upload Documents
+                  Upload Docs
                 </button>
               )}
             </div>
           </div>
 
+          {/* Slim Unlock Notice (Only if locked) */}
+          {!canApply && (
+            <div className="px-3 py-1.5 bg-amber-50/80 border border-amber-200/80 rounded-lg flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={14} className="text-amber-600 shrink-0" />
+                <span className="text-[11px] text-amber-900 font-medium">
+                  Complete your profile (80%) and upload required documents to unlock application access.
+                </span>
+              </div>
+              <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded shrink-0">
+                Locked
+              </span>
+            </div>
+          )}
+
           {activeTab === "overview" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-                    <CheckCircle2 size={16} />
+            <div className="space-y-2.5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.5">
+                  <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                    <CheckCircle2 size={13} />
                   </div>
-                  <div className="text-[11px] text-slate-500 font-semibold">Account Approval</div>
-                  <div className="text-base font-bold text-slate-900">Active & Approved</div>
-                  <p className="text-[10px] text-slate-400">
+                  <div className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Account Approval</div>
+                  <div className="text-xs font-bold text-slate-900">Active & Approved</div>
+                  <p className="text-[9px] text-slate-400">
                     Approved on{" "}
                     {candidate?.approvalDate
                       ? new Date(candidate.approvalDate).toLocaleDateString()
@@ -588,59 +747,59 @@ export default function CandidateDashboard() {
                   </p>
                 </div>
 
-                <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-                    <FileText size={16} />
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.5">
+                  <div className="w-6 h-6 rounded bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                    <FileText size={13} />
                   </div>
-                  <div className="text-[11px] text-slate-500 font-semibold">Document Status</div>
-                  <div className="text-base font-bold text-slate-900">
+                  <div className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Document Status</div>
+                  <div className="text-xs font-bold text-slate-900">
                     {hasUploadedDocs ? `${candidate?.documents?.length} Uploaded` : "Not Submitted"}
                   </div>
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-[9px] text-slate-400">
                     {hasUploadedDocs ? "Ready for verification" : "Upload Resume / Passport"}
                   </p>
                 </div>
 
-                <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs space-y-1">
-                  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
-                    {canApply ? <Unlock size={16} /> : <Lock size={16} />}
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.5">
+                  <div className="w-6 h-6 rounded bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+                    {canApply ? <Unlock size={13} /> : <Lock size={13} />}
                   </div>
-                  <div className="text-[11px] text-slate-500 font-semibold">Job Opportunities Access</div>
-                  <div className="text-base font-bold text-slate-900">
+                  <div className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">Job Access</div>
+                  <div className="text-xs font-bold text-slate-900">
                     {canApply ? "Unlocked" : "Locked"}
                   </div>
-                  <p className="text-[10px] text-slate-400">
-                    {canApply ? "You can apply to available projects" : "Complete profile & upload docs to unlock"}
+                  <p className="text-[9px] text-slate-400">
+                    {canApply ? "Eligible to apply to projects" : "Complete profile & upload docs"}
                   </p>
                 </div>
               </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900">My Job Applications</h3>
+            <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+              <div className="p-2.5 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-900">My Job Applications</h3>
                 <button
                   onClick={() => setActiveTab("jobs")}
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 cursor-pointer"
                 >
                   Explore More Jobs &rarr;
                 </button>
               </div>
               <div className="divide-y divide-slate-100 text-xs">
                 {applications.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500">
+                  <div className="p-4 text-center text-slate-400 text-xs">
                     No active job applications. Explore available projects below to apply!
                   </div>
                 ) : (
                   applications.map((app) => (
-                    <div key={app.applicationId} className="p-4 flex items-center justify-between gap-4">
+                    <div key={app.applicationId} className="p-2 flex items-center justify-between gap-2.5">
                       <div>
-                        <div className="font-bold text-slate-900 text-sm">{app.projectName}</div>
-                        <div className="text-slate-500 text-[11px] mt-0.5 font-medium">
+                        <div className="font-bold text-slate-900 text-xs">{app.projectName}</div>
+                        <div className="text-slate-500 text-[10px] mt-0.5 font-medium">
                           {app.position} &bull; {app.destinationCountry} &bull; Applied on{" "}
                           {new Date(app.appliedAt).toLocaleDateString()}
                         </div>
                       </div>
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-800">
                         {app.status}
                       </span>
                     </div>
@@ -652,53 +811,53 @@ export default function CandidateDashboard() {
         )}
 
         {activeTab === "profile" && (
-          <form onSubmit={handleSaveProfile} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs space-y-8">
+          <form onSubmit={handleSaveProfile} className="bg-white rounded-lg p-3.5 sm:p-4 border border-slate-200 shadow-2xs space-y-3">
             <div>
-              <h2 className="text-lg font-black text-[#0f2744]">Personal Information</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">Personal Information</h2>
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Basic candidate details and identity coordinates.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Full Name</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Full Name</label>
                 <input
                   type="text"
                   required
                   value={profileForm.fullName}
                   onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Mobile Number</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Mobile Number</label>
                 <input
                   type="tel"
                   required
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Date of Birth</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Date of Birth</label>
                 <input
                   type="date"
                   value={profileForm.dob}
                   onChange={(e) => setProfileForm({ ...profileForm, dob: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Gender</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Gender</label>
                 <select
                   value={profileForm.gender}
                   onChange={(e) => setProfileForm({ ...profileForm, gender: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none cursor-pointer"
                 >
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
@@ -708,151 +867,151 @@ export default function CandidateDashboard() {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block font-bold text-slate-700 mb-1">Permanent Residential Address</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Permanent Residential Address</label>
                 <input
                   type="text"
                   placeholder="Street / House No / Area"
                   value={profileForm.address}
                   onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">City</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">City</label>
                 <input
                   type="text"
                   value={profileForm.city}
                   onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">State / Province</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">State / Province</label>
                 <input
                   type="text"
                   value={profileForm.state}
                   onChange={(e) => setProfileForm({ ...profileForm, state: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Postal / Zip Code</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Postal / Zip Code</label>
                 <input
                   type="text"
                   value={profileForm.pincode}
                   onChange={(e) => setProfileForm({ ...profileForm, pincode: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100">
-              <h2 className="text-lg font-black text-[#0f2744]">Professional & Trade Information</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+            <div className="pt-2.5 border-t border-slate-100">
+              <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">Professional & Trade Information</h2>
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Work experience, trade specialization, and overseas deployment preferences.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Trade / Domain Specialization</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Trade / Domain Specialization</label>
                 <input
                   type="text"
                   placeholder="e.g. Electrician, Welder, Nurse, Cook"
                   value={profileForm.trade}
                   onChange={(e) => setProfileForm({ ...profileForm, trade: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Preferred Job Role</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Preferred Job Role</label>
                 <input
                   type="text"
                   placeholder="e.g. Senior Technician, Line Cook"
                   value={profileForm.preferredJobRole}
                   onChange={(e) => setProfileForm({ ...profileForm, preferredJobRole: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Experience (Years)</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Experience (Years)</label>
                 <input
                   type="number"
                   min="0"
                   max="40"
                   value={profileForm.experienceYears}
                   onChange={(e) => setProfileForm({ ...profileForm, experienceYears: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block font-bold text-slate-700 mb-1">Key Skills (Comma separated)</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Key Skills (Comma separated)</label>
                 <input
                   type="text"
                   placeholder="e.g. MIG Welding, Blueprint Reading, Safety Compliance"
                   value={profileForm.skills}
                   onChange={(e) => setProfileForm({ ...profileForm, skills: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Preferred Deployment Countries</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Preferred Deployment Countries</label>
                 <input
                   type="text"
                   placeholder="e.g. UAE, Saudi Arabia, Qatar, Malaysia"
                   value={profileForm.countryPreference}
                   onChange={(e) => setProfileForm({ ...profileForm, countryPreference: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Passport Number (If held)</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Passport Number (If held)</label>
                 <input
                   type="text"
                   placeholder="e.g. Z1234567"
                   value={profileForm.passportNumber}
                   onChange={(e) => setProfileForm({ ...profileForm, passportNumber: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none font-mono"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Passport Expiry Date</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Passport Expiry Date</label>
                 <input
                   type="date"
                   value={profileForm.passportExpiry}
                   onChange={(e) => setProfileForm({ ...profileForm, passportExpiry: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Languages Spoken</label>
+                <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Languages Spoken</label>
                 <input
                   type="text"
                   placeholder="e.g. English, Hindi, Arabic"
                   value={profileForm.languages}
                   onChange={(e) => setProfileForm({ ...profileForm, languages: e.target.value })}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                  className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:border-blue-600 focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2.5 pt-2.5 border-t border-slate-100">
               <button
                 type="submit"
                 disabled={saveLoading}
-                className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
-                <Save size={14} />
+                <Save size={13} />
                 <span>{saveLoading ? "Saving Changes..." : "Save Profile & Continue"}</span>
               </button>
             </div>
@@ -860,23 +1019,23 @@ export default function CandidateDashboard() {
         )}
 
         {activeTab === "documents" && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs space-y-6">
+          <div className="space-y-3">
+            <div className="bg-white rounded-lg p-3 sm:p-4 border border-slate-200 shadow-2xs space-y-3">
               <div>
-                <h2 className="text-lg font-black text-[#0f2744]">Upload Compliance Documents</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Upload your Resume and National Identity Proof at minimum to unlock job applications. You can also upload your Passport, Certificates, and PAN.
+                <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">Upload Compliance Documents</h2>
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  Upload Resume and National Identity Proof at minimum to unlock job applications. You can also upload Passport and Certificates.
                 </p>
               </div>
 
-              <form onSubmit={handleUploadDocument} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <form onSubmit={handleUploadDocument} className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Document Category</label>
+                    <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Document Category</label>
                     <select
                       value={uploadCategory}
                       onChange={(e) => setUploadCategory(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none cursor-pointer"
+                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:outline-none cursor-pointer"
                     >
                       <option value="resume">Resume / CV (PDF)</option>
                       <option value="identity_proof">Identity Proof (Aadhaar / National ID)</option>
@@ -888,53 +1047,53 @@ export default function CandidateDashboard() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Select File (PDF or Image, max 10MB)</label>
+                    <label className="block font-medium text-slate-600 text-[11px] mb-0.5">Select File (PDF or Image, max 10MB)</label>
                     <input
                       type="file"
                       accept=".pdf,.png,.jpg,.jpeg"
                       onChange={handleFileChange}
-                      className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs cursor-pointer"
+                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs cursor-pointer"
                     />
                   </div>
                 </div>
 
                 {docFileName && (
-                  <div className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 size={14} />
+                  <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                    <CheckCircle2 size={12} />
                     <span>Selected: {docFileName}</span>
                   </div>
                 )}
 
-                <div className="flex justify-end">
+                <div className="flex justify-end pt-0.5">
                   <button
                     type="submit"
                     disabled={uploadingDoc || !docFile}
-                    className="flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <Upload size={14} />
+                    <Upload size={12} />
                     <span>{uploadingDoc ? "Uploading..." : "Upload Document"}</span>
                   </button>
                 </div>
               </form>
 
-              <div className="space-y-3 pt-4 border-t border-slate-100">
-                <h3 className="text-sm font-bold text-slate-900">Your Submitted Documents</h3>
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <h3 className="text-xs font-bold text-slate-900">Your Submitted Documents</h3>
 
                 {(candidate?.documents || []).length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-400">
+                  <div className="p-4 text-center text-xs text-slate-400">
                     No documents uploaded yet. Upload your resume and identity proof to get verified.
                   </div>
                 ) : (
                   (candidate?.documents || []).map((doc) => (
                     <div
                       key={doc.id}
-                      className="p-4 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                      className="p-2 rounded-lg border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 text-sm">{doc.name}</span>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-900 text-xs">{doc.name}</span>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
                               doc.status === "Verified"
                                 ? "bg-emerald-100 text-emerald-800"
                                 : doc.status === "Re-upload Required"
@@ -945,29 +1104,29 @@ export default function CandidateDashboard() {
                             {doc.status}
                           </span>
                         </div>
-                        <div className="text-slate-500 text-[11px]">
+                        <div className="text-slate-500 text-[10px]">
                           Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}
                         </div>
 
                         {doc.status === "Re-upload Required" && doc.rejectionReason && (
-                          <div className="mt-2 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-[11px] font-medium flex items-start gap-2">
-                            <AlertCircle size={14} className="shrink-0 text-rose-600 mt-0.5" />
+                          <div className="mt-1 p-1.5 bg-rose-50 border border-rose-200 rounded text-rose-900 text-[10px] font-medium flex items-start gap-1.5">
+                            <AlertCircle size={12} className="shrink-0 text-rose-600 mt-0.5" />
                             <div>
-                              <strong>Reason for replacement request:</strong> {doc.rejectionReason}
+                              <strong>Reason:</strong> {doc.rejectionReason}
                             </div>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {doc.fileUrl && (
                           <a
                             href={doc.fileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl flex items-center gap-1.5 transition-colors"
+                            className="px-2 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded flex items-center gap-1 transition-colors"
                           >
-                            <ExternalLink size={13} />
+                            <ExternalLink size={11} />
                             <span>Preview</span>
                           </a>
                         )}
@@ -981,40 +1140,40 @@ export default function CandidateDashboard() {
         )}
 
         {activeTab === "jobs" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between bg-white p-2.5 px-3 rounded-lg border border-slate-200 shadow-2xs">
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-[#0f2744]">Available Job Opportunities</h2>
-                <p className="text-[11px] text-slate-500">
+                <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">Available Job Opportunities</h2>
+                <p className="text-[10px] text-slate-500">
                   Active overseas projects posted by Admin seeking candidates.
                 </p>
               </div>
-              <div className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-800">
+              <div className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800">
                 {projects.length} Active Openings
               </div>
             </div>
 
             {projects.length === 0 ? (
-              <div className="p-8 text-center bg-white rounded-xl border border-slate-200 space-y-2.5">
-                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
-                  <Briefcase size={18} />
+              <div className="py-6 px-4 text-center bg-white rounded-lg border border-slate-200 space-y-1.5">
+                <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                  <Briefcase size={15} />
                 </div>
-                <h3 className="text-sm font-bold text-slate-800">No Projects Published Yet</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                <h3 className="text-xs font-bold text-slate-800">No Projects Published Yet</h3>
+                <p className="text-[10px] text-slate-500 max-w-sm mx-auto">
                   There are no active projects posted by Admin right now. As soon as Admin publishes projects, they will appear here.
                 </p>
-                <div className="pt-1">
+                <div className="pt-0.5">
                   <button
                     onClick={fetchCandidateData}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded transition-colors cursor-pointer"
                   >
-                    <RefreshCw size={12} />
+                    <RefreshCw size={11} />
                     <span>Refresh Projects</span>
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {projects.map((proj) => {
                   const isApplied = applications.some(
                     (a) => a.projectId === String(proj.id || proj.projectId)
@@ -1023,66 +1182,66 @@ export default function CandidateDashboard() {
                   return (
                     <div
                       key={proj.id}
-                      className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all text-xs"
+                      className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden flex flex-col justify-between hover:shadow-xs transition-all text-xs"
                     >
-                      <div className="h-20 bg-gradient-to-tr from-[#0f2744] to-[#163660] p-3 flex flex-col justify-between text-white">
-                        <span className="self-start text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white">
+                      <div className="h-14 bg-gradient-to-tr from-[#0f2744] to-[#163660] p-2.5 flex flex-col justify-between text-white">
+                        <span className="self-start text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded-full bg-white/20 text-white">
                           {proj.destinationCountry || proj.country || "Overseas"}
                         </span>
-                        <h3 className="text-sm font-bold text-white line-clamp-1">
+                        <h3 className="text-xs font-bold text-white line-clamp-1">
                           {proj.projectName}
                         </h3>
                       </div>
 
-                      <div className="p-3.5 space-y-1.5 flex-1">
-                        <div className="flex justify-between text-slate-600">
+                      <div className="p-2.5 space-y-1 flex-1">
+                        <div className="flex justify-between text-slate-600 text-[11px]">
                           <span className="text-slate-400">Position:</span>
                           <span className="font-semibold text-slate-800 truncate ml-2">{proj.position}</span>
                         </div>
-                        <div className="flex justify-between text-slate-600">
+                        <div className="flex justify-between text-slate-600 text-[11px]">
                           <span className="text-slate-400">Employer:</span>
                           <span className="font-semibold text-slate-800 truncate ml-2">{proj.clientName}</span>
                         </div>
-                        <div className="flex justify-between text-slate-600">
+                        <div className="flex justify-between text-slate-600 text-[11px]">
                           <span className="text-slate-400">Vacancies:</span>
                           <span className="font-bold text-blue-700">{proj.vacancies}</span>
                         </div>
-                        <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-100">
+                        <div className="flex justify-between text-slate-600 text-[11px] pt-1 border-t border-slate-100">
                           <span className="text-slate-400">Salary:</span>
                           <span className="font-bold text-emerald-700">{proj.salary}</span>
                         </div>
-                        <div className="p-1.5 bg-slate-50 rounded-lg text-[10px] text-slate-500 font-medium">
+                        <div className="p-1 bg-slate-50 rounded text-[9px] text-slate-500 font-medium">
                           {proj.eligibility || "Passport & Document Verification Required"}
                         </div>
                       </div>
 
-                      <div className="p-3 pt-0">
+                      <div className="p-2.5 pt-0">
                         {isApplied ? (
-                          <div className="w-full py-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+                          <div className="w-full py-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded text-center">
                             &check; Already Applied
                           </div>
                         ) : canApply ? (
                           <button
                             onClick={() => handleApplyProject(proj)}
-                            className="w-full py-2 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                            className="w-full py-1.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1"
                           >
                             <span>Apply Now</span>
-                            <ChevronRight size={13} />
+                            <ChevronRight size={12} />
                           </button>
                         ) : !isProfileComplete ? (
                           <button
                             onClick={() => setActiveTab("profile")}
-                            className="w-full py-2 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                            className="w-full py-1.5 text-[11px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded transition-colors cursor-pointer flex items-center justify-center gap-1"
                           >
-                            <Lock size={12} className="text-amber-700" />
+                            <Lock size={11} className="text-amber-700" />
                             <span>Complete Profile to Apply</span>
                           </button>
                         ) : (
                           <button
                             onClick={() => setActiveTab("documents")}
-                            className="w-full py-2 text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                            className="w-full py-1.5 text-[11px] font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded transition-colors cursor-pointer flex items-center justify-center gap-1"
                           >
-                            <Upload size={12} className="text-blue-700" />
+                            <Upload size={11} className="text-blue-700" />
                             <span>Upload Docs to Apply</span>
                           </button>
                         )}
@@ -1096,40 +1255,40 @@ export default function CandidateDashboard() {
         )}
 
         {activeTab === "applications" && (
-          <div className="space-y-6">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-              <h2 className="text-lg font-black text-[#0f2744]">My Project Applications</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+          <div className="space-y-3">
+            <div className="bg-white p-2.5 px-3 rounded-lg border border-slate-200 shadow-2xs">
+              <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">My Project Applications</h2>
+              <p className="text-[10px] text-slate-500 mt-0.5">
                 Track your active recruitment reviews, scheduled interviews, and final selection statuses.
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {applications.length === 0 ? (
-                <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center text-xs text-slate-400">
+                <div className="bg-white rounded-lg p-6 border border-slate-200 text-center text-xs text-slate-400">
                   You haven't submitted any project applications yet.
                 </div>
               ) : (
                 applications.map((app) => (
                   <div
                     key={app.applicationId}
-                    className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4"
+                    className="bg-white rounded-lg border border-slate-200 p-3 shadow-2xs space-y-2"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
                       <div>
-                        <span className="text-[10px] font-mono text-blue-600 font-bold uppercase tracking-wider block">
+                        <span className="text-[9px] font-mono text-blue-600 font-bold uppercase tracking-wider block">
                           Application ID: {app.applicationId}
                         </span>
-                        <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">
                           {app.projectName}
                         </h3>
-                        <p className="text-xs text-slate-500 font-medium">
+                        <p className="text-[10px] text-slate-500 font-medium">
                           {app.position} &bull; {app.destinationCountry}
                         </p>
                       </div>
 
                       <span
-                        className={`self-start sm:self-center px-3 py-1 rounded-full text-xs font-bold ${
+                        className={`self-start sm:self-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           app.status === "Selected"
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             : app.status === "Interview Scheduled"
@@ -1146,12 +1305,12 @@ export default function CandidateDashboard() {
                     </div>
 
                     {app.interview?.scheduledDate && (
-                      <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2 text-xs">
-                        <div className="flex items-center gap-2 font-bold text-sky-950">
-                          <Calendar size={16} className="text-sky-600" />
+                      <div className="p-2 bg-sky-50 border border-sky-200 rounded-md space-y-1 text-[11px]">
+                        <div className="flex items-center gap-1.5 font-bold text-sky-950">
+                          <Calendar size={13} className="text-sky-600" />
                           <span>Interview Scheduled</span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-slate-700">
                           <div>
                             <strong>Date:</strong> {app.interview.scheduledDate}
                           </div>
@@ -1178,15 +1337,534 @@ export default function CandidateDashboard() {
                           </div>
                         </div>
                         {app.interview.remarks && (
-                          <div className="text-slate-600 pt-1 border-t border-sky-100">
+                          <div className="text-slate-600 pt-0.5 border-t border-sky-100 text-[10px]">
                             <strong>Note:</strong> {app.interview.remarks}
                           </div>
                         )}
                       </div>
                     )}
+
+                    {app.status === "Selected" && (
+                      <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                          <div>
+                            <span className="font-bold text-emerald-950 block text-xs">Officially Selected 🎉</span>
+                            <span className="text-[10px] text-emerald-700 font-medium">Your deployment milestones and stages are active.</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAppForProcessing(app);
+                            fetchAppMilestones(app.applicationId || app.id);
+                            setActiveTab("processing");
+                          }}
+                          className="px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10px] flex items-center gap-1 shadow-xs cursor-pointer shrink-0 transition"
+                        >
+                          <Award size={12} />
+                          <span>View Processing & Milestones</span>
+                          <ArrowRight size={12} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Processing & Milestones Tab */}
+        {activeTab === "processing" && (
+          <div className="space-y-3">
+            {selectedApps.length === 0 ? (
+              <div className="w-full bg-white rounded-lg border border-slate-200 p-6 sm:p-8 text-center space-y-2.5">
+                <Award className="w-8 h-8 text-slate-300 mx-auto" />
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800">No Selected Projects Active Yet</h3>
+                <p className="text-[11px] text-slate-500 leading-relaxed max-w-xl mx-auto">
+                  Once our overseas client reviews your profile and marks your application as <strong>"Selected"</strong>, your step-by-step milestone timeline (Offer Acceptance, Medical Examination, Visa Stamping, and Flight Ticket Deployment) will automatically be unlocked right here.
+                </p>
+                <div className="pt-1">
+                  <button
+                    onClick={() => setActiveTab("jobs")}
+                    className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-md shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <Briefcase size={13} />
+                    <span>Explore Available Jobs & Apply</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              (() => {
+                const curApp = selectedAppForProcessing || selectedApps[0];
+                const rawMs =
+                  milestonesData?.processMilestones?.length > 0
+                    ? milestonesData.processMilestones
+                    : curApp.processMilestones?.length > 0
+                    ? curApp.processMilestones
+                    : [
+                        {
+                          id: "m0",
+                          name: "Milestone 1: Selection & Document Clearance",
+                          amount: 15000,
+                          paymentAmount: 15000,
+                          status: "Active",
+                          paymentStatus: "Payment Required",
+                          stages: [
+                            { id: "s0_1", name: "Trade Skill & Technical Screening", status: "Completed", completedAt: new Date().toISOString(), remark: "Candidate verified" },
+                            { id: "s0_2", name: "Client Offer Letter Signed & Verified", status: "In Progress", remark: "" },
+                            { id: "s0_3", name: "Document Attestation & Verification", status: "Pending", remark: "" },
+                          ],
+                        },
+                        {
+                          id: "m1",
+                          name: "Milestone 2: Medical & Visa Processing",
+                          amount: 15000,
+                          paymentAmount: 15000,
+                          status: "Locked",
+                          paymentStatus: "Locked",
+                          stages: [
+                            { id: "s1_1", name: "GAMCA Medical Fitness Clearance", status: "Locked", remark: "" },
+                            { id: "s1_2", name: "Visa Application & Work Permit Stamping", status: "Locked", remark: "" },
+                          ],
+                        },
+                        {
+                          id: "m2",
+                          name: "Milestone 3: Emigration Clearance & Flight Deployment",
+                          amount: 10000,
+                          paymentAmount: 10000,
+                          status: "Locked",
+                          paymentStatus: "Locked",
+                          stages: [
+                            { id: "s2_1", name: "Emigration Clearance (Poe/Protector)", status: "Locked", remark: "" },
+                            { id: "s2_2", name: "Air Ticket Booking & Travel Insurance", status: "Locked", remark: "" },
+                            { id: "s2_3", name: "Airport Mobilization & Deployment", status: "Locked", remark: "" },
+                          ],
+                        },
+                      ];
+
+                let totalStages = 0;
+                let doneStages = 0;
+                rawMs.forEach((m) => {
+                  (m.stages || []).forEach((s) => {
+                    totalStages++;
+                    if (s.status === "Completed") doneStages++;
+                  });
+                });
+                const progressPct = totalStages > 0 ? Math.round((doneStages / totalStages) * 100) : 0;
+
+                const totalMilestonesFee =
+                  curApp.paymentPlan?.totalAmount ||
+                  rawMs.reduce((acc, m) => acc + (Number(m.amount || m.paymentAmount) || 0), 0) ||
+                  40000;
+                const paidFee = rawMs.reduce((acc, m) => {
+                  if (m.status === "Paid" || m.paymentStatus === "Approved") {
+                    return acc + (Number(m.amount || m.paymentAmount) || 0);
+                  }
+                  return acc;
+                }, 0);
+
+                return (
+                  <div className="space-y-3">
+                    {/* Selected Project Header Card */}
+                    <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white p-3 sm:p-3.5 rounded-lg shadow-xs space-y-2">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                              ✓ Officially Selected
+                            </span>
+                            <span className="text-[10px] font-mono text-cyan-300">
+                              App #{curApp.applicationId || curApp.id}
+                            </span>
+                          </div>
+                          <h2 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                            {curApp.projectName}
+                          </h2>
+                          <div className="text-[10px] text-slate-300 flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <Globe size={11} className="text-cyan-400" />
+                              <span>{curApp.destinationCountry || "Overseas"}</span>
+                            </span>
+                            <span>&bull; Role: <strong>{curApp.position || "Specialist"}</strong></span>
+                            {curApp.salary && <span>&bull; Package: <strong className="text-emerald-400">{curApp.salary}</strong></span>}
+                          </div>
+                        </div>
+
+                        {/* Dropdown if multiple selected applications */}
+                        {selectedApps.length > 1 && (
+                          <div className="bg-white/10 p-1.5 rounded-lg border border-white/15">
+                            <label className="block text-[9px] uppercase font-bold text-slate-400 mb-0.5">
+                              Switch Project
+                            </label>
+                            <select
+                              value={curApp.applicationId || curApp.id}
+                              onChange={(e) => {
+                                const target = selectedApps.find(
+                                  (a) => (a.applicationId || a.id) === e.target.value
+                                );
+                                if (target) {
+                                  setSelectedAppForProcessing(target);
+                                  fetchAppMilestones(target.applicationId || target.id);
+                                }
+                              }}
+                              className="bg-slate-900 text-white text-[11px] font-bold px-2 py-1 rounded border border-white/20 focus:outline-none"
+                            >
+                              {selectedApps.map((a) => (
+                                <option key={a.applicationId || a.id} value={a.applicationId || a.id}>
+                                  {a.projectName} ({a.position})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Progress Bar & Fee Highlights */}
+                      <div className="pt-2 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div className="sm:col-span-2 space-y-1">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-slate-300 font-semibold">Deployment Pipeline</span>
+                            <span className="text-cyan-300 font-bold">{progressPct}% ({doneStages}/{totalStages} Steps)</span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-1.5 rounded-full transition-all duration-500 shadow-xs"
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="bg-white/10 p-2 rounded-lg border border-white/10 flex items-center justify-between">
+                          <div>
+                            <span className="text-[9px] uppercase font-bold text-slate-400 block">Milestone Fees</span>
+                            <span className="text-xs font-bold text-emerald-400">
+                              ₹{paidFee.toLocaleString()} / ₹{Number(totalMilestonesFee).toLocaleString()}
+                            </span>
+                          </div>
+                          <CreditCard size={16} className="text-cyan-300" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Milestones & Processing Timeline Cards */}
+                    <div className="space-y-2.5">
+                      {rawMs.map((m, mIdx) => {
+                        const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+                        const isPaymentRequired = m.status === "Payment Required" || m.paymentStatus === "Payment Required";
+                        const isLocked = m.status === "Locked";
+                        const amt = Number(m.amount || m.paymentAmount || 15000);
+
+                        return (
+                          <div
+                            key={m.id || mIdx}
+                            className={`bg-white rounded-lg border transition-all shadow-2xs overflow-hidden ${
+                              isPaid
+                                ? "border-emerald-200"
+                                : isPaymentRequired
+                                ? "border-amber-300 ring-1 ring-amber-400/20"
+                                : "border-slate-200 opacity-90"
+                            }`}
+                          >
+                            {/* Milestone Header */}
+                            <div className="p-2.5 sm:p-3 bg-slate-50 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  className={`w-7 h-7 rounded-md font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs ${
+                                    isPaid
+                                      ? "bg-emerald-600 text-white"
+                                      : isPaymentRequired
+                                      ? "bg-amber-500 text-white"
+                                      : "bg-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {isPaid ? "✓" : isLocked ? <Lock size={12} /> : mIdx + 1}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <h3 className="text-xs font-bold text-slate-900">{m.name}</h3>
+                                    <span
+                                      className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                        isPaid
+                                          ? "bg-emerald-100 text-emerald-800"
+                                          : isPaymentRequired
+                                          ? "bg-amber-100 text-amber-800 animate-pulse"
+                                          : "bg-slate-100 text-slate-600"
+                                      }`}
+                                    >
+                                      {isPaid ? "Paid & Cleared" : isLocked ? "Locked" : "Payment Due"}
+                                    </span>
+                                  </div>
+                                  <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                                    Fee: <strong className="text-slate-900">₹{amt.toLocaleString()}</strong>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Milestone Action Buttons */}
+                              <div className="flex items-center gap-1.5 self-start md:self-center">
+                                {isPaid ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
+                                      <CheckCircle2 size={12} className="text-emerald-600" />
+                                      <span>Verified</span>
+                                    </span>
+                                    <Link
+                                      to={`/invoice/${curApp.applicationId || curApp.id}/${m.id}`}
+                                      target="_blank"
+                                      className="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer transition"
+                                    >
+                                      <FileText size={11} />
+                                      <span>Receipt</span>
+                                    </Link>
+                                  </div>
+                                ) : !isLocked ? (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedMilestoneToPay(m);
+                                      setPayModalOpen(true);
+                                    }}
+                                    className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1 cursor-pointer transition"
+                                  >
+                                    <CreditCard size={12} />
+                                    <span>Pay Fee (₹{amt.toLocaleString()})</span>
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                                    <Lock size={11} />
+                                    <span>Locked</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Stages Checklist */}
+                            <div className="p-2 sm:p-2.5 space-y-1.5">
+                              <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                Clearances & Document Proofs
+                              </h4>
+
+                              {(m.stages || []).map((stage, sIdx) => {
+                                const isDone = stage.status === "Completed";
+                                const inProgress = stage.status === "In Progress";
+
+                                return (
+                                  <div
+                                    key={stage.id || sIdx}
+                                    className={`p-2 rounded-md border flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 transition-colors ${
+                                      isDone
+                                        ? "bg-emerald-50/40 border-emerald-200"
+                                        : inProgress
+                                        ? "bg-blue-50/30 border-blue-200"
+                                        : "bg-slate-50/50 border-slate-200"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className={`w-4 h-4 rounded-full font-bold text-[9px] flex items-center justify-center shrink-0 ${
+                                          isDone
+                                            ? "bg-emerald-600 text-white"
+                                            : inProgress
+                                            ? "bg-blue-600 text-white animate-pulse"
+                                            : "bg-slate-200 text-slate-600"
+                                        }`}
+                                      >
+                                        {isDone ? "✓" : sIdx + 1}
+                                      </div>
+                                      <div>
+                                        <div className="font-medium text-xs text-slate-900">{stage.name}</div>
+                                        {stage.remark && (
+                                          <div className="text-[10px] text-slate-500 font-medium italic">
+                                            "{stage.remark}"
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 self-start sm:self-center">
+                                      <span
+                                        className={`px-1.5 py-0.2 rounded text-[9px] font-bold flex items-center gap-1 ${
+                                          isDone
+                                            ? "bg-emerald-100 text-emerald-800"
+                                            : inProgress
+                                            ? "bg-blue-100 text-blue-800"
+                                            : "bg-slate-100 text-slate-600"
+                                        }`}
+                                      >
+                                        {isDone && <CheckCircle2 size={10} />}
+                                        {inProgress && <Clock size={10} />}
+                                        <span>{stage.status || "Pending"}</span>
+                                      </span>
+
+                                      {stage.document && (
+                                        <a
+                                          href={stage.document.fileUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="px-1.5 py-0.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 shadow-2xs transition"
+                                        >
+                                          <Eye size={10} />
+                                          <span>View Proof</span>
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()
+            )}
+          </div>
+        )}
+
+        {/* Candidate Milestone Payment Modal */}
+        {payModalOpen && selectedMilestoneToPay && selectedAppForProcessing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+            <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
+              <div className="p-3 sm:p-3.5 bg-gradient-to-r from-blue-950 to-slate-900 text-white flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Pay Milestone Fee</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-300 mt-0.5 truncate">
+                    {selectedMilestoneToPay.name}
+                  </p>
+                </div>
+                <button onClick={() => setPayModalOpen(false)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Payment Tabs: Instant Online vs Bank Transfer */}
+              <div className="p-3.5 space-y-3 text-xs text-slate-800">
+                <div className="bg-blue-50 p-2.5 rounded-lg border border-blue-200 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-blue-700 block">Total Due For This Milestone</span>
+                    <span className="text-sm font-black text-blue-950">
+                      ₹{Number(selectedMilestoneToPay.paymentAmount || selectedMilestoneToPay.amount || 15000).toLocaleString()}
+                    </span>
+                  </div>
+                  <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">
+                    Phase Payment
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5 border-b border-slate-200 pb-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTypeTab("online")}
+                    className={`py-1.5 text-xs font-bold rounded-lg cursor-pointer transition ${
+                      paymentTypeTab === "online"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    ⚡ Instant Online Pay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTypeTab("manual")}
+                    className={`py-1.5 text-xs font-bold rounded-lg cursor-pointer transition ${
+                      paymentTypeTab === "manual"
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    🏦 Bank Transfer / UPI
+                  </button>
+                </div>
+
+                {paymentTypeTab === "online" ? (
+                  <div className="space-y-2.5 py-0.5">
+                    <p className="text-[11px] text-slate-600 leading-normal">
+                      Pay instantly using UPI (Google Pay, PhonePe, Paytm), Card, or NetBanking. Once confirmed, stages will unlock and receipt is issued.
+                    </p>
+
+                    <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200 text-[10px] text-emerald-800 space-y-0.5">
+                      <div className="font-bold flex items-center gap-1">
+                        <CheckCircle2 size={12} className="text-emerald-600" />
+                        <span>Instant Automated Approval</span>
+                      </div>
+                      <p>Receipt sent to your registered email.</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={submittingPayment}
+                      onClick={() => handlePayMilestone(true)}
+                      className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer transition disabled:opacity-50"
+                    >
+                      {submittingPayment ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <CreditCard size={13} />
+                      )}
+                      <span>
+                        Pay ₹{Number(selectedMilestoneToPay.paymentAmount || selectedMilestoneToPay.amount || 15000).toLocaleString()} & Unlock Milestone
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 py-0.5">
+                    <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-0.5 text-slate-700 font-mono text-[10px]">
+                      <div className="font-bold text-slate-900 font-sans text-[11px] mb-0.5">Company Account Details:</div>
+                      <div>Bank: <strong>HDFC Bank Ltd.</strong></div>
+                      <div>A/C Name: <strong>Immigo Global Mobility Pvt Ltd</strong></div>
+                      <div>A/C No: <strong>50200084920192</strong></div>
+                      <div>IFSC: <strong>HDFC0001234</strong></div>
+                      <div>UPI ID: <strong>immigo.recruitment@hdfcbank</strong></div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
+                        Transaction Ref / UTR Number *
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentRefInput}
+                        onChange={(e) => setPaymentRefInput(e.target.value)}
+                        placeholder="e.g. UTR9281729381"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-slate-200 font-mono text-xs focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
+                        Optional Payment Notes / Bank Name
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentNotesInput}
+                        onChange={(e) => setPaymentNotesInput(e.target.value)}
+                        placeholder="e.g. Paid from SBI Account"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-slate-200 text-xs focus:outline-none focus:border-blue-600"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={submittingPayment}
+                      onClick={() => handlePayMilestone(false)}
+                      className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer transition disabled:opacity-50"
+                    >
+                      {submittingPayment ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <CheckCircle2 size={13} />
+                      )}
+                      <span>Submit Payment Reference for Admin Approval</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -1,11 +1,16 @@
 import Candidate from "../models/Candidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
 import ActivityLog from "../models/ActivityLog.js";
+import Notification from "../models/Notification.js";
+import CrmNotification from "../models/CrmNotification.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   sendCandidateApprovalEmail,
   sendCandidateRejectionEmail,
   sendCandidateInterviewEmail,
+  sendCandidateSelectionEmail,
+  sendCandidateMilestoneUpdateEmail,
+  sendCandidatePaymentReceiptEmail,
 } from "../services/email.service.js";
 
 export const getCandidateStats = asyncHandler(async (req, res) => {
@@ -419,6 +424,103 @@ export const getCandidateApplications = asyncHandler(async (req, res) => {
   });
 });
 
+export const getDefaultCandidateMilestones = () => [
+  {
+    id: "m0",
+    name: "Milestone 1: Selection & Document Clearance",
+    paymentAmount: 15000,
+    amount: 15000,
+    paymentStatus: "Payment Required",
+    status: "Active",
+    stages: [
+      {
+        id: "s0_1",
+        name: "Trade Skill & Technical Screening",
+        status: "Completed",
+        completedAt: new Date().toISOString(),
+        remark: "Candidate cleared technical assessment",
+        document: null,
+      },
+      {
+        id: "s0_2",
+        name: "Client Selection & Offer Letter Clearance",
+        status: "In Progress",
+        completedAt: null,
+        remark: "Offer letter issued and cleared",
+        document: null,
+      },
+      {
+        id: "s0_3",
+        name: "Document Verification & Attestation",
+        status: "Pending",
+        completedAt: null,
+        remark: "",
+        document: null,
+      },
+    ],
+  },
+  {
+    id: "m1",
+    name: "Milestone 2: Medical & Visa Processing",
+    paymentAmount: 15000,
+    amount: 15000,
+    paymentStatus: "Locked",
+    status: "Locked",
+    stages: [
+      {
+        id: "s1_1",
+        name: "GAMCA Medical Fitness Clearance",
+        status: "Locked",
+        completedAt: null,
+        remark: "",
+        document: null,
+      },
+      {
+        id: "s1_2",
+        name: "Visa Application & Official Work Permit",
+        status: "Locked",
+        completedAt: null,
+        remark: "",
+        document: null,
+      },
+    ],
+  },
+  {
+    id: "m2",
+    name: "Milestone 3: Emigration Clearance & Flight Deployment",
+    paymentAmount: 10000,
+    amount: 10000,
+    paymentStatus: "Locked",
+    status: "Locked",
+    stages: [
+      {
+        id: "s2_1",
+        name: "Emigration Clearance (Poe/Protector)",
+        status: "Locked",
+        completedAt: null,
+        remark: "",
+        document: null,
+      },
+      {
+        id: "s2_2",
+        name: "Air Ticket Booking & Travel Insurance",
+        status: "Locked",
+        completedAt: null,
+        remark: "",
+        document: null,
+      },
+      {
+        id: "s2_3",
+        name: "Airport Mobilization & Deployment",
+        status: "Locked",
+        completedAt: null,
+        remark: "",
+        document: null,
+      },
+    ],
+  },
+];
+
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, remarks, rejectionReason } = req.body;
@@ -446,9 +548,23 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid application status." });
   }
 
+  const previousStatus = app.status;
   if (status) app.status = status;
   if (remarks !== undefined) app.adminRemarks = remarks;
   if (rejectionReason !== undefined) app.rejectionReason = rejectionReason;
+
+  if (status === "Selected" && (!app.processMilestones || app.processMilestones.length === 0)) {
+    const defaults = getDefaultCandidateMilestones();
+    app.processMilestones = defaults;
+    app.paymentPlan = {
+      totalAmount: 40000,
+      currency: "INR",
+      milestones: defaults,
+    };
+    if (!Array.isArray(app.payments)) {
+      app.payments = [];
+    }
+  }
 
   app.statusHistory.push({
     status: status || app.status,
@@ -458,6 +574,47 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   });
 
   await app.save();
+
+  if (status === "Selected" && previousStatus !== "Selected") {
+    try {
+      await CrmNotification.create({
+        notificationId: `notif-cand-${Date.now()}`,
+        recipientRole: "CANDIDATE",
+        candidateId: app.candidateId,
+        title: "Congratulations! You are Selected! 🎉",
+        message: `You have been selected for ${app.projectName} (${app.position || "Specialist"}). Your deployment milestone process has commenced!`,
+        link: "/candidate/dashboard",
+        type: "success",
+      });
+
+      await Notification.create({
+        type: "UPDATE",
+        title: "Direct Candidate Selected 🎉",
+        message: `${app.candidateName} has been selected for ${app.projectName} (${app.position || "Specialist"}). Milestone workflow initiated.`,
+        targetRole: "ADMIN",
+        targetType: "ALL",
+      });
+
+      await CrmNotification.create({
+        notificationId: `notif-adm-${Date.now()}`,
+        recipientRole: "ADMIN",
+        title: "Candidate Selected & Milestones Initiated 🎯",
+        message: `${app.candidateName} on "${app.projectName}" is now marked Selected. Milestones & processing stages are active.`,
+        link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
+        type: "success",
+      });
+
+      await sendCandidateSelectionEmail({
+        to: app.candidateEmail,
+        candidateName: app.candidateName,
+        projectName: app.projectName,
+        position: app.position,
+        totalAmount: app.paymentPlan?.totalAmount || 40000,
+      });
+    } catch (notifErr) {
+      console.warn("Notification error during candidate selection:", notifErr);
+    }
+  }
 
   try {
     await ActivityLog.create({
@@ -542,3 +699,337 @@ export const scheduleCandidateInterview = asyncHandler(async (req, res) => {
     application: app.toJSON(),
   });
 });
+
+export const getApplicationMilestones = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
+
+  let app = await CandidateApplication.findOne(query);
+  if (!app) {
+    return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  if (!app.processMilestones || app.processMilestones.length === 0) {
+    const defaults = getDefaultCandidateMilestones();
+    app.processMilestones = defaults;
+    app.paymentPlan = {
+      totalAmount: 40000,
+      currency: "INR",
+      milestones: defaults,
+    };
+    if (!Array.isArray(app.payments)) {
+      app.payments = [];
+    }
+    await app.save();
+  }
+
+  return res.status(200).json({
+    success: true,
+    application: app.toJSON(),
+    processMilestones: app.processMilestones,
+    paymentPlan: app.paymentPlan,
+    payments: app.payments || [],
+  });
+});
+
+export const updateApplicationMilestones = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { totalAmount, milestones } = req.body;
+
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
+
+  const app = await CandidateApplication.findOne(query);
+  if (!app) {
+    return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const finalTotal = Number(totalAmount) || 40000;
+  const formattedMilestones = (milestones || []).map((m, mIdx) => {
+    const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+    const amt = Number(m.amount || m.paymentAmount || 0);
+    return {
+      id: m.id || `m${mIdx}`,
+      name: m.name || `Milestone ${mIdx + 1}`,
+      amount: amt,
+      paymentAmount: amt,
+      status: isPaid ? "Paid" : m.status || (mIdx === 0 ? "Active" : "Locked"),
+      paymentStatus: isPaid ? "Approved" : m.paymentStatus || (mIdx === 0 ? "Payment Required" : "Locked"),
+      paymentDate: m.paymentDate || (isPaid ? new Date().toISOString().split("T")[0] : null),
+      paymentRef: m.paymentRef || null,
+      approvedBy: isPaid ? (m.approvedBy || req.user?.name || "Admin") : null,
+      stages: (m.stages || []).map((s, sIdx) => ({
+        id: s.id || `s${mIdx}_${sIdx}`,
+        name: s.name || `Process Step ${sIdx + 1}`,
+        status: s.status || "Pending",
+        remark: s.remark || "",
+        completedAt: s.completedAt || null,
+        document: s.document || null,
+      })),
+    };
+  });
+
+  app.paymentPlan = {
+    totalAmount: finalTotal,
+    currency: "INR",
+    milestones: formattedMilestones,
+  };
+  app.processMilestones = formattedMilestones;
+  app.markModified("paymentPlan");
+  app.markModified("processMilestones");
+
+  await app.save();
+
+  try {
+    await CrmNotification.create({
+      notificationId: `notif-cand-${Date.now()}`,
+      recipientRole: "CANDIDATE",
+      candidateId: app.candidateId,
+      title: "Milestone Plan Configured 📋",
+      message: `Your processing milestone plan for ${app.projectName} (Total Fee: ₹${Number(finalTotal).toLocaleString()}) has been updated. Milestone 1 is active.`,
+      link: "/candidate/dashboard",
+      type: "info",
+    });
+
+    await Notification.create({
+      type: "UPDATE",
+      title: "Direct Candidate Milestones Configured",
+      message: `Milestone plan updated for ${app.candidateName} on ${app.projectName} (₹${Number(finalTotal).toLocaleString()})`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+    });
+
+    await ActivityLog.create({
+      action: "UPDATE_MILESTONES",
+      module: "CANDIDATE",
+      targetId: app.applicationId,
+      description: `Configured ${formattedMilestones.length} milestones for ${app.candidateName} on ${app.projectName}`,
+      performedBy: req.user?.name || "Admin",
+      performedByRole: "admin",
+    });
+  } catch {}
+
+  return res.status(200).json({
+    success: true,
+    message: "Milestones and processing stages successfully updated.",
+    application: app.toJSON(),
+  });
+});
+
+export const updateStageStatus = asyncHandler(async (req, res) => {
+  const { id, milestoneId, stageId } = req.params;
+  const { status, remark, document } = req.body;
+
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
+
+  const app = await CandidateApplication.findOne(query);
+  if (!app) {
+    return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const milestones = [...(app.processMilestones || [])];
+  const mIdx = milestones.findIndex((m) => String(m.id) === String(milestoneId));
+  if (mIdx === -1) {
+    return res.status(404).json({ success: false, message: "Milestone not found." });
+  }
+
+  const stages = [...(milestones[mIdx].stages || [])];
+  const sIdx = stages.findIndex((s) => String(s.id) === String(stageId));
+  if (sIdx === -1) {
+    return res.status(404).json({ success: false, message: "Stage not found." });
+  }
+
+  const prevStatus = stages[sIdx].status;
+  if (status) stages[sIdx].status = status;
+  if (remark !== undefined) stages[sIdx].remark = remark;
+  if (document !== undefined) stages[sIdx].document = document;
+
+  if (status === "Completed" && prevStatus !== "Completed") {
+    stages[sIdx].completedAt = new Date().toISOString();
+  }
+
+  milestones[mIdx].stages = stages;
+
+  const allStagesCompleted = stages.every((s) => s.status === "Completed");
+  if (allStagesCompleted) {
+    milestones[mIdx].status = "Completed";
+    if (mIdx + 1 < milestones.length) {
+      if (milestones[mIdx + 1].status === "Locked") {
+        milestones[mIdx + 1].status =
+          (milestones[mIdx + 1].paymentAmount || 0) > 0 ? "Payment Required" : "Active";
+        if (milestones[mIdx + 1].paymentStatus === "Locked") {
+          milestones[mIdx + 1].paymentStatus =
+            (milestones[mIdx + 1].paymentAmount || 0) > 0 ? "Payment Required" : "Not Required";
+        }
+      }
+    }
+  }
+
+  app.processMilestones = milestones;
+  if (app.paymentPlan) {
+    app.paymentPlan.milestones = milestones;
+  }
+  app.markModified("processMilestones");
+  app.markModified("paymentPlan");
+
+  await app.save();
+
+  try {
+    const stageTitle = stages[sIdx].name;
+    await CrmNotification.create({
+      notificationId: `notif-cand-${Date.now()}`,
+      recipientRole: "CANDIDATE",
+      candidateId: app.candidateId,
+      title: `Processing Step: ${status || "Updated"} 🚀`,
+      message: `"${stageTitle}" on project ${app.projectName} is now ${status}. ${remark ? `Note: ${remark}` : ""}`,
+      link: "/candidate/dashboard",
+      type: status === "Completed" ? "success" : "info",
+    });
+
+    await Notification.create({
+      type: "UPDATE",
+      title: `Candidate Stage ${status}`,
+      message: `${app.candidateName} - ${stageTitle} marked ${status} by ${req.user?.name || "Admin"}`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+    });
+
+    await sendCandidateMilestoneUpdateEmail({
+      to: app.candidateEmail,
+      candidateName: app.candidateName,
+      projectName: app.projectName,
+      milestoneName: milestones[mIdx].name,
+      stageName: stageTitle,
+      stageStatus: status,
+      remarks: remark,
+    });
+  } catch (notifErr) {
+    console.warn("Notification error during stage update:", notifErr);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Stage updated successfully.",
+    application: app.toJSON(),
+  });
+});
+
+export const recordApplicationPayment = asyncHandler(async (req, res) => {
+  const { id, milestoneId } = req.params;
+  const { amount, paymentMode = "Bank Transfer", referenceNumber = "", paymentDate, remarks = "" } = req.body;
+
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
+
+  const app = await CandidateApplication.findOne(query);
+  if (!app) {
+    return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const milestones = [...(app.processMilestones || [])];
+  const mIdx = milestones.findIndex((m) => String(m.id) === String(milestoneId));
+  if (mIdx === -1) {
+    return res.status(404).json({ success: false, message: "Milestone not found." });
+  }
+
+  const paidAmt = Number(amount) || Number(milestones[mIdx].paymentAmount) || 15000;
+  const refNum = referenceNumber.trim() || `REF-${Date.now().toString().slice(-6)}`;
+  const receiptNum = `INV-${app.applicationId || app.id}-${milestoneId}`;
+  const payDate = paymentDate || new Date().toISOString().split("T")[0];
+
+  milestones[mIdx].paymentStatus = "Approved";
+  milestones[mIdx].status = "Active";
+  milestones[mIdx].paymentAmount = paidAmt;
+  milestones[mIdx].paymentRef = refNum;
+  milestones[mIdx].paymentDate = payDate;
+  milestones[mIdx].approvedBy = req.user?.name || "Admin";
+  milestones[mIdx].paymentRemark = remarks || `Payment recorded by ${req.user?.name || "Admin"}`;
+
+  if (Array.isArray(milestones[mIdx].stages) && milestones[mIdx].stages.length > 0) {
+    if (milestones[mIdx].stages[0].status === "Locked") {
+      milestones[mIdx].stages[0].status = "In Progress";
+    }
+  }
+
+  if (!Array.isArray(app.payments)) {
+    app.payments = [];
+  }
+
+  const paymentRecord = {
+    id: `pay-${Date.now()}`,
+    milestoneId: milestoneId,
+    milestoneName: milestones[mIdx].name,
+    amount: paidAmt,
+    paymentMode,
+    referenceNumber: refNum,
+    receiptNumber: receiptNum,
+    paymentDate: payDate,
+    status: "Verified",
+    verifiedBy: req.user?.name || "Admin",
+    notes: remarks || "Milestone payment approved by Admin",
+    createdAt: new Date(),
+  };
+
+  app.payments.push(paymentRecord);
+  app.processMilestones = milestones;
+  if (app.paymentPlan) {
+    app.paymentPlan.milestones = milestones;
+  }
+  app.markModified("processMilestones");
+  app.markModified("paymentPlan");
+  app.markModified("payments");
+
+  await app.save();
+
+  try {
+    await CrmNotification.create({
+      notificationId: `notif-cand-${Date.now()}`,
+      recipientRole: "CANDIDATE",
+      candidateId: app.candidateId,
+      title: "Payment Received & Verified! 💳",
+      message: `Payment of ₹${Number(paidAmt).toLocaleString()} for "${milestones[mIdx].name}" has been verified. Processing stages are active.`,
+      link: `/invoice/${app.applicationId}/${milestoneId}`,
+      type: "success",
+    });
+
+    await Notification.create({
+      type: "UPDATE",
+      title: "Milestone Payment Recorded",
+      message: `₹${Number(paidAmt).toLocaleString()} received for ${app.candidateName} (${milestones[mIdx].name})`,
+      targetRole: "ADMIN",
+      targetType: "ALL",
+    });
+
+    await sendCandidatePaymentReceiptEmail({
+      to: app.candidateEmail,
+      candidateName: app.candidateName,
+      projectName: app.projectName,
+      milestoneName: milestones[mIdx].name,
+      amount: paidAmt,
+      receiptNumber: receiptNum,
+      paymentMode,
+    });
+
+    await ActivityLog.create({
+      action: "RECORD_PAYMENT",
+      module: "CANDIDATE",
+      targetId: app.applicationId,
+      description: `Recorded payment of ₹${Number(paidAmt).toLocaleString()} for ${app.candidateName} (${milestones[mIdx].name})`,
+      performedBy: req.user?.name || "Admin",
+      performedByRole: "admin",
+    });
+  } catch (notifErr) {
+    console.warn("Notification error during payment recording:", notifErr);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Payment successfully recorded and receipt generated.",
+    application: app.toJSON(),
+    receiptNumber: receiptNum,
+    payment: paymentRecord,
+  });
+});
+

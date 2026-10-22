@@ -33,6 +33,12 @@ export function CandidateManagementSidebar({
         currentPath === "/admin/candidates/dashboard"
       );
     }
+    if (path === "/admin/candidates/selected") {
+      return (
+        currentPath === "/admin/candidates/selected" ||
+        currentPath.startsWith("/admin/candidates/milestones-manage")
+      );
+    }
     return currentPath === path;
   };
 
@@ -73,7 +79,7 @@ export function CandidateManagementSidebar({
       path: "/admin/candidates/interviews",
     },
     {
-      title: "Selected Candidates",
+      title: "Selected & Milestones",
       icon: Award,
       path: "/admin/candidates/selected",
     },
@@ -96,11 +102,11 @@ export function CandidateManagementSidebar({
 
       <aside
         className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none ${
-          collapsed ? "w-[72px]" : "w-[250px]"
+          collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         <div
-          className={`h-[60px] min-h-[60px] px-4 border-b border-blue-900 bg-gradient-to-r from-[#0f2744] via-[#163660] to-[#0f2744] text-white flex items-center gap-2 shadow-xs shrink-0 ${
+          className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
@@ -112,14 +118,7 @@ export function CandidateManagementSidebar({
             {collapsed ? (
               <ImmiGoIcon size="md" />
             ) : (
-              <div className="flex flex-col">
-                <span className="text-base font-extrabold tracking-tight text-white leading-tight">
-                  Candidate Portal
-                </span>
-                <span className="text-[10px] text-sky-300 font-semibold uppercase tracking-wider">
-                  Admin Management
-                </span>
-              </div>
+              <ImmiGoLogo size="sm" subtitle="Candidate Portal" theme="light" />
             )}
           </Link>
           {!collapsed && (
@@ -133,7 +132,7 @@ export function CandidateManagementSidebar({
           )}
         </div>
 
-        <div className="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           <div className="mb-2">
             <Link
               to="/admin/dashboard"
@@ -161,20 +160,20 @@ export function CandidateManagementSidebar({
                 onClick={() => setMobileOpen(false)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer ${
                   active
-                    ? "bg-[#0f2744] text-white shadow-sm font-semibold"
-                    : "text-slate-700 hover:bg-blue-100/70 hover:text-[#0f2744]"
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
+                    : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
                 }`}
                 title={collapsed ? item.title : undefined}
               >
                 <Icon
-                  size={17}
-                  className={`shrink-0 ${active ? "text-sky-300" : "text-slate-500"}`}
+                  size={16}
+                  className={`shrink-0 ${active ? "text-white" : "text-slate-500"}`}
                 />
                 {!collapsed && (
                   <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
                     <span className="truncate">{item.title}</span>
                     {active && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                     )}
                   </div>
                 )}
@@ -184,21 +183,21 @@ export function CandidateManagementSidebar({
         </div>
 
         <div
-          className={`h-[48px] min-h-[48px] border-t border-blue-900 bg-gradient-to-r from-[#0f2744] via-[#163660] to-[#0f2744] px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
+          className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
           }`}
         >
           {!collapsed ? (
             <div className="flex items-center gap-1.5">
-              <Shield size={12} className="text-sky-400" />
-              <span className="text-[11px] font-bold text-sky-200 uppercase tracking-wider">
+              <Shield size={10} className="text-cyan-400" />
+              <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">
                 Candidate Module Active
               </span>
             </div>
           ) : (
             <span
               className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
-              title="Module Active"
+              title="Candidate Module Active"
             />
           )}
         </div>

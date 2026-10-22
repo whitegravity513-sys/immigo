@@ -8,6 +8,10 @@ import {
   getPublicAvailableProjects,
   applyForProject,
   getMyApplications,
+  getCandidateApplicationMilestones,
+  submitCandidateMilestonePayment,
+  getCandidateNotifications,
+  markCandidateNotificationAsRead,
 } from "../controllers/candidateAuth.controller.js";
 import { verifyToken, verifyCandidate } from "../middleware/auth.middleware.js";
 
@@ -22,5 +26,10 @@ router.put("/profile", verifyCandidate, updateCandidateProfile);
 router.post("/upload-document", verifyCandidate, uploadCandidateDocument);
 router.post("/apply", verifyCandidate, applyForProject);
 router.get("/my-applications", verifyCandidate, getMyApplications);
+
+router.get("/applications/:id/milestones", verifyCandidate, getCandidateApplicationMilestones);
+router.post("/applications/:id/pay-milestone", verifyCandidate, submitCandidateMilestonePayment);
+router.get("/notifications", verifyCandidate, getCandidateNotifications);
+router.patch("/notifications/:id/read", verifyCandidate, markCandidateNotificationAsRead);
 
 export default router;
