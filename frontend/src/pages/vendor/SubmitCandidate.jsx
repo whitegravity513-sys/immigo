@@ -604,8 +604,8 @@ export default function SubmitCandidate() {
           <div className="p-4 sm:p-5 border-b border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-black flex items-center justify-center">1</span>
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center">1</span>
                   <span>Select Candidate(s) to Assign</span>
                 </h2>
                 <p className="text-[11px] text-slate-600 font-medium mt-0.5">
@@ -958,8 +958,8 @@ export default function SubmitCandidate() {
           <div className="bg-white rounded-lg border border-slate-300 shadow-xs p-4 sm:p-5">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
               <div>
-                <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-black flex items-center justify-center">2</span>
+                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center">2</span>
                   <span>Assign to Project Details</span>
                 </h2>
                 <p className="text-[11px] text-slate-600 font-medium mt-0.5">
@@ -1071,18 +1071,18 @@ export default function SubmitCandidate() {
               <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
                 <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-200 pb-1.5 mb-2">
                   <span>Project Overview & Vacancy Status</span>
-                  <span className="text-blue-600 font-extrabold">{selectedProject.country}</span>
+                  <span className="text-blue-600 font-semibold">{selectedProject.country}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase font-bold">Positions Required</span>
-                    <span className="font-black text-slate-900">
+                    <span className="font-bold text-slate-900">
                       {requiredHeadcount || selectedProject.totalManpowerRequired || "Flexible"}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500 block text-[10px] uppercase font-bold">In Selection / Shortlist</span>
-                    <span className="font-black text-slate-900">{selectedOrShortlisted} candidates</span>
+                    <span className="font-bold text-slate-900">{selectedOrShortlisted} candidates</span>
                   </div>
                 </div>
               </div>
@@ -1112,7 +1112,7 @@ export default function SubmitCandidate() {
               <button
                 type="submit"
                 disabled={!selectedProjectId || !selectedPosition}
-                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-xs font-black shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
               >
                 <UserCheck size={16} />
                 <span>Assign {selectedCandidateIds.length} Candidate(s)</span>
@@ -1122,7 +1122,6 @@ export default function SubmitCandidate() {
         </form>
       )}
 
-      {}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-5 shadow-2xl border border-slate-300 space-y-4">
@@ -1131,7 +1130,7 @@ export default function SubmitCandidate() {
                 <UserCheck size={20} />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900">Confirm Project Assignment</h3>
+                <h3 className="text-sm font-bold text-slate-900">Confirm Project Assignment</h3>
                 <p className="text-xs text-slate-500">
                   Verify details before assigning {selectedCandidateIds.length} candidates.
                 </p>

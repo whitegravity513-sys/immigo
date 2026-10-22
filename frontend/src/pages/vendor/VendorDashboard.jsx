@@ -182,7 +182,7 @@ export function VendorDashboard() {
               ID: {vendor?.id || vendor?.vendorId || "VND"}
             </span>
           </div>
-          <h2 className="text-base sm:text-lg font-black tracking-tight mt-1">
+          <h2 className="text-base sm:text-lg font-bold tracking-tight mt-1">
             Welcome, {vendor?.companyName || vendor?.contactPersonName || "Vendor Partner"}
           </h2>
           <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 max-w-xl leading-snug">
@@ -234,7 +234,7 @@ export function VendorDashboard() {
                   <Icon size={13} className="sm:w-3.5 sm:h-3.5" />
                 </div>
               </div>
-              <div className="text-base sm:text-lg font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors leading-none">
+              <div className="text-base sm:text-lg font-bold text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors leading-none">
                 {card.value}
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">

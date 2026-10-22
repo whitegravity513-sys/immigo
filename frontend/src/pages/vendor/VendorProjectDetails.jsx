@@ -67,7 +67,7 @@ export default function VendorProjectDetails() {
         <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
           <AlertCircle size={32} />
         </div>
-        <h2 className="text-xl font-black text-slate-900">Project Not Found</h2>
+        <h2 className="text-xl font-bold text-slate-900">Project Not Found</h2>
         <p className="text-xs text-slate-500">{error || "The project you are looking for does not exist."}</p>
         <div>
           <Link
@@ -111,7 +111,7 @@ export default function VendorProjectDetails() {
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                   {project.projectName}
                 </h1>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
@@ -156,7 +156,7 @@ export default function VendorProjectDetails() {
           <div className="flex items-center gap-1.5 text-blue-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Users size={14} /> Total Headcount
           </div>
-          <div className="text-2xl font-black text-slate-900">{totalCount}</div>
+          <div className="text-2xl font-bold text-slate-900">{totalCount}</div>
           <div className="text-[10px] text-slate-500 mt-0.5">Approved Manpower Target</div>
         </div>
 
@@ -164,7 +164,7 @@ export default function VendorProjectDetails() {
           <div className="flex items-center gap-1.5 text-indigo-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Briefcase size={14} /> Trades Defined
           </div>
-          <div className="text-2xl font-black text-slate-900">{trades.length}</div>
+          <div className="text-2xl font-bold text-slate-900">{trades.length}</div>
           <div className="text-[10px] text-slate-500 mt-0.5">Job Positions & Roles</div>
         </div>
 
@@ -172,7 +172,7 @@ export default function VendorProjectDetails() {
           <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Globe size={14} /> Work Location
           </div>
-          <div className="text-2xl font-black text-slate-900 truncate">
+          <div className="text-2xl font-bold text-slate-900 truncate">
             {project.country || "Overseas"}
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5 truncate">
@@ -184,7 +184,7 @@ export default function VendorProjectDetails() {
           <div className="flex items-center gap-1.5 text-purple-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Calendar size={14} /> Duration / Timeline
           </div>
-          <div className="text-lg sm:text-xl font-black text-slate-900 truncate">
+          <div className="text-lg sm:text-xl font-bold text-slate-900 truncate">
             {project.duration || "24 Months"}
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5 truncate">

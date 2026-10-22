@@ -269,7 +269,7 @@ export default function RecordClientPaymentPage() {
               <span className="text-gray-300">/</span>
               <span className="text-gray-900 font-bold">Record Payment</span>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
               <Receipt className="text-blue-600" size={26} />
               <span>Record Client Payment</span>
             </h1>
@@ -387,7 +387,7 @@ export default function RecordClientPaymentPage() {
                 </div>
                 <div>
                   <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">Remaining Balance</span>
-                  <p className="font-black text-blue-900 mt-0.5 font-mono text-sm">
+                  <p className="font-bold text-blue-900 mt-0.5 font-mono text-sm">
                     ₹{remainingAfterPayment.toLocaleString("en-IN")}
                   </p>
                 </div>
@@ -655,7 +655,7 @@ export default function RecordClientPaymentPage() {
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-500 uppercase font-bold">Total Bank Transfer</span>
-                  <p className="font-mono font-black text-emerald-700 text-sm mt-0.5">
+                  <p className="font-mono font-bold text-emerald-700 text-sm mt-0.5">
                     ₹{computedTotalTransaction.toLocaleString("en-IN")}
                   </p>
                 </div>

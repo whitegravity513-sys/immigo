@@ -185,7 +185,7 @@ export function VendorLogin() {
               <span className="uppercase tracking-wider text-[10px] sm:text-[11px]">INTERNATIONAL HIRING & WORKFORCE SOLUTIONS</span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl lg:text-[50px] font-black text-slate-900 leading-[1.15] tracking-tight">
+            <h1 className="text-2xl sm:text-4xl lg:text-[46px] font-bold text-slate-900 leading-[1.18] tracking-tight">
               Supplying Skilled Talent<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
                 Across Foreign Borders
@@ -200,13 +200,13 @@ export function VendorLogin() {
               <div className="w-full max-w-[440px] bg-white rounded-xl border border-slate-200/90 p-3 text-left shadow-lg relative mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <ImmiGoLogo size="sm" />
-                  <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black uppercase tracking-wider">
+                  <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-semibold uppercase tracking-wider">
                     Vendor Portal
                   </span>
                 </div>
 
                 <div className="mb-4 space-y-0.5">
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Welcome back</h2>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
                   <p className="text-xs text-slate-500 font-medium">
                     Sign in to manage candidates and manpower submissions.
                   </p>
@@ -332,8 +332,8 @@ export function VendorLogin() {
                   <Globe size={16} />
                 </div>
                 <div>
-                  <span className="text-sm sm:text-base font-black text-slate-900 leading-none block">15,000+</span>
-                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5 block">Global Candidates</span>
+                  <span className="text-sm sm:text-base font-bold text-slate-900 leading-none block">15,000+</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 block">Global Candidates</span>
                 </div>
               </div>
 
@@ -342,8 +342,8 @@ export function VendorLogin() {
                   <MapPin size={16} />
                 </div>
                 <div>
-                  <span className="text-sm sm:text-base font-black text-slate-900 leading-none block">50+</span>
-                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5 block">Countries</span>
+                  <span className="text-sm sm:text-base font-bold text-slate-900 leading-none block">50+</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 block">Countries</span>
                 </div>
               </div>
 
@@ -352,8 +352,8 @@ export function VendorLogin() {
                   <Smile size={16} />
                 </div>
                 <div>
-                  <span className="text-sm sm:text-base font-black text-slate-900 leading-none block">98.8%</span>
-                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5 block">Client Satisfaction</span>
+                  <span className="text-sm sm:text-base font-bold text-slate-900 leading-none block">98.8%</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 block">Client Satisfaction</span>
                 </div>
               </div>
 
@@ -362,8 +362,8 @@ export function VendorLogin() {
                   <Star size={16} />
                 </div>
                 <div>
-                  <span className="text-sm sm:text-base font-black text-slate-900 leading-none block">10+</span>
-                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold mt-0.5 block">Years of Excellence</span>
+                  <span className="text-sm sm:text-base font-bold text-slate-900 leading-none block">10+</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-0.5 block">Years of Excellence</span>
                 </div>
               </div>
             </div>
@@ -394,13 +394,13 @@ export function VendorLogin() {
           <div className="w-full max-w-[440px] bg-white rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-200/90 p-6 sm:p-8 text-left relative">
             <div className="flex items-center justify-between mb-5">
               <ImmiGoLogo size="sm" />
-              <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-semibold uppercase tracking-wider">
                 Vendor Portal
               </span>
             </div>
 
             <div className="mb-6 space-y-1">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back</h2>
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
               <p className="text-xs text-slate-500 font-medium">
                 Sign in to manage candidates and manpower submissions.
               </p>

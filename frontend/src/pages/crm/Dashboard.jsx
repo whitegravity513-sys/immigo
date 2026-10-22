@@ -608,7 +608,6 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* ================= RIGHT 50%: Client & Project Operations (CRM) ================= */}
         <div className="space-y-3.5">
           {/* Recent Clients Card */}
           <div className="bg-white rounded-xl border border-gray-200/90 shadow-2xs overflow-hidden flex flex-col">

@@ -41,7 +41,7 @@ export default function AppFooter({
     <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
       <div className="w-full flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="flex items-end gap-0.5 select-none font-black text-sm tracking-tight leading-none text-white">
+          <div className="flex items-end gap-0.5 select-none font-bold text-sm tracking-tight leading-none text-white">
             <span>immi</span>
             <span className="text-cyan-400">Go</span>
             <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">

@@ -46,14 +46,14 @@ export function ImmiGoLogo({
     <div className={`flex flex-col select-none ${className}`}>
       <div className="flex items-end gap-0.5 leading-none">
         <span
-          className={`font-black ${sizeClasses.text} tracking-tighter leading-none ${
+          className={`font-bold ${sizeClasses.text} tracking-tight leading-none ${
             isLight ? "text-white" : "text-slate-900"
           }`}
         >
           immi
         </span>
         <span
-          className={`font-black ${sizeClasses.text} tracking-tighter leading-none ${
+          className={`font-bold ${sizeClasses.text} tracking-tight leading-none ${
             isLight ? "text-blue-400" : "text-blue-600"
           }`}
         >
@@ -127,7 +127,7 @@ export function EmployeeIdBadge({ id, size = "md", className = "", onClick, titl
       title={title || (onClick ? "Click to view Employee Profile & Documents" : undefined)}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`inline-flex items-center gap-1.5 rounded-lg font-black tracking-tight select-none shadow-2xs ${
+      className={`inline-flex items-center gap-1.5 rounded-lg font-semibold tracking-tight select-none shadow-2xs ${
         onClick
           ? "cursor-pointer hover:border-blue-400 hover:shadow-xs hover:scale-102 active:scale-98 transition-all"
           : ""
@@ -138,7 +138,7 @@ export function EmployeeIdBadge({ id, size = "md", className = "", onClick, titl
       } ${className}`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0 animate-pulse"></span>
-      <span className="font-black text-slate-900 tracking-tight">{cleanId}</span>
+      <span className="font-semibold text-slate-900 tracking-tight">{cleanId}</span>
       <svg
         viewBox="0 0 20 20"
         fill="none"

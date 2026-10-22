@@ -260,8 +260,8 @@ export default function Payments() {
             onClick={() => setActiveTab("All")}
             className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === "All"
-                ? "bg-white text-slate-900 shadow-2xs font-black"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-slate-900 shadow-2xs font-semibold"
+                : "text-slate-600 hover:text-slate-900 font-medium"
             }`}
           >
             All Candidates ({candidateAccounts.length})
@@ -270,8 +270,8 @@ export default function Payments() {
             onClick={() => setActiveTab("Paid")}
             className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === "Paid"
-                ? "bg-white text-emerald-700 shadow-2xs font-black"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-emerald-700 shadow-2xs font-semibold"
+                : "text-slate-600 hover:text-slate-900 font-medium"
             }`}
           >
             Payments Active ({candidateAccounts.filter((c) => c.paidAmount > 0).length})
@@ -280,8 +280,8 @@ export default function Payments() {
             onClick={() => setActiveTab("Due")}
             className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === "Due"
-                ? "bg-white text-amber-700 shadow-2xs font-black"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-amber-700 shadow-2xs font-semibold"
+                : "text-slate-600 hover:text-slate-900 font-medium"
             }`}
           >
             Due / Pending ({dueAccountsCount})
@@ -457,17 +457,17 @@ export default function Payments() {
                         {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           {cand.isFullyPaid ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <CheckCircle2 size={11} className="text-emerald-600" />
                               <span>Fully Paid</span>
                             </span>
                           ) : cand.isPartiallyPaid ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
                               <Clock size={11} className="text-blue-600" />
                               <span>Partially Paid</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
                               <Clock size={11} className="text-amber-600" />
                               <span>Payment Due</span>
                             </span>
@@ -537,25 +537,25 @@ export default function Payments() {
                                         Stage #{m.index}
                                       </span>
                                       {m.isPaid ? (
-                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800">
+                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-emerald-100 text-emerald-800">
                                           Paid
                                         </span>
                                       ) : m.isSubmitted ? (
-                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-800">
+                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-amber-100 text-amber-800">
                                           In Review
                                         </span>
                                       ) : (
-                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-200 text-slate-700">
+                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-slate-200 text-slate-700">
                                           Pending
                                         </span>
                                       )}
                                     </div>
 
-                                    <h5 className="font-extrabold text-slate-900 text-xs mt-1 truncate" title={m.name}>
+                                    <h5 className="font-semibold text-slate-900 text-xs mt-1 truncate" title={m.name}>
                                       {m.name}
                                     </h5>
 
-                                    <div className="text-sm font-black text-slate-900 mt-1">
+                                    <div className="text-sm font-semibold text-slate-900 mt-1">
                                       ₹{m.amount.toLocaleString()}
                                     </div>
 

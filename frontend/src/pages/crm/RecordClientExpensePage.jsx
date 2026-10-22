@@ -244,7 +244,7 @@ export default function RecordClientExpensePage() {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-xl font-black text-gray-900 flex items-center gap-2">
+            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <TrendingDown size={22} className="text-rose-600" />
               <span>{expenseId ? "Edit Client Project Expense" : "Record Expense Paid"}</span>
             </h1>
@@ -386,7 +386,7 @@ export default function RecordClientExpensePage() {
                     setFormData((prev) => ({ ...prev, amount: e.target.value }));
                     if (errors.amount) setErrors((prev) => ({ ...prev, amount: "" }));
                   }}
-                  className={`w-full pl-8 pr-3.5 py-2.5 bg-gray-50/50 border rounded-xl text-sm font-black text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full pl-8 pr-3.5 py-2.5 bg-gray-50/50 border rounded-xl text-sm font-semibold text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500 ${
                     errors.amount ? "border-rose-400 bg-rose-50/20" : "border-gray-200"
                   }`}
                 />
