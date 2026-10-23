@@ -445,7 +445,55 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
               })}
             </div>
 
-            {}
+            {/* Official Milestone Documents & Clearances for Vendor */}
+            {Array.isArray(milestone.clearanceDocuments) && milestone.clearanceDocuments.length > 0 && (
+              <div className="mt-3 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/90 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="font-bold text-[#163868] flex items-center gap-1.5">
+                    <FileText size={14} className="text-[#163868]" />
+                    <span>Official Milestone Clearance Documents</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
+                    {milestone.clearanceDocuments.filter((d) => d.targetAudience !== "candidate").length} Documents Available
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {milestone.clearanceDocuments
+                    .filter((d) => d.targetAudience !== "candidate")
+                    .map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-2 rounded-lg bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-2xs hover:border-blue-300 transition"
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <div className="w-6 h-6 rounded bg-blue-100 text-[#163868] flex items-center justify-center shrink-0">
+                            <FileCheck size={13} />
+                          </div>
+                          <div className="truncate">
+                            <div className="font-bold text-xs text-slate-900 truncate">{doc.title}</div>
+                            <div className="text-[10px] text-slate-500">
+                              {doc.size || "PDF"} &bull; {doc.uploadedAt || "Uploaded"}
+                            </div>
+                          </div>
+                        </div>
+
+                        <a
+                          href={doc.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          download={doc.fileName || `${doc.title}.pdf`}
+                          className="px-2.5 py-1 bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0 transition"
+                        >
+                          <Download size={11} />
+                          <span>Download</span>
+                        </a>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
             {!isLocked && (amt > 0 || isApproved || isPaymentSubmitted) && (
               <div className="mt-4 pt-4 border-t border-slate-100 bg-slate-50/50 -mx-4 -mb-4 p-4 rounded-b-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>

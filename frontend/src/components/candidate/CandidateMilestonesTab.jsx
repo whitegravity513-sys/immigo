@@ -377,6 +377,8 @@ export default function CandidateMilestonesTab({
                   ) : !isLocked ? (
                     <Link
                       to={`/candidate/payment/${curApp.applicationId || curApp.id}/${m.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition"
                     >
                       <CreditCard size={13} />

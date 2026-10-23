@@ -874,6 +874,18 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
       targetType: "ALL",
     });
 
+    if (app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined") {
+      await CrmNotification.create({
+        notificationId: `notif-vnd-${Date.now()}`,
+        recipientRole: "VENDOR",
+        vendorId: String(app.vendorId),
+        title: "Candidate Milestones & Documents Updated 📋",
+        message: `Milestone progress and clearance documents updated for candidate ${app.candidateName} on "${app.projectName}".`,
+        link: `/vendor/candidates`,
+        type: "info",
+      });
+    }
+
     await ActivityLog.create({
       action: "UPDATE_MILESTONES",
       module: "CANDIDATE",

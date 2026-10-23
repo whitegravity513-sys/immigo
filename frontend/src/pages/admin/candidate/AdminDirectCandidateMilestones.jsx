@@ -28,6 +28,7 @@ import {
   Users,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
+import crmVendorService from "../../../services/crmVendorService.js";
 
 export default function AdminDirectCandidateMilestones() {
   const [searchParams] = useSearchParams();
@@ -350,6 +351,13 @@ export default function AdminDirectCandidateMilestones() {
       const fileUrl = uploadEvent.target.result;
       const sizeStr = `${(file.size / 1024).toFixed(1)} KB`;
       const title = docTitle.trim() || file.name.replace(/\.[^/.]+$/, "");
+      const isVendorCandidate = Boolean(
+        application?.vendorId &&
+        application.vendorId !== "DIRECT" &&
+        application.vendorId !== "undefined" &&
+        application.vendorId !== "null"
+      );
+      const effectiveAudience = isVendorCandidate ? docAudience : "candidate";
 
       const docItem = {
         id: `cdoc_${Date.now()}`,
@@ -357,7 +365,7 @@ export default function AdminDirectCandidateMilestones() {
         fileName: file.name,
         fileUrl: fileUrl,
         size: sizeStr,
-        targetAudience: docAudience, // "both" | "candidate" | "vendor"
+        targetAudience: effectiveAudience,
         uploadedAt: new Date().toLocaleDateString("en-IN", {
           day: "numeric",
           month: "short",
@@ -379,12 +387,24 @@ export default function AdminDirectCandidateMilestones() {
       setDocUploading(false);
       autoSyncMilestones(updated);
 
+      if (isVendorCandidate && (effectiveAudience === "both" || effectiveAudience === "vendor")) {
+        try {
+          crmVendorService.addNotification({
+            vendorId: application.vendorId,
+            title: "New Clearance Document Uploaded 📄",
+            message: `Official document "${title}" uploaded for candidate ${application.candidateName} on project "${application.projectName}". Available in candidate process timeline.`,
+            type: "info",
+            link: `/vendor/candidates`,
+          });
+        } catch {}
+      }
+
       setNotification({
         type: "success",
         message: `Clearance document "${title}" uploaded for ${
-          docAudience === "both"
+          effectiveAudience === "both"
             ? "Candidate & Vendor"
-            : docAudience === "candidate"
+            : effectiveAudience === "candidate"
             ? "Candidate Only"
             : "Vendor Only"
         }!`,
@@ -844,14 +864,25 @@ export default function AdminDirectCandidateMilestones() {
               <div>
                 <h4 className="text-xs font-bold text-[#163868] uppercase tracking-wider flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-[#163868]" />
-                  <span>Milestone Clearance Documents (Candidate & Vendor Access)</span>
+                  <span>
+                    {Boolean(application?.vendorId && application.vendorId !== "DIRECT")
+                      ? "Milestone Clearance Documents (Candidate & Vendor Access)"
+                      : "Milestone Clearance Documents (Candidate Portal)"}
+                  </span>
                 </h4>
                 <p className="text-[10px] text-slate-500">
-                  Upload signed offer letters, GAMCA medical fit reports, visa stamps, or flight tickets for Candidate and Vendor view.
+                  {Boolean(application?.vendorId && application.vendorId !== "DIRECT")
+                    ? `Upload signed offer letters, GAMCA medical fit reports, visa stamps, or flight tickets for Candidate & Vendor (${application.vendorName || "Associated Vendor"}).`
+                    : "Upload signed offer letters, medical reports, visa stamps, or flight tickets for Candidate view."}
                 </p>
               </div>
-              <div className="text-[10px] font-bold text-slate-500">
-                Audience: <strong className="text-[#163868]">Candidate & Vendor</strong>
+              <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                <span>Access:</span>
+                <strong className="text-[#163868] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  {Boolean(application?.vendorId && application.vendorId !== "DIRECT")
+                    ? `👥 Candidate & Vendor (${application.vendorName || "Vendor"})`
+                    : "👤 Candidate Only (Direct Candidate)"}
+                </strong>
               </div>
             </div>
 
@@ -866,15 +897,21 @@ export default function AdminDirectCandidateMilestones() {
                   className="flex-1 px-2.5 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#163868]"
                 />
 
-                <select
-                  value={docAudience}
-                  onChange={(e) => setDocAudience(e.target.value)}
-                  className="px-2 py-1 text-xs font-medium border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#163868]"
-                >
-                  <option value="both">👥 Both Candidate & Vendor</option>
-                  <option value="candidate">👤 Candidate Only</option>
-                  <option value="vendor">🏢 Vendor Only</option>
-                </select>
+                {Boolean(application?.vendorId && application.vendorId !== "DIRECT") ? (
+                  <select
+                    value={docAudience}
+                    onChange={(e) => setDocAudience(e.target.value)}
+                    className="px-2 py-1 text-xs font-medium border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#163868]"
+                  >
+                    <option value="both">👥 Both Candidate & Vendor</option>
+                    <option value="candidate">👤 Candidate Only</option>
+                    <option value="vendor">🏢 Vendor Only ({application.vendorName || "Vendor"})</option>
+                  </select>
+                ) : (
+                  <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-[#163868] border border-blue-200 shrink-0">
+                    👤 Candidate Only
+                  </span>
+                )}
               </div>
 
               <div>

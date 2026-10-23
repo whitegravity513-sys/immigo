@@ -9,7 +9,7 @@ import {
   Building2,
   ExternalLink,
   Sliders,
-  DollarSign,
+  IndianRupee,
   CreditCard,
   X,
   FileText,
@@ -149,12 +149,12 @@ export default function AdminSelectedCandidates() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5">
-            <CheckCircle2 size={13} className="text-emerald-600" />
-            <span>Selected: {selectedApps.length}</span>
+          <div className="px-3 py-1.5 bg-blue-50 text-[#163868] border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5">
+            <CheckCircle2 size={13} className="text-[#163868]" />
+            <span>Selected Candidates: {selectedApps.length}</span>
           </div>
-          <div className="px-3 py-1.5 bg-blue-50 text-blue-800 border border-blue-200 rounded-xl text-xs font-bold flex items-center gap-1.5">
-            <CreditCard size={13} className="text-blue-600" />
+          <div className="px-3 py-1.5 bg-slate-100 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5">
+            <CreditCard size={13} className="text-[#163868]" />
             <span>Collected: ₹{totalCollected.toLocaleString()}</span>
           </div>
         </div>
@@ -256,124 +256,125 @@ export default function AdminSelectedCandidates() {
                   const percentComplete = totalStagesCount > 0 ? Math.round((completedStagesCount / totalStagesCount) * 100) : 0;
 
                   return (
-                    <tr key={app.id || app.applicationId} className="hover:bg-slate-50/70 transition">
-                      {/* Candidate Column */}
-                      <td className="py-2 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-blue-900 text-cyan-300 font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {(app.candidateName || "C").charAt(0).toUpperCase()}
+                      <tr key={app.id || app.applicationId} className="hover:bg-blue-50/30 transition">
+                        {/* Candidate Column */}
+                        <td className="py-2.5 px-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-[#163868] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                              {(app.candidateName || "C").charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                                <span>{app.candidateName}</span>
+                                <span className="text-[10px] text-[#163868] bg-blue-50 px-1.5 py-0.2 rounded font-mono border border-blue-100">
+                                  {app.candidateId}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-normal">
+                                {app.candidateEmail} {app.candidatePhone ? `• ${app.candidatePhone}` : ""}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                              <span>{app.candidateName}</span>
-                              <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded font-mono">
-                                {app.candidateId}
+                        </td>
+
+                        {/* Project Column */}
+                        <td className="py-2.5 px-3">
+                          <div className="text-xs font-semibold text-slate-900 leading-tight">
+                            {app.projectName}
+                          </div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                            <Globe size={11} className="text-[#163868]" />
+                            <span>{app.destinationCountry || "Overseas"}</span>
+                            {app.clientName && <span>• {app.clientName}</span>}
+                          </div>
+                        </td>
+
+                        {/* Position Column */}
+                        <td className="py-2.5 px-3">
+                          <div className="text-xs font-medium text-slate-800">{app.position || "Specialist"}</div>
+                          {app.salary && (
+                            <div className="text-[10px] font-semibold text-[#163868] mt-0.5">
+                              {app.salary}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Processing Stage Column */}
+                        <td className="py-2.5 px-3">
+                          <div className="space-y-1">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-[#163868] border border-blue-200">
+                              <Clock size={11} className="text-[#163868]" />
+                              <span className="truncate max-w-[140px]" title={stageName}>{stageName}</span>
+                              <span className="text-blue-800/70 font-mono text-[10px]">
+                                ({displayIndex}/{totalStagesCount || 8})
                               </span>
                             </div>
-                            <div className="text-[11px] text-slate-500 font-medium">
-                              {app.candidateEmail} {app.candidatePhone ? `• ${app.candidatePhone}` : ""}
+                            <div className="w-full max-w-[150px] bg-slate-100 rounded-full h-1 overflow-hidden">
+                              <div
+                                className="bg-[#163868] h-1 rounded-full transition-all duration-300"
+                                style={{ width: `${percentComplete}%` }}
+                              />
+                            </div>
+                            {activeMilestone && (
+                              <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider truncate max-w-[150px]">
+                                in {activeMilestone.name}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Milestones & Payment Column */}
+                        <td className="py-2.5 px-3">
+                          <div>
+                            <div className="text-xs font-bold text-slate-900">
+                              <span>{paidMilestonesCount}/{totalMilestonesCount} Paid</span>
+                              <span className="text-slate-500 font-normal text-[11px] ml-1">
+                                (₹{totalPaidAmount.toLocaleString()} / ₹{Number(totalPlanAmount).toLocaleString()})
+                              </span>
+                            </div>
+                            <div className="mt-1">
+                              {paidMilestonesCount > 0 ? (
+                                <Link
+                                  to={`/invoice/${app.applicationId || app.id}/${milestones[0]?.id || "m0"}`}
+                                  target="_blank"
+                                  className="text-[10px] font-bold text-[#163868] hover:underline inline-flex items-center gap-1"
+                                >
+                                  <FileText size={11} />
+                                  <span>View Receipt</span>
+                                </Link>
+                              ) : (
+                                <span className="text-[9px] font-semibold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                  Payment Due
+                                </span>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Project Column */}
-                      <td className="py-2 px-3">
-                        <div className="text-xs font-bold text-slate-800 leading-tight">
-                          {app.projectName}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
-                          <Globe size={11} className="text-sky-600" />
-                          <span>{app.destinationCountry || "Overseas"}</span>
-                          {app.clientName && <span>• {app.clientName}</span>}
-                        </div>
-                      </td>
-
-                      {/* Position Column */}
-                      <td className="py-2 px-3">
-                        <div className="text-xs font-semibold text-slate-700">{app.position || "Specialist"}</div>
-                        {app.salary && (
-                          <div className="text-[11px] font-medium text-emerald-700 mt-0.5">
-                            {app.salary}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Processing Stage Column */}
-                      <td className="py-2 px-3">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-                          <Clock className="w-3.5 h-3.5 text-blue-600" />
-                          <span className="truncate max-w-[170px]" title={stageName}>{stageName}</span>
-                          <span className="text-slate-500 font-mono text-[10px]">
-                            ({displayIndex}/{totalStagesCount || 8})
-                          </span>
-                        </div>
-                        {/* Progress Bar */}
-                        <div className="w-full max-w-[190px] bg-slate-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
-                          <div
-                            className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
-                            style={{ width: `${percentComplete}%` }}
-                          />
-                        </div>
-                        {activeMilestone && (
-                          <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase truncate max-w-[190px]">
-                            in {activeMilestone.name}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Milestones & Payment Column */}
-                      <td className="py-2 px-3">
-                        <div className="text-xs font-medium text-slate-700">
-                          <span className="font-bold text-slate-900">
-                            {paidMilestonesCount}/{totalMilestonesCount} Paid
-                          </span>
-                          <span className="text-slate-500 ml-1.5">
-                            (₹{totalPaidAmount.toLocaleString()} / ₹{Number(totalPlanAmount).toLocaleString()})
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          {paidMilestonesCount > 0 ? (
-                            <Link
-                              to={`/invoice/${app.applicationId || app.id}/${milestones[0]?.id || "m0"}`}
-                              target="_blank"
-                              className="text-[11px] font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                        {/* Actions Column */}
+                        <td className="py-2.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenPaymentModal(app)}
+                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#163868] border border-blue-200 font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
+                              title="Quickly record milestone payment"
                             >
-                              <FileText size={11} />
-                              <span>View Receipt</span>
+                              <IndianRupee size={12} />
+                              <span>Record Pay</span>
+                            </button>
+
+                            <Link
+                              to={`/admin/candidates/milestones-manage?appId=${app.applicationId || app.id}`}
+                              className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                              title="Manage candidate processing stages & upload documents"
+                            >
+                              <Sliders size={12} />
+                              <span>Manage Stages</span>
                             </Link>
-                          ) : (
-                            <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-semibold">
-                              Payment Due
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Actions Column */}
-                      <td className="py-2 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleOpenPaymentModal(app)}
-                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
-                            title="Quickly record milestone payment"
-                          >
-                            <DollarSign size={13} />
-                            <span>Record Pay</span>
-                          </button>
-
-                          <Link
-                            to={`/admin/candidates/milestones-manage?appId=${app.applicationId || app.id}`}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
-                            title="Manage candidate processing stages & upload documents"
-                          >
-                            <Sliders size={13} />
-                            <span>Manage Stages</span>
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
+                          </div>
+                        </td>
+                      </tr>
+                    );
                 })}
               </tbody>
             </table>
@@ -385,14 +386,14 @@ export default function AdminSelectedCandidates() {
       {paymentModalApp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
-            <div className="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
+            <div className="px-5 py-3.5 bg-[#163868] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
+                <IndianRupee className="w-4 h-4 text-cyan-300" />
                 <h3 className="text-xs sm:text-sm font-bold">Record Milestone Payment</h3>
               </div>
               <button
                 onClick={() => setPaymentModalApp(null)}
-                className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                className="text-white/70 hover:text-white p-1 cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -500,7 +501,7 @@ export default function AdminSelectedCandidates() {
                   type="button"
                   onClick={handleSavePayment}
                   disabled={paymentLoading}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs shadow-md cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {paymentLoading ? (
                     <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />

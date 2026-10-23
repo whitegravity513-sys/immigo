@@ -90,6 +90,36 @@ export default function CandidateDashboard() {
     } catch {}
   };
 
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await apiClient.patch("/candidate/notifications/read-all");
+    } catch {}
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadNotifCount(0);
+  };
+
+  const handleDeleteNotification = async (notifId, e) => {
+    if (e) e.stopPropagation();
+    try {
+      await apiClient.delete(`/candidate/notifications/${notifId}`);
+    } catch {}
+    setNotifications((prev) => {
+      const item = prev.find((n) => n.id === notifId || n._id === notifId);
+      if (item && !item.read) {
+        setUnreadNotifCount((c) => Math.max(0, c - 1));
+      }
+      return prev.filter((n) => n.id !== notifId && n._id !== notifId);
+    });
+  };
+
+  const handleClearAllNotifications = async () => {
+    try {
+      await apiClient.delete("/candidate/notifications");
+    } catch {}
+    setNotifications([]);
+    setUnreadNotifCount(0);
+  };
+
   const fetchAppMilestones = async (appId) => {
     if (!appId) return;
     setMilestonesLoading(true);
@@ -516,6 +546,9 @@ export default function CandidateDashboard() {
           notifDropdownOpen={notifDropdownOpen}
           setNotifDropdownOpen={setNotifDropdownOpen}
           onMarkNotificationRead={handleMarkNotificationRead}
+          onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
+          onDeleteNotification={handleDeleteNotification}
+          onClearAllNotifications={handleClearAllNotifications}
           onOpenMobile={() => setMobileOpen(true)}
         />
 

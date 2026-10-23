@@ -116,6 +116,30 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
     }
   };
 
+  const handleDeleteOne = async (id, e) => {
+    if (e) e.stopPropagation();
+    const sId = String(id || "");
+    const set = getDeletedIds();
+    set.add(sId);
+    try {
+      localStorage.setItem("emp_deleted_notif_ids", JSON.stringify(Array.from(set)));
+    } catch {}
+
+    setNotifications((prev) => {
+      const item = prev.find((n) => String(n.id) === sId || String(n._id) === sId);
+      if (item && !item.read && !item.isRead) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
+      return prev.filter((n) => String(n.id) !== sId && String(n._id) !== sId);
+    });
+
+    try {
+      await apiClient.delete(`/employee/notifications/${sId}`);
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -143,6 +167,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         onMarkAllRead={handleMarkAllAsRead}
         onClearAll={handleClearAll}
         onMarkOneRead={handleMarkOneAsRead}
+        onDeleteOne={handleDeleteOne}
         onItemClick={(item) => {
           const sId = item.id || item._id;
           handleMarkOneAsRead(sId);

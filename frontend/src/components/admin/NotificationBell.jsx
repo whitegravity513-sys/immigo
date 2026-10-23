@@ -129,6 +129,31 @@ export default function NotificationBell({ className }) {
     }
   };
 
+  const handleDeleteOne = async (id, e) => {
+    if (e) e.stopPropagation();
+    const sId = String(id || "");
+    deletedAdminIdsRef.current.add(sId);
+
+    setNotifications((prev) => {
+      const item = prev.find((n) => String(n._id) === sId || String(n.id) === sId);
+      if (item && !item.read && !item.isRead) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
+      return prev.filter((n) => String(n._id) !== sId && String(n.id) !== sId);
+    });
+
+    try {
+      if (sId.startsWith("admin-notif-")) {
+        crmVendorService.deleteAdminNotification(sId);
+      } else {
+        await apiClient.delete(`/admin/notifications/${sId}`).catch(() => {});
+      }
+      await apiClient.delete(`/crm-sync/notifications/${sId}`).catch(() => {});
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
+
   const handleClearAll = async () => {
     setNotifications([]);
     setUnreadCount(0);
@@ -170,6 +195,7 @@ export default function NotificationBell({ className }) {
         onMarkAllRead={handleMarkAllAsRead}
         onClearAll={handleClearAll}
         onMarkOneRead={handleMarkOneAsRead}
+        onDeleteOne={handleDeleteOne}
         onItemClick={(item) => {
           const sId = item.id || item._id;
           handleMarkOneAsRead(sId);

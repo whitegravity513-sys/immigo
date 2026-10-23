@@ -71,6 +71,13 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
     }
   };
 
+  const handleDeleteOne = (notifId, e) => {
+    if (e) e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== notifId && n._id !== notifId));
+    crmVendorService.deleteNotification(notifId, vendor?.id);
+    setTimeout(refreshNotifications, 100);
+  };
+
   return (
     <header className="h-16 bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white border-b border-blue-900/60 sticky top-0 z-20 px-4 sm:px-6 flex items-center justify-between shadow-xs font-sans">
       <div className="flex items-center gap-3">
@@ -142,6 +149,7 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
                 prev.map((n) => (n.id === id || n._id === id ? { ...n, read: true } : n))
               );
             }}
+            onDeleteOne={handleDeleteOne}
             onItemClick={handleNotificationClick}
             viewAllLink="/vendor/candidates/selected"
           />

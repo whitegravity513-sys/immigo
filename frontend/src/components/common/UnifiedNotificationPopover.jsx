@@ -11,6 +11,8 @@ import {
   Info,
   ArrowRight,
   Check,
+  CheckCheck,
+  X,
 } from "lucide-react";
 
 export default function UnifiedNotificationPopover({
@@ -21,6 +23,7 @@ export default function UnifiedNotificationPopover({
   onMarkAllRead,
   onClearAll,
   onMarkOneRead,
+  onDeleteOne,
   onItemClick,
   onViewAll,
   viewAllLink,
@@ -34,10 +37,21 @@ export default function UnifiedNotificationPopover({
     if (text.includes("meeting") || text.includes("interview") || text.includes("video")) {
       return "meeting";
     }
-    if (text.includes("candidate") || text.includes("registration") || text.includes("selected") || text.includes("application")) {
+    if (
+      text.includes("candidate") ||
+      text.includes("registration") ||
+      text.includes("selected") ||
+      text.includes("application")
+    ) {
       return "candidate";
     }
-    if (text.includes("payment") || text.includes("milestone") || text.includes("fee") || text.includes("receipt") || text.includes("invoice")) {
+    if (
+      text.includes("payment") ||
+      text.includes("milestone") ||
+      text.includes("fee") ||
+      text.includes("receipt") ||
+      text.includes("invoice")
+    ) {
       return "payment";
     }
     return "system";
@@ -165,10 +179,11 @@ export default function UnifiedNotificationPopover({
     <div
       className={`absolute right-0 mt-2.5 w-84 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden font-sans text-slate-800 animate-in fade-in slide-in-from-top-2 duration-150 ${className}`}
     >
-      <div className="px-4 py-3.5 bg-white border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <Bell size={18} className="text-blue-600" />
-          <h3 className="font-bold text-base text-slate-900 tracking-tight">Notifications</h3>
+      {/* Top Header */}
+      <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bell size={17} className="text-blue-600" />
+          <h3 className="font-bold text-sm text-slate-900 tracking-tight">Notifications</h3>
           {unreadCount > 0 && (
             <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">
               {unreadCount} new
@@ -176,25 +191,39 @@ export default function UnifiedNotificationPopover({
           )}
         </div>
 
-        <div className="flex items-center gap-1">
+        {/* Header Actions: Mark All Read & Delete All */}
+        <div className="flex items-center gap-1.5">
+          {unreadCount > 0 && onMarkAllRead && (
+            <button
+              type="button"
+              onClick={onMarkAllRead}
+              className="px-2 py-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+              title="Mark all as read"
+            >
+              <CheckCheck size={13} />
+              <span>Mark all read</span>
+            </button>
+          )}
+
           {notifications.length > 0 && onClearAll && (
             <button
               type="button"
               onClick={onClearAll}
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-              title="Clear all notifications"
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+              title="Delete all notifications"
             >
-              <Trash2 size={16} />
+              <Trash2 size={15} />
             </button>
           )}
         </div>
       </div>
 
+      {/* Filter Tabs */}
       <div className="px-4 border-b border-slate-100 flex items-center gap-4 text-xs overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveTab("all")}
-          className={`py-2.5 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
+          className={`py-2 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
             activeTab === "all"
               ? "border-blue-600 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -209,7 +238,7 @@ export default function UnifiedNotificationPopover({
         <button
           type="button"
           onClick={() => setActiveTab("unread")}
-          className={`py-2.5 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
+          className={`py-2 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
             activeTab === "unread"
               ? "border-blue-600 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -224,7 +253,7 @@ export default function UnifiedNotificationPopover({
         <button
           type="button"
           onClick={() => setActiveTab("meetings")}
-          className={`py-2.5 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
+          className={`py-2 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
             activeTab === "meetings"
               ? "border-blue-600 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -239,7 +268,7 @@ export default function UnifiedNotificationPopover({
         <button
           type="button"
           onClick={() => setActiveTab("candidates")}
-          className={`py-2.5 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
+          className={`py-2 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
             activeTab === "candidates"
               ? "border-blue-600 text-blue-700 font-bold"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -252,10 +281,11 @@ export default function UnifiedNotificationPopover({
         </button>
       </div>
 
-      <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100 text-xs">
+      {/* Notifications List */}
+      <div className="max-h-[350px] overflow-y-auto divide-y divide-slate-100 text-xs">
         {groupedNotifications.length === 0 ? (
-          <div className="py-12 text-center text-slate-400">
-            <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2 opacity-60" />
+          <div className="py-10 text-center text-slate-400">
+            <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2 opacity-50" />
             <p className="font-semibold text-xs text-slate-600">No notifications in this view</p>
             <p className="text-[11px] text-slate-400 mt-0.5">You are completely up to date!</p>
           </div>
@@ -277,10 +307,11 @@ export default function UnifiedNotificationPopover({
                   return (
                     <div
                       key={notifId || `${n.title}-${n.createdAt}`}
-                      className={`p-3.5 transition-colors flex items-start gap-3 hover:bg-slate-50/80 ${
+                      className={`p-3 transition-colors flex items-start gap-2.5 hover:bg-slate-50/80 group relative ${
                         !isRead ? "bg-blue-50/20" : "bg-white"
                       }`}
                     >
+                      {/* Unread blue dot */}
                       <div className="pt-2 shrink-0">
                         <span
                           className={`block w-2 h-2 rounded-full ${
@@ -289,31 +320,51 @@ export default function UnifiedNotificationPopover({
                         />
                       </div>
 
-                      <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60 shadow-2xs">
+                      {/* Icon Avatar */}
+                      <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60 shadow-2xs">
                         {meta.icon}
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1">
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 pr-1">
+                        <div className="flex items-center justify-between gap-1 mb-1">
                           <span
-                            className={`px-2 py-0.2 rounded-full text-[9px] font-bold uppercase tracking-wider ${meta.badgeBg}`}
+                            className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold uppercase tracking-wider ${meta.badgeBg}`}
                           >
                             {meta.label}
                           </span>
-                          <span className="text-[11px] font-medium text-slate-400 shrink-0">
-                            {timeAgo}
-                          </span>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[10px] font-medium text-slate-400">
+                              {timeAgo}
+                            </span>
+                            {/* Individual Delete Button */}
+                            {onDeleteOne && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteOne(notifId, e);
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all cursor-pointer"
+                                title="Delete this notification"
+                              >
+                                <X size={13} />
+                              </button>
+                            )}
+                          </div>
                         </div>
 
-                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 leading-tight">
+                        <h4 className="font-bold text-xs text-slate-900 leading-tight">
                           {n.title}
                         </h4>
 
-                        <p className="text-xs text-slate-600 mt-1 leading-relaxed line-clamp-2">
+                        <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed line-clamp-2">
                           {n.message}
                         </p>
 
-                        <div className="mt-2 flex items-center gap-3 text-xs">
+                        {/* Action buttons: View Link | Mark Read | Delete */}
+                        <div className="mt-1.5 flex items-center gap-2.5 text-[11px] flex-wrap">
                           {n.link ? (
                             <button
                               type="button"
@@ -323,10 +374,10 @@ export default function UnifiedNotificationPopover({
                                 onClose();
                                 navigate(n.link);
                               }}
-                              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 cursor-pointer"
+                              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-0.5 cursor-pointer"
                             >
                               <span>{meta.actionText}</span>
-                              <ArrowRight size={12} />
+                              <ArrowRight size={11} />
                             </button>
                           ) : (
                             <button
@@ -335,25 +386,41 @@ export default function UnifiedNotificationPopover({
                                 if (onItemClick) onItemClick(n);
                                 if (!isRead && onMarkOneRead) onMarkOneRead(notifId);
                               }}
-                              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 cursor-pointer"
+                              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-0.5 cursor-pointer"
                             >
                               <span>View details</span>
-                              <ArrowRight size={12} />
+                              <ArrowRight size={11} />
                             </button>
                           )}
 
                           {!isRead && onMarkOneRead && (
                             <>
-                              <span className="text-slate-300">|</span>
+                              <span className="text-slate-300">•</span>
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onMarkOneRead(notifId);
                                 }}
-                                className="text-slate-500 hover:text-slate-800 font-medium cursor-pointer"
+                                className="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
                               >
                                 Mark read
+                              </button>
+                            </>
+                          )}
+
+                          {onDeleteOne && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDeleteOne(notifId, e);
+                                }}
+                                className="text-slate-400 hover:text-rose-600 font-medium cursor-pointer"
+                              >
+                                Delete
                               </button>
                             </>
                           )}
@@ -368,40 +435,43 @@ export default function UnifiedNotificationPopover({
         )}
       </div>
 
-      <div className="px-4 py-2.5 bg-slate-50/80 border-t border-slate-100 flex flex-col items-center justify-center gap-1 text-center">
-        {viewAllLink ? (
-          <Link
-            to={viewAllLink}
-            onClick={onClose}
-            className="text-blue-600 hover:text-blue-800 font-bold text-xs inline-flex items-center gap-1 cursor-pointer"
-          >
-            <span>View all notifications</span>
-            <ArrowRight size={13} />
-          </Link>
-        ) : onViewAll ? (
-          <button
-            type="button"
-            onClick={() => {
-              onViewAll();
-              onClose();
-            }}
-            className="text-blue-600 hover:text-blue-800 font-bold text-xs inline-flex items-center gap-1 cursor-pointer"
-          >
-            <span>View all notifications</span>
-            <ArrowRight size={13} />
-          </button>
-        ) : (
-          onMarkAllRead && unreadCount > 0 && (
+      {/* Footer */}
+      <div className="px-4 py-2 bg-slate-50/80 border-t border-slate-100 flex flex-col items-center justify-center gap-1 text-center">
+        <div className="flex items-center justify-center gap-3 text-xs flex-wrap">
+          {viewAllLink ? (
+            <Link
+              to={viewAllLink}
+              onClick={onClose}
+              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>View all notifications</span>
+              <ArrowRight size={12} />
+            </Link>
+          ) : onViewAll ? (
             <button
               type="button"
-              onClick={onMarkAllRead}
-              className="text-blue-600 hover:text-blue-800 font-bold text-xs inline-flex items-center gap-1 cursor-pointer"
+              onClick={() => {
+                onViewAll();
+                onClose();
+              }}
+              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>Mark all as read</span>
-              <Check size={13} />
+              <span>View all notifications</span>
+              <ArrowRight size={12} />
             </button>
-          )
-        )}
+          ) : null}
+
+          {notifications.length > 0 && onClearAll && (
+            <button
+              type="button"
+              onClick={onClearAll}
+              className="text-slate-500 hover:text-rose-600 font-medium inline-flex items-center gap-1 cursor-pointer"
+            >
+              <Trash2 size={11} />
+              <span>Delete all</span>
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
