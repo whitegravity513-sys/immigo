@@ -86,6 +86,7 @@ const ContactPage = lazy(() => import("../pages/public/ContactPage.jsx"));
 const RegisterPage = lazy(() => import("../pages/public/RegisterPage.jsx"));
 const CandidateLogin = lazy(() => import("../pages/candidate/CandidateLogin.jsx"));
 const CandidateDashboard = lazy(() => import("../pages/candidate/CandidateDashboard.jsx"));
+const CandidatePaymentPage = lazy(() => import("../pages/candidate/CandidatePaymentPage.jsx"));
 const CandidateManagementLayout = lazy(() => import("../components/admin/layout/CandidateManagementLayout.jsx"));
 const AdminCandidateDashboard = lazy(() => import("../pages/admin/candidate/AdminCandidateDashboard.jsx"));
 const AdminNewRegistrations = lazy(() => import("../pages/admin/candidate/AdminNewRegistrations.jsx"));
@@ -209,6 +210,14 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute allowedRole={["candidate", "admin"]}>
               <CandidateDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/candidate/payment/:appId/:milestoneId"
+          element={
+            <ProtectedRoute allowedRole={["candidate", "admin"]}>
+              <CandidatePaymentPage />
             </ProtectedRoute>
           }
         />

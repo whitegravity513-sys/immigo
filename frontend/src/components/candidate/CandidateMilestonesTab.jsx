@@ -368,14 +368,13 @@ export default function CandidateMilestonesTab({
                       </Link>
                     </div>
                   ) : !isLocked ? (
-                    <button
-                      type="button"
-                      onClick={() => onOpenPayModal(m)}
-                      className="px-2.5 py-1 rounded bg-[#0f2744] hover:bg-[#163660] text-white font-semibold text-xs shadow-xs flex items-center gap-1 cursor-pointer transition"
+                    <Link
+                      to={`/candidate/payment/${curApp.applicationId || curApp.id}/${m.id}`}
+                      className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition"
                     >
-                      <CreditCard size={12} />
+                      <CreditCard size={13} />
                       <span>Pay Fee (₹{amt.toLocaleString()})</span>
-                    </button>
+                    </Link>
                   ) : (
                     <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
                       <Lock size={11} />

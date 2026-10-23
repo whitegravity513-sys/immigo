@@ -612,8 +612,14 @@ export default function CandidateDashboard() {
               setSelectedAppForProcessing={setSelectedAppForProcessing}
               milestonesData={milestonesData}
               onOpenPayModal={(m) => {
-                setSelectedMilestoneToPay(m);
-                setPayModalOpen(true);
+                const appId =
+                  selectedAppForProcessing?.applicationId ||
+                  selectedAppForProcessing?.id ||
+                  selectedApps[0]?.applicationId ||
+                  selectedApps[0]?.id;
+                if (appId && m?.id) {
+                  navigate(`/candidate/payment/${appId}/${m.id}`);
+                }
               }}
               onNavigateTab={(tab) => setActiveTab(tab)}
               onFetchAppMilestones={fetchAppMilestones}
