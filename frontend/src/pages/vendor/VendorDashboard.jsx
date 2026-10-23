@@ -16,6 +16,22 @@ export function VendorDashboard() {
 
   useEffect(() => {
     loadDashboardData();
+
+    const handleUpdate = () => {
+      loadDashboardData();
+    };
+
+    window.addEventListener("immigo:application-update", handleUpdate);
+    window.addEventListener("immigo:candidate-update", handleUpdate);
+    window.addEventListener("immigo:dashboard-update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      window.removeEventListener("immigo:application-update", handleUpdate);
+      window.removeEventListener("immigo:candidate-update", handleUpdate);
+      window.removeEventListener("immigo:dashboard-update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
   }, [vendor?.id]);
 
   const loadDashboardData = async () => {

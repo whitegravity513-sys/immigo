@@ -59,8 +59,19 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
     }
   };
 
-  if (!application || !application.processMilestones) {
-    return <div className="text-sm text-slate-500 p-4">No processing timeline available.</div>;
+  const processMilestones =
+    Array.isArray(application?.processMilestones) && application.processMilestones.length > 0
+      ? application.processMilestones
+      : crmVendorService.syncAppMilestonesWithProject
+      ? crmVendorService.syncAppMilestonesWithProject(application)
+      : [];
+
+  if (!application || processMilestones.length === 0) {
+    return (
+      <div className="text-xs text-slate-500 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+        No processing timeline available for this candidate.
+      </div>
+    );
   }
 
   const handleCompleteStage = async (mId, sId) => {
@@ -82,7 +93,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
     setLoading(true);
     try {
       if (action === "Submit") {
-        const targetM = (application.processMilestones || []).find((m) => m.id === mId);
+        const targetM = (processMilestones || []).find((m) => m.id === mId);
         const mAmount = Number(targetM?.paymentAmount || targetM?.amount || 0);
         
         const payload = `[${vendorPaymentForm.method}] Amount: ₹${mAmount.toLocaleString()} | TXN: ${vendorPaymentForm.txnId} | Date: ${vendorPaymentForm.date} | Remark: ${vendorPaymentForm.remark}`;
@@ -111,7 +122,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
     try {
       setLoading(true);
 
-      const targetM = (application.processMilestones || []).find((m) => m.id === mId);
+      const targetM = (processMilestones || []).find((m) => m.id === mId);
       let parsedAmount = Number(rawAmount || targetM?.paymentAmount || 10000);
       if (isNaN(parsedAmount) || parsedAmount <= 0) parsedAmount = 10000;
 
@@ -230,10 +241,10 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
 
   return (
     <div className="space-y-6">
-      {application.processMilestones.map((milestone, index) => {
+      {processMilestones.map((milestone, index) => {
         
         
-        const prevMilestone = index > 0 ? application.processMilestones[index - 1] : null;
+        const prevMilestone = index > 0 ? processMilestones[index - 1] : null;
         const isPrevCompleted = index === 0 || 
           prevMilestone?.status === "Completed" || 
           (Array.isArray(prevMilestone?.stages) && prevMilestone.stages.length > 0 && prevMilestone.stages.every(s => s.status === "Completed"));

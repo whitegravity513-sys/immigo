@@ -140,6 +140,19 @@ const loadData = (key, fallback) => {
 const saveData = (key, data) => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
+    if (typeof window !== "undefined") {
+      if (key === APPLICATIONS_STORAGE_KEY) {
+        window.dispatchEvent(new CustomEvent("immigo:application-update", { detail: data }));
+        window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
+      } else if (key === CANDIDATES_STORAGE_KEY) {
+        window.dispatchEvent(new CustomEvent("immigo:candidate-update", { detail: data }));
+        window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
+      } else if (key === VENDORS_STORAGE_KEY) {
+        window.dispatchEvent(new CustomEvent("immigo:vendor-update", { detail: data }));
+        window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
+      }
+      window.dispatchEvent(new Event("storage"));
+    }
   } catch (e) {
     console.error(`Error saving key ${key}:`, e);
   }
@@ -1192,6 +1205,156 @@ export const crmVendorService = {
   
   
   
+  getProjectMilestonesForApp: (app) => {
+    if (!app) return null;
+    let clientsData = [];
+    try {
+      const raw =
+        localStorage.getItem("crm_clients_data_v3") ||
+        localStorage.getItem("crm_clients_data_v2") ||
+        localStorage.getItem("crm_clients_data") ||
+        "[]";
+      clientsData = JSON.parse(raw);
+    } catch {}
+
+    let matchedProj = null;
+    for (const client of clientsData) {
+      if (Array.isArray(client.projects)) {
+        const prj = client.projects.find(
+          (p) =>
+            (app.projectId && (String(p.id) === String(app.projectId) || String(p.projectId) === String(app.projectId))) ||
+            (p.projectName && app.projectName && p.projectName.trim().toLowerCase() === app.projectName.trim().toLowerCase())
+        );
+        if (prj) {
+          matchedProj = prj;
+          break;
+        }
+      }
+    }
+
+    if (matchedProj && Array.isArray(matchedProj.paymentMilestones) && matchedProj.paymentMilestones.length > 0) {
+      return matchedProj.paymentMilestones;
+    }
+    return null;
+  },
+
+  syncAppMilestonesWithProject: (app) => {
+    if (!app) return [];
+    const projMilestones = crmVendorService.getProjectMilestonesForApp(app);
+    const existingMs = Array.isArray(app.processMilestones) ? app.processMilestones : [];
+
+    if (!projMilestones || projMilestones.length === 0) {
+      if (existingMs.length > 0) return existingMs;
+      return [
+        {
+          id: "m0",
+          name: "Milestone 1: Selection & Document Clearance",
+          paymentAmount: 10000,
+          amount: 10000,
+          paymentStatus: "Payment Required",
+          status: "Active",
+          stages: [
+            { id: "s0_1", name: "Trade Skill Verification & Acceptance", status: "In Progress", completedAt: null, remark: "" },
+            { id: "s0_2", name: "Passport & Identity Clearance", status: "Pending", completedAt: null, remark: "" },
+          ],
+        },
+        {
+          id: "m1",
+          name: "Milestone 2: Medical & Visa Processing",
+          paymentAmount: 15000,
+          amount: 15000,
+          paymentStatus: "Locked",
+          status: "Locked",
+          stages: [
+            { id: "s1_1", name: "GAMCA / Medical Fitness Test", status: "Pending", completedAt: null, remark: "" },
+            { id: "s1_2", name: "Visa Stamping & Work Permit Approval", status: "Pending", completedAt: null, remark: "" },
+          ],
+        },
+        {
+          id: "m2",
+          name: "Milestone 3: Emigration Clearance & Flight Deployment",
+          paymentAmount: 15000,
+          amount: 15000,
+          paymentStatus: "Locked",
+          status: "Locked",
+          stages: [
+            { id: "s2_1", name: "Emigration (PCC / Protector) Clearance", status: "Pending", completedAt: null, remark: "" },
+            { id: "s2_2", name: "Flight Ticket Booking & Mobilization", status: "Pending", completedAt: null, remark: "" },
+          ],
+        },
+      ];
+    }
+
+    return projMilestones.map((pm, mIdx) => {
+      const amt = Number(pm.paymentAmount || pm.amount || 0);
+      const existingM = existingMs.find(
+        (em) => em.id === pm.id || em.name?.toLowerCase() === pm.name?.toLowerCase()
+      ) || existingMs[mIdx];
+
+      const rawStages = Array.isArray(pm.stages) && pm.stages.length > 0
+        ? pm.stages
+        : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }];
+
+      const stages = rawStages.map((stg, sIdx) => {
+        const existingStage = existingM?.stages?.find(
+          (es) => es.id === stg.id || es.name?.toLowerCase() === stg.name?.toLowerCase()
+        ) || existingM?.stages?.[sIdx];
+
+        let stageStatus = existingStage?.status || (mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : "Pending");
+
+        return {
+          id: stg.id || `s${mIdx}_${sIdx}`,
+          name: stg.name || `Stage ${sIdx + 1}`,
+          status: stageStatus,
+          completedAt: existingStage?.completedAt || null,
+          completedBy: existingStage?.completedBy || null,
+          remark: existingStage?.remark || "",
+          visaDocumentUrl: existingStage?.visaDocumentUrl || null,
+          visaFileName: existingStage?.visaFileName || null,
+          document: existingStage?.document || null,
+        };
+      });
+
+      const allStagesDone = stages.length > 0 && stages.every((s) => s.status === "Completed");
+
+      let mStatus = "Locked";
+      let pStatus = amt > 0 ? "Locked" : "Not Required";
+
+      if (existingM) {
+        mStatus = existingM.status || (allStagesDone ? "Completed" : (mIdx === 0 ? "Active" : "Locked"));
+        pStatus = existingM.paymentStatus || (amt > 0 ? (mIdx === 0 ? "Payment Required" : "Locked") : "Not Required");
+      } else {
+        if (mIdx === 0) {
+          if (amt > 0) {
+            mStatus = "Payment Required";
+            pStatus = "Payment Required";
+          } else {
+            mStatus = "Active";
+            pStatus = "Not Required";
+          }
+        }
+      }
+
+      if (allStagesDone) {
+        mStatus = "Completed";
+      }
+
+      return {
+        id: pm.id || `m${mIdx}`,
+        name: pm.name || `Milestone ${mIdx + 1}`,
+        paymentAmount: amt,
+        amount: amt,
+        paymentStatus: pStatus,
+        status: mStatus,
+        paymentDate: existingM?.paymentDate || null,
+        paymentRemark: existingM?.paymentRemark || "",
+        approvedBy: existingM?.approvedBy || null,
+        paymentRef: existingM?.paymentRef || "",
+        stages,
+      };
+    });
+  },
+
   getApplications: async (vendorId, { status = "All", projectId = "All", search = "" } = {}) => {
     try {
       const res = await apiClient.get(`/crm-sync/applications${vendorId ? `?vendorId=${vendorId}` : ""}`);
@@ -1233,59 +1396,14 @@ export const crmVendorService = {
 
     let dataChanged = false;
 
-    
     apps = apps.map(app => {
-      
-      if (["Selected", "Completed"].includes(app.status)) {
-        if (!Array.isArray(app.processMilestones) || app.processMilestones.length === 0) {
-          app.processMilestones = [
-            {
-              id: "m0",
-              name: "Milestone 1: Selection & Document Clearance",
-              paymentAmount: 10000,
-              paymentStatus: "Payment Required",
-              status: "Payment Required",
-              paymentDate: null,
-              paymentRemark: "",
-              approvedBy: null,
-              stages: [
-                { id: "s0_1", name: "Trade Skill Verification & Acceptance", status: "In Progress", completedAt: null, remark: "" },
-                { id: "s0_2", name: "Passport & Identity Clearance", status: "Locked", completedAt: null, remark: "" }
-              ]
-            },
-            {
-              id: "m1",
-              name: "Milestone 2: Medical & Visa Processing",
-              paymentAmount: 15000,
-              paymentStatus: "Not Required",
-              status: "Locked",
-              paymentDate: null,
-              paymentRemark: "",
-              approvedBy: null,
-              stages: [
-                { id: "s1_1", name: "GAMCA / Medical Fitness Test", status: "Locked", completedAt: null, remark: "" },
-                { id: "s1_2", name: "Visa Stamping & Work Permit Approval", status: "Locked", completedAt: null, remark: "" }
-              ]
-            },
-            {
-              id: "m2",
-              name: "Milestone 3: Emigration Clearance & Flight Deployment",
-              paymentAmount: 15000,
-              paymentStatus: "Not Required",
-              status: "Locked",
-              paymentDate: null,
-              paymentRemark: "",
-              approvedBy: null,
-              stages: [
-                { id: "s2_1", name: "Emigration (PCC / Protector) Clearance", status: "Locked", completedAt: null, remark: "" },
-                { id: "s2_2", name: "Flight Ticket Booking & Mobilization", status: "Locked", completedAt: null, remark: "" }
-              ]
-            }
-          ];
+      if (["Selected", "Processing", "Completed"].includes(app.status)) {
+        const synced = crmVendorService.syncAppMilestonesWithProject(app);
+        if (synced && synced.length > 0) {
+          app.processMilestones = synced;
           dataChanged = true;
         }
 
-        
         if (Array.isArray(app.processMilestones) && app.processMilestones.length > 0) {
           app.processMilestones.forEach((m, mIdx) => {
             const amt = Number(m.paymentAmount) || 0;
@@ -2076,26 +2194,24 @@ export const crmVendorService = {
       const isFirst = mIdx === 0;
       const amt = Number(m.amount || m.paymentAmount || 0);
 
-      let processStatus = isPaid ? "Active" : isFirst ? (amt > 0 ? "Payment Required" : "Active") : "Locked";
-      let mappedPaymentStatus = isPaid ? "Approved" : isFirst ? (amt > 0 ? "Payment Required" : "Not Required") : "Locked";
-
-      const stages = (m.stages || []).map((s, sIdx) => {
-        let sStatus = s.status || "Locked";
-        if (!isPaid && amt > 0) {
-          sStatus = "Locked"; 
-        } else if (isPaid && sStatus === "Locked" && sIdx === 0) {
-          sStatus = "In Progress";
-        }
+      const stages = (m.stages || []).map((s) => {
+        const sStatus = s.status || "Pending";
         return {
           ...s,
           status: sStatus,
+          completedAt: sStatus === "Completed" ? (s.completedAt || new Date().toISOString().split("T")[0]) : null,
         };
       });
+
+      const allStagesDone = stages.length > 0 && stages.every((s) => s.status === "Completed");
+      let processStatus = allStagesDone ? "Completed" : isPaid ? "Active" : isFirst ? (amt > 0 ? "Payment Required" : "Active") : "Locked";
+      let mappedPaymentStatus = isPaid ? "Approved" : m.paymentStatus || (isFirst ? (amt > 0 ? "Payment Required" : "Not Required") : "Locked");
 
       return {
         id: m.id || `m${mIdx}`,
         name: m.name,
         paymentAmount: amt,
+        amount: amt,
         paymentStatus: mappedPaymentStatus,
         status: processStatus,
         paymentDate: m.paidDate || (isPaid ? new Date().toISOString().split("T")[0] : null),
@@ -2105,7 +2221,12 @@ export const crmVendorService = {
       };
     });
 
-    apps[idx].status = "Selected";
+    const allMilestonesCompleted = apps[idx].processMilestones.length > 0 && apps[idx].processMilestones.every((m) => m.status === "Completed");
+    if (allMilestonesCompleted) {
+      apps[idx].status = "Completed";
+    } else {
+      apps[idx].status = "Selected";
+    }
 
     apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]).catch(() => {});
     saveData(APPLICATIONS_STORAGE_KEY, apps);
