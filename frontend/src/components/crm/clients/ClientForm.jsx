@@ -980,7 +980,7 @@ export function ClientForm({
                     <input
                       type="number"
                       min="0"
-                      step="500"
+                      step="any"
                       value={totalPaymentInput}
                       onChange={handleTotalPaymentChange}
                       placeholder="e.g. 50000"
@@ -1113,7 +1113,7 @@ export function ClientForm({
                           <input
                             type="number"
                             min="0"
-                            step="100"
+                            step="any"
                             value={milestone.amount}
                             onChange={(e) => handleMilestoneChange(idx, "amount", e.target.value)}
                             placeholder="e.g. 25000"

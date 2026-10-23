@@ -301,11 +301,16 @@ export const verifyCandidateDocument = asyncHandler(async (req, res) => {
   if (anyRejected) {
     candidate.documentStatus = "Re-upload Required";
     candidate.jobApplicationAccess = "Locked";
-  } else if (anyPending) {
-    candidate.documentStatus = "Pending Verification";
-  } else if (hasVerified) {
+  } else {
     candidate.documentStatus = "Verified";
     candidate.jobApplicationAccess = "Unlocked";
+    if (candidate.profile) {
+      candidate.profile.profileCompleted = true;
+      candidate.profile.profileCompletionPercent = Math.max(
+        candidate.profile.profileCompletionPercent || 0,
+        100
+      );
+    }
   }
 
   await candidate.save();
@@ -1030,6 +1035,43 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
     application: app.toJSON(),
     receiptNumber: receiptNum,
     payment: paymentRecord,
+  });
+});
+
+export const deleteCandidate = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
+  const query = isObjectId ? { $or: [{ _id: id }, { candidateId: id }] } : { candidateId: id };
+
+  const candidate = await Candidate.findOne(query);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
+
+  // Remove linked applications
+  await CandidateApplication.deleteMany({
+    $or: [{ candidateId: candidate.candidateId }, { candidate: candidate._id }],
+  });
+
+  try {
+    await ActivityLog.create({
+      action: "DELETE_CANDIDATE",
+      module: "CANDIDATE",
+      targetId: candidate.candidateId,
+      description: `Deleted candidate ${candidate.fullName} (${candidate.candidateId})`,
+      performedBy: req.user?.name || req.user?.email || "Admin",
+      performedByRole: "admin",
+    });
+  } catch (logErr) {
+    console.warn("Failed to log activity for candidate deletion:", logErr);
+  }
+
+  await Candidate.deleteOne({ _id: candidate._id });
+
+  return res.status(200).json({
+    success: true,
+    message: `Candidate ${candidate.fullName} (${candidate.candidateId}) deleted successfully.`,
   });
 });
 

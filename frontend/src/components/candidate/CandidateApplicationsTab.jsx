@@ -113,7 +113,7 @@ export default function CandidateApplicationsTab({
                   <button
                     type="button"
                     onClick={() => onSelectAppForProcessing(app)}
-                    className="px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[10px] flex items-center gap-1 shadow-xs cursor-pointer shrink-0 transition"
+                    className="px-2.5 py-1 rounded bg-[#0f2744] hover:bg-[#163660] text-white font-semibold text-[10px] flex items-center gap-1 shadow-xs cursor-pointer shrink-0 transition"
                   >
                     <Award size={12} />
                     <span>View Processing & Milestones</span>

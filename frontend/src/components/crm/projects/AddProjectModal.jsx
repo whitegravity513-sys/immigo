@@ -716,7 +716,7 @@ export function AddProjectModal({
                       <input
                         type="number"
                         min="0"
-                        step="1000"
+                        step="any"
                         value={formData.paymentMilestoneConfig?.totalFeePerCandidate ?? ""}
                         onChange={(e) => {
                           const fee = Number(e.target.value) || 0;
@@ -859,6 +859,7 @@ export function AddProjectModal({
                                 <input
                                   type="number"
                                   min="0"
+                                  step="any"
                                   value={m.amount ?? ""}
                                   onChange={(e) => {
                                     const val = Number(e.target.value) || 0;

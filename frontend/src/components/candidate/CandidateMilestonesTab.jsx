@@ -321,7 +321,7 @@ export default function CandidateMilestonesTab({
                     <button
                       type="button"
                       onClick={() => onOpenPayModal(m)}
-                      className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs flex items-center gap-1 cursor-pointer transition"
+                      className="px-2.5 py-1 rounded bg-[#0f2744] hover:bg-[#163660] text-white font-semibold text-xs shadow-xs flex items-center gap-1 cursor-pointer transition"
                     >
                       <CreditCard size={12} />
                       <span>Pay Fee (₹{amt.toLocaleString()})</span>

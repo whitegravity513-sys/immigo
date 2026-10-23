@@ -100,7 +100,7 @@ export default function CandidatePaymentModal({
                 type="button"
                 disabled={submittingPayment}
                 onClick={() => onPayMilestone(true)}
-                className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer transition disabled:opacity-50"
+                className="w-full py-2 rounded-lg bg-[#0f2744] hover:bg-[#163660] text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer transition disabled:opacity-50"
               >
                 {submittingPayment ? (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />

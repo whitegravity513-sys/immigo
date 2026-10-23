@@ -15,6 +15,7 @@ import {
   updateApplicationMilestones,
   updateStageStatus,
   recordApplicationPayment,
+  deleteCandidate,
 } from "../controllers/candidateAdmin.controller.js";
 import { verifyAdmin } from "../middleware/auth.middleware.js";
 
@@ -34,6 +35,7 @@ router.patch("/applications/:id/milestones/:milestoneId/stages/:stageId", update
 router.post("/applications/:id/milestones/:milestoneId/record-payment", recordApplicationPayment);
 
 router.get("/:id", getCandidateById);
+router.delete("/:id", deleteCandidate);
 router.post("/:id/approve", approveCandidateRegistration);
 router.post("/:id/reject", rejectCandidateRegistration);
 router.put("/:id/remarks", updateCandidateInternalRemarks);

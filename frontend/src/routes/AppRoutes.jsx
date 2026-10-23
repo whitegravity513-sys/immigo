@@ -97,6 +97,7 @@ const AdminInterviews = lazy(() => import("../pages/admin/candidate/AdminIntervi
 const AdminCandidateSelected = lazy(() => import("../pages/admin/candidate/AdminSelectedCandidates.jsx"));
 const AdminDirectCandidateMilestones = lazy(() => import("../pages/admin/candidate/AdminDirectCandidateMilestones.jsx"));
 const AdminRejectedApplications = lazy(() => import("../pages/admin/candidate/AdminRejectedApplications.jsx"));
+const AdminCandidateProfilePage = lazy(() => import("../pages/admin/candidate/AdminCandidateProfilePage.jsx"));
 
 function LoginRouteHandler({ isAuthenticated, isAdmin, isVendor, isCandidate }) {
   const [searchParams] = useSearchParams();
@@ -725,6 +726,8 @@ export default function AppRoutes() {
           <Route path="selected" element={<AdminCandidateSelected />} />
           <Route path="milestones-manage" element={<AdminDirectCandidateMilestones />} />
           <Route path="rejected" element={<AdminRejectedApplications />} />
+          <Route path=":id" element={<AdminCandidateProfilePage />} />
+          <Route path="view/:id" element={<AdminCandidateProfilePage />} />
         </Route>
 
         <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />

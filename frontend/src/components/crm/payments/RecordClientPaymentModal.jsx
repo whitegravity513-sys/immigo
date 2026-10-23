@@ -388,7 +388,7 @@ export function RecordClientPaymentModal({
                 <input
                   type="number"
                   min="1"
-                  step="100"
+                  step="any"
                   value={formData.amountPaid}
                   onChange={(e) => {
                     setFormData((prev) => ({ ...prev, amountPaid: e.target.value }));

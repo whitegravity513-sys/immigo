@@ -490,7 +490,7 @@ export default function CandidateJobsTab({
                           setSelectedProject(null);
                           onNavigateTab("processing");
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0f2744] hover:bg-[#163660] text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-2xs"
                       >
                         <Award size={13} />
                         <span>Open Processing & Milestones</span>

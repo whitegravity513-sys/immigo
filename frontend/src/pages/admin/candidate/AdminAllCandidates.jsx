@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Search,
@@ -17,6 +18,7 @@ import {
   Briefcase,
   Award,
   Download,
+  Trash2,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
 import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
@@ -39,6 +41,7 @@ const ALL_CANDIDATES_EXPORT_FIELDS = [
 ];
 
 export default function AdminAllCandidates() {
+  const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -47,9 +50,6 @@ export default function AdminAllCandidates() {
   const [jobAccess, setJobAccess] = useState("All");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("personal");
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const fetchCandidates = async () => {
@@ -80,16 +80,21 @@ export default function AdminAllCandidates() {
     fetchCandidates();
   }, [search, accountStatus, documentStatus, jobAccess, page]);
 
-  const openCandidateDetails = async (cand) => {
-    setSelectedCandidate(cand);
-    setDetailsModalOpen(true);
-    setActiveTab("personal");
+  const handleDeleteCandidate = async (cand) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to permanently delete candidate ${cand.fullName} (${cand.candidateId})?`
+    );
+    if (!confirmDelete) return;
+
     try {
-      const res = await apiClient.get(`/admin/candidates/${cand.candidateId}`);
-      if (res.data?.candidate) {
-        setSelectedCandidate(res.data.candidate);
+      const res = await apiClient.delete(`/admin/candidates/${cand.candidateId}`);
+      if (res.data?.success) {
+        alert(`Candidate ${cand.fullName} deleted successfully.`);
+        fetchCandidates();
       }
-    } catch {}
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete candidate.");
+    }
   };
 
   return (
@@ -268,12 +273,21 @@ export default function AdminAllCandidates() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-right">
-                      <button
-                        onClick={() => openCandidateDetails(c)}
-                        className="px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer"
-                      >
-                        View Profile
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => navigate(`/admin/candidates/${c.candidateId}`)}
+                          className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
+                        >
+                          View Profile
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCandidate(c)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+                          title="Delete Candidate"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -304,185 +318,6 @@ export default function AdminAllCandidates() {
           </div>
         )}
       </div>
-
-      {detailsModalOpen && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-base font-bold text-[#0f2744]">
-                  {selectedCandidate.fullName}
-                </h3>
-                <span className="text-xs font-mono font-bold text-blue-600">
-                  {selectedCandidate.candidateId}
-                </span>
-              </div>
-              <button
-                onClick={() => setDetailsModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="flex border-b border-slate-200 text-xs font-bold gap-4">
-              <button
-                onClick={() => setActiveTab("personal")}
-                className={`pb-2 transition-colors cursor-pointer ${
-                  activeTab === "personal"
-                    ? "border-b-2 border-blue-600 text-blue-600"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                Personal Info
-              </button>
-              <button
-                onClick={() => setActiveTab("professional")}
-                className={`pb-2 transition-colors cursor-pointer ${
-                  activeTab === "professional"
-                    ? "border-b-2 border-blue-600 text-blue-600"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                Professional & Skills
-              </button>
-              <button
-                onClick={() => setActiveTab("documents")}
-                className={`pb-2 transition-colors cursor-pointer ${
-                  activeTab === "documents"
-                    ? "border-b-2 border-blue-600 text-blue-600"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                Documents ({selectedCandidate.documents?.length || 0})
-              </button>
-            </div>
-
-            {activeTab === "personal" && (
-              <div className="space-y-3 bg-slate-50 p-4 rounded-xl text-xs">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-slate-400 block font-medium">Email:</span>
-                    <span className="font-bold text-slate-900">{selectedCandidate.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Phone:</span>
-                    <span className="font-bold text-slate-900">{selectedCandidate.phone}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Date of Birth:</span>
-                    <span className="font-semibold text-slate-800">{selectedCandidate.profile?.dob || "Not specified"}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Gender:</span>
-                    <span className="font-semibold text-slate-800">{selectedCandidate.profile?.gender || "Not specified"}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-slate-400 block font-medium">Address:</span>
-                    <span className="font-semibold text-slate-800">
-                      {[selectedCandidate.profile?.address, selectedCandidate.profile?.city, selectedCandidate.profile?.state, selectedCandidate.profile?.pincode].filter(Boolean).join(", ") || "Not specified"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "professional" && (
-              <div className="space-y-3 bg-slate-50 p-4 rounded-xl text-xs">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-slate-400 block font-medium">Trade / Skill Domain:</span>
-                    <span className="font-bold text-slate-900">{selectedCandidate.profile?.trade || "General"}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Preferred Role:</span>
-                    <span className="font-bold text-slate-900">{selectedCandidate.profile?.preferredJobRole || "Any Eligible"}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Experience (Years):</span>
-                    <span className="font-semibold text-slate-800">{selectedCandidate.profile?.experienceYears || 0} Years</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block font-medium">Passport Number:</span>
-                    <span className="font-mono font-bold text-slate-900">{selectedCandidate.profile?.passportNumber || "Not Provided"}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-slate-400 block font-medium mb-1">Skills:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {(selectedCandidate.profile?.skills || []).length > 0 ? (
-                        selectedCandidate.profile.skills.map((s, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold text-[11px]">
-                            {s}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-slate-400">None specified</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "documents" && (
-              <div className="space-y-2">
-                {(selectedCandidate.documents || []).length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-400">
-                    No documents uploaded yet.
-                  </div>
-                ) : (
-                  selectedCandidate.documents.map((d) => (
-                    <div
-                      key={d.id}
-                      className="p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between text-xs"
-                    >
-                      <div>
-                        <div className="font-bold text-slate-900">{d.name}</div>
-                        <div className="text-[11px] text-slate-500 font-mono">
-                          Uploaded: {new Date(d.uploadedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            d.status === "Verified"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : d.status === "Re-upload Required"
-                              ? "bg-rose-100 text-rose-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {d.status}
-                        </span>
-                        {d.fileUrl && (
-                          <a
-                            href={d.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg"
-                            title="Preview Document"
-                          >
-                            <ExternalLink size={14} />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setDetailsModalOpen(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <ExcelExportModal
         isOpen={exportModalOpen}

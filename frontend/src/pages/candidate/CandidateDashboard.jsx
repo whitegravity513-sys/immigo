@@ -181,9 +181,7 @@ export default function CandidateDashboard() {
     setSaveLoading(true);
     setNotification(null);
     try {
-      const payload = {
-        fullName: profileForm.fullName,
-        phone: profileForm.phone,
+      const profileData = {
         dob: profileForm.dob,
         gender: profileForm.gender,
         address: profileForm.address,
@@ -198,6 +196,7 @@ export default function CandidateDashboard() {
           : [],
         trade: profileForm.trade,
         experienceYears: Number(profileForm.experienceYears) || 0,
+        totalExperienceYears: Number(profileForm.experienceYears) || 0,
         currentOccupation: profileForm.currentOccupation,
         preferredJobRole: profileForm.preferredJobRole,
         languages: profileForm.languages
@@ -206,6 +205,13 @@ export default function CandidateDashboard() {
         passportNumber: profileForm.passportNumber,
         passportExpiry: profileForm.passportExpiry,
         passportIssueCountry: profileForm.passportIssueCountry,
+      };
+
+      const payload = {
+        fullName: profileForm.fullName,
+        phone: profileForm.phone,
+        profile: profileData,
+        ...profileData,
       };
 
       const res = await apiClient.put("/candidate/profile", payload);
@@ -376,9 +382,14 @@ export default function CandidateDashboard() {
   };
 
   const completionPercent = candidate?.profile?.profileCompletionPercent || 20;
-  const isProfileComplete = completionPercent >= 80;
+  const isProfileComplete = completionPercent >= 80 || candidate?.profile?.profileCompleted;
   const hasUploadedDocs = (candidate?.documents || []).length > 0;
-  const canApply = isProfileComplete && hasUploadedDocs;
+  const hasVerifiedDoc = (candidate?.documents || []).some((d) => d.status === "Verified");
+  const canApply =
+    candidate?.jobApplicationAccess === "Unlocked" ||
+    candidate?.documentStatus === "Verified" ||
+    hasVerifiedDoc ||
+    (isProfileComplete && hasUploadedDocs);
 
   const selectedApps = (applications || []).filter(
     (a) => a.status === "Selected" || a.status === "Completed"

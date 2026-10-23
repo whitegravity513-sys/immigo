@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   FileCheck2,
   Search,
@@ -16,10 +16,27 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Download,
+  Trash2,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
+import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
+
+const DOC_VERIFICATION_EXPORT_FIELDS = [
+  { key: "candidateId", label: "Candidate ID", category: "Identification", defaultSelected: true },
+  { key: "fullName", label: "Full Name", category: "Personal", defaultSelected: true },
+  { key: "email", label: "Email Address", category: "Contact", defaultSelected: true },
+  { key: "phone", label: "Mobile / Phone", category: "Contact", defaultSelected: true },
+  { key: "accountStatus", label: "Account Status", category: "Status", defaultSelected: true },
+  { key: "documentStatus", label: "Document Status", category: "Status", defaultSelected: true },
+  { key: "totalDocs", label: "Total Documents", category: "Documents", defaultSelected: true, extractor: (c) => (c.documents || []).length },
+  { key: "verifiedDocs", label: "Verified Documents", category: "Documents", defaultSelected: true, extractor: (c) => (c.documents || []).filter((d) => d.status === "Verified").length },
+  { key: "pendingDocs", label: "Pending Documents", category: "Documents", defaultSelected: true, extractor: (c) => (c.documents || []).filter((d) => d.status === "Pending Verification").length },
+  { key: "reuploadDocs", label: "Re-upload Required Docs", category: "Documents", defaultSelected: true, extractor: (c) => (c.documents || []).filter((d) => d.status === "Re-upload Required").length },
+];
 
 export default function AdminDocumentVerification() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "All";
 
@@ -34,6 +51,7 @@ export default function AdminDocumentVerification() {
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [expandedCandidateId, setExpandedCandidateId] = useState(null);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const fetchDocs = async () => {
     setLoading(true);
@@ -131,6 +149,34 @@ export default function AdminDocumentVerification() {
     }
   };
 
+  const handleDeleteCandidate = async (e, cand) => {
+    e.stopPropagation();
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete candidate ${cand.fullName} (${cand.candidateId})?`
+    );
+    if (!confirmed) return;
+
+    setActionLoading(true);
+    try {
+      const res = await apiClient.delete(`/admin/candidates/${cand.candidateId}`);
+      if (res.data?.success) {
+        setNotification({
+          type: "success",
+          message: `Candidate ${cand.fullName} deleted successfully.`,
+        });
+        fetchDocs();
+      }
+    } catch (err) {
+      setNotification({
+        type: "error",
+        message: err.response?.data?.message || "Failed to delete candidate.",
+      });
+    } finally {
+      setActionLoading(false);
+      setTimeout(() => setNotification(null), 4000);
+    }
+  };
+
   return (
     <div className="space-y-3.5">
       {notification && (
@@ -191,6 +237,16 @@ export default function AdminDocumentVerification() {
             <option value="Re-upload Required">Re-upload Required</option>
             <option value="Rejected">Rejected</option>
           </select>
+
+          <button
+            type="button"
+            onClick={() => setExportModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0f2744] hover:bg-[#163660] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+            title="Download Candidate Excel"
+          >
+            <Download size={13} />
+            <span>Download Excel</span>
+          </button>
 
           <button
             onClick={fetchDocs}
@@ -281,11 +337,33 @@ export default function AdminDocumentVerification() {
                     </span>
                     <button
                       type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/admin/candidates/${candidate.candidateId}`);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                      title="View Full Profile Page"
+                    >
+                      <ExternalLink size={12} />
+                      <span className="hidden sm:inline">Profile</span>
+                    </button>
+
+                    <button
+                      type="button"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all cursor-pointer"
                     >
                       <FileText size={12} />
                       <span>{isExpanded ? "Hide" : "View Documents"}</span>
                       {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteCandidate(e, candidate)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                      title="Delete Candidate"
+                    >
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
@@ -370,7 +448,7 @@ export default function AdminDocumentVerification() {
                                       handleVerify(candidate, document);
                                     }}
                                     disabled={actionLoading}
-                                    className="px-2.5 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-2xs transition-colors cursor-pointer"
                                   >
                                     Verify
                                   </button>
@@ -457,6 +535,17 @@ export default function AdminDocumentVerification() {
           </div>
         </div>
       )}
+
+      <ExcelExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        title="Export Candidate Verification Desk"
+        subtitle="Select the candidate columns you want to include in the exported file."
+        availableFields={DOC_VERIFICATION_EXPORT_FIELDS}
+        data={candidates}
+        filenamePrefix="Candidate_Verification_Desk"
+        sheetName="Candidates"
+      />
     </div>
   );
 }

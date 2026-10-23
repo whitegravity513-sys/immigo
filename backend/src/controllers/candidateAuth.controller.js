@@ -251,7 +251,7 @@ export const updateCandidateProfile = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Candidate not found." });
   }
 
-  const { fullName, phone, profile } = req.body;
+  const { fullName, phone } = req.body;
 
   if (fullName && String(fullName).trim()) {
     candidate.fullName = String(fullName).trim();
@@ -260,19 +260,55 @@ export const updateCandidateProfile = asyncHandler(async (req, res) => {
     candidate.phone = String(phone).trim();
   }
 
-  if (profile && typeof profile === "object") {
-    candidate.profile = {
-      ...(candidate.profile || {}),
-      ...profile,
-    };
-  }
+  // Support both nested req.body.profile and root fields, preserving all prior filled details
+  const rawProfile = req.body.profile && typeof req.body.profile === "object"
+    ? { ...req.body, ...req.body.profile }
+    : { ...req.body };
+
+  const profileUpdates = {};
+  const allowedKeys = [
+    "dob",
+    "gender",
+    "address",
+    "city",
+    "state",
+    "pincode",
+    "country",
+    "countryPreference",
+    "education",
+    "skills",
+    "trade",
+    "experienceYears",
+    "totalExperienceYears",
+    "currentOccupation",
+    "preferredJobRole",
+    "languages",
+    "passportNumber",
+    "passportExpiry",
+    "passportIssueCountry",
+  ];
+
+  allowedKeys.forEach((key) => {
+    if (rawProfile[key] !== undefined && rawProfile[key] !== null && rawProfile[key] !== "") {
+      profileUpdates[key] = rawProfile[key];
+    }
+  });
+
+  candidate.profile = {
+    ...(candidate.profile || {}),
+    ...profileUpdates,
+  };
 
   candidate.profile.profileCompletionPercent = calculateProfileCompletion(candidate);
   if (candidate.profile.profileCompletionPercent >= 80) {
     candidate.profile.profileCompleted = true;
   }
   const hasDocs = Array.isArray(candidate.documents) && candidate.documents.length > 0;
-  if (candidate.profile.profileCompletionPercent >= 80 && hasDocs) {
+  if (
+    candidate.profile.profileCompletionPercent >= 80 ||
+    hasDocs ||
+    candidate.documentStatus === "Verified"
+  ) {
     candidate.jobApplicationAccess = "Unlocked";
   }
 
@@ -437,12 +473,13 @@ export const applyForProject = asyncHandler(async (req, res) => {
 
   const hasDocuments = Array.isArray(candidate.documents) && candidate.documents.length > 0;
   const isProfileComplete = candidate.profile?.profileCompleted || (candidate.profile?.profileCompletionPercent || 0) >= 80;
+  const isVerified = candidate.documentStatus === "Verified" || candidate.jobApplicationAccess === "Unlocked";
 
-  if (!isProfileComplete || !hasDocuments) {
+  if (!isVerified && (!isProfileComplete || !hasDocuments)) {
     return res.status(403).json({
       success: false,
       message:
-        "Please complete your profile (at least 80%) and upload your required documents before applying for projects.",
+        "Please complete your profile and upload your required documents before applying for projects.",
     });
   }
 
