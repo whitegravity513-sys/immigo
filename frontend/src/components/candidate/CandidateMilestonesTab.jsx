@@ -277,7 +277,7 @@ export default function CandidateMilestonesTab({
             </div>
             <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-1.5 rounded-full transition-all duration-500 shadow-xs"
+                className="bg-gradient-to-r from-cyan-400 to-blue-400 h-1.5 rounded-full transition-all duration-500 shadow-xs"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -288,7 +288,7 @@ export default function CandidateMilestonesTab({
               <span className="text-[9px] uppercase font-semibold text-slate-400 block">
                 Milestone Fees
               </span>
-              <span className="text-xs font-semibold text-emerald-400">
+              <span className="text-xs font-semibold text-cyan-300">
                 ₹{paidFee.toLocaleString()} / ₹{Number(totalMilestonesFee).toLocaleString()}
               </span>
             </div>
@@ -300,20 +300,25 @@ export default function CandidateMilestonesTab({
       {/* Milestones & Processing Timeline Cards */}
       <div className="space-y-2.5">
         {rawMs.map((m, mIdx) => {
-          const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+          const isDone = m.status === "Completed";
+          const isPaid = m.status === "Paid" || m.paymentStatus === "Approved" || isDone;
           const isPaymentRequired =
             m.status === "Payment Required" || m.paymentStatus === "Payment Required";
           const isLocked = m.status === "Locked";
           const amt = Number(m.amount || m.paymentAmount || 15000);
+
+          const candidateDocs = (m.clearanceDocuments || []).filter(
+            (d) => !d.targetAudience || d.targetAudience === "both" || d.targetAudience === "candidate"
+          );
 
           return (
             <div
               key={m.id || mIdx}
               className={`bg-white rounded-lg border transition-all shadow-2xs overflow-hidden ${
                 isPaid
-                  ? "border-emerald-200"
+                  ? "border-blue-200"
                   : isPaymentRequired
-                  ? "border-amber-300 ring-1 ring-amber-400/20"
+                  ? "border-blue-400 ring-1 ring-blue-500/20"
                   : "border-slate-200 opacity-90"
               }`}
             >
@@ -322,9 +327,9 @@ export default function CandidateMilestonesTab({
                   <div
                     className={`w-7 h-7 rounded-md font-semibold text-xs flex items-center justify-center shrink-0 shadow-2xs ${
                       isPaid
-                        ? "bg-emerald-600 text-white"
+                        ? "bg-[#163868] text-white"
                         : isPaymentRequired
-                        ? "bg-amber-500 text-white"
+                        ? "bg-blue-600 text-white"
                         : "bg-slate-200 text-slate-600"
                     }`}
                   >
@@ -335,14 +340,16 @@ export default function CandidateMilestonesTab({
                       <h3 className="text-xs font-semibold text-slate-900">{m.name}</h3>
                       <span
                         className={`px-1.5 py-0.2 rounded text-[9px] font-semibold ${
-                          isPaid
-                            ? "bg-emerald-100 text-emerald-800"
+                          isDone
+                            ? "bg-blue-100 text-[#163868] border border-blue-200"
+                            : isPaid
+                            ? "bg-blue-50 text-[#163868] border border-blue-200"
                             : isPaymentRequired
                             ? "bg-amber-100 text-amber-800 animate-pulse"
                             : "bg-slate-100 text-slate-600"
                         }`}
                       >
-                        {isPaid ? "Paid & Cleared" : isLocked ? "Locked" : "Payment Due"}
+                        {isDone ? "Completed" : isPaid ? "Paid & Cleared" : isLocked ? "Locked" : "Payment Due"}
                       </span>
                     </div>
                     <div className="text-[10px] font-medium text-slate-500 mt-0.5">
@@ -354,8 +361,8 @@ export default function CandidateMilestonesTab({
                 <div className="flex items-center gap-1.5 self-start md:self-center">
                   {isPaid ? (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
-                        <CheckCircle2 size={12} className="text-emerald-600" />
+                      <span className="text-[10px] font-semibold text-[#163868] flex items-center gap-1">
+                        <CheckCircle2 size={12} className="text-[#163868]" />
                         <span>Verified</span>
                       </span>
                       <Link
@@ -391,15 +398,15 @@ export default function CandidateMilestonesTab({
                 </h4>
 
                 {(m.stages || []).map((stage, sIdx) => {
-                  const isDone = stage.status === "Completed";
+                  const sDone = stage.status === "Completed";
                   const inProgress = stage.status === "In Progress";
 
                   return (
                     <div
                       key={stage.id || sIdx}
                       className={`p-2 rounded-md border flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 transition-colors ${
-                        isDone
-                          ? "bg-emerald-50/40 border-emerald-200"
+                        sDone
+                          ? "bg-slate-50/80 border-slate-200"
                           : inProgress
                           ? "bg-blue-50/30 border-blue-200"
                           : "bg-slate-50/50 border-slate-200"
@@ -408,14 +415,14 @@ export default function CandidateMilestonesTab({
                       <div className="flex items-center gap-2">
                         <div
                           className={`w-4 h-4 rounded-full font-semibold text-[9px] flex items-center justify-center shrink-0 ${
-                            isDone
-                              ? "bg-emerald-600 text-white"
+                            sDone
+                              ? "bg-[#163868] text-white"
                               : inProgress
                               ? "bg-blue-600 text-white animate-pulse"
                               : "bg-slate-200 text-slate-600"
                           }`}
                         >
-                          {isDone ? "✓" : sIdx + 1}
+                          {sDone ? "✓" : sIdx + 1}
                         </div>
                         <div>
                           <div className="font-medium text-xs text-slate-900">
@@ -432,14 +439,14 @@ export default function CandidateMilestonesTab({
                       <div className="flex items-center gap-1.5 self-start sm:self-center">
                         <span
                           className={`px-1.5 py-0.2 rounded text-[9px] font-semibold flex items-center gap-1 ${
-                            isDone
-                              ? "bg-emerald-100 text-emerald-800"
+                            sDone
+                              ? "bg-blue-100 text-[#163868]"
                               : inProgress
                               ? "bg-blue-100 text-blue-800"
                               : "bg-slate-100 text-slate-600"
                           }`}
                         >
-                          {isDone && <CheckCircle2 size={10} />}
+                          {sDone && <CheckCircle2 size={10} className="text-[#163868]" />}
                           {inProgress && <Clock size={10} />}
                           <span>{stage.status || "Pending"}</span>
                         </span>
@@ -449,7 +456,7 @@ export default function CandidateMilestonesTab({
                             href={stage.document.fileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="px-1.5 py-0.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-semibold flex items-center gap-1 shadow-2xs transition"
+                            className="px-1.5 py-0.5 rounded bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-semibold flex items-center gap-1 shadow-2xs transition"
                           >
                             <Eye size={10} />
                             <span>View Proof</span>
@@ -459,6 +466,45 @@ export default function CandidateMilestonesTab({
                     </div>
                   );
                 })}
+
+                {/* Candidate Released Clearance Documents */}
+                {candidateDocs.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-slate-100">
+                    <div className="text-[9px] font-bold text-[#163868] uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <FileText size={11} className="text-[#163868]" />
+                      <span>Released Deployment & Clearance Documents</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {candidateDocs.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-1.5 rounded-lg bg-blue-50/70 border border-blue-200 flex items-center justify-between gap-1.5 text-xs"
+                        >
+                          <div className="flex items-center gap-1.5 truncate">
+                            <FileText size={12} className="text-[#163868] shrink-0" />
+                            <div className="truncate">
+                              <span className="font-semibold text-slate-900 text-[11px] block truncate">
+                                {doc.title}
+                              </span>
+                              <span className="text-[9px] text-slate-500 font-mono">
+                                {doc.size || "PDF Document"}
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={doc.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 rounded bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-bold shrink-0 flex items-center gap-1 transition"
+                          >
+                            <Eye size={10} />
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

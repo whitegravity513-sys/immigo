@@ -593,6 +593,50 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                 )}
               </div>
             )}
+
+            {/* Released Milestone Clearance Documents for Vendor */}
+            {Array.isArray(milestone.clearanceDocuments) &&
+              milestone.clearanceDocuments.filter(
+                (d) => !d.targetAudience || d.targetAudience === "both" || d.targetAudience === "vendor"
+              ).length > 0 && (
+                <div className="mt-3 p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
+                  <div className="text-xs font-bold text-[#163868] flex items-center gap-1.5 uppercase tracking-wide">
+                    <FileText size={13} className="text-[#163868]" />
+                    <span>Milestone Clearance & Release Documents (Candidate Deployment)</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {milestone.clearanceDocuments
+                      .filter(
+                        (d) => !d.targetAudience || d.targetAudience === "both" || d.targetAudience === "vendor"
+                      )
+                      .map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-2 rounded-lg bg-white border border-blue-200 flex items-center justify-between gap-2 shadow-2xs"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FileCheck size={14} className="text-[#163868] shrink-0" />
+                            <div className="truncate">
+                              <span className="font-bold text-xs text-slate-900 block truncate">{doc.title}</span>
+                              <span className="text-[10px] text-slate-500">
+                                {doc.size || "PDF Document"} • {doc.uploadedAt || "Verified"}
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={doc.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2.5 py-1 rounded-md bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-bold shrink-0 flex items-center gap-1 transition"
+                          >
+                            <Download size={11} />
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
           </div>
         );
       })}

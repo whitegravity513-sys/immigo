@@ -1,16 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import apiClient from "../../services/apiClient.js";
-import {
-  Bell,
-  CheckCheck,
-  Video,
-  ExternalLink,
-  Info,
-  Clock,
-  Calendar,
-  X,
-  Trash2,
-} from "lucide-react";
+import { Bell } from "lucide-react";
+import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
 
 export default function EmployeeNotificationBell({ token, onSelectMeeting, onNewNotification, onViewAll, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,14 +19,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
     }
   };
 
-  const saveDeletedId = (id) => {
-    try {
-      const set = getDeletedIds();
-      set.add(String(id));
-      localStorage.setItem("emp_deleted_notif_ids", JSON.stringify(Array.from(set)));
-    } catch {}
-  };
-
   const fetchNotifications = async () => {
     try {
       const res = await apiClient.get("/employee/notifications?limit=50");
@@ -45,7 +28,6 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         const clearedTs = parseInt(localStorage.getItem("emp_notifs_cleared_ts") || "0", 10);
         const deletedIds = getDeletedIds();
 
-        
         list = list.filter((n) => {
           const notifId = String(n.id || n._id);
           if (deletedIds.has(notifId)) return false;
@@ -58,7 +40,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
           const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
           const isRead = Boolean(n.read || (lastReadAllTs && itemTime && itemTime <= lastReadAllTs));
           if (!isRead) effectiveUnread++;
-          return { ...n, read: isRead };
+          return { ...n, read: isRead, isRead };
         });
 
         setNotifications(list);
@@ -79,13 +61,12 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         }
         initialFetchDone.current = true;
       }
-    } catch {
-    }
+    } catch {}
   };
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 2500);
+    const interval = setInterval(fetchNotifications, 3000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -102,7 +83,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
   const handleMarkOneAsRead = async (id) => {
     const sId = String(id || "");
     setNotifications((prev) =>
-      prev.map((n) => (String(n.id) === sId || String(n._id) === sId ? { ...n, read: true } : n))
+      prev.map((n) => (String(n.id) === sId || String(n._id) === sId ? { ...n, read: true, isRead: true } : n))
     );
     setUnreadCount((c) => Math.max(0, c - 1));
     try {
@@ -115,7 +96,7 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
   const handleMarkAllAsRead = async () => {
     localStorage.setItem("emp_notifs_read_all_ts", Date.now().toString());
     setUnreadCount(0);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
     try {
       await apiClient.put("/employee/notifications/read-all", {});
     } catch (err) {
@@ -135,220 +116,42 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
     }
   };
 
-  const handleDeleteOne = async (id, e) => {
-    if (e) e.stopPropagation();
-    const sId = String(id || "");
-    saveDeletedId(sId);
-
-    setNotifications((prev) => {
-      const item = prev.find((n) => String(n.id) === sId || String(n._id) === sId);
-      if (item && !item.read) {
-        setUnreadCount((c) => Math.max(0, c - 1));
-      }
-      return prev.filter((n) => String(n.id) !== sId && String(n._id) !== sId);
-    });
-
-    try {
-      await apiClient.delete(`/employee/notifications/${sId}`);
-    } catch (err) {
-      console.error("Failed to delete notification:", err);
-    }
-  };
-
-  const formatTimeAgo = (dateStr) => {
-    if (!dateStr) return "";
-    const diffMs = Date.now() - new Date(dateStr).getTime();
-    if (isNaN(diffMs)) return "";
-    const diffSec = Math.floor(diffMs / 1000);
-    if (diffSec < 60) return "Just now";
-    const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffHrs = Math.floor(diffMin / 60);
-    if (diffHrs < 24) return `${diffHrs}h ago`;
-    const diffDays = Math.floor(diffHrs / 24);
-    return `${diffDays}d ago`;
-  };
-
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={className || "relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer border border-slate-200/80 shadow-xs focus:outline-none"}
-        title="Live Notifications"
+        className={
+          className ||
+          "relative p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all flex items-center justify-center cursor-pointer border border-white/10 shadow-2xs focus:outline-none"
+        }
+        title="Notifications"
       >
-        <Bell size={18} className={className ? "text-blue-200 hover:text-white" : "text-slate-700"} />
+        <Bell size={17} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow-md animate-bounce">
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bell size={16} className="text-emerald-600" />
-              <h3 className="font-bold text-sm text-slate-900 tracking-tight">
-                Notifications
-              </h3>
-              {unreadCount > 0 && (
-                <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-xs">
-                  {unreadCount} New
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              {unreadCount > 0 && (
-                <button
-                  type="button"
-                  onClick={handleMarkAllAsRead}
-                  className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-200/80 cursor-pointer font-semibold"
-                  title="Mark all as read"
-                >
-                  <CheckCheck size={13} className="text-emerald-600" />
-                  <span className="text-[11px]">Read All</span>
-                </button>
-              )}
-              {notifications.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
-                  title="Clear all notifications"
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 custom-scrollbar">
-            {notifications.length === 0 ? (
-              <div className="py-10 text-center text-slate-400">
-                <Bell size={28} className="mx-auto mb-2 opacity-30" />
-                <p className="text-xs font-semibold">No notifications</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Meeting invites and company announcements will appear here.
-                </p>
-              </div>
-            ) : (
-              notifications.slice(0, 30).map((item) => {
-                const isMeeting = item.type === "MEETING" || item.metadata?.meetingLink;
-                const meetingLink = item.metadata?.meetingLink;
-                const notifId = item.id || item._id;
-
-                return (
-                  <div
-                    key={notifId}
-                    onClick={() => !item.read && handleMarkOneAsRead(notifId)}
-                    className={`p-3.5 transition-colors cursor-pointer hover:bg-slate-50 flex flex-col gap-1.5 group relative ${
-                      !item.read
-                        ? "bg-blue-50/50 border-l-3 border-blue-600"
-                        : "bg-white opacity-80 hover:opacity-100"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        {!item.read && (
-                          <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" title="Unread" />
-                        )}
-                        <span
-                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md border ${
-                            isMeeting
-                              ? "bg-purple-100 border-purple-200 text-purple-800"
-                              : "bg-blue-100 border-blue-200 text-blue-800"
-                          }`}
-                        >
-                          {isMeeting ? "Meeting" : item.type || "Update"}
-                        </span>
-                        {item.targetType === "ALL" ? (
-                          <span className="text-[9px] font-semibold text-slate-500">
-                            • All Staff
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-semibold text-emerald-600">
-                            • For You
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          {formatTimeAgo(item.createdAt)}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteOne(notifId, e)}
-                          className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all cursor-pointer"
-                          title="Delete notification"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <h4 className="text-xs font-bold text-slate-900 leading-snug">
-                      {item.title}
-                    </h4>
-
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
-                      {item.message}
-                    </p>
-
-                    {meetingLink && (
-                      <div className="pt-1.5 flex items-center justify-between gap-2">
-                        <a
-                          href={meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all"
-                        >
-                          <Video size={12} />
-                          <span>Join Meeting</span>
-                          <ExternalLink size={10} />
-                        </a>
-
-                        {item.metadata?.startTime && (
-                          <span className="text-[10px] text-slate-500 font-semibold flex items-center gap-1">
-                            <Clock size={11} className="text-slate-400" />
-                            {item.metadata.date ? `${item.metadata.date} ` : ""}
-                            {item.metadata.startTime}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {}
-          <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                if (onViewAll) onViewAll();
-              }}
-              className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer transition-colors"
-            >
-              <span>View All Notifications & Announcements {notifications.length > 0 ? `(${notifications.length})` : ""}</span>
-              <ExternalLink size={12} />
-            </button>
-            <button
-              type="button"
-              onClick={fetchNotifications}
-              className="text-slate-500 hover:text-slate-800 text-[11px] font-semibold cursor-pointer"
-            >
-              Refresh
-            </button>
-          </div>
-        </div>
-      )}
+      <UnifiedNotificationPopover
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAllRead={handleMarkAllAsRead}
+        onClearAll={handleClearAll}
+        onMarkOneRead={handleMarkOneAsRead}
+        onItemClick={(item) => {
+          const sId = item.id || item._id;
+          handleMarkOneAsRead(sId);
+          if (item.type === "MEETING" && onSelectMeeting) {
+            onSelectMeeting(item.meetingId || item.id);
+          }
+        }}
+        onViewAll={onViewAll}
+      />
     </div>
   );
 }

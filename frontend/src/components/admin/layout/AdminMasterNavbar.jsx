@@ -35,7 +35,7 @@ export function AdminMasterNavbar({
   };
 
   return (
-    <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 flex items-center border-b border-blue-800/80 shadow-md shrink-0">
+    <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
         {}

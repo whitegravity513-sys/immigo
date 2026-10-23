@@ -21,9 +21,11 @@ import {
   Eye,
   X,
   CreditCard,
-  DollarSign,
   Globe,
   Award,
+  Check,
+  Send,
+  Users,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
 
@@ -49,6 +51,11 @@ export default function AdminDirectCandidateMilestones() {
   const [payRef, setPayRef] = useState("");
   const [payRemarks, setPayRemarks] = useState("");
   const [recordingPayment, setRecordingPayment] = useState(false);
+
+  // Document Upload State (for Candidate & Vendor)
+  const [docTitle, setDocTitle] = useState("");
+  const [docAudience, setDocAudience] = useState("both"); // "both", "candidate", "vendor"
+  const [docUploading, setDocUploading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -78,18 +85,21 @@ export default function AdminDirectCandidateMilestones() {
 
         if (rawMilestones.length > 0) {
           const formatted = rawMilestones.map((m, mIdx) => {
-            const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+            const isCompleted = m.status === "Completed";
+            const isPaid = m.status === "Paid" || m.paymentStatus === "Approved" || isCompleted;
             const amt = Number(m.amount || m.paymentAmount || 15000);
             return {
               id: m.id || `m${mIdx}`,
               name: m.name || `Milestone ${mIdx + 1}`,
               amount: amt,
               paymentAmount: amt,
-              status: isPaid ? "Paid" : m.status || (mIdx === 0 ? "Active" : "Locked"),
+              status: isCompleted ? "Completed" : isPaid ? "Paid" : m.status || (mIdx === 0 ? "Active" : "Locked"),
               paymentStatus: isPaid ? "Approved" : m.paymentStatus || (mIdx === 0 ? "Payment Required" : "Locked"),
               paymentDate: m.paymentDate || null,
               paymentRef: m.paymentRef || null,
               approvedBy: m.approvedBy || null,
+              paymentRemark: m.paymentRemark || "",
+              clearanceDocuments: Array.isArray(m.clearanceDocuments) ? m.clearanceDocuments : [],
               stages: (m.stages || []).map((s, sIdx) => ({
                 id: s.id || `s${mIdx}_${sIdx}`,
                 name: s.name || `Process Step ${sIdx + 1}`,
@@ -102,11 +112,17 @@ export default function AdminDirectCandidateMilestones() {
           });
 
           setMilestonesList(formatted);
-          const firstIncomplete = formatted.findIndex((m) => {
-            const allDone = (m.stages || []).length > 0 && m.stages.every((s) => s.status === "Completed");
-            return !allDone;
-          });
-          setActiveMilestoneIdx(firstIncomplete !== -1 ? firstIncomplete : 0);
+          // Find first milestone in progress / active
+          const activeIdx = formatted.findIndex((m) => m.status === "Active" || m.status === "Payment Required");
+          if (activeIdx !== -1) {
+            setActiveMilestoneIdx(activeIdx);
+          } else {
+            const firstIncomplete = formatted.findIndex((m) => {
+              const allDone = (m.stages || []).length > 0 && m.stages.every((s) => s.status === "Completed");
+              return !allDone;
+            });
+            setActiveMilestoneIdx(firstIncomplete !== -1 ? firstIncomplete : 0);
+          }
         } else {
           const defaults = [
             {
@@ -116,6 +132,7 @@ export default function AdminDirectCandidateMilestones() {
               paymentAmount: 15000,
               status: "Active",
               paymentStatus: "Payment Required",
+              clearanceDocuments: [],
               stages: [
                 { id: "s0_1", name: "Trade Skill & Technical Screening", status: "Completed", completedAt: new Date().toISOString(), remark: "Assessed & verified", document: null },
                 { id: "s0_2", name: "Client Selection & Offer Letter Signed", status: "In Progress", completedAt: null, remark: "", document: null },
@@ -129,6 +146,7 @@ export default function AdminDirectCandidateMilestones() {
               paymentAmount: 15000,
               status: "Locked",
               paymentStatus: "Locked",
+              clearanceDocuments: [],
               stages: [
                 { id: "s1_1", name: "GAMCA Medical Fitness Clearance", status: "Locked", completedAt: null, remark: "", document: null },
                 { id: "s1_2", name: "Visa Application & Work Permit Stamping", status: "Locked", completedAt: null, remark: "", document: null },
@@ -141,6 +159,7 @@ export default function AdminDirectCandidateMilestones() {
               paymentAmount: 10000,
               status: "Locked",
               paymentStatus: "Locked",
+              clearanceDocuments: [],
               stages: [
                 { id: "s2_1", name: "Emigration Clearance (Poe/Protector)", status: "Locked", completedAt: null, remark: "", document: null },
                 { id: "s2_2", name: "Air Ticket Booking & Travel Insurance", status: "Locked", completedAt: null, remark: "", document: null },
@@ -160,6 +179,19 @@ export default function AdminDirectCandidateMilestones() {
     }
   };
 
+  // Helper to persist silently without page refresh
+  const autoSyncMilestones = async (newList, totalAmt = totalAmount) => {
+    if (!application) return;
+    try {
+      await apiClient.put(`/admin/candidates/applications/${application.applicationId || application.id}/milestones`, {
+        totalAmount: totalAmt,
+        milestones: newList,
+      });
+    } catch (err) {
+      console.warn("Auto-sync error:", err);
+    }
+  };
+
   const handleStageStatusChange = (mIdx, sIdx, newStatus) => {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].status = newStatus;
@@ -169,17 +201,62 @@ export default function AdminDirectCandidateMilestones() {
       updated[mIdx].stages[sIdx].completedAt = null;
     }
 
+    // Check if all stages in this milestone are completed
     const allCurrentStagesDone = updated[mIdx].stages.every((s) => s.status === "Completed");
-    if (allCurrentStagesDone && mIdx < updated.length - 1) {
-      if (updated[mIdx + 1].status === "Locked") {
+    if (allCurrentStagesDone) {
+      updated[mIdx].status = "Completed";
+      if (mIdx < updated.length - 1 && updated[mIdx + 1].status === "Locked") {
         updated[mIdx + 1].status = (updated[mIdx + 1].amount || 0) > 0 ? "Payment Required" : "Active";
         if (updated[mIdx + 1].paymentStatus === "Locked") {
           updated[mIdx + 1].paymentStatus = (updated[mIdx + 1].amount || 0) > 0 ? "Payment Required" : "Not Required";
+        }
+        if (updated[mIdx + 1].stages?.length > 0 && updated[mIdx + 1].stages[0].status === "Locked") {
+          updated[mIdx + 1].stages[0].status = "In Progress";
         }
       }
     }
 
     setMilestonesList(updated);
+    autoSyncMilestones(updated);
+  };
+
+  // Admin explicit "Complete Milestone & Unlock Next Process"
+  const handleCompleteMilestone = (mIdx) => {
+    const updated = [...milestonesList];
+    // Mark current milestone and all its stages as completed
+    updated[mIdx].status = "Completed";
+    updated[mIdx].paymentStatus = "Approved";
+    (updated[mIdx].stages || []).forEach((stg) => {
+      stg.status = "Completed";
+      if (!stg.completedAt) stg.completedAt = new Date().toISOString();
+    });
+
+    // Advance to next process milestone
+    if (mIdx + 1 < updated.length) {
+      updated[mIdx + 1].status = "Active";
+      if (updated[mIdx + 1].paymentStatus === "Locked") {
+        updated[mIdx + 1].paymentStatus = (updated[mIdx + 1].amount || 0) > 0 ? "Payment Required" : "Not Required";
+      }
+      if (updated[mIdx + 1].stages?.length > 0) {
+        if (updated[mIdx + 1].stages[0].status === "Locked" || updated[mIdx + 1].stages[0].status === "Pending") {
+          updated[mIdx + 1].stages[0].status = "In Progress";
+        }
+      }
+      setActiveMilestoneIdx(mIdx + 1);
+      setNotification({
+        type: "success",
+        message: `Milestone ${mIdx + 1} completed! Advanced to Milestone ${mIdx + 2}: ${updated[mIdx + 1].name}.`,
+      });
+    } else {
+      setNotification({
+        type: "success",
+        message: `All deployment milestones completed! Candidate is ready for travel & deployment.`,
+      });
+    }
+
+    setMilestonesList(updated);
+    autoSyncMilestones(updated);
+    setTimeout(() => setNotification(null), 4000);
   };
 
   const handleStageNameChange = (mIdx, sIdx, newName) => {
@@ -209,12 +286,14 @@ export default function AdminDirectCandidateMilestones() {
       document: null,
     });
     setMilestonesList(updated);
+    autoSyncMilestones(updated);
   };
 
   const handleRemoveStage = (mIdx, sIdx) => {
     const updated = [...milestonesList];
     updated[mIdx].stages = updated[mIdx].stages.filter((_, i) => i !== sIdx);
     setMilestonesList(updated);
+    autoSyncMilestones(updated);
   };
 
   const handleFileUploadForStage = (mIdx, sIdx, e) => {
@@ -243,6 +322,7 @@ export default function AdminDirectCandidateMilestones() {
       };
       updated[mIdx].stages[sIdx].document = docObj;
       setMilestonesList(updated);
+      autoSyncMilestones(updated);
     };
     reader.readAsDataURL(file);
   };
@@ -251,6 +331,75 @@ export default function AdminDirectCandidateMilestones() {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].document = null;
     setMilestonesList(updated);
+    autoSyncMilestones(updated);
+  };
+
+  // Upload Milestone Clearance Document (for Candidate & Vendor)
+  const handleUploadClearanceDocument = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File size exceeds 15MB limit.");
+      return;
+    }
+
+    setDocUploading(true);
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const fileUrl = uploadEvent.target.result;
+      const sizeStr = `${(file.size / 1024).toFixed(1)} KB`;
+      const title = docTitle.trim() || file.name.replace(/\.[^/.]+$/, "");
+
+      const docItem = {
+        id: `cdoc_${Date.now()}`,
+        title: title,
+        fileName: file.name,
+        fileUrl: fileUrl,
+        size: sizeStr,
+        targetAudience: docAudience, // "both" | "candidate" | "vendor"
+        uploadedAt: new Date().toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        uploadedBy: "Admin",
+      };
+
+      const updated = [...milestonesList];
+      if (!Array.isArray(updated[activeMilestoneIdx].clearanceDocuments)) {
+        updated[activeMilestoneIdx].clearanceDocuments = [];
+      }
+      updated[activeMilestoneIdx].clearanceDocuments.push(docItem);
+
+      setMilestonesList(updated);
+      setDocTitle("");
+      setDocUploading(false);
+      autoSyncMilestones(updated);
+
+      setNotification({
+        type: "success",
+        message: `Clearance document "${title}" uploaded for ${
+          docAudience === "both"
+            ? "Candidate & Vendor"
+            : docAudience === "candidate"
+            ? "Candidate Only"
+            : "Vendor Only"
+        }!`,
+      });
+      setTimeout(() => setNotification(null), 4000);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveClearanceDocument = (docId) => {
+    const updated = [...milestonesList];
+    const curDocs = updated[activeMilestoneIdx].clearanceDocuments || [];
+    updated[activeMilestoneIdx].clearanceDocuments = curDocs.filter((d) => d.id !== docId);
+    setMilestonesList(updated);
+    autoSyncMilestones(updated);
   };
 
   const handleUnlockMilestone = (mIdx) => {
@@ -264,6 +413,12 @@ export default function AdminDirectCandidateMilestones() {
     }
     setMilestonesList(updated);
     setActiveMilestoneIdx(mIdx);
+    autoSyncMilestones(updated);
+    setNotification({
+      type: "success",
+      message: `Milestone ${mIdx + 1} unlocked instantly!`,
+    });
+    setTimeout(() => setNotification(null), 3000);
   };
 
   const handleOpenRecordPayment = (mIdx) => {
@@ -275,39 +430,55 @@ export default function AdminDirectCandidateMilestones() {
     setPaymentModalOpen(true);
   };
 
+  // Instant Payment Recording without reload
   const handleSubmitPayment = async () => {
     if (!application) return;
     const currentM = milestonesList[activeMilestoneIdx];
     if (!currentM) return;
 
     setRecordingPayment(true);
+    const amtNum = Number(payAmount);
+    const refNum = payRef.trim() || `TXN-${Date.now().toString().slice(-6)}`;
+
+    // Instant optimistic state update
+    const updated = [...milestonesList];
+    updated[activeMilestoneIdx].status = "Paid";
+    updated[activeMilestoneIdx].paymentStatus = "Approved";
+    updated[activeMilestoneIdx].paymentAmount = amtNum;
+    updated[activeMilestoneIdx].paymentRef = refNum;
+    updated[activeMilestoneIdx].paymentDate = new Date().toLocaleDateString("en-IN");
+    updated[activeMilestoneIdx].paymentRemark = payRemarks || `Payment verified by Admin`;
+    if (updated[activeMilestoneIdx].stages?.length > 0) {
+      if (updated[activeMilestoneIdx].stages[0].status === "Locked" || updated[activeMilestoneIdx].stages[0].status === "Pending") {
+        updated[activeMilestoneIdx].stages[0].status = "In Progress";
+      }
+    }
+
+    setMilestonesList(updated);
+    setPaymentModalOpen(false);
+
+    setNotification({
+      type: "success",
+      message: `Payment of ₹${amtNum.toLocaleString()} recorded & verified instantly!`,
+    });
+    setTimeout(() => setNotification(null), 4000);
+
+    // Background sync to server
     try {
-      const res = await apiClient.post(
+      await apiClient.post(
         `/admin/candidates/applications/${application.applicationId || application.id}/milestones/${currentM.id}/record-payment`,
         {
-          amount: Number(payAmount),
+          amount: amtNum,
           paymentMode: payMode,
-          referenceNumber: payRef,
+          referenceNumber: refNum,
           remarks: payRemarks,
         }
       );
-
-      if (res.data?.success) {
-        setNotification({
-          type: "success",
-          message: `Payment of ₹${Number(payAmount).toLocaleString()} approved! Receipt #${res.data.receiptNumber || ""} generated.`,
-        });
-        setPaymentModalOpen(false);
-        loadData();
-      }
+      autoSyncMilestones(updated);
     } catch (err) {
-      setNotification({
-        type: "error",
-        message: err.response?.data?.message || "Failed to record payment.",
-      });
+      console.warn("Background payment sync issue:", err);
     } finally {
       setRecordingPayment(false);
-      setTimeout(() => setNotification(null), 5000);
     }
   };
 
@@ -322,7 +493,7 @@ export default function AdminDirectCandidateMilestones() {
       setSaveSuccess(true);
       setNotification({
         type: "success",
-        message: "Candidate milestones and process timeline saved successfully! Notifications dispatched.",
+        message: "Candidate milestone workflow saved successfully!",
       });
       setTimeout(() => {
         setSaveSuccess(false);
@@ -335,28 +506,28 @@ export default function AdminDirectCandidateMilestones() {
       });
     } finally {
       setSaveLoading(false);
-      setTimeout(() => setNotification(null), 5000);
+      setTimeout(() => setNotification(null), 4000);
     }
   };
 
   if (loading) {
     return (
-      <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-sm max-w-4xl mx-auto my-8">
-        <div className="w-9 h-9 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-xs font-bold text-slate-700">Loading candidate processing milestones...</p>
+      <div className="p-8 text-center bg-white rounded-xl border border-slate-200 shadow-2xs max-w-4xl mx-auto my-6">
+        <div className="w-7 h-7 border-2 border-[#163868] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-xs font-semibold text-slate-700">Loading candidate milestones...</p>
       </div>
     );
   }
 
   if (!application) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 max-w-xl mx-auto my-8">
-        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-2" />
-        <h3 className="text-sm font-bold text-slate-900">Application Not Found</h3>
-        <p className="text-xs text-slate-500 mt-1">Unable to locate the candidate application details.</p>
+      <div className="p-6 text-center bg-white rounded-xl border border-slate-200 max-w-lg mx-auto my-6">
+        <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h3 className="text-xs font-bold text-slate-900">Application Not Found</h3>
+        <p className="text-[11px] text-slate-500 mt-1">Unable to locate candidate application details.</p>
         <button
           onClick={() => navigate("/admin/candidates/selected")}
-          className="mt-4 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800"
+          className="mt-3 px-3.5 py-1.5 bg-[#163868] text-white rounded-lg text-xs font-bold hover:bg-[#1e4a82] cursor-pointer"
         >
           Return to Selected Candidates
         </button>
@@ -366,49 +537,57 @@ export default function AdminDirectCandidateMilestones() {
 
   const currentM = milestonesList[activeMilestoneIdx] || milestonesList[0];
   const totalPaid = milestonesList.reduce((sum, m) => {
-    if (m.status === "Paid" || m.paymentStatus === "Approved") {
+    if (m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed") {
       return sum + (Number(m.amount || m.paymentAmount) || 0);
     }
     return sum;
   }, 0);
 
+  const isCurrentCompleted =
+    currentM?.status === "Completed" ||
+    (Array.isArray(currentM?.stages) &&
+      currentM.stages.length > 0 &&
+      currentM.stages.every((s) => s.status === "Completed"));
+
+  const isCurrentPaid = currentM?.status === "Paid" || currentM?.paymentStatus === "Approved" || isCurrentCompleted;
+
   return (
-    <div className="space-y-4 max-w-6xl w-full mx-auto font-sans antialiased text-slate-800 pb-12">
+    <div className="space-y-3 max-w-6xl w-full mx-auto font-sans antialiased text-slate-800 pb-10 text-xs">
       {/* Toast Notification */}
       {notification && (
         <div
-          className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in ${
+          className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-between shadow-xs transition-all ${
             notification.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              ? "bg-blue-50 text-[#163868] border-blue-200"
               : "bg-rose-50 text-rose-800 border-rose-200"
           }`}
         >
           <div className="flex items-center gap-2">
-            {notification.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {notification.type === "success" ? <CheckCircle2 size={15} className="text-[#163868]" /> : <AlertCircle size={15} />}
             <span>{notification.message}</span>
           </div>
-          <button onClick={() => setNotification(null)} className="p-1 hover:opacity-75 cursor-pointer">
-            <X size={14} />
+          <button onClick={() => setNotification(null)} className="p-0.5 hover:opacity-75 cursor-pointer">
+            <X size={13} />
           </button>
         </div>
       )}
 
       {/* Top Header & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200 pb-2.5">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => navigate("/admin/candidates/selected")}
-            className="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition"
+            className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition shrink-0"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={14} />
           </button>
           <div>
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Layers className="w-5 h-5 text-blue-600" />
+            <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-[#163868]" />
               <span>Candidate Milestone & Process Workflow</span>
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Configure deployment stages, upload proof certificates, track clearances, and verify milestone fees.
+            <p className="text-[11px] text-slate-500 font-medium">
+              Configure deployment stages, verify milestone fees, upload candidate & vendor clearance documents.
             </p>
           </div>
         </div>
@@ -417,40 +596,40 @@ export default function AdminDirectCandidateMilestones() {
           <button
             onClick={handleSave}
             disabled={saveLoading}
-            className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-1.5 transition cursor-pointer ${
-              saveSuccess ? "bg-emerald-600" : "bg-blue-600 hover:bg-blue-700"
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-2xs flex items-center gap-1.5 transition cursor-pointer ${
+              saveSuccess ? "bg-[#163868]" : "bg-[#163868] hover:bg-[#1e4a82]"
             } disabled:opacity-50`}
           >
             {saveLoading ? (
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : saveSuccess ? (
-              <CheckCircle2 size={14} />
+              <CheckCircle2 size={13} />
             ) : (
-              <Save size={14} />
+              <Save size={13} />
             )}
-            <span>{saveSuccess ? "Saved Successfully!" : "Save Milestone Plan"}</span>
+            <span>{saveSuccess ? "Saved Successfully!" : "Save Plan"}</span>
           </button>
         </div>
       </div>
 
-      {/* Candidate Profile & Project Card */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 rounded-2xl p-4 sm:p-5 text-white shadow-md">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 text-cyan-300 font-bold text-base flex items-center justify-center shrink-0 shadow-inner">
+      {/* Candidate Profile & Project Card - Navy Blue Theme (No Green) */}
+      <div className="bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] rounded-xl p-3 sm:p-3.5 text-white shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 text-cyan-300 font-bold text-sm flex items-center justify-center shrink-0 shadow-inner">
               {(application.candidateName || "C").charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base font-bold tracking-tight text-white">{application.candidateName}</h2>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                <h2 className="text-sm font-bold tracking-tight text-white">{application.candidateName}</h2>
+                <span className="px-2 py-0.5 rounded-md bg-white/10 text-cyan-200 border border-white/20 text-[10px] font-bold">
                   {application.status || "Selected"}
                 </span>
-                <span className="text-[11px] font-mono text-cyan-300 bg-white/10 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-mono text-cyan-300 bg-white/10 px-1.5 py-0.5 rounded">
                   ID: {application.candidateId}
                 </span>
               </div>
-              <div className="text-xs text-slate-300 mt-1 flex items-center gap-3 flex-wrap">
+              <div className="text-[11px] text-slate-200 mt-0.5 flex items-center gap-2.5 flex-wrap">
                 <span>{application.candidateEmail}</span>
                 {application.candidatePhone && <span>• {application.candidatePhone}</span>}
                 <span>• Role: <strong className="text-white">{application.position || "Specialist"}</strong></span>
@@ -458,15 +637,15 @@ export default function AdminDirectCandidateMilestones() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10 text-xs">
+          <div className="flex items-center gap-3 bg-white/10 px-3 py-2 rounded-lg border border-white/15 text-xs">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Project & Client</span>
-              <span className="font-bold text-white block">{application.projectName}</span>
-              <span className="text-[11px] text-cyan-300">{application.destinationCountry || "Overseas"}</span>
+              <span className="text-[9px] uppercase font-bold text-slate-300 block">Project & Client</span>
+              <span className="font-bold text-white block text-xs">{application.projectName}</span>
+              <span className="text-[10px] text-cyan-300">{application.destinationCountry || "Overseas"}</span>
             </div>
             <div className="border-l border-white/20 pl-3">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Fees Collected</span>
-              <span className="font-bold text-emerald-400 text-sm">
+              <span className="text-[9px] uppercase font-bold text-slate-300 block">Fees Collected</span>
+              <span className="font-bold text-cyan-300 text-xs sm:text-sm">
                 ₹{totalPaid.toLocaleString()} / ₹{Number(totalAmount).toLocaleString()}
               </span>
             </div>
@@ -474,33 +653,38 @@ export default function AdminDirectCandidateMilestones() {
         </div>
       </div>
 
-      {/* Total Amount & Milestone Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+      {/* Total Amount & Milestone Tabs - Compact Navy Palette */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-3 sm:p-3.5 space-y-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
           <div>
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900">Total Placement Fee Configuration</h3>
-            <p className="text-[11px] text-slate-500 font-medium">Set overall candidate package and split into milestone payments.</p>
+            <h3 className="text-xs font-bold text-slate-900">Total Placement Fee Configuration</h3>
+            <p className="text-[10px] text-slate-500 font-medium">Split overall candidate package into milestone payments.</p>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-700">Total Amount:</span>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
               <input
                 type="number"
                 value={totalAmount}
-                onChange={(e) => setTotalAmount(Number(e.target.value))}
-                className="w-32 pl-7 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-600"
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setTotalAmount(val);
+                  autoSyncMilestones(milestonesList, val);
+                }}
+                className="w-28 pl-6 pr-2.5 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#163868]"
               />
             </div>
           </div>
         </div>
 
         {/* Milestone Selection Tabs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {milestonesList.map((m, idx) => {
             const isSelected = activeMilestoneIdx === idx;
-            const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+            const isDone = m.status === "Completed";
+            const isPaid = m.status === "Paid" || m.paymentStatus === "Approved" || isDone;
             const isLocked = m.status === "Locked";
             const amt = Number(m.amount || m.paymentAmount || 15000);
 
@@ -508,30 +692,32 @@ export default function AdminDirectCandidateMilestones() {
               <button
                 key={m.id || idx}
                 onClick={() => setActiveMilestoneIdx(idx)}
-                className={`p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                className={`p-2.5 rounded-lg border text-left transition-all duration-150 cursor-pointer ${
                   isSelected
-                    ? "border-blue-600 bg-blue-50/50 shadow-xs ring-1 ring-blue-600/20"
+                    ? "border-[#163868] bg-blue-50/60 shadow-2xs ring-1 ring-[#163868]/20"
                     : "border-slate-200 bg-white hover:bg-slate-50"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                     Phase {idx + 1}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isPaid
-                        ? "bg-emerald-100 text-emerald-800"
+                    className={`px-1.5 py-0.2 rounded-md text-[9px] font-bold ${
+                      isDone
+                        ? "bg-blue-100 text-[#163868] border border-blue-200"
+                        : isPaid
+                        ? "bg-blue-50 text-[#163868] border border-blue-200"
                         : isLocked
                         ? "bg-slate-100 text-slate-600"
-                        : "bg-amber-100 text-amber-800"
+                        : "bg-[#163868] text-white"
                     }`}
                   >
-                    {isPaid ? "Paid & Cleared" : isLocked ? "Locked" : "Active / Due"}
+                    {isDone ? "✓ Completed" : isPaid ? "Paid & Verified" : isLocked ? "Locked" : "In Progress"}
                   </span>
                 </div>
                 <div className="font-bold text-xs text-slate-900 truncate">{m.name}</div>
-                <div className="text-[11px] font-bold text-slate-600 mt-1">₹{amt.toLocaleString()}</div>
+                <div className="text-[11px] font-bold text-slate-600 mt-0.5">₹{amt.toLocaleString()}</div>
               </button>
             );
           })}
@@ -540,11 +726,11 @@ export default function AdminDirectCandidateMilestones() {
 
       {/* Selected Milestone Detail Card */}
       {currentM && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          {/* Milestone Sub-Header */}
-          <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex-1 max-w-lg">
-              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden space-y-0">
+          {/* Milestone Sub-Header - Compact */}
+          <div className="p-3 sm:p-3.5 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 max-w-sm">
+              <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                 Milestone Name
               </label>
               <input
@@ -554,18 +740,19 @@ export default function AdminDirectCandidateMilestones() {
                   const updated = [...milestonesList];
                   updated[activeMilestoneIdx].name = e.target.value;
                   setMilestonesList(updated);
+                  autoSyncMilestones(updated);
                 }}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                className="w-full px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs text-slate-900 focus:outline-none focus:border-[#163868]"
               />
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                  Milestone Amount
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                  Milestone Fee
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
                   <input
                     type="number"
                     value={currentM.amount || currentM.paymentAmount || 15000}
@@ -575,88 +762,214 @@ export default function AdminDirectCandidateMilestones() {
                       updated[activeMilestoneIdx].amount = val;
                       updated[activeMilestoneIdx].paymentAmount = val;
                       setMilestonesList(updated);
+                      autoSyncMilestones(updated);
                     }}
-                    className="w-32 pl-7 pr-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                    className="w-28 pl-6 pr-2.5 py-1 rounded-lg border border-slate-300 bg-white font-bold text-xs text-slate-900 focus:outline-none focus:border-[#163868]"
                   />
                 </div>
               </div>
 
-              {currentM.status !== "Paid" && currentM.paymentStatus !== "Approved" ? (
-                <div className="flex items-center gap-2 pt-4">
+              {/* Action Buttons: Record Payment (₹ Icon) & Unlock / Complete */}
+              <div className="pt-3.5 flex items-center gap-2">
+                {!isCurrentPaid ? (
+                  <>
+                    <button
+                      onClick={() => handleOpenRecordPayment(activeMilestoneIdx)}
+                      className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs shadow-2xs flex items-center gap-1 cursor-pointer transition"
+                    >
+                      <IndianRupee size={13} />
+                      <span>Record Payment</span>
+                    </button>
+                    <button
+                      onClick={() => handleUnlockMilestone(activeMilestoneIdx)}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs flex items-center gap-1 cursor-pointer transition"
+                      title="Direct Unlock Milestone"
+                    >
+                      <Unlock size={12} />
+                      <span>Direct Unlock</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#163868] border border-blue-200 text-xs font-bold flex items-center gap-1">
+                      <CheckCircle2 size={13} className="text-[#163868]" />
+                      <span>{isCurrentCompleted ? "Milestone Completed" : "Paid & Verified"}</span>
+                    </span>
+                    <Link
+                      to={`/invoice/${application.applicationId || application.id}/${currentM.id}`}
+                      target="_blank"
+                      className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition"
+                    >
+                      <FileText size={12} />
+                      <span>Receipt</span>
+                    </Link>
+                  </>
+                )}
+
+                {/* Milestone Progression Action: Admin Completes Milestone & Advances to Next Process */}
+                {!isCurrentCompleted && (
                   <button
-                    onClick={() => handleOpenRecordPayment(activeMilestoneIdx)}
-                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition"
+                    onClick={() => handleCompleteMilestone(activeMilestoneIdx)}
+                    className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                    title="Mark all stages completed and advance to the next process"
                   >
-                    <DollarSign size={13} />
-                    <span>Record Payment</span>
+                    <Check size={13} />
+                    <span>Complete & Next Phase</span>
                   </button>
-                  <button
-                    onClick={() => handleUnlockMilestone(activeMilestoneIdx)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition"
-                    title="Unlock milestone directly without recording external transaction"
-                  >
-                    <Unlock size={13} />
-                    <span>Direct Unlock</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="pt-4 flex items-center gap-2">
-                  <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-1.5">
-                    <CheckCircle2 size={14} className="text-emerald-600" />
-                    <span>Paid & Verified</span>
-                  </span>
-                  <Link
-                    to={`/invoice/${application.applicationId || application.id}/${currentM.id}`}
-                    target="_blank"
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition"
-                  >
-                    <FileText size={13} />
-                    <span>View Receipt</span>
-                  </Link>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Milestone Payment Audit Info */}
+          {/* Milestone Payment Audit Info - Navy/Blue */}
           {(currentM.paymentRef || currentM.paymentDate) && (
-            <div className="px-5 py-2.5 bg-emerald-50/50 border-b border-emerald-100 text-xs flex items-center justify-between text-slate-700 flex-wrap gap-2">
-              <div className="flex items-center gap-2 font-medium">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <div className="px-3.5 py-2 bg-blue-50/50 border-b border-blue-100 text-xs flex items-center justify-between text-slate-700 flex-wrap gap-2">
+              <div className="flex items-center gap-2 font-medium text-[11px]">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#163868]" />
                 <span>
-                  Ref ID: <strong className="font-mono">{currentM.paymentRef || "N/A"}</strong>
+                  Ref ID: <strong className="font-mono text-slate-900">{currentM.paymentRef || "N/A"}</strong>
                 </span>
                 {currentM.paymentDate && <span>• Date: {currentM.paymentDate}</span>}
                 {currentM.approvedBy && <span>• Verified By: {currentM.approvedBy}</span>}
               </div>
               {currentM.paymentRemark && (
-                <span className="text-[11px] text-slate-500 italic">"{currentM.paymentRemark}"</span>
+                <span className="text-[10px] text-slate-500 italic">"{currentM.paymentRemark}"</span>
               )}
             </div>
           )}
 
-          {/* Stages Checklist */}
-          <div className="p-4 sm:p-5 space-y-3">
+          {/* SECTION: Milestone Clearance Documents for Candidate & Vendor Upload */}
+          <div className="p-3 sm:p-3.5 bg-slate-50/70 border-b border-slate-200 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="text-xs font-bold text-[#163868] uppercase tracking-wider flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-[#163868]" />
+                  <span>Milestone Clearance Documents (Candidate & Vendor Access)</span>
+                </h4>
+                <p className="text-[10px] text-slate-500">
+                  Upload signed offer letters, GAMCA medical fit reports, visa stamps, or flight tickets for Candidate and Vendor view.
+                </p>
+              </div>
+              <div className="text-[10px] font-bold text-slate-500">
+                Audience: <strong className="text-[#163868]">Candidate & Vendor</strong>
+              </div>
+            </div>
+
+            {/* Document Upload Input Form */}
+            <div className="bg-white p-2.5 rounded-lg border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+              <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Document Title (e.g. Visa Stamping Copy / Flight Ticket / Medical Fit)"
+                  value={docTitle}
+                  onChange={(e) => setDocTitle(e.target.value)}
+                  className="flex-1 px-2.5 py-1 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#163868]"
+                />
+
+                <select
+                  value={docAudience}
+                  onChange={(e) => setDocAudience(e.target.value)}
+                  className="px-2 py-1 text-xs font-medium border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#163868]"
+                >
+                  <option value="both">👥 Both Candidate & Vendor</option>
+                  <option value="candidate">👤 Candidate Only</option>
+                  <option value="vendor">🏢 Vendor Only</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="px-3 py-1 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs">
+                  <Upload size={12} />
+                  <span>{docUploading ? "Uploading..." : "Upload Document"}</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={handleUploadClearanceDocument}
+                    disabled={docUploading}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Uploaded Documents List */}
+            {Array.isArray(currentM.clearanceDocuments) && currentM.clearanceDocuments.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {currentM.clearanceDocuments.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="p-2 rounded-lg bg-white border border-blue-200 flex items-center justify-between gap-2 shadow-2xs"
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <div className="w-6 h-6 rounded-md bg-blue-100 text-[#163868] flex items-center justify-center shrink-0">
+                        <FileText size={13} />
+                      </div>
+                      <div className="truncate">
+                        <div className="font-bold text-xs text-slate-900 truncate">{doc.title}</div>
+                        <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
+                          <span>{doc.size || "PDF"}</span>
+                          <span>•</span>
+                          <span className="font-semibold text-[#163868]">
+                            {doc.targetAudience === "candidate"
+                              ? "👤 Candidate"
+                              : doc.targetAudience === "vendor"
+                              ? "🏢 Vendor"
+                              : "👥 Candidate & Vendor"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a
+                        href={doc.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1 text-[#163868] hover:text-[#1e4a82] hover:bg-blue-50 rounded"
+                        title="View / Download"
+                      >
+                        <Eye size={13} />
+                      </a>
+                      <button
+                        onClick={() => handleRemoveClearanceDocument(doc.id)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                        title="Delete document"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-[11px] text-slate-500 italic py-1">
+                No clearance documents uploaded for this milestone yet. Use the upload box above to release documents for Candidate and Vendor.
+              </div>
+            )}
+          </div>
+
+          {/* Stages Checklist - Compact */}
+          <div className="p-3 sm:p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   Processing Steps & Clearances Checklist
                 </h4>
-                <p className="text-[11px] text-slate-500">
-                  Update step statuses, add officer remarks, and upload verification proof files (medical, visa, tickets).
+                <p className="text-[10px] text-slate-500">
+                  Update step statuses, remarks, and upload verification files.
                 </p>
               </div>
 
               <button
                 onClick={() => handleAddStage(activeMilestoneIdx)}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 flex items-center gap-1 cursor-pointer transition"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 flex items-center gap-1 cursor-pointer transition"
               >
-                <Plus size={13} />
+                <Plus size={12} />
                 <span>Add Step</span>
               </button>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-1.5">
               {(currentM.stages || []).map((stage, sIdx) => {
                 const isDone = stage.status === "Completed";
                 const inProgress = stage.status === "In Progress";
@@ -664,35 +977,36 @@ export default function AdminDirectCandidateMilestones() {
                 return (
                   <div
                     key={stage.id || sIdx}
-                    className={`p-3.5 rounded-xl border transition-all ${
+                    className={`p-2 rounded-lg border transition-all ${
                       isDone
-                        ? "bg-emerald-50/40 border-emerald-200"
+                        ? "bg-slate-50/80 border-slate-200"
                         : inProgress
-                        ? "bg-blue-50/30 border-blue-200"
+                        ? "bg-blue-50/40 border-blue-200"
                         : "bg-white border-slate-200"
                     }`}
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 flex-1">
-                        <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">
                           {sIdx + 1}
                         </span>
                         <input
                           type="text"
                           value={stage.name}
                           onChange={(e) => handleStageNameChange(activeMilestoneIdx, sIdx, e.target.value)}
-                          className="flex-1 px-3 py-1 rounded-lg border border-transparent hover:border-slate-300 focus:border-blue-600 bg-transparent font-bold text-xs text-slate-900 focus:bg-white transition"
+                          onBlur={() => autoSyncMilestones(milestonesList)}
+                          className="flex-1 px-2 py-0.5 rounded border border-transparent hover:border-slate-300 focus:border-[#163868] bg-transparent font-bold text-xs text-slate-900 focus:bg-white transition"
                         />
                       </div>
 
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* Status Select */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {/* Status Select - Navy Blue Theme (No Green) */}
                         <select
                           value={stage.status}
                           onChange={(e) => handleStageStatusChange(activeMilestoneIdx, sIdx, e.target.value)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border focus:outline-none cursor-pointer ${
+                          className={`px-2 py-1 rounded-md text-xs font-bold border focus:outline-none cursor-pointer ${
                             isDone
-                              ? "bg-emerald-600 text-white border-emerald-600"
+                              ? "bg-[#163868] text-white border-[#163868]"
                               : inProgress
                               ? "bg-blue-600 text-white border-blue-600"
                               : "bg-slate-100 text-slate-700 border-slate-300"
@@ -704,8 +1018,8 @@ export default function AdminDirectCandidateMilestones() {
                         </select>
 
                         {/* Document Upload Button */}
-                        <label className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1 cursor-pointer transition">
-                          <Upload size={12} />
+                        <label className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1 cursor-pointer transition">
+                          <Upload size={11} />
                           <span>Proof</span>
                           <input
                             type="file"
@@ -718,48 +1032,49 @@ export default function AdminDirectCandidateMilestones() {
                         {/* Remove Step */}
                         <button
                           onClick={() => handleRemoveStage(activeMilestoneIdx, sIdx)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
                           title="Remove stage"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
 
                     {/* Remarks Input */}
-                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="mt-1.5 pt-1.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                       <div className="flex-1">
                         <input
                           type="text"
                           value={stage.remark || ""}
                           onChange={(e) => handleStageRemarkChange(activeMilestoneIdx, sIdx, e.target.value)}
+                          onBlur={() => autoSyncMilestones(milestonesList)}
                           placeholder="Add internal remarks / verification notes..."
-                          className="w-full px-2.5 py-1 text-xs text-slate-600 placeholder-slate-400 border border-transparent hover:border-slate-200 focus:border-slate-300 rounded-lg focus:outline-none bg-slate-50/50 focus:bg-white"
+                          className="w-full px-2 py-0.5 text-xs text-slate-600 placeholder-slate-400 border border-transparent hover:border-slate-200 focus:border-slate-300 rounded focus:outline-none bg-slate-50/50 focus:bg-white"
                         />
                       </div>
 
-                      {/* Uploaded Document Badge */}
+                      {/* Uploaded Stage Proof Badge */}
                       {stage.document && (
-                        <div className="flex items-center gap-1.5 bg-blue-50 text-blue-800 px-2.5 py-1 rounded-lg text-xs font-semibold border border-blue-200 shrink-0">
-                          <FileText size={12} className="text-blue-600" />
-                          <span className="truncate max-w-[140px] font-mono text-[11px]">
+                        <div className="flex items-center gap-1.5 bg-blue-50 text-blue-900 px-2 py-0.5 rounded text-xs font-medium border border-blue-200 shrink-0">
+                          <FileText size={11} className="text-[#163868]" />
+                          <span className="truncate max-w-[130px] font-mono text-[10px]">
                             {stage.document.fileName || stage.document.name}
                           </span>
                           <a
                             href={stage.document.fileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="p-1 hover:text-blue-900"
+                            className="p-0.5 hover:text-[#163868]"
                             title="Preview file"
                           >
-                            <Eye size={12} />
+                            <Eye size={11} />
                           </a>
                           <button
                             onClick={() => handleRemoveStageDocument(activeMilestoneIdx, sIdx)}
-                            className="p-1 text-slate-400 hover:text-rose-600"
+                            className="p-0.5 text-slate-400 hover:text-rose-600"
                             title="Remove file"
                           >
-                            <X size={12} />
+                            <X size={11} />
                           </button>
                         </div>
                       )}
@@ -772,49 +1087,52 @@ export default function AdminDirectCandidateMilestones() {
         </div>
       )}
 
-      {/* Record Payment Modal */}
+      {/* Record Payment Modal - Navy Blue Theme with Indian Rupee Icon */}
       {paymentModalOpen && currentM && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
-            <div className="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
+          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full overflow-hidden">
+            <div className="px-4 py-2.5 bg-[#163868] text-white flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <IndianRupee className="w-4 h-4 text-cyan-300" />
                 <h3 className="text-xs sm:text-sm font-bold">Record Milestone Payment</h3>
               </div>
-              <button onClick={() => setPaymentModalOpen(false)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
-                <X size={16} />
+              <button
+                onClick={() => setPaymentModalOpen(false)}
+                className="text-slate-300 hover:text-white p-0.5 cursor-pointer"
+              >
+                <X size={15} />
               </button>
             </div>
 
-            <div className="p-5 space-y-3.5 text-xs text-slate-800">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="p-3.5 space-y-2.5 text-xs text-slate-800">
+              <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
                 <div className="font-bold text-slate-900">{application.candidateName}</div>
-                <div className="text-[11px] text-slate-500 font-medium">
+                <div className="text-[10px] text-slate-500 font-medium">
                   {currentM.name} • {application.projectName}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
                     Amount (₹)
                   </label>
                   <input
                     type="number"
                     value={payAmount}
                     onChange={(e) => setPayAmount(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold focus:outline-none focus:border-blue-600"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-bold focus:outline-none focus:border-[#163868]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
                     Payment Mode
                   </label>
                   <select
                     value={payMode}
                     onChange={(e) => setPayMode(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-blue-600"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium focus:outline-none focus:border-[#163868]"
                   >
                     <option value="Bank Transfer">Bank Transfer / NEFT</option>
                     <option value="Online UPI">UPI (GPay / PhonePe / Paytm)</option>
@@ -826,7 +1144,7 @@ export default function AdminDirectCandidateMilestones() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
                   Transaction / UTR Reference ID
                 </label>
                 <input
@@ -834,12 +1152,12 @@ export default function AdminDirectCandidateMilestones() {
                   value={payRef}
                   onChange={(e) => setPayRef(e.target.value)}
                   placeholder="e.g. UTR847291039"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs focus:outline-none focus:border-blue-600"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-mono text-xs focus:outline-none focus:border-[#163868]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
                   Admin Verification Notes
                 </label>
                 <input
@@ -847,7 +1165,7 @@ export default function AdminDirectCandidateMilestones() {
                   value={payRemarks}
                   onChange={(e) => setPayRemarks(e.target.value)}
                   placeholder="e.g. Payment verified in ICICI Corporate Account"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium text-xs focus:outline-none focus:border-blue-600"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 font-medium text-xs focus:outline-none focus:border-[#163868]"
                 />
               </div>
 
@@ -855,7 +1173,7 @@ export default function AdminDirectCandidateMilestones() {
                 <button
                   type="button"
                   onClick={() => setPaymentModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -863,14 +1181,14 @@ export default function AdminDirectCandidateMilestones() {
                   type="button"
                   onClick={handleSubmitPayment}
                   disabled={recordingPayment}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   {recordingPayment ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <CheckCircle2 size={14} />
+                    <CheckCircle2 size={13} />
                   )}
-                  <span>Approve & Issue Receipt</span>
+                  <span>Approve & Verify (₹)</span>
                 </button>
               </div>
             </div>

@@ -820,18 +820,19 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
 
   const finalTotal = Number(totalAmount) || 40000;
   const formattedMilestones = (milestones || []).map((m, mIdx) => {
-    const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+    const isPaid = m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed";
     const amt = Number(m.amount || m.paymentAmount || 0);
     return {
       id: m.id || `m${mIdx}`,
       name: m.name || `Milestone ${mIdx + 1}`,
       amount: amt,
       paymentAmount: amt,
-      status: isPaid ? "Paid" : m.status || (mIdx === 0 ? "Active" : "Locked"),
+      status: m.status || (isPaid ? "Completed" : mIdx === 0 ? "Active" : "Locked"),
       paymentStatus: isPaid ? "Approved" : m.paymentStatus || (mIdx === 0 ? "Payment Required" : "Locked"),
       paymentDate: m.paymentDate || (isPaid ? new Date().toISOString().split("T")[0] : null),
       paymentRef: m.paymentRef || null,
       approvedBy: isPaid ? (m.approvedBy || req.user?.name || "Admin") : null,
+      clearanceDocuments: Array.isArray(m.clearanceDocuments) ? m.clearanceDocuments : [],
       stages: (m.stages || []).map((s, sIdx) => ({
         id: s.id || `s${mIdx}_${sIdx}`,
         name: s.name || `Process Step ${sIdx + 1}`,

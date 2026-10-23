@@ -648,6 +648,7 @@ export const getCandidateApplicationMilestones = asyncHandler(async (req, res) =
           paymentRef: existing?.paymentRef || null,
           paymentRemark: existing?.paymentRemark || "",
           approvedBy: existing?.approvedBy || null,
+          clearanceDocuments: Array.isArray(existing?.clearanceDocuments) ? existing.clearanceDocuments : [],
           stages,
         };
       });
