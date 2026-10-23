@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 export default function CandidateMilestonesTab({
+  projects = [],
   selectedApps = [],
   selectedAppForProcessing,
   setSelectedAppForProcessing,
@@ -46,11 +47,60 @@ export default function CandidateMilestonesTab({
   }
 
   const curApp = selectedAppForProcessing || selectedApps[0];
+
+  // Look up project's configured paymentMilestones
+  let projectMilestones = null;
+  if (curApp) {
+    const matched = (projects || []).find(
+      (p) =>
+        String(p.id || p.projectId) === String(curApp.projectId) ||
+        p.projectName === curApp.projectName
+    );
+    if (matched && Array.isArray(matched.paymentMilestones) && matched.paymentMilestones.length > 0) {
+      projectMilestones = matched.paymentMilestones;
+    } else {
+      try {
+        const localClients = JSON.parse(localStorage.getItem("crm_clients_data_v2") || "[]");
+        for (const cl of localClients) {
+          const prj = (cl.projects || []).find(
+            (p) => String(p.id) === String(curApp.projectId) || p.projectName === curApp.projectName
+          );
+          if (prj && Array.isArray(prj.paymentMilestones) && prj.paymentMilestones.length > 0) {
+            projectMilestones = prj.paymentMilestones;
+            break;
+          }
+        }
+      } catch {}
+    }
+  }
+
   const rawMs =
     milestonesData?.processMilestones?.length > 0
       ? milestonesData.processMilestones
       : curApp.processMilestones?.length > 0
       ? curApp.processMilestones
+      : projectMilestones && projectMilestones.length > 0
+      ? projectMilestones.map((pm, mIdx) => {
+          const amt = Number(pm.amount || pm.paymentAmount || 0);
+          return {
+            id: pm.id || `m${mIdx}`,
+            name: pm.name || `Milestone ${mIdx + 1}`,
+            amount: amt,
+            paymentAmount: amt,
+            status: mIdx === 0 ? "Active" : "Locked",
+            paymentStatus: mIdx === 0 && amt > 0 ? "Payment Required" : "Not Required",
+            stages: (Array.isArray(pm.stages) && pm.stages.length > 0
+              ? pm.stages
+              : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }]
+            ).map((stg, sIdx) => ({
+              id: stg.id || `s${mIdx}_${sIdx}`,
+              name: stg.name || `Stage ${sIdx + 1}`,
+              status: mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : "Locked",
+              completedAt: null,
+              remark: "",
+            })),
+          };
+        })
       : [
           {
             id: "m0",
@@ -158,7 +208,7 @@ export default function CandidateMilestonesTab({
   return (
     <div className="space-y-3">
       {/* Selected Project Header Card */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-white p-3 sm:p-3.5 rounded-lg shadow-xs space-y-2">
+      <div className="bg-gradient-to-r from-[#163868] via-[#1e4a82] to-[#2563eb] text-white p-3 sm:p-3.5 rounded-lg shadow-xs space-y-2 border border-blue-400/20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -204,7 +254,7 @@ export default function CandidateMilestonesTab({
                     onFetchAppMilestones(target.applicationId || target.id);
                   }
                 }}
-                className="bg-slate-900 text-white text-[11px] font-medium px-2 py-1 rounded border border-white/20 focus:outline-none"
+                className="bg-[#132c50] text-white text-[11px] font-medium px-2 py-1 rounded border border-white/20 focus:outline-none"
               >
                 {selectedApps.map((a) => (
                   <option key={a.applicationId || a.id} value={a.applicationId || a.id}>

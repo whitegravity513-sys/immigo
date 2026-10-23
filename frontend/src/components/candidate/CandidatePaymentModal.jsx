@@ -23,27 +23,27 @@ export default function CandidatePaymentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
       <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
-        <div className="p-3 sm:p-3.5 bg-gradient-to-r from-blue-950 to-slate-900 text-white flex items-center justify-between">
+        <div className="p-3 sm:p-3.5 bg-gradient-to-r from-[#163868] via-[#1e4a82] to-[#2563eb] text-white flex items-center justify-between">
           <div>
             <h3 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Pay Milestone Fee</span>
+              <CreditCard className="w-3.5 h-3.5 text-cyan-300" />
+              <span>Pay Milestone Fee via Razorpay</span>
             </h3>
-            <p className="text-[10px] text-slate-300 mt-0.5 truncate">
+            <p className="text-[10px] text-blue-100 mt-0.5 truncate">
               {selectedMilestone.name}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 cursor-pointer"
+            className="text-white/70 hover:text-white p-1 cursor-pointer transition"
           >
             <X size={16} />
           </button>
         </div>
 
         <div className="p-3.5 space-y-3 text-xs text-slate-800">
-          <div className="bg-blue-50 p-2.5 rounded-lg border border-blue-200 flex items-center justify-between">
+          <div className="bg-blue-50/80 p-2.5 rounded-lg border border-blue-200 flex items-center justify-between">
             <div>
               <span className="text-[9px] uppercase font-semibold text-blue-700 block">
                 Total Due For This Milestone
@@ -52,7 +52,7 @@ export default function CandidatePaymentModal({
                 ₹{amt.toLocaleString()}
               </span>
             </div>
-            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold text-[10px]">
+            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full font-semibold text-[10px]">
               Phase Payment
             </span>
           </div>
@@ -63,44 +63,50 @@ export default function CandidatePaymentModal({
               onClick={() => setPaymentTypeTab("online")}
               className={`py-1.5 text-xs font-semibold rounded-lg cursor-pointer transition ${
                 paymentTypeTab === "online"
-                  ? "bg-slate-900 text-white shadow-xs"
+                  ? "bg-[#163868] text-white shadow-xs"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              ⚡ Instant Online Pay
+              ⚡ Razorpay Online (UPI/Cards)
             </button>
             <button
               type="button"
               onClick={() => setPaymentTypeTab("manual")}
               className={`py-1.5 text-xs font-semibold rounded-lg cursor-pointer transition ${
                 paymentTypeTab === "manual"
-                  ? "bg-slate-900 text-white shadow-xs"
+                  ? "bg-[#163868] text-white shadow-xs"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              🏦 Bank Transfer / UPI
+              🏦 Bank Transfer / NEFT
             </button>
           </div>
 
           {paymentTypeTab === "online" ? (
             <div className="space-y-2.5 py-0.5">
               <p className="text-[11px] text-slate-600 leading-normal">
-                Pay instantly using UPI (Google Pay, PhonePe, Paytm), Card, or NetBanking. Once confirmed, stages will unlock and receipt is issued.
+                Pay securely via <strong>Razorpay Payment Gateway</strong> using UPI (Google Pay, PhonePe, Paytm, BHIM), Credit/Debit Card, or NetBanking.
               </p>
 
-              <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200 text-[10px] text-emerald-800 space-y-0.5">
-                <div className="font-semibold flex items-center gap-1">
-                  <CheckCircle2 size={12} className="text-emerald-600" />
-                  <span>Instant Automated Approval</span>
+              <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-[10px] text-emerald-800 space-y-1">
+                <div className="font-semibold flex items-center gap-1 text-emerald-900">
+                  <CheckCircle2 size={13} className="text-emerald-600" />
+                  <span>Instant Automated Approval via Razorpay</span>
                 </div>
-                <p>Receipt sent to your registered email.</p>
+                <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[9px] text-emerald-700">
+                  <span className="px-1.5 py-0.5 rounded bg-white/80 border border-emerald-200 font-medium">Google Pay</span>
+                  <span className="px-1.5 py-0.5 rounded bg-white/80 border border-emerald-200 font-medium">PhonePe</span>
+                  <span className="px-1.5 py-0.5 rounded bg-white/80 border border-emerald-200 font-medium">Paytm</span>
+                  <span className="px-1.5 py-0.5 rounded bg-white/80 border border-emerald-200 font-medium">UPI QR</span>
+                  <span className="px-1.5 py-0.5 rounded bg-white/80 border border-emerald-200 font-medium">Cards & NetBanking</span>
+                </div>
               </div>
 
               <button
                 type="button"
                 disabled={submittingPayment}
                 onClick={() => onPayMilestone(true)}
-                className="w-full py-2 rounded-lg bg-[#0f2744] hover:bg-[#163660] text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer transition disabled:opacity-50"
+                className="w-full py-2.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer transition disabled:opacity-50"
               >
                 {submittingPayment ? (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -108,7 +114,7 @@ export default function CandidatePaymentModal({
                   <CreditCard size={13} />
                 )}
                 <span>
-                  Pay ₹{amt.toLocaleString()} & Unlock Milestone
+                  Pay ₹{amt.toLocaleString()} via Razorpay
                 </span>
               </button>
             </div>

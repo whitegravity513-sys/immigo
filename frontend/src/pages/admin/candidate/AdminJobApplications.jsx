@@ -272,23 +272,29 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
                           </button>
                         )}
 
-                        <button
-                          onClick={() => {
-                            setSelectedApp(app);
-                            setInterviewForm({
-                              scheduledDate: app.interview?.scheduledDate || "",
-                              scheduledTime: app.interview?.scheduledTime || "",
-                              mode: app.interview?.mode || "Video Call",
-                              locationOrLink: app.interview?.locationOrLink || "",
-                              interviewerName: app.interview?.interviewerName || "",
-                              remarks: app.interview?.remarks || "",
-                            });
-                            setInterviewModalOpen(true);
-                          }}
-                          className="px-2.5 py-1 text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors cursor-pointer"
-                        >
-                          Interview
-                        </button>
+                        {app.status !== "Interview Scheduled" &&
+                          app.status !== "Interview Rescheduled" &&
+                          app.status !== "Interview Completed" &&
+                          app.status !== "Selected" &&
+                          app.status !== "Rejected" && (
+                            <button
+                              onClick={() => {
+                                setSelectedApp(app);
+                                setInterviewForm({
+                                  scheduledDate: app.interview?.scheduledDate || "",
+                                  scheduledTime: app.interview?.scheduledTime || "",
+                                  mode: app.interview?.mode || "Video Call",
+                                  locationOrLink: app.interview?.locationOrLink || "",
+                                  interviewerName: app.interview?.interviewerName || "",
+                                  remarks: app.interview?.remarks || "",
+                                });
+                                setInterviewModalOpen(true);
+                              }}
+                              className="px-2.5 py-1 text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors cursor-pointer"
+                            >
+                              Interview
+                            </button>
+                          )}
 
                         {app.status !== "Selected" && (
                           <button

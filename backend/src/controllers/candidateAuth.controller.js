@@ -422,6 +422,8 @@ export const getPublicAvailableProjects = asyncHandler(async (req, res) => {
             skills: p.skills || ["Reliability", "Trade Knowledge", "Communication"],
             eligibility: p.eligibility || "Valid Passport & Document Verification Required",
             manpowerRequirements: p.manpowerRequirements || [],
+            paymentMilestones: p.paymentMilestones || p.processMilestones || p.milestones || [],
+            totalMilestoneAmount: p.totalMilestoneAmount || p.totalAgreedAmount || 0,
           });
         }
       }
@@ -584,6 +586,95 @@ export const getCandidateApplicationMilestones = asyncHandler(async (req, res) =
     return res.status(404).json({ success: false, message: "Application not found for your profile." });
   }
 
+  // Look up project milestones from CrmOverseasClient to ensure candidate sees the project's exact milestones
+  try {
+    const clients = await CrmOverseasClient.find({}).lean();
+    let targetProject = null;
+    for (const cl of clients) {
+      const prj = (cl.projects || []).find(
+        (p) =>
+          String(p.id || p.projectId || p._id) === String(app.projectId) ||
+          p.projectName === app.projectName
+      );
+      if (prj) {
+        targetProject = prj;
+        break;
+      }
+    }
+
+    const pMilestones =
+      targetProject?.paymentMilestones ||
+      targetProject?.processMilestones ||
+      targetProject?.milestones;
+
+    if (Array.isArray(pMilestones) && pMilestones.length > 0) {
+      const existingList = Array.isArray(app.processMilestones) ? app.processMilestones : [];
+      const syncedMilestones = pMilestones.map((pm, mIdx) => {
+        const pmId = String(pm.id || `m${mIdx}`);
+        const existing = existingList.find(
+          (em) => String(em.id) === pmId || em.name === pm.name
+        );
+        const amt = Number(pm.amount || pm.paymentAmount || 0);
+
+        const stages = (Array.isArray(pm.stages) && pm.stages.length > 0
+          ? pm.stages
+          : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }]
+        ).map((stg, sIdx) => {
+          const stgId = String(stg.id || `s${mIdx}_${sIdx}`);
+          const existingStg = existing?.stages?.find(
+            (es) => String(es.id) === stgId || es.name === stg.name
+          );
+          return {
+            id: stgId,
+            name: stg.name || `Stage ${sIdx + 1}`,
+            status:
+              existingStg?.status ||
+              (mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : "Locked"),
+            completedAt: existingStg?.completedAt || null,
+            remark: existingStg?.remark || "",
+          };
+        });
+
+        return {
+          id: pmId,
+          name: pm.name || `Milestone ${mIdx + 1}`,
+          amount: amt,
+          paymentAmount: amt,
+          paymentStatus:
+            existing?.paymentStatus ||
+            (mIdx === 0 && amt > 0 ? "Payment Required" : "Not Required"),
+          status: existing?.status || (mIdx === 0 ? "Active" : "Locked"),
+          paymentDate: existing?.paymentDate || null,
+          paymentRef: existing?.paymentRef || null,
+          paymentRemark: existing?.paymentRemark || "",
+          approvedBy: existing?.approvedBy || null,
+          stages,
+        };
+      });
+
+      const totalAmt = syncedMilestones.reduce(
+        (acc, m) => acc + (Number(m.amount || m.paymentAmount) || 0),
+        0
+      );
+
+      // Only save if empty or different
+      if (!app.processMilestones || app.processMilestones.length === 0 || !app.milestonesSyncedWithProject) {
+        app.processMilestones = syncedMilestones;
+        app.paymentPlan = {
+          totalAmount: totalAmt,
+          currency: "INR",
+          milestones: syncedMilestones,
+        };
+        app.milestonesSyncedWithProject = true;
+        app.markModified("processMilestones");
+        app.markModified("paymentPlan");
+        await app.save();
+      }
+    }
+  } catch (syncErr) {
+    console.error("Error syncing project milestones to candidate application:", syncErr);
+  }
+
   return res.status(200).json({
     success: true,
     application: app.toJSON(),
@@ -600,7 +691,16 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   }
 
   const { id } = req.params;
-  const { milestoneId, amount, paymentMode = "Online UPI", referenceNumber = "", paymentNotes = "", isInstantMock = true } = req.body;
+  const targetMilestoneId = req.params.milestoneId || req.body.milestoneId;
+  const {
+    amount,
+    paymentMode = "Online UPI",
+    referenceNumber = "",
+    paymentReference = "",
+    paymentNotes = "",
+    remarks = "",
+    isInstantMock = true,
+  } = req.body;
 
   const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
   const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
@@ -615,17 +715,25 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   }
 
   const milestones = [...(app.processMilestones || [])];
-  const mIdx = milestones.findIndex((m) => String(m.id) === String(milestoneId));
+  const mIdx = milestones.findIndex((m) => String(m.id) === String(targetMilestoneId));
   if (mIdx === -1) {
     return res.status(404).json({ success: false, message: "Milestone not found." });
   }
 
   const paidAmt = Number(amount) || Number(milestones[mIdx].paymentAmount) || 15000;
-  const refNum = referenceNumber.trim() || `TXN-${Date.now().toString().slice(-8)}`;
-  const receiptNum = `INV-${app.applicationId || app.id}-${milestoneId}`;
+  const refNum =
+    (referenceNumber || paymentReference || "").trim() ||
+    `TXN-${Date.now().toString().slice(-8)}`;
+  const receiptNum = `INV-${app.applicationId || app.id}-${targetMilestoneId}`;
   const payDate = new Date().toISOString().split("T")[0];
+  const notesText = paymentNotes || remarks || `Paid via ${paymentMode}`;
 
-  const isAutoApproved = isInstantMock || paymentMode === "Online UPI" || paymentMode === "Card";
+  const isAutoApproved =
+    isInstantMock ||
+    paymentMode === "Online" ||
+    paymentMode === "Razorpay Online" ||
+    paymentMode === "Online UPI" ||
+    paymentMode === "Card";
 
   if (isAutoApproved) {
     milestones[mIdx].paymentStatus = "Approved";
@@ -633,8 +741,8 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     milestones[mIdx].paymentAmount = paidAmt;
     milestones[mIdx].paymentRef = refNum;
     milestones[mIdx].paymentDate = payDate;
-    milestones[mIdx].approvedBy = "Online Auto-Verify";
-    milestones[mIdx].paymentRemark = paymentNotes || `Paid online via ${paymentMode}`;
+    milestones[mIdx].approvedBy = paymentMode.includes("Razorpay") ? "Razorpay Gateway" : "Online Auto-Verify";
+    milestones[mIdx].paymentRemark = notesText;
 
     if (Array.isArray(milestones[mIdx].stages) && milestones[mIdx].stages.length > 0) {
       if (milestones[mIdx].stages[0].status === "Locked") {

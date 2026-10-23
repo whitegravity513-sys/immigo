@@ -3,6 +3,7 @@ import CandidateApplication from "../models/CandidateApplication.js";
 import ActivityLog from "../models/ActivityLog.js";
 import Notification from "../models/Notification.js";
 import CrmNotification from "../models/CrmNotification.js";
+import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   sendCandidateApprovalEmail,
@@ -526,6 +527,81 @@ export const getDefaultCandidateMilestones = () => [
   },
 ];
 
+export const getMilestonesForApplication = async (app) => {
+  try {
+    const clients = await CrmOverseasClient.find({}).lean();
+    let targetProject = null;
+    for (const cl of clients) {
+      const prj = (cl.projects || []).find(
+        (p) =>
+          String(p.id || p.projectId || p._id) === String(app.projectId) ||
+          p.projectName === app.projectName
+      );
+      if (prj) {
+        targetProject = prj;
+        break;
+      }
+    }
+
+    const pMilestones =
+      targetProject?.paymentMilestones ||
+      targetProject?.processMilestones ||
+      targetProject?.milestones;
+
+    if (Array.isArray(pMilestones) && pMilestones.length > 0) {
+      const synced = pMilestones.map((pm, mIdx) => {
+        const amt = Number(pm.amount || pm.paymentAmount || 0);
+        const stages = (Array.isArray(pm.stages) && pm.stages.length > 0
+          ? pm.stages
+          : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }]
+        ).map((stg, sIdx) => ({
+          id: String(stg.id || `s${mIdx}_${sIdx}`),
+          name: stg.name || `Stage ${sIdx + 1}`,
+          status: mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : "Locked",
+          completedAt: null,
+          remark: "",
+        }));
+
+        return {
+          id: String(pm.id || `m${mIdx}`),
+          name: pm.name || `Milestone ${mIdx + 1}`,
+          amount: amt,
+          paymentAmount: amt,
+          paymentStatus: mIdx === 0 && amt > 0 ? "Payment Required" : "Not Required",
+          status: mIdx === 0 ? "Active" : "Locked",
+          paymentDate: null,
+          paymentRef: null,
+          paymentRemark: "",
+          approvedBy: null,
+          stages,
+        };
+      });
+
+      const totalAmt = synced.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+      return {
+        processMilestones: synced,
+        paymentPlan: {
+          totalAmount: totalAmt,
+          currency: "INR",
+          milestones: synced,
+        },
+      };
+    }
+  } catch (err) {
+    console.error("Error finding project milestones:", err);
+  }
+
+  const defaults = getDefaultCandidateMilestones();
+  return {
+    processMilestones: defaults,
+    paymentPlan: {
+      totalAmount: 40000,
+      currency: "INR",
+      milestones: defaults,
+    },
+  };
+};
+
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, remarks, rejectionReason } = req.body;
@@ -559,13 +635,9 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   if (rejectionReason !== undefined) app.rejectionReason = rejectionReason;
 
   if (status === "Selected" && (!app.processMilestones || app.processMilestones.length === 0)) {
-    const defaults = getDefaultCandidateMilestones();
-    app.processMilestones = defaults;
-    app.paymentPlan = {
-      totalAmount: 40000,
-      currency: "INR",
-      milestones: defaults,
-    };
+    const plan = await getMilestonesForApplication(app);
+    app.processMilestones = plan.processMilestones;
+    app.paymentPlan = plan.paymentPlan;
     if (!Array.isArray(app.payments)) {
       app.payments = [];
     }
@@ -716,13 +788,9 @@ export const getApplicationMilestones = asyncHandler(async (req, res) => {
   }
 
   if (!app.processMilestones || app.processMilestones.length === 0) {
-    const defaults = getDefaultCandidateMilestones();
-    app.processMilestones = defaults;
-    app.paymentPlan = {
-      totalAmount: 40000,
-      currency: "INR",
-      milestones: defaults,
-    };
+    const plan = await getMilestonesForApplication(app);
+    app.processMilestones = plan.processMilestones;
+    app.paymentPlan = plan.paymentPlan;
     if (!Array.isArray(app.payments)) {
       app.payments = [];
     }

@@ -214,31 +214,31 @@ export function Clients() {
     Boolean(searchQuery) || countryFilter !== "All" || statusFilter !== "All";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
             Client Management
           </h1>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-[11px] text-gray-500 mt-0.5">
             Manage client companies, projects, and manpower requirements.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 flex-wrap self-start sm:self-auto">
           <button
             onClick={() => setExportModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
             title="Export Clients list to Excel/CSV"
           >
-            <Download size={14} className="text-gray-500" />
+            <Download size={13} className="text-gray-500" />
             <span>Export Data</span>
           </button>
           <Link
             to="/projects"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md shadow-2xs transition-colors cursor-pointer"
           >
-            <FolderPlus size={14} className="text-gray-500" />
+            <FolderPlus size={13} className="text-gray-500" />
             <span>All Projects</span>
           </Link>
         </div>

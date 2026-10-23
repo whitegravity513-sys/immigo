@@ -31,6 +31,7 @@ router.get("/my-applications", verifyCandidate, getMyApplications);
 
 router.get("/applications/:id/milestones", verifyCandidate, getCandidateApplicationMilestones);
 router.post("/applications/:id/pay-milestone", verifyCandidate, submitCandidateMilestonePayment);
+router.post("/applications/:id/milestones/:milestoneId/pay", verifyCandidate, submitCandidateMilestonePayment);
 router.get("/notifications", verifyCandidate, getCandidateNotifications);
 router.patch("/notifications/:id/read", verifyCandidate, markCandidateNotificationAsRead);
 

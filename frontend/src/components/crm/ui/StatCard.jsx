@@ -54,7 +54,7 @@ export function StatCard({
   return (
     <CardWrapper
       {...wrapperProps}
-      className={`bg-white rounded-xl border border-gray-200/90 p-3 sm:p-3.5 shadow-2xs transition-all duration-150 block text-left ${
+      className={`bg-white rounded-lg border border-gray-200/90 p-2 sm:p-2.5 px-3 shadow-2xs transition-all duration-150 block text-left ${
         isClickable
           ? "cursor-pointer group hover:-translate-y-0.5"
           : ""
@@ -63,30 +63,30 @@ export function StatCard({
       <div className="flex items-start justify-between gap-1.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1">
-            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider truncate">
+            <p className="text-[9.5px] font-bold text-gray-500 uppercase tracking-wider truncate">
               {title}
             </p>
             {isClickable && (
               <ArrowUpRight
-                size={12}
+                size={11}
                 className="text-gray-300 group-hover:text-blue-600 transition-colors shrink-0"
               />
             )}
           </div>
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mt-0.5 tracking-tight truncate leading-tight">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-0.5 tracking-tight truncate leading-tight">
             {value}
           </h3>
           {subtitle && (
-            <p className="text-[10px] text-gray-400 mt-0.5 truncate font-medium">
+            <p className="text-[9px] text-gray-400 mt-0.5 truncate font-medium">
               {subtitle}
             </p>
           )}
         </div>
         {Icon && (
           <div
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg border flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${scheme.iconBg}`}
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-md border flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${scheme.iconBg}`}
           >
-            <Icon size={17} strokeWidth={2} />
+            <Icon size={14} strokeWidth={2} />
           </div>
         )}
       </div>

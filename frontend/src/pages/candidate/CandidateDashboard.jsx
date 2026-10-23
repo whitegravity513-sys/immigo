@@ -334,9 +334,6 @@ export default function CandidateDashboard() {
       return;
     }
 
-    setSubmittingPayment(true);
-    setNotification(null);
-
     const appId =
       selectedAppForProcessing.applicationId || selectedAppForProcessing.id;
     const milestoneId = selectedMilestoneToPay.id;
@@ -344,18 +341,109 @@ export default function CandidateDashboard() {
       selectedMilestoneToPay.paymentAmount || selectedMilestoneToPay.amount || 15000
     );
 
+    if (isOnline) {
+      setSubmittingPayment(true);
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TlPlO103C4S5Jl";
+
+      const loadScript = () =>
+        new Promise((resolve) => {
+          if (window.Razorpay) return resolve(true);
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = () => resolve(true);
+          script.onerror = () => resolve(false);
+          document.body.appendChild(script);
+        });
+
+      const hasRzp = await loadScript();
+
+      if (hasRzp && window.Razorpay) {
+        try {
+          const options = {
+            key: razorpayKey,
+            amount: Math.round(amount * 100),
+            currency: "INR",
+            name: "Immigo Global Mobility",
+            description: `Milestone: ${selectedMilestoneToPay.name}`,
+            prefill: {
+              name: candidate?.fullName || candidate?.name || "Candidate",
+              email: candidate?.email || "candidate@immigo.com",
+              contact: candidate?.phone || "",
+            },
+            theme: { color: "#163868" },
+            handler: async function (response) {
+              try {
+                setSubmittingPayment(true);
+                const res = await apiClient.post(
+                  `/candidate/applications/${appId}/milestones/${milestoneId}/pay`,
+                  {
+                    paymentMode: "Razorpay Online",
+                    paymentReference: response.razorpay_payment_id || `RZP_${Date.now()}`,
+                    remarks: `Paid Online via Razorpay Gateway (Payment ID: ${response.razorpay_payment_id || "N/A"})`,
+                    amount,
+                    isInstantMock: true,
+                  }
+                );
+                if (res.data?.success) {
+                  setNotification({
+                    type: "success",
+                    message: "Payment successful! Milestone unlocked.",
+                  });
+                  setPayModalOpen(false);
+                  setPaymentRefInput("");
+                  setPaymentNotesInput("");
+                  fetchAppMilestones(appId);
+                  fetchCandidateData();
+                  fetchNotifications();
+                }
+              } catch (err) {
+                setNotification({
+                  type: "error",
+                  message: err.response?.data?.message || "Payment verification failed.",
+                });
+              } finally {
+                setSubmittingPayment(false);
+              }
+            },
+            modal: {
+              ondismiss: function () {
+                setSubmittingPayment(false);
+              },
+            },
+          };
+
+          const rzpInstance = new window.Razorpay(options);
+          rzpInstance.on("payment.failed", function (resp) {
+            setNotification({
+              type: "error",
+              message: `Payment failed: ${resp.error?.description || "Transaction cancelled."}`,
+            });
+            setSubmittingPayment(false);
+          });
+          rzpInstance.open();
+          return;
+        } catch (rErr) {
+          console.error("Razorpay initiation error:", rErr);
+        }
+      }
+    }
+
+    setSubmittingPayment(true);
+    setNotification(null);
+
     try {
       const res = await apiClient.post(
         `/candidate/applications/${appId}/milestones/${milestoneId}/pay`,
         {
-          paymentMode: isOnline ? "Online" : "Bank Transfer",
+          paymentMode: isOnline ? "Razorpay Online" : "Bank Transfer",
           paymentReference: isOnline
-            ? `PAY-ONLINE-${Date.now().toString(36).toUpperCase()}`
+            ? `RZP-${Date.now().toString(36).toUpperCase()}`
             : paymentRefInput.trim(),
           remarks: isOnline
-            ? "Instant Online Payment via Payment Gateway"
+            ? "Instant Online Payment via Razorpay Gateway"
             : paymentNotesInput || "Manual Bank Transfer",
           amount,
+          isInstantMock: isOnline,
         }
       );
 
@@ -518,6 +606,7 @@ export default function CandidateDashboard() {
 
           {activeTab === "processing" && (
             <CandidateMilestonesTab
+              projects={projects}
               selectedApps={selectedApps}
               selectedAppForProcessing={selectedAppForProcessing}
               setSelectedAppForProcessing={setSelectedAppForProcessing}

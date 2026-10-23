@@ -80,28 +80,28 @@ export function ClientDashboard() {
         { label: "Dashboard" },
       ]}
     >
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 sm:p-3.5 bg-white border border-gray-200/90 rounded-xl shadow-2xs">
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-2.5 px-3 bg-white border border-gray-200/90 rounded-lg shadow-2xs">
           <div className="flex items-center gap-2">
-            <Building2 size={16} className="text-blue-600" />
-            <h2 className="text-xs sm:text-sm font-bold text-gray-900">Client Organizations Management</h2>
+            <Building2 size={14} className="text-blue-600" />
+            <h2 className="text-xs font-bold text-gray-900">Client Organizations Management</h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Link
               to="/client/clients/new"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-2xs cursor-pointer"
             >
-              <Plus size={13} />
+              <Plus size={12} />
               <span>Add New Client</span>
             </Link>
 
             <Link
               to="/client/clients"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors cursor-pointer"
             >
               <span>View All Clients</span>
-              <ArrowRight size={12} />
+              <ArrowRight size={11} />
             </Link>
           </div>
         </div>
