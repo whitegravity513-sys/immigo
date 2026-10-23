@@ -251,9 +251,9 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             onVendorUpdate((prev) => ({
               ...prev,
               mouSigned: true,
-              mouStatus: "Signed",
-              status: "Pending MOU Approval",
-              onboardingStage: "MOU_SIGNED",
+              mouStatus: "Approved",
+              status: "Approved",
+              onboardingStage: "COMPLETED",
             }));
           }
           setTimeout(() => window.location.reload(), 800);

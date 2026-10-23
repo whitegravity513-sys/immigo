@@ -8,8 +8,107 @@ import {
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+import bcrypt from "bcryptjs";
+
 export const getAllVendors = asyncHandler(async (req, res) => {
-  const vendors = await Vendor.find({}).sort({ createdAt: -1 });
+  let vendors = await Vendor.find({}).sort({ createdAt: -1 });
+
+  if (!vendors || vendors.length === 0) {
+    try {
+      const defaultPasswordHash = await bcrypt.hash("Vendor@123", 10);
+      const seedList = [
+        {
+          vendorId: "VND-1001",
+          companyName: "Global Staffing Solutions Pvt Ltd",
+          contactPersonName: "Rajesh Malhotra",
+          email: "vendor@immigo.com",
+          password: defaultPasswordHash,
+          phone: "9876543210",
+          state: "Maharashtra",
+          city: "Mumbai",
+          address: "B-402, Trade Center, BKC, Mumbai",
+          pan: "ABCDE1234F",
+          gstin: "27ABCDE1234F1Z5",
+          specialization: "Construction, MEP, Welding",
+          status: "Approved",
+          mouStatus: "Approved",
+          onboardingStage: "COMPLETED",
+          documentsUploaded: true,
+        },
+        {
+          vendorId: "VND-1002",
+          companyName: "Apex International Overseas",
+          contactPersonName: "Sunil Verma",
+          email: "sunil@apexoverseas.in",
+          password: defaultPasswordHash,
+          phone: "9811223344",
+          state: "Delhi",
+          city: "New Delhi",
+          address: "12 Connaught Place, New Delhi",
+          pan: "APEXO5544E",
+          specialization: "Civil, Heavy Equipment Operators",
+          status: "Registration Pending",
+          onboardingStage: "REGISTRATION_PENDING",
+          documentsUploaded: false,
+        },
+        {
+          vendorId: "VND-1003",
+          companyName: "Gulf Manpower Hub Ltd",
+          contactPersonName: "Mohd Rizwan",
+          email: "rizwan@gulfmanpower.com",
+          password: defaultPasswordHash,
+          phone: "9822334455",
+          state: "Kerala",
+          city: "Kochi",
+          address: "MG Road, Ravipuram, Kochi",
+          pan: "GULFM3322D",
+          specialization: "Hospitality, Electrical, Plumbing",
+          status: "Documents Pending",
+          onboardingStage: "DOCS_PENDING",
+          documentsUploaded: false,
+        },
+        {
+          vendorId: "VND-1004",
+          companyName: "TransAsia Recruiters",
+          contactPersonName: "Vikram Singhania",
+          email: "vikram@transasia.co.in",
+          password: defaultPasswordHash,
+          phone: "9733445566",
+          state: "Punjab",
+          city: "Chandigarh",
+          address: "Sector 17-C, Chandigarh",
+          pan: "TRANS8877K",
+          specialization: "Agriculture, Transport, Rigging",
+          status: "Suspended",
+          onboardingStage: "COMPLETED",
+          documentsUploaded: true,
+        },
+        {
+          vendorId: "VND-1005",
+          companyName: "Skyline Overseas Pvt Ltd",
+          contactPersonName: "Pooja Batra",
+          email: "pooja@skylineoverseas.org",
+          password: defaultPasswordHash,
+          phone: "9644556677",
+          state: "Karnataka",
+          city: "Bengaluru",
+          address: "Indiranagar 100ft Road, Bengaluru",
+          pan: "SKYLI9988P",
+          specialization: "General Labor & Logistics",
+          status: "Rejected",
+          rejectionReason: "Incomplete statutory license documentation.",
+          onboardingStage: "REGISTRATION_PENDING",
+          documentsUploaded: false,
+        },
+      ];
+
+      await Vendor.insertMany(seedList);
+      vendors = await Vendor.find({}).sort({ createdAt: -1 });
+    } catch (seedErr) {
+      console.warn("Auto-seed vendors warning:", seedErr.message);
+    }
+  }
+
   return res.status(200).json({
     message: "Vendors retrieved successfully",
     vendors,

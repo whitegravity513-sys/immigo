@@ -297,9 +297,9 @@ export const signVendorMou = asyncHandler(async (req, res) => {
   }
 
   vendor.mouSigned = true;
-  vendor.mouStatus = "Under Review";
-  vendor.status = "MOU Under Review";
-  vendor.onboardingStage = "MOU_SIGNED";
+  vendor.mouStatus = "Approved";
+  vendor.status = "Approved";
+  vendor.onboardingStage = "COMPLETED";
   vendor.mouSignMethod = signMethod;
   vendor.signedMouDocUrl = signedFileUrl || "";
   vendor.signedMou = {

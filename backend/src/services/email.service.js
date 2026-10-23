@@ -1,9 +1,10 @@
 import nodemailer from "nodemailer";
+import "../config/env.js";
 import { logger } from "../utils/logger.js";
 
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT || 587);
+  const port = Number(process.env.SMTP_PORT || 465);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
@@ -24,7 +25,13 @@ const createTransporter = () => {
   });
 };
 
-const transporter = createTransporter();
+let transporter = createTransporter();
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = createTransporter();
+  }
+  return transporter;
+};
 const DEFAULT_FROM = process.env.EMAIL_FROM || '"ImmiGo" <abhishekyadav36219@gmail.com>';
 
 const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinutes = 10 }) => {
@@ -269,13 +276,14 @@ export const sendVendorRegistrationApprovedEmail = async ({
 
   logger.info(`[VENDOR APPROVAL EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated vendor approval email dispatched.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     logger.info(`Vendor approval email sent: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {

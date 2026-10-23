@@ -136,7 +136,6 @@ export function AddCandidate() {
   const validate = () => {
     const errors = {};
     if (!formData.fullName.trim()) errors.fullName = "Candidate Name is required.";
-    if (!formData.passportNumber.trim()) errors.passportNumber = "Passport Number is required.";
     if (!formData.currentPosition.trim()) errors.currentPosition = "Trade is required.";
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -464,22 +463,16 @@ export function AddCandidate() {
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                Passport No. <span className="text-red-500">*</span>
+                Passport No. <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
                 name="passportNumber"
-                required
                 value={formData.passportNumber}
                 onChange={handleFieldChange}
-                placeholder="e.g. A1234567"
-                className={`w-full px-3 py-2 border rounded-xl uppercase focus:border-blue-600 focus:outline-none bg-white ${
-                  fieldErrors.passportNumber ? "border-red-400 bg-red-50" : "border-slate-300"
-                }`}
+                placeholder="e.g. A1234567 (Optional)"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl uppercase focus:border-blue-600 focus:outline-none bg-white"
               />
-              {fieldErrors.passportNumber && (
-                <p className="text-red-600 text-[10px] mt-0.5">{fieldErrors.passportNumber}</p>
-              )}
             </div>
 
             <div>

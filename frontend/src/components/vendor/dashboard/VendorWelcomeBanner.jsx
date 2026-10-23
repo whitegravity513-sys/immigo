@@ -7,15 +7,15 @@ export default function VendorWelcomeBanner({ vendor, onOpenMou }) {
     <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 rounded-lg p-2.5 sm:p-3 text-white shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-2 border border-blue-800/60">
       <div>
         <div className="flex items-center gap-2 flex-wrap">
-          {vendor?.status === "Pending MOU Approval" || (vendor?.mouSigned && vendor?.status !== "Approved") ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-400/20">
-              <Clock size={12} className="text-amber-400" />
-              MOU Signed &bull; Pending Admin Approval (Full Access Unlocked)
+          {vendor?.status === "Approved" || vendor?.mouStatus === "Approved" || vendor?.mouSigned ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/25 text-blue-200 text-[10px] font-bold border border-blue-400/30">
+              <CheckCircle2 size={12} className="text-cyan-400" />
+              Approved &bull; MOU Executed
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-400/20">
-              <CheckCircle2 size={12} className="text-emerald-400" />
-              Verified Partner &bull; MOU Executed
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-400/20">
+              <Clock size={12} className="text-amber-400" />
+              {vendor?.status || "Under Review"}
             </span>
           )}
           <span className="text-[10px] font-mono text-slate-300">

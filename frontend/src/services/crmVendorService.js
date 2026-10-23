@@ -14,7 +14,100 @@ const ADMIN_NOTIFICATIONS_KEY = "immigo_crm_admin_notifications_v3";
 const delay = (ms = 50) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
-const INITIAL_VENDORS = [];
+const INITIAL_VENDORS = [
+  {
+    id: "VND-1001",
+    vendorId: "VND-1001",
+    companyName: "Global Staffing Solutions Pvt Ltd",
+    contactPersonName: "Rajesh Malhotra",
+    email: "vendor@immigo.com",
+    phone: "9876543210",
+    state: "Maharashtra",
+    city: "Mumbai",
+    address: "B-402, Trade Center, BKC, Mumbai",
+    pan: "ABCDE1234F",
+    gstin: "27ABCDE1234F1Z5",
+    specialization: "Construction, MEP, Welding",
+    status: "Approved",
+    mouStatus: "Approved",
+    mouSigned: true,
+    documentsUploaded: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "VND-1002",
+    vendorId: "VND-1002",
+    companyName: "Apex International Overseas",
+    contactPersonName: "Sunil Verma",
+    email: "sunil@apexoverseas.in",
+    phone: "9811223344",
+    state: "Delhi",
+    city: "New Delhi",
+    address: "12 Connaught Place, New Delhi",
+    pan: "APEXO5544E",
+    specialization: "Civil, Heavy Equipment Operators",
+    status: "Registration Pending",
+    mouStatus: "Not Sent",
+    mouSigned: false,
+    documentsUploaded: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "VND-1003",
+    vendorId: "VND-1003",
+    companyName: "Gulf Manpower Hub Ltd",
+    contactPersonName: "Mohd Rizwan",
+    email: "rizwan@gulfmanpower.com",
+    phone: "9822334455",
+    state: "Kerala",
+    city: "Kochi",
+    address: "MG Road, Ravipuram, Kochi",
+    pan: "GULFM3322D",
+    specialization: "Hospitality, Electrical, Plumbing",
+    status: "Documents Pending",
+    mouStatus: "Not Sent",
+    mouSigned: false,
+    documentsUploaded: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "VND-1004",
+    vendorId: "VND-1004",
+    companyName: "TransAsia Recruiters",
+    contactPersonName: "Vikram Singhania",
+    email: "vikram@transasia.co.in",
+    phone: "9733445566",
+    state: "Punjab",
+    city: "Chandigarh",
+    address: "Sector 17-C, Chandigarh",
+    pan: "TRANS8877K",
+    specialization: "Agriculture, Transport, Rigging",
+    status: "Suspended",
+    mouStatus: "Not Sent",
+    mouSigned: false,
+    documentsUploaded: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "VND-1005",
+    vendorId: "VND-1005",
+    companyName: "Skyline Overseas Pvt Ltd",
+    contactPersonName: "Pooja Batra",
+    email: "pooja@skylineoverseas.org",
+    phone: "9644556677",
+    state: "Karnataka",
+    city: "Bengaluru",
+    address: "Indiranagar 100ft Road, Bengaluru",
+    pan: "SKYLI9988P",
+    specialization: "General Labor & Logistics",
+    status: "Rejected",
+    rejectionReason: "Incomplete statutory license documentation.",
+    mouStatus: "Not Sent",
+    mouSigned: false,
+    documentsUploaded: false,
+    createdAt: new Date().toISOString(),
+  },
+];
 
 const INITIAL_CANDIDATES = [];
 
@@ -25,38 +118,6 @@ const INITIAL_ADMIN_NOTIFICATIONS = [];
 const INITIAL_NOTIFICATIONS = [];
 
 
-if (typeof window !== "undefined") {
-  try {
-    const cleanKey = "immigo_cleaned_all_data_v9";
-    if (!localStorage.getItem(cleanKey)) {
-      localStorage.removeItem("immigo_crm_vendors_v3");
-      localStorage.removeItem("immigo_crm_candidates_v3");
-      localStorage.removeItem("immigo_crm_applications_v3");
-      localStorage.removeItem("immigo_crm_refunds_v3");
-      localStorage.removeItem("crm_clients_data_v3");
-      localStorage.removeItem("crm_clients_data_v2");
-      localStorage.removeItem("crm_clients_data");
-      localStorage.removeItem("crm_client_payments_v2");
-      localStorage.removeItem("crm_client_payments_v1");
-      localStorage.removeItem("crm_client_expenses_v1");
-      localStorage.removeItem("crm_recent_activities_v1");
-      localStorage.removeItem("crm_employee_activities_v1");
-      localStorage.removeItem("immigo_crm_admin_notifications_v3");
-      localStorage.removeItem("immigo_crm_vendor_notifications_v3");
-      localStorage.setItem("immigo_crm_vendors_v3", JSON.stringify([]));
-      localStorage.setItem("immigo_crm_candidates_v3", JSON.stringify([]));
-      localStorage.setItem("immigo_crm_applications_v3", JSON.stringify([]));
-      localStorage.setItem("immigo_crm_refunds_v3", JSON.stringify([]));
-      localStorage.setItem("crm_clients_data_v3", JSON.stringify([]));
-      localStorage.setItem("crm_client_payments_v1", JSON.stringify([]));
-      localStorage.setItem("crm_recent_activities_v1", JSON.stringify([]));
-      localStorage.setItem("crm_employee_activities_v1", JSON.stringify([]));
-      localStorage.setItem(cleanKey, "true");
-    }
-  } catch {}
-}
-
-
 const loadData = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);
@@ -64,7 +125,12 @@ const loadData = (key, fallback) => {
       localStorage.setItem(key, JSON.stringify(fallback));
       return fallback;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (key === VENDORS_STORAGE_KEY && Array.isArray(parsed) && parsed.length === 0 && fallback && fallback.length > 0) {
+      localStorage.setItem(key, JSON.stringify(fallback));
+      return fallback;
+    }
+    return parsed;
   } catch (e) {
     console.error(`Error loading key ${key}:`, e);
     return fallback;
@@ -139,6 +205,14 @@ export const crmVendorService = {
       const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
       vendors.unshift(newVendor);
       saveData(VENDORS_STORAGE_KEY, vendors);
+
+      crmVendorService.addAdminNotification({
+        title: "New Vendor Agency Registered 🏢",
+        message: `${newVendor.companyName || "New Agency"} (${newVendor.id || newVendor.vendorId}) registered for partner network.`,
+        type: "info",
+        vendorId: newVendor.id || newVendor.vendorId,
+        link: "/admin/vendor/vendors?tab=registered",
+      });
       
       return { success: true, vendor: newVendor, ...newVendor };
     } catch (error) {
@@ -242,6 +316,10 @@ export const crmVendorService = {
       const updatedVendor = {
         ...response.data.vendor,
         id: response.data.vendor.vendorId,
+        status: "Approved",
+        mouStatus: "Approved",
+        mouSigned: true,
+        onboardingStage: "COMPLETED",
       };
 
       const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
@@ -259,10 +337,9 @@ export const crmVendorService = {
         }
       } catch {}
 
-      
       crmVendorService.addAdminNotification({
         title: "MOU Signed by Vendor",
-        message: `${updatedVendor.companyName || "Vendor"} (${updatedVendor.vendorId}) digitally signed and executed their MOU agreement!`,
+        message: `${updatedVendor.companyName || "Vendor"} (${updatedVendor.vendorId}) digitally signed and executed their MOU agreement! Access activated.`,
         type: "success",
         vendorId: updatedVendor.id,
         link: "/admin/vendor/vendors",
@@ -270,15 +347,14 @@ export const crmVendorService = {
 
       return updatedVendor;
     } catch (err) {
-      
       const cur = crmVendorService.getCurrentVendor();
       if (!cur) throw new Error(err.response?.data?.message || err.message);
       const updated = {
         ...cur,
         mouSigned: true,
-        mouStatus: "Signed",
-        status: "Pending MOU Approval",
-        onboardingStage: "MOU_SIGNED",
+        mouStatus: "Approved",
+        status: "Approved",
+        onboardingStage: "COMPLETED",
         signedMou: {
           signatoryName,
           designation,
@@ -290,7 +366,7 @@ export const crmVendorService = {
       await crmVendorService.updateVendorProfile(cur.id, updated);
       crmVendorService.addAdminNotification({
         title: "MOU Signed by Vendor",
-        message: `${cur.companyName || "Vendor"} digitally signed and executed the MOU agreement.`,
+        message: `${cur.companyName || "Vendor"} digitally signed and executed the MOU agreement. Access activated.`,
         type: "success",
         vendorId: cur.id,
         link: "/admin/vendor/vendors",
@@ -461,7 +537,7 @@ export const crmVendorService = {
     let vendors = [];
     try {
       const response = await apiClient.get("/admin/vendors");
-      if (response.data?.vendors && Array.isArray(response.data.vendors)) {
+      if (response.data?.vendors && Array.isArray(response.data.vendors) && response.data.vendors.length > 0) {
         vendors = response.data.vendors.map((v) => ({
           ...v,
           id: v.vendorId || v._id,
@@ -474,21 +550,10 @@ export const crmVendorService = {
       vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     }
 
-    
-    const now = Date.now();
-    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    vendors = vendors.map((v) => {
-      const isDocSubmitted = v.documentsUploaded || (Array.isArray(v.documents) && v.documents.length > 0);
-      const regDate = new Date(v.registeredAt || v.createdAt || now).getTime();
-      if (!isDocSubmitted && (now - regDate) > SEVEN_DAYS_MS && v.status !== "Approved" && v.status !== "Suspended") {
-        return {
-          ...v,
-          status: "Rejected",
-          rejectionReason: v.rejectionReason || "Auto-rejected: Mandatory compliance documents not submitted within 7 days of registration.",
-        };
-      }
-      return v;
-    });
+    if (!vendors || vendors.length === 0) {
+      vendors = INITIAL_VENDORS;
+      saveData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    }
 
     if (status !== "All") {
       vendors = vendors.filter((v) => {
@@ -2365,6 +2430,12 @@ export const crmVendorService = {
         recipientRole: "ADMIN",
       }).catch(() => {});
     } catch {}
+    if (typeof window !== "undefined") {
+      try {
+        window.dispatchEvent(new CustomEvent("immigo:admin-notification", { detail: newNotif }));
+        window.dispatchEvent(new Event("storage"));
+      } catch {}
+    }
     return newNotif;
   },
 

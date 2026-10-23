@@ -167,7 +167,7 @@ export default function VendorTable({
                                   <span>{v.status === "Suspended" ? "Activate Vendor" : "Suspend Vendor"}</span>
                                 </button>
                               )}
-                              {["Pending", "Registration Pending", "Registration On Hold", "Under Review", "Pending Verification"].includes(
+                              {["Pending", "Registration Pending", "Registration On Hold"].includes(
                                 v.status
                               ) && (
                                 <button
@@ -176,9 +176,9 @@ export default function VendorTable({
                                     setOpenMenuId(null);
                                     onApproveRegistration(v.id);
                                   }}
-                                  className="w-full flex items-center gap-1.5 px-2.5 py-1.5 text-emerald-700 hover:bg-emerald-50 text-left transition-colors cursor-pointer text-[11px] font-medium"
+                                  className="w-full flex items-center gap-1.5 px-2.5 py-1.5 text-blue-700 hover:bg-blue-50 text-left transition-colors cursor-pointer text-[11px] font-medium"
                                 >
-                                  <CheckCircle2 size={12} className="text-emerald-600" />
+                                  <CheckCircle2 size={12} className="text-blue-600" />
                                   <span>Verify Registration</span>
                                 </button>
                               )}

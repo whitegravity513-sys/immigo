@@ -80,8 +80,17 @@ export default function NotificationBell({ className }) {
 
   useEffect(() => {
     fetchNotifications();
+    const handleImmediateWakeup = () => {
+      fetchNotifications();
+    };
+    window.addEventListener("immigo:admin-notification", handleImmediateWakeup);
+    window.addEventListener("storage", handleImmediateWakeup);
     const interval = setInterval(fetchNotifications, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener("immigo:admin-notification", handleImmediateWakeup);
+      window.removeEventListener("storage", handleImmediateWakeup);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {

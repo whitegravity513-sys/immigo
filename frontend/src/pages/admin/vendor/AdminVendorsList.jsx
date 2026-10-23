@@ -153,8 +153,10 @@ export default function AdminVendorsList() {
     else if (tabParam === "pending") setStatusFilter("Pending Verification");
     else if (tabParam === "mou") setStatusFilter("MOU Pending");
     else if (tabParam === "approved") setStatusFilter("Approved");
+    else if (tabParam === "suspended") setStatusFilter("Suspended");
+    else if (tabParam === "rejected") setStatusFilter("Rejected");
     else if (tabParam === "suspended-rejected") setStatusFilter("Suspended & Rejected");
-    else if (!tabParam) setStatusFilter("All");
+    else if (!tabParam || tabParam === "all") setStatusFilter("All");
 
     const vendorParam = searchParams.get("vendorId");
     if (vendorParam && vendors.length > 0) {
@@ -182,19 +184,36 @@ export default function AdminVendorsList() {
   const filteredVendors = useMemo(() => {
     return vendors.filter((v) => {
       if (statusFilter === "Registered") {
-        const isReg = ["Pending", "Under Review", "Pending Verification", "MOU Pending", "Pending MOU Approval"].includes(v.status);
+        const isReg =
+          v.status !== "Suspended" &&
+          v.status !== "Rejected" &&
+          !v.status?.includes("Rejected") &&
+          v.status !== "Approved" &&
+          v.status !== "Active" &&
+          v.mouStatus !== "Approved" &&
+          !v.mouSigned;
         if (!isReg) return false;
       } else if (statusFilter === "Pending Verification") {
-        if (v.status !== "Pending" && v.status !== "Under Review" && v.status !== "Pending Verification") return false;
+        const hasDocs = v.documentsUploaded === true || (Array.isArray(v.documents) && v.documents.length > 0);
+        const isDocReview = ["Under Review", "Documents Under Review", "Pending Verification"].includes(v.status);
+        if (!hasDocs || !isDocReview) return false;
       } else if (statusFilter === "MOU Pending") {
-        if (v.status === "MOU Pending" || v.status === "Pending MOU Approval" || v.mouStatus === "Sent" || v.mouStatus === "Signed") return true;
+        if (v.status === "MOU Pending" || v.status === "Pending MOU Approval" || v.mouStatus === "Sent") return true;
         const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected" && v.status !== "Suspended";
         if (!isMouPending) return false;
       } else if (statusFilter === "Approved") {
-        const isMouComplete = v.mouSigned === true || v.mouStatus === "Approved";
-        if (v.status !== "Approved" || !isMouComplete) return false;
+        const isApproved =
+          (v.status === "Approved" || v.status === "Active" || v.mouStatus === "Approved" || v.mouSigned === true) &&
+          v.status !== "Suspended" &&
+          v.status !== "Rejected" &&
+          !v.status?.includes("Rejected");
+        if (!isApproved) return false;
+      } else if (statusFilter === "Suspended") {
+        if (v.status !== "Suspended") return false;
+      } else if (statusFilter === "Rejected") {
+        if (v.status !== "Rejected" && !v.status?.includes("Rejected")) return false;
       } else if (statusFilter === "Suspended & Rejected") {
-        if (v.status !== "Suspended" && v.status !== "Rejected") return false;
+        if (v.status !== "Suspended" && v.status !== "Rejected" && !v.status?.includes("Rejected")) return false;
       } else if (statusFilter !== "All" && v.status !== statusFilter) {
         return false;
       }
@@ -747,7 +766,9 @@ export default function AdminVendorsList() {
           setStatusFilter(filterKey);
           if (filterKey === "Registered") setSearchParams({ tab: "registered" });
           else if (filterKey === "Approved") setSearchParams({ tab: "approved" });
-          else if (filterKey === "Suspended & Rejected") setSearchParams({ tab: "suspended-rejected" });
+          else if (filterKey === "Suspended") setSearchParams({ tab: "suspended" });
+          else if (filterKey === "Rejected") setSearchParams({ tab: "rejected" });
+          else setSearchParams({});
         }}
       />
 

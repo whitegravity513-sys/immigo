@@ -165,19 +165,29 @@ export default function VendorDetailView({
               </>
             )}
 
-            {(selectedVendor.status === "Documents Pending" ||
-              selectedVendor.status === "Documents Under Review" ||
-              selectedVendor.status === "Under Review" ||
-              selectedVendor.status === "Documents Correction Required") && (
+            {selectedVendor.status === "Documents Pending" &&
+              !selectedVendor.documentsUploaded &&
+              (!selectedVendor.documents || selectedVendor.documents.length === 0) && (
+                <span className="px-2.5 py-1.5 rounded-md bg-slate-100 text-slate-600 font-bold text-xs flex items-center gap-1.5 border border-slate-200">
+                  <Clock size={13} className="text-amber-500" />
+                  <span>Awaiting Vendor Document Upload</span>
+                </span>
+              )}
+
+            {(selectedVendor.documentsUploaded || (selectedVendor.documents && selectedVendor.documents.length > 0)) &&
+              (selectedVendor.status === "Documents Under Review" ||
+                selectedVendor.status === "Under Review" ||
+                selectedVendor.status === "Pending Verification" ||
+                selectedVendor.status === "Documents Correction Required") && (
               <>
                 <button
                   type="button"
                   onClick={() => onApproveDocsAndSendMou(selectedVendor.id)}
-                  className="px-2.5 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
                   title="Approve uploaded documents and auto-populate MOU agreement"
                 >
                   <Send size={13} />
-                  <span>Approve Docs & Generate MOU</span>
+                  <span>Verify Documents & Issue MOU</span>
                 </button>
                 <button
                   type="button"
@@ -197,6 +207,13 @@ export default function VendorDetailView({
                   <span>Reject</span>
                 </button>
               </>
+            )}
+
+            {(selectedVendor.mouStatus === "Sent" || selectedVendor.status === "MOU Pending" || selectedVendor.status === "Approved") && (
+              <span className="px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-blue-600" />
+                <span>Documents Verified & MOU Dispatched</span>
+              </span>
             )}
 
             {(selectedVendor.status === "MOU Pending" ||

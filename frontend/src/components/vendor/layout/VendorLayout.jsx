@@ -72,7 +72,10 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
 
   const isFullyUnlocked = Boolean(
     vendor?.status === "Active" ||
-    (vendor?.status === "Approved" && (vendor?.mouStatus === "Approved" || vendor?.mouSigned === true))
+    vendor?.status === "Approved" ||
+    vendor?.mouSigned === true ||
+    vendor?.mouStatus === "Approved" ||
+    vendor?.mouStatus === "Signed"
   );
 
   return (

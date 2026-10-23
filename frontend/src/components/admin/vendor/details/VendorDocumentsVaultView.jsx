@@ -199,10 +199,10 @@ export default function VendorDocumentsVaultView({
               <button
                 type="button"
                 onClick={() => onApproveDocsAndSendMou(selectedVendor.id)}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Check size={13} />
-                <span>Approve & Verify Credentials</span>
+                <span>Verify Credentials & Issue MOU</span>
               </button>
             </div>
           </div>
