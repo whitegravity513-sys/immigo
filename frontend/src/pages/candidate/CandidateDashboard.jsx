@@ -255,12 +255,23 @@ export default function CandidateDashboard() {
     setNotification(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", docFile);
-      formData.append("category", uploadCategory);
+      const toBase64 = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (error) => reject(error);
+        });
 
-      const res = await apiClient.post("/candidate/documents", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const base64Data = await toBase64(docFile);
+
+      const res = await apiClient.post("/candidate/documents", {
+        docType: uploadCategory,
+        category: uploadCategory,
+        name: docFile.name,
+        fileName: docFile.name,
+        fileSize: docFile.size,
+        fileData: base64Data,
       });
 
       if (res.data?.candidate) {

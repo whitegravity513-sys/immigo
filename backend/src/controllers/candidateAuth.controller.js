@@ -291,13 +291,17 @@ export const uploadCandidateDocument = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Candidate not found." });
   }
 
-  const { docType, name, fileData, fileName, fileSize } = req.body;
+  const docType = req.body.docType || req.body.category || "other_document";
+  const fileData = req.body.fileData || req.body.file || req.body.document || "";
+  const name = req.body.name || req.body.docName || docType.replace(/_/g, " ").toUpperCase();
+  const fileName = req.body.fileName || `${docType}.pdf`;
+  const fileSize = req.body.fileSize || 0;
 
   if (!docType || !fileData) {
     return res.status(400).json({ success: false, message: "Document type and file content are required." });
   }
 
-  const savedUrl = saveBase64File(fileData, "documents", fileName || `${docType}.pdf`);
+  const savedUrl = saveBase64File(fileData, "documents", fileName);
 
   const existingIndex = (candidate.documents || []).findIndex(
     (d) => d.docType === docType || (d.id && d.id === req.body.documentId)
@@ -308,7 +312,7 @@ export const uploadCandidateDocument = asyncHandler(async (req, res) => {
     docType,
     name: name || docType.replace(/_/g, " ").toUpperCase(),
     fileUrl: savedUrl,
-    fileName: fileName || `${docType}.pdf`,
+    fileName: fileName,
     fileSize: fileSize || 0,
     status: "Pending Verification",
     rejectionReason: "",
@@ -344,6 +348,8 @@ export const uploadCandidateDocument = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Document uploaded successfully and submitted for administrative verification.",
+    candidate: candidate.toJSON(),
+    document: docItem,
     documents: candidate.documents,
     documentStatus: candidate.documentStatus,
     profileCompletionPercent: candidate.profile.profileCompletionPercent,

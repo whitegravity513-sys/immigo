@@ -244,12 +244,28 @@ export function AddProjectModal({
     if (!validate()) return;
     const headcountNum = Number(formData.totalHeadcount) || 1;
     const pos = formData.positionTitle?.trim() || formData.workforceNotes?.trim() || "Required Trade Position";
+
+    const formattedMilestones = (formData.paymentMilestoneConfig?.milestones || []).map((m, idx) => ({
+      id: m.id || `m${Date.now()}-${idx + 1}`,
+      name: (m.name || `Milestone ${idx + 1}`).trim(),
+      paymentAmount: String(m.amount || 0),
+      amount: Number(m.amount) || 0,
+      percentage: Number(m.percentage) || 0,
+      stages: [{ id: `s${Date.now()}-${idx + 1}-1`, name: "Candidate Selection" }],
+    }));
+
+    const milestonesSum = formattedMilestones.reduce((acc, m) => acc + m.amount, 0);
+    const resolvedTotal = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || milestonesSum || 0;
+
     onSave({
       ...formData,
       primaryPosition: pos,
       positionTitle: pos,
       totalHeadcount: headcountNum,
       totalManpower: headcountNum,
+      paymentMilestones: formattedMilestones,
+      totalMilestoneAmount: resolvedTotal,
+      totalAgreedAmount: resolvedTotal,
       vendorAssignmentType: formData.vendorVisibility === "specific" ? "Specific Vendor" : "All Vendors",
       vendorVisibility: formData.vendorVisibility || "all",
       assignedVendors: formData.assignedVendorIds || [],
@@ -695,39 +711,119 @@ export function AddProjectModal({
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Placement Fee Amount per Candidate (₹ / Currency)
+                        All Over Total Milestone Amount (₹)
                       </label>
                       <input
                         type="number"
                         min="0"
                         step="1000"
-                        value={formData.paymentMilestoneConfig?.totalFeePerCandidate || 40000}
+                        value={formData.paymentMilestoneConfig?.totalFeePerCandidate ?? ""}
                         onChange={(e) => {
                           const fee = Number(e.target.value) || 0;
-                          const parts = formData.paymentMilestoneConfig?.partsCount || 4;
                           setFormData((prev) => ({
                             ...prev,
                             paymentMilestoneConfig: {
                               ...prev.paymentMilestoneConfig,
                               totalFeePerCandidate: fee,
-                              milestones: generatePresetMilestones(parts, fee),
                             },
                           }));
                         }}
-                        placeholder="e.g. 40000"
-                        className="w-full text-xs font-bold rounded-lg border border-slate-300 py-2 px-3 bg-white text-slate-800 focus:border-blue-600 focus:outline-none"
+                        placeholder="e.g. 50000"
+                        className="w-full text-xs font-bold rounded-lg border border-slate-300 py-2 px-3 bg-white text-slate-800 focus:border-blue-600 focus:outline-none font-mono"
                       />
                     </div>
                   </div>
 
-                  {}
+                  {/* Actions & Balance Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const total = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
+                          const list = formData.paymentMilestoneConfig?.milestones || [];
+                          if (total > 0 && list.length > 0) {
+                            const base = Math.floor(total / list.length);
+                            const rem = total - (base * list.length);
+                            const updated = list.map((m, idx) => {
+                              const share = idx === 0 ? base + rem : base;
+                              return {
+                                ...m,
+                                amount: share,
+                                percentage: Math.round((share / total) * 100),
+                              };
+                            });
+                            setFormData((prev) => ({
+                              ...prev,
+                              paymentMilestoneConfig: {
+                                ...prev.paymentMilestoneConfig,
+                                milestones: updated,
+                              },
+                            }));
+                          }
+                        }}
+                        className="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-white hover:bg-blue-100 border border-blue-300 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                      >
+                        Auto Distribute Total
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const list = formData.paymentMilestoneConfig?.milestones || [];
+                          const sum = list.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+                          setFormData((prev) => ({
+                            ...prev,
+                            paymentMilestoneConfig: {
+                              ...prev.paymentMilestoneConfig,
+                              totalFeePerCandidate: sum,
+                            },
+                          }));
+                        }}
+                        className="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Set Total From Milestones
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const list = formData.paymentMilestoneConfig?.milestones || [];
+                        const newIdx = list.length + 1;
+                        setFormData((prev) => ({
+                          ...prev,
+                          paymentMilestoneConfig: {
+                            ...prev.paymentMilestoneConfig,
+                            partsCount: newIdx,
+                            milestones: [
+                              ...list,
+                              {
+                                id: `M${newIdx}`,
+                                name: `Milestone ${newIdx}`,
+                                percentage: 0,
+                                amount: 0,
+                              },
+                            ],
+                          },
+                        }));
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Plus size={12} />
+                      <span>Add Milestone</span>
+                    </button>
+                  </div>
+
+                  {/* Milestones Table with Editable Price Inputs */}
                   <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-100 text-[11px] font-bold text-slate-600 border-b border-slate-200">
-                          <th className="py-2 px-3"># Milestone Stage</th>
-                          <th className="py-2 px-3 w-24">Share %</th>
-                          <th className="py-2 px-3 w-32 text-right">Amount (₹)</th>
+                          <th className="py-2 px-3"># Milestone Stage Name</th>
+                          <th className="py-2 px-3 w-20 text-center">Share %</th>
+                          <th className="py-2 px-3 w-36 text-right">Manual Price (₹)</th>
+                          <th className="py-2 px-2 w-10 text-center"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-xs">
@@ -751,20 +847,100 @@ export function AddProjectModal({
                                     };
                                   });
                                 }}
-                                className="w-full text-xs font-medium border-0 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 bg-transparent hover:bg-white"
+                                className="w-full text-xs font-semibold text-slate-800 border-0 focus:ring-1 focus:ring-blue-500 rounded px-1.5 py-1 bg-transparent hover:bg-white"
                               />
                             </td>
-                            <td className="py-2 px-3 font-semibold text-slate-700">
-                              {m.percentage}%
+                            <td className="py-2 px-3 text-center font-semibold text-slate-600 text-[11px]">
+                              {m.percentage || 0}%
                             </td>
-                            <td className="py-2 px-3 text-right font-mono font-bold text-blue-900">
-                              ₹{(m.amount || 0).toLocaleString()}
+                            <td className="py-2 px-3 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <span className="text-slate-400 font-bold text-xs">₹</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={m.amount ?? ""}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value) || 0;
+                                    setFormData((prev) => {
+                                      const copy = [...(prev.paymentMilestoneConfig?.milestones || [])];
+                                      copy[idx] = { ...copy[idx], amount: val };
+                                      const tot = Number(prev.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
+                                      if (tot > 0) {
+                                        copy[idx].percentage = Math.round((val / tot) * 100);
+                                      }
+                                      return {
+                                        ...prev,
+                                        paymentMilestoneConfig: {
+                                          ...prev.paymentMilestoneConfig,
+                                          milestones: copy,
+                                        },
+                                      };
+                                    });
+                                  }}
+                                  placeholder="0"
+                                  className="w-24 text-right font-mono font-bold text-indigo-700 bg-white border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-600 focus:outline-none"
+                                />
+                              </div>
+                            </td>
+                            <td className="py-2 px-2 text-center">
+                              {(formData.paymentMilestoneConfig?.milestones || []).length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData((prev) => {
+                                      const remaining = (prev.paymentMilestoneConfig?.milestones || []).filter((_, i) => i !== idx);
+                                      return {
+                                        ...prev,
+                                        paymentMilestoneConfig: {
+                                          ...prev.paymentMilestoneConfig,
+                                          partsCount: remaining.length,
+                                          milestones: remaining,
+                                        },
+                                      };
+                                    });
+                                  }}
+                                  className="p-1 text-slate-300 hover:text-rose-600 rounded transition-colors cursor-pointer"
+                                  title="Remove milestone"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Summary Comparison */}
+                  {(() => {
+                    const list = formData.paymentMilestoneConfig?.milestones || [];
+                    const sum = list.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+                    const target = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
+                    return (
+                      <div className="flex items-center justify-between text-[11px] pt-1 px-1">
+                        <span className="text-slate-600">
+                          Sum of Milestones: <strong className="font-mono font-bold text-slate-800">₹{sum.toLocaleString()}</strong>
+                        </span>
+                        {target > 0 && (
+                          sum === target ? (
+                            <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              ✓ Fully allocated
+                            </span>
+                          ) : target > sum ? (
+                            <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              Unallocated: ₹{(target - sum).toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                              Exceeds by: ₹{(sum - target).toLocaleString()}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

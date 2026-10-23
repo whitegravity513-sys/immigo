@@ -115,11 +115,20 @@ export function ProjectForm({
     assignedVendorIds: initialData?.assignedVendors || [],
 
     
+    totalMilestoneAmount:
+      initialData?.totalMilestoneAmount ||
+      initialData?.totalAgreedAmount ||
+      (initialData?.paymentMilestones?.reduce(
+        (sum, m) => sum + (Number(m.paymentAmount || m.amount) || 0),
+        0
+      )) ||
+      "",
     paymentMilestones: initialData?.paymentMilestones || [
       {
         id: `m${Date.now()}-1`,
         name: "Candidate Selection & Documentation",
-        paymentAmount: "50000",
+        paymentAmount: "",
+        amount: "",
         stages: [
           { id: `s${Date.now()}-1`, name: "Candidate Selection" },
           { id: `s${Date.now()}-2`, name: "Document Verification" },
@@ -281,6 +290,30 @@ export function ProjectForm({
     const resolvedClientId = formData.clientId || selectedClient?.id || selectedClient?.clientId || `IMCL-${currentYear}-0001`;
     const resolvedClientName = selectedClient?.companyName || formData.clientName?.trim() || "Direct Overseas Client";
 
+    const resolvedMilestones = (formData.paymentMilestones || []).map((m, idx) => {
+      const amtStr = String(m.paymentAmount || m.amount || "");
+      const amtNum = Number(amtStr) || 0;
+      return {
+        ...m,
+        id: m.id || `m${Date.now()}-${idx + 1}`,
+        name: (m.name || `Milestone ${idx + 1}`).trim(),
+        paymentAmount: amtStr,
+        amount: amtNum,
+        stages: Array.isArray(m.stages) && m.stages.length > 0
+          ? m.stages.map((s, sIdx) => ({
+              id: s.id || `s${Date.now()}-${sIdx + 1}`,
+              name: (s.name || `Stage ${sIdx + 1}`).trim(),
+            }))
+          : [{ id: `s${Date.now()}-1`, name: "Candidate Selection" }],
+      };
+    });
+
+    const sumMilestones = resolvedMilestones.reduce(
+      (sum, m) => sum + (Number(m.amount) || 0),
+      0
+    );
+    const resolvedTotalMilestoneAmount = Number(formData.totalMilestoneAmount) || sumMilestones || 0;
+
     const payload = {
       ...formData,
       clientId: resolvedClientId,
@@ -288,6 +321,9 @@ export function ProjectForm({
       manpowerRequirements: list,
       totalHeadcount: headcount,
       totalManpower: headcount,
+      paymentMilestones: resolvedMilestones,
+      totalMilestoneAmount: resolvedTotalMilestoneAmount,
+      totalAgreedAmount: resolvedTotalMilestoneAmount,
       status: asDraft ? "Draft" : formData.status || "Active",
       vendorAssignmentType: formData.vendorVisibility === 'specific' ? "Specific Vendor" : "All Vendors",
       vendorVisibility: formData.vendorVisibility || "all",
@@ -664,9 +700,11 @@ export function ProjectForm({
           subtitle="Configure default payment milestones and their respective processing stages."
           icon={CreditCard}
         >
-          <div className="bg-gray-50/50 rounded-xl border border-gray-200 p-2.5">
+          <div className="bg-gray-50/50 rounded-xl border border-gray-200 p-2.5 sm:p-3">
             <ProjectMilestoneBuilder 
               milestones={formData.paymentMilestones}
+              totalAmount={formData.totalMilestoneAmount}
+              onTotalChange={(val) => setFormData(prev => ({ ...prev, totalMilestoneAmount: val }))}
               onChange={(milestones) => setFormData(prev => ({ ...prev, paymentMilestones: milestones }))}
             />
           </div>

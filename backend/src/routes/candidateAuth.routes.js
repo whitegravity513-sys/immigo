@@ -24,6 +24,8 @@ router.get("/projects", getPublicAvailableProjects);
 router.get("/me", verifyToken, getCandidateProfile);
 router.put("/profile", verifyCandidate, updateCandidateProfile);
 router.post("/upload-document", verifyCandidate, uploadCandidateDocument);
+router.post("/documents", verifyCandidate, uploadCandidateDocument);
+router.get("/documents", verifyCandidate, getCandidateProfile);
 router.post("/apply", verifyCandidate, applyForProject);
 router.get("/my-applications", verifyCandidate, getMyApplications);
 
