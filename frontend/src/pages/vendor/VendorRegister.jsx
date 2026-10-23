@@ -166,6 +166,7 @@ export function VendorRegister() {
         contactPersonName: formData.contactPersonName.trim(),
         email: formData.email.trim().toLowerCase(),
         loginEmail: formData.email.trim().toLowerCase(),
+        phone: formData.mobile.trim(),
         mobile: formData.mobile.trim(),
         state: formData.state,
         city: formData.city.trim(),
@@ -176,8 +177,9 @@ export function VendorRegister() {
         status: "Registration Pending",
       };
 
-      const res = await crmVendorService.register(payload);
-      setSubmittedVendor(res.vendor || payload);
+      const registerFn = crmVendorService.registerVendor || crmVendorService.register;
+      const res = await registerFn.call(crmVendorService, payload);
+      setSubmittedVendor(res?.vendor || res || payload);
       setSuccessSubmitted(true);
     } catch (err) {
       console.error("Vendor registration failed:", err);

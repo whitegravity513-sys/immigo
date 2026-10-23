@@ -119,9 +119,17 @@ export const crmVendorService = {
     return crmVendorService.getCurrentVendor();
   },
 
+  register: async function (vendorData) {
+    return this.registerVendor(vendorData);
+  },
+
   registerVendor: async (vendorData) => {
     try {
-      const response = await apiClient.post("/auth/vendor/register", vendorData);
+      const payload = {
+        ...vendorData,
+        phone: vendorData.phone || vendorData.mobile,
+      };
+      const response = await apiClient.post("/auth/vendor/register", payload);
       
       const newVendor = {
         ...response.data.vendor,
@@ -132,7 +140,7 @@ export const crmVendorService = {
       vendors.unshift(newVendor);
       saveData(VENDORS_STORAGE_KEY, vendors);
       
-      return newVendor;
+      return { success: true, vendor: newVendor, ...newVendor };
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to register vendor");
     }
