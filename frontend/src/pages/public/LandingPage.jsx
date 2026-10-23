@@ -82,6 +82,14 @@ export default function LandingPage() {
     };
   }, []);
 
+  // Pre-load all hero images immediately into browser cache for instant display
+  useEffect(() => {
+    heroSlides.forEach((slide) => {
+      const preloadImg = new Image();
+      preloadImg.src = slide.image;
+    });
+  }, []);
+
   // Auto slide timer (cycles 4 images, 3 seconds per image, loops back to 1st after 4th)
   useEffect(() => {
     const timer = setInterval(() => {
@@ -232,6 +240,9 @@ export default function LandingPage() {
                   <img
                     src={slide.image}
                     alt={slide.title}
+                    loading="eager"
+                    fetchPriority={index === 0 ? "high" : "auto"}
+                    decoding={index === 0 ? "sync" : "async"}
                     className="w-full h-full object-cover object-center"
                   />
                 </div>

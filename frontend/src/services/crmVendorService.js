@@ -1398,21 +1398,24 @@ export const crmVendorService = {
 
     apps = apps.map(app => {
       if (["Selected", "Processing", "Completed"].includes(app.status)) {
-        const synced = crmVendorService.syncAppMilestonesWithProject(app);
-        if (synced && synced.length > 0) {
-          app.processMilestones = synced;
-          dataChanged = true;
+        if (!Array.isArray(app.processMilestones) || app.processMilestones.length === 0) {
+          const synced = crmVendorService.syncAppMilestonesWithProject(app);
+          if (synced && synced.length > 0) {
+            app.processMilestones = synced;
+            dataChanged = true;
+          }
         }
 
         if (Array.isArray(app.processMilestones) && app.processMilestones.length > 0) {
           app.processMilestones.forEach((m, mIdx) => {
-            const amt = Number(m.paymentAmount) || 0;
+            const amt = Number(m.paymentAmount || m.amount) || 0;
+            const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
             const allStagesDone = Array.isArray(m.stages) && m.stages.length > 0 && m.stages.every(s => s.status === "Completed");
 
             if (allStagesDone) {
               m.status = "Completed";
             } else if (mIdx === 0) {
-              if (amt > 0 && m.paymentStatus !== "Approved") {
+              if (amt > 0 && !isPaid) {
                 m.status = "Payment Required";
                 if (m.paymentStatus !== "Submitted") m.paymentStatus = "Payment Required";
               } else {
@@ -1422,26 +1425,22 @@ export const crmVendorService = {
                 }
               }
             } else {
-              
               const prevM = app.processMilestones[mIdx - 1];
               const prevComplete = prevM.status === "Completed" || (Array.isArray(prevM.stages) && prevM.stages.length > 0 && prevM.stages.every(s => s.status === "Completed"));
 
               if (!prevComplete) {
-                
                 m.status = "Locked";
                 if (m.paymentStatus !== "Approved") {
                   m.paymentStatus = "Locked";
                 }
-                
                 if (Array.isArray(m.stages)) {
                   m.stages.forEach(s => {
                     if (s.status !== "Completed") s.status = "Locked";
                   });
                 }
               } else {
-                
                 if (m.status === "Locked") {
-                  if (m.paymentStatus === "Approved" || amt === 0) {
+                  if (isPaid || amt === 0) {
                     m.status = "Active";
                     if (amt === 0) m.paymentStatus = "Not Required";
                     if (m.stages?.length > 0 && m.stages[0].status === "Locked") {
@@ -2181,31 +2180,42 @@ export const crmVendorService = {
   overrideMilestones: async (applicationId, totalAmount, milestones) => {
     await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
-    const idx = apps.findIndex((a) => a.id === applicationId);
+    const idx = apps.findIndex(
+      (a) => String(a.id || a.applicationId || a._id) === String(applicationId)
+    );
     if (idx === -1) throw new Error("Application not found");
 
-    if (!apps[idx].paymentPlan) apps[idx].paymentPlan = {};
-    apps[idx].paymentPlan.totalAmount = totalAmount;
-    apps[idx].paymentPlan.milestones = milestones;
-
-    
     apps[idx].processMilestones = milestones.map((m, mIdx) => {
-      const isPaid = m.status === "Paid";
+      const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
       const isFirst = mIdx === 0;
       const amt = Number(m.amount || m.paymentAmount || 0);
 
-      const stages = (m.stages || []).map((s) => {
+      const stages = (m.stages || []).map((s, sIdx) => {
         const sStatus = s.status || "Pending";
         return {
           ...s,
+          id: s.id || `s${mIdx}_${sIdx}`,
+          name: s.name || `Stage ${sIdx + 1}`,
           status: sStatus,
           completedAt: sStatus === "Completed" ? (s.completedAt || new Date().toISOString().split("T")[0]) : null,
+          completedBy: sStatus === "Completed" ? (s.completedBy || "Admin") : null,
+          remark: s.remark || "",
+          document: s.document || null,
         };
       });
 
       const allStagesDone = stages.length > 0 && stages.every((s) => s.status === "Completed");
-      let processStatus = allStagesDone ? "Completed" : isPaid ? "Active" : isFirst ? (amt > 0 ? "Payment Required" : "Active") : "Locked";
-      let mappedPaymentStatus = isPaid ? "Approved" : m.paymentStatus || (isFirst ? (amt > 0 ? "Payment Required" : "Not Required") : "Locked");
+      let processStatus = allStagesDone
+        ? "Completed"
+        : isPaid
+        ? "Active"
+        : isFirst
+        ? (amt > 0 ? "Payment Required" : "Active")
+        : "Locked";
+
+      let mappedPaymentStatus = isPaid
+        ? "Approved"
+        : m.paymentStatus || (isFirst ? (amt > 0 ? "Payment Required" : "Not Required") : "Locked");
 
       return {
         id: m.id || `m${mIdx}`,
@@ -2214,14 +2224,20 @@ export const crmVendorService = {
         amount: amt,
         paymentStatus: mappedPaymentStatus,
         status: processStatus,
-        paymentDate: m.paidDate || (isPaid ? new Date().toISOString().split("T")[0] : null),
-        paymentRef: m.paymentRef || null,
-        approvedBy: isPaid ? "Admin" : null,
+        paymentDate: m.paymentDate || m.paidDate || (isPaid ? new Date().toISOString().split("T")[0] : null),
+        paymentRef: m.paymentRef || (isPaid ? "Admin Authorized / Paid" : null),
+        approvedBy: isPaid ? (m.approvedBy || "Admin") : null,
         stages,
       };
     });
 
-    const allMilestonesCompleted = apps[idx].processMilestones.length > 0 && apps[idx].processMilestones.every((m) => m.status === "Completed");
+    if (!apps[idx].paymentPlan) apps[idx].paymentPlan = {};
+    apps[idx].paymentPlan.totalAmount = totalAmount;
+    apps[idx].paymentPlan.milestones = apps[idx].processMilestones;
+
+    const allMilestonesCompleted =
+      apps[idx].processMilestones.length > 0 &&
+      apps[idx].processMilestones.every((m) => m.status === "Completed");
     if (allMilestonesCompleted) {
       apps[idx].status = "Completed";
     } else {
@@ -2231,12 +2247,11 @@ export const crmVendorService = {
     apiClient.put(`/crm-sync/applications/${applicationId}`, apps[idx]).catch(() => {});
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
-    
     crmVendorService.addNotification({
       vendorId: apps[idx].vendorId,
-      title: "Milestone Plan Configured 📋",
-      message: `Total placement fee ₹${Number(totalAmount).toLocaleString()} divided into ${milestones.length} milestones for ${apps[idx].candidateName} on ${apps[idx].projectName}. Milestone 1 payment is now due.`,
-      type: "info",
+      title: "Candidate Processing Updated 📋",
+      message: `Admin updated processing milestones and stages for ${apps[idx].candidateName} on project ${apps[idx].projectName}. Status: ${allMilestonesCompleted ? "Completed" : "Active"}.`,
+      type: "success",
       link: `/vendor/processing/${apps[idx].id}`,
     });
 
@@ -2282,11 +2297,18 @@ export const crmVendorService = {
     const onHold = apps.filter((a) => a.status === "On Hold").length;
     const rejected = apps.filter((a) => a.status === "Rejected").length;
     const inProcessing = apps.filter(
-      (a) => a.status === "Selected" && a.processing && a.processing.currentStageIndex < 7
+      (a) =>
+        (a.status === "Selected" || a.status === "Processing") &&
+        ((a.processMilestones && a.processMilestones.length > 0 && !a.processMilestones.every((m) => m.status === "Completed")) ||
+          (a.processing && a.processing.currentStageIndex < 7))
     ).length;
-    const completed = apps.filter((a) => a.status === "Completed" || a.processing?.currentStageIndex === 7).length;
+    const completed = apps.filter(
+      (a) =>
+        a.status === "Completed" ||
+        (a.processMilestones && a.processMilestones.length > 0 && a.processMilestones.every((m) => m.status === "Completed")) ||
+        a.processing?.currentStageIndex === 7
+    ).length;
 
-    
     let totalPayment = 0;
     let paidAmount = 0;
     let pendingAmount = 0;
@@ -2294,15 +2316,21 @@ export const crmVendorService = {
     let overdueAmount = 0;
 
     apps.forEach((app) => {
-      if (app.paymentPlan?.milestones) {
-        app.paymentPlan.milestones.forEach((m) => {
-          totalPayment += Number(m.amount) || 0;
-          if (m.status === "Paid") paidAmount += Number(m.amount) || 0;
-          else if (m.status === "Due") dueAmount += Number(m.amount) || 0;
-          else if (m.status === "Overdue") overdueAmount += Number(m.amount) || 0;
-          else pendingAmount += Number(m.amount) || 0;
-        });
-      }
+      const milestones = app.processMilestones || app.paymentPlan?.milestones || [];
+      milestones.forEach((m) => {
+        const amt = Number(m.paymentAmount || m.amount) || 0;
+        totalPayment += amt;
+        const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+        if (isPaid) {
+          paidAmount += amt;
+        } else if (m.status === "Due" || m.status === "Payment Required" || m.paymentStatus === "Payment Required") {
+          dueAmount += amt;
+        } else if (m.status === "Overdue") {
+          overdueAmount += amt;
+        } else {
+          pendingAmount += amt;
+        }
+      });
     });
 
     const recentActivity = apps.slice(0, 7);

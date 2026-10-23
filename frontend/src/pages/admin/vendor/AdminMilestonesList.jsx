@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Sliders,
   CheckCircle2,
@@ -435,6 +436,14 @@ export default function AdminMilestonesList() {
                         {}
                         <td className="py-1.5 px-3 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
+                            <Link
+                              to={`/admin/vendor/milestones-manage?appId=${app.id}`}
+                              className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                              title="Manage stages and milestones for candidate"
+                            >
+                              <Sliders size={12} />
+                              <span>Manage Stages</span>
+                            </Link>
                             <button
                               type="button"
                               onClick={() => toggleExpand(app.id)}

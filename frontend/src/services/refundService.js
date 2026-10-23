@@ -16,6 +16,11 @@ const loadData = (key, fallback = []) => {
 const saveData = (key, data) => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("immigo:refund-update", { detail: data }));
+      window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
+      window.dispatchEvent(new Event("storage"));
+    }
   } catch (e) {
     console.error("Storage save failed:", e);
   }
@@ -210,32 +215,36 @@ export const refundService = {
     }
 
     
-    const app = apps.find(
+    const appIdx = apps.findIndex(
       (a) =>
         String(a.id) === String(applicationId) ||
         String(a.candidateId) === String(candidateId) ||
         (a.candidateName && candidateName && a.candidateName.toLowerCase() === candidateName.toLowerCase())
     );
+    const app = appIdx !== -1 ? apps[appIdx] : null;
 
     let calculatedTotalPaid = 0;
     if (app) {
       const milestones = app.processMilestones || app.paymentPlan?.milestones || [];
       calculatedTotalPaid = milestones.reduce((sum, m) => {
-        if (m.paymentStatus === "Approved" || m.paymentStatus === "Paid" || m.status === "Paid") {
+        if (m.paymentStatus === "Approved" || m.paymentStatus === "Paid" || m.status === "Paid" || m.status === "Completed") {
           return sum + (Number(m.paymentAmount || m.amount) || 0);
         }
         return sum;
       }, 0);
+      if (calculatedTotalPaid === 0 && Number(app.paidAmount || app.totalPaid) > 0) {
+        calculatedTotalPaid = Number(app.paidAmount || app.totalPaid);
+      }
     }
 
     const newRefund = {
       id: `RFD-${Date.now().toString().slice(-6)}`,
-      applicationId,
-      candidateId,
-      candidateName,
+      applicationId: app?.id || applicationId,
+      candidateId: app?.candidateId || candidateId,
+      candidateName: candidateName || app?.candidateName || "Candidate",
       vendorId: vendorId || app?.vendorId || "VND-1001",
       vendorName: vendorName || app?.vendorName || "Vendor Partner",
-      projectName,
+      projectName: projectName || app?.projectName || "Overseas Project",
       totalPaid: calculatedTotalPaid,
       refundAmount: calculatedTotalPaid,
       refundReason: reason,
@@ -245,8 +254,52 @@ export const refundService = {
       requestedBy: "Vendor",
     };
 
-    refunds.unshift(newRefund);
+    const existingIdx = refunds.findIndex(
+      (r) =>
+        String(r.applicationId) === String(newRefund.applicationId) ||
+        String(r.candidateId) === String(newRefund.candidateId)
+    );
+    if (existingIdx !== -1) {
+      refunds[existingIdx] = { ...refunds[existingIdx], ...newRefund };
+    } else {
+      refunds.unshift(newRefund);
+    }
     saveData(REFUNDS_STORAGE_KEY, refunds);
+
+    if (appIdx !== -1) {
+      apps[appIdx].refundStatus = "Pending Admin Approval";
+      apps[appIdx].refundDetails = {
+        amount: calculatedTotalPaid,
+        status: "Pending Admin Approval",
+        reason: reason,
+        date: new Date().toISOString().split("T")[0],
+      };
+      try {
+        localStorage.setItem(APPLICATIONS_STORAGE_KEY, JSON.stringify(apps));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("immigo:application-update", { detail: apps }));
+          window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: apps }));
+        }
+      } catch {}
+    }
+
+    try {
+      const adminNotifs = loadData("immigo_crm_admin_notifications_v3", []);
+      adminNotifs.unshift({
+        id: `ntf_${Date.now()}`,
+        title: "New Refund Request 💰",
+        message: `${newRefund.vendorName} submitted refund request for candidate ${newRefund.candidateName} (₹${Number(calculatedTotalPaid).toLocaleString()}). Reason: ${reason}`,
+        type: "warning",
+        link: "/admin/vendor/refunds",
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem("immigo_crm_admin_notifications_v3", JSON.stringify(adminNotifs));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("immigo:notification-update", { detail: adminNotifs }));
+      }
+    } catch {}
+
     return newRefund;
   },
 

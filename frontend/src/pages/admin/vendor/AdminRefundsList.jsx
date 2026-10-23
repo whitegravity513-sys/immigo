@@ -37,6 +37,13 @@ export default function AdminRefundsList() {
 
   useEffect(() => {
     loadRefunds();
+    const handleUpdate = () => loadRefunds();
+    window.addEventListener("immigo:refund-update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("immigo:refund-update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
   }, []);
 
   const loadRefunds = async () => {

@@ -12,6 +12,15 @@ export default function VendorProcessingDetails() {
 
   useEffect(() => {
     loadData();
+    const handleUpdate = () => loadData();
+    window.addEventListener("immigo:application-update", handleUpdate);
+    window.addEventListener("immigo:dashboard-update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("immigo:application-update", handleUpdate);
+      window.removeEventListener("immigo:dashboard-update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
   }, [appId]);
 
   const loadData = async () => {
