@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import VendorSidebar from "./VendorSidebar.jsx";
 import VendorNavbar from "./VendorNavbar.jsx";
 import crmVendorService from "../../../services/crmVendorService.js";
@@ -9,14 +9,13 @@ import { VendorOnboarding } from "./VendorOnboarding.jsx";
 export function VendorLayout({ children, title = "Vendor Portal" }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [vendor, setVendor] = useState(() => crmVendorService.getCurrentVendor());
+  const location = useLocation();
 
-  
   useEffect(() => {
     let isMounted = true;
 
     const syncVendor = async () => {
       try {
-        
         const fresh = await crmVendorService.getVendorMe();
         if (fresh && isMounted) {
           setVendor((prev) => {
@@ -78,28 +77,30 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
     vendor?.mouStatus === "Signed"
   );
 
+  const isDashboardRoute =
+    location.pathname === "/vendor" ||
+    location.pathname === "/vendor/" ||
+    location.pathname === "/vendor/dashboard" ||
+    location.pathname.includes("/vendor/onboarding");
+
   return (
     <div className="h-screen flex overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
-      {}
       <VendorSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
         vendor={vendor}
-        disabled={!isFullyUnlocked}
       />
 
-      {}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-full overflow-hidden">
         <VendorNavbar
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
           vendor={vendor}
           title={title}
-          disabled={!isFullyUnlocked}
         />
 
         <main className="flex-1 p-2 sm:p-2.5 max-w-full w-full mx-auto overflow-y-auto overflow-x-hidden">
-          {!isFullyUnlocked ? (
+          {!isFullyUnlocked && isDashboardRoute ? (
             <VendorOnboarding vendor={vendor} onVendorUpdate={setVendor} />
           ) : (
             children || <Outlet />

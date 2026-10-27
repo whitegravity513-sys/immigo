@@ -104,15 +104,7 @@ export function ClientNavbar({
             <span>Admin</span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs group"
-            title="Sign Out"
-          >
-            <LogOut size={13} className="shrink-0 text-rose-400 group-hover:text-white transition-colors" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </button>
+
         </div>
       </div>
     </header>

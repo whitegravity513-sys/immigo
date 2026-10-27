@@ -61,7 +61,8 @@ export default function ForgotPasswordOtpModal({
   if (!isOpen) return null;
 
   const isVendor = role === "vendor";
-  const portalName = isVendor ? "Vendor Partner" : "Administrator";
+  const isSuperAdmin = role === "superadmin";
+  const portalName = isVendor ? "Vendor Partner" : isSuperAdmin ? "Super Administrator" : "Administrator";
 
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
@@ -70,7 +71,13 @@ export default function ForgotPasswordOtpModal({
 
     const cleanInput = email.trim();
     if (!cleanInput) {
-      setError(isVendor ? "Please enter your registered email or Vendor ID." : "Please enter your administrator email address.");
+      setError(
+        isVendor
+          ? "Please enter your registered email or Vendor ID."
+          : isSuperAdmin
+          ? "Please enter your Super Administrator email address."
+          : "Please enter your administrator email address."
+      );
       return;
     }
 
@@ -140,7 +147,6 @@ export default function ForgotPasswordOtpModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
       <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 text-left relative animate-in fade-in zoom-in-95 duration-200">
-        {}
         <button
           type="button"
           onClick={onClose}
@@ -149,7 +155,6 @@ export default function ForgotPasswordOtpModal({
           <X size={18} />
         </button>
 
-        {}
         {step === 1 && (
           <div>
             <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
@@ -160,9 +165,23 @@ export default function ForgotPasswordOtpModal({
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider">
                 {portalName} Recovery
               </div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Forgot Password?</h3>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+                {isSuperAdmin ? "Reset Super Admin Password" : "Forgot Password?"}
+              </h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Enter your {isVendor ? "registered email or Vendor ID" : "administrator email"}. We will send a secure 6-digit OTP code from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong>.
+                {isSuperAdmin ? (
+                  <>
+                    Enter the Super Administrator email address. A 6-digit OTP code will be sent from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong> to verify identity and set a new password.
+                  </>
+                ) : isVendor ? (
+                  <>
+                    Enter your registered email or Vendor ID. We will send a secure 6-digit OTP code from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong>.
+                  </>
+                ) : (
+                  <>
+                    Enter your administrator email. We will send a secure 6-digit OTP code from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong>.
+                  </>
+                )}
               </p>
             </div>
 
@@ -176,7 +195,7 @@ export default function ForgotPasswordOtpModal({
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  {isVendor ? "Registered Email or Vendor ID" : "Administrator Email"}
+                  {isVendor ? "Registered Email or Vendor ID" : isSuperAdmin ? "Super Administrator Email" : "Administrator Email"}
                 </label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
@@ -186,7 +205,7 @@ export default function ForgotPasswordOtpModal({
                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={isVendor ? "e.g. vendor@company.com or IMM-VND-00001" : "e.g. admin@immigo.com"}
+                    placeholder={isVendor ? "e.g. vendor@company.com or IMM-VND-00001" : isSuperAdmin ? "admin@vista.com" : "e.g. admin@immigo.com"}
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition font-medium"
                   />
                 </div>

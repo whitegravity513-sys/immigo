@@ -54,7 +54,7 @@ export const employeeLogin = asyncHandler(async (req, res) => {
   }
 
   if (employee.status === "inactive") {
-    throw new ApiError(403, "Your account has been deactivated. Please contact administrator.");
+    throw new ApiError(403, "Your account has been deactivated / marked inactive. You cannot log in or mark attendance. Please contact administrator.");
   }
 
   let isMatch = await bcrypt.compare(cleanPassword, employee.password);
@@ -69,7 +69,6 @@ export const employeeLogin = asyncHandler(async (req, res) => {
     isMatch = true;
     const newHash = await bcrypt.hash("12345", 10);
     employee.password = newHash;
-    if (employee.status !== "active") employee.status = "active";
     await employee.save().catch(() => {});
   }
 

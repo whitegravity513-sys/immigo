@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Shield,
   ArrowLeft,
+  LogOut,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 
@@ -31,6 +32,10 @@ export const AdminSidebar = ({
   navigateTo = () => { },
   onLogout = () => { },
 }) => {
+  const isHR =
+    (user?.role || "").toUpperCase().replace(/[\s_-]/g, "") === "HR" ||
+    (typeof window !== "undefined" && window.location.pathname.startsWith("/hr"));
+
   return (
     <>
       {}
@@ -65,18 +70,20 @@ export const AdminSidebar = ({
 
         {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
-          <div className="mb-2.5">
-            <Link
-              to="/admin/dashboard"
-              className={`w-full flex items-center gap-2 px-2.5 py-2 text-[11px] font-bold text-blue-800 bg-white/90 hover:bg-white hover:text-blue-900 border border-blue-200/90 rounded-xl transition-colors shadow-2xs ${
-                sidebarCollapsed ? "justify-center" : ""
-              }`}
-              title="Return to Main Admin Dashboard"
-            >
-              <ArrowLeft size={13} className="shrink-0 text-blue-600" />
-              {!sidebarCollapsed && <span className="truncate">Main Admin Dashboard</span>}
-            </Link>
-          </div>
+          {!isHR && (
+            <div className="mb-2.5">
+              <Link
+                to="/admin/dashboard"
+                className={`w-full flex items-center gap-2 px-2.5 py-2 text-[11px] font-bold text-blue-800 bg-white/90 hover:bg-white hover:text-blue-900 border border-blue-200/90 rounded-xl transition-colors shadow-2xs ${
+                  sidebarCollapsed ? "justify-center" : ""
+                }`}
+                title="Return to Main Admin Dashboard"
+              >
+                <ArrowLeft size={13} className="shrink-0 text-blue-600" />
+                {!sidebarCollapsed && <span className="truncate">Main Admin Dashboard</span>}
+              </Link>
+            </div>
+          )}
 
           {!sidebarCollapsed && (
             <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
@@ -229,28 +236,20 @@ export const AdminSidebar = ({
           })}
         </div>
 
-        {}
-        <div
-          className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
-            sidebarCollapsed ? "justify-center" : "justify-between"
-          }`}
-        >
-          {!sidebarCollapsed ? (
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-1.5">
-                <Shield size={10} className="text-cyan-400" />
-                <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">HR Portal</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="text-[10px] text-blue-300/80 font-mono">v2.6</span>
-              </div>
-            </div>
-          ) : (
-            <span
-              className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
-              title="HR Portal Active"
-            ></span>
+        {/* Footer matching Dashboard Footer height (48px) with clean Sign Out button */}
+        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className={`flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group ${
+                sidebarCollapsed ? "w-8 h-8 px-0" : "w-full px-3"
+              }`}
+              title="Sign Out"
+            >
+              <LogOut size={13} className="shrink-0 transition-transform group-hover:-translate-x-0.5" />
+              {!sidebarCollapsed && <span>Sign Out</span>}
+            </button>
           )}
         </div>
       </aside>

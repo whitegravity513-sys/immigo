@@ -5,8 +5,9 @@ import { logger } from "../utils/logger.js";
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = Number(process.env.SMTP_PORT || 465);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : "";
+  const rawPass = process.env.SMTP_PASS;
+  const pass = rawPass ? rawPass.trim().replace(/\s+/g, "") : "";
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
   if (!user || user === "your_email@gmail.com") {
@@ -26,7 +27,7 @@ const createTransporter = () => {
 };
 
 let transporter = createTransporter();
-const getTransporter = () => {
+export const getTransporter = () => {
   if (!transporter) {
     transporter = createTransporter();
   }
@@ -490,13 +491,14 @@ export const sendCredentialsEmail = async ({
 
   logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId}`);
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated credentials email dispatched.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     logger.info(`Credentials email sent: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {

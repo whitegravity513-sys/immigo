@@ -62,10 +62,13 @@ export const updateEmployee = async (id, payload) => {
   return res.data;
 };
 
-export const deactivateEmployee = async (id) => {
-  const res = await apiClient.put(`/admin/employee/deactivate/${id}`);
+export const deactivateEmployee = async (id, status = null) => {
+  const payload = status ? { status } : {};
+  const res = await apiClient.put(`/admin/employee/deactivate/${id}`, payload);
   return res.data;
 };
+
+export const toggleEmployeeStatus = deactivateEmployee;
 
 export const setLeaveBalance = async (id, leaveBalance) => {
   const res = await apiClient.put(`/admin/employee/${id}/leave-balance`, { leaveBalance });
@@ -88,6 +91,7 @@ export default {
   createEmployee,
   updateEmployee,
   deactivateEmployee,
+  toggleEmployeeStatus,
   deleteEmployee,
   setLeaveBalance,
 };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Edit, UserMinus, Trash2 } from "lucide-react";
+import { Edit, UserMinus, UserCheck, Trash2 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import DeleteConfirmModal from "../common/DeleteConfirmModal.jsx";
 import employeeService from "../../services/employeeService.js";
@@ -156,15 +156,27 @@ export default function EmployeesDirectorySection({
                         >
                           <Edit size={12} /> Edit
                         </button>
-                        {emp.status !== "inactive" ? (
+                        {emp.status === "inactive" ? (
                           <button
-                            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                            onClick={() => handleDeactivateEmployee(emp._id)}
-                            title="Deactivate Employee"
+                            type="button"
+                            className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                            onClick={() => handleDeactivateEmployee(emp._id, emp.status)}
+                            title="Make Employee Active (Allow attendance & portal login)"
                           >
-                            <UserMinus size={14} />
+                            <UserCheck size={13} className="text-emerald-600" />
+                            <span>Make Active</span>
                           </button>
-                        ) : null}
+                        ) : (
+                          <button
+                            type="button"
+                            className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                            onClick={() => handleDeactivateEmployee(emp._id, emp.status)}
+                            title="Make Employee Inactive (Block attendance & portal login)"
+                          >
+                            <UserMinus size={13} className="text-rose-600" />
+                            <span>Make Inactive</span>
+                          </button>
+                        )}
                         <button
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                           onClick={() => setDeleteTarget(emp)}

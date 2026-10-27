@@ -22,23 +22,22 @@ export function AdminMasterNavbar({
   breadcrumbs,
 }) {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth();
 
   const adminName =
     (typeof user?.name === "string" ? user.name : user?.name?.first) ||
     user?.email?.split("@")[0] ||
-    "Admin";
+    (isSuperAdmin ? "Super Admin" : "Admin");
 
   const handleLogout = async () => {
     await logout();
-    navigate("/admin/login", { replace: true });
   };
 
   return (
     <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
-        {}
+        {/* Left Side: Collapse/Expand trigger + Branding + Active Module Title */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             type="button"
@@ -76,20 +75,20 @@ export function AdminMasterNavbar({
           </div>
         </div>
 
-        {}
+        {/* Right Side: Dashboard Link + Role Badge + Notification + Sign Out */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
-            to="/admin/dashboard"
+            to={isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard"}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600 text-cyan-200 hover:text-white border border-cyan-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs"
-            title="Admin Dashboard"
+            title={isSuperAdmin ? "Super Admin Dashboard" : "Admin Dashboard"}
           >
             <LayoutDashboard size={14} className="text-cyan-400" />
-            <span className="hidden sm:inline">Admin Dashboard</span>
+            <span className="hidden sm:inline">{isSuperAdmin ? "Super Admin" : "Admin"} Dashboard</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-bold text-cyan-300 uppercase tracking-widest">
             <Shield size={11} className="text-cyan-400" />
-            <span>{adminName.charAt(0)}{adminName.length > 1 ? adminName.slice(1, 8) : ""}</span>
+            <span>{isSuperAdmin ? "Super Admin" : adminName}</span>
           </div>
 
           <NotificationBell className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs" />
@@ -97,11 +96,11 @@ export function AdminMasterNavbar({
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs group"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 transition-all text-xs font-semibold cursor-pointer shadow-xs active:scale-95"
             title="Sign Out"
           >
-            <LogOut size={13} className="shrink-0 text-rose-400 group-hover:text-white transition-colors" />
-            <span className="hidden sm:inline">Sign Out</span>
+            <LogOut size={13} />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>

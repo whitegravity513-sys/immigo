@@ -139,7 +139,7 @@ export class AttendanceService {
     const [record, emp, holiday] = await Promise.all([
       Attendance.findOne({ employeeId, date: today }),
       Employee.findById(employeeId).select(
-        "leaveBalance name employeeId designation department profileImage joiningDate createdAt"
+        "leaveBalance name employeeId designation department profileImage joiningDate createdAt status"
       ).lean(),
       getHolidayForDate(today),
     ]);
@@ -170,6 +170,8 @@ export class AttendanceService {
     if (!record) {
       return {
         status: defaultStatus,
+        employeeStatus: emp?.status || "active",
+        isInactive: emp?.status === "inactive",
         holidayTitle: holiday ? holiday.title : null,
         isOffDay: Boolean(holiday || weeklyOff),
         offReason,
@@ -196,6 +198,8 @@ export class AttendanceService {
     return {
       ...this.formatAttendance(record),
       status: effectiveStatus,
+      employeeStatus: emp?.status || "active",
+      isInactive: emp?.status === "inactive",
       holidayTitle: holiday ? holiday.title : null,
       isOffDay: Boolean(holiday || weeklyOff),
       offReason,
@@ -207,9 +211,16 @@ export class AttendanceService {
   }
 
   static async checkIn(employeeId, location = {}) {
-    const emp = await Employee.findById(employeeId).select("name employeeId").lean();
+    const emp = await Employee.findById(employeeId).select("name employeeId status").lean();
     if (!emp) {
       throw new ApiError(404, "Employee not found");
+    }
+
+    if (emp.status === "inactive") {
+      throw new ApiError(
+        403,
+        "Your account is inactive. You cannot mark attendance. Please contact Administrator."
+      );
     }
 
     const today = getTodayDateString();
@@ -288,6 +299,17 @@ export class AttendanceService {
   }
 
   static async startBreak(employeeId, breakType = "Break") {
+    const emp = await Employee.findById(employeeId).select("name employeeId status").lean();
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    if (emp.status === "inactive") {
+      throw new ApiError(
+        403,
+        "Your account is inactive. Shift break cannot be started. Please contact Administrator."
+      );
+    }
+
     const today = getTodayDateString();
     let record = await Attendance.findOne({ employeeId, date: today });
     const now = new Date();
@@ -324,7 +346,6 @@ export class AttendanceService {
     await record.save();
 
     try {
-      const emp = await Employee.findById(employeeId).select("name employeeId");
       const empIdCode = emp?.employeeId || "WG-EMP";
       const empName = emp?.name || "Employee";
       const timeStr = breakStart.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true });
@@ -344,6 +365,17 @@ export class AttendanceService {
   }
 
   static async endBreak(employeeId) {
+    const emp = await Employee.findById(employeeId).select("name employeeId status").lean();
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    if (emp.status === "inactive") {
+      throw new ApiError(
+        403,
+        "Your account is inactive. Shift actions are disabled. Please contact Administrator."
+      );
+    }
+
     const today = getTodayDateString();
     const record = await Attendance.findOne({ employeeId, date: today });
 
@@ -375,7 +407,6 @@ export class AttendanceService {
     await record.save();
 
     try {
-      const emp = await Employee.findById(employeeId).select("name employeeId");
       const empIdCode = emp?.employeeId || "WG-EMP";
       const empName = emp?.name || "Employee";
 
@@ -394,6 +425,17 @@ export class AttendanceService {
   }
 
   static async checkOut(employeeId, location = {}, checkOutNote = "") {
+    const emp = await Employee.findById(employeeId).select("name employeeId status").lean();
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    if (emp.status === "inactive") {
+      throw new ApiError(
+        403,
+        "Your account is inactive. Shift check-out cannot be performed. Please contact Administrator."
+      );
+    }
+
     const today = getTodayDateString();
 
     

@@ -111,6 +111,13 @@ export default function UnifiedLogin({ onLoginSuccess }) {
       </main>
 
       <ForgotPasswordModal isOpen={forgotModal} onClose={() => setForgotModal(false)} />
+
+      {/* Navy Blue Footer */}
+      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md">
+        <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
+        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
+      </footer>
     </div>
   );
 }

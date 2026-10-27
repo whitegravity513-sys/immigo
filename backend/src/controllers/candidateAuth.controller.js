@@ -121,7 +121,6 @@ export const registerCandidate = asyncHandler(async (req, res) => {
     profile: initialProfile,
   });
 
-  // Calculate actual completion score based on provided details
   candidate.profile.profileCompletionPercent = calculateProfileCompletion(candidate);
   await candidate.save();
 
@@ -260,7 +259,6 @@ export const updateCandidateProfile = asyncHandler(async (req, res) => {
     candidate.phone = String(phone).trim();
   }
 
-  // Support both nested req.body.profile and root fields, preserving all prior filled details
   const rawProfile = req.body.profile && typeof req.body.profile === "object"
     ? { ...req.body, ...req.body.profile }
     : { ...req.body };
@@ -586,7 +584,6 @@ export const getCandidateApplicationMilestones = asyncHandler(async (req, res) =
     return res.status(404).json({ success: false, message: "Application not found for your profile." });
   }
 
-  // Look up project milestones from CrmOverseasClient to ensure candidate sees the project's exact milestones
   try {
     const clients = await CrmOverseasClient.find({}).lean();
     let targetProject = null;
@@ -658,7 +655,6 @@ export const getCandidateApplicationMilestones = asyncHandler(async (req, res) =
         0
       );
 
-      // Only save if empty or different
       if (!app.processMilestones || app.processMilestones.length === 0 || !app.milestonesSyncedWithProject) {
         app.processMilestones = syncedMilestones;
         app.paymentPlan = {
@@ -746,9 +742,13 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     milestones[mIdx].paymentRemark = notesText;
 
     if (Array.isArray(milestones[mIdx].stages) && milestones[mIdx].stages.length > 0) {
-      if (milestones[mIdx].stages[0].status === "Locked") {
-        milestones[mIdx].stages[0].status = "In Progress";
-      }
+      milestones[mIdx].stages.forEach((stg, sIdx) => {
+        if (stg.status === "Locked") {
+          stg.status = sIdx === 0 ? "In Progress" : "Pending";
+        } else if (sIdx === 0 && stg.status === "Pending") {
+          stg.status = "In Progress";
+        }
+      });
     }
   } else {
     milestones[mIdx].paymentStatus = "Submitted";
@@ -886,4 +886,3 @@ export const markCandidateNotificationAsRead = asyncHandler(async (req, res) => 
     message: "Notification marked as read.",
   });
 });
-

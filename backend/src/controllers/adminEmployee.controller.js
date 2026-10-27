@@ -28,9 +28,10 @@ export const updateEmployee = asyncHandler(async (req, res) => {
 });
 
 export const deactivateEmployee = asyncHandler(async (req, res) => {
-  const employee = await EmployeeService.toggleStatus(req.params.id);
+  const targetStatus = req.body?.status;
+  const employee = await EmployeeService.toggleStatus(req.params.id, targetStatus);
   return res.status(200).json({
-    message: `Employee ${employee.status === "active" ? "activated" : "deactivated"} successfully`,
+    message: `Employee ${employee.status === "active" ? "activated" : "marked inactive"} successfully`,
     employee,
   });
 });

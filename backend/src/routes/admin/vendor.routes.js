@@ -14,24 +14,23 @@ import {
   updateVendor,
   deleteVendor,
 } from "../../controllers/adminVendor.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { requirePermission } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.get("/vendors", verifyAdmin, getAllVendors);
-router.get("/vendors/:id", verifyAdmin, getVendorById);
-router.put("/vendors/:id", verifyAdmin, updateVendor);
-router.delete("/vendors/:id", verifyAdmin, deleteVendor);
+router.get("/vendors", requirePermission("vendors.view"), getAllVendors);
+router.get("/vendors/:id", requirePermission("vendors.view"), getVendorById);
+router.put("/vendors/:id", requirePermission("vendors.update"), updateVendor);
+router.delete("/vendors/:id", requirePermission("vendors.delete"), deleteVendor);
 
-
-router.put("/vendors/:id/approve-registration", verifyAdmin, approveRegistration);
-router.put("/vendors/:id/hold-registration", verifyAdmin, holdRegistration);
-router.post("/vendors/:id/send-mou", verifyAdmin, approveDocsAndSendMou);
-router.put("/vendors/:id/request-doc-correction", verifyAdmin, requestDocCorrection);
-router.put("/vendors/:id/approve-mou", verifyAdmin, approveMouAndActivate);
-router.put("/vendors/:id/request-mou-correction", verifyAdmin, requestMouCorrection);
-router.put("/vendors/:id/approve", verifyAdmin, approveVendor);
-router.put("/vendors/:id/reject", verifyAdmin, rejectVendor);
-router.put("/vendors/:id/suspend", verifyAdmin, toggleSuspendVendor);
+router.put("/vendors/:id/approve-registration", requirePermission("vendors.approve"), approveRegistration);
+router.put("/vendors/:id/hold-registration", requirePermission("vendors.approve"), holdRegistration);
+router.post("/vendors/:id/send-mou", requirePermission("vendors.approve"), approveDocsAndSendMou);
+router.put("/vendors/:id/request-doc-correction", requirePermission("vendors.approve"), requestDocCorrection);
+router.put("/vendors/:id/approve-mou", requirePermission("vendors.approve"), approveMouAndActivate);
+router.put("/vendors/:id/request-mou-correction", requirePermission("vendors.approve"), requestMouCorrection);
+router.put("/vendors/:id/approve", requirePermission("vendors.approve"), approveVendor);
+router.put("/vendors/:id/reject", requirePermission("vendors.approve"), rejectVendor);
+router.put("/vendors/:id/suspend", requirePermission("vendors.approve"), toggleSuspendVendor);
 
 export default router;

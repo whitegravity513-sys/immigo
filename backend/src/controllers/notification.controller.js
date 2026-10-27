@@ -3,7 +3,17 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const getNotifications = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit || "30", 10);
-  const result = await NotificationService.getNotifications(limit);
+  const user = req.user;
+  const isSuperAdmin =
+    user?.role === "SUPER_ADMIN" ||
+    user?.isSuperAdmin === true ||
+    (user?.email && user.email.toLowerCase() === (process.env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase());
+
+  const result = await NotificationService.getNotifications(limit, {
+    isSuperAdmin,
+    role: user?.role,
+    userId: user?.id || user?._id,
+  });
   return res.status(200).json(result);
 });
 

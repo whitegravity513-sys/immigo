@@ -259,24 +259,22 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
         const isActive = !isLocked && !isCompleted;
         
         
-        if (isAdmin && isCompleted) return null;
-        
         return (
           <div 
             key={milestone.id} 
             className={`border rounded-xl p-4 transition-all ${
-              isCompleted ? "border-emerald-200 bg-emerald-50/30" :
-              !isLocked && (isActive || requiresPayment) ? "border-indigo-300 bg-white shadow-sm ring-1 ring-indigo-100" :
+              isCompleted ? "border-blue-300/80 bg-gradient-to-br from-blue-50/90 via-slate-50/80 to-blue-50/60 shadow-2xs" :
+              !isLocked && (isActive || requiresPayment) ? "border-blue-400 bg-white shadow-xs ring-1 ring-blue-200" :
               "border-slate-200 bg-slate-50 opacity-75"
             }`}
           >
             <div className="flex items-start justify-between mb-4 pb-4 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  {isCompleted ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> :
+                  {isCompleted ? <CheckCircle2 className="w-5 h-5 text-blue-600" /> :
                    isLocked ? <Lock className="w-4 h-4 text-slate-400" /> :
-                   <Circle className="w-4 h-4 text-indigo-600 fill-indigo-600" />}
-                  <span className={isCompleted ? "text-emerald-900" : isLocked ? "text-slate-500" : "text-indigo-900"}>
+                   <Circle className="w-4 h-4 text-blue-600 fill-blue-600" />}
+                  <span className={isCompleted ? "text-slate-900 font-extrabold" : isLocked ? "text-slate-500" : "text-blue-950 font-extrabold"}>
                     MILESTONE {index + 1}: {milestone.name}
                   </span>
                 </h3>
@@ -288,10 +286,10 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                 </div>
                 <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
                   isLocked ? "bg-slate-200 text-slate-600" :
-                  isCompleted ? "bg-emerald-100 text-emerald-800" :
-                  isApproved ? "bg-emerald-100 text-emerald-700" :
-                  isPaymentSubmitted ? "bg-amber-100 text-amber-700" :
-                  requiresPayment ? "bg-indigo-100 text-indigo-700" :
+                  isCompleted ? "bg-blue-100 text-blue-950 border border-blue-200" :
+                  isApproved ? "bg-blue-100/90 text-blue-900 border border-blue-200" :
+                  isPaymentSubmitted ? "bg-amber-100 text-amber-800" :
+                  requiresPayment ? "bg-blue-50 text-blue-700 border border-blue-200" :
                   "bg-slate-100 text-slate-500"
                 }`}>
                   {isLocked ? "Locked" :
@@ -337,10 +335,10 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
 
                 return (
                   <div key={stage.id} className="relative pl-6">
-                    {}
+                    {/* Circle Node */}
                     <div className={`absolute -left-[25px] top-1 w-3 h-3 rounded-full border-2 ${
-                      sCompleted ? "bg-emerald-500 border-emerald-500" :
-                      sInProgress ? "bg-white border-indigo-500 ring-4 ring-indigo-50" :
+                      sCompleted ? "bg-blue-600 border-blue-600" :
+                      sInProgress ? "bg-white border-blue-600 ring-4 ring-blue-100" :
                       "bg-slate-200 border-slate-300"
                     }`} />
 
@@ -349,13 +347,13 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                         <div className="flex items-center gap-2">
                           {sStageLocked && <Lock className="w-3 h-3 text-slate-300" />}
                           <span className={`text-xs font-bold ${
-                            sCompleted ? "text-slate-700" :
-                            sInProgress ? "text-indigo-700" :
+                            sCompleted ? "text-slate-800" :
+                            sInProgress ? "text-blue-900" :
                             "text-slate-400"
                           }`}>
                             Stage {sIdx + 1}: {stage.name} {sInProgress && "- In Progress"}
                           </span>
-                          {sCompleted && <Check className="w-3 h-3 text-emerald-500" />}
+                          {sCompleted && <Check className="w-3 h-3 text-blue-600 font-bold" />}
                         </div>
                         
                         {sCompleted && (

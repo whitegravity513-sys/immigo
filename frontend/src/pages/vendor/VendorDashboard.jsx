@@ -83,7 +83,7 @@ export function VendorDashboard() {
       subtitle: "Visa & travel stage",
       icon: GitCommit,
       bgClass: "bg-purple-50 text-purple-600",
-      to: "/vendor/candidates?tab=selected",
+      to: "/vendor/processing",
     },
     {
       title: "Completed",

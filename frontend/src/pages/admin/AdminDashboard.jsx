@@ -59,7 +59,7 @@ function AdminDashboard({ user, token, onLogout }) {
   const isEmployeeDetail = !isRegisterEmployee && !isEditEmployee && pathParts.includes("employee") && !pathParts.includes("employees");
   const rawSegment = pathParts.pop();
   let pathSegment =
-    rawSegment === "admin" || rawSegment === "dashboard" || !rawSegment
+    rawSegment === "admin" || rawSegment === "dashboard" || rawSegment === "hr" || !rawSegment
       ? "workforce"
       : rawSegment;
   if (isRegisterEmployee) {

@@ -41,14 +41,19 @@ window.addEventListener("error", (e) => {
 });
 
 
+import { PermissionProvider } from "./context/PermissionContext.jsx";
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <UIProvider>
-          <App />
-        </UIProvider>
+        <PermissionProvider>
+          <UIProvider>
+            <App />
+          </UIProvider>
+        </PermissionProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>
 );
+

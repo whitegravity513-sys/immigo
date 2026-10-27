@@ -12,6 +12,7 @@ export class NotificationService {
     targetRole = "ADMIN",
     targetType = "ALL",
     targetEmployeeId = null,
+    targetUserId = null,
     metadata = {},
   }) {
     try {
@@ -24,6 +25,7 @@ export class NotificationService {
         targetRole,
         targetType,
         targetEmployeeId: targetEmployeeId || null,
+        targetUserId: targetUserId ? String(targetUserId) : null,
         read: false,
         readBy: [],
         metadata,
@@ -35,13 +37,38 @@ export class NotificationService {
     }
   }
 
-  static async getNotifications(limit = 30) {
-    const query = {
-      $or: [
-        { targetRole: { $in: ["ADMIN", "ALL"] } },
-        { targetRole: { $exists: false } },
-      ],
-    };
+  static async getNotifications(limit = 30, options = {}) {
+    const isSuperAdmin = Boolean(options.isSuperAdmin);
+    let query = {};
+
+    if (!isSuperAdmin) {
+      const role = (options.role || "ADMIN").toUpperCase();
+      if (role === "ADMIN") {
+        query = {
+          $or: [
+            { targetRole: { $in: ["ADMIN", "SUPER_ADMIN", "ALL", "HR", "VENDOR", "CANDIDATE"] } },
+            { targetRole: { $exists: false } },
+          ],
+        };
+      } else if (role === "VENDOR") {
+        query = {
+          targetRole: { $in: ["VENDOR", "ALL"] },
+          ...(options.userId ? { $or: [{ targetType: "ALL" }, { targetUserId: String(options.userId) }] } : {}),
+        };
+      } else if (role === "CANDIDATE") {
+        query = {
+          targetRole: { $in: ["CANDIDATE", "ALL"] },
+          ...(options.userId ? { $or: [{ targetType: "ALL" }, { targetUserId: String(options.userId) }] } : {}),
+        };
+      } else {
+        query = {
+          $or: [
+            { targetRole: { $in: ["ADMIN", "ALL"] } },
+            { targetRole: { $exists: false } },
+          ],
+        };
+      }
+    }
 
     let notifications = [];
     let unreadCount = 0;
@@ -81,7 +108,8 @@ export class NotificationService {
         title: n.title,
         message: n.message,
         read: Boolean(n.read),
-        employeeName: n.employeeName || n.employeeId?.name || "Employee",
+        targetRole: n.targetRole,
+        employeeName: n.employeeName || n.employeeId?.name || "System",
         employeeCode: n.employeeId?.employeeId || "",
         createdAt: n.createdAt,
         metadata: n.metadata || {},

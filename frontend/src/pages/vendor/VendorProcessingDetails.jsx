@@ -29,7 +29,11 @@ export default function VendorProcessingDetails() {
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
       const data = await crmVendorService.getApplications(curVendor?.id);
-      const app = data?.find((a) => String(a.id) === String(appId));
+      let app = data?.find((a) => String(a.id) === String(appId));
+      if (!app) {
+        const allApps = await crmVendorService.getApplications();
+        app = allApps?.find((a) => String(a.id) === String(appId));
+      }
       setCurrentApp(app);
     } catch (err) {
       console.error(err);

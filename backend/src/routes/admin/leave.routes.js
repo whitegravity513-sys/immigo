@@ -3,11 +3,11 @@ import {
   getLeaves,
   updateLeaveStatus,
 } from "../../controllers/adminLeave.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { requirePermission } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.get("/leaves", verifyAdmin, getLeaves);
-router.put("/leaves/:id", verifyAdmin, updateLeaveStatus);
+router.get("/leaves", requirePermission("leaves.view"), getLeaves);
+router.put("/leaves/:id", requirePermission("leaves.approve"), updateLeaveStatus);
 
 export default router;

@@ -9,9 +9,14 @@ import paymentRoutes from "./payment.routes.js";
 import crmSyncRoutes from "./crmSync.routes.js";
 import candidateAuthRoutes from "./candidateAuth.routes.js";
 import candidateAdminRoutes from "./candidateAdmin.routes.js";
+import adminManagementRoutes from "./adminManagement.routes.js";
+import hrRoutes from "./hr.routes.js";
 import { authLimiter } from "../middleware/rateLimit.middleware.js";
 
 const apiRouter = express.Router();
+
+apiRouter.use(adminManagementRoutes);
+apiRouter.use("/hr", hrRoutes);
 
 apiRouter.use("/auth/admin", adminAuthRoutes);
 apiRouter.use("/admin", adminRoutes);
@@ -28,4 +33,5 @@ apiRouter.use("/payments", paymentRoutes);
 apiRouter.use("/crm-sync", crmSyncRoutes);
 
 export default apiRouter;
+
 

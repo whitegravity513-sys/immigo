@@ -13,8 +13,10 @@ import {
   X,
   Shield,
   ArrowLeft,
+  LogOut,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 export function CandidateManagementSidebar({
   mobileOpen = false,
@@ -22,6 +24,7 @@ export function CandidateManagementSidebar({
   collapsed = false,
   setCollapsed = () => {},
 }) {
+  const { logout } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -182,24 +185,18 @@ export function CandidateManagementSidebar({
           })}
         </div>
 
-        <div
-          className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
-            collapsed ? "justify-center" : "justify-between"
-          }`}
-        >
-          {!collapsed ? (
-            <div className="flex items-center gap-1.5">
-              <Shield size={10} className="text-cyan-400" />
-              <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">
-                Candidate Module Active
-              </span>
-            </div>
-          ) : (
-            <span
-              className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
-              title="Candidate Module Active"
-            />
-          )}
+        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
+          <button
+            type="button"
+            onClick={logout}
+            className={`flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group ${
+              collapsed ? "w-8 h-8 px-0" : "w-full px-3"
+            }`}
+            title="Sign Out"
+          >
+            <LogOut size={13} className="shrink-0 transition-transform group-hover:-translate-x-0.5" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
         </div>
       </aside>
     </>

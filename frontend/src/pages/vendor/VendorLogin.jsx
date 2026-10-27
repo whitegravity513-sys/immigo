@@ -539,10 +539,11 @@ export function VendorLogin() {
         </div>
       </main>
 
-      <footer className="relative z-20 w-full px-6 py-3 text-center border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-[11px] text-blue-100 font-medium">
-        <span>&copy; {new Date().getFullYear()} immiGo</span>
-        <span className="mx-2 text-indigo-400/60">&bull;</span>
-        <span className="font-bold text-white">Designed by White Gravity Web Solutions</span>
+      {/* Navy Blue Footer */}
+      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md">
+        <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
+        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
 
       <ForgotPasswordOtpModal

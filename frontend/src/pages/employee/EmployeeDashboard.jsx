@@ -335,14 +335,26 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     }
   };
 
-  const handleCheckIn = () => apiCall(async () => {
-    const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
-    const res = await apiClient.post(`/employee/check-in`, { location: loc });
-    const rec = res.data?.record || res.data?.attendance;
-    if (rec) setStatusRecord(rec);
-    setSuccessMsg(res.data?.message || "Checked in successfully");
-    await fetchAll(true);
-  });
+  const isInactiveAccount = Boolean(
+    statusRecord?.isInactive ||
+    statusRecord?.employeeStatus === "inactive" ||
+    currentUser?.status === "inactive"
+  );
+
+  const handleCheckIn = () => {
+    if (isInactiveAccount) {
+      setErrorMsg("Your employee account is inactive. You cannot mark attendance. Please contact Administrator.");
+      return;
+    }
+    return apiCall(async () => {
+      const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
+      const res = await apiClient.post(`/employee/check-in`, { location: loc });
+      const rec = res.data?.record || res.data?.attendance;
+      if (rec) setStatusRecord(rec);
+      setSuccessMsg(res.data?.message || "Checked in successfully");
+      await fetchAll(true);
+    });
+  };
 
   const handleCheckOut = () => apiCall(async () => {
     try {
@@ -441,13 +453,21 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     "Syncing...": "bg-sky-500 animate-pulse",
   }[status] || "bg-slate-400";
 
+  const handleEmployeeLogout = () => {
+    if (onLogout) {
+      onLogout("/employee/login");
+    } else {
+      window.location.href = "/employee/login";
+    }
+  };
+
   return (
     <>
       <EmployeeLayout
         user={currentUser}
         view={view}
         setView={setView}
-        onLogout={onLogout}
+        onLogout={handleEmployeeLogout}
         token={token}
         status={status}
         statusColor={statusColor}

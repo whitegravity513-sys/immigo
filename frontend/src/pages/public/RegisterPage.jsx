@@ -416,11 +416,11 @@ export default function RegisterPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-20 w-full px-6 py-2 text-center border-t border-sky-200/60 bg-white/60 backdrop-blur-md text-[11px] text-slate-600 font-medium shrink-0">
+      {/* Navy Blue Footer */}
+      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-        <span className="mx-2 text-slate-400">&bull;</span>
-        <span className="font-semibold text-slate-700">Designed by White Gravity Web Solutions</span>
+        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
     </div>
   );

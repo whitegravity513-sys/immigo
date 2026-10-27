@@ -211,66 +211,66 @@ export default function AdminCandidateDashboard() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <h1 className="text-base sm:text-lg font-bold text-[#0f2744]">
+          <h1 className="text-sm sm:text-base font-bold text-[#0f2744]">
             Candidate Management Overview
           </h1>
-          <p className="text-[11px] text-slate-500 mt-0.5">
+          <p className="text-[10px] text-slate-500 mt-0.5">
             Real-time pipeline metrics for public registrations, compliance, and project recruitment.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={fetchDashboardData}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
           >
-            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
             <span>Refresh</span>
           </button>
           <Link
             to="/admin/candidates/new-registrations"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-2xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-2xs transition-colors cursor-pointer"
           >
-            <UserPlus size={13} />
+            <UserPlus size={12} />
             <span>Review Registrations</span>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-2.5">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
               onClick={() => navigate(card.path)}
-              className={`p-2.5 rounded-lg border bg-white shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden group flex flex-col justify-between ${
+              className={`p-2.5 sm:p-3 rounded-xl border bg-white shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all cursor-pointer relative overflow-hidden group flex flex-col justify-between ${
                 card.highlight ? "border-amber-400 ring-1 ring-amber-200" : "border-slate-200"
               }`}
             >
               <div className="flex items-center justify-between gap-1">
-                <div className={`p-1 rounded-md border ${card.color}`}>
-                  <Icon size={13} />
+                <div className={`p-1.5 rounded-lg border ${card.color}`}>
+                  <Icon size={14} />
                 </div>
-                <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">
+                <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 shrink-0">
                   {card.badge}
                 </span>
               </div>
 
               <div className="mt-1.5">
-                <div className="text-base sm:text-lg font-bold text-slate-900 tracking-tight leading-none">
+                <div className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-none">
                   {loading ? "..." : card.value}
                 </div>
-                <div className="text-[10.5px] font-medium text-slate-600 mt-0.5 truncate" title={card.title}>
+                <div className="text-[11px] font-semibold text-slate-600 mt-1 truncate leading-tight" title={card.title}>
                   {card.title}
                 </div>
               </div>
 
-              <div className="mt-1.5 pt-1 border-t border-slate-100 flex items-center justify-between text-[9px] font-semibold text-blue-600 group-hover:text-blue-800">
-                <span>View</span>
+              <div className="mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[9.5px] font-semibold text-blue-600 group-hover:text-blue-800">
+                <span>View details</span>
                 <ArrowRight size={10} className="transition-transform group-hover:translate-x-0.5" />
               </div>
             </div>

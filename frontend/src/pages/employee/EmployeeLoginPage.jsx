@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
+import AuthHeader from "../../components/auth/AuthHeader.jsx";
 import { employeeLogin } from "../../services/authService.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import employeeVectorHd from "../../assets/employee-vector-hd.jpg";
@@ -253,22 +254,16 @@ export default function EmployeeLoginPage() {
       {}
       <FullWidthLandscapeBackground />
 
-      {}
-      <header className="relative z-20 w-full px-6 sm:px-12 py-3 flex items-center justify-between border-b border-sky-200/70 bg-white/70 backdrop-blur-md shrink-0 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="inline-block">
-            <ImmiGoLogo size="sm" />
-          </Link>
-          <span className="text-xs font-semibold text-slate-500 pl-3 border-l border-sky-200">
-            Employee Self-Service Portal
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Workforce Portal</span>
-        </div>
-      </header>
+      {/* Navy Blue Header */}
+      <AuthHeader
+        portalBadge="Employee Portal"
+        rightBadge={
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/60 backdrop-blur-md border border-blue-700/60 text-white shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-semibold text-cyan-200">Workforce Portal</span>
+          </div>
+        }
+      />
 
       {}
       <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-6 sm:px-10 lg:px-16 xl:px-24 py-2 min-h-0 overflow-hidden">
@@ -411,11 +406,11 @@ export default function EmployeeLoginPage() {
         </div>
       </main>
 
-      {}
-      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-sky-200/60 bg-white/60 backdrop-blur-md text-[11px] text-slate-600 font-medium shrink-0">
+      {/* Navy Blue Footer */}
+      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-        <span className="mx-2 text-slate-400">&bull;</span>
-        <span className="font-semibold text-slate-700">Designed by White Gravity Web Solutions</span>
+        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
     </div>
   );

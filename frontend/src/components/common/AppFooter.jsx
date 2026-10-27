@@ -28,6 +28,10 @@ export default function AppFooter({
     ? navItems
     : (role === "employee" ? defaultEmployeeLinks : defaultAdminLinks);
 
+  const isHr =
+    (role || "").toLowerCase() === "hr" ||
+    (typeof window !== "undefined" && window.location.pathname.startsWith("/hr"));
+
   const portalLabel =
     role === "employee"
       ? "Employee Portal"
@@ -35,6 +39,8 @@ export default function AppFooter({
       ? "Vendor Portal"
       : role === "candidate"
       ? "Candidate Portal"
+      : isHr
+      ? "HR Portal"
       : "Enterprise Admin";
 
   return (
@@ -54,10 +60,10 @@ export default function AppFooter({
 
         </div>
 
-        {}
+        {/* Copyright and developer attribution */}
         <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-white font-medium">
-          <span>&copy; {currentYear} immiGo</span>
-          <span className="text-blue-400">•</span>
+          <span>&copy; {currentYear} ImmiGo Global Enterprise</span>
+          <span className="text-cyan-400">&bull;</span>
           <span className="font-semibold text-cyan-300 tracking-wide">
             Designed by White Gravity Web Solutions
           </span>

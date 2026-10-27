@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { usePermissions } from "../../../context/PermissionContext.jsx";
 
 export function HrSidebar({
   mobileOpen = false,
@@ -28,10 +29,12 @@ export function HrSidebar({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { isSuperAdmin, isAdmin, role } = usePermissions();
+
 
   const handleLogout = async () => {
     await logout();
-    navigate("/admin/login", { replace: true });
+    navigate("/hr/login", { replace: true });
   };
   const currentPath = location.pathname;
 
@@ -143,20 +146,23 @@ export function HrSidebar({
           )}
         </div>
 
-        {}
-        <div className="px-3 pt-3">
-          <Link
-            to="/admin/dashboard"
-            onClick={() => setMobileOpen(false)}
-            className={`w-full flex items-center gap-2 px-2.5 py-2 text-xs font-bold text-gray-600 hover:text-blue-700 bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg transition-colors ${
-              collapsed ? "justify-center" : ""
-            }`}
-            title="Return to Main Admin Dashboard"
-          >
-            <ArrowLeft size={14} className="shrink-0 text-blue-600" />
-            {!collapsed && <span className="truncate">Main Admin Dashboard</span>}
-          </Link>
-        </div>
+        {/* Return to Main Admin Dashboard only for authorized Admins */}
+        {(isSuperAdmin || isAdmin) && (
+          <div className="px-3 pt-3">
+            <Link
+              to="/admin/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className={`w-full flex items-center gap-2 px-2.5 py-2 text-xs font-bold text-gray-600 hover:text-blue-700 bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg transition-colors ${
+                collapsed ? "justify-center" : ""
+              }`}
+              title="Return to Main Admin Dashboard"
+            >
+              <ArrowLeft size={14} className="shrink-0 text-blue-600" />
+              {!collapsed && <span className="truncate">Main Admin Dashboard</span>}
+            </Link>
+          </div>
+        )}
+
 
         {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
@@ -194,47 +200,17 @@ export function HrSidebar({
           })}
         </div>
 
-        {}
-        <div className="p-3 border-t border-gray-100 bg-gray-50/60 space-y-2 shrink-0">
-          <div
-            className={`flex items-center gap-2.5 p-2 rounded-lg bg-white border border-gray-200 shadow-2xs ${
-              collapsed ? "justify-center" : ""
-            }`}
-          >
-            <div className={`w-8 h-8 rounded-lg ${user?.profileImage || user?.avatar ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 overflow-hidden`}>
-              {user?.profileImage || user?.avatar ? (
-                <img
-                  src={user.profileImage || user.avatar}
-                  alt={adminName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-              ) : (
-                adminName.charAt(0).toUpperCase()
-              )}
-            </div>
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-gray-900 truncate leading-tight">
-                  {adminName}
-                </div>
-                <div className="text-[10px] text-gray-500 font-medium flex items-center gap-1 mt-0.5">
-                  <Shield size={10} className="text-blue-600" />
-                  <span>HR Administrator</span>
-                </div>
-              </div>
-            )}
-          </div>
-
+        {/* Footer matching Dashboard Footer height (48px) with clean Sign Out button */}
+        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
           <button
             type="button"
             onClick={handleLogout}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer ${
-              collapsed ? "justify-center" : ""
+            className={`flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group ${
+              collapsed ? "w-8 h-8 px-0" : "w-full px-3"
             }`}
             title="Sign Out"
           >
-            <LogOut size={16} className="shrink-0" />
+            <LogOut size={13} className="shrink-0 transition-transform group-hover:-translate-x-0.5" />
             {!collapsed && <span>Sign Out</span>}
           </button>
         </div>

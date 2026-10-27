@@ -43,9 +43,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async (customRedirect) => {
-    const previousRole = (role || "").toLowerCase();
+    // If called directly via onClick={logout}, customRedirect is the React event object!
+    const redirectUrl =
+      typeof customRedirect === "string" && customRedirect.trim()
+        ? customRedirect.trim()
+        : null;
+
+    let storedUser = null;
     try {
-      if (previousRole === "admin") {
+      storedUser = JSON.parse(localStorage.getItem(appConfig.STORAGE_KEYS.USER) || "null");
+    } catch {}
+
+    const previousRole = (
+      role ||
+      localStorage.getItem(appConfig.STORAGE_KEYS.ROLE) ||
+      storedUser?.role ||
+      (storedUser?.employeeId ? "employee" : "") ||
+      ""
+    ).toLowerCase();
+    const currentPath = window.location.pathname.toLowerCase();
+    try {
+      if (previousRole === "admin" || previousRole === "superadmin" || previousRole === "super_admin") {
         await apiClient.post("/auth/admin/logout", {});
       }
     } catch {
@@ -60,9 +78,33 @@ export const AuthProvider = ({ children }) => {
         appConfig.STORAGE_KEYS.SESSION_TIMESTAMP,
       ].forEach((key) => localStorage.removeItem(key));
 
-      if (customRedirect) {
-        window.location.href = customRedirect;
+      let targetLogin = "/admin/login";
+      if (
+        previousRole === "super_admin" ||
+        previousRole === "superadmin" ||
+        previousRole === "admin" ||
+        currentPath.startsWith("/super-admin") ||
+        currentPath.startsWith("/admin")
+      ) {
+        // Normal Admin & Super Admin both redirect directly to /admin/login
+        targetLogin = "/admin/login";
+      } else if (previousRole === "hr" || currentPath.startsWith("/hr")) {
+        targetLogin = "/hr/login";
+      } else if (previousRole === "vendor" || currentPath.startsWith("/vendor")) {
+        targetLogin = "/vendor/login";
+      } else if (previousRole === "candidate" || currentPath.startsWith("/candidate")) {
+        targetLogin = "/candidate/login";
+      } else if (
+        previousRole === "employee" ||
+        currentPath.includes("employee") ||
+        Boolean(storedUser?.employeeId)
+      ) {
+        targetLogin = "/employee/login";
+      } else {
+        targetLogin = "/admin/login";
       }
+
+      window.location.href = redirectUrl || targetLogin;
     }
   }, [role]);
 
@@ -80,10 +122,13 @@ export const AuthProvider = ({ children }) => {
     role,
     loading,
     isAuthenticated: Boolean(token && role),
-    isAdmin: role === "admin" || role === "ADMIN",
-    isEmployee: role === "employee",
-    isVendor: role === "vendor" || role === "VENDOR",
-    isCandidate: role === "candidate" || role === "CANDIDATE",
+    isSuperAdmin: (role || "").toUpperCase().replace(/[\s_-]/g, "") === "SUPERADMIN",
+    isAdmin: ["ADMIN", "SUPERADMIN"].includes((role || "").toUpperCase().replace(/[\s_-]/g, "")),
+    isHR: (role || "").toUpperCase().replace(/[\s_-]/g, "") === "HR",
+    isEmployee: (role || "").toLowerCase() === "employee",
+    isVendor: (role || "").toUpperCase() === "VENDOR",
+    isCandidate: (role || "").toUpperCase() === "CANDIDATE",
+
     login,
     logout,
     updateUser,

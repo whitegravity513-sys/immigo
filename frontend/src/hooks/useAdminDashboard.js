@@ -25,8 +25,13 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [employeeHistoryLoading, setEmployeeHistoryLoading] = useState(false);
   const [detailFromDate, setDetailFromDate] = useState(null);
   const [detailToDate, setDetailToDate] = useState(null);
-  const [previousPath, setPreviousPath] = useState("/admin/dashboard/employees");
   const [leaveActionModal, setLeaveActionModal] = useState(null);
+  const isHrContext =
+    (user?.role || "").toUpperCase() === "HR" ||
+    (typeof window !== "undefined" && window.location.pathname.startsWith("/hr"));
+  const basePrefix = isHrContext ? "/hr/dashboard" : "/admin/dashboard";
+
+  const [previousPath, setPreviousPath] = useState(`${basePrefix}/employees`);
   const [editingAttendance, setEditingAttendance] = useState(null);
   const [leaveActionRemark, setLeaveActionRemark] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -418,7 +423,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       setCalendarMonth(summaryMonth);
       setCalendarYear(summaryYear);
     }
-    navigate(`/admin/dashboard/employee/${cleanId}`);
+    navigate(`${basePrefix}/employee/${cleanId}`);
     fetchEmployeeHistoryById(cleanId);
   };
 
@@ -426,7 +431,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     if (previousPath.startsWith("/")) {
       navigate(previousPath);
     } else {
-      navigate(`/admin/dashboard/${previousPath}`);
+      navigate(`${basePrefix}/${previousPath}`);
     }
   };
 
@@ -582,14 +587,25 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     }
   };
 
-  const handleDeactivateEmployee = async (id) => {
-    if (!window.confirm("Are you sure you want to deactivate this employee? Their historical logs will remain.")) return;
+  const handleDeactivateEmployee = async (id, currentStatus) => {
+    const isCurrentlyInactive = currentStatus === "inactive";
+    const actionText = isCurrentlyInactive ? "activate" : "make inactive";
+    const confirmPrompt = isCurrentlyInactive
+      ? "Are you sure you want to ACTIVATE this employee? They will be allowed to log in and mark attendance."
+      : "Are you sure you want to mark this employee INACTIVE? They will NOT be able to mark attendance.";
+    if (!window.confirm(confirmPrompt)) return;
     setLoading(true); setErrorMsg(""); setSuccessMsg("");
     try {
-      const r = await apiClient.put(`/admin/employee/deactivate/${id}`);
-      setSuccessMsg(r.data.message); fetchAdminReports();
-    } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to deactivate employee."); }
-    finally { setLoading(false); }
+      const r = await apiClient.put(`/admin/employee/deactivate/${id}`, {
+        status: isCurrentlyInactive ? "active" : "inactive"
+      });
+      setSuccessMsg(r.data.message || `Employee status updated successfully`);
+      fetchAdminReports();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || `Failed to ${actionText} employee.`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditClick = (emp) => {
@@ -684,7 +700,10 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   };
   const formatDate = (ds) => { if (!ds) return "-"; return new Date(ds).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }); };
   const formatTime = (ts) => { if (!ts) return "-"; return new Date(ts).toLocaleTimeString("en-IN", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12: true }); };
-  const navigateTo = (path) => { navigate(`/admin/dashboard/${path}`); setSidebarMobileOpen(false); };
+  const navigateTo = (path) => {
+    navigate(`${basePrefix}/${path}`);
+    setSidebarMobileOpen(false);
+  };
 
   return {
     sidebarCollapsed,

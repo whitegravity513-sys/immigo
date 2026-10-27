@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ProtectedRoute from "../components/common/ProtectedRoute.jsx";
+import PermissionRoute from "../components/common/PermissionRoute.jsx";
 import LoadingFallback from "../components/common/LoadingFallback.jsx";
 
 
@@ -17,6 +18,8 @@ const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
 
 
 const HRDashboard = lazy(() => import("../pages/hr/HRDashboard.jsx"));
+const HRLoginPage = lazy(() => import("../pages/hr/HRLoginPage.jsx"));
+const PermissionManagementPage = lazy(() => import("../pages/admin/permissions/PermissionManagementPage.jsx"));
 
 
 const EmployeeDashboard = lazy(() => import("../pages/employee/EmployeeDashboard.jsx"));
@@ -100,13 +103,17 @@ const AdminDirectCandidateMilestones = lazy(() => import("../pages/admin/candida
 const AdminRejectedApplications = lazy(() => import("../pages/admin/candidate/AdminRejectedApplications.jsx"));
 const AdminCandidateProfilePage = lazy(() => import("../pages/admin/candidate/AdminCandidateProfilePage.jsx"));
 
-function LoginRouteHandler({ isAuthenticated, isAdmin, isVendor, isCandidate }) {
+function LoginRouteHandler({ isAuthenticated, isAdmin, isSuperAdmin, isHR, isVendor, isCandidate }) {
   const [searchParams] = useSearchParams();
   if (isAuthenticated) {
     return (
       <Navigate
         to={
-          isAdmin
+          isSuperAdmin
+            ? "/super-admin/dashboard"
+            : isHR
+            ? "/hr/dashboard"
+            : isAdmin
             ? "/admin/dashboard"
             : isVendor
             ? "/vendor/dashboard"
@@ -120,7 +127,10 @@ function LoginRouteHandler({ isAuthenticated, isAdmin, isVendor, isCandidate }) 
   }
 
   const roleParam = (searchParams.get("role") || searchParams.get("tab") || "").toLowerCase();
-  if (roleParam === "admin") {
+  if (roleParam === "hr") {
+    return <Navigate to="/hr/login" replace />;
+  }
+  if (roleParam === "admin" || roleParam === "superadmin") {
     return <Navigate to="/admin/login" replace />;
   }
   if (roleParam === "vendor") {
@@ -136,7 +146,7 @@ function LoginRouteHandler({ isAuthenticated, isAdmin, isVendor, isCandidate }) 
 }
 
 export default function AppRoutes() {
-  const { token, user, logout, isAuthenticated, isAdmin, isVendor, isCandidate } = useAuth();
+  const { token, user, logout, isAuthenticated, isAdmin, isSuperAdmin, isHR, isVendor, isCandidate } = useAuth();
 
   return (
     <Suspense fallback={<LoadingFallback />}>
@@ -150,7 +160,11 @@ export default function AppRoutes() {
         <Route
           path="/admin"
           element={
-            isAuthenticated && isAdmin ? (
+            isAuthenticated && isSuperAdmin ? (
+              <Navigate to="/super-admin/dashboard" replace />
+            ) : isAuthenticated && isHR ? (
+              <Navigate to="/hr/dashboard" replace />
+            ) : isAuthenticated && isAdmin ? (
               <Navigate to="/admin/dashboard" replace />
             ) : (
               <Navigate to="/admin/login" replace />
@@ -160,7 +174,11 @@ export default function AppRoutes() {
         <Route
           path="/admin/login"
           element={
-            isAuthenticated && isAdmin ? (
+            isAuthenticated && isSuperAdmin ? (
+              <Navigate to="/super-admin/dashboard" replace />
+            ) : isAuthenticated && isHR ? (
+              <Navigate to="/hr/dashboard" replace />
+            ) : isAuthenticated && isAdmin ? (
               <Navigate to="/admin/dashboard" replace />
             ) : (
               <AdminLoginPage />
@@ -228,6 +246,8 @@ export default function AppRoutes() {
             <LoginRouteHandler
               isAuthenticated={isAuthenticated}
               isAdmin={isAdmin}
+              isSuperAdmin={isSuperAdmin}
+              isHR={isHR}
               isVendor={isVendor}
               isCandidate={isCandidate}
             />
@@ -235,11 +255,57 @@ export default function AppRoutes() {
         />
 
 
-        {}
+        {/* Dedicated Super Admin Routes */}
+        <Route
+          path="/super-admin"
+          element={<Navigate to="/super-admin/dashboard" replace />}
+        />
+        <Route
+          path="/super-admin/dashboard"
+          element={
+            <ProtectedRoute allowedRole={["admin", "super_admin"]}>
+              <MainAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/super-admin/admins"
+          element={
+            <ProtectedRoute allowedRole={["super_admin"]}>
+              <PermissionRoute superAdminOnly>
+                <PermissionManagementPage />
+              </PermissionRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/super-admin/permissions"
+          element={
+            <ProtectedRoute allowedRole={["super_admin"]}>
+              <PermissionRoute superAdminOnly>
+                <PermissionManagementPage />
+              </PermissionRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin cannot access permissions - redirect to admin dashboard */}
+        <Route
+          path="/admin/permissions"
+          element={<Navigate to="/admin/dashboard" replace />}
+        />
+
+        {/* Alias routes for clean separate URLs */}
+        <Route path="/admin/employees" element={<Navigate to={isHR ? "/hr/dashboard/employees" : "/admin/dashboard/employees"} replace />} />
+        <Route path="/admin/candidates" element={<Navigate to="/admin/candidates/dashboard" replace />} />
+        <Route path="/admin/vendors" element={<Navigate to="/admin/vendor" replace />} />
+        <Route path="/admin/meetings" element={<Navigate to={isHR ? "/hr/dashboard/meetings" : "/admin/dashboard/meetings"} replace />} />
+
+        {/* Shared Dashboard Routes */}
         <Route
           path="/admin/dashboard"
           element={
-            <ProtectedRoute allowedRole="admin">
+            <ProtectedRoute allowedRole={["admin", "super_admin"]}>
               <MainAdminDashboard />
             </ProtectedRoute>
           }
@@ -247,20 +313,76 @@ export default function AppRoutes() {
 
         <Route path="/admin/dashboard/projects" element={<Navigate to="/client/projects" replace />} />
 
-        {}
         <Route
           path="/admin/dashboard/*"
           element={
-            <ProtectedRoute allowedRole="admin">
+            <ProtectedRoute allowedRole={["admin", "super_admin"]}>
               <AdminDashboard user={user} token={token} onLogout={logout} />
             </ProtectedRoute>
           }
         />
 
-        {}
-        <Route path="/hr" element={<Navigate to="/admin/dashboard/workforce" replace />} />
-        <Route path="/hr/dashboard" element={<Navigate to="/admin/dashboard/workforce" replace />} />
-        <Route path="/hr/*" element={<Navigate to="/admin/dashboard/workforce" replace />} />
+        {/* Dedicated HR Portal & Separate Shareable Base URL (/hr) */}
+        <Route path="/hr" element={<Navigate to="/hr/dashboard" replace />} />
+        <Route
+          path="/hr/login"
+          element={
+            isAuthenticated && isHR ? (
+              <Navigate to="/hr/dashboard" replace />
+            ) : (
+              <HRLoginPage />
+            )
+          }
+        />
+        <Route
+          path="/hr/dashboard"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <HRDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/dashboard/*"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <HRDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/employees"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <Navigate to="/hr/dashboard/employees" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/attendance"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <Navigate to="/hr/dashboard/attendance-all" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/leaves"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <Navigate to="/hr/dashboard/leaves" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr/recruitment"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <Navigate to="/hr/dashboard/workforce" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/hr/*" element={<Navigate to="/hr/dashboard" replace />} />
 
         {}
         <Route
@@ -739,7 +861,7 @@ export default function AppRoutes() {
           <Route path="view/:id" element={<AdminCandidateProfilePage />} />
         </Route>
 
-        <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/dashboard" element={<Navigate to={isHR ? "/hr/dashboard" : "/admin/dashboard"} replace />} />
 
         <Route
           path="/"
@@ -747,7 +869,11 @@ export default function AppRoutes() {
             isAuthenticated ? (
               <Navigate
                 to={
-                  isVendor
+                  isSuperAdmin
+                    ? "/super-admin/dashboard"
+                    : isHR
+                    ? "/hr/dashboard"
+                    : isVendor
                     ? "/vendor/dashboard"
                     : isCandidate
                     ? "/candidate/dashboard"

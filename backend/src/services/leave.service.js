@@ -78,6 +78,14 @@ export class LeaveService {
   }
 
   static async applyLeave(employeeId, data) {
+    const emp = await Employee.findById(employeeId).select("name employeeId status").lean();
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    if (emp.status === "inactive") {
+      throw new ApiError(403, "Your account is inactive. You cannot apply for leaves. Please contact Administrator.");
+    }
+
     const { startDate, endDate, reason, document } = data;
     const leaveType = (data.leaveType || "Casual Leave").trim();
     if (!startDate || !endDate || !reason) {

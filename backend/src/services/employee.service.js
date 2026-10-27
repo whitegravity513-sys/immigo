@@ -295,7 +295,7 @@ export class EmployeeService {
     return this.formatEmployee(emp);
   }
 
-  static async toggleStatus(id) {
+  static async toggleStatus(id, targetStatus = null) {
     const cleanId = cleanObjectId(id);
     if (!cleanId) {
       throw new ApiError(404, "Employee not found");
@@ -305,7 +305,11 @@ export class EmployeeService {
       throw new ApiError(404, "Employee not found");
     }
 
-    emp.status = emp.status === "active" ? "inactive" : "active";
+    if (targetStatus && (targetStatus === "active" || targetStatus === "inactive")) {
+      emp.status = targetStatus;
+    } else {
+      emp.status = emp.status === "active" ? "inactive" : "active";
+    }
     await emp.save();
     return this.formatEmployee(emp);
   }

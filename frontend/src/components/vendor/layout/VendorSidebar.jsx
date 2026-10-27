@@ -133,6 +133,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
               <NavLink to="/vendor/candidates" end className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>My Candidates</NavLink>
               <NavLink to="/vendor/candidates/assign" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Assign Candidate</NavLink>
               <NavLink to="/vendor/selected" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Selected</NavLink>
+              <NavLink to="/vendor/processing" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Deployment Timeline</NavLink>
               <NavLink to="/vendor/rejected" className={({ isActive }) => `flex items-center px-3 py-2 text-[11px] font-bold rounded-lg transition-all ${isActive ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-blue-100/70"}`}>Rejected / Hold</NavLink>
             </div>
           )}

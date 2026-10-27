@@ -50,7 +50,6 @@ export default function AdminCandidateMilestones() {
       if (app) {
         setApplication(app);
 
-        // Prioritize existing saved processMilestones so admin changes persist
         const projectMs = crmVendorService.syncAppMilestonesWithProject
           ? crmVendorService.syncAppMilestonesWithProject(app)
           : [];
@@ -142,6 +141,13 @@ export default function AdminCandidateMilestones() {
     if (newStatus === "Completed") {
       updated[mIdx].stages[sIdx].completedAt = new Date().toISOString().split("T")[0];
       updated[mIdx].stages[sIdx].completedBy = "Admin";
+
+      if (sIdx < updated[mIdx].stages.length - 1) {
+        const nextStage = updated[mIdx].stages[sIdx + 1];
+        if (nextStage.status === "Locked" || nextStage.status === "Pending") {
+          nextStage.status = "In Progress";
+        }
+      }
     } else {
       updated[mIdx].stages[sIdx].completedAt = null;
       updated[mIdx].stages[sIdx].completedBy = null;
@@ -154,8 +160,11 @@ export default function AdminCandidateMilestones() {
       if (mIdx < updated.length - 1) {
         if (updated[mIdx + 1].status !== "Paid") {
           updated[mIdx + 1].status = "Active";
-          if (updated[mIdx + 1].stages?.length > 0 && updated[mIdx + 1].stages[0].status === "Pending") {
-            updated[mIdx + 1].stages[0].status = "In Progress";
+          if (updated[mIdx + 1].stages?.length > 0) {
+            updated[mIdx + 1].stages = updated[mIdx + 1].stages.map((stg, sIndex) => ({
+              ...stg,
+              status: sIndex === 0 ? "In Progress" : (stg.status === "Completed" ? "Completed" : "Pending"),
+            }));
           }
         }
       }
@@ -251,12 +260,13 @@ export default function AdminCandidateMilestones() {
     updated[mIdx].status = "Paid";
     updated[mIdx].paymentStatus = "Approved";
     if (updated[mIdx].stages?.length > 0) {
-      if (
-        updated[mIdx].stages[0].status === "Pending" ||
-        updated[mIdx].stages[0].status === "Locked"
-      ) {
-        updated[mIdx].stages[0].status = "In Progress";
-      }
+      updated[mIdx].stages = updated[mIdx].stages.map((stg, sIndex) => {
+        if (stg.status === "Completed") return stg;
+        return {
+          ...stg,
+          status: sIndex === 0 ? "In Progress" : "Pending",
+        };
+      });
     }
     setMilestonesList(updated);
     setActiveMilestoneIdx(mIdx);
@@ -405,27 +415,31 @@ export default function AdminCandidateMilestones() {
                   isSelectedTab
                     ? "bg-slate-900 border-blue-600 text-white shadow-xs ring-1 ring-blue-500"
                     : allDone
-                    ? "bg-white border-emerald-300 text-slate-800 hover:border-emerald-400"
+                    ? "bg-gradient-to-br from-blue-50/90 via-slate-50/80 to-blue-50/70 border-blue-300 text-slate-900 hover:bg-blue-100/60 hover:border-blue-400 shadow-2xs"
                     : isPaid
-                    ? "bg-white border-slate-300 text-slate-800 hover:border-slate-400"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                    ? "bg-blue-50/60 border-blue-200 text-slate-900 hover:bg-blue-100/40"
+                    : "bg-slate-50/90 border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >
                 <div className="flex items-center justify-between text-[10px] font-bold mb-0.5">
                   <span
                     className={`uppercase tracking-wider ${
-                      isSelectedTab ? "text-blue-300" : "text-slate-500"
+                      isSelectedTab ? "text-blue-300" : "text-blue-900 font-extrabold"
                     }`}
                   >
                     Milestone {mIdx + 1}
                   </span>
                   {allDone ? (
-                    <span className="text-emerald-500 flex items-center gap-0.5">
-                      <CheckCircle2 size={11} /> Done
+                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                      isSelectedTab ? "bg-blue-900/90 text-cyan-300 border border-blue-700" : "bg-blue-100 text-blue-950 border border-blue-200"
+                    }`}>
+                      <CheckCircle2 size={11} className={isSelectedTab ? "text-cyan-400" : "text-blue-700"} /> Done
                     </span>
                   ) : isPaid ? (
-                    <span className="text-cyan-400 flex items-center gap-0.5 font-semibold">
-                      <CheckCircle2 size={11} /> Paid
+                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                      isSelectedTab ? "bg-blue-900/90 text-cyan-300 border border-blue-700" : "bg-blue-100/70 text-blue-900 border border-blue-200/80"
+                    }`}>
+                      <CheckCircle2 size={11} className={isSelectedTab ? "text-cyan-400" : "text-blue-600"} /> Paid
                     </span>
                   ) : (
                     <span className="text-slate-400 flex items-center gap-0.5 font-normal">
@@ -444,14 +458,14 @@ export default function AdminCandidateMilestones() {
                 <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-200/40 text-[10px]">
                   <span
                     className={`font-semibold ${
-                      isSelectedTab ? "text-slate-200" : "text-slate-700"
+                      isSelectedTab ? "text-slate-200" : "text-blue-950 font-bold"
                     }`}
                   >
                     ₹{Number(m.amount).toLocaleString()}
                   </span>
                   <span
                     className={`font-semibold ${
-                      isSelectedTab ? "text-blue-300" : "text-slate-500"
+                      isSelectedTab ? "text-blue-300" : "text-blue-700"
                     }`}
                   >
                     {doneCount}/{stages.length} Steps
@@ -485,8 +499,8 @@ export default function AdminCandidateMilestones() {
 
             <div className="flex items-center gap-2 shrink-0">
               {isCurrentPaid ? (
-                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-700/80 flex items-center gap-1 shadow-2xs">
-                  <CheckCircle2 size={12} className="text-emerald-400" />
+                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-950 text-cyan-300 border border-blue-800/80 flex items-center gap-1 shadow-2xs">
+                  <CheckCircle2 size={12} className="text-cyan-400" />
                   <span>Paid & Unlocked</span>
                 </span>
               ) : (
@@ -662,18 +676,25 @@ export default function AdminCandidateMilestones() {
       )}
 
       {/* Sticky Bottom Save Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 p-2.5 sm:p-3 shadow-lg">
+      <div className="sticky bottom-0 -mx-2 sm:-mx-4 -mb-20 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
-          <div className="text-xs text-slate-600 truncate font-medium">
-            Active: <strong className="text-slate-900">{currentMilestone?.name}</strong>{" "}
-            ({currentStagesDoneCount}/{currentStages.length} Done)
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
+              Active Step:
+            </span>
+            <span className="text-xs font-bold text-slate-900 truncate">
+              {currentMilestone?.name}
+            </span>
+            <span className="text-[10px] font-bold text-blue-900 bg-blue-100/90 border border-blue-200/80 px-2 py-0.5 rounded-full shrink-0">
+              {currentStagesDoneCount}/{currentStages.length} Done
+            </span>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer shadow-2xs select-none"
             >
               Cancel
             </button>
@@ -681,10 +702,10 @@ export default function AdminCandidateMilestones() {
               type="button"
               disabled={saveLoading}
               onClick={handleSave}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer ${
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 select-none ${
                 saveSuccess
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-white"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-900 hover:bg-blue-950 text-white"
               }`}
             >
               {saveLoading ? (

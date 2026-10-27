@@ -5,10 +5,11 @@ import {
   PanelLeftOpen,
   ChevronRight,
   Shield,
-  LogOut,
   LayoutDashboard,
+  LogOut,
 } from "lucide-react";
 import NotificationBell from "../NotificationBell.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 export const AdminHeader = ({
   user,
@@ -19,11 +20,15 @@ export const AdminHeader = ({
   view = "live",
   onLogout,
 }) => {
+  const { role: authRole, isSuperAdmin } = useAuth();
+  const isHR =
+    (user?.role || authRole || "").toUpperCase().replace(/[\s_-]/g, "") === "HR" ||
+    (typeof window !== "undefined" && window.location.pathname.startsWith("/hr"));
   const getSectionTitle = (v) => {
     const titles = {
-      workforce: "Workforce Management Hub",
-      live: "Live Attendance Monitor",
-      dashboard: "Live Attendance Monitor",
+      workforce: isHR ? "Dashboard" : "Workforce Management Hub",
+      live: isHR ? "Dashboard" : "Live Attendance Monitor",
+      dashboard: "Dashboard",
       employees: "Employee Directory",
       leaves: "Leave Approvals",
       summary: "Attendance Summary",
@@ -37,9 +42,9 @@ export const AdminHeader = ({
       "expense-report": "Expense Analytics",
       expenses: "Corporate Expense Hub",
       announcements: "Company Announcements",
-      "attendance-all": "Full Attendance Register",
+      "attendance-all": "Daily Attendance Register",
     };
-    return titles[v] || "HR Operations";
+    return titles[v] || (isHR ? "Dashboard" : "HR Operations");
   };
 
   return (
@@ -93,19 +98,21 @@ export const AdminHeader = ({
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
 
-          {}
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600 text-cyan-200 hover:text-white border border-cyan-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs"
-            title="Switch to Admin Dashboard"
-          >
-            <LayoutDashboard size={14} className="text-cyan-400" />
-            <span className="hidden sm:inline">Admin Dashboard</span>
-          </Link>
+          {/* Switch to Admin/Super Admin Dashboard link only for Admins, not for HR */}
+          {!isHR && (
+            <Link
+              to={isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard"}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600 text-cyan-200 hover:text-white border border-cyan-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs"
+              title={isSuperAdmin ? "Super Admin Dashboard" : "Admin Dashboard"}
+            >
+              <LayoutDashboard size={14} className="text-cyan-400" />
+              <span className="hidden sm:inline">{isSuperAdmin ? "Super Admin" : "Admin"} Dashboard</span>
+            </Link>
+          )}
 
-          <div className="hidden md:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-bold text-cyan-300 uppercase tracking-widest">
+          <div className="hidden md:flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-bold text-cyan-300 uppercase tracking-widest">
             <Shield size={11} className="text-cyan-400" />
-            <span>Admin</span>
+            <span>{isHR ? "HR Portal" : isSuperAdmin ? "Super Admin" : "Admin"}</span>
           </div>
 
           <div className="flex items-center">
@@ -116,13 +123,15 @@ export const AdminHeader = ({
             <button
               type="button"
               onClick={onLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs group"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 transition-all text-xs font-semibold cursor-pointer shadow-xs active:scale-95"
               title="Sign Out"
             >
-              <LogOut size={13} className="shrink-0 text-rose-400 group-hover:text-white transition-colors" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <LogOut size={13} />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           )}
+
+
         </div>
       </div>
     </header>

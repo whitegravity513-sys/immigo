@@ -6,15 +6,15 @@ import {
   deleteMeeting,
   sendBroadcastNotification,
 } from "../../controllers/meeting.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { requirePermission } from "../../middleware/rbac.middleware.js";
 import { validateCreateMeeting } from "../../validators/meeting.validator.js";
 
 const router = express.Router();
 
-router.post("/meetings", verifyAdmin, validateCreateMeeting, createMeeting);
-router.get("/meetings", verifyAdmin, getAdminMeetings);
-router.put("/meetings/:id", verifyAdmin, updateMeeting);
-router.delete("/meetings/:id", verifyAdmin, deleteMeeting);
-router.post("/notifications/broadcast", verifyAdmin, sendBroadcastNotification);
+router.post("/meetings", requirePermission("meetings.create"), validateCreateMeeting, createMeeting);
+router.get("/meetings", requirePermission("meetings.view"), getAdminMeetings);
+router.put("/meetings/:id", requirePermission("meetings.update"), updateMeeting);
+router.delete("/meetings/:id", requirePermission("meetings.delete"), deleteMeeting);
+router.post("/notifications/broadcast", requirePermission("settings.update"), sendBroadcastNotification);
 
 export default router;

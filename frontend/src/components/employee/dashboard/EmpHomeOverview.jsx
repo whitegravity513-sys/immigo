@@ -144,7 +144,7 @@ export default function EmpHomeOverview({
   };
 
   return (
-    <div className="space-y-3.5 max-w-7xl mx-auto text-slate-800">
+    <div className="space-y-3.5 w-full text-slate-800">
       {(status === "On Break" || isOnBreak) && (
         <div className="bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 border border-sky-400/50">
           <div className="flex items-center gap-3">
@@ -409,10 +409,11 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      {/* 4 Attendance Stat Cards in 1 Single Row */}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full">
         <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider">Present Days</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-900 uppercase tracking-wider truncate">Present</span>
             <div className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <CheckCircle2 size={12} />
             </div>
@@ -421,15 +422,15 @@ export default function EmpHomeOverview({
             <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
               {attStats.presentDays ?? 0} <span className="text-[10px] font-bold text-emerald-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
-              <span>● Since Joining ({formattedJoiningDate})</span>
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title={`Since Joining (${formattedJoiningDate})`}>
+              ● Since {formattedJoiningDate}
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-rose-200/90 hover:border-rose-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-rose-900 uppercase tracking-wider">Absent Days</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-rose-900 uppercase tracking-wider truncate">Absent</span>
             <div className="w-5 h-5 rounded-md bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <AlertCircle size={12} />
             </div>
@@ -438,15 +439,15 @@ export default function EmpHomeOverview({
             <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
               {attStats.absentDays ?? 0} <span className="text-[10px] font-bold text-rose-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
-              <span>● Working Days Missed</span>
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title="Working Days Missed">
+              ● Days Missed
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-blue-200/90 hover:border-blue-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider">On Leave</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-blue-900 uppercase tracking-wider truncate">On Leave</span>
             <div className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <CalendarPlus size={12} />
             </div>
@@ -455,15 +456,15 @@ export default function EmpHomeOverview({
             <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
               {attStats.leaveDays ?? 0} <span className="text-[10px] font-bold text-blue-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
-              <span>● Approved Leaves Taken</span>
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title="Approved Leaves Taken">
+              ● Approved Leaves
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-amber-200/90 hover:border-amber-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">Half Day</span>
+            <span className="text-[10px] sm:text-[11px] font-bold text-amber-900 uppercase tracking-wider truncate">Half Day</span>
             <div className="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <Clock size={12} />
             </div>
@@ -472,8 +473,8 @@ export default function EmpHomeOverview({
             <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
               {attStats.halfDays ?? 0} <span className="text-[10px] font-bold text-amber-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 flex items-center gap-1">
-              <span>● Shifts Under 8 Hours</span>
+            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title="Shifts Under 8 Hours">
+              ● Under 8 Hours
             </div>
           </div>
         </div>
@@ -603,7 +604,16 @@ export default function EmpHomeOverview({
               )}
 
               <div className="flex flex-wrap items-center gap-1.5">
-                {(status !== "Active" && status !== "On Break" && status !== "Checked Out") && (
+                {(statusRecord?.isInactive || statusRecord?.employeeStatus === "inactive" || user?.status === "inactive") ? (
+                  <div className="w-full p-2.5 rounded-lg bg-rose-50 border border-rose-300 text-rose-900 text-xs font-semibold text-center space-y-1">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
+                      <AlertCircle size={11} className="text-rose-600" /> Account Inactive
+                    </div>
+                    <p className="text-[11px] font-bold text-rose-950">
+                      Your employee account has been marked Inactive. Attendance check-in is disabled.
+                    </p>
+                  </div>
+                ) : (status !== "Active" && status !== "On Break" && status !== "Checked Out") ? (
                   <button
                     type="button"
                     onClick={() => handleCheckIn && handleCheckIn()}
@@ -613,7 +623,7 @@ export default function EmpHomeOverview({
                     <LogIn size={13} />
                     <span>{loading ? "Checking In…" : "Check In Shift"}</span>
                   </button>
-                )}
+                ) : null}
 
                 {status === "Checked Out" && (
                   <div className="flex-1 min-w-[150px] py-1.5 px-2.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">

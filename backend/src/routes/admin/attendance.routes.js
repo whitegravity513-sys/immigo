@@ -7,15 +7,15 @@ import {
   getAttendanceSummary,
   getDailyNotes,
 } from "../../controllers/adminAttendance.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { requirePermission } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.get("/attendance", verifyAdmin, getAttendanceReport);
-router.get("/attendance/calendar-month", verifyAdmin, getAttendanceCalendarMonth);
-router.get("/attendance/range", verifyAdmin, getAttendanceByDate);
-router.post("/attendance/update", verifyAdmin, updateAttendance);
-router.get("/attendance/summary", verifyAdmin, getAttendanceSummary);
-router.get("/attendance/notes", verifyAdmin, getDailyNotes);
+router.get("/attendance", requirePermission("attendance.view"), getAttendanceReport);
+router.get("/attendance/calendar-month", requirePermission("attendance.view"), getAttendanceCalendarMonth);
+router.get("/attendance/range", requirePermission("attendance.view"), getAttendanceByDate);
+router.post("/attendance/update", requirePermission("attendance.update"), updateAttendance);
+router.get("/attendance/summary", requirePermission("attendance.view"), getAttendanceSummary);
+router.get("/attendance/notes", requirePermission("attendance.view"), getDailyNotes);
 
 export default router;

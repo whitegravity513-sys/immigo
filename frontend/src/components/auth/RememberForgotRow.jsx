@@ -1,4 +1,9 @@
-export default function RememberForgotRow({ keepSignedIn = true, setKeepSignedIn, onForgotPassword }) {
+export default function RememberForgotRow({
+  keepSignedIn = true,
+  setKeepSignedIn,
+  onForgotPassword,
+  forgotLabel = "Reset Super Admin Password",
+}) {
   return (
     <div className="flex items-center justify-between text-xs pt-0.5">
       <label className="flex items-center gap-2 cursor-pointer text-slate-600 font-medium select-none">
@@ -13,9 +18,9 @@ export default function RememberForgotRow({ keepSignedIn = true, setKeepSignedIn
       <button
         type="button"
         onClick={onForgotPassword}
-        className="text-[#1877f2] hover:underline font-semibold cursor-pointer bg-transparent border-none p-0"
+        className="text-[#1877f2] hover:underline font-semibold cursor-pointer bg-transparent border-none p-0 text-[11px]"
       >
-        Forgot Password?
+        {forgotLabel}
       </button>
     </div>
   );

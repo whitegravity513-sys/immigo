@@ -5,24 +5,6 @@ const notificationSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: [
-        "CHECK_IN",
-        "CHECK_OUT",
-        "BREAK_START",
-        "BREAK_END",
-        "LEAVE_APPLY",
-        "SYSTEM",
-        "MEETING",
-        "ANNOUNCEMENT",
-        "UPDATE",
-        "ATTENDANCE_UPDATE",
-        "LEAVE_UPDATE",
-        "EXPENSE_UPDATE",
-        "EXPENSE_CLAIM",
-        "HOLIDAY_ANNOUNCEMENT",
-        "DOCUMENT_UPLOAD",
-        "DOCUMENT_UPDATE",
-      ],
       required: true,
     },
     title: {
@@ -35,7 +17,7 @@ const notificationSchema = new mongoose.Schema(
     },
     targetRole: {
       type: String,
-      enum: ["ADMIN", "EMPLOYEE", "ALL"],
+      enum: ["ADMIN", "SUPER_ADMIN", "HR", "VENDOR", "CANDIDATE", "EMPLOYEE", "ALL"],
       default: "ADMIN",
     },
     targetType: {
@@ -46,6 +28,10 @@ const notificationSchema = new mongoose.Schema(
     targetEmployeeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
+      default: null,
+    },
+    targetUserId: {
+      type: String,
       default: null,
     },
     employeeId: {

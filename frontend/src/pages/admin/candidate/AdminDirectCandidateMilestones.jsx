@@ -45,7 +45,6 @@ export default function AdminDirectCandidateMilestones() {
   const [milestonesList, setMilestonesList] = useState([]);
   const [activeMilestoneIdx, setActiveMilestoneIdx] = useState(0);
 
-  // Payment Modal State
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [payAmount, setPayAmount] = useState(15000);
   const [payMode, setPayMode] = useState("Bank Transfer");
@@ -53,7 +52,6 @@ export default function AdminDirectCandidateMilestones() {
   const [payRemarks, setPayRemarks] = useState("");
   const [recordingPayment, setRecordingPayment] = useState(false);
 
-  // Document Upload State (for Candidate & Vendor)
   const [docTitle, setDocTitle] = useState("");
   const [docAudience, setDocAudience] = useState("both"); // "both", "candidate", "vendor"
   const [docUploading, setDocUploading] = useState(false);
@@ -113,7 +111,6 @@ export default function AdminDirectCandidateMilestones() {
           });
 
           setMilestonesList(formatted);
-          // Find first milestone in progress / active
           const activeIdx = formatted.findIndex((m) => m.status === "Active" || m.status === "Payment Required");
           if (activeIdx !== -1) {
             setActiveMilestoneIdx(activeIdx);
@@ -180,7 +177,6 @@ export default function AdminDirectCandidateMilestones() {
     }
   };
 
-  // Helper to persist silently without page refresh
   const autoSyncMilestones = async (newList, totalAmt = totalAmount) => {
     if (!application) return;
     try {
@@ -198,21 +194,44 @@ export default function AdminDirectCandidateMilestones() {
     updated[mIdx].stages[sIdx].status = newStatus;
     if (newStatus === "Completed") {
       updated[mIdx].stages[sIdx].completedAt = new Date().toISOString();
+      if (sIdx + 1 < updated[mIdx].stages.length) {
+        if (
+          updated[mIdx].stages[sIdx + 1].status === "Locked" ||
+          updated[mIdx].stages[sIdx + 1].status === "Pending"
+        ) {
+          updated[mIdx].stages[sIdx + 1].status = "In Progress";
+        }
+      }
     } else {
       updated[mIdx].stages[sIdx].completedAt = null;
     }
 
-    // Check if all stages in this milestone are completed
     const allCurrentStagesDone = updated[mIdx].stages.every((s) => s.status === "Completed");
     if (allCurrentStagesDone) {
       updated[mIdx].status = "Completed";
-      if (mIdx < updated.length - 1 && updated[mIdx + 1].status === "Locked") {
-        updated[mIdx + 1].status = (updated[mIdx + 1].amount || 0) > 0 ? "Payment Required" : "Active";
-        if (updated[mIdx + 1].paymentStatus === "Locked") {
-          updated[mIdx + 1].paymentStatus = (updated[mIdx + 1].amount || 0) > 0 ? "Payment Required" : "Not Required";
-        }
-        if (updated[mIdx + 1].stages?.length > 0 && updated[mIdx + 1].stages[0].status === "Locked") {
-          updated[mIdx + 1].stages[0].status = "In Progress";
+      if (mIdx < updated.length - 1) {
+        const nextM = updated[mIdx + 1];
+        const nextAmt = Number(nextM.amount || nextM.paymentAmount || 0);
+        const isNextPaid = nextM.paymentStatus === "Approved" || nextM.status === "Paid";
+
+        if (isNextPaid || nextAmt === 0) {
+          nextM.status = "Active";
+          if (!isNextPaid) nextM.paymentStatus = "Not Required";
+          if (Array.isArray(nextM.stages) && nextM.stages.length > 0) {
+            nextM.stages.forEach((stg, idx) => {
+              if (stg.status === "Locked") {
+                stg.status = idx === 0 ? "In Progress" : "Pending";
+              } else if (idx === 0 && stg.status === "Pending") {
+                stg.status = "In Progress";
+              }
+            });
+          }
+        } else {
+          nextM.status = "Payment Required";
+          nextM.paymentStatus = "Payment Required";
+          if (nextM.stages?.length > 0 && nextM.stages[0].status === "Locked") {
+            nextM.stages[0].status = "Pending";
+          }
         }
       }
     }
@@ -221,10 +240,8 @@ export default function AdminDirectCandidateMilestones() {
     autoSyncMilestones(updated);
   };
 
-  // Admin explicit "Complete Milestone & Unlock Next Process"
   const handleCompleteMilestone = (mIdx) => {
     const updated = [...milestonesList];
-    // Mark current milestone and all its stages as completed
     updated[mIdx].status = "Completed";
     updated[mIdx].paymentStatus = "Approved";
     (updated[mIdx].stages || []).forEach((stg) => {
@@ -232,7 +249,6 @@ export default function AdminDirectCandidateMilestones() {
       if (!stg.completedAt) stg.completedAt = new Date().toISOString();
     });
 
-    // Advance to next process milestone
     if (mIdx + 1 < updated.length) {
       updated[mIdx + 1].status = "Active";
       if (updated[mIdx + 1].paymentStatus === "Locked") {
@@ -335,7 +351,6 @@ export default function AdminDirectCandidateMilestones() {
     autoSyncMilestones(updated);
   };
 
-  // Upload Milestone Clearance Document (for Candidate & Vendor)
   const handleUploadClearanceDocument = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -450,7 +465,6 @@ export default function AdminDirectCandidateMilestones() {
     setPaymentModalOpen(true);
   };
 
-  // Instant Payment Recording without reload
   const handleSubmitPayment = async () => {
     if (!application) return;
     const currentM = milestonesList[activeMilestoneIdx];
@@ -458,20 +472,26 @@ export default function AdminDirectCandidateMilestones() {
 
     setRecordingPayment(true);
     const amtNum = Number(payAmount);
-    const refNum = payRef.trim() || `TXN-${Date.now().toString().slice(-6)}`;
+    const isCash = String(payMode).toLowerCase().includes("cash");
+    const refNum = payRef.trim() || (isCash ? `CASH-${Date.now().toString().slice(-6)}` : `TXN-${Date.now().toString().slice(-6)}`);
 
-    // Instant optimistic state update
     const updated = [...milestonesList];
-    updated[activeMilestoneIdx].status = "Paid";
+    updated[activeMilestoneIdx].status = "Active";
     updated[activeMilestoneIdx].paymentStatus = "Approved";
     updated[activeMilestoneIdx].paymentAmount = amtNum;
+    updated[activeMilestoneIdx].paymentMode = payMode;
     updated[activeMilestoneIdx].paymentRef = refNum;
     updated[activeMilestoneIdx].paymentDate = new Date().toLocaleDateString("en-IN");
-    updated[activeMilestoneIdx].paymentRemark = payRemarks || `Payment verified by Admin`;
-    if (updated[activeMilestoneIdx].stages?.length > 0) {
-      if (updated[activeMilestoneIdx].stages[0].status === "Locked" || updated[activeMilestoneIdx].stages[0].status === "Pending") {
-        updated[activeMilestoneIdx].stages[0].status = "In Progress";
-      }
+    updated[activeMilestoneIdx].paymentRemark = payRemarks || `Payment (${payMode}) verified by Admin`;
+
+    if (Array.isArray(updated[activeMilestoneIdx].stages) && updated[activeMilestoneIdx].stages.length > 0) {
+      updated[activeMilestoneIdx].stages.forEach((stg, sIdx) => {
+        if (stg.status === "Locked") {
+          stg.status = sIdx === 0 ? "In Progress" : "Pending";
+        } else if (sIdx === 0 && stg.status === "Pending") {
+          stg.status = "In Progress";
+        }
+      });
     }
 
     setMilestonesList(updated);
@@ -479,11 +499,10 @@ export default function AdminDirectCandidateMilestones() {
 
     setNotification({
       type: "success",
-      message: `Payment of ₹${amtNum.toLocaleString()} recorded & verified instantly!`,
+      message: `Payment of ₹${amtNum.toLocaleString()} (${payMode}) recorded & processing unlocked!`,
     });
     setTimeout(() => setNotification(null), 4000);
 
-    // Background sync to server
     try {
       await apiClient.post(
         `/admin/candidates/applications/${application.applicationId || application.id}/milestones/${currentM.id}/record-payment`,

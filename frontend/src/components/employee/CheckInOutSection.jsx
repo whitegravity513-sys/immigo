@@ -6,7 +6,8 @@ import {
   Clock,
   Coffee,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 export default function CheckInOutSection({
@@ -104,6 +105,18 @@ export default function CheckInOutSection({
                 </p>
                 <p className="text-[11px] text-indigo-600">
                   No absent penalty or salary deductions are applied on official holidays.
+                </p>
+              </div>
+            ) : (statusRecord?.isInactive || statusRecord?.employeeStatus === "inactive") ? (
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-center space-y-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold">
+                  <AlertCircle size={14} className="text-rose-600" /> Account Inactive
+                </div>
+                <p className="text-xs text-rose-950 font-bold">
+                  Your employee account is currently marked Inactive.
+                </p>
+                <p className="text-[11px] text-rose-700 font-medium">
+                  Attendance check-in and shift recording are blocked. Please contact HR or Administration to reactivate your account.
                 </p>
               </div>
             ) : (status === "Absent" || status === "Weekly Off" || status === "Holiday") ? (

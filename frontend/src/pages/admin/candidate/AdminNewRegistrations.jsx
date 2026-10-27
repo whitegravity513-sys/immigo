@@ -239,14 +239,14 @@ export default function AdminNewRegistrations() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-2.5 px-3">Candidate ID</th>
-                <th className="py-2.5 px-3">Candidate Name</th>
-                <th className="py-2.5 px-3">Email</th>
-                <th className="py-2.5 px-3">Mobile Number</th>
-                <th className="py-2.5 px-3">Registration Date</th>
-                <th className="py-2.5 px-3">Account Status</th>
-                <th className="py-2.5 px-3 text-right">Actions</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">Candidate ID</th>
+                <th className="py-3.5 px-4">Candidate Name</th>
+                <th className="py-3.5 px-4">Email</th>
+                <th className="py-3.5 px-4">Mobile Number</th>
+                <th className="py-3.5 px-4">Registration Date</th>
+                <th className="py-3.5 px-4">Account Status</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -272,36 +272,36 @@ export default function AdminNewRegistrations() {
               ) : (
                 candidates.map((cand) => (
                   <tr key={cand.candidateId} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-2.5 px-3 font-mono font-bold text-blue-700 text-[11px]">
+                    <td className="py-3.5 px-4 font-mono font-bold text-blue-700 text-xs">
                       {cand.candidateId}
                     </td>
-                    <td className="py-2.5 px-3 font-bold text-slate-900">
+                    <td className="py-3.5 px-4 font-bold text-slate-900 text-sm">
                       {cand.fullName}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-600 text-[11px]">
+                    <td className="py-3.5 px-4 text-slate-600 text-xs">
                       {cand.email}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-600 text-[11px]">
+                    <td className="py-3.5 px-4 text-slate-600 text-xs">
                       {cand.phone}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-500 text-[11px]">
+                    <td className="py-3.5 px-4 text-slate-500 text-xs">
                       {new Date(cand.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
                       })}
                     </td>
-                    <td className="py-2.5 px-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                         Pending Approval
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => navigate(`/admin/candidates/${cand.candidateId}`)}
-                          className="px-2 py-0.5 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
+                          className="px-2.5 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
                           title="View Full Profile Page"
                         >
                           Details
@@ -309,7 +309,7 @@ export default function AdminNewRegistrations() {
                         <button
                           onClick={() => handleApprove(cand)}
                           disabled={actionLoading}
-                          className="px-2 py-0.5 text-[11px] font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                          className="px-2.5 py-1.5 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
                           title="Approve Registration"
                         >
                           Approve
@@ -319,7 +319,7 @@ export default function AdminNewRegistrations() {
                             setSelectedCandidate(cand);
                             setRejectModalOpen(true);
                           }}
-                          className="px-2 py-0.5 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-md transition-colors cursor-pointer"
+                          className="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
                           title="Reject Registration"
                         >
                           Reject
@@ -330,17 +330,17 @@ export default function AdminNewRegistrations() {
                             setInternalRemarks(cand.internalRemarks || "");
                             setRemarksModalOpen(true);
                           }}
-                          className="p-1 text-slate-400 hover:text-slate-600 rounded-md"
+                          className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg"
                           title="Internal Remarks"
                         >
-                          <MessageSquare size={13} />
+                          <MessageSquare size={14} />
                         </button>
                         <button
                           onClick={() => handleDeleteCandidate(cand)}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded-md"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
                           title="Delete Candidate"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

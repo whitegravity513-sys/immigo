@@ -10,10 +10,14 @@ import {
   LogOut,
   X,
   Shield,
+  ShieldCheck,
   Receipt,
+  UserCheck,
+  KeyRound,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { usePermissions } from "../../../context/PermissionContext.jsx";
 
 export function AdminMasterSidebar({
   mobileOpen = false,
@@ -23,34 +27,120 @@ export function AdminMasterSidebar({
 }) {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { canAccessModule, isSuperAdmin, hasPermission, role } = usePermissions();
   const currentPath = location.pathname;
 
   const isActive = (path) => {
     if (!path) return false;
-    if (path === "/admin/dashboard") return currentPath === "/admin/dashboard" || currentPath === "/dashboard" || currentPath === "/";
-    if (path === "/admin/dashboard/workforce") return currentPath.startsWith("/admin/dashboard/workforce") || currentPath.startsWith("/hr");
-    if (path === "/client/dashboard") return currentPath === "/client/dashboard" || currentPath.startsWith("/client/clients");
-    if (path === "/client/ledger") return currentPath.startsWith("/client/ledger") || currentPath.startsWith("/admin/client-ledger");
-    if (path === "/client/projects") return currentPath.startsWith("/client/projects") || currentPath.includes("/projects");
-    if (path === "/admin/vendor") return currentPath.startsWith("/admin/vendor");
-    if (path === "/admin/candidates/dashboard") return currentPath.startsWith("/admin/candidates");
-    if (path === "/admin/settings") return currentPath.startsWith("/admin/settings");
+    if (path === "/admin/dashboard" || path === "/super-admin/dashboard") {
+      return (
+        currentPath === "/admin/dashboard" ||
+        currentPath === "/super-admin/dashboard" ||
+        currentPath === "/dashboard" ||
+        currentPath === "/"
+      );
+    }
+    if (path === "/super-admin/permissions" || path === "/admin/permissions") {
+      return (
+        currentPath.startsWith("/super-admin/permissions") ||
+        currentPath.startsWith("/admin/permissions") ||
+        currentPath.startsWith("/super-admin/admins")
+      );
+    }
+    if (path === "/admin/dashboard/workforce") {
+      return currentPath.startsWith("/admin/dashboard/workforce") || currentPath.startsWith("/hr");
+    }
+    if (path === "/client/dashboard") {
+      return currentPath === "/client/dashboard" || currentPath.startsWith("/client/clients");
+    }
+    if (path === "/client/ledger") {
+      return currentPath.startsWith("/client/ledger") || currentPath.startsWith("/admin/client-ledger");
+    }
+    if (path === "/client/projects") {
+      return currentPath.startsWith("/client/projects") || currentPath.includes("/projects");
+    }
+    if (path === "/admin/vendor") {
+      return currentPath.startsWith("/admin/vendor");
+    }
+    if (path === "/admin/candidates/dashboard") {
+      return currentPath.startsWith("/admin/candidates");
+    }
+    if (path === "/admin/settings") {
+      return currentPath.startsWith("/admin/settings");
+    }
     return currentPath === path;
   };
 
-  const navItems = [
-    { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
-    { title: "HR", icon: Users, path: "/admin/dashboard/workforce" },
-    { title: "Client", icon: Building2, path: "/client/dashboard" },
-    { title: "Projects", icon: FolderKanban, path: "/client/projects" },
-    { title: "Vendor", icon: Briefcase, path: "/admin/vendor" },
-    { title: "Candidates", icon: Users, path: "/admin/candidates/dashboard" },
+  // Base navigation definition with module mappings
+  const rawNavItems = [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      path: isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard",
+      alwaysVisible: true,
+    },
+    {
+      title: "HR Management",
+      icon: Users,
+      path: "/admin/dashboard/workforce",
+      moduleId: "employees",
+      check: () => true,
+    },
+    {
+      title: "Client Management",
+      icon: Building2,
+      path: "/client/dashboard",
+      moduleId: "clients",
+      check: () => true,
+    },
+    {
+      title: "Projects",
+      icon: FolderKanban,
+      path: "/client/projects",
+      moduleId: "projects",
+      check: () => true,
+    },
+    {
+      title: "Vendor Management",
+      icon: Briefcase,
+      path: "/admin/vendor",
+      moduleId: "vendors",
+      check: () => true,
+    },
+    {
+      title: "Candidate Management",
+      icon: Users,
+      path: "/admin/candidates/dashboard",
+      moduleId: "candidates",
+      check: () => true,
+    },
+    {
+      title: "Permissions & Admins",
+      icon: KeyRound,
+      path: "/super-admin/permissions",
+      check: () => Boolean(isSuperAdmin),
+      badge: "Super",
+    },
   ];
+
+  // Filter items dynamically: check function takes highest priority
+  const navItems = rawNavItems.filter((item) => {
+    if (typeof item.check === "function") return item.check();
+    if (item.alwaysVisible) return true;
+    if (item.moduleId) return canAccessModule(item.moduleId);
+    return true;
+  });
 
   const adminName =
     (typeof user?.name === "string" ? user.name : user?.name?.first) ||
     user?.email?.split("@")[0] ||
-    "System Admin";
+    (isSuperAdmin ? "Super Admin" : "System Admin");
+
+  const displayRole = isSuperAdmin
+    ? "Super Admin"
+    : role === "HR"
+    ? "HR Manager"
+    : "Administrator";
 
   return (
     <>
@@ -67,7 +157,7 @@ export function AdminMasterSidebar({
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {}
+        {/* Top Header */}
         <div
           className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
@@ -77,7 +167,11 @@ export function AdminMasterSidebar({
             {collapsed ? (
               <ImmiGoIcon size="md" />
             ) : (
-              <ImmiGoLogo size="sm" subtitle="Admin Portal" theme="light" />
+              <ImmiGoLogo
+                size="sm"
+                subtitle={isSuperAdmin ? "Super Admin" : "Operations Portal"}
+                theme="light"
+              />
             )}
           </div>
           {!collapsed && (
@@ -90,11 +184,11 @@ export function AdminMasterSidebar({
           )}
         </div>
 
-        {}
+        {/* Dynamic Navigation Items */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           {!collapsed && (
             <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
-              Admin Management
+              {isSuperAdmin ? "Super Admin Operations" : "Management Modules"}
             </p>
           )}
 
@@ -113,32 +207,42 @@ export function AdminMasterSidebar({
                 }`}
                 title={collapsed ? item.title : undefined}
               >
-                <Icon size={16} className={`shrink-0 ${isItemActive ? "text-white" : "text-slate-500"}`} />
+                <Icon
+                  size={16}
+                  className={`shrink-0 ${isItemActive ? "text-white" : "text-slate-500"}`}
+                />
                 {!collapsed && (
                   <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
                     <span className="truncate">{item.title}</span>
-                    {isItemActive && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
+                    {item.badge && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-sans shadow-2xs">
+                        {item.badge}
+                      </span>
+                    )}
+                    {isItemActive && !item.badge && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                    )}
                   </div>
                 )}
               </Link>
             );
           })}
+
         </div>
 
-        {}
-        <div
-          className={`h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3.5 flex items-center shadow-xs text-blue-200 text-xs shrink-0 ${
-            collapsed ? "justify-center" : "justify-between"
-          }`}
-        >
-          {!collapsed ? (
-            <div className="flex items-center gap-1.5">
-              <Shield size={10} className="text-cyan-400" />
-              <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">Super Admin</span>
-            </div>
-          ) : (
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="System Active"></span>
-          )}
+        {/* Footer matching Dashboard Footer height (48px) with clean Sign Out button */}
+        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
+          <button
+            type="button"
+            onClick={logout}
+            className={`flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group ${
+              collapsed ? "w-8 h-8 px-0" : "w-full px-3"
+            }`}
+            title="Sign Out"
+          >
+            <LogOut size={13} className="shrink-0 transition-transform group-hover:-translate-x-0.5" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
         </div>
       </aside>
     </>

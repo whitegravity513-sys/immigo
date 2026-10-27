@@ -177,15 +177,15 @@ export default function AdminAllCandidates() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-2.5 px-3">Candidate ID</th>
-                <th className="py-2.5 px-3">Full Name</th>
-                <th className="py-2.5 px-3">Contact Details</th>
-                <th className="py-2.5 px-3">Account Status</th>
-                <th className="py-2.5 px-3">Documents</th>
-                <th className="py-2.5 px-3">Job Access</th>
-                <th className="py-2.5 px-3">Profile %</th>
-                <th className="py-2.5 px-3 text-right">Actions</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">Candidate ID</th>
+                <th className="py-3.5 px-4">Full Name</th>
+                <th className="py-3.5 px-4">Contact Details</th>
+                <th className="py-3.5 px-4">Account Status</th>
+                <th className="py-3.5 px-4">Documents</th>
+                <th className="py-3.5 px-4">Job Access</th>
+                <th className="py-3.5 px-4">Profile %</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -207,22 +207,22 @@ export default function AdminAllCandidates() {
               ) : (
                 candidates.map((c) => (
                   <tr key={c.candidateId} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-2.5 px-3 font-mono font-bold text-blue-700 text-[11px]">
+                    <td className="py-3.5 px-4 font-mono font-bold text-blue-700 text-xs">
                       {c.candidateId}
                     </td>
-                    <td className="py-2.5 px-3">
-                      <div className="font-bold text-slate-900">{c.fullName}</div>
-                      <div className="text-[10px] text-slate-500">
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-slate-900 text-sm">{c.fullName}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
                         {c.profile?.trade || c.profile?.preferredJobRole || "Candidate"}
                       </div>
                     </td>
-                    <td className="py-2.5 px-3">
-                      <div className="text-slate-800 font-medium text-[11px]">{c.email}</div>
-                      <div className="text-[10px] text-slate-500">{c.phone}</div>
+                    <td className="py-3.5 px-4">
+                      <div className="text-slate-800 font-medium text-xs">{c.email}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">{c.phone}</div>
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-3.5 px-4">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                           c.accountStatus === "Approved"
                             ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                             : c.accountStatus === "Pending Approval"
@@ -233,9 +233,9 @@ export default function AdminAllCandidates() {
                         {c.accountStatus}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-3.5 px-4">
                       <span
-                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
+                        className={`text-[11px] font-semibold px-2 py-1 rounded-md ${
                           c.documentStatus === "Verified"
                             ? "bg-emerald-100 text-emerald-800"
                             : c.documentStatus === "Pending Verification"
@@ -248,44 +248,44 @@ export default function AdminAllCandidates() {
                         {c.documentStatus}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-3.5 px-4">
                       {c.jobApplicationAccess === "Unlocked" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-700">
-                          <Unlock size={11} />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700">
+                          <Unlock size={13} />
                           Unlocked
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                          <Lock size={11} />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                          <Lock size={13} />
                           Locked
                         </span>
                       )}
                     </td>
-                    <td className="py-2.5 px-3">
-                      <div className="w-14 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <td className="py-3.5 px-4">
+                      <div className="w-16 bg-slate-100 rounded-full h-2 overflow-hidden">
                         <div
-                          className="bg-blue-600 h-1.5 rounded-full"
+                          className="bg-blue-600 h-2 rounded-full"
                           style={{ width: `${c.profile?.profileCompletionPercent || 20}%` }}
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-slate-500 mt-0.5 block">
+                      <span className="text-[10px] font-bold text-slate-500 mt-0.5 block">
                         {c.profile?.profileCompletionPercent || 20}%
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => navigate(`/admin/candidates/${c.candidateId}`)}
-                          className="px-2.5 py-1 text-[11px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
                         >
                           View Profile
                         </button>
                         <button
                           onClick={() => handleDeleteCandidate(c)}
-                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           title="Delete Candidate"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>

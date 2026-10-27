@@ -5,10 +5,10 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import AuthErrorMessage from "./AuthErrorMessage.jsx";
 import RememberForgotRow from "./RememberForgotRow.jsx";
 
-export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
+export default function AdminLoginForm({ onLoginSuccess, onForgotPassword, prefill }) {
   const { login } = useAuth();
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
+  const [identifier, setIdentifier] = useState(prefill?.email || "");
+  const [password, setPassword] = useState(prefill?.password || "");
   const [showPassword, setShowPassword] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -18,30 +18,13 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
   const adminPassRef = useRef(null);
 
   useEffect(() => {
-    const clearBrowserAutofill = () => {
-      if (adminInputRef.current) {
-        const v = String(adminInputRef.current.value || "").trim();
-        if (v.toUpperCase().includes("VESTA") || v.toUpperCase().includes("VISTA")) {
-          adminInputRef.current.value = "";
-          setIdentifier("");
-        }
-      }
-      if (adminPassRef.current) {
-        const p = String(adminPassRef.current.value || "").trim();
-        if (p.toLowerCase().includes("vesta") || p.toLowerCase().includes("vista")) {
-          adminPassRef.current.value = "";
-          setPassword("");
-        }
-      }
-    };
-    clearBrowserAutofill();
-    const interval = setInterval(clearBrowserAutofill, 40);
-    const stopTimer = setTimeout(() => clearInterval(interval), 3000);
-    return () => {
-      clearInterval(interval);
-      clearTimeout(stopTimer);
-    };
-  }, []);
+    if (prefill?.email !== undefined) {
+      setIdentifier(prefill.email);
+    }
+    if (prefill?.password !== undefined) {
+      setPassword(prefill.password);
+    }
+  }, [prefill]);
 
   useEffect(() => {
     if (!error) return;
@@ -49,23 +32,53 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
     return () => clearTimeout(timer);
   }, [error]);
 
-  const handleDemoLogin = async () => {
+  const handleAdminDemoLogin = async () => {
     setError("");
     setLoading(true);
     try {
-      const data = await adminLogin("admin@immigo.com", "12345");
+      const data = await adminLogin("admin@immigo.com", "admin123");
       const token = data?.accessToken || data?.token;
       if (token) {
-        const adminData = { ...(data.admin || {}), role: "admin" };
-        login(token, adminData, "admin");
+        const resolvedRole = "ADMIN";
+        const adminData = { ...(data.admin || {}), role: resolvedRole };
+        if (data.admin?.permissions) {
+          localStorage.setItem("user_permissions", JSON.stringify(data.admin.permissions));
+        }
+        login(token, adminData, resolvedRole);
         if (onLoginSuccess) {
-          onLoginSuccess(token, adminData, "admin");
+          onLoginSuccess(token, adminData, resolvedRole);
         }
       } else {
         setError("Admin authentication failed. Please verify credentials.");
       }
     } catch (err) {
-      setError(err?.response?.data?.message || "Demo login failed.");
+      setError(err?.response?.data?.message || "Admin demo login failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSuperAdminDemoLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const data = await adminLogin("admin@vista.com", "12345");
+      const token = data?.accessToken || data?.token;
+      if (token) {
+        const resolvedRole = "SUPER_ADMIN";
+        const adminData = { ...(data.admin || {}), role: resolvedRole };
+        if (data.admin?.permissions) {
+          localStorage.setItem("user_permissions", JSON.stringify(data.admin.permissions));
+        }
+        login(token, adminData, resolvedRole);
+        if (onLoginSuccess) {
+          onLoginSuccess(token, adminData, resolvedRole);
+        }
+      } else {
+        setError("Super Admin authentication failed. Please verify credentials.");
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || "Super Admin demo login failed.");
     } finally {
       setLoading(false);
     }
@@ -80,21 +93,38 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
       const cleanId = identifier.trim();
       const adminEmail =
         cleanId.toLowerCase() === "admin" || cleanId.toLowerCase() === "superadmin"
-          ? "admin@immigo.com"
+          ? "admin@vista.com"
           : cleanId;
 
       const data = await adminLogin(adminEmail, password);
       const token = data?.accessToken || data?.token;
 
       if (token) {
-        const adminData = { ...(data.admin || {}), role: "admin" };
-        login(token, adminData, "admin");
+        const emailLower = adminEmail.toLowerCase();
+        let resolvedRole = "ADMIN";
+        if (
+          emailLower.includes("super") ||
+          emailLower === "admin@vista.com" ||
+          (data.admin?.role || "").toUpperCase().includes("SUPER")
+        ) {
+          resolvedRole = "SUPER_ADMIN";
+        } else if (emailLower.includes("hr")) {
+          resolvedRole = "HR";
+        } else {
+          resolvedRole = "ADMIN";
+        }
+        const adminData = { ...(data.admin || {}), role: resolvedRole };
+        if (data.admin?.permissions) {
+          localStorage.setItem("user_permissions", JSON.stringify(data.admin.permissions));
+        }
+        login(token, adminData, resolvedRole);
         if (onLoginSuccess) {
-          onLoginSuccess(token, adminData, "admin");
+          onLoginSuccess(token, adminData, resolvedRole);
         }
       } else {
         setError("Admin authentication failed. Please verify your credentials.");
       }
+
     } catch (err) {
       console.error("Admin login error:", err);
       if (err?.code === "ERR_NETWORK" || !err?.response) {
@@ -197,15 +227,27 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword }) {
         )}
       </button>
 
-      <div className="pt-1">
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <button
           type="button"
-          onClick={handleDemoLogin}
+          onClick={handleAdminDemoLogin}
           disabled={loading}
-          className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/70 text-slate-700 hover:text-blue-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
+          className="py-2 px-2.5 rounded-xl border border-dashed border-blue-300 hover:border-blue-600 bg-blue-50/70 hover:bg-blue-100/80 text-blue-800 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-60 truncate"
+          title="Login as System Admin (admin@immigo.com)"
         >
-          <Zap size={14} className="text-amber-500 fill-amber-500" />
-          <span>1-Click Demo Login (Admin)</span>
+          <Zap size={13} className="text-blue-600 fill-blue-600 shrink-0" />
+          <span className="truncate">Demo Admin</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleSuperAdminDemoLogin}
+          disabled={loading}
+          className="py-2 px-2.5 rounded-xl border border-dashed border-indigo-300 hover:border-indigo-600 bg-indigo-50/70 hover:bg-indigo-100/80 text-indigo-900 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-60 truncate"
+          title="Login as Super Admin (admin@vista.com)"
+        >
+          <Zap size={13} className="text-amber-500 fill-amber-500 shrink-0" />
+          <span className="truncate">Demo Super Admin</span>
         </button>
       </div>
     </form>

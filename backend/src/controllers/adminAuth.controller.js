@@ -34,7 +34,7 @@ export const verifyAdminOtp = asyncHandler(async (req, res) => {
 export const adminForgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    throw new ApiError(400, "Administrator email address is required");
+    throw new ApiError(400, "Super Administrator email address is required");
   }
 
   let cleanEmail = String(email).trim().toLowerCase();
@@ -42,21 +42,31 @@ export const adminForgotPassword = asyncHandler(async (req, res) => {
     cleanEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
   }
 
+  const superAdminEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
   let admin = await Admin.findOne({ email: cleanEmail });
   let user = await User.findOne({ email: cleanEmail });
 
-  if (!admin && !user) {
-    if (cleanEmail.includes("admin") || cleanEmail.includes("vista") || cleanEmail.includes("immigo")) {
-      admin = await Admin.create({
-        email: cleanEmail,
-        password: await bcrypt.hash("12345", 10),
-      });
-    } else {
-      throw new ApiError(404, "No administrator account found with this email address.");
-    }
+  const isSuperAdmin =
+    cleanEmail === superAdminEmail ||
+    admin?.role === "SUPER_ADMIN" ||
+    user?.role === "SUPER_ADMIN";
+
+  if (!isSuperAdmin) {
+    throw new ApiError(
+      403,
+      "Password reset is strictly allowed for Super Administrator only. Standard Admin passwords must be managed by the Super Admin."
+    );
   }
 
-  const name = user?.name || "Administrator";
+  if (!admin && !user) {
+    admin = await Admin.create({
+      email: cleanEmail,
+      role: "SUPER_ADMIN",
+      password: await bcrypt.hash("12345", 10),
+    });
+  }
+
+  const name = user?.name || "Super Administrator";
   const ipAddress = req.ip || req.connection?.remoteAddress;
 
   await requestAndSendOtp({
@@ -68,7 +78,7 @@ export const adminForgotPassword = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: `A 6-digit verification OTP has been sent from abhishekyadav36219@gmail.com to ${cleanEmail}. Please enter the OTP to reset your password.`,
+    message: `A 6-digit verification OTP has been sent from abhishekyadav36219@gmail.com to ${cleanEmail}. Please enter the OTP to reset Super Admin password.`,
     email: cleanEmail,
   });
 });
@@ -85,6 +95,22 @@ export const adminResetPassword = asyncHandler(async (req, res) => {
     cleanEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
   }
 
+  const superAdminEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
+  let admin = await Admin.findOne({ email: cleanEmail });
+  let user = await User.findOne({ email: cleanEmail });
+
+  const isSuperAdmin =
+    cleanEmail === superAdminEmail ||
+    admin?.role === "SUPER_ADMIN" ||
+    user?.role === "SUPER_ADMIN";
+
+  if (!isSuperAdmin) {
+    throw new ApiError(
+      403,
+      "Password reset is strictly allowed for Super Administrator only."
+    );
+  }
+
   if (String(newPassword).trim().length < 6) {
     throw new ApiError(400, "New password must be at least 6 characters long");
   }
@@ -97,18 +123,17 @@ export const adminResetPassword = asyncHandler(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(String(newPassword).trim(), 10);
 
-  let admin = await Admin.findOne({ email: cleanEmail });
   if (admin) {
     admin.password = hashedPassword;
     await admin.save();
   } else {
     admin = await Admin.create({
       email: cleanEmail,
+      role: "SUPER_ADMIN",
       password: hashedPassword,
     });
   }
 
-  let user = await User.findOne({ email: cleanEmail });
   if (user) {
     user.passwordHash = hashedPassword;
     user.passwordChangedAt = new Date();
@@ -117,7 +142,7 @@ export const adminResetPassword = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: "Admin password reset successfully! You can now log in with your new password.",
+    message: "Super Admin password reset successfully! You can now log in with your new password.",
   });
 });
 

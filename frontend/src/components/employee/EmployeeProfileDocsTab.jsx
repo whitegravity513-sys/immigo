@@ -283,7 +283,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
   const uploadedDocs = profile?.documents || [];
 
   return (
-    <div className="space-y-3.5 max-w-6xl mx-auto text-slate-800 text-left">
+    <div className="space-y-3.5 w-full text-slate-800 text-left">
       {errorMsg && (
         <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-medium">
           <AlertCircle size={15} className="shrink-0" />

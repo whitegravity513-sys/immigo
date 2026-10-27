@@ -932,8 +932,15 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
   if (remark !== undefined) stages[sIdx].remark = remark;
   if (document !== undefined) stages[sIdx].document = document;
 
-  if (status === "Completed" && prevStatus !== "Completed") {
+  if (status === "Completed") {
     stages[sIdx].completedAt = new Date().toISOString();
+    if (sIdx + 1 < stages.length) {
+      if (stages[sIdx + 1].status === "Locked" || stages[sIdx + 1].status === "Pending") {
+        stages[sIdx + 1].status = "In Progress";
+      }
+    }
+  } else if (prevStatus === "Completed" && status !== "Completed") {
+    stages[sIdx].completedAt = null;
   }
 
   milestones[mIdx].stages = stages;
@@ -942,14 +949,29 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
   if (allStagesCompleted) {
     milestones[mIdx].status = "Completed";
     if (mIdx + 1 < milestones.length) {
-      if (milestones[mIdx + 1].status === "Locked") {
-        milestones[mIdx + 1].status =
-          (milestones[mIdx + 1].paymentAmount || 0) > 0 ? "Payment Required" : "Active";
-        if (milestones[mIdx + 1].paymentStatus === "Locked") {
-          milestones[mIdx + 1].paymentStatus =
-            (milestones[mIdx + 1].paymentAmount || 0) > 0 ? "Payment Required" : "Not Required";
+      const nextM = milestones[mIdx + 1];
+      const nextAmt = Number(nextM.amount || nextM.paymentAmount || 0);
+      const isNextPaid = nextM.paymentStatus === "Approved" || nextM.status === "Paid";
+
+      if (isNextPaid || nextAmt === 0) {
+        nextM.status = "Active";
+        if (!isNextPaid) nextM.paymentStatus = "Not Required";
+        if (Array.isArray(nextM.stages) && nextM.stages.length > 0) {
+          nextM.stages.forEach((stg, idx) => {
+            if (stg.status === "Locked") {
+              stg.status = idx === 0 ? "In Progress" : "Pending";
+            } else if (idx === 0 && stg.status === "Pending") {
+              stg.status = "In Progress";
+            }
+          });
         }
+      } else {
+        nextM.status = "Payment Required";
+        nextM.paymentStatus = "Payment Required";
       }
+    } else {
+      app.status = "Selected";
+      app.deploymentStatus = "Deployed";
     }
   }
 
@@ -1021,22 +1043,28 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
   }
 
   const paidAmt = Number(amount) || Number(milestones[mIdx].paymentAmount) || 15000;
-  const refNum = referenceNumber.trim() || `REF-${Date.now().toString().slice(-6)}`;
+  const isCash = String(paymentMode).toLowerCase().includes("cash");
+  const refNum = referenceNumber.trim() || (isCash ? `CASH-${Date.now().toString().slice(-6)}` : `REF-${Date.now().toString().slice(-6)}`);
   const receiptNum = `INV-${app.applicationId || app.id}-${milestoneId}`;
   const payDate = paymentDate || new Date().toISOString().split("T")[0];
 
   milestones[mIdx].paymentStatus = "Approved";
   milestones[mIdx].status = "Active";
   milestones[mIdx].paymentAmount = paidAmt;
+  milestones[mIdx].paymentMode = paymentMode;
   milestones[mIdx].paymentRef = refNum;
   milestones[mIdx].paymentDate = payDate;
   milestones[mIdx].approvedBy = req.user?.name || "Admin";
-  milestones[mIdx].paymentRemark = remarks || `Payment recorded by ${req.user?.name || "Admin"}`;
+  milestones[mIdx].paymentRemark = remarks || `Payment (${paymentMode}) recorded & verified by ${req.user?.name || "Admin"}`;
 
   if (Array.isArray(milestones[mIdx].stages) && milestones[mIdx].stages.length > 0) {
-    if (milestones[mIdx].stages[0].status === "Locked") {
-      milestones[mIdx].stages[0].status = "In Progress";
-    }
+    milestones[mIdx].stages.forEach((stg, sIdx) => {
+      if (stg.status === "Locked") {
+        stg.status = sIdx === 0 ? "In Progress" : "Pending";
+      } else if (sIdx === 0 && stg.status === "Pending") {
+        stg.status = "In Progress";
+      }
+    });
   }
 
   if (!Array.isArray(app.payments)) {
@@ -1130,7 +1158,6 @@ export const deleteCandidate = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Candidate not found." });
   }
 
-  // Remove linked applications
   await CandidateApplication.deleteMany({
     $or: [{ candidateId: candidate.candidateId }, { candidate: candidate._id }],
   });
@@ -1155,4 +1182,3 @@ export const deleteCandidate = asyncHandler(async (req, res) => {
     message: `Candidate ${candidate.fullName} (${candidate.candidateId}) deleted successfully.`,
   });
 });
-
