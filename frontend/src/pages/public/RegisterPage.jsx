@@ -250,7 +250,7 @@ export default function RegisterPage() {
                           onChange={(e) =>
                             setFormData({ ...formData, email: e.target.value })
                           }
-                          placeholder="e.g. rajesh@example.com"
+                          placeholder="Enter your email address"
                           className="w-full pl-10 pr-3 py-2.5 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                         />
                       </div>

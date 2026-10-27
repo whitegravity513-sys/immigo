@@ -212,7 +212,7 @@ export default function CandidateLogin() {
                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. rahul@example.com"
+                    placeholder="Enter your email address"
                     className="w-full pl-11 pr-4 py-3 rounded-full border border-slate-300 focus:border-[#3b2875] focus:ring-2 focus:ring-[#3b2875]/10 bg-white text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium transition outline-none shadow-2xs"
                   />
                 </div>

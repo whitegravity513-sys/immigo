@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import env from "../config/env.js";
 import Candidate from "../models/Candidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
@@ -691,12 +692,14 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   const targetMilestoneId = req.params.milestoneId || req.body.milestoneId;
   const {
     amount,
-    paymentMode = "Online UPI",
+    paymentMode = "Razorpay Online",
     referenceNumber = "",
     paymentReference = "",
     paymentNotes = "",
     remarks = "",
-    isInstantMock = true,
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
   } = req.body;
 
   const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
@@ -717,20 +720,30 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     return res.status(404).json({ success: false, message: "Milestone not found." });
   }
 
-  const paidAmt = Number(amount) || Number(milestones[mIdx].paymentAmount) || 15000;
+  const expectedAmount = Number(milestones[mIdx].paymentAmount || milestones[mIdx].amount || 0);
+  const paidAmt = Number(amount) || expectedAmount || 0;
   const refNum =
-    (referenceNumber || paymentReference || "").trim() ||
+    (referenceNumber || paymentReference || razorpay_payment_id || "").trim() ||
     `TXN-${Date.now().toString().slice(-8)}`;
   const receiptNum = `INV-${app.applicationId || app.id}-${targetMilestoneId}`;
   const payDate = new Date().toISOString().split("T")[0];
   const notesText = paymentNotes || remarks || `Paid via ${paymentMode}`;
 
-  const isAutoApproved =
-    isInstantMock ||
-    paymentMode === "Online" ||
-    paymentMode === "Razorpay Online" ||
-    paymentMode === "Online UPI" ||
-    paymentMode === "Card";
+  let isAutoApproved = false;
+  const keySecret = env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+
+  if (razorpay_order_id && razorpay_payment_id && razorpay_signature && keySecret) {
+    const payload = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSig = crypto
+      .createHmac("sha256", keySecret)
+      .update(payload)
+      .digest("hex");
+    const expBuf = Buffer.from(expectedSig, "utf8");
+    const recBuf = Buffer.from(razorpay_signature, "utf8");
+    if (expBuf.length === recBuf.length && crypto.timingSafeEqual(expBuf, recBuf)) {
+      isAutoApproved = true;
+    }
+  }
 
   if (isAutoApproved) {
     milestones[mIdx].paymentStatus = "Approved";
@@ -738,7 +751,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     milestones[mIdx].paymentAmount = paidAmt;
     milestones[mIdx].paymentRef = refNum;
     milestones[mIdx].paymentDate = payDate;
-    milestones[mIdx].approvedBy = paymentMode.includes("Razorpay") ? "Razorpay Gateway" : "Online Auto-Verify";
+    milestones[mIdx].approvedBy = "Razorpay Gateway (Verified)";
     milestones[mIdx].paymentRemark = notesText;
 
     if (Array.isArray(milestones[mIdx].stages) && milestones[mIdx].stages.length > 0) {
@@ -770,7 +783,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     receiptNumber: receiptNum,
     paymentDate: payDate,
     status: isAutoApproved ? "Verified" : "Pending Verification",
-    verifiedBy: isAutoApproved ? "Online Auto-Verify" : "Pending Admin Verification",
+    verifiedBy: isAutoApproved ? "Razorpay Gateway (Verified)" : "Pending Admin Verification",
     notes: paymentNotes || `Candidate payment via ${paymentMode}`,
     createdAt: new Date(),
   };
