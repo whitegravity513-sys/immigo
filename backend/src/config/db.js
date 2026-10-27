@@ -38,15 +38,15 @@ export const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(mongoUri, {
-      maxPoolSize: 10,           
-      minPoolSize: 2,
+      maxPoolSize: 50,
+      minPoolSize: 10,
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
       heartbeatFrequencyMS: 10000,
       retryWrites: true,
       retryReads: true,
-      autoIndex: false, 
+      autoIndex: false,
     });
 
     isConnected = true;
