@@ -124,6 +124,21 @@ export const deleteNotification = asyncHandler(async (req, res) => {
   const conds = [{ notificationId: id }, { id: id }];
   if (isMongoId) conds.push({ _id: id });
   await CrmNotification.deleteMany({ $or: conds });
+
+  try {
+    const Notification = mongoose.models.Notification || mongoose.model("Notification");
+    if (Notification) {
+      const notifConds = [
+        { notificationId: id },
+        { id: id },
+        { "metadata.id": id },
+        { "metadata.notificationId": id },
+      ];
+      if (isMongoId) notifConds.push({ _id: new mongoose.Types.ObjectId(id) });
+      await Notification.deleteMany({ $or: notifConds });
+    }
+  } catch {}
+
   return res.status(200).json({ success: true, message: "Notification deleted successfully" });
 });
 

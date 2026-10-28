@@ -301,34 +301,34 @@ export default function WorkforceDashboardSection({
   };
 
   return (
-    <div className="space-y-3.5 text-slate-800">
+    <div className="space-y-2.5 text-slate-800">
       {isFullRegisterPage ? (
-        <div className="bg-white rounded-xl border border-slate-200/90 px-3.5 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="bg-white rounded-xl border border-slate-200/90 px-3 py-2 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <button
               type="button"
               onClick={() => navigateTo("workforce")}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+              className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
               title="Return to Main Dashboard"
             >
-              <ArrowLeft size={14} />
+              <ArrowLeft size={13} />
               <span>Back</span>
             </button>
-            <div className="min-w-0 flex items-center gap-2 flex-wrap">
-              <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+            <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
+              <h1 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                 <span>Daily Attendance</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">
                   {filteredAttendance.length} Total
                 </span>
               </h1>
               <span className="hidden sm:inline text-slate-300">|</span>
-              <p className="text-[11px] text-slate-500 font-medium truncate">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
                 Shift punches, work time & status logs
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
             <button
               type="button"
               onClick={() => {
@@ -337,42 +337,42 @@ export default function WorkforceDashboardSection({
                   fetchDateAttendance(selectedDate);
                 }
               }}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
               title="Refresh data"
             >
-              <RefreshCw size={12} className={loadingDateAttendance ? "animate-spin" : ""} />
+              <RefreshCw size={11} className={loadingDateAttendance ? "animate-spin" : ""} />
               <span>Refresh</span>
             </button>
             <button
               type="button"
               onClick={handleExportCSV}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
               title="Download attendance CSV"
             >
-              <Download size={12} />
+              <Download size={11} />
               <span>Export CSV</span>
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border border-slate-200/90 p-2.5 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold shadow-2xs shrink-0">
-                <Users size={18} />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold shadow-2xs shrink-0">
+                <Users size={15} />
               </div>
               <div className="min-w-0">
-                <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">
+                <h1 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight truncate">
                   Workforce Operations Dashboard
                 </h1>
-                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
+                <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
                   Real-time staff tracker, leave approvals & attendance register
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
             <button
               type="button"
               onClick={() => {
@@ -382,19 +382,19 @@ export default function WorkforceDashboardSection({
                   fetchDateAttendance(selectedDate);
                 }
               }}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer"
               title="Refresh dashboard data"
             >
-              <RefreshCw size={13} className={loadingDateAttendance ? "animate-spin" : ""} />
+              <RefreshCw size={12} className={loadingDateAttendance ? "animate-spin" : ""} />
               <span>Refresh</span>
             </button>
 
             <button
               type="button"
               onClick={openAddModal}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs shadow-blue-600/20 active:scale-95 cursor-pointer"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs shadow-blue-600/20 active:scale-95 cursor-pointer"
             >
-              <UserPlus size={13} />
+              <UserPlus size={12} />
               <span>Register Employee</span>
             </button>
           </div>

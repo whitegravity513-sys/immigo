@@ -410,105 +410,105 @@ export default function EmpHomeOverview({
       )}
 
       {/* 4 Attendance Stat Cards in 1 Single Row */}
-      <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full">
-        <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full">
+        <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-900 uppercase tracking-wider truncate">Present</span>
-            <div className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <CheckCircle2 size={12} />
+            <span className="text-[9.5px] sm:text-[10px] font-bold text-emerald-900 uppercase tracking-wider truncate">Present</span>
+            <div className="w-4.5 h-4.5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <CheckCircle2 size={11} />
             </div>
           </div>
-          <div className="mt-1">
-            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
-              {attStats.presentDays ?? 0} <span className="text-[10px] font-bold text-emerald-800">Days</span>
+          <div className="mt-0.5">
+            <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
+              {attStats.presentDays ?? 0} <span className="text-[9.5px] font-bold text-emerald-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title={`Since Joining (${formattedJoiningDate})`}>
+            <div className="text-[8.5px] font-medium text-slate-500 mt-0.5 truncate" title={`Since Joining (${formattedJoiningDate})`}>
               ● Since {formattedJoiningDate}
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-rose-200/90 hover:border-rose-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-rose-200/90 hover:border-rose-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-bold text-rose-900 uppercase tracking-wider truncate">Absent</span>
-            <div className="w-5 h-5 rounded-md bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <AlertCircle size={12} />
+            <span className="text-[9.5px] sm:text-[10px] font-bold text-rose-900 uppercase tracking-wider truncate">Absent</span>
+            <div className="w-4.5 h-4.5 rounded-md bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <AlertCircle size={11} />
             </div>
           </div>
-          <div className="mt-1">
-            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
-              {attStats.absentDays ?? 0} <span className="text-[10px] font-bold text-rose-800">Days</span>
+          <div className="mt-0.5">
+            <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
+              {attStats.absentDays ?? 0} <span className="text-[9.5px] font-bold text-rose-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title="Working Days Missed">
+            <div className="text-[8.5px] font-medium text-slate-500 mt-0.5 truncate" title="Working Days Missed">
               ● Days Missed
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-blue-200/90 hover:border-blue-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-blue-200/90 hover:border-blue-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-bold text-blue-900 uppercase tracking-wider truncate">On Leave</span>
-            <div className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <CalendarPlus size={12} />
+            <span className="text-[9.5px] sm:text-[10px] font-bold text-blue-900 uppercase tracking-wider truncate">On Leave</span>
+            <div className="w-4.5 h-4.5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <CalendarPlus size={11} />
             </div>
           </div>
-          <div className="mt-1">
-            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
-              {attStats.leaveDays ?? 0} <span className="text-[10px] font-bold text-blue-800">Days</span>
+          <div className="mt-0.5">
+            <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
+              {attStats.leaveDays ?? 0} <span className="text-[9.5px] font-bold text-blue-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title="Approved Leaves Taken">
+            <div className="text-[8.5px] font-medium text-slate-500 mt-0.5 truncate" title="Approved Leaves Taken">
               ● Approved Leaves
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-amber-200/90 hover:border-amber-300 p-2 sm:p-2.5 shadow-2xs transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-amber-200/90 hover:border-amber-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-bold text-amber-900 uppercase tracking-wider truncate">Half Day</span>
-            <div className="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <Clock size={12} />
+            <span className="text-[9.5px] sm:text-[10px] font-bold text-amber-900 uppercase tracking-wider truncate">Half Day</span>
+            <div className="w-4.5 h-4.5 rounded-md bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <Clock size={11} />
             </div>
           </div>
-          <div className="mt-1">
-            <div className="text-sm sm:text-base font-bold text-slate-900 tabular-nums">
-              {attStats.halfDays ?? 0} <span className="text-[10px] font-bold text-amber-800">Days</span>
+          <div className="mt-0.5">
+            <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums">
+              {attStats.halfDays ?? 0} <span className="text-[9.5px] font-bold text-amber-800">Days</span>
             </div>
-            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate" title="Shifts Under 8 Hours">
+            <div className="text-[8.5px] font-medium text-slate-500 mt-0.5 truncate" title="Shifts Under 8 Hours">
               ● Under 8 Hours
             </div>
           </div>
         </div>
       </div>
 
-      <div className="p-3 sm:p-3.5 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-start sm:items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
-              <ShieldCheck size={16} />
+      <div className="p-2 sm:p-2.5 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-start sm:items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
+              <ShieldCheck size={14} />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                   Daily Attendance Verification
                 </span>
-                <span className="text-[11px] font-semibold text-slate-500">
+                <span className="text-[10px] font-semibold text-slate-500">
                   Today: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 </span>
               </div>
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className="text-xs font-semibold text-slate-800">
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                <span className="text-[11px] font-semibold text-slate-800">
                   Status: <strong className="text-blue-900 font-bold">{status}</strong>
                 </span>
                 <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-600">
+                <span className="text-[11px] text-slate-600">
                   In: <strong className="font-semibold text-slate-800">{statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "Not marked"}</strong>
                 </span>
                 <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-600">
+                <span className="text-[11px] text-slate-600">
                   Out: <strong className="font-semibold text-slate-800">{statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : (status === "Active" ? "In Progress" : "Pending")}</strong>
                 </span>
                 <span className="text-slate-300">•</span>
-                <span className="text-xs text-slate-600">
+                <span className="text-[11px] text-slate-600">
                   Worked: <strong className="font-semibold text-slate-800">{fmtDur(workSeconds)}</strong>
                 </span>
               </div>
@@ -517,9 +517,9 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
         <div className="lg:col-span-6 flex flex-col">
-          <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-3.5 shadow-xs flex flex-col justify-between">
+          <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-blue-600/10 text-blue-600 flex items-center justify-center">

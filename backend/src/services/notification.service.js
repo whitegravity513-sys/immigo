@@ -151,7 +151,35 @@ export class NotificationService {
   }
 
   static async deleteNotification(id) {
-    await Notification.findByIdAndDelete(id);
+    if (!id) return { success: true };
+    const sId = String(id);
+    const isMongoId = mongoose.Types.ObjectId.isValid(sId);
+
+    const filterOr = [
+      { notificationId: sId },
+      { id: sId },
+      { "metadata.id": sId },
+      { "metadata.notificationId": sId },
+    ];
+    if (isMongoId) {
+      filterOr.push({ _id: new mongoose.Types.ObjectId(sId) });
+    }
+
+    try {
+      await Notification.deleteMany({ $or: filterOr });
+    } catch (e) {
+      console.warn("Notification delete warning:", e?.message);
+    }
+
+    try {
+      const CrmNotification = mongoose.models.CrmNotification || mongoose.model("CrmNotification");
+      if (CrmNotification) {
+        const crmConds = [{ notificationId: sId }, { id: sId }];
+        if (isMongoId) crmConds.push({ _id: new mongoose.Types.ObjectId(sId) });
+        await CrmNotification.deleteMany({ $or: crmConds });
+      }
+    } catch {}
+
     return { success: true };
   }
 

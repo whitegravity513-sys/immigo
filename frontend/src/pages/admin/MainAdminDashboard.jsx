@@ -341,47 +341,47 @@ export function MainAdminDashboard() {
         <div className="space-y-3">
           
           {/* Top Section: Workforce Card + 6 Management Summary Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <div className="lg:col-span-1 p-3 sm:p-3.5 rounded-lg bg-indigo-600 text-white shadow-xs flex flex-col justify-between overflow-hidden relative">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-2.5">
+            <div className="lg:col-span-1 p-2 sm:p-2.5 rounded-lg bg-indigo-600 text-white shadow-xs flex flex-col justify-between overflow-hidden relative">
               <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
               <div>
-                <h2 className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-1">Company Workforce</h2>
-                <div className="text-2xl font-bold mt-0.5">{stats.totalEmployees}</div>
-                <div className="text-[11px] text-indigo-100 mt-1.5 font-medium bg-white/15 inline-block px-2.5 py-0.5 rounded-full">
+                <h2 className="text-[11px] font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Company Workforce</h2>
+                <div className="text-xl sm:text-2xl font-bold mt-0.5">{stats.totalEmployees}</div>
+                <div className="text-[10px] text-indigo-100 mt-1 font-medium bg-white/15 inline-block px-2 py-0.5 rounded-full">
                   {stats.presentToday > 0 ? `${stats.presentToday} present today` : stats.newEmployeesThisMonth > 0 ? `+${stats.newEmployeesThisMonth} new this month` : "Active staff"}
                 </div>
               </div>
-              <Link to="/admin/dashboard/workforce" className="mt-3 pt-2 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
+              <Link to="/admin/dashboard/workforce" className="mt-2 pt-1.5 border-t border-indigo-500/50 flex items-center justify-between text-xs font-bold hover:text-white group">
                 <span>View HR Dashboard</span>
-                <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-colors">
-                  <ArrowRight size={12} />
+                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-colors">
+                  <ArrowRight size={11} />
                 </span>
               </Link>
             </div>
 
-            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
               {summaryCards.slice(1, 7).map((card) => {
                 const Icon = card.icon;
                 return (
                   <Link
                     key={card.title}
                     to={card.to}
-                    className="p-2.5 sm:p-3 bg-white rounded-lg border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-indigo-300 transition-all duration-200 group flex flex-col justify-between relative overflow-hidden"
+                    className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-indigo-300 transition-all duration-200 group flex flex-col justify-between relative overflow-hidden"
                   >
-                    <div className="flex items-center justify-between gap-1 mb-2 relative z-10">
-                      <span className={`p-1.5 rounded-lg border font-bold ${card.badgeBg}`}>
-                        <Icon size={15} />
+                    <div className="flex items-center justify-between gap-1 mb-1.5 relative z-10">
+                      <span className={`p-1 rounded-md border font-bold ${card.badgeBg}`}>
+                        <Icon size={13} />
                       </span>
-                      <span className="text-[9px] font-bold text-slate-500 group-hover:text-indigo-600 transition-colors bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 truncate max-w-[110px]">
+                      <span className="text-[8.5px] font-bold text-slate-500 group-hover:text-indigo-600 transition-colors bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 truncate max-w-[100px]">
                         {card.trend}
                       </span>
                     </div>
 
                     <div className="relative z-10">
-                      <p className="text-lg font-bold text-slate-800 tracking-tight leading-none mb-1 group-hover:text-indigo-600 transition-colors">
+                      <p className="text-base sm:text-lg font-bold text-slate-800 tracking-tight leading-none mb-0.5 group-hover:text-indigo-600 transition-colors">
                         {card.value}
                       </p>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                      <p className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider truncate">
                         {card.title}
                       </p>
                     </div>
@@ -392,51 +392,51 @@ export function MainAdminDashboard() {
           </div>
 
           {/* Real-time Candidate & Recruitment Operations Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2">
             <Link
               to="/admin/candidates/new-registrations"
-              className="p-2 sm:p-2.5 bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              className="p-1.5 sm:p-2 bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/70 rounded-lg transition-all group flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-amber-800">
-                <span className="text-[10px] font-bold uppercase tracking-wider">New Registrations</span>
-                <Clock size={12} className="text-amber-600" />
+                <span className="text-[9px] font-bold uppercase tracking-wider">New Registrations</span>
+                <Clock size={11} className="text-amber-600" />
               </div>
-              <div className="text-base sm:text-lg font-bold text-amber-950 mt-1">
+              <div className="text-sm sm:text-base font-bold text-amber-950 mt-0.5">
                 {stats.pendingRegistrations}
               </div>
-              <span className="text-[9px] text-amber-700/80 font-semibold group-hover:underline">
+              <span className="text-[8.5px] text-amber-700/80 font-semibold group-hover:underline">
                 Review &rarr;
               </span>
             </Link>
 
             <Link
               to="/admin/candidates/documents"
-              className="p-2 sm:p-2.5 bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              className="p-1.5 sm:p-2 bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/70 rounded-lg transition-all group flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-indigo-800">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Pending Docs</span>
-                <FileText size={12} className="text-indigo-600" />
+                <span className="text-[9px] font-bold uppercase tracking-wider">Pending Docs</span>
+                <FileText size={11} className="text-indigo-600" />
               </div>
-              <div className="text-base sm:text-lg font-bold text-indigo-950 mt-1">
+              <div className="text-sm sm:text-base font-bold text-indigo-950 mt-0.5">
                 {stats.pendingDocuments}
               </div>
-              <span className="text-[9px] text-indigo-700/80 font-semibold group-hover:underline">
+              <span className="text-[8.5px] text-indigo-700/80 font-semibold group-hover:underline">
                 Verify docs &rarr;
               </span>
             </Link>
 
             <Link
               to="/admin/candidates/applications"
-              className="p-2 sm:p-2.5 bg-sky-50/70 hover:bg-sky-100/80 border border-sky-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              className="p-1.5 sm:p-2 bg-sky-50/70 hover:bg-sky-100/80 border border-sky-200/70 rounded-lg transition-all group flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-sky-800">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Applications</span>
-                <Briefcase size={12} className="text-sky-600" />
+                <span className="text-[9px] font-bold uppercase tracking-wider">Applications</span>
+                <Briefcase size={11} className="text-sky-600" />
               </div>
-              <div className="text-base sm:text-lg font-bold text-sky-950 mt-1">
+              <div className="text-sm sm:text-base font-bold text-sky-950 mt-0.5">
                 {stats.totalApplications}
               </div>
-              <span className="text-[9px] text-sky-700/80 font-semibold group-hover:underline">
+              <span className="text-[8.5px] text-sky-700/80 font-semibold group-hover:underline">
                 View pipeline &rarr;
               </span>
             </Link>

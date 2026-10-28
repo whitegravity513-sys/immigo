@@ -9,11 +9,30 @@ export default function NotificationBell({ className }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
-  const deletedAdminIdsRef = useRef(new Set());
   const lastAdminReadAllTsRef = useRef(0);
+
+  const getDeletedAdminIds = () => {
+    try {
+      const stored = localStorage.getItem("immigo_deleted_admin_notifications_v1");
+      return new Set(stored ? JSON.parse(stored) : []);
+    } catch {
+      return new Set();
+    }
+  };
+
+  const getClearedTs = () => {
+    try {
+      return parseInt(localStorage.getItem("immigo_admin_notifs_cleared_ts") || "0", 10) || 0;
+    } catch {
+      return 0;
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
+      const deletedIds = getDeletedAdminIds();
+      const clearedTs = getClearedTs();
+
       let backendNotifs = [];
       try {
         const res = await apiClient.get("/admin/notifications?limit=50");
@@ -52,7 +71,19 @@ export default function NotificationBell({ className }) {
       const seen = new Set();
       const merged = all.filter((n) => {
         const key = String(n._id || n.id || `${n.title}-${n.createdAt}`);
-        if (deletedAdminIdsRef.current.has(key)) return false;
+        const id1 = String(n._id || "");
+        const id2 = String(n.id || "");
+        const titleKey = `${n.title || ""}-${n.createdAt || ""}`;
+
+        if (deletedIds.has(key) || (id1 && deletedIds.has(id1)) || (id2 && deletedIds.has(id2)) || deletedIds.has(titleKey)) {
+          return false;
+        }
+
+        const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
+        if (clearedTs && itemTime && itemTime <= clearedTs) {
+          return false;
+        }
+
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -145,29 +176,55 @@ export default function NotificationBell({ className }) {
   const handleDeleteOne = async (id, e) => {
     if (e) e.stopPropagation();
     const sId = String(id || "");
-    deletedAdminIdsRef.current.add(sId);
 
+    const deletedIds = getDeletedAdminIds();
+    deletedIds.add(sId);
+
+    // Also find matching item to blacklist title-createdAt
+    let targetItem = null;
     setNotifications((prev) => {
-      const item = prev.find((n) => String(n._id) === sId || String(n.id) === sId);
-      if (item && !item.read && !item.isRead) {
+      targetItem = prev.find((n) => String(n._id) === sId || String(n.id) === sId);
+      if (targetItem) {
+        if (targetItem._id) deletedIds.add(String(targetItem._id));
+        if (targetItem.id) deletedIds.add(String(targetItem.id));
+        if (targetItem.notificationId) deletedIds.add(String(targetItem.notificationId));
+        if (targetItem.title && targetItem.createdAt) {
+          deletedIds.add(`${targetItem.title}-${targetItem.createdAt}`);
+        }
+      }
+      if (targetItem && !targetItem.read && !targetItem.isRead) {
         setUnreadCount((c) => Math.max(0, c - 1));
       }
       return prev.filter((n) => String(n._id) !== sId && String(n.id) !== sId);
     });
 
     try {
-      if (sId.startsWith("admin-notif-")) {
-        crmVendorService.deleteAdminNotification(sId);
-      } else {
-        await apiClient.delete(`/admin/notifications/${sId}`).catch(() => {});
+      localStorage.setItem("immigo_deleted_admin_notifications_v1", JSON.stringify(Array.from(deletedIds)));
+    } catch {}
+
+    try {
+      crmVendorService.deleteAdminNotification(sId);
+      if (targetItem) {
+        if (targetItem.id) crmVendorService.deleteAdminNotification(String(targetItem.id));
+        if (targetItem._id) crmVendorService.deleteAdminNotification(String(targetItem._id));
       }
-      await apiClient.delete(`/crm-sync/notifications/${sId}`).catch(() => {});
+    } catch {}
+
+    try {
+      await Promise.allSettled([
+        apiClient.delete(`/admin/notifications/${sId}`),
+        apiClient.delete(`/crm-sync/notifications/${sId}`),
+      ]);
     } catch (err) {
       console.error("Failed to delete notification:", err);
     }
   };
 
   const handleClearAll = async () => {
+    try {
+      localStorage.setItem("immigo_admin_notifs_cleared_ts", Date.now().toString());
+    } catch {}
+
     setNotifications([]);
     setUnreadCount(0);
     try {

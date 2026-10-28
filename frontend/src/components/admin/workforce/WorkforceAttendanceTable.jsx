@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Calendar,
   Search,
@@ -8,6 +8,7 @@ import {
   Eye,
   ArrowRight,
   ArrowLeft,
+  MoreVertical,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 
@@ -28,18 +29,20 @@ export function WorkforceAttendanceTable({
   openEmployeeDetail,
   navigateTo,
 }) {
+  const [actionMenuOpenId, setActionMenuOpenId] = useState(null);
+
   return (
     <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-      <div className="px-3.5 py-2 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 px-2 py-1 bg-white rounded-lg shadow-2xs border border-slate-200/80 shrink-0">
-            <Calendar size={13} className="text-blue-600 shrink-0" />
+      <div className="px-3 py-1.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-white rounded-lg shadow-2xs border border-slate-200/80 shrink-0">
+            <Calendar size={12} className="text-blue-600 shrink-0" />
             <input
               type="date"
               value={selectedDate}
               max={todayDate}
               onChange={(e) => handleDateChange(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer max-w-[125px]"
+              className="bg-transparent text-[11px] font-bold text-slate-800 outline-none cursor-pointer max-w-[120px]"
               title="Select date to inspect past attendance"
             />
           </div>
@@ -48,13 +51,13 @@ export function WorkforceAttendanceTable({
             <button
               type="button"
               onClick={() => handleDateChange(todayDate)}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-600 text-white shadow-2xs hover:bg-blue-700 transition-all cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-600 text-white shadow-2xs hover:bg-blue-700 transition-all cursor-pointer shrink-0"
               title="Jump back to today's live shift"
             >
               <span>Go to Today</span>
             </button>
           ) : (
-            <span className="text-[11px] text-slate-500 font-medium">
+            <span className="text-[10px] text-slate-500 font-medium">
               Today's Live Shift
             </span>
           )}
@@ -67,13 +70,13 @@ export function WorkforceAttendanceTable({
         </div>
 
         <div className="relative w-full sm:w-auto">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={liveSearch}
             onChange={(e) => setLiveSearch(e.target.value)}
             placeholder="Search staff..."
-            className="w-full sm:w-44 pl-8 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full sm:w-40 pl-7 pr-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
@@ -206,24 +209,24 @@ export function WorkforceAttendanceTable({
         )}
       </div>
 
-      <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="hidden md:block overflow-x-auto w-full">
+        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
           <thead>
-            <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-              <th className="px-3 py-2">Employee & Emails</th>
-              <th className="px-2.5 py-2">Department & Role</th>
-              <th className="px-2.5 py-2">Attendance Status</th>
-              <th className="px-2.5 py-2">Check In</th>
-              <th className="px-2.5 py-2">Check Out</th>
-              <th className="px-2.5 py-2">Break</th>
-              <th className="px-2.5 py-2">Net Work</th>
-              <th className="px-3 py-2 text-right">Actions</th>
+            <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
+              <th className="px-3 py-2 w-[24%]">Employee</th>
+              <th className="px-3 py-2 w-[16%]">Department & Role</th>
+              <th className="px-3 py-2 w-[15%]">Attendance Status</th>
+              <th className="px-2.5 py-2 w-[11%]">Check In</th>
+              <th className="px-2.5 py-2 w-[11%]">Check Out</th>
+              <th className="px-2 py-2 w-[8%]">Break</th>
+              <th className="px-2.5 py-2 w-[10%]">Net Work</th>
+              <th className="px-2 py-2 w-[5%] text-center">Options</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
             {displayedAttendance.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-slate-400 text-xs font-semibold">
+                <td colSpan={8} className="px-3 py-6 text-center text-slate-400 text-xs font-semibold">
                   No attendance records found for this date and filter.
                 </td>
               </tr>
@@ -244,66 +247,54 @@ export function WorkforceAttendanceTable({
                 const mins = Math.floor((totalWorkSec % 3600) / 60);
                 const workDurStr = totalWorkSec > 0 ? `${hrs}h ${mins}m` : "—";
                 const info = getAttendanceInfo(rep);
+                const isMenuOpen = actionMenuOpenId === actualEmpId;
 
                 return (
                   <tr
                     key={rep.employeeId || rep._id || actualEmpId}
-                    className="hover:bg-blue-50/25 transition-colors"
+                    className="hover:bg-blue-50/30 transition-colors"
                   >
-                    <td className="px-3 py-1.5">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-md ${rep.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
-                          {rep.profileImage ? (
-                            <img src={rep.profileImage} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            safeName.charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              onClick={() => openEmployeeDetail(actualEmpId)}
-                              className="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer truncate text-xs"
-                            >
-                              {safeName}
-                            </span>
-                            <EmployeeIdBadge
-                              id={rep.employeeCode || rep.employeeId}
-                              size="xs"
-                              onClick={() => openEmployeeDetail(actualEmpId)}
-                              title="Click to view employee profile details"
-                            />
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-mono truncate leading-none mt-0.5">
-                            {rep.email || "No email"}
-                          </div>
-                        </div>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1.5 flex-nowrap min-w-0">
+                        <span
+                          onClick={() => openEmployeeDetail(actualEmpId)}
+                          className="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer whitespace-nowrap text-xs truncate max-w-[130px] sm:max-w-none"
+                          title={safeName}
+                        >
+                          {safeName}
+                        </span>
+                        <EmployeeIdBadge
+                          id={rep.employeeCode || rep.employeeId}
+                          size="xs"
+                          onClick={() => openEmployeeDetail(actualEmpId)}
+                          title="Click to view employee profile details"
+                        />
                       </div>
                     </td>
 
-                    <td className="px-2.5 py-1.5">
-                      <div className="font-semibold text-slate-800 text-xs leading-tight">{rep.department || "General"}</div>
-                      <div className="text-[10px] text-slate-400 leading-none mt-0.5">{rep.designation || "Staff"}</div>
+                    <td className="px-3 py-2">
+                      <div className="font-semibold text-slate-800 text-xs truncate">{rep.department || "General"}</div>
+                      <div className="text-[10px] text-slate-400 truncate mt-0.5">{rep.designation || "Staff"}</div>
                     </td>
 
-                    <td className="px-2.5 py-1.5">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${info.badgeClass}`}
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold border uppercase tracking-wider whitespace-nowrap ${info.badgeClass}`}
                       >
                         {info.icon}
                         {info.label}
                       </span>
                     </td>
 
-                    <td className="px-2.5 py-1.5 font-mono font-medium text-slate-700 text-xs">
+                    <td className="px-2.5 py-2 font-mono font-medium text-slate-700 text-[11px] whitespace-nowrap">
                       {formatTime(rep.checkInTime)}
                     </td>
 
-                    <td className="px-2.5 py-1.5 font-mono font-medium text-slate-700 text-xs">
+                    <td className="px-2.5 py-2 font-mono font-medium text-slate-700 text-[11px] whitespace-nowrap">
                       {formatTime(rep.checkOutTime)}
                     </td>
 
-                    <td className="px-2.5 py-1.5 font-mono text-slate-600 text-xs">
+                    <td className="px-2 py-2 font-mono text-slate-600 text-[11px] whitespace-nowrap">
                       {rep.totalBreakSeconds ? (
                         <span className={rep.totalBreakSeconds > 3600 ? "text-rose-600 font-bold" : ""}>
                           {Math.floor(rep.totalBreakSeconds / 60)}m
@@ -313,36 +304,68 @@ export function WorkforceAttendanceTable({
                       )}
                     </td>
 
-                    <td className="px-2.5 py-1.5 font-mono font-bold text-blue-900 text-xs">
+                    <td className="px-2.5 py-2 font-mono font-bold text-blue-900 text-xs whitespace-nowrap">
                       {workDurStr}
                     </td>
 
-                    <td className="px-3 py-1.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-2 py-2 text-center whitespace-nowrap relative">
+                      <div className="relative inline-block text-left">
                         <button
                           type="button"
-                          onClick={() => {
-                            setEditingAttendance({
-                              ...rep,
-                              date: selectedDate,
-                            });
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActionMenuOpenId(isMenuOpen ? null : actualEmpId);
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-md text-[11px] font-bold transition-colors cursor-pointer border border-amber-200"
-                          title="Edit / Adjust attendance time"
+                          className={`p-1 rounded-md border transition-all cursor-pointer ${
+                            isMenuOpen
+                              ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                              : "bg-slate-50 hover:bg-slate-200/80 text-slate-600 border-slate-200"
+                          }`}
+                          title="Actions menu"
                         >
-                          <Edit3 size={10} />
-                          <span>Edit</span>
+                          <MoreVertical size={13} />
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => openEmployeeDetail(actualEmpId)}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-700 rounded-md text-[11px] font-bold transition-colors cursor-pointer border border-slate-200/80"
-                          title="View Profile"
-                        >
-                          <Eye size={10} />
-                          <span>Profile</span>
-                        </button>
+                        {isMenuOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-20 cursor-default"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActionMenuOpenId(null);
+                              }}
+                            />
+                            <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-30 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActionMenuOpenId(null);
+                                  setEditingAttendance({
+                                    ...rep,
+                                    date: selectedDate,
+                                  });
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-amber-50 hover:text-amber-800 transition-colors cursor-pointer"
+                              >
+                                <Edit3 size={12} className="text-amber-600 shrink-0" />
+                                <span>Edit Attendance</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActionMenuOpenId(null);
+                                  openEmployeeDetail(actualEmpId);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer border-t border-slate-100"
+                              >
+                                <Eye size={12} className="text-blue-600 shrink-0" />
+                                <span>View Profile</span>
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -23,25 +23,26 @@ export const AdminHeader = ({
     (typeof window !== "undefined" && window.location.pathname.startsWith("/hr"));
   const getSectionTitle = (v) => {
     const titles = {
-      workforce: isHR ? "Dashboard" : "Workforce Management Hub",
-      live: isHR ? "Dashboard" : "Live Attendance Monitor",
+      workforce: "Dashboard",
+      live: "Dashboard",
       dashboard: "Dashboard",
-      employees: "Employee Directory",
+      "attendance-all": "Daily Attendance",
+      employees: "Employees Directory",
+      "register-employee": "Register New Employee",
       leaves: "Leave Approvals",
       summary: "Attendance Summary",
-      holidays: "Holidays",
-      meetings: "Company Calendar & Meetings",
-      calendar: "Company Calendar & Meetings",
+      announcements: "Announcements & Holidays",
+      holidays: "Announcements & Holidays",
       "monthly-report": "Monthly Reports",
-      "employee-detail": "Employee Profile",
+      expenses: "Expense Management",
       "expense-categories": "Expense Categories",
       "expense-form": "Record Expense",
       "expense-report": "Expense Analytics",
-      expenses: "Corporate Expense Hub",
-      announcements: "Company Announcements",
-      "attendance-all": "Daily Attendance Register",
+      meetings: "Calendar & Meetings",
+      calendar: "Calendar & Meetings",
+      "employee-detail": "Employee Profile",
     };
-    return titles[v] || (isHR ? "Dashboard" : "HR Operations");
+    return titles[v] || "Dashboard";
   };
 
   return (
