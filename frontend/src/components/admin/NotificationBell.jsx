@@ -85,7 +85,11 @@ export default function NotificationBell({ className }) {
     };
     window.addEventListener("immigo:admin-notification", handleImmediateWakeup);
     window.addEventListener("storage", handleImmediateWakeup);
-    const interval = setInterval(fetchNotifications, 3000);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        fetchNotifications();
+      }
+    }, 25000);
     return () => {
       window.removeEventListener("immigo:admin-notification", handleImmediateWakeup);
       window.removeEventListener("storage", handleImmediateWakeup);

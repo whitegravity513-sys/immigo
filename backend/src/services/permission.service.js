@@ -12,38 +12,56 @@ import {
 } from "../constants/permissions.js";
 import { ApiError } from "../utils/apiError.js";
 
+const permissionCache = new Map();
+const CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
 export class PermissionService {
+  static invalidateUserCache(userId) {
+    if (userId) {
+      permissionCache.delete(String(userId));
+    } else {
+      permissionCache.clear();
+    }
+  }
+
   static async resolveUserPermissions(user) {
     if (!user) {
       return { isSuperAdmin: false, permissions: [], role: null };
     }
 
+    const userIdStr = String(user._id || user.id || "");
+    const cached = permissionCache.get(userIdStr);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.result;
+    }
+
     const normalizedRole = (user.role || "").toUpperCase().replace(/[\s_-]/g, "");
 
     if (normalizedRole === "SUPERADMIN" || user.role === ROLES.SUPER_ADMIN) {
-      return {
+      const result = {
         isSuperAdmin: true,
         permissions: ["*"],
         role: ROLES.SUPER_ADMIN,
       };
+      if (userIdStr) permissionCache.set(userIdStr, { result, timestamp: Date.now() });
+      return result;
     }
 
     let roleDefaults = ROLE_DEFAULT_PERMISSIONS[user.role] || [];
+    let assigned = [];
+    let denied = [];
+
     try {
       if (mongoose.connection?.readyState === 1) {
-        const roleDoc = await Role.findOne({ name: user.role });
+        const [roleDoc, userPerm] = await Promise.all([
+          Role.findOne({ name: user.role }).lean(),
+          UserPermission.findOne({ userId: user._id || user.id }).lean(),
+        ]);
+
         if (roleDoc && Array.isArray(roleDoc.defaultPermissions) && roleDoc.defaultPermissions.length > 0) {
           roleDefaults = roleDoc.defaultPermissions;
         }
-      }
-    } catch {
-    }
 
-    let assigned = [];
-    let denied = [];
-    try {
-      if (mongoose.connection?.readyState === 1) {
-        const userPerm = await UserPermission.findOne({ userId: user._id || user.id });
         if (userPerm) {
           assigned = userPerm.assignedPermissions || [];
           denied = userPerm.deniedPermissions || [];
@@ -53,16 +71,20 @@ export class PermissionService {
     }
 
     const combined = new Set([...roleDefaults, ...assigned]);
-
     denied.forEach((perm) => combined.delete(perm));
-
     const finalPermissions = Array.from(combined);
 
-    return {
+    const result = {
       isSuperAdmin: false,
       permissions: finalPermissions,
       role: user.role,
     };
+
+    if (userIdStr) {
+      permissionCache.set(userIdStr, { result, timestamp: Date.now() });
+    }
+
+    return result;
   }
 
   static hasPermission(effectivePermissions = [], requiredPermission) {
@@ -145,6 +167,8 @@ export class PermissionService {
     }
 
     await existingRecord.save();
+    this.invalidateUserCache(targetAdminId);
+    this.invalidateUserCache(effectiveTargetId);
 
     targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1;
     await targetUser.save();

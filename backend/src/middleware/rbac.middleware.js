@@ -7,6 +7,17 @@ import { ROLES } from "../constants/roles.js";
 import PermissionService from "../services/permission.service.js";
 import { extractToken } from "./auth.middleware.js";
 
+const userAuthCache = new Map();
+const USER_CACHE_TTL_MS = 30 * 1000; // 30 seconds
+
+export const invalidateUserAuthCache = (userId) => {
+  if (userId) {
+    userAuthCache.delete(String(userId));
+  } else {
+    userAuthCache.clear();
+  }
+};
+
 export const authenticateRBAC = async (req, res, next) => {
   const token = extractToken(req);
   if (!token) {
@@ -41,7 +52,16 @@ export const authenticateRBAC = async (req, res, next) => {
     });
   }
 
-  let user = await User.findById(userId);
+  let user = null;
+  const cachedUserEntry = userAuthCache.get(String(userId));
+  if (cachedUserEntry && Date.now() - cachedUserEntry.ts < USER_CACHE_TTL_MS) {
+    user = cachedUserEntry.user;
+  } else {
+    user = await User.findById(userId);
+    if (user) {
+      userAuthCache.set(String(userId), { user, ts: Date.now() });
+    }
+  }
 
   if (!user && (decoded.email || decoded.role === "ADMIN")) {
     const adminDoc = await Admin.findById(userId);

@@ -33,9 +33,13 @@ export class AdminAuthService {
       cleanPassword === "Abhi@123" ||
       cleanPassword === "SuperAdmin@2026!";
 
-    let user = await User.findOne({ email: cleanEmail }).select("+passwordHash");
+    const [userDoc, adminDoc] = await Promise.all([
+      User.findOne({ email: cleanEmail }).select("+passwordHash"),
+      Admin.findOne({ email: cleanEmail }),
+    ]);
 
-    let admin = await Admin.findOne({ email: cleanEmail });
+    let user = userDoc;
+    let admin = adminDoc;
 
     if (!user && !admin) {
       const hashedPassword = await bcrypt.hash(cleanPassword, 10);

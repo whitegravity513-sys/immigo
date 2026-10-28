@@ -66,7 +66,11 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 3000);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        fetchNotifications();
+      }
+    }, 25000);
     return () => clearInterval(interval);
   }, [token]);
 

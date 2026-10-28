@@ -31,7 +31,11 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
 
   useEffect(() => {
     refreshNotifications();
-    const interval = setInterval(refreshNotifications, 3000);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        refreshNotifications();
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, [vendor?.id]);
 

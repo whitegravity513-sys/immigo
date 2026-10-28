@@ -57,7 +57,11 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
     };
 
     syncVendor();
-    const timer = setInterval(syncVendor, 3000);
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        syncVendor();
+      }
+    }, 30000);
     window.addEventListener("focus", syncVendor);
     window.addEventListener("storage", syncVendor);
 

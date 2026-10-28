@@ -46,7 +46,7 @@ export const connectDB = async () => {
       heartbeatFrequencyMS: 10000,
       retryWrites: true,
       retryReads: true,
-      autoIndex: false,
+      autoIndex: true,
     });
 
     isConnected = true;

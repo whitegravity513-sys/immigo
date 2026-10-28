@@ -152,7 +152,11 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     if (token) {
       const activeViews = ["live", "dashboard", "workforce", "attendance-all", "leaves", "employees", "employee-detail"];
       if (activeViews.includes(view)) {
-        const iv = setInterval(() => fetchAdminReports(), 2000);
+        const iv = setInterval(() => {
+          if (typeof document !== "undefined" && !document.hidden) {
+            fetchAdminReports();
+          }
+        }, 20000);
         const handleFocus = () => fetchAdminReports();
         window.addEventListener("focus", handleFocus);
         return () => {
