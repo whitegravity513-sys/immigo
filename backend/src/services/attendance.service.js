@@ -585,6 +585,25 @@ export class AttendanceService {
         (l) => l.employeeId?.toString() === emp._id.toString()
       );
 
+      const resolvedName =
+        (typeof emp.name === "string" && emp.name.trim()) ? emp.name.trim() :
+        emp.personalInfo?.fullName?.trim() ||
+        (emp.name?.first ? `${emp.name.first} ${emp.name.last}`.trim() : "") ||
+        emp.fullName ||
+        emp.email?.split("@")[0] ||
+        "Employee";
+
+      const resolvedDesignation =
+        emp.designation ||
+        emp.employmentDetails?.designation ||
+        emp.role ||
+        "Employee";
+
+      const resolvedDepartment =
+        emp.department ||
+        emp.employmentDetails?.department ||
+        "General";
+
       if (record) {
         let calculatedWorkSeconds = record.totalWorkSeconds || 0;
 
@@ -644,12 +663,12 @@ export class AttendanceService {
           _id: record._id.toString(),
           employeeId: emp._id.toString(),
           employeeCode: emp.employeeId,
-          name: emp.name,
+          name: resolvedName,
           email: emp.email,
           personalEmail: emp.personalEmail || "",
           phone: emp.phone || "",
-          department: emp.department || "General",
-          designation: emp.designation || "Employee",
+          department: resolvedDepartment,
+          designation: resolvedDesignation,
           employeeStatus: emp.status || "active",
           date: record.date,
           status: currentStatus,
@@ -692,12 +711,12 @@ export class AttendanceService {
         _id: `virtual-${emp._id}`,
         employeeId: emp._id.toString(),
         employeeCode: emp.employeeId,
-        name: emp.name,
+        name: resolvedName,
         email: emp.email,
         personalEmail: emp.personalEmail || "",
         phone: emp.phone || "",
-        department: emp.department || "General",
-        designation: emp.designation || "Employee",
+        department: resolvedDepartment,
+        designation: resolvedDesignation,
         employeeStatus: emp.status || "active",
         date: queryDate,
         status: defaultStatus,

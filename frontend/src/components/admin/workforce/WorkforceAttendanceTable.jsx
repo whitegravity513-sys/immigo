@@ -32,8 +32,8 @@ export function WorkforceAttendanceTable({
   const [actionMenuOpenId, setActionMenuOpenId] = useState(null);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-      <div className="px-3 py-1.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs relative">
+      <div className="px-3 py-1.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-t-xl">
         <div className="flex items-center gap-1.5 flex-wrap">
           <div className="flex items-center gap-1 px-2 py-0.5 bg-white rounded-lg shadow-2xs border border-slate-200/80 shrink-0">
             <Calendar size={12} className="text-blue-600 shrink-0" />
@@ -81,7 +81,7 @@ export function WorkforceAttendanceTable({
         </div>
       </div>
 
-      <div className="block lg:hidden p-2.5 space-y-2">
+      <div className="block md:hidden p-2.5 space-y-2">
         {displayedAttendance.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
             <p className="font-bold text-slate-600">No attendance records found</p>
@@ -93,11 +93,13 @@ export function WorkforceAttendanceTable({
               rep.employeeId ||
               (typeof rep._id === "string" ? rep._id.replace(/^virtual-/, "") : rep._id);
             const safeName =
-              typeof rep?.name === "string"
-                ? rep.name
-                : rep?.name?.first
-                ? `${rep.name.first} ${rep.name.last}`
-                : String(rep?.name || "Employee");
+              (typeof rep?.name === "string" && rep.name.trim() && rep.name !== "Employee")
+                ? rep.name.trim()
+                : rep?.personalInfo?.fullName?.trim() ||
+                  (rep?.name?.first ? `${rep.name.first} ${rep.name.last}`.trim() : "") ||
+                  rep?.fullName ||
+                  rep?.email?.split("@")[0] ||
+                  "Staff";
 
             const totalWorkSec = rep.totalWorkSeconds || 0;
             const hrs = Math.floor(totalWorkSec / 3600);
@@ -209,18 +211,18 @@ export function WorkforceAttendanceTable({
         )}
       </div>
 
-      <div className="hidden md:block overflow-x-auto w-full">
-        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+      <div className="hidden md:block w-full">
+        <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
-              <th className="px-3 py-2 w-[24%]">Employee</th>
-              <th className="px-3 py-2 w-[16%]">Department & Role</th>
-              <th className="px-3 py-2 w-[15%]">Attendance Status</th>
-              <th className="px-2.5 py-2 w-[11%]">Check In</th>
-              <th className="px-2.5 py-2 w-[11%]">Check Out</th>
-              <th className="px-2 py-2 w-[8%]">Break</th>
-              <th className="px-2.5 py-2 w-[10%]">Net Work</th>
-              <th className="px-2 py-2 w-[5%] text-center">Options</th>
+              <th className="px-2.5 py-2 w-[25%]">Employee</th>
+              <th className="px-2 py-2 w-[16%]">Department & Role</th>
+              <th className="px-2 py-2 w-[16%]">Attendance Status</th>
+              <th className="px-2 py-2 w-[11%]">Check In</th>
+              <th className="px-2 py-2 w-[11%]">Check Out</th>
+              <th className="px-1.5 py-2 w-[7%]">Break</th>
+              <th className="px-2 py-2 w-[9%]">Net Work</th>
+              <th className="px-1.5 py-2 w-[5%] text-center">Options</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
@@ -236,11 +238,13 @@ export function WorkforceAttendanceTable({
                   rep.employeeId ||
                   (typeof rep._id === "string" ? rep._id.replace(/^virtual-/, "") : rep._id);
                 const safeName =
-                  typeof rep?.name === "string"
-                    ? rep.name
-                    : rep?.name?.first
-                    ? `${rep.name.first} ${rep.name.last}`
-                    : String(rep?.name || "Employee");
+                  (typeof rep?.name === "string" && rep.name.trim() && rep.name !== "Employee")
+                    ? rep.name.trim()
+                    : rep?.personalInfo?.fullName?.trim() ||
+                      (rep?.name?.first ? `${rep.name.first} ${rep.name.last}`.trim() : "") ||
+                      rep?.fullName ||
+                      rep?.email?.split("@")[0] ||
+                      "Staff";
 
                 const totalWorkSec = rep.totalWorkSeconds || 0;
                 const hrs = Math.floor(totalWorkSec / 3600);
@@ -254,11 +258,11 @@ export function WorkforceAttendanceTable({
                     key={rep.employeeId || rep._id || actualEmpId}
                     className="hover:bg-blue-50/30 transition-colors"
                   >
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-1.5 flex-nowrap min-w-0">
+                    <td className="px-2.5 py-2 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <span
                           onClick={() => openEmployeeDetail(actualEmpId)}
-                          className="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer whitespace-nowrap text-xs truncate max-w-[130px] sm:max-w-none"
+                          className="font-bold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer truncate text-xs shrink min-w-0"
                           title={safeName}
                         >
                           {safeName}
@@ -272,29 +276,29 @@ export function WorkforceAttendanceTable({
                       </div>
                     </td>
 
-                    <td className="px-3 py-2">
+                    <td className="px-2 py-2 min-w-0">
                       <div className="font-semibold text-slate-800 text-xs truncate">{rep.department || "General"}</div>
                       <div className="text-[10px] text-slate-400 truncate mt-0.5">{rep.designation || "Staff"}</div>
                     </td>
 
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-2 py-2 min-w-0">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold border uppercase tracking-wider whitespace-nowrap ${info.badgeClass}`}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-bold border uppercase tracking-wider truncate max-w-full ${info.badgeClass}`}
                       >
                         {info.icon}
-                        {info.label}
+                        <span className="truncate">{info.label}</span>
                       </span>
                     </td>
 
-                    <td className="px-2.5 py-2 font-mono font-medium text-slate-700 text-[11px] whitespace-nowrap">
-                      {formatTime(rep.checkInTime)}
+                    <td className="px-2 py-2 font-mono font-medium text-slate-700 text-[11px] truncate">
+                      {formatTime(rep.checkInTime) || "—"}
                     </td>
 
-                    <td className="px-2.5 py-2 font-mono font-medium text-slate-700 text-[11px] whitespace-nowrap">
-                      {formatTime(rep.checkOutTime)}
+                    <td className="px-2 py-2 font-mono font-medium text-slate-700 text-[11px] truncate">
+                      {formatTime(rep.checkOutTime) || (info.isPresent ? "In Shift" : "—")}
                     </td>
 
-                    <td className="px-2 py-2 font-mono text-slate-600 text-[11px] whitespace-nowrap">
+                    <td className="px-1.5 py-2 font-mono text-slate-600 text-[11px] truncate">
                       {rep.totalBreakSeconds ? (
                         <span className={rep.totalBreakSeconds > 3600 ? "text-rose-600 font-bold" : ""}>
                           {Math.floor(rep.totalBreakSeconds / 60)}m
@@ -304,11 +308,11 @@ export function WorkforceAttendanceTable({
                       )}
                     </td>
 
-                    <td className="px-2.5 py-2 font-mono font-bold text-blue-900 text-xs whitespace-nowrap">
+                    <td className="px-2 py-2 font-mono font-bold text-blue-900 text-xs truncate">
                       {workDurStr}
                     </td>
 
-                    <td className="px-2 py-2 text-center whitespace-nowrap relative">
+                    <td className="px-1.5 py-2 text-center whitespace-nowrap relative">
                       <div className="relative inline-block text-left">
                         <button
                           type="button"
@@ -329,13 +333,13 @@ export function WorkforceAttendanceTable({
                         {isMenuOpen && (
                           <>
                             <div
-                              className="fixed inset-0 z-20 cursor-default"
+                              className="fixed inset-0 z-40 cursor-default"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setActionMenuOpenId(null);
                               }}
                             />
-                            <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-30 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
+                            <div className="absolute right-0 bottom-full mb-1.5 w-40 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
                               <button
                                 type="button"
                                 onClick={(e) => {

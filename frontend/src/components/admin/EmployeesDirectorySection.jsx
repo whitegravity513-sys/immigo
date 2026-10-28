@@ -152,13 +152,13 @@ export default function EmployeesDirectorySection({
                         {isMenuOpen && (
                           <>
                             <div
-                              className="fixed inset-0 z-20 cursor-default"
+                              className="fixed inset-0 z-40 cursor-default"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setActionOpenId(null);
                               }}
                             />
-                            <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-30 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
+                            <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
                               <button
                                 type="button"
                                 onClick={(e) => {
