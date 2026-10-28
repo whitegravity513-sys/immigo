@@ -34,16 +34,16 @@ export default function ProjectInvoiceList({
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[750px]">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
           <thead>
-            <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              <th className="px-6 py-4">Invoice ID</th>
-              <th className="px-6 py-4">Project</th>
-              <th className="px-6 py-4">Client / Company</th>
-              <th className="px-6 py-4">Invoice Date</th>
-              <th className="px-6 py-4">Total Amount</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+            <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              <th className="px-3 py-2">Invoice ID</th>
+              <th className="px-3 py-2">Project</th>
+              <th className="px-3 py-2">Client / Company</th>
+              <th className="px-3 py-2">Invoice Date</th>
+              <th className="px-3 py-2">Total Amount</th>
+              <th className="px-3 py-2 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">

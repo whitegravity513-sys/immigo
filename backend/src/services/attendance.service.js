@@ -954,10 +954,11 @@ export class AttendanceService {
       const empRecords = records.filter((r) => r.employeeId?.toString() === emp._id.toString());
       const empLeaves = leaves.filter((l) => l.employeeId?.toString() === emp._id.toString());
 
+      const empJoiningDate = emp.joiningDate || emp.employmentDetails?.joiningDate;
       let joiningDateStr = null;
-      if (emp.joiningDate) {
+      if (empJoiningDate) {
         try {
-          const d = new Date(emp.joiningDate);
+          const d = new Date(empJoiningDate);
           if (!isNaN(d.getTime())) {
             joiningDateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(d);
           }
@@ -988,15 +989,35 @@ export class AttendanceService {
       const leaveDays = empLeaves.reduce((acc, l) => acc + (l.totalDays || 0), 0);
       const absentDays = Math.max(0, pastApplicableWorkingDays.length - presentCount - halfDayCount - leaveDays);
 
+      const resolvedName =
+        (typeof emp.name === "string" && emp.name.trim()) ? emp.name.trim() :
+        emp.personalInfo?.fullName?.trim() ||
+        (emp.name?.first ? `${emp.name.first} ${emp.name.last}`.trim() : "") ||
+        emp.fullName ||
+        emp.email?.split("@")[0] ||
+        "Employee";
+
+      const resolvedDesignation =
+        emp.designation ||
+        emp.employmentDetails?.designation ||
+        emp.role ||
+        "Staff";
+
+      const resolvedDepartment =
+        emp.department ||
+        emp.employmentDetails?.department ||
+        "";
+
       return {
         _id: emp._id.toString(),
         id: emp._id.toString(),
         employeeId: emp.employeeId,
         employeeCode: emp.employeeId,
-        name: typeof emp.name === "string" ? emp.name : (emp.name?.first ? `${emp.name.first} ${emp.name.last}` : String(emp.name || "")),
-        designation: emp.designation,
+        name: resolvedName,
+        designation: resolvedDesignation,
+        department: resolvedDepartment,
         status: emp.status || "active",
-        joiningDate: emp.joiningDate,
+        joiningDate: empJoiningDate,
         leaveBalance: emp.leaveBalance ?? 0,
         nextMonthLeaves: emp.nextMonthLeaves ?? 0,
         nextMonthLeaveEarned: 1.5,

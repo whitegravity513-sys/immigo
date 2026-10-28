@@ -25,8 +25,8 @@ export function EmployeeLeavesTab({
           </p>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[500px]">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
           <thead>
             <tr>
               {[

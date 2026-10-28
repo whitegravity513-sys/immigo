@@ -43,16 +43,20 @@ export default function LeaveApprovalsSection({
           <p className="text-[11px] text-slate-500">Review employee leave claims and approve or reject inline directly (No popups)</p>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[750px]">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
           <thead>
-            <tr>
-              {["Employee", "Dates", "Requested Days", "Reason", "Document", "Status", "Actions"].map(h => (
-                <th key={h} className="px-3 py-2 text-slate-500 font-bold uppercase text-[10px] tracking-wider bg-slate-50/50 border-b border-slate-100">{h}</th>
-              ))}
+            <tr className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+              <th className="px-2.5 sm:px-3 py-2 w-[22%]">Employee</th>
+              <th className="px-2.5 sm:px-3 py-2 w-[18%]">Dates</th>
+              <th className="px-2 sm:px-2.5 py-2 w-[11%]">Requested Days</th>
+              <th className="px-2.5 sm:px-3 py-2 w-[17%]">Reason</th>
+              <th className="px-2 sm:px-2.5 py-2 w-[10%]">Document</th>
+              <th className="px-2.5 sm:px-3 py-2 w-[11%]">Status</th>
+              <th className="px-2.5 sm:px-3 py-2 w-[11%]">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {(Array.isArray(leavesReport) ? leavesReport : []).map(leave => {
               if (!leave) return null;
               const days = leave.deductedDays ?? leave.totalDays ?? 1;
@@ -67,61 +71,62 @@ export default function LeaveApprovalsSection({
               const isSubmittingThis = submittingId === leave._id;
 
               return (
-                <tr key={leave._id || Math.random()} className="hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
-                  <td className="px-3 sm:px-6 py-1.5 text-sm">
+                <tr key={leave._id || Math.random()} className="hover:bg-slate-50/30 transition-colors">
+                  <td className="px-2.5 sm:px-3 py-1.5 text-xs">
                     {empId ? (
-                      <div>
+                      <div className="min-w-0">
                         <button
-                          className="font-bold text-blue-700 hover:underline cursor-pointer text-sm text-left block"
+                          className="font-bold text-blue-700 hover:underline cursor-pointer text-xs text-left block truncate max-w-[150px]"
                           onClick={() => openEmployeeDetail && openEmployeeDetail(empId, "leaves")}
+                          title={empName}
                         >
                           {empName}
                         </button>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[11px] text-slate-500 font-medium">{empCode}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-slate-500 font-medium truncate">{empCode}</span>
                         </div>
                       </div>
                     ) : (
                       <span className="text-rose-600 font-semibold text-xs">{empName}</span>
                     )}
                   </td>
-                  <td className="px-3 sm:px-6 py-1.5 text-xs text-slate-700">
-                    <div className="flex flex-col gap-0.5">
+                  <td className="px-2.5 sm:px-3 py-1.5 text-xs text-slate-700">
+                    <div className="flex flex-col gap-0.5 text-[11px]">
                       <div><strong className="text-slate-500">From:</strong> <span className="font-semibold">{formatDate(leave.startDate)}</span></div>
                       <div><strong className="text-slate-500">To:</strong> <span className="font-semibold">{formatDate(leave.endDate)}</span></div>
                     </div>
                   </td>
-                  <td className="px-3 sm:px-6 py-1.5 text-xs">
-                    <span className="font-mono font-bold text-slate-800 text-sm block">
+                  <td className="px-2 sm:px-2.5 py-1.5 text-xs">
+                    <span className="font-mono font-bold text-slate-800 text-xs block">
                       {days} Day(s)
                     </span>
                   </td>
-                  <td className="px-3 sm:px-6 py-1.5 text-sm text-slate-600 max-w-[200px] truncate" title={leave.reason}>
+                  <td className="px-2.5 sm:px-3 py-1.5 text-xs text-slate-600 truncate" title={leave.reason}>
                     {leave.reason}
                   </td>
-                  <td className="px-3 sm:px-6 py-1.5 text-sm">
+                  <td className="px-2 sm:px-2.5 py-1.5 text-xs">
                     {leave.document ? (
                       <button
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer w-fit transition"
+                        className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[11px] font-bold flex items-center gap-1 cursor-pointer w-fit transition"
                         onClick={() => setPreviewDoc && setPreviewDoc(leave.document)}
                       >
-                        <Eye size={12} /> View File
+                        <Eye size={11} /> File
                       </button>
                     ) : (
-                      <span className="text-xs text-slate-400 italic">None Attached</span>
+                      <span className="text-[11px] text-slate-400 italic">None</span>
                     )}
                   </td>
-                  <td className="px-3 sm:px-6 py-1.5 text-sm">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded-lg border w-fit ${leave.status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : leave.status === "Rejected" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+                  <td className="px-2.5 sm:px-3 py-1.5 text-xs">
+                    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-md border w-fit ${leave.status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : leave.status === "Rejected" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
                       {leave.status}
                     </span>
                     {leave.adminRemark && (
-                      <div className="text-[11px] text-slate-600 font-medium mt-1 max-w-[220px]" title={leave.adminRemark}>
-                        <strong className="text-slate-800 font-bold">Remark:</strong> {leave.adminRemark}
+                      <div className="text-[10px] text-slate-500 font-medium mt-0.5 truncate max-w-[150px]" title={leave.adminRemark}>
+                        <strong className="text-slate-700 font-bold">R:</strong> {leave.adminRemark}
                       </div>
                     )}
                   </td>
-                  <td className="px-3 sm:px-6 py-1.5 text-sm">
+                  <td className="px-2.5 sm:px-3 py-1.5 text-xs">
                     {isRejectingThis ? (
                       <div className="flex flex-col gap-2 p-2.5 bg-rose-50/90 border border-rose-200 rounded-xl min-w-[250px] animate-in fade-in duration-150">
                         <span className="text-[11px] font-bold text-rose-800 flex items-center gap-1">

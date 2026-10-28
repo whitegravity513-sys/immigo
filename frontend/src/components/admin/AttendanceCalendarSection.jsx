@@ -345,8 +345,8 @@ export default function AttendanceCalendarSection({
           </div>
         </div>
 
-        <div className="overflow-x-auto pb-1">
-          <div className="min-w-[700px]">
+        <div className="overflow-x-auto w-full pb-1">
+          <div className="w-full">
             <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <span className="text-rose-600">Sun</span>
               <span>Mon</span>
@@ -597,8 +597,8 @@ export default function AttendanceCalendarSection({
             <p className="text-xs text-slate-400 mt-0.5">Try resetting search or status filters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-200/90 shadow-2xs">
-            <table className="w-full text-left border-collapse min-w-[850px]">
+          <div className="overflow-x-auto w-full rounded-xl border border-slate-200/90 shadow-2xs">
+            <table className="w-full text-left border-collapse table-auto sm:table-fixed">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="px-3 py-2 text-[10px]">Employee</th>

@@ -736,8 +736,8 @@ export default function ExpensesSection({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[700px]">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse table-auto sm:table-fixed">
               <thead>
                 <tr>
                   {["Employee", "Date", "Category / Desc", "Amount", "Receipt", "Status", "Admin Action"].map(h => (

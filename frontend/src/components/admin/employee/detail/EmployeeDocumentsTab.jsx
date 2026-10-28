@@ -132,8 +132,8 @@ export function EmployeeDocumentsTab({
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[650px]">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
             <thead>
               <tr>
                 {[

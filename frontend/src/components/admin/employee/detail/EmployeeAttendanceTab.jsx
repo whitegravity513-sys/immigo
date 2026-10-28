@@ -429,8 +429,8 @@ export function EmployeeAttendanceTab({
       </div>
 
       {employeeDetailView === "table" ? (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
             <thead>
               <tr>
                 {[

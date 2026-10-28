@@ -135,12 +135,12 @@ export default function LiveAttendanceSection({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[750px]">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
             <thead>
               <tr className="bg-slate-100/90 border-b border-slate-300">
                 {["Employee", "Check-In", "Check-Out", "Note", "Lunch", "Break", "Total Break", "Net Work", "Status", ""].map((h, i) => (
-                  <th key={i} className="px-3 py-2 text-slate-600 font-bold uppercase text-[10px] tracking-wider whitespace-nowrap">
+                  <th key={i} className="px-2 py-2 text-slate-600 font-bold uppercase text-[9.5px] tracking-wider whitespace-nowrap">
                     {h}
                   </th>
                 ))}

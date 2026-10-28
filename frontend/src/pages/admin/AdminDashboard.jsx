@@ -286,6 +286,7 @@ function AdminDashboard({ user, token, onLogout }) {
       setSummaryYear={setSummaryYear}
       summaryLoading={summaryLoading}
       summaryData={summaryData}
+      employees={employees}
       fetchSummary={fetchSummary}
       openEmployeeDetail={openEmployeeDetail}
       inlineLeaveEdit={inlineLeaveEdit}
