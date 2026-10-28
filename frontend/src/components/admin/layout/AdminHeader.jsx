@@ -1,12 +1,9 @@
-import { Link } from "react-router-dom";
 import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
   ChevronRight,
   Shield,
-  LayoutDashboard,
-  LogOut,
 } from "lucide-react";
 import NotificationBell from "../NotificationBell.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -97,41 +94,14 @@ export const AdminHeader = ({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-
-          {/* Switch to Admin/Super Admin Dashboard link only for Admins, not for HR */}
-          {!isHR && (
-            <Link
-              to={isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard"}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/40 hover:bg-blue-600 text-cyan-200 hover:text-white border border-cyan-400/30 transition-all duration-150 cursor-pointer text-xs font-bold shadow-xs"
-              title={isSuperAdmin ? "Super Admin Dashboard" : "Admin Dashboard"}
-            >
-              <LayoutDashboard size={14} className="text-cyan-400" />
-              <span className="hidden sm:inline">{isSuperAdmin ? "Super Admin" : "Admin"} Dashboard</span>
-            </Link>
-          )}
-
-          <div className="hidden md:flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-800/60 border border-blue-600/40 text-[10px] font-bold text-cyan-300 uppercase tracking-widest">
-            <Shield size={11} className="text-cyan-400" />
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-800/60 border border-blue-600/40 text-xs font-bold text-cyan-300 uppercase tracking-wider shadow-xs">
+            <Shield size={13} className="text-cyan-400" />
             <span>{isHR ? "HR Portal" : isSuperAdmin ? "Super Admin" : "Admin"}</span>
           </div>
 
           <div className="flex items-center">
             <NotificationBell className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs focus:outline-none" />
           </div>
-
-          {onLogout && (
-            <button
-              type="button"
-              onClick={onLogout}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 transition-all text-xs font-semibold cursor-pointer shadow-xs active:scale-95"
-              title="Sign Out"
-            >
-              <LogOut size={13} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          )}
-
-
         </div>
       </div>
     </header>
