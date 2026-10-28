@@ -28,21 +28,6 @@ export default function AppFooter({
     ? navItems
     : (role === "employee" ? defaultEmployeeLinks : defaultAdminLinks);
 
-  const isHr =
-    (role || "").toLowerCase() === "hr" ||
-    (typeof window !== "undefined" && window.location.pathname.startsWith("/hr"));
-
-  const portalLabel =
-    role === "employee"
-      ? "Employee Portal"
-      : role === "vendor"
-      ? "Vendor Portal"
-      : role === "candidate"
-      ? "Candidate Portal"
-      : isHr
-      ? "HR Portal"
-      : "Enterprise Admin";
-
   return (
     <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
       <div className="w-full flex items-center justify-between gap-3 flex-wrap">
@@ -50,14 +35,7 @@ export default function AppFooter({
           <div className="flex items-end gap-0.5 select-none font-bold text-sm tracking-tight leading-none text-white">
             <span>immi</span>
             <span className="text-cyan-400">Go</span>
-            <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
-              <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="text-[9px] text-white font-bold ml-1 uppercase tracking-wider">
-              {portalLabel}
-            </span>
           </div>
-
         </div>
 
         {/* Copyright and developer attribution */}

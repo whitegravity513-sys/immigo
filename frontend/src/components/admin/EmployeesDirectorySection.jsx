@@ -35,7 +35,7 @@ export default function EmployeesDirectorySection({
     <div className="space-y-3 text-left">
       <div className="flex flex-wrap justify-between items-center gap-2">
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Enterprise Workforce Directory</h3>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">Workforce Directory</h3>
           <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
             Manage employee profiles, contact details, designations, departments, and documents
           </p>
