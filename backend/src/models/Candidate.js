@@ -6,7 +6,6 @@ const candidateSchema = new mongoose.Schema(
       type: String,
       unique: true,
       required: true,
-      index: true,
       trim: true,
     },
     fullName: {
@@ -20,7 +19,6 @@ const candidateSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     phone: {
       type: String,
@@ -138,8 +136,6 @@ const candidateSchema = new mongoose.Schema(
 );
 
 candidateSchema.index({ accountStatus: 1, createdAt: -1 });
-candidateSchema.index({ documentStatus: 1 });
-candidateSchema.index({ jobApplicationAccess: 1 });
 
 const Candidate = mongoose.model("Candidate", candidateSchema);
 export default Candidate;

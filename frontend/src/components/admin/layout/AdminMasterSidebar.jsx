@@ -14,10 +14,12 @@ import {
   Receipt,
   UserCheck,
   KeyRound,
+  Calendar,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import { usePermissions } from "../../../context/PermissionContext.jsx";
+import appConfig from "../../../config/appConfig.js";
 
 export function AdminMasterSidebar({
   mobileOpen = false,
@@ -26,7 +28,7 @@ export function AdminMasterSidebar({
   setCollapsed = () => {},
 }) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isVendorHR, isHR } = useAuth();
   const { canAccessModule, isSuperAdmin, hasPermission, role } = usePermissions();
   const currentPath = location.pathname;
 
@@ -40,6 +42,12 @@ export function AdminMasterSidebar({
         currentPath === "/"
       );
     }
+    if (path === "/hr/vendor-dashboard") {
+      return currentPath.startsWith("/hr/vendor-dashboard");
+    }
+    if (path === "/admin/meetings" || path === "/hr/meetings") {
+      return currentPath.includes("/meetings");
+    }
     if (path === "/super-admin/permissions" || path === "/admin/permissions") {
       return (
         currentPath.startsWith("/super-admin/permissions") ||
@@ -47,8 +55,13 @@ export function AdminMasterSidebar({
         currentPath.startsWith("/super-admin/admins")
       );
     }
-    if (path === "/admin/dashboard/workforce") {
-      return currentPath.startsWith("/admin/dashboard/workforce") || currentPath.startsWith("/hr");
+    if (path === "/admin/dashboard/workforce" || path === "/hr/dashboard") {
+      return (
+        currentPath.startsWith("/admin/dashboard/workforce") ||
+        (currentPath.startsWith("/hr") &&
+          !currentPath.includes("vendor-dashboard") &&
+          !currentPath.includes("meetings"))
+      );
     }
     if (path === "/client/dashboard") {
       return currentPath === "/client/dashboard" || currentPath.startsWith("/client/clients");
@@ -71,34 +84,32 @@ export function AdminMasterSidebar({
     return currentPath === path;
   };
 
-  // Base navigation definition with module mappings
   const rawNavItems = [
     {
       title: "Dashboard",
       icon: LayoutDashboard,
-      path: isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard",
+      path: isVendorHR
+        ? "/hr/vendor-dashboard"
+        : isSuperAdmin
+        ? "/super-admin/dashboard"
+        : isHR
+        ? "/hr/dashboard"
+        : "/admin/dashboard",
       alwaysVisible: true,
+    },
+    {
+      title: "Vendor HR Dashboard",
+      icon: ShieldCheck,
+      path: "/hr/vendor-dashboard",
+      badge: isVendorHR ? "" : "HR",
+      check: () => Boolean(isVendorHR),
     },
     {
       title: "HR Management",
       icon: Users,
-      path: "/admin/dashboard/workforce",
+      path: isHR ? "/hr/dashboard" : "/admin/dashboard/workforce",
       moduleId: "employees",
-      check: () => true,
-    },
-    {
-      title: "Client Management",
-      icon: Building2,
-      path: "/client/dashboard",
-      moduleId: "clients",
-      check: () => true,
-    },
-    {
-      title: "Projects",
-      icon: FolderKanban,
-      path: "/client/projects",
-      moduleId: "projects",
-      check: () => true,
+      check: () => !isVendorHR,
     },
     {
       title: "Vendor Management",
@@ -108,18 +119,38 @@ export function AdminMasterSidebar({
       check: () => true,
     },
     {
+      title: "Client Management",
+      icon: Building2,
+      path: "/client/dashboard",
+      moduleId: "clients",
+      check: () => !isVendorHR,
+    },
+    {
+      title: "Projects",
+      icon: FolderKanban,
+      path: "/client/projects",
+      moduleId: "projects",
+      check: () => !isVendorHR,
+    },
+    {
       title: "Candidate Management",
       icon: Users,
       path: "/admin/candidates/dashboard",
       moduleId: "candidates",
-      check: () => true,
+      check: () => !appConfig.FEATURE_FLAGS?.HIDE_CANDIDATE_MODULE,
     },
     {
-      title: "Permissions & Admins",
+      title: "Role & Permissions",
       icon: KeyRound,
-      path: "/super-admin/permissions",
-      check: () => Boolean(isSuperAdmin),
-      badge: "Super",
+      path: isSuperAdmin ? "/super-admin/permissions" : "/admin/permissions",
+      check: () => Boolean(isSuperAdmin || role === "ADMIN"),
+      badge: isSuperAdmin ? "Super" : "HR",
+    },
+    {
+      title: "Meetings & Calendar",
+      icon: Calendar,
+      path: isHR ? "/hr/meetings" : "/admin/meetings",
+      alwaysVisible: true,
     },
   ];
 

@@ -67,7 +67,6 @@ const crmCandidateSchema = new mongoose.Schema(
 );
 
 crmCandidateSchema.index({ vendorId: 1 });
-crmCandidateSchema.index({ candidateId: 1 });
 
 const CrmCandidate = mongoose.model("CrmCandidate", crmCandidateSchema);
 export default CrmCandidate;

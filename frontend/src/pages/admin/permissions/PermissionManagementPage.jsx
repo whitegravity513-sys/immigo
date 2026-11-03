@@ -28,7 +28,9 @@ import {
 } from "lucide-react";
 import AdminMasterLayout from "../../../components/admin/layout/AdminMasterLayout.jsx";
 import permissionService from "../../../services/permissionService.js";
+import crmVendorService from "../../../services/crmVendorService.js";
 import { usePermissions } from "../../../context/PermissionContext.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
 import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal.jsx";
 
 const MANAGEMENT_GROUPS = [
@@ -230,6 +232,7 @@ const MANAGEMENT_GROUPS = [
 
 export function PermissionManagementPage() {
   const { reloadPermissions } = usePermissions();
+  const { isSuperAdmin } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -237,7 +240,13 @@ export function PermissionManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [selectedAdminId, setSelectedAdminId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("ADMIN"); // Default to ADMIN so Super Admin directly manages Admins
+  const [roleFilter, setRoleFilter] = useState(isSuperAdmin ? "ADMIN" : "HR");
+
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      setRoleFilter("HR");
+    }
+  }, [isSuperAdmin]);
 
   const [selectedAdminData, setSelectedAdminData] = useState(null);
   const [effectivePermissions, setEffectivePermissions] = useState([]);
@@ -258,12 +267,15 @@ export function PermissionManagementPage() {
   const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
   const [adminToDelete, setAdminToDelete] = useState(null);
   const [deletingAdmin, setDeletingAdmin] = useState(false);
+  const [availableVendors, setAvailableVendors] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    role: "ADMIN",
+    role: "HR",
+    hrType: "EMPLOYEE_HR",
+    assignedVendors: [],
     notes: "",
   });
 
@@ -271,7 +283,9 @@ export function PermissionManagementPage() {
     id: "",
     name: "",
     email: "",
-    role: "ADMIN",
+    role: "HR",
+    hrType: "EMPLOYEE_HR",
+    assignedVendors: [],
     isActive: true,
   });
 
@@ -284,16 +298,25 @@ export function PermissionManagementPage() {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const res = await permissionService.getAdmins();
+      const [res, vendorList] = await Promise.all([
+        permissionService.getAdmins(),
+        crmVendorService.getVendors().catch(() => []),
+      ]);
+
+      if (Array.isArray(vendorList)) {
+        setAvailableVendors(vendorList);
+      }
 
       if (res?.success) {
         const adminList = res.admins || [];
-        setAdmins(adminList);
+        const accessibleList = isSuperAdmin
+          ? adminList
+          : adminList.filter((a) => a.role === "HR");
+        setAdmins(accessibleList);
 
-        const firstAdmin =
-          adminList.find((a) => a.role === "ADMIN") ||
-          adminList.find((a) => a.role !== "SUPER_ADMIN") ||
-          adminList[0];
+        const firstAdmin = isSuperAdmin
+          ? (accessibleList.find((a) => a.role === "ADMIN") || accessibleList.find((a) => a.role !== "SUPER_ADMIN") || accessibleList[0])
+          : (accessibleList.find((a) => a.role === "HR") || accessibleList[0]);
 
         if (firstAdmin) {
           selectAdmin(firstAdmin.id || firstAdmin._id);
@@ -346,6 +369,8 @@ export function PermissionManagementPage() {
 
   const filteredAdmins = useMemo(() => {
     return admins.filter((adm) => {
+      if (!isSuperAdmin && adm.role !== "HR") return false;
+
       const matchesSearch =
         adm.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         adm.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -357,7 +382,7 @@ export function PermissionManagementPage() {
 
       return matchesSearch && matchesRole;
     });
-  }, [admins, searchTerm, roleFilter]);
+  }, [admins, searchTerm, roleFilter, isSuperAdmin]);
 
   const visibleGroups = useMemo(() => {
     if (!selectedAdminData) return MANAGEMENT_GROUPS;
@@ -470,7 +495,15 @@ export function PermissionManagementPage() {
     e.preventDefault();
     try {
       setSaving(true);
-      const res = await permissionService.createAdmin(formData);
+      const isVendorHR = formData.role === "VENDOR_HR";
+      const isEmpHR = formData.role === "EMPLOYEE_HR";
+      const payload = {
+        ...formData,
+        role: isVendorHR || isEmpHR ? "HR" : formData.role,
+        hrType: isVendorHR ? "VENDOR_HR" : isEmpHR ? "EMPLOYEE_HR" : "",
+        assignedVendors: isVendorHR ? formData.assignedVendors : [],
+      };
+      const res = await permissionService.createAdmin(payload);
       if (res?.success) {
         showNotice(`Account for ${formData.name} created successfully.`);
         setIsCreateModalOpen(false);
@@ -478,7 +511,9 @@ export function PermissionManagementPage() {
           name: "",
           email: "",
           password: "",
-          role: "ADMIN",
+          role: "EMPLOYEE_HR",
+          hrType: "EMPLOYEE_HR",
+          assignedVendors: [],
           notes: "",
         });
         await loadInitialData();
@@ -497,7 +532,15 @@ export function PermissionManagementPage() {
     e.preventDefault();
     try {
       setSaving(true);
-      const res = await permissionService.updateAdminDetails(editFormData.id, editFormData);
+      const isVendorHR = editFormData.role === "VENDOR_HR" || editFormData.hrType === "VENDOR_HR";
+      const isEmpHR = editFormData.role === "EMPLOYEE_HR" || editFormData.hrType === "EMPLOYEE_HR";
+      const payload = {
+        ...editFormData,
+        role: isVendorHR || isEmpHR ? "HR" : editFormData.role,
+        hrType: isVendorHR ? "VENDOR_HR" : isEmpHR ? "EMPLOYEE_HR" : "",
+        assignedVendors: isVendorHR ? editFormData.assignedVendors : [],
+      };
+      const res = await permissionService.updateAdminDetails(editFormData.id, payload);
       if (res?.success) {
         showNotice("Account details updated successfully.");
         setIsEditModalOpen(false);
@@ -586,7 +629,7 @@ export function PermissionManagementPage() {
                   Role-Based Access Control (RBAC) Console
                 </h1>
                 <span className="text-[10px] font-bold px-2 py-0.2 rounded-full uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shrink-0">
-                  Super Admin
+                  {isSuperAdmin ? "Super Admin" : "Admin Console"}
                 </span>
               </div>
               <p className="text-blue-200/80 text-[11px] leading-snug truncate max-w-xl">
@@ -644,26 +687,33 @@ export function PermissionManagementPage() {
               </div>
 
               {/* Role Filter Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px]">
-                {[
-                  { key: "ADMIN", label: "Admins" },
-                  { key: "HR", label: "HR Staff" },
-                  { key: "ALL", label: "All" },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setRoleFilter(item.key)}
-                    className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                      roleFilter === item.key
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+              {isSuperAdmin ? (
+                <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px]">
+                  {[
+                    { key: "ADMIN", label: "Admins" },
+                    { key: "HR", label: "HR Staff" },
+                    { key: "ALL", label: "All" },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setRoleFilter(item.key)}
+                      className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        roleFilter === item.key
+                          ? "bg-blue-600 text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
+                  <span>HR Staff Directory</span>
+                  <span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded font-semibold">HR Only</span>
+                </div>
+              )}
             </div>
 
             {/* Account Card List */}
@@ -702,18 +752,31 @@ export function PermissionManagementPage() {
                           <div className="text-[10px] text-slate-500 truncate mt-0.5">
                             {adm.email}
                           </div>
+                          {adm.role === "HR" && adm.hrType === "VENDOR_HR" && (
+                            <div className="text-[9.5px] text-cyan-700 font-semibold truncate mt-0.5">
+                              {Array.isArray(adm.assignedVendors) && adm.assignedVendors.length > 0
+                                ? `${adm.assignedVendors.length} Vendors Assigned`
+                                : "No Vendors Assigned"}
+                            </div>
+                          )}
                         </div>
 
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0 ${
                             isSuper
                               ? "bg-amber-100 text-amber-800 border border-amber-300"
+                              : adm.role === "HR" && adm.hrType === "VENDOR_HR"
+                              ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
                               : adm.role === "HR"
                               ? "bg-purple-100 text-purple-800 border border-purple-200"
                               : "bg-blue-100 text-blue-800 border border-blue-200"
                           }`}
                         >
-                          {adm.role}
+                          {adm.role === "HR"
+                            ? adm.hrType === "VENDOR_HR"
+                              ? "Vendor HR"
+                              : "Employee HR"
+                            : adm.role}
                         </span>
                       </div>
 
@@ -729,12 +792,16 @@ export function PermissionManagementPage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                const isVendorRole = adm.role === "HR" && adm.hrType === "VENDOR_HR";
+                                const isEmpRole = adm.role === "HR" && adm.hrType !== "VENDOR_HR";
                                 setEditFormData({
                                   id: adm.id || adm._id,
                                   name: adm.name,
                                   email: adm.email,
-                                  role: adm.role,
-                                  isActive: adm.isActive,
+                                  role: isVendorRole ? "VENDOR_HR" : isEmpRole ? "EMPLOYEE_HR" : adm.role,
+                                  hrType: adm.hrType || (adm.role === "HR" ? "EMPLOYEE_HR" : ""),
+                                  assignedVendors: adm.assignedVendors || [],
+                                  isActive: adm.isActive !== false,
                                 });
                                 setIsEditModalOpen(true);
                               }}
@@ -1112,17 +1179,78 @@ export function PermissionManagementPage() {
               <form onSubmit={handleCreateAdmin} className="space-y-2.5 text-xs">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">
-                    Role Classification
+                    Role & HR Specialization
                   </label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        role: e.target.value,
+                        hrType:
+                          e.target.value === "VENDOR_HR"
+                            ? "VENDOR_HR"
+                            : e.target.value === "EMPLOYEE_HR"
+                            ? "EMPLOYEE_HR"
+                            : "",
+                      })
+                    }
                     className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold text-xs"
                   >
-                    <option value="ADMIN">ADMIN (Operations Administrator)</option>
-                    <option value="HR">HR (Human Resources Staff)</option>
+                    <option value="EMPLOYEE_HR">Employee Management HR</option>
+                    <option value="VENDOR_HR">Vendor Management HR</option>
+                    {isSuperAdmin && <option value="ADMIN">ADMIN (Operations Administrator)</option>}
                   </select>
                 </div>
+
+                {/* If Vendor Management HR, show Vendor Assignment checklist */}
+                {formData.role === "VENDOR_HR" && (
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <label className="block text-slate-800 font-bold mb-0.5">
+                      Assign Recruitment Vendors (Multi-Vendor Supported) *
+                    </label>
+                    <p className="text-[10px] text-slate-500">
+                      This HR user will only be allowed to access candidates and milestones from these vendors.
+                    </p>
+                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar border-t border-slate-200 pt-1.5 mt-1">
+                      {availableVendors.length === 0 ? (
+                        <div className="text-[11px] text-slate-400 italic">No vendors found.</div>
+                      ) : (
+                        availableVendors.map((vnd) => {
+                          const vId = vnd.vendorId || vnd.id;
+                          const isChecked = (formData.assignedVendors || []).includes(vId);
+                          return (
+                            <label
+                              key={vId}
+                              className="flex items-center gap-2 p-1 rounded-lg hover:bg-white text-slate-700 cursor-pointer text-xs"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const curr = formData.assignedVendors || [];
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, assignedVendors: [...curr, vId] });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      assignedVendors: curr.filter((id) => id !== vId),
+                                    });
+                                  }
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span className="font-bold text-slate-900 truncate">
+                                {vnd.companyName}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">({vId})</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Full Name</label>
@@ -1230,16 +1358,78 @@ export function PermissionManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Role</label>
+                  <label className="block text-slate-700 font-bold mb-1">Account Role & Specialization</label>
                   <select
                     value={editFormData.role}
-                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                    onChange={(e) => {
+                      const selected = e.target.value;
+                      setEditFormData({
+                        ...editFormData,
+                        role: selected,
+                        hrType:
+                          selected === "VENDOR_HR"
+                            ? "VENDOR_HR"
+                            : selected === "EMPLOYEE_HR"
+                            ? "EMPLOYEE_HR"
+                            : "",
+                      });
+                    }}
                     className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold"
                   >
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="HR">HR</option>
+                    <option value="EMPLOYEE_HR">Employee Management HR</option>
+                    <option value="VENDOR_HR">Vendor Management HR</option>
+                    {isSuperAdmin && <option value="ADMIN">ADMIN</option>}
                   </select>
                 </div>
+
+                {/* If Vendor Management HR, show Vendor Assignment checklist */}
+                {editFormData.role === "VENDOR_HR" && (
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <label className="block text-slate-800 font-bold mb-0.5">
+                      Assign Recruitment Vendors (Multi-Vendor Supported) *
+                    </label>
+                    <p className="text-[10px] text-slate-500">
+                      This HR user will only be allowed to access candidates and milestones from these vendors.
+                    </p>
+                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar border-t border-slate-200 pt-1.5 mt-1">
+                      {availableVendors.length === 0 ? (
+                        <div className="text-[11px] text-slate-400 italic">No vendors found.</div>
+                      ) : (
+                        availableVendors.map((vnd) => {
+                          const vId = vnd.vendorId || vnd.id;
+                          const isChecked = (editFormData.assignedVendors || []).includes(vId);
+                          return (
+                            <label
+                              key={vId}
+                              className="flex items-center gap-2 p-1 rounded-lg hover:bg-white text-slate-700 cursor-pointer text-xs"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const curr = editFormData.assignedVendors || [];
+                                  if (e.target.checked) {
+                                    setEditFormData({ ...editFormData, assignedVendors: [...curr, vId] });
+                                  } else {
+                                    setEditFormData({
+                                      ...editFormData,
+                                      assignedVendors: curr.filter((id) => id !== vId),
+                                    });
+                                  }
+                                }}
+                                className="rounded text-blue-600"
+                              />
+                              <span className="font-bold text-slate-900 truncate">
+                                {vnd.companyName}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">({vId})</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2 pt-1">
                   <input

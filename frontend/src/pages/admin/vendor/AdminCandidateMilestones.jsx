@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
+import CandidateActivityTimeline from "../../../components/common/candidate/CandidateActivityTimeline.jsx";
 
 export default function AdminCandidateMilestones() {
   const [searchParams] = useSearchParams();
@@ -727,6 +728,19 @@ export default function AdminCandidateMilestones() {
             </button>
           </div>
         </div>
+
+        {/* Section 12 & 13: Permanent Candidate Activity History */}
+        {application && (
+          <div className="mt-4">
+            <CandidateActivityTimeline
+              candidateId={application.candidateId || application.id}
+              candidateName={application.candidateName}
+              vendorId={application.vendorId}
+              vendorName={application.vendorName}
+              onActivityAdded={loadData}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

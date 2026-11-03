@@ -31,6 +31,9 @@ export const appConfig = {
     ROLE: "role",
     SESSION_TIMESTAMP: "sessionTimestamp",
   },
+  FEATURE_FLAGS: {
+    HIDE_CANDIDATE_MODULE: true,
+  },
 };
 
 export default appConfig;

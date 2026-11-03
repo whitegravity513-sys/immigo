@@ -16,6 +16,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import WorkforceDashboardSection from "../../components/admin/WorkforceDashboardSection.jsx";
+import DashboardMeetingWidget from "../../components/common/meeting/DashboardMeetingWidget.jsx";
 import { useAdminDashboard } from "../../hooks/useAdminDashboard";
 import EditAttendance from "../../components/admin/EditAttendance.jsx";
 import NotificationBell from "../../components/admin/NotificationBell.jsx";
@@ -208,6 +209,7 @@ function AdminDashboard({ user, token, onLogout }) {
   } = useAdminDashboard(user, token, navigate, location, view);
 
   const renderWorkforceHub = () => (
+    <div className="space-y-4">
     <WorkforceDashboardSection
       employees={employees}
       attendanceReport={attendanceReport}
@@ -222,6 +224,8 @@ function AdminDashboard({ user, token, onLogout }) {
       setEditingAttendance={setEditingAttendance}
       isFullRegisterPage={false}
     />
+      <DashboardMeetingWidget role="EMPLOYEE_HR" />
+    </div>
   );
 
   const renderFullAttendanceRegister = () => (

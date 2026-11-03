@@ -365,6 +365,18 @@ export default function UnifiedNotificationPopover({
 
                         {/* Action buttons: View Link | Mark Read | Delete */}
                         <div className="mt-1.5 flex items-center gap-2.5 text-[11px] flex-wrap">
+                          {(n.meetingLink || n.metadata?.meetingLink) && (
+                            <a
+                              href={n.meetingLink || n.metadata?.meetingLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-700 text-white font-bold inline-flex items-center gap-1 cursor-pointer text-[10px] shadow-2xs"
+                            >
+                              <Video size={11} />
+                              <span>Join Meeting</span>
+                            </a>
+                          )}
                           {n.link ? (
                             <button
                               type="button"

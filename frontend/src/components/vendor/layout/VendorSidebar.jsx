@@ -17,6 +17,7 @@ import {
   Building2,
   ArrowRightLeft,
   FolderKanban,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.jsx";
 
@@ -149,6 +150,9 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
 
         <NavLink to="/vendor/documents" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <FileCheck size={16} className={window.location.pathname.includes('/documents') ? "text-white" : "text-slate-500"} /> <span>Documents / MOU</span>
+        </NavLink>
+        <NavLink to="/vendor/meetings" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
+          <Calendar size={16} className={window.location.pathname.includes('/meetings') ? "text-white" : "text-slate-500"} /> <span>Meeting Calendar</span>
         </NavLink>
         <NavLink to="/vendor/profile" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <UserCheck size={16} className={window.location.pathname.includes('/profile') ? "text-white" : "text-slate-500"} /> <span>Profile</span>

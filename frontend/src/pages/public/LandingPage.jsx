@@ -103,7 +103,7 @@ export default function LandingPage() {
     name: "",
     email: "",
     phone: "",
-    roleType: "Candidate Seeking Overseas Job",
+    roleType: "Recruitment Agency / Vendor Partnership",
     message: "",
   });
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
@@ -182,16 +182,16 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
-              to="/candidate/login"
+              to="/vendor/login"
               className="px-3.5 py-1.5 text-xs font-bold text-blue-200 hover:text-white border border-blue-700/70 hover:bg-blue-800/70 rounded-lg transition-all cursor-pointer"
             >
-              Sign In
+              Vendor Sign In
             </Link>
             <Link
-              to="/register"
+              to="/vendor/register"
               className="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-all cursor-pointer"
             >
-              Register
+              Vendor Register
             </Link>
           </div>
         </div>
@@ -262,14 +262,14 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Candidate Registration Button: Positioned on the bottom-left side away from people's faces */}
+            {/* Vendor Partner Registration Button: Positioned on the bottom-left side away from people's faces */}
             <div className="pb-2 sm:pb-4 flex justify-start items-end pointer-events-auto">
               <Link
-                to="/register"
+                to="/vendor/register"
                 className="px-8 py-3.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-2xl hover:shadow-blue-600/40 transition-all cursor-pointer inline-flex items-center gap-2"
               >
-                <Users size={16} />
-                <span>Candidate Registration</span>
+                <Building2 size={16} />
+                <span>Vendor Partner Registration</span>
                 <ArrowRight size={15} />
               </Link>
             </div>
@@ -352,28 +352,28 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Dual Service Cards: Candidate & Vendor */}
+              {/* Dual Service Cards: Enterprise Manpower & Vendor Agency */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <div className="w-7 h-7 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold shrink-0">
-                        <Users size={15} />
+                        <Building2 size={15} />
                       </div>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">For Candidates</h4>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">For Global Enterprises</h4>
                     </div>
                     <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
-                      Access genuine foreign job vacancies, attend practical trade testing, interview preparation, embassy visa stamping, and international flight deployment.
+                      Sourcing government-verified, trade-tested technicians, 6G welders, mechanical fitters, and certified manpower for infrastructure and energy projects.
                     </p>
                   </div>
                   <div className="pt-2 flex items-center gap-2">
-                    <Link
-                      to="/register"
+                    <a
+                      href="#contact"
                       className="text-[11px] sm:text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 hover:underline"
                     >
-                      <span>Candidate Registration</span>
+                      <span>Inquire Manpower Supply</span>
                       <ArrowRight size={12} />
-                    </Link>
+                    </a>
                   </div>
                 </div>
 
@@ -381,7 +381,7 @@ export default function LandingPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <div className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
-                        <Building2 size={15} />
+                        <Users size={15} />
                       </div>
                       <h4 className="text-xs sm:text-sm font-bold text-slate-900">For Recruitment Vendors</h4>
                     </div>
@@ -431,10 +431,10 @@ export default function LandingPage() {
                   <span>Contact Deployment Desk</span>
                 </a>
                 <Link
-                  to="/candidate/login"
+                  to="/vendor/login"
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-800 text-xs sm:text-sm font-bold rounded-xl border border-slate-300 shadow-2xs transition-all cursor-pointer"
                 >
-                  <span>Candidate Sign In</span>
+                  <span>Vendor Sign In</span>
                 </Link>
               </div>
             </div>
@@ -676,7 +676,6 @@ export default function LandingPage() {
                         onChange={(e) => setInquiryForm({ ...inquiryForm, roleType: e.target.value })}
                         className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium cursor-pointer"
                       >
-                        <option value="Candidate Seeking Overseas Job">Candidate Seeking Overseas Job</option>
                         <option value="Recruitment Agency / Vendor Partnership">Recruitment Agency / Vendor Partnership</option>
                         <option value="Foreign Employer Manpower Request">Foreign Employer Manpower Request</option>
                         <option value="General Question">General Question</option>
@@ -788,16 +787,8 @@ export default function LandingPage() {
               <span className="font-semibold text-cyan-300">Designed by White Gravity Web Solutions</span>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/candidate/login" className="hover:text-white">
-                Candidate Sign In
-              </Link>
-              <span>&bull;</span>
               <Link to="/vendor/login" className="hover:text-white">
                 Vendor Portal
-              </Link>
-              <span>&bull;</span>
-              <Link to="/register" className="hover:text-white">
-                Candidate Register
               </Link>
               <span>&bull;</span>
               <Link to="/vendor/register" className="hover:text-white">

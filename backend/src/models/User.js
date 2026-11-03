@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ROLES } from "../constants/roles.js";
+import { ROLES, HR_TYPES } from "../constants/roles.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -16,7 +16,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
       match: [
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         "Please provide a valid email address",
@@ -34,6 +33,29 @@ const userSchema = new mongoose.Schema(
       enum: Object.values(ROLES),
       default: ROLES.USER,
       required: true,
+    },
+
+    hrType: {
+      type: String,
+      enum: ["EMPLOYEE_HR", "VENDOR_HR", ""],
+      default: "",
+    },
+
+    assignedVendors: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
+    phone: {
+      type: String,
+      default: "",
+    },
+
+    department: {
+      type: String,
+      default: "",
     },
 
     isActive: {

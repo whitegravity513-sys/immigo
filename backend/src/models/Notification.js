@@ -17,7 +17,17 @@ const notificationSchema = new mongoose.Schema(
     },
     targetRole: {
       type: String,
-      enum: ["ADMIN", "SUPER_ADMIN", "HR", "VENDOR", "CANDIDATE", "EMPLOYEE", "ALL"],
+      enum: [
+        "ADMIN",
+        "SUPER_ADMIN",
+        "HR",
+        "EMPLOYEE_HR",
+        "VENDOR_HR",
+        "VENDOR",
+        "CANDIDATE",
+        "EMPLOYEE",
+        "ALL",
+      ],
       default: "ADMIN",
     },
     targetType: {
@@ -34,6 +44,11 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    targetVendorId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     employeeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
@@ -49,14 +64,12 @@ const notificationSchema = new mongoose.Schema(
     },
     readBy: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Employee",
+        type: mongoose.Schema.Types.Mixed,
       },
     ],
     deletedBy: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Employee",
+        type: mongoose.Schema.Types.Mixed,
       },
     ],
     metadata: {
@@ -81,6 +94,8 @@ notificationSchema.index({ createdAt: -1 });
 notificationSchema.index({ read: 1, createdAt: -1 });
 notificationSchema.index({ targetRole: 1, targetType: 1, createdAt: -1 });
 notificationSchema.index({ targetEmployeeId: 1, createdAt: -1 });
+notificationSchema.index({ targetUserId: 1, createdAt: -1 });
+notificationSchema.index({ targetVendorId: 1, createdAt: -1 });
 
 const Notification = mongoose.model("Notification", notificationSchema);
 

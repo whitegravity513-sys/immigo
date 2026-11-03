@@ -55,6 +55,10 @@ export const getAdmins = asyncHandler(async (req, res) => {
         name: u.name,
         email: u.email,
         role: u.role,
+        hrType: u.hrType || "",
+        assignedVendors: u.assignedVendors || [],
+        phone: u.phone || "",
+        department: u.department || "",
         isActive: u.isActive,
         isSuperAdmin: resolved.isSuperAdmin,
         permissionCount: resolved.permissions.includes("*")
@@ -94,6 +98,10 @@ export const getAdminById = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      hrType: user.hrType || "",
+      assignedVendors: user.assignedVendors || [],
+      phone: user.phone || "",
+      department: user.department || "",
       isActive: user.isActive,
       isSuperAdmin: resolved.isSuperAdmin,
       assignedPermissions: permDoc ? permDoc.assignedPermissions : [],
@@ -107,7 +115,18 @@ export const getAdminById = asyncHandler(async (req, res) => {
 });
 
 export const createAdmin = asyncHandler(async (req, res) => {
-  const { name, email, password, role = ROLES.ADMIN, assignedPermissions = [], notes = "" } = req.body;
+  const {
+    name,
+    email,
+    password,
+    role = ROLES.ADMIN,
+    hrType = "",
+    assignedVendors = [],
+    phone = "",
+    department = "",
+    assignedPermissions = [],
+    notes = "",
+  } = req.body;
 
   if (!name || !email || !password) {
     throw new ApiError(400, "Name, email, and password are required.");
@@ -120,15 +139,29 @@ export const createAdmin = asyncHandler(async (req, res) => {
     throw new ApiError(409, "An account with this email address already exists.");
   }
 
-  const validRoles = [ROLES.ADMIN, ROLES.HR, ROLES.SUPER_ADMIN];
-  const assignedRole = validRoles.includes(role) ? role : ROLES.ADMIN;
+  let assignedRole = role;
+  let assignedHrType = hrType;
+
+  if (role === "EMPLOYEE_HR" || role === "VENDOR_HR") {
+    assignedRole = ROLES.HR;
+    assignedHrType = role;
+  } else if (role === ROLES.HR) {
+    assignedHrType = hrType || "EMPLOYEE_HR";
+  }
+
+  if (assignedRole === ROLES.SUPER_ADMIN) {
+    throw new ApiError(403, "Creation of additional Super Admin accounts is disabled. You can create HR and Admin accounts.");
+  }
+
+  const validRoles = [ROLES.ADMIN, ROLES.HR];
+  if (!validRoles.includes(assignedRole)) {
+    assignedRole = ROLES.ADMIN;
+  }
 
   if (!req.isSuperAdmin && req.userRole !== ROLES.SUPER_ADMIN) {
     if (assignedRole !== ROLES.HR) {
       throw new ApiError(403, "Admins are strictly permitted to create HR staff accounts only.");
     }
-  } else if (assignedRole === ROLES.SUPER_ADMIN && !req.isSuperAdmin && req.userRole !== ROLES.SUPER_ADMIN) {
-    throw new ApiError(403, "Privilege escalation: Only Super Admin can create another Super Admin.");
   }
 
   const passwordHash = await bcrypt.hash(String(password).trim(), 10);
@@ -138,6 +171,10 @@ export const createAdmin = asyncHandler(async (req, res) => {
     email: cleanEmail,
     passwordHash,
     role: assignedRole,
+    hrType: assignedHrType,
+    assignedVendors: Array.isArray(assignedVendors) ? assignedVendors : [],
+    phone: phone ? String(phone).trim() : "",
+    department: department ? String(department).trim() : "",
     isActive: true,
     isEmailVerified: true,
   });
@@ -159,10 +196,12 @@ export const createAdmin = asyncHandler(async (req, res) => {
     targetResource: "ADMIN",
     targetId: newUser._id,
     targetName: newUser.name,
-    description: `Created new admin account [${newUser.name}] with role [${newUser.role}].`,
+    description: `Created new ${assignedRole === ROLES.HR ? assignedHrType : assignedRole} account [${newUser.name}].`,
     changes: {
       email: newUser.email,
       role: newUser.role,
+      hrType: newUser.hrType,
+      assignedVendors: newUser.assignedVendors,
       assignedPermissions: userPermDoc?.assignedPermissions || [],
     },
   });
@@ -171,13 +210,15 @@ export const createAdmin = asyncHandler(async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    message: `Administrator account for ${newUser.name} created successfully.`,
+    message: `Account for ${newUser.name} created successfully.`,
     admin: {
       id: newUser._id.toString(),
       _id: newUser._id.toString(),
       name: newUser.name,
       email: newUser.email,
       role: newUser.role,
+      hrType: newUser.hrType,
+      assignedVendors: newUser.assignedVendors,
       isActive: newUser.isActive,
       isSuperAdmin: resolved.isSuperAdmin,
       effectivePermissions: resolved.permissions,
@@ -188,15 +229,34 @@ export const createAdmin = asyncHandler(async (req, res) => {
 
 export const updateAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, email, role, isActive, password } = req.body;
+  const {
+    name,
+    email,
+    role,
+    hrType,
+    assignedVendors,
+    phone,
+    department,
+    isActive,
+    password,
+  } = req.body;
 
   const targetUser = await User.findById(id);
   if (!targetUser) {
-    throw new ApiError(404, "Admin account not found");
+    throw new ApiError(404, "Admin/HR account not found");
   }
 
   if (targetUser.role === ROLES.SUPER_ADMIN && !req.isSuperAdmin) {
     throw new ApiError(403, "Cannot modify protected Super Admin account.");
+  }
+
+  if (!req.isSuperAdmin && req.userRole === ROLES.ADMIN) {
+    if (targetUser.role !== ROLES.HR) {
+      throw new ApiError(403, "Admins are strictly permitted to manage HR staff accounts only.");
+    }
+    if (role && role !== ROLES.HR) {
+      throw new ApiError(403, "Admins cannot change an account role away from HR.");
+    }
   }
 
   if (String(req.userId) === String(targetUser._id) && isActive === false) {
@@ -207,17 +267,39 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     name: targetUser.name,
     email: targetUser.email,
     role: targetUser.role,
+    hrType: targetUser.hrType,
+    assignedVendors: targetUser.assignedVendors,
     isActive: targetUser.isActive,
   };
 
   if (name) targetUser.name = String(name).trim();
   if (email) targetUser.email = String(email).trim().toLowerCase();
 
-  if (role && [ROLES.ADMIN, ROLES.HR, ROLES.SUPER_ADMIN].includes(role)) {
-    if (role === ROLES.SUPER_ADMIN && !req.isSuperAdmin) {
-      throw new ApiError(403, "Privilege escalation: Only Super Admin can promote accounts to Super Admin.");
+  if (role) {
+    if (role === "EMPLOYEE_HR" || role === "VENDOR_HR") {
+      targetUser.role = ROLES.HR;
+      targetUser.hrType = role;
+    } else if ([ROLES.ADMIN, ROLES.HR].includes(role)) {
+      targetUser.role = role;
+    } else if (role === ROLES.SUPER_ADMIN) {
+      throw new ApiError(403, "Accounts cannot be promoted to Super Admin.");
     }
-    targetUser.role = role;
+  }
+
+  if (hrType !== undefined) {
+    targetUser.hrType = hrType;
+  }
+
+  if (assignedVendors !== undefined && Array.isArray(assignedVendors)) {
+    targetUser.assignedVendors = assignedVendors;
+  }
+
+  if (phone !== undefined) {
+    targetUser.phone = String(phone).trim();
+  }
+
+  if (department !== undefined) {
+    targetUser.department = String(department).trim();
   }
 
   if (isActive !== undefined) {
@@ -238,21 +320,25 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     targetResource: "ADMIN",
     targetId: targetUser._id,
     targetName: targetUser.name,
-    description: `Updated admin profile for [${targetUser.name}].`,
-    changes: { before, after: { name: targetUser.name, email: targetUser.email, role: targetUser.role, isActive: targetUser.isActive } },
+    description: `Updated profile for [${targetUser.name}].`,
+    changes: { before, after: { name: targetUser.name, email: targetUser.email, role: targetUser.role, hrType: targetUser.hrType, assignedVendors: targetUser.assignedVendors, isActive: targetUser.isActive } },
   });
 
   const resolved = await PermissionService.resolveUserPermissions(targetUser);
 
   return res.status(200).json({
     success: true,
-    message: "Admin details updated successfully.",
+    message: "Account details updated successfully.",
     admin: {
       id: targetUser._id.toString(),
       _id: targetUser._id.toString(),
       name: targetUser.name,
       email: targetUser.email,
       role: targetUser.role,
+      hrType: targetUser.hrType,
+      assignedVendors: targetUser.assignedVendors,
+      phone: targetUser.phone,
+      department: targetUser.department,
       isActive: targetUser.isActive,
       isSuperAdmin: resolved.isSuperAdmin,
       effectivePermissions: resolved.permissions,
@@ -274,6 +360,12 @@ export const deleteAdmin = asyncHandler(async (req, res) => {
 
   if (targetUser.role === ROLES.SUPER_ADMIN) {
     throw new ApiError(403, "Protected Super Admin accounts cannot be deleted.");
+  }
+
+  if (!req.isSuperAdmin && req.userRole === ROLES.ADMIN) {
+    if (targetUser.role !== ROLES.HR) {
+      throw new ApiError(403, "Admins are strictly permitted to manage HR staff accounts only.");
+    }
   }
 
   await User.findByIdAndDelete(id);

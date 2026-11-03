@@ -168,6 +168,46 @@ export const ROLE_DEFAULT_PERMISSIONS = {
     "reports.export",
   ],
 
+  EMPLOYEE_HR: [
+    "employees.view",
+    "employees.create",
+    "employees.update",
+    "employees.export",
+    "attendance.view",
+    "attendance.create",
+    "attendance.update",
+    "attendance.export",
+    "leaves.view",
+    "leaves.create",
+    "leaves.update",
+    "leaves.approve",
+    "leaves.export",
+    "meetings.view",
+    "meetings.create",
+    "meetings.update",
+    "reports.view",
+    "reports.export",
+  ],
+
+  VENDOR_HR: [
+    "vendors.view",
+    "candidates.view",
+    "candidates.update",
+    "meetings.view",
+    "meetings.create",
+    "meetings.update",
+    "reports.view",
+    "reports.export",
+  ],
+
+  VENDOR: [
+    "candidates.view",
+    "candidates.update",
+    "meetings.view",
+    "meetings.create",
+    "meetings.update",
+  ],
+
   EMPLOYEE: [
     "attendance.view",
     "leaves.view",

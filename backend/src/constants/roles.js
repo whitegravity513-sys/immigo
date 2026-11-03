@@ -2,8 +2,16 @@ export const ROLES = {
   SUPER_ADMIN: "SUPER_ADMIN",
   ADMIN: "ADMIN",
   HR: "HR",
+  EMPLOYEE_HR: "EMPLOYEE_HR",
+  VENDOR_HR: "VENDOR_HR",
+  VENDOR: "VENDOR",
   EMPLOYEE: "EMPLOYEE",
   USER: "USER",
+};
+
+export const HR_TYPES = {
+  EMPLOYEE_HR: "EMPLOYEE_HR",
+  VENDOR_HR: "VENDOR_HR",
 };
 
 export default ROLES;

@@ -4,6 +4,7 @@ import {
   getHrEmployees,
   getHrAttendance,
   getHrLeaves,
+  getHrPerformanceReport,
 } from "../controllers/hrDashboard.controller.js";
 import {
   authenticateRBAC,
@@ -38,6 +39,12 @@ router.get(
   authenticateRBAC,
   requirePermission("leaves.view"),
   getHrLeaves
+);
+
+router.get(
+  "/performance-reports",
+  authenticateRBAC,
+  getHrPerformanceReport
 );
 
 export default router;

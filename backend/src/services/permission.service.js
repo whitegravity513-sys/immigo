@@ -47,7 +47,14 @@ export class PermissionService {
       return result;
     }
 
-    let roleDefaults = ROLE_DEFAULT_PERMISSIONS[user.role] || [];
+    let effectiveRoleKey = user.role;
+    if ((user.role === ROLES.HR || user.role === "HR") && user.hrType) {
+      effectiveRoleKey = user.hrType;
+    }
+    let roleDefaults =
+      ROLE_DEFAULT_PERMISSIONS[effectiveRoleKey] ||
+      ROLE_DEFAULT_PERMISSIONS[user.role] ||
+      [];
     let assigned = [];
     let denied = [];
 

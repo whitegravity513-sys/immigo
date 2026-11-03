@@ -27,6 +27,7 @@ import {
 import crmVendorService from "../../services/crmVendorService.js";
 import refundService from "../../services/refundService.js";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
+import CandidateActivityTimeline from "../../components/common/candidate/CandidateActivityTimeline.jsx";
 
 export function CandidateDetails() {
   const { id } = useParams();
@@ -800,9 +801,18 @@ export function CandidateDetails() {
             </form>
           </div>
         )}
+        {/* Section 12 & 13: Permanent Candidate Activity History & Audit Log */}
+        <div className="pt-2">
+          <CandidateActivityTimeline
+            candidateId={candidate.id || id}
+            candidateName={candidate.fullName}
+            vendorId={candidate.vendorId}
+            onActivityAdded={loadCandidate}
+          />
+        </div>
       </div>
 
-      {}
+      {/* Verified Resume Profile Modal */}
       {resumeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">

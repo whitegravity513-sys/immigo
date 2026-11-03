@@ -29,9 +29,14 @@ import crmVendorService from "../../services/crmVendorService.js";
 import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
 import activityService from "../../services/activityService.js";
+import DashboardMeetingWidget from "../../components/common/meeting/DashboardMeetingWidget.jsx";
+import HRPerformanceReportSection from "../../components/common/reports/HRPerformanceReportSection.jsx";
+import appConfig from "../../config/appConfig.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 export function MainAdminDashboard() {
   const navigate = useNavigate();
+  const { isSuperAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState({
@@ -340,7 +345,29 @@ export function MainAdminDashboard() {
       <div className="relative font-sans pb-3.5 w-full max-w-full overflow-hidden">
         <div className="space-y-3">
           
-          {/* Top Section: Workforce Card + 6 Management Summary Cards */}
+          <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-xl text-white shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-xs font-bold text-white">Operations Command Center</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/hr/vendor-dashboard"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-colors"
+              >
+                <Briefcase size={13} className="text-cyan-300" />
+                <span>Vendor HR Dashboard</span>
+              </Link>
+              <Link
+                to="/admin/meetings"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-xs transition-colors"
+              >
+                <Calendar size={13} />
+                <span>Meeting Calendar</span>
+              </Link>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-2.5">
             <div className="lg:col-span-1 p-2 sm:p-2.5 rounded-lg bg-indigo-600 text-white shadow-xs flex flex-col justify-between overflow-hidden relative">
               <div className="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
@@ -391,104 +418,112 @@ export function MainAdminDashboard() {
             </div>
           </div>
 
-          {/* Real-time Candidate & Recruitment Operations Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2">
-            <Link
-              to="/admin/candidates/new-registrations"
-              className="p-1.5 sm:p-2 bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/70 rounded-lg transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-amber-800">
-                <span className="text-[9px] font-bold uppercase tracking-wider">New Registrations</span>
-                <Clock size={11} className="text-amber-600" />
-              </div>
-              <div className="text-sm sm:text-base font-bold text-amber-950 mt-0.5">
-                {stats.pendingRegistrations}
-              </div>
-              <span className="text-[8.5px] text-amber-700/80 font-semibold group-hover:underline">
-                Review &rarr;
-              </span>
-            </Link>
+          {/* Today's Meetings & Daily Schedule Compact Widget */}
+          <DashboardMeetingWidget role={isSuperAdmin ? "SUPER_ADMIN" : "ADMIN"} />
 
-            <Link
-              to="/admin/candidates/documents"
-              className="p-1.5 sm:p-2 bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/70 rounded-lg transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-indigo-800">
-                <span className="text-[9px] font-bold uppercase tracking-wider">Pending Docs</span>
-                <FileText size={11} className="text-indigo-600" />
-              </div>
-              <div className="text-sm sm:text-base font-bold text-indigo-950 mt-0.5">
-                {stats.pendingDocuments}
-              </div>
-              <span className="text-[8.5px] text-indigo-700/80 font-semibold group-hover:underline">
-                Verify docs &rarr;
-              </span>
-            </Link>
+          {/* Real-time HR Performance & Operational Reporting (Section 16) */}
+          <HRPerformanceReportSection isSuperAdmin={isSuperAdmin} />
 
-            <Link
-              to="/admin/candidates/applications"
-              className="p-1.5 sm:p-2 bg-sky-50/70 hover:bg-sky-100/80 border border-sky-200/70 rounded-lg transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-sky-800">
-                <span className="text-[9px] font-bold uppercase tracking-wider">Applications</span>
-                <Briefcase size={11} className="text-sky-600" />
-              </div>
-              <div className="text-sm sm:text-base font-bold text-sky-950 mt-0.5">
-                {stats.totalApplications}
-              </div>
-              <span className="text-[8.5px] text-sky-700/80 font-semibold group-hover:underline">
-                View pipeline &rarr;
-              </span>
-            </Link>
+          {/* Real-time Candidate & Recruitment Operations Strip (Hidden if candidate module is temporarily disabled) */}
+          {!appConfig.FEATURE_FLAGS?.HIDE_CANDIDATE_MODULE && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2">
+              <Link
+                to="/admin/candidates/new-registrations"
+                className="p-1.5 sm:p-2 bg-amber-50/70 hover:bg-amber-100/80 border border-amber-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between text-amber-800">
+                  <span className="text-[9px] font-bold uppercase tracking-wider">New Registrations</span>
+                  <Clock size={11} className="text-amber-600" />
+                </div>
+                <div className="text-sm sm:text-base font-bold text-amber-950 mt-0.5">
+                  {stats.pendingRegistrations}
+                </div>
+                <span className="text-[8.5px] text-amber-700/80 font-semibold group-hover:underline">
+                  Review &rarr;
+                </span>
+              </Link>
 
-            <Link
-              to="/admin/candidates/interviews"
-              className="p-2 sm:p-2.5 bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/70 rounded-lg transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-purple-800">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Interviews</span>
-                <Calendar size={12} className="text-purple-600" />
-              </div>
-              <div className="text-base sm:text-lg font-bold text-purple-950 mt-1">
-                {stats.interviewsScheduled}
-              </div>
-              <span className="text-[9px] text-purple-700/80 font-semibold group-hover:underline">
-                Schedule &rarr;
-              </span>
-            </Link>
+              <Link
+                to="/admin/candidates/documents"
+                className="p-1.5 sm:p-2 bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between text-indigo-800">
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Pending Docs</span>
+                  <FileText size={11} className="text-indigo-600" />
+                </div>
+                <div className="text-sm sm:text-base font-bold text-indigo-950 mt-0.5">
+                  {stats.pendingDocuments}
+                </div>
+                <span className="text-[8.5px] text-indigo-700/80 font-semibold group-hover:underline">
+                  Verify docs &rarr;
+                </span>
+              </Link>
 
-            <Link
-              to="/admin/candidates/selected"
-              className="p-2 sm:p-2.5 bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/70 rounded-lg transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-emerald-800">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Selected</span>
-                <Award size={12} className="text-emerald-600" />
-              </div>
-              <div className="text-base sm:text-lg font-bold text-emerald-950 mt-1">
-                {stats.selectedCandidates}
-              </div>
-              <span className="text-[9px] text-emerald-700/80 font-semibold group-hover:underline">
-                Deployments &rarr;
-              </span>
-            </Link>
+              <Link
+                to="/admin/candidates/applications"
+                className="p-1.5 sm:p-2 bg-sky-50/70 hover:bg-sky-100/80 border border-sky-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between text-sky-800">
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Applications</span>
+                  <Briefcase size={11} className="text-sky-600" />
+                </div>
+                <div className="text-sm sm:text-base font-bold text-sky-950 mt-0.5">
+                  {stats.totalApplications}
+                </div>
+                <span className="text-[8.5px] text-sky-700/80 font-semibold group-hover:underline">
+                  View pipeline &rarr;
+                </span>
+              </Link>
 
-            <Link
-              to="/client/ledger"
-              className="p-2 sm:p-2.5 bg-teal-50/70 hover:bg-teal-100/80 border border-teal-200/70 rounded-lg transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-teal-800">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Total Inward</span>
-                <TrendingUp size={12} className="text-teal-600" />
-              </div>
-              <div className="text-base sm:text-lg font-bold text-teal-950 mt-1">
-                {stats.totalReceived > 0 ? `₹${(stats.totalReceived / 100000).toFixed(1)}L` : "₹0"}
-              </div>
-              <span className="text-[9px] text-teal-700/80 font-semibold group-hover:underline">
-                Open ledger &rarr;
-              </span>
-            </Link>
-          </div>
+              <Link
+                to="/admin/candidates/interviews"
+                className="p-2 sm:p-2.5 bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between text-purple-800">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Interviews</span>
+                  <Calendar size={12} className="text-purple-600" />
+                </div>
+                <div className="text-base sm:text-lg font-bold text-purple-950 mt-1">
+                  {stats.interviewsScheduled}
+                </div>
+                <span className="text-[9px] text-purple-700/80 font-semibold group-hover:underline">
+                  Schedule &rarr;
+                </span>
+              </Link>
+
+              <Link
+                to="/admin/candidates/selected"
+                className="p-2 sm:p-2.5 bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between text-emerald-800">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Selected</span>
+                  <Award size={12} className="text-emerald-600" />
+                </div>
+                <div className="text-base sm:text-lg font-bold text-emerald-950 mt-1">
+                  {stats.selectedCandidates}
+                </div>
+                <span className="text-[9px] text-emerald-700/80 font-semibold group-hover:underline">
+                  Deployments &rarr;
+                </span>
+              </Link>
+
+              <Link
+                to="/client/ledger"
+                className="p-2 sm:p-2.5 bg-teal-50/70 hover:bg-teal-100/80 border border-teal-200/70 rounded-lg transition-all group flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between text-teal-800">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Total Inward</span>
+                  <TrendingUp size={12} className="text-teal-600" />
+                </div>
+                <div className="text-base sm:text-lg font-bold text-teal-950 mt-1">
+                  {stats.totalReceived > 0 ? `₹${(stats.totalReceived / 100000).toFixed(1)}L` : "₹0"}
+                </div>
+                <span className="text-[9px] text-teal-700/80 font-semibold group-hover:underline">
+                  Open ledger &rarr;
+                </span>
+              </Link>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             

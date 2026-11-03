@@ -51,14 +51,14 @@ router.get(
 router.patch(
   "/admins/:id",
   authenticateRBAC,
-  requireSuperAdmin,
+  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
   updateAdmin
 );
 
 router.delete(
   "/admins/:id",
   authenticateRBAC,
-  requireSuperAdmin,
+  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
   deleteAdmin
 );
 

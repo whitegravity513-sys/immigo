@@ -21,6 +21,7 @@ export const seedDefaultEmployee = async (exitOnComplete = true) => {
     if (existingEmp) {
       existingEmp.password = hashedPassword;
       existingEmp.status = "active";
+      if (!existingEmp.name) existingEmp.name = "Abhishek Sharma";
       if (!existingEmp.employeeId) existingEmp.employeeId = testEmployeeId;
       await existingEmp.save();
 

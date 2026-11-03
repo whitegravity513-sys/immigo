@@ -11,11 +11,15 @@ import candidateAuthRoutes from "./candidateAuth.routes.js";
 import candidateAdminRoutes from "./candidateAdmin.routes.js";
 import adminManagementRoutes from "./adminManagement.routes.js";
 import hrRoutes from "./hr.routes.js";
+import candidateActivityRoutes from "./candidateActivity.routes.js";
+import meetingRoutes from "./admin/meeting.routes.js";
 import { authLimiter } from "../middleware/rateLimit.middleware.js";
 
 const apiRouter = express.Router();
 
 apiRouter.use(adminManagementRoutes);
+apiRouter.use(candidateActivityRoutes);
+apiRouter.use(meetingRoutes);
 apiRouter.use("/hr", hrRoutes);
 
 apiRouter.use("/auth/admin", adminAuthRoutes);

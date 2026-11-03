@@ -7,6 +7,7 @@ import {
   VendorMetricCards,
   VendorRecentProjectsTable,
 } from "../../components/vendor/dashboard/index.js";
+import DashboardMeetingWidget from "../../components/common/meeting/DashboardMeetingWidget.jsx";
 
 export function VendorDashboard() {
   const [stats, setStats] = useState(null);
@@ -117,6 +118,12 @@ export function VendorDashboard() {
       />
 
       <VendorMetricCards cards={CARDS} />
+
+      {/* Today's Meetings & Daily Schedule Compact Widget */}
+      <DashboardMeetingWidget
+        role="VENDOR"
+        assignedVendors={[vendor?.id || vendor?.vendorId].filter(Boolean)}
+      />
 
       <VendorRecentProjectsTable allProjects={allProjects} />
     </div>

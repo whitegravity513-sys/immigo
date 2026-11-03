@@ -68,7 +68,6 @@ const crmOverseasClientSchema = new mongoose.Schema(
 );
 
 crmOverseasClientSchema.index({ companyName: 1 });
-crmOverseasClientSchema.index({ clientId: 1 });
 
 const CrmOverseasClient = mongoose.model("CrmOverseasClient", crmOverseasClientSchema);
 export default CrmOverseasClient;

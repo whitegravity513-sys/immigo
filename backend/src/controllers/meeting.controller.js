@@ -1,25 +1,111 @@
 import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
 import Employee from "../models/Employee.js";
+import ActivityLog from "../models/ActivityLog.js";
+import Notification from "../models/Notification.js";
 import NotificationService from "../services/notification.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
+import { ROLES } from "../constants/roles.js";
 
+// Helper to log candidate activity
+export const logCandidateMeetingActivity = async ({
+  meeting,
+  actionType,
+  previousStatus = "",
+  newStatus = "",
+  remarks = "",
+  updater,
+}) => {
+  if (!meeting.candidateId) return;
+
+  try {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const timeStr = now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const updaterRole = updater?.userRole || updater?.role || "ADMIN";
+    const updaterName = updater?.name || updater?.companyName || "System";
+    const updaterId = updater?._id?.toString() || updater?.id || updater?.vendorId || "";
+
+    await ActivityLog.create({
+      userType: updaterRole === ROLES.VENDOR ? "VENDOR" : "ADMIN",
+      userId: updaterId,
+      userName: updaterName,
+      action: actionType,
+      title: `Meeting: ${meeting.title} - ${actionType}`,
+      description: remarks || `Meeting [${meeting.title}] updated for candidate ${meeting.candidateName || meeting.candidateId}.`,
+      entityType: "Candidate",
+      entityId: meeting.candidateId,
+      entityName: meeting.candidateName || "Candidate",
+      status: newStatus || meeting.status,
+      visibility: "ALL",
+
+      // Dedicated Candidate Audit Fields
+      candidateId: meeting.candidateId,
+      candidateName: meeting.candidateName || "",
+      updatedByUserId: updaterId,
+      updatedByName: updaterName,
+      updatedByRole: updaterRole,
+      vendorId: meeting.vendorId || "",
+      vendorName: meeting.vendorName || "",
+      actionType,
+      previousStatus,
+      newStatus,
+      remarks: remarks || meeting.remarks || meeting.description || "",
+      date: dateStr,
+      time: timeStr,
+      meetingRef: meeting._id.toString(),
+      metadata: {
+        meetingId: meeting._id.toString(),
+        meetingDate: meeting.date,
+        meetingTime: meeting.startTime,
+        meetingLink: meeting.meetingLink,
+        platform: meeting.platform,
+        outcome: meeting.outcome || "",
+        attendance: meeting.attendance || "",
+      },
+    });
+  } catch (err) {
+    console.error("Failed to log candidate meeting activity:", err.message);
+  }
+};
+
+// CREATE MEETING
 export const createMeeting = asyncHandler(async (req, res) => {
   const {
     title,
-    description,
+    description = "",
+    meetingType = "GENERAL",
     date,
     startTime,
-    endTime,
+    endTime = "",
     meetingLink,
     platform = "Google Meet",
     targetType = "ALL",
     targetEmployees = [],
+    attendees = [],
+    candidateId = "",
+    candidateName = "",
+    candidateEmail = "",
+    applicationId = "",
+    vendorId = "",
+    vendorName = "",
+    hrId = "",
+    hrName = "",
+    remarks = "",
   } = req.body;
 
   if (!title || !date || !startTime || !meetingLink) {
-    throw new ApiError(400, "Title, Date, Start Time, and Meeting Link are required");
+    throw new ApiError(400, "Title, Date, Start Time, and Meeting Link are required.");
   }
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -30,22 +116,91 @@ export const createMeeting = asyncHandler(async (req, res) => {
     );
   }
 
+  const role = req.userRole || req.user?.role || "ADMIN";
+  const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
+  const isVendor = req.isVendor || role === ROLES.VENDOR;
+  const hrType = req.hrType || req.user?.hrType || "";
+  const isEmployeeHR = role === ROLES.HR && (hrType === "EMPLOYEE_HR" || hrType === "");
+  const isVendorHR = role === ROLES.HR && hrType === "VENDOR_HR";
+
+  // Validate Permissions according to Section 9
+  if (isVendor) {
+    // Vendor can schedule meetings with their assigned candidates or with Vendor HR
+    if (vendorId && req.vendorId && String(vendorId) !== String(req.vendorId)) {
+      throw new ApiError(403, "Vendors can only schedule meetings for their own agency or assigned candidates.");
+    }
+  } else if (isVendorHR) {
+    // Vendor HR can schedule meetings with assigned vendors and their candidates, or with Admin/Super Admin
+    if (vendorId) {
+      const assigned = req.assignedVendors || [];
+      const hasAccess = assigned.some(
+        (v) => String(v).toLowerCase() === String(vendorId).toLowerCase()
+      );
+      if (!hasAccess && !isSuperAdmin && role !== ROLES.ADMIN) {
+        throw new ApiError(403, "You can only schedule meetings for vendors assigned to your account.");
+      }
+    }
+  } else if (isEmployeeHR && !isSuperAdmin && role !== ROLES.ADMIN) {
+    // Employee HR can schedule internal HR/employee meetings or with Admin/Super Admin
+    if (candidateId && !isSuperAdmin) {
+      throw new ApiError(403, "Employee Management HR is restricted to workforce and internal meetings.");
+    }
+  }
+
+  // Derive organizer info from token
+  const organizerId = req.userId || req.user?._id?.toString() || req.user?.id || req.vendorId;
+  const organizerName = req.user?.name || req.user?.companyName || req.vendorName || "Organizer";
+  const organizerRole = isSuperAdmin
+    ? "SUPER_ADMIN"
+    : isVendor
+    ? "VENDOR"
+    : isVendorHR
+    ? "VENDOR_HR"
+    : isEmployeeHR
+    ? "EMPLOYEE_HR"
+    : role;
+
   const meeting = await Meeting.create({
     title: title.trim(),
-    description: description ? description.trim() : "",
+    description: description.trim(),
+    meetingType,
     date,
     startTime,
-    endTime: endTime || "",
+    endTime,
     meetingLink: meetingLink.trim(),
     platform,
     targetType,
     targetEmployees: targetType === "SPECIFIC" ? targetEmployees : [],
-    createdBy: req.user?.id || req.user?._id || null,
-    createdByName: req.user?.name || "Admin",
+    attendees: Array.isArray(attendees) ? attendees : [],
+    candidateId,
+    candidateName,
+    candidateEmail,
+    applicationId,
+    vendorId: isVendor ? (req.vendorId || vendorId) : vendorId,
+    vendorName: isVendor ? (req.vendorName || vendorName) : vendorName,
+    hrId,
+    hrName,
+    remarks,
+    status: "SCHEDULED",
+    createdBy: organizerId,
+    createdByName: organizerName,
+    organizerRole,
+    remindersSent: [],
   });
 
-  await meeting.populate("targetEmployees", "name employeeId email designation");
+  // Log Candidate Activity if candidate attached
+  if (candidateId) {
+    await logCandidateMeetingActivity({
+      meeting,
+      actionType: "MEETING_SCHEDULED",
+      previousStatus: "Pending",
+      newStatus: "Meeting Scheduled",
+      remarks: `Meeting scheduled: "${meeting.title}" on ${meeting.date} at ${meeting.startTime}. Link: ${meeting.meetingLink}`,
+      updater: req.user,
+    });
+  }
 
+  // Dispatch Notifications
   const meetingMetadata = {
     meetingId: meeting._id.toString(),
     meetingLink: meeting.meetingLink,
@@ -54,233 +209,434 @@ export const createMeeting = asyncHandler(async (req, res) => {
     endTime: meeting.endTime,
     platform: meeting.platform,
     title: meeting.title,
+    candidateName: meeting.candidateName,
+    vendorName: meeting.vendorName,
   };
 
-  if (targetType === "ALL") {
-    await NotificationService.createNotification({
-      type: "MEETING",
-      title: `📅 New Meeting: ${meeting.title}`,
-      message: `A meeting has been scheduled for ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-      targetRole: "EMPLOYEE",
-      targetType: "ALL",
-      metadata: meetingMetadata,
-    });
-  } else if (targetType === "SPECIFIC" && Array.isArray(targetEmployees) && targetEmployees.length > 0) {
-    await Promise.all(
-      targetEmployees.map((empId) =>
-        NotificationService.createNotification({
-          type: "MEETING",
-          title: `📅 Meeting Invitation: ${meeting.title}`,
-          message: `You are invited to a meeting on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-          targetRole: "EMPLOYEE",
-          targetType: "SPECIFIC",
-          targetEmployeeId: empId,
-          metadata: meetingMetadata,
-        })
-      )
-    );
+  try {
+    // Notify vendor if candidate meeting
+    if (meeting.vendorId && !isVendor) {
+      await Notification.create({
+        type: "MEETING",
+        title: `📅 Meeting Scheduled: ${meeting.title}`,
+        message: `A meeting has been scheduled for candidate ${meeting.candidateName || "Partner"} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+        targetRole: "VENDOR",
+        targetVendorId: meeting.vendorId,
+        metadata: meetingMetadata,
+      });
+    }
+
+    // Notify employee targets if applicable
+    if (targetType === "ALL") {
+      await NotificationService.createNotification({
+        type: "MEETING",
+        title: `📅 New Meeting: ${meeting.title}`,
+        message: `A company meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+        targetRole: "EMPLOYEE",
+        targetType: "ALL",
+        metadata: meetingMetadata,
+      });
+    } else if (targetType === "SPECIFIC" && Array.isArray(targetEmployees) && targetEmployees.length > 0) {
+      await Promise.all(
+        targetEmployees.map((empId) =>
+          NotificationService.createNotification({
+            type: "MEETING",
+            title: `📅 Meeting Invitation: ${meeting.title}`,
+            message: `You are invited to a meeting on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+            targetRole: "EMPLOYEE",
+            targetType: "SPECIFIC",
+            targetEmployeeId: empId,
+            metadata: meetingMetadata,
+          })
+        )
+      );
+    }
+  } catch (err) {
+    console.error("Failed to dispatch meeting notification:", err.message);
   }
 
   return res.status(201).json({
-    message: "Meeting scheduled and notifications dispatched successfully",
+    success: true,
+    message: "Meeting scheduled successfully",
     meeting,
   });
 });
 
+// GET MEETINGS (With Role & Vendor filtering)
 export const getAdminMeetings = asyncHandler(async (req, res) => {
-  const { month, year, date, status } = req.query;
+  const { month, year, date, status, candidateId, vendorId, meetingType, upcoming } = req.query;
   const filter = {};
+
+  const role = req.userRole || req.user?.role || "ADMIN";
+  const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
+  const isVendor = req.isVendor || role === ROLES.VENDOR;
+  const hrType = req.hrType || req.user?.hrType || "";
+  const isEmployeeHR = role === ROLES.HR && (hrType === "EMPLOYEE_HR" || hrType === "");
+  const isVendorHR = role === ROLES.HR && hrType === "VENDOR_HR";
+
+  // Role based filtering
+  if (isVendor) {
+    filter.$or = [
+      { vendorId: req.vendorId },
+      { createdBy: req.userId },
+      { "attendees.id": req.vendorId },
+      { "attendees.email": req.user?.email },
+    ];
+  } else if (isVendorHR && !isSuperAdmin && role !== ROLES.ADMIN) {
+    const assigned = req.assignedVendors || [];
+    filter.$or = [
+      { vendorId: { $in: assigned } },
+      { hrId: req.userId },
+      { createdBy: req.userId },
+    ];
+  } else if (isEmployeeHR && !isSuperAdmin && role !== ROLES.ADMIN) {
+    filter.$or = [
+      { meetingType: { $in: ["INTERNAL_HR", "EMPLOYEE", "GENERAL"] } },
+      { createdBy: req.userId },
+    ];
+  }
 
   if (date) {
     filter.date = date;
   } else if (month && year) {
     const formattedMonth = String(month).padStart(2, "0");
-    const regexPattern = `^${year}-${formattedMonth}`;
-    filter.date = { $regex: regexPattern };
+    filter.date = { $regex: `^${year}-${formattedMonth}` };
   }
 
-  if (status) {
+  if (status && status !== "ALL") {
     filter.status = status;
+  }
+
+  if (candidateId) {
+    filter.candidateId = candidateId;
+  }
+
+  if (vendorId && !isVendor) {
+    filter.vendorId = vendorId;
+  }
+
+  if (meetingType && meetingType !== "ALL") {
+    filter.meetingType = meetingType;
+  }
+
+  if (upcoming === "true") {
+    const todayStr = new Date().toISOString().split("T")[0];
+    filter.date = { $gte: todayStr };
+    if (!status) {
+      filter.status = { $in: ["SCHEDULED", "RESCHEDULED"] };
+    }
   }
 
   const meetings = await Meeting.find(filter)
     .populate("targetEmployees", "name employeeId email designation")
-    .sort({ date: -1, startTime: 1 })
-    .lean();
-
-  return res.status(200).json(meetings);
-});
-
-export const updateMeeting = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const {
-    title,
-    description,
-    date,
-    startTime,
-    endTime,
-    meetingLink,
-    platform,
-    targetType,
-    targetEmployees,
-    status,
-    notifyUpdate = true,
-  } = req.body;
-
-  const meeting = await Meeting.findById(id);
-  if (!meeting) {
-    throw new ApiError(404, "Meeting not found");
-  }
-
-  if (title) meeting.title = title.trim();
-  if (description !== undefined) meeting.description = description.trim();
-  if (date) {
-    const todayStr = new Date().toISOString().split("T")[0];
-    if (date < todayStr) {
-      throw new ApiError(
-        400,
-        "Meeting date cannot be in the past. Please select today or a future date."
-      );
-    }
-    meeting.date = date;
-  }
-  if (startTime) meeting.startTime = startTime;
-  if (endTime !== undefined) meeting.endTime = endTime;
-  if (meetingLink) meeting.meetingLink = meetingLink.trim();
-  if (platform) meeting.platform = platform;
-  if (targetType) meeting.targetType = targetType;
-  if (targetEmployees) meeting.targetEmployees = targetType === "SPECIFIC" ? targetEmployees : [];
-  if (status) meeting.status = status;
-
-  await meeting.save();
-  await meeting.populate("targetEmployees", "name employeeId email designation");
-
-  if (notifyUpdate) {
-    const meetingMetadata = {
-      meetingId: meeting._id.toString(),
-      meetingLink: meeting.meetingLink,
-      date: meeting.date,
-      startTime: meeting.startTime,
-      endTime: meeting.endTime,
-      platform: meeting.platform,
-      title: meeting.title,
-    };
-
-    if (meeting.targetType === "ALL") {
-      await NotificationService.createNotification({
-        type: "UPDATE",
-        title: `🔄 Meeting Updated: ${meeting.title}`,
-        message: `Meeting details updated for ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Please check the new details.`,
-        targetRole: "EMPLOYEE",
-        targetType: "ALL",
-        metadata: meetingMetadata,
-      });
-    } else if (meeting.targetEmployees?.length > 0) {
-      await Promise.all(
-        meeting.targetEmployees.map((emp) => {
-          const empId = emp._id || emp;
-          return NotificationService.createNotification({
-            type: "UPDATE",
-            title: `🔄 Meeting Updated: ${meeting.title}`,
-            message: `Your meeting on ${meeting.date} at ${meeting.startTime} has been updated.`,
-            targetRole: "EMPLOYEE",
-            targetType: "SPECIFIC",
-            targetEmployeeId: empId,
-            metadata: meetingMetadata,
-          });
-        })
-      );
-    }
-  }
-
-  return res.status(200).json({
-    message: "Meeting updated successfully",
-    meeting,
-  });
-});
-
-export const deleteMeeting = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const meeting = await Meeting.findByIdAndDelete(id);
-
-  if (!meeting) {
-    throw new ApiError(404, "Meeting not found");
-  }
-
-  if (meeting.targetType === "ALL") {
-    await NotificationService.createNotification({
-      type: "UPDATE",
-      title: `❌ Meeting Cancelled: ${meeting.title}`,
-      message: `The meeting scheduled for ${meeting.date} at ${meeting.startTime} has been cancelled.`,
-      targetRole: "EMPLOYEE",
-      targetType: "ALL",
-    });
-  } else if (meeting.targetEmployees?.length > 0) {
-    for (const empId of meeting.targetEmployees) {
-      await NotificationService.createNotification({
-        type: "UPDATE",
-        title: `❌ Meeting Cancelled: ${meeting.title}`,
-        message: `Your meeting scheduled for ${meeting.date} at ${meeting.startTime} has been cancelled.`,
-        targetRole: "EMPLOYEE",
-        targetType: "SPECIFIC",
-        targetEmployeeId: empId,
-      });
-    }
-  }
-
-  return res.status(200).json({
-    message: "Meeting deleted successfully",
-  });
-});
-
-export const sendBroadcastNotification = asyncHandler(async (req, res) => {
-  const { title, message, targetType = "ALL", targetEmployeeId = null, type = "ANNOUNCEMENT" } = req.body;
-
-  if (!title || !message) {
-    throw new ApiError(400, "Title and message are required");
-  }
-
-  const notification = await NotificationService.createNotification({
-    type,
-    title: title.trim(),
-    message: message.trim(),
-    targetRole: "EMPLOYEE",
-    targetType,
-    targetEmployeeId: targetType === "SPECIFIC" ? targetEmployeeId : null,
-  });
-
-  return res.status(201).json({
-    message: "Notification dispatched successfully to employee(s)",
-    notification,
-  });
-});
-
-export const getEmployeeMeetings = asyncHandler(async (req, res) => {
-  const employeeId = req.user?.id || req.user?._id;
-  const empObjId = employeeId && mongoose.Types.ObjectId.isValid(employeeId)
-    ? new mongoose.Types.ObjectId(employeeId.toString())
-    : null;
-
-  const filter = {
-    $or: [
-      { targetType: "ALL" },
-      ...(empObjId ? [{ targetEmployees: empObjId }] : []),
-      { targetEmployees: employeeId },
-    ],
-  };
-
-  const meetings = await Meeting.find(filter)
     .sort({ date: 1, startTime: 1 })
     .lean();
 
   return res.status(200).json(meetings);
 });
 
-export default {
-  createMeeting,
-  getAdminMeetings,
-  updateMeeting,
-  deleteMeeting,
-  sendBroadcastNotification,
-  getEmployeeMeetings,
-};
+// GET DASHBOARD MEETING STATS & CALENDAR DATA
+export const getMeetingCalendarStats = asyncHandler(async (req, res) => {
+  const role = req.userRole || req.user?.role || "ADMIN";
+  const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
+  const isVendor = req.isVendor || role === ROLES.VENDOR;
+  const hrType = req.hrType || req.user?.hrType || "";
+  const isEmployeeHR = role === ROLES.HR && (hrType === "EMPLOYEE_HR" || hrType === "");
+  const isVendorHR = role === ROLES.HR && hrType === "VENDOR_HR";
+
+  const baseFilter = {};
+  if (isVendor) {
+    baseFilter.$or = [
+      { vendorId: req.vendorId },
+      { createdBy: req.userId },
+      { "attendees.id": req.vendorId },
+      { "attendees.email": req.user?.email },
+    ];
+  } else if (isVendorHR && !isSuperAdmin && role !== ROLES.ADMIN) {
+    const assigned = req.assignedVendors || [];
+    baseFilter.$or = [
+      { vendorId: { $in: assigned } },
+      { hrId: req.userId },
+      { createdBy: req.userId },
+    ];
+  } else if (isEmployeeHR && !isSuperAdmin && role !== ROLES.ADMIN) {
+    baseFilter.$or = [
+      { meetingType: { $in: ["INTERNAL_HR", "EMPLOYEE", "GENERAL"] } },
+      { createdBy: req.userId },
+    ];
+  }
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  const next7DaysStr = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+  const [
+    todayMeetings,
+    upcomingMeetings,
+    completedMeetings,
+    cancelledMeetings,
+    next7DaysMeetings,
+  ] = await Promise.all([
+    Meeting.find({ ...baseFilter, date: todayStr }).sort({ startTime: 1 }).lean(),
+    Meeting.find({
+      ...baseFilter,
+      date: { $gte: todayStr },
+      status: { $in: ["SCHEDULED", "RESCHEDULED"] },
+    })
+      .sort({ date: 1, startTime: 1 })
+      .limit(10)
+      .lean(),
+    Meeting.countDocuments({ ...baseFilter, status: "COMPLETED" }),
+    Meeting.countDocuments({ ...baseFilter, status: "CANCELLED" }),
+    Meeting.find({
+      ...baseFilter,
+      date: { $gte: todayStr, $lte: next7DaysStr },
+      status: { $in: ["SCHEDULED", "RESCHEDULED"] },
+    })
+      .sort({ date: 1, startTime: 1 })
+      .lean(),
+  ]);
+
+  const totalScheduled = await Meeting.countDocuments({
+    ...baseFilter,
+    status: { $in: ["SCHEDULED", "RESCHEDULED"] },
+  });
+
+  const nextMeeting = upcomingMeetings.length > 0 ? upcomingMeetings[0] : null;
+
+  return res.status(200).json({
+    success: true,
+    stats: {
+      todayMeetingsCount: todayMeetings.length,
+      upcomingMeetingsCount: totalScheduled,
+      completedMeetingsCount: completedMeetings,
+      cancelledMeetingsCount: cancelledMeetings,
+      next7DaysMeetingsCount: next7DaysMeetings.length,
+      totalScheduledMeetings: totalScheduled,
+      nextMeeting,
+    },
+    todayMeetings,
+    upcomingMeetings,
+    next7DaysMeetings,
+  });
+});
+
+// UPDATE MEETING
+export const updateMeeting = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  const meeting = await Meeting.findById(id);
+  if (!meeting) {
+    throw new ApiError(404, "Meeting not found");
+  }
+
+  const prevStatus = meeting.status;
+
+  if (updateData.title) meeting.title = updateData.title.trim();
+  if (updateData.description !== undefined) meeting.description = updateData.description.trim();
+  if (updateData.meetingType) meeting.meetingType = updateData.meetingType;
+  if (updateData.date) meeting.date = updateData.date;
+  if (updateData.startTime) meeting.startTime = updateData.startTime;
+  if (updateData.endTime !== undefined) meeting.endTime = updateData.endTime;
+  if (updateData.meetingLink) meeting.meetingLink = updateData.meetingLink.trim();
+  if (updateData.platform) meeting.platform = updateData.platform;
+  if (updateData.status) meeting.status = updateData.status;
+  if (updateData.remarks !== undefined) meeting.remarks = updateData.remarks;
+  if (updateData.attendance) meeting.attendance = updateData.attendance;
+  if (updateData.outcome) meeting.outcome = updateData.outcome;
+  if (updateData.outcomeRemarks !== undefined) meeting.outcomeRemarks = updateData.outcomeRemarks;
+  if (Array.isArray(updateData.attendees)) meeting.attendees = updateData.attendees;
+
+  await meeting.save();
+
+  if (meeting.candidateId && (updateData.status || updateData.outcome || updateData.attendance)) {
+    await logCandidateMeetingActivity({
+      meeting,
+      actionType: updateData.outcome ? "MEETING_OUTCOME" : "MEETING_UPDATED",
+      previousStatus: prevStatus,
+      newStatus: updateData.status || meeting.status,
+      remarks: updateData.outcomeRemarks || updateData.remarks || `Meeting updated: Outcome [${meeting.outcome || "N/A"}], Attendance [${meeting.attendance || "N/A"}].`,
+      updater: req.user,
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Meeting updated successfully",
+    meeting,
+  });
+});
+
+// RESCHEDULE MEETING
+export const rescheduleMeeting = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { date, startTime, endTime, meetingLink, remarks } = req.body;
+
+  if (!date || !startTime) {
+    throw new ApiError(400, "New date and start time are required to reschedule.");
+  }
+
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (date < todayStr) {
+    throw new ApiError(400, "Rescheduled date cannot be in the past.");
+  }
+
+  const meeting = await Meeting.findById(id);
+  if (!meeting) {
+    throw new ApiError(404, "Meeting not found");
+  }
+
+  const oldDate = meeting.date;
+  const oldTime = meeting.startTime;
+
+  meeting.date = date;
+  meeting.startTime = startTime;
+  if (endTime) meeting.endTime = endTime;
+  if (meetingLink) meeting.meetingLink = meetingLink.trim();
+  if (remarks) meeting.remarks = remarks.trim();
+  meeting.status = "RESCHEDULED";
+  meeting.remindersSent = []; // Reset reminders for new schedule
+
+  await meeting.save();
+
+  if (meeting.candidateId) {
+    await logCandidateMeetingActivity({
+      meeting,
+      actionType: "MEETING_RESCHEDULED",
+      previousStatus: "Scheduled",
+      newStatus: "Rescheduled",
+      remarks: remarks || `Meeting rescheduled from ${oldDate} ${oldTime} to ${date} ${startTime}.`,
+      updater: req.user,
+    });
+  }
+
+  // Send rescheduling notification
+  try {
+    const message = `Meeting "${meeting.title}" has been RESCHEDULED to ${meeting.date} at ${meeting.startTime}. Click to join.`;
+    await Notification.create({
+      type: "MEETING_RESCHEDULED",
+      title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+      message,
+      targetRole: "ALL",
+      metadata: {
+        meetingId: meeting._id.toString(),
+        meetingLink: meeting.meetingLink,
+        date: meeting.date,
+        startTime: meeting.startTime,
+      },
+    });
+  } catch (err) {
+    console.error("Failed to notify of reschedule:", err.message);
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Meeting rescheduled successfully and reminders updated.",
+    meeting,
+  });
+});
+
+// CANCEL MEETING
+export const cancelMeeting = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { reason = "" } = req.body;
+
+  const meeting = await Meeting.findById(id);
+  if (!meeting) {
+    throw new ApiError(404, "Meeting not found");
+  }
+
+  meeting.status = "CANCELLED";
+  meeting.remarks = reason || meeting.remarks || "Meeting cancelled by organizer.";
+  await meeting.save();
+
+  if (meeting.candidateId) {
+    await logCandidateMeetingActivity({
+      meeting,
+      actionType: "MEETING_CANCELLED",
+      previousStatus: "Scheduled",
+      newStatus: "Cancelled",
+      remarks: reason || "Meeting was cancelled.",
+      updater: req.user,
+    });
+  }
+
+  try {
+    await Notification.create({
+      type: "MEETING_CANCELLED",
+      title: `❌ Meeting Cancelled: ${meeting.title}`,
+      message: `The meeting scheduled for ${meeting.date} at ${meeting.startTime} has been cancelled. Reason: ${reason || "Cancelled by host."}`,
+      targetRole: "ALL",
+      metadata: { meetingId: meeting._id.toString() },
+    });
+  } catch (err) {}
+
+  return res.status(200).json({
+    success: true,
+    message: "Meeting cancelled successfully.",
+    meeting,
+  });
+});
+
+// DELETE MEETING
+export const deleteMeeting = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const meeting = await Meeting.findByIdAndDelete(id);
+  if (!meeting) {
+    throw new ApiError(404, "Meeting not found");
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Meeting record deleted permanently.",
+  });
+});
+
+// GET EMPLOYEE MEETINGS
+export const getEmployeeMeetings = asyncHandler(async (req, res) => {
+  const employeeId = req.employee?._id || req.user?._id;
+  const employeeEmail = req.employee?.email || req.user?.email;
+
+  const query = {
+    status: { $ne: "CANCELLED" },
+  };
+
+  const orConditions = [{ targetType: "ALL" }];
+  if (employeeId) {
+    orConditions.push({ targetEmployees: employeeId });
+    orConditions.push({ "attendees.userId": employeeId.toString() });
+  }
+  if (employeeEmail) {
+    orConditions.push({ "attendees.email": employeeEmail.toLowerCase() });
+  }
+  query.$or = orConditions;
+
+  const meetings = await Meeting.find(query).sort({ date: 1, startTime: 1 });
+
+  return res.status(200).json({
+    success: true,
+    count: meetings.length,
+    meetings,
+  });
+});
+
+// BROADCAST NOTIFICATION (existing support)
+export const sendBroadcastNotification = asyncHandler(async (req, res) => {
+  const { title, message, targetRole = "ALL" } = req.body;
+  if (!title || !message) {
+    throw new ApiError(400, "Title and Message are required");
+  }
+
+  const notification = await Notification.create({
+    type: "SYSTEM_ALERT",
+    title,
+    message,
+    targetRole,
+    targetType: "ALL",
+  });
+
+  return res.status(201).json({
+    success: true,
+    message: "Broadcast notification dispatched",
+    notification,
+  });
+});

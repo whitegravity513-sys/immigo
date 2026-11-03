@@ -4,7 +4,7 @@ const activityLogSchema = new mongoose.Schema(
   {
     userType: {
       type: String,
-      enum: ["ADMIN", "EMPLOYEE", "VENDOR", "SYSTEM"],
+      enum: ["ADMIN", "SUPER_ADMIN", "HR", "EMPLOYEE", "VENDOR", "SYSTEM"],
       default: "SYSTEM",
       index: true,
     },
@@ -43,6 +43,7 @@ const activityLogSchema = new mongoose.Schema(
         "Leave",
         "Document",
         "System",
+        "Meeting",
         "CLIENT",
         "VENDOR",
         "PROJECT",
@@ -67,10 +68,87 @@ const activityLogSchema = new mongoose.Schema(
     },
     visibility: {
       type: String,
-      enum: ["ADMIN", "EMPLOYEE", "ALL"],
+      enum: ["ADMIN", "EMPLOYEE", "VENDOR", "ALL"],
       default: "ADMIN",
       index: true,
     },
+
+    candidateId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    candidateName: {
+      type: String,
+      default: "",
+    },
+    updatedByUserId: {
+      type: String,
+      default: "",
+    },
+    updatedByName: {
+      type: String,
+      default: "",
+    },
+    updatedByRole: {
+      type: String,
+      default: "",
+    },
+    vendorId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    vendorName: {
+      type: String,
+      default: "",
+    },
+    actionType: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    previousStatus: {
+      type: String,
+      default: "",
+    },
+    newStatus: {
+      type: String,
+      default: "",
+    },
+    previousStage: {
+      type: String,
+      default: "",
+    },
+    newStage: {
+      type: String,
+      default: "",
+    },
+    previousMilestone: {
+      type: String,
+      default: "",
+    },
+    newMilestone: {
+      type: String,
+      default: "",
+    },
+    remarks: {
+      type: String,
+      default: "",
+    },
+    date: {
+      type: String,
+      default: "",
+    },
+    time: {
+      type: String,
+      default: "",
+    },
+    meetingRef: {
+      type: String,
+      default: "",
+    },
+
     metadata: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
@@ -90,6 +168,8 @@ const activityLogSchema = new mongoose.Schema(
 );
 
 activityLogSchema.index({ createdAt: -1 });
+activityLogSchema.index({ candidateId: 1, createdAt: -1 });
+activityLogSchema.index({ vendorId: 1, createdAt: -1 });
 activityLogSchema.index({ visibility: 1, createdAt: -1 });
 activityLogSchema.index({ userId: 1, createdAt: -1 });
 

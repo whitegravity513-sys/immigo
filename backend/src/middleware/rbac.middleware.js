@@ -2,8 +2,10 @@ import jwt from "jsonwebtoken";
 import env from "../config/env.js";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
+import Vendor from "../models/Vendor.js";
 import AuditLog from "../models/AuditLog.js";
 import { ROLES } from "../constants/roles.js";
+import { ROLE_DEFAULT_PERMISSIONS } from "../constants/permissions.js";
 import PermissionService from "../services/permission.service.js";
 import { extractToken } from "./auth.middleware.js";
 
@@ -80,6 +82,26 @@ export const authenticateRBAC = async (req, res, next) => {
     }
   }
 
+  if (!user && (decoded.role === "vendor" || decoded.role === "VENDOR" || decoded.vendorId)) {
+    const vendorDoc = await Vendor.findOne({
+      $or: [
+        { _id: userId.match(/^[0-9a-fA-F]{24}$/) ? userId : null },
+        { vendorId: decoded.vendorId || userId },
+      ],
+    });
+    if (vendorDoc) {
+      req.user = vendorDoc;
+      req.userId = vendorDoc._id.toString();
+      req.userRole = ROLES.VENDOR;
+      req.isVendor = true;
+      req.vendorId = vendorDoc.vendorId;
+      req.vendorName = vendorDoc.companyName;
+      req.userPermissions = ROLE_DEFAULT_PERMISSIONS.VENDOR || [];
+      req.isSuperAdmin = false;
+      return next();
+    }
+  }
+
   if (!user) {
     return res.status(401).json({
       success: false,
@@ -102,6 +124,8 @@ export const authenticateRBAC = async (req, res, next) => {
   req.userPermissions = resolved.permissions;
   req.isSuperAdmin = resolved.isSuperAdmin;
   req.userRole = user.role;
+  req.hrType = user.hrType || "";
+  req.assignedVendors = Array.isArray(user.assignedVendors) ? user.assignedVendors : [];
 
   next();
 };
@@ -203,6 +227,48 @@ export const requireRoles = (...allowedRoles) => {
     return res.status(403).json({
       success: false,
       message: `Forbidden: Access restricted to [${allowedRoles.join(", ")}] roles.`,
+    });
+  };
+};
+
+export const requireVendorAccess = (paramName = "vendorId") => {
+  return (req, res, next) => {
+    if (req.isSuperAdmin || req.userRole === ROLES.SUPER_ADMIN || req.userRole === ROLES.ADMIN) {
+      return next();
+    }
+
+    const targetVendor = req.params[paramName] || req.query[paramName] || req.body[paramName];
+
+    // If Vendor role: can only access their own vendorId
+    if (req.userRole === ROLES.VENDOR || req.isVendor) {
+      if (!targetVendor || String(targetVendor) === String(req.vendorId)) {
+        return next();
+      }
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are only authorized to access your own vendor data.",
+      });
+    }
+
+    // If Vendor HR: must be assigned to this vendor
+    if (req.userRole === ROLES.HR || req.userRole === ROLES.VENDOR_HR || req.hrType === "VENDOR_HR") {
+      if (!targetVendor) return next();
+      const assigned = req.assignedVendors || [];
+      const hasAssignment = assigned.some(
+        (v) => String(v).toLowerCase() === String(targetVendor).toLowerCase()
+      );
+      if (hasAssignment) {
+        return next();
+      }
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are not assigned to this vendor.",
+      });
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: "Forbidden: Access restricted.",
     });
   };
 };

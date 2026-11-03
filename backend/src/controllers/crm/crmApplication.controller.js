@@ -3,6 +3,7 @@ import CrmOverseasClient from "../../models/CrmOverseasClient.js";
 import CrmNotification from "../../models/CrmNotification.js";
 import Notification from "../../models/Notification.js";
 import ActivityService from "../../services/activity.service.js";
+import { recordCandidateActivity } from "../../services/candidateActivity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
 export const getApplications = asyncHandler(async (req, res) => {
@@ -78,6 +79,10 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     });
   }
 
+  const prevStatus = app ? app.status : "Applied";
+  const prevStage = app?.candidateData?.stage || "";
+  const prevMilestone = app?.currentMilestone || "";
+
   if (!app) {
     app = await CrmCandidateApplication.create({
       ...updateData,
@@ -87,6 +92,40 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   } else {
     Object.assign(app, updateData);
     await app.save();
+  }
+
+  // Automatic permanent Candidate Activity Log
+  try {
+    const updaterName = req.user?.name || req.user?.companyName || "Admin";
+    const updaterRole = req.userRole || req.user?.role || "ADMIN";
+    const updaterId = req.userId || req.user?._id || "";
+
+    await recordCandidateActivity({
+      candidateId: app.candidateId,
+      candidateName: app.candidateName,
+      updatedByUserId: updaterId,
+      updatedByName: updaterName,
+      updatedByRole: updaterRole,
+      vendorId: app.vendorId,
+      vendorName: app.vendorName,
+      actionType:
+        updateData.status && updateData.status !== prevStatus
+          ? "STATUS_UPDATE"
+          : updateData.stage
+          ? "STAGE_UPDATE"
+          : updateData.milestone
+          ? "MILESTONE_UPDATE"
+          : "PROCESS_UPDATE",
+      previousStatus: prevStatus,
+      newStatus: app.status,
+      previousStage: prevStage,
+      newStage: updateData.stage || app?.candidateData?.stage || "",
+      previousMilestone: prevMilestone,
+      newMilestone: updateData.currentMilestone || updateData.milestone || "",
+      remarks: updateData.adminRemark || updateData.remarks || updateData.rejectionReason || "",
+    });
+  } catch (err) {
+    console.warn("Candidate activity logging failed in crmApplication:", err.message);
   }
 
   if (updateData.status) {

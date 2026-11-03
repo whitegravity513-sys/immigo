@@ -116,6 +116,19 @@ export const AuthProvider = ({ children }) => {
     });
   }, []);
 
+  const isHrRole =
+    (role || "").toUpperCase().replace(/[\s_-]/g, "") === "HR" ||
+    (role || "").toUpperCase() === "EMPLOYEE_HR" ||
+    (role || "").toUpperCase() === "VENDOR_HR";
+
+  const isVendorHR =
+    isHrRole &&
+    (user?.hrType === "VENDOR_HR" ||
+      (role || "").toUpperCase() === "VENDOR_HR" ||
+      (Array.isArray(user?.assignedVendors) && user.assignedVendors.length > 0));
+
+  const isEmployeeHR = isHrRole && !isVendorHR;
+
   const value = {
     token,
     user,
@@ -124,7 +137,10 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: Boolean(token && role),
     isSuperAdmin: (role || "").toUpperCase().replace(/[\s_-]/g, "") === "SUPERADMIN",
     isAdmin: ["ADMIN", "SUPERADMIN"].includes((role || "").toUpperCase().replace(/[\s_-]/g, "")),
-    isHR: (role || "").toUpperCase().replace(/[\s_-]/g, "") === "HR",
+    isHR: isHrRole,
+    isEmployeeHR,
+    isVendorHR,
+    assignedVendors: user?.assignedVendors || [],
     isEmployee: (role || "").toLowerCase() === "employee",
     isVendor: (role || "").toUpperCase() === "VENDOR",
     isCandidate: (role || "").toUpperCase() === "CANDIDATE",
