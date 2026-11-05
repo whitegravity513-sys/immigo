@@ -39,6 +39,7 @@ export default function CandidateMasterProfileView({
   inlineRejectReason,
   setInlineRejectReason,
   onHold,
+  onShortlist,
   onOpenInterviewModal,
   onSelect,
   onOpenRejectApp,
@@ -524,48 +525,137 @@ export default function CandidateMasterProfileView({
                       </span>
                     </div>
 
+                    {/* Pre-Selection Strict 3-Step Decision Flow */}
                     {!isSelected && !isRejected && (
-                      <div className="mt-4 pt-4 border-t border-slate-200/60 flex flex-wrap gap-2">
-                        {!isOnHold && (
-                          <button
-                            onClick={() => onHold(sub)}
-                            disabled={actionLoading === sub.id + "_hold"}
-                            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
-                          >
-                            <Pause size={12} />
-                            <span>{actionLoading === sub.id + "_hold" ? "Updating..." : "On Hold"}</span>
-                          </button>
+                      <div className="mt-4 pt-4 border-t border-slate-200/60">
+                        {/* Step 1: Initial State (Submitted / Applied / Under Review / Screening) -> Strictly Shortlist & Reject together */}
+                        {!isShortlisted && !isInterview && (
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                              Screening Decision:
+                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => (onShortlist ? onShortlist(sub) : onHold(sub))}
+                                disabled={actionLoading === sub.id + "_shortlist"}
+                                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                              >
+                                <CheckCircle2 size={13} />
+                                <span>{actionLoading === sub.id + "_shortlist" ? "Shortlisting..." : "Shortlist Candidate"}</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onOpenRejectApp(sub)}
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                              >
+                                <XCircle size={13} />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </div>
                         )}
 
-                        <button
-                          onClick={() => onOpenInterviewModal(sub)}
-                          className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
-                        >
-                          <Video size={12} />
-                          <span>{isInterview ? "Update Interview" : "Schedule Interview"}</span>
-                        </button>
+                        {/* Step 2: Shortlisted -> Only Schedule Interview */}
+                        {isShortlisted && !isInterview && (
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">
+                              Shortlist Cleared:
+                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => onOpenInterviewModal(sub)}
+                                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                              >
+                                <Video size={13} />
+                                <span>Schedule Interview</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
-                        <button
-                          onClick={() => onSelect(sub)}
-                          disabled={actionLoading === sub.id + "_select"}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
-                        >
-                          <UserCheck size={12} />
-                          <span>{actionLoading === sub.id + "_select" ? "Selecting..." : "Select Candidate"}</span>
-                        </button>
+                        {/* Step 3: Interview Active -> Strictly Select or Reject */}
+                        {isInterview && (
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">
+                              Interview Evaluation:
+                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => onSelect(sub)}
+                                disabled={actionLoading === sub.id + "_select"}
+                                className="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                              >
+                                <UserCheck size={13} />
+                                <span>{actionLoading === sub.id + "_select" ? "Selecting..." : "Select Candidate 🎉"}</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onOpenRejectApp(sub)}
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                              >
+                                <XCircle size={13} />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
+                    {/* Rejected Case -> Reassign to another project */}
+                    {isRejected && (
+                      <div className="mt-4 pt-4 border-t border-rose-200/60 flex items-center justify-between gap-3">
+                        <span className="text-[11px] text-slate-500 font-medium">Candidate returned to talent pool. Ready for re-submission.</span>
                         <button
-                          onClick={() => onOpenRejectApp(sub)}
-                          className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                          type="button"
+                          onClick={() => onOpenAssignProject(selectedCandidate)}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
                         >
-                          <XCircle size={12} />
-                          <span>Reject</span>
+                          <Briefcase size={13} />
+                          <span>Assign to Another Project</span>
                         </button>
                       </div>
                     )}
 
                     {isSelected && (
                       <div className="mt-4 pt-4 border-t border-emerald-200/60 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-emerald-50/80 rounded-xl border border-emerald-200">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-200 text-emerald-900 border border-emerald-300">
+                                ✓ Candidate Selected
+                              </span>
+                              <span className="text-xs text-emerald-800 font-bold">
+                                Active in Deployment Processing Roster
+                              </span>
+                            </div>
+                            <p className="text-[10.5px] text-emerald-700 mt-0.5">
+                              Milestone payments & sub-stages processing can be monitored and updated directly below or via dedicated steppers.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <a
+                              href={`/admin/vendor/processing?appId=${sub.id}`}
+                              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
+                              title="Open Full 8-Stage Processing Stepper"
+                            >
+                              <Clock size={13} />
+                              <span>Processing Stepper</span>
+                            </a>
+                            <a
+                              href={`/admin/vendor/milestones-manage?appId=${sub.id}`}
+                              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
+                              title="Configure Milestones & Verify Documents"
+                            >
+                              <Sliders size={13} />
+                              <span>Manage Milestones</span>
+                            </a>
+                          </div>
+                        </div>
+
                         {sub.processing && sub.processing.stages && (
                           <div>
                             <p className="text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wider">

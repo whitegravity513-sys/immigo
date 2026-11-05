@@ -176,6 +176,14 @@ export default function AdminSelectedCandidates() {
                       <td className="py-1 px-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
+                            to={`/admin/vendor/processing?appId=${app.id}`}
+                            className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                            title="Open full processing stepper & complete stages"
+                          >
+                            <Clock size={13} />
+                            <span>Processing Stepper</span>
+                          </Link>
+                          <Link
                             to={`/admin/vendor/milestones-manage?appId=${app.id}`}
                             className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
                             title="Manage candidate processing stages & upload documents"

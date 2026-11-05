@@ -216,6 +216,20 @@ export default function AdminCandidatesList() {
     }
   };
 
+  const handleShortlist = async (app) => {
+    setActionLoading(app.id + "_shortlist");
+    try {
+      await crmVendorService.updateApplicationStatus(app.id, "Shortlisted", {
+        remark: "Candidate shortlisted after document verification.",
+      });
+      await refreshCandidateView();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleHold = async (app) => {
     setActionLoading(app.id + "_hold");
     try {
@@ -539,6 +553,7 @@ export default function AdminCandidatesList() {
         inlineRejectReason={inlineRejectReason}
         setInlineRejectReason={setInlineRejectReason}
         onHold={handleHold}
+        onShortlist={handleShortlist}
         onOpenInterviewModal={handleOpenInterviewModal}
         onSelect={handleSelect}
         onOpenRejectApp={handleOpenRejectApp}
