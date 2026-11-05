@@ -1885,9 +1885,13 @@ export const crmVendorService = {
 
     apps[idx].processMilestones = apps[idx].processMilestones.map((milestone) => {
       if (milestone.id === milestoneId) {
+        const rawStages = Array.isArray(milestone.stages) && milestone.stages.length > 0 ? milestone.stages : [
+          { id: `s0_1`, name: "Trade Skill Verification", status: "In Progress" },
+          { id: `s0_2`, name: "Passport & Identity Clearance", status: "Pending" }
+        ];
         return {
           ...milestone,
-          stages: milestone.stages.map((stg, i) => {
+          stages: rawStages.map((stg, i) => {
             if (stg.id === stageId) {
               if (stg.status === "Completed") throw new Error("Stage is already completed.");
               if (stg.status === "Locked") throw new Error("Previous stage is not completed yet.");
@@ -1909,7 +1913,7 @@ export const crmVendorService = {
     
     const mIdx = apps[idx].processMilestones.findIndex(m => m.id === milestoneId);
     if (mIdx !== -1) {
-      const allDone = apps[idx].processMilestones[mIdx].stages.every(s => s.status === "Completed");
+      const allDone = Array.isArray(apps[idx].processMilestones[mIdx].stages) && apps[idx].processMilestones[mIdx].stages.length > 0 && apps[idx].processMilestones[mIdx].stages.every(s => s.status === "Completed");
       if (allDone) {
         apps[idx].processMilestones[mIdx].status = "Completed";
         if (apps[idx].processMilestones[mIdx].paymentAmount === 0) {

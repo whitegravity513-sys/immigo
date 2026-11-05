@@ -59,12 +59,42 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
     }
   };
 
-  const processMilestones =
+  const rawMilestones =
     Array.isArray(application?.processMilestones) && application.processMilestones.length > 0
       ? application.processMilestones
       : crmVendorService.syncAppMilestonesWithProject
       ? crmVendorService.syncAppMilestonesWithProject(application)
       : [];
+
+  const processMilestones = (rawMilestones || []).map((m, mIdx) => {
+    let stages = Array.isArray(m.stages) && m.stages.length > 0 ? m.stages : null;
+    if (!stages) {
+      if (mIdx === 0) {
+        stages = [
+          { id: `s${mIdx}_1`, name: "Trade Skill Verification & Acceptance", status: m.status === "Completed" ? "Completed" : "In Progress" },
+          { id: `s${mIdx}_2`, name: "Passport & Identity Clearance", status: m.status === "Completed" ? "Completed" : "Pending" },
+        ];
+      } else if (mIdx === 1) {
+        stages = [
+          { id: `s${mIdx}_1`, name: "GAMCA / Medical Fitness Test", status: m.status === "Completed" ? "Completed" : "Pending" },
+          { id: `s${mIdx}_2`, name: "Visa Stamping & Work Permit Approval", status: m.status === "Completed" ? "Completed" : "Pending" },
+        ];
+      } else if (mIdx === 2) {
+        stages = [
+          { id: `s${mIdx}_1`, name: "Emigration (PCC / Protector) Clearance", status: m.status === "Completed" ? "Completed" : "Pending" },
+          { id: `s${mIdx}_2`, name: "Flight Ticket Booking & Mobilization", status: m.status === "Completed" ? "Completed" : "Pending" },
+        ];
+      } else {
+        stages = [
+          { id: `s${mIdx}_1`, name: `${m.name || `Milestone ${mIdx + 1}`} Verification`, status: m.status === "Completed" ? "Completed" : "Pending" },
+        ];
+      }
+    }
+    return {
+      ...m,
+      stages,
+    };
+  });
 
   if (!application || processMilestones.length === 0) {
     return (
@@ -325,7 +355,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
             )}
 
             <div className="space-y-4 pl-2 border-l-2 border-slate-100 ml-2">
-              {milestone.stages.map((stage, sIdx) => {
+              {(milestone.stages || []).map((stage, sIdx) => {
                 const sCompleted = stage.status === "Completed";
                 const isMilestoneLocked = isLocked || requiresPayment;
                 const sInProgress = !isMilestoneLocked && stage.status === "In Progress";
@@ -393,7 +423,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                         )}
 
                         {}
-                        {isAdmin && (stage.name?.toLowerCase().includes("visa") || sIdx === milestone.stages.length - 1) && !stage.visaDocumentUrl && (
+                        {isAdmin && (stage.name?.toLowerCase().includes("visa") || sIdx === ((milestone.stages || []).length - 1)) && !stage.visaDocumentUrl && (
                           <div className="mt-2 p-2 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between gap-2 text-xs">
                             <span className="text-[11px] font-bold text-indigo-900 flex items-center gap-1">
                               <Upload size={13} className="text-indigo-600" />
