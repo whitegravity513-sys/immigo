@@ -135,6 +135,10 @@ export default function VendorHRDashboardPage() {
   const [jobSearch, setJobSearch] = useState("");
   const [jobDeptFilter, setJobDeptFilter] = useState("ALL");
 
+  // Recruitment Pipeline & Stage Selection state (Matches Admin HR)
+  const [pipelineStageFilter, setPipelineStageFilter] = useState("ALL");
+  const [pipelineSearch, setPipelineSearch] = useState("");
+
   // Modals state
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showCandidateModal, setShowCandidateModal] = useState(false);
@@ -443,6 +447,133 @@ export default function VendorHRDashboardPage() {
       },
     ];
   }, [applications]);
+
+  // Stage condition counts: Pre-selection and Post-selection (Identical to Admin HR Pipeline)
+  const pipelineCounts = useMemo(() => {
+    const list = applications;
+    return {
+      all: list.length,
+      shortlist: list.filter((c) =>
+        ["Applied", "Screening", "Shortlisted"].includes(c.recruitmentStage || c.status)
+      ).length,
+      interviewScheduled: list.filter(
+        (c) =>
+          c.recruitmentStage?.includes("Interview") ||
+          c.status?.includes("Interview") ||
+          Boolean(c.interview?.scheduledDate)
+      ).length,
+      interviewHold: list.filter((c) =>
+        ["Hold", "On Hold"].includes(c.recruitmentStage || c.status)
+      ).length,
+      interviewRejected: list.filter((c) =>
+        ["Rejected"].includes(c.recruitmentStage || c.status)
+      ).length,
+      interviewSuccess: list.filter((c) =>
+        [
+          "Selected",
+          "Offer Released",
+          "Offer Accepted",
+          "Visa Processing",
+          "Visa Issued",
+          "Joined",
+          "Deployed",
+        ].includes(c.recruitmentStage || c.status)
+      ).length,
+      milestone1: list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m1")?.completed ||
+          ["Screening", "Selected", "Visa Processing", "Joined"].includes(c.recruitmentStage)
+      ).length,
+      milestone2: list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m2")?.completed ||
+          ["Selected", "Visa Processing", "Joined"].includes(c.recruitmentStage)
+      ).length,
+      milestone3: list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m3")?.completed ||
+          ["Visa Processing", "Visa Issued", "Joined"].includes(c.recruitmentStage)
+      ).length,
+      milestone4: list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m4")?.completed ||
+          ["Joined", "Deployed"].includes(c.recruitmentStage)
+      ).length,
+    };
+  }, [applications]);
+
+  // Candidates matching the selected pipeline stage dropdown and search (Identical to Admin HR Pipeline)
+  const filteredPipelineCandidates = useMemo(() => {
+    let list = applications;
+
+    if (pipelineStageFilter === "SHORTLIST") {
+      list = list.filter((c) =>
+        ["Applied", "Screening", "Shortlisted"].includes(c.recruitmentStage || c.status)
+      );
+    } else if (pipelineStageFilter === "INTERVIEW_SCHEDULED") {
+      list = list.filter(
+        (c) =>
+          c.recruitmentStage?.includes("Interview") ||
+          c.status?.includes("Interview") ||
+          Boolean(c.interview?.scheduledDate)
+      );
+    } else if (pipelineStageFilter === "INTERVIEW_HOLD") {
+      list = list.filter((c) => ["Hold", "On Hold"].includes(c.recruitmentStage || c.status));
+    } else if (pipelineStageFilter === "INTERVIEW_REJECTED") {
+      list = list.filter((c) => ["Rejected"].includes(c.recruitmentStage || c.status));
+    } else if (pipelineStageFilter === "INTERVIEW_SUCCESS") {
+      list = list.filter((c) =>
+        [
+          "Selected",
+          "Offer Released",
+          "Offer Accepted",
+          "Visa Processing",
+          "Visa Issued",
+          "Joined",
+          "Deployed",
+        ].includes(c.recruitmentStage || c.status)
+      );
+    } else if (pipelineStageFilter === "MILESTONE_1") {
+      list = list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m1")?.completed ||
+          ["Screening", "Selected", "Visa Processing", "Joined"].includes(c.recruitmentStage)
+      );
+    } else if (pipelineStageFilter === "MILESTONE_2") {
+      list = list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m2")?.completed ||
+          ["Selected", "Visa Processing", "Joined"].includes(c.recruitmentStage)
+      );
+    } else if (pipelineStageFilter === "MILESTONE_3") {
+      list = list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m3")?.completed ||
+          ["Visa Processing", "Visa Issued", "Joined"].includes(c.recruitmentStage)
+      );
+    } else if (pipelineStageFilter === "MILESTONE_4") {
+      list = list.filter(
+        (c) =>
+          c.processMilestones?.find((m) => m.id === "m4")?.completed ||
+          ["Joined", "Deployed"].includes(c.recruitmentStage)
+      );
+    }
+
+    if (pipelineSearch) {
+      const q = pipelineSearch.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.candidateName?.toLowerCase().includes(q) ||
+          c.jobTitle?.toLowerCase().includes(q) ||
+          c.projectName?.toLowerCase().includes(q) ||
+          c.passportNumber?.toLowerCase().includes(q) ||
+          c.candidateId?.toLowerCase().includes(q) ||
+          c.vendorName?.toLowerCase().includes(q)
+      );
+    }
+
+    return list;
+  }, [applications, pipelineStageFilter, pipelineSearch]);
 
   // Sidebar navigation configuration
   const navMenuItems = [
@@ -1918,29 +2049,26 @@ export default function VendorHRDashboardPage() {
                 </div>
               </div>
 
-              {/* LIST VIEW (DEFAULT) */}
+              {/* LIST VIEW (DEFAULT) - Compact, balanced, zero-overflow */}
               {jobViewMode === "list" ? (
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-50/90 text-slate-600 font-bold uppercase text-[10.5px] border-b border-slate-200/80 tracking-wider">
                         <tr>
-                          <th className="py-3 px-4">Trade Specialization & Code</th>
-                          <th className="py-3 px-3">Trade Sector</th>
-                          <th className="py-3 px-4">Linked Project & Location</th>
-                          <th className="py-3 px-3">Experience</th>
-                          <th className="py-3 px-3">Salary Package</th>
-                          <th className="py-3 px-3 text-center">Remaining Slots</th>
-                          <th className="py-3 px-3 text-center">Submitted</th>
-                          <th className="py-3 px-3">Required Skills / Standards</th>
-                          <th className="py-3 px-3 text-center">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
+                          <th className="py-2.5 px-3.5">Trade & Sector</th>
+                          <th className="py-2.5 px-3">Project & Location</th>
+                          <th className="py-2.5 px-3">Experience</th>
+                          <th className="py-2.5 px-3">Salary Package</th>
+                          <th className="py-2.5 px-3 text-center">Slots / Sourced</th>
+                          <th className="py-2.5 px-3 text-center">Status</th>
+                          <th className="py-2.5 px-3.5 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredJobs.length === 0 ? (
                           <tr>
-                            <td colSpan="10" className="py-10 text-center text-slate-400">
+                            <td colSpan="7" className="py-10 text-center text-slate-400">
                               No trade requirements match your filter.
                             </td>
                           </tr>
@@ -1951,84 +2079,65 @@ export default function VendorHRDashboardPage() {
 
                             return (
                               <tr key={job.jobId} className="hover:bg-blue-50/30 transition group">
-                                <td className="py-3.5 px-4">
-                                  <div className="font-bold text-slate-900 group-hover:text-blue-600 transition">
+                                <td className="py-2.5 px-3.5">
+                                  <div className="font-bold text-slate-900 group-hover:text-blue-600 transition text-xs">
                                     {job.title}
                                   </div>
-                                  <div className="font-mono text-slate-400 text-[10px]">
-                                    {job.jobId}
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <span className="font-mono text-slate-400 text-[10px]">
+                                      {job.jobId}
+                                    </span>
+                                    <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-slate-100 text-slate-600 uppercase">
+                                      {job.department || job.tradeCategory || "MEP"}
+                                    </span>
                                   </div>
                                 </td>
 
-                                <td className="py-3.5 px-3">
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 uppercase tracking-wide">
-                                    {job.department || job.tradeCategory || "MEP"}
-                                  </span>
-                                </td>
-
-                                <td className="py-3.5 px-4">
-                                  <div className="font-semibold text-slate-800 flex items-center gap-1">
+                                <td className="py-2.5 px-3">
+                                  <div className="font-semibold text-slate-800 text-xs flex items-center gap-1">
                                     <Building2 size={12} className="text-slate-400 shrink-0" />
-                                    <span className="truncate max-w-[180px]">{job.projectName || "Overseas Deployment"}</span>
+                                    <span className="truncate max-w-[170px]" title={job.projectName}>{job.projectName || "Overseas Deployment"}</span>
                                   </div>
-                                  <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
-                                    <MapPin size={11} className="text-slate-400 shrink-0" />
+                                  <div className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                                    <MapPin size={10} className="text-slate-400 shrink-0" />
                                     <span>{job.location || "Dubai, UAE"}</span>
                                   </div>
                                 </td>
 
-                                <td className="py-3.5 px-3 font-semibold text-slate-700 whitespace-nowrap">
+                                <td className="py-2.5 px-3 font-semibold text-slate-700 whitespace-nowrap text-xs">
                                   {job.experienceLevel || "3-5 Yrs"}
                                 </td>
 
-                                <td className="py-3.5 px-3 font-bold text-blue-700 whitespace-nowrap">
+                                <td className="py-2.5 px-3 font-bold text-blue-700 whitespace-nowrap text-xs">
                                   {formatSalary(job.salaryRange)}
                                 </td>
 
-                                <td className="py-3.5 px-3 text-center">
-                                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                                    {remaining} Slots
-                                  </span>
+                                <td className="py-2.5 px-3 text-center">
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10.5px] border border-emerald-200 whitespace-nowrap">
+                                      {remaining} Slots
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setCandidateSearch(job.title);
+                                        setActiveMenu("candidates");
+                                      }}
+                                      className="font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded text-[10.5px] border border-indigo-200 transition cursor-pointer whitespace-nowrap"
+                                      title="View Candidates for this Job"
+                                    >
+                                      {jobCands.length} Sourced
+                                    </button>
+                                  </div>
                                 </td>
 
-                                <td className="py-3.5 px-3 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setCandidateSearch(job.title);
-                                      setActiveMenu("candidates");
-                                    }}
-                                    className="font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-0.5 rounded-full border border-indigo-200 transition cursor-pointer"
-                                    title="View Candidates for this Job"
-                                  >
-                                    {jobCands.length} Candidates
-                                  </button>
-                                </td>
-
-                                <td className="py-3.5 px-3">
-                                  {Array.isArray(job.skills) && job.skills.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                      {job.skills.slice(0, 3).map((sk, sIdx) => (
-                                        <span key={sIdx} className="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">
-                                          {typeof sk === "object" ? (sk.name || sk.skill || JSON.stringify(sk)) : String(sk)}
-                                        </span>
-                                      ))}
-                                      {job.skills.length > 3 && (
-                                        <span className="text-[10px] text-slate-400">+{job.skills.length - 3}</span>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <span className="text-slate-400 text-[11px]">Trade Blueprints, Technical Standards</span>
-                                  )}
-                                </td>
-
-                                <td className="py-3.5 px-3 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <td className="py-2.5 px-3 text-center">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
                                     {job.status || "Open"}
                                   </span>
                                 </td>
 
-                                <td className="py-3.5 px-4 text-right">
+                                <td className="py-2.5 px-3.5 text-right whitespace-nowrap">
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -2039,7 +2148,7 @@ export default function VendorHRDashboardPage() {
                                       }));
                                       setShowSubmitModal(true);
                                     }}
-                                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+                                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                                   >
                                     <Plus size={13} />
                                     <span>Submit</span>
@@ -2275,64 +2384,166 @@ export default function VendorHRDashboardPage() {
             </div>
           )}
 
-          {/* VIEW 5: RECRUITMENT PIPELINE (Full Kanban with Offer & Visa columns) */}
+          {/* VIEW 5: RECRUITMENT PIPELINE & STAGE SELECTION (Matches Admin HR Pipeline) */}
           {activeMenu === "pipeline" && (
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 space-y-4">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">End-to-End Recruitment Pipeline</h2>
-                  <p className="text-xs text-slate-500">
-                    Track candidate progression across all stages from application to overseas deployment.
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900">Recruitment Pipeline & Stage Selection</h2>
+                    <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                      {filteredPipelineCandidates.length} Candidates Shown
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Select a recruitment stage or post-selection project milestone to view candidate progress and track deployments.
                   </p>
                 </div>
-                <div className="flex items-center space-x-2 text-xs font-semibold text-slate-500">
-                  <span>{applications.length} Active Candidates</span>
+              </div>
+
+              {/* Stage Dropdown & Search Toolbar */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Stage Dropdown */}
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1 text-xs">
+                    Select Stage / Milestone Filter:
+                  </label>
+                  <select
+                    value={pipelineStageFilter}
+                    onChange={(e) => setPipelineStageFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer shadow-2xs"
+                  >
+                    <option value="ALL">All Candidates in Pipeline ({pipelineCounts.all})</option>
+                    <optgroup label="Selection se Pehle (Pre-Interview Stages)">
+                      <option value="SHORTLIST">1. Shortlisted / Applied ({pipelineCounts.shortlist})</option>
+                      <option value="INTERVIEW_SCHEDULED">2. In Interview / Scheduled ({pipelineCounts.interviewScheduled})</option>
+                      <option value="INTERVIEW_HOLD">3. On Hold ({pipelineCounts.interviewHold})</option>
+                      <option value="INTERVIEW_REJECTED">4. Rejected ({pipelineCounts.interviewRejected})</option>
+                      <option value="INTERVIEW_SUCCESS">5. Interview Cleared (Selected) ({pipelineCounts.interviewSuccess})</option>
+                    </optgroup>
+                    <optgroup label="Interview ke Baad (Project Milestones)">
+                      <option value="MILESTONE_1">Milestone 1: Docs Verified ({pipelineCounts.milestone1})</option>
+                      <option value="MILESTONE_2">Milestone 2: Trade/Medical Cleared ({pipelineCounts.milestone2})</option>
+                      <option value="MILESTONE_3">Milestone 3: Visa Approved ({pipelineCounts.milestone3})</option>
+                      <option value="MILESTONE_4">Milestone 4: Flight Deployed ({pipelineCounts.milestone4})</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                {/* Candidate Search bar */}
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1 text-xs">
+                    Search Candidate:
+                  </label>
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, job, passport, ID or agency..."
+                      value={pipelineSearch}
+                      onChange={(e) => setPipelineSearch(e.target.value)}
+                      className="w-full pl-9 pr-14 py-2 text-xs bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    />
+                    {pipelineSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setPipelineSearch("")}
+                        className="absolute right-2 top-1.5 px-2 py-0.5 text-[11px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 rounded-md cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-3 overflow-x-auto pb-4">
-                {pipelineColumns.map((col) => (
-                  <div key={col.id} className="min-w-[170px] space-y-2.5 flex flex-col">
-                    <div className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center justify-between ${col.headerBg}`}>
-                      <span className="truncate">{col.title}</span>
-                      <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-white/80">
-                        {col.items.length}
-                      </span>
-                    </div>
+              {/* Filtered Candidates Grid (Matches Admin Cards) */}
+              {filteredPipelineCandidates.length === 0 ? (
+                <div className="py-12 px-4 text-center space-y-2 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <Users size={18} />
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-700">No candidates found in this stage</h4>
+                  <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                    There are currently no candidates matching the selected stage filter. Try selecting "All Candidates" or another stage from the dropdown.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {filteredPipelineCandidates.map((cand, idx) => (
+                    <div
+                      key={cand.applicationId || idx}
+                      className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <img
+                              src={AVATARS[idx % AVATARS.length]}
+                              className="w-9 h-9 rounded-full object-cover shrink-0"
+                              alt=""
+                            />
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</h4>
+                              <span className="text-[10px] text-slate-400 block font-mono">
+                                {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                            {cand.recruitmentStage || cand.status || "Applied"}
+                          </span>
+                        </div>
 
-                    <div className="space-y-2 flex-1">
-                      {col.items.map((cand, idx) => (
-                        <div
-                          key={cand.applicationId || idx}
-                          onClick={() => openCandidateModal(cand)}
-                          className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-xs transition cursor-pointer space-y-1.5"
-                        >
-                          <div className="font-bold text-slate-900 text-xs truncate">
-                            {cand.candidateName}
-                          </div>
-                          <div className="text-[10px] text-slate-500 truncate">
-                            {cand.jobTitle || "Technician"}
-                          </div>
-                          {cand.offerDetails?.salary && (
-                            <div className="text-[9.5px] font-bold text-purple-700">
-                              💰 {formatSalary(cand.offerDetails.salary)}
-                            </div>
-                          )}
-                          {cand.visaDetails?.visaStatus && cand.visaDetails.visaStatus !== "Not Started" && (
-                            <div className="text-[9.5px] font-bold text-blue-700 truncate">
-                              🛂 {cand.visaDetails.visaStatus}
-                            </div>
-                          )}
-                          <div className="pt-1 flex items-center justify-between text-[9px] text-slate-400 border-t border-slate-100">
-                            <span>Update</span>
-                            <span className="text-indigo-600 font-bold">Details →</span>
+                        <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl space-y-1">
+                          <div className="font-semibold text-slate-800 truncate">{cand.jobTitle || "Overseas Job"}</div>
+                          <div className="text-[10.5px] text-slate-500 truncate">Project: {cand.projectName || "Dubai Expansion"}</div>
+                          <div className="text-[10.5px] text-indigo-700 font-semibold truncate">
+                            Agency: {cand.vendorName || vendorName}
                           </div>
                         </div>
-                      ))}
+
+                        {/* Milestones checkmarks */}
+                        <div className="flex items-center space-x-1.5 pt-1">
+                          <span className="text-[10px] font-bold text-slate-400 mr-1">Milestones:</span>
+                          {["m1", "m2", "m3", "m4"].map((mId, mIdx) => {
+                            const isDone =
+                              cand.processMilestones?.find((m) => m.id === mId)?.completed ||
+                              (mIdx === 0 && ["Screening", "Selected", "Visa Processing", "Joined"].includes(cand.recruitmentStage)) ||
+                              (mIdx === 1 && ["Selected", "Visa Processing", "Joined"].includes(cand.recruitmentStage)) ||
+                              (mIdx === 2 && ["Visa Processing", "Visa Issued", "Joined"].includes(cand.recruitmentStage)) ||
+                              (mIdx === 3 && ["Joined", "Deployed"].includes(cand.recruitmentStage));
+                            return (
+                              <span
+                                key={mId}
+                                className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold ${
+                                  isDone ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
+                                }`}
+                                title={`Milestone ${mIdx + 1} ${isDone ? "Cleared" : "Pending"}`}
+                              >
+                                {mIdx + 1}
+                              </span>
+                            );
+                          })}
+                          <span className="text-[10px] text-slate-400 ml-auto font-mono">
+                            {cand.documents?.length || 0} Docs
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => openCandidateModal(cand)}
+                        className="w-full py-1.5 px-3 rounded-lg bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+                      >
+                        <Edit3 size={13} />
+                        <span>Update Stage & Milestones</span>
+                      </button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
