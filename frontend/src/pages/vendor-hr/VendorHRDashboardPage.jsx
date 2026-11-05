@@ -179,6 +179,7 @@ export default function VendorHRDashboardPage() {
   // Searches for dedicated candidate stage sections
   const [shortlistSearch, setShortlistSearch] = useState("");
   const [interviewSearch, setInterviewSearch] = useState("");
+  const [visaSearch, setVisaSearch] = useState("");
   const [onHoldSearch, setOnHoldSearch] = useState("");
   const [rejectedSearch, setRejectedSearch] = useState("");
 
@@ -220,10 +221,10 @@ export default function VendorHRDashboardPage() {
   // Interview Schedule Form
   const [scheduleForm, setScheduleForm] = useState({
     applicationId: "",
-    round: "L1 Interview",
+    round: "Technical Interview",
     scheduledDate: "Today",
     startTime: "11:00 AM",
-    interviewerName: "Er. Rajesh K (Technical Lead)",
+    interviewerName: "Vendor HR",
     interviewLink: "https://meet.google.com/xyz-meep-abc",
     notes: "",
   });
@@ -920,6 +921,24 @@ export default function VendorHRDashboardPage() {
     return applications.filter((cand) => cand.recruitmentStage === "Rejected" || cand.status === "Rejected");
   }, [applications]);
 
+  // Candidates whose employment visa has been issued / allotted
+  const visaAllottedCandidates = useMemo(() => {
+    return applications.filter((cand) => {
+      const stage = cand.recruitmentStage || cand.status || "";
+      const visaStatus = cand.visaDetails?.visaStatus || "";
+      const hasVisaNum = Boolean(cand.visaDetails?.visaNumber || cand.visaNumber);
+      const m3Done = cand.processMilestones?.some(
+        (m) => (m.id === "m3" || m.id === "milestone_3" || m.milestoneId === "m3") && m.completed
+      );
+      return (
+        ["Visa Issued", "Visa Approved", "Visa Allocated", "Visa Allotted", "Joined", "Deployed"].includes(stage) ||
+        ["Visa Issued", "Visa Approved", "Deployed"].includes(visaStatus) ||
+        hasVisaNum ||
+        m3Done
+      );
+    });
+  }, [applications]);
+
   const combinedInterviewsList = useMemo(() => {
     const list = [...interviews];
     applications.forEach((cand) => {
@@ -937,11 +956,11 @@ export default function VendorHRDashboardPage() {
             candidatePhone: cand.candidatePhone,
             candidateEmail: cand.candidateEmail,
             passportNumber: cand.passportNumber,
-            round: cand.interviewDetails?.round || cand.recruitmentStage || "L1 Technical Interview",
+            round: cand.interviewDetails?.round || cand.recruitmentStage || "Technical Interview",
             status: cand.interviewDetails?.status || "Scheduled",
             scheduledDate: cand.interviewDetails?.scheduledDate || cand.interviewDetails?.dateTime || "Today",
             startTime: cand.interviewDetails?.startTime || "11:00 AM",
-            interviewerName: cand.interviewDetails?.interviewerName || "Er. Technical Lead",
+            interviewerName: cand.interviewDetails?.interviewerName || "Vendor HR",
             interviewLink: cand.interviewDetails?.meetingUrl || cand.interviewDetails?.interviewLink || "https://meet.google.com/xyz-meep-abc",
             candidateRef: cand,
           });
@@ -955,8 +974,9 @@ export default function VendorHRDashboardPage() {
   const onHoldCount = onHoldCandidates.length;
   const rejectedCount = rejectedCandidates.length;
   const interviewCount = combinedInterviewsList.length;
+  const visaAllottedCount = visaAllottedCandidates.length;
 
-  // Sidebar navigation configuration - Cleaned & Streamlined (Pipeline & Activity removed as requested)
+  // Sidebar navigation configuration - Cleaned & Streamlined with Visa Allotted
   const navMenuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "projects", label: "My Projects", icon: FolderKanban, badge: projectsList.length },
@@ -965,6 +985,7 @@ export default function VendorHRDashboardPage() {
     { id: "shortlisted", label: "Shortlisted", icon: UserCheck, badge: shortlistedCount },
     { id: "interviews", label: "Interviews", icon: Calendar, badge: interviewCount },
     { id: "milestones", label: "Selected Candidates", icon: Award, badge: postSelectionCount },
+    { id: "visa-allotted", label: "Visa Allotted", icon: Plane, badge: visaAllottedCount },
     { id: "on-hold", label: "On Hold", icon: Clock, badge: onHoldCount },
     { id: "rejected", label: "Rejected Candidates", icon: XCircle, badge: rejectedCount },
     { id: "profile", label: "Profile", icon: User },
@@ -1089,6 +1110,22 @@ export default function VendorHRDashboardPage() {
       );
     });
   }, [rejectedCandidates, rejectedSearch]);
+
+  // Filtered Visa Allotted candidates
+  const filteredVisaAllotted = useMemo(() => {
+    return visaAllottedCandidates.filter((cand) => {
+      const q = (visaSearch || "").toLowerCase().trim();
+      if (!q) return true;
+      return (
+        cand.candidateName?.toLowerCase().includes(q) ||
+        cand.candidatePhone?.includes(q) ||
+        cand.jobTitle?.toLowerCase().includes(q) ||
+        cand.projectName?.toLowerCase().includes(q) ||
+        cand.passportNumber?.toLowerCase().includes(q) ||
+        cand.visaDetails?.visaNumber?.toLowerCase().includes(q)
+      );
+    });
+  }, [visaAllottedCandidates, visaSearch]);
 
   // Filtered Projects for My Projects view
   const filteredProjects = useMemo(() => {
@@ -1249,6 +1286,7 @@ export default function VendorHRDashboardPage() {
                 {activeMenu === "shortlisted" && "Shortlisted Candidates"}
                 {activeMenu === "interviews" && "Scheduled Interviews & Assessments"}
                 {(activeMenu === "selected" || activeMenu === "milestones") && (selectedMilestoneApp ? `Milestones / ${selectedMilestoneApp.candidateName}` : "Selected Candidates & Milestones")}
+                {activeMenu === "visa-allotted" && "Visa Allotted Candidates"}
                 {activeMenu === "on-hold" && "On Hold Candidate Roster"}
                 {activeMenu === "rejected" && "Rejected Candidates & Vendor Pool"}
                 {activeMenu === "profile" && "Agency Profile"}
@@ -3357,12 +3395,12 @@ export default function VendorHRDashboardPage() {
                             </td>
                             <td className="py-3.5 px-3 text-center">
                               <div className="space-y-1">
-                                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                  {item.round || "Technical Round"}
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                  Interview
                                 </span>
                                 <div>
                                   <span className="inline-block px-2 py-0.2 rounded-full text-[9.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                    {item.status || "Scheduled"}
+                                    {item.round || "Technical"} ({item.status || "Scheduled"})
                                   </span>
                                 </div>
                               </div>
@@ -3686,81 +3724,57 @@ export default function VendorHRDashboardPage() {
           {/* VIEW 5: DEDICATED CANDIDATE MILESTONES & PROCESSING TIMELINE (Matches Admin Processing List) */}
           {(activeMenu === "milestones" || activeMenu === "selected") && (
             <div className="space-y-4">
-              {/* Case 1: When a Selected Candidate is picked, show full Processing Timeline (identical to AdminProcessingList) */}
+              {/* Case 1: When a Selected Candidate is picked, show full Processing Timeline (Compact Box without Dossier) */}
               {selectedMilestoneApp ? (
-                <div className="space-y-4">
-                  {/* Top Bar with Return Button & Processing ID */}
-                  <div className="flex items-center justify-between bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMilestoneApp(null)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
-                    >
-                      <ArrowLeft size={15} />
-                      <span>← Back to Selected Candidates Roster</span>
-                    </button>
-                    <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-xl">
-                      Processing ID: {selectedMilestoneApp.applicationId || selectedMilestoneApp.id}
-                    </span>
-                  </div>
-
-                  {/* Candidate Master Information Card */}
-                  <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold text-lg shadow-xs overflow-hidden shrink-0">
-                          {selectedMilestoneApp.candidateName?.charAt(0).toUpperCase() || <UserCheck size={22} />}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2.5 flex-wrap">
-                            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                              {selectedMilestoneApp.candidateName}
-                            </h2>
-                            <span className="font-mono text-xs font-bold px-2 py-0.5 bg-teal-50 text-teal-800 border border-teal-200 rounded-md">
-                              {selectedMilestoneApp.jobTitle || "Selected Candidate"}
-                            </span>
-                            <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-800 font-bold text-xs rounded-full border border-emerald-200">
-                              ● {selectedMilestoneApp.recruitmentStage || selectedMilestoneApp.status || "Selected"}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1 font-semibold flex items-center gap-2 flex-wrap">
-                            <span>Passport: <strong className="text-slate-800">{selectedMilestoneApp.passportNumber ? `🛂 ${selectedMilestoneApp.passportNumber}` : "Verified"}</strong></span>
-                            <span>•</span>
-                            <span>Project: <strong className="text-blue-700">{selectedMilestoneApp.projectName}</strong></span>
-                            <span>•</span>
-                            <span>Vendor: <strong className="text-slate-800">{selectedMilestoneApp.vendorName || vendorName}</strong></span>
-                          </p>
-                        </div>
+                <div className="space-y-3">
+                  {/* Top Compact Bar: Back button, Candidate overview, and Processing ID */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMilestoneApp(null)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+                      >
+                        <ArrowLeft size={14} />
+                        <span>Back</span>
+                      </button>
+                      <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
+                        {selectedMilestoneApp.candidateName?.charAt(0).toUpperCase() || <UserCheck size={16} />}
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openCandidateModal(selectedMilestoneApp)}
-                          className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer"
-                        >
-                          View Full Dossier
-                        </button>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-sm font-bold text-slate-900 truncate">
+                            {selectedMilestoneApp.candidateName}
+                          </h3>
+                          <span className="font-mono text-[11px] font-bold px-2 py-0.2 bg-teal-50 text-teal-800 border border-teal-200 rounded">
+                            {selectedMilestoneApp.jobTitle || "Selected Candidate"}
+                          </span>
+                          <span className="px-2 py-0.2 bg-emerald-50 text-emerald-800 font-bold text-[10px] rounded-full border border-emerald-200">
+                            ● {selectedMilestoneApp.recruitmentStage || selectedMilestoneApp.status || "Selected"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium flex items-center gap-2 flex-wrap mt-0.5">
+                          <span>Passport: <strong className="text-slate-800">{selectedMilestoneApp.passportNumber ? `🛂 ${selectedMilestoneApp.passportNumber}` : "Verified"}</strong></span>
+                          <span>•</span>
+                          <span>Project: <strong className="text-blue-700">{selectedMilestoneApp.projectName}</strong></span>
+                        </p>
                       </div>
                     </div>
-
-                    {/* Explanatory Policy Note */}
-                    <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 flex items-center gap-2 text-xs text-blue-900">
-                      <ShieldCheck size={16} className="text-blue-600 shrink-0" />
-                      <span>
-                        <strong>Sequential Processing & Payment Gate:</strong> Stages for each milestone unlock only after Vendor payment is approved. Milestone 2 and subsequent milestones remain strictly locked until all preceding stages are completed.
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[11px] font-mono font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/80">
+                        ID: {selectedMilestoneApp.applicationId || selectedMilestoneApp.id}
                       </span>
                     </div>
                   </div>
 
-                  {/* Integrated Candidate Process Timeline (Standard ImmiGo Timeline) */}
-                  <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <Clock size={17} className="text-indigo-600" />
+                  {/* Integrated Candidate Process Timeline (Milestones ke niche hi processing stages show) */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <Clock size={16} className="text-indigo-600" />
                         <span>Candidate Deployment Milestones & Stage Verification</span>
                       </h3>
-                      <span className="text-xs text-slate-400 font-medium">Verify stages & approve payments</span>
+                      <span className="text-[11px] text-slate-400 font-medium">Sequential verification & vendor payments</span>
                     </div>
 
                     <CandidateProcessTimeline
@@ -4143,6 +4157,136 @@ export default function VendorHRDashboardPage() {
             </div>
           )}
 
+          {/* VIEW: VISA ALLOTTED CANDIDATES */}
+          {activeMenu === "visa-allotted" && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold text-slate-900">Visa Allotted Candidates</h2>
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      {filteredVisaAllotted.length} Visa Allotted
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Candidates whose employment visa has been approved & issued. Track visa numbers, departure dates, and deployment.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative w-64">
+                    <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search visa allotted candidates..."
+                      value={visaSearch}
+                      onChange={(e) => setVisaSearch(e.target.value)}
+                      className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white"
+                    />
+                    {visaSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setVisaSearch("")}
+                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {filteredVisaAllotted.length === 0 ? (
+                <div className="py-12 px-4 text-center space-y-2 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mx-auto text-emerald-600">
+                    <Plane size={18} />
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-700">No Visa Allotted Candidates Yet</h4>
+                  <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                    Candidates who complete Milestone 3 (Visa Approved) or have visa reference issued will appear here automatically.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
+                        <th className="py-3 px-4">Candidate & Identity</th>
+                        <th className="py-3 px-4">Trade & Project</th>
+                        <th className="py-3 px-3 text-center">Stage Tag</th>
+                        <th className="py-3 px-4">Visa Reference #</th>
+                        <th className="py-3 px-4">Flight / Deployment</th>
+                        <th className="py-3 px-4 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredVisaAllotted.map((cand, idx) => (
+                        <tr key={cand.applicationId || cand.id || idx} className="hover:bg-slate-50/60 transition">
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={AVATARS[idx % AVATARS.length]}
+                                alt=""
+                                className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
+                              />
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</h4>
+                                <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-mono">
+                                  <span>{cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.applicationId?.slice(0, 8)}`}</span>
+                                  {cand.candidatePhone && <span>• 📞 {cand.candidatePhone}</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-800 truncate">{cand.jobTitle || "Specialist"}</div>
+                            <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Project"}</div>
+                          </td>
+                          <td className="py-3.5 px-3 text-center">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                              <CheckCircle2 size={11} className="text-emerald-600" />
+                              <span>Visa Allotted</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-mono font-bold text-slate-900 text-xs">
+                              {cand.visaDetails?.visaNumber || cand.visaNumber || "DXB-2026-98124"}
+                            </div>
+                            <div className="text-[10.5px] text-slate-400 mt-0.5">
+                              Status: {cand.visaDetails?.visaStatus || "Visa Issued"}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {cand.visaDetails?.flightDetails ? (
+                              <div className="text-xs font-semibold text-slate-800 flex items-center gap-1">
+                                <Plane size={12} className="text-indigo-600 shrink-0" />
+                                <span className="truncate max-w-[200px]">{cand.visaDetails.flightDetails}</span>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-medium border border-amber-200">
+                                Flight Pending
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => openCandidateModal(cand)}
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1 border border-emerald-200"
+                            >
+                              <span>Update Visa</span>
+                              <ArrowRight size={12} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
 
           {/* VIEW 10: HR PERSONNEL PROFILE ONLY */}
           {activeMenu === "profile" && (
@@ -4454,17 +4598,13 @@ export default function VendorHRDashboardPage() {
                   onChange={(e) => setCandidateUpdateForm({ ...candidateUpdateForm, stage: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-600 cursor-pointer"
                 >
-                  <option value="Applied">1. Applied</option>
-                  <option value="Screening">2. Screening</option>
-                  <option value="L1 Interview">3. L1 Interview</option>
-                  <option value="L2 Interview">4. L2 Interview</option>
-                  <option value="Selected">5. Selected</option>
-                  <option value="Offer Released">6. Offer Released</option>
-                  <option value="Visa Processing">7. Visa Processing</option>
-                  <option value="Visa Issued">8. Visa Issued</option>
-                  <option value="Joined">9. Joined / Deployed</option>
-                  <option value="Rejected">Rejected</option>
-                  <option value="On Hold">On Hold</option>
+                  <option value="Applied">Applied</option>
+                  <option value="Shortlisted">Shortlist</option>
+                  <option value="Interview">Interview</option>
+                  <option value="Selected">Selected</option>
+                  <option value="Visa Issued">Visa Allotted</option>
+                  <option value="On Hold">Hold</option>
+                  <option value="Rejected">Reject</option>
                 </select>
                 <input
                   type="text"
@@ -4473,39 +4613,6 @@ export default function VendorHRDashboardPage() {
                   placeholder="Add evaluation remarks or milestone notes..."
                   className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none"
                 />
-              </div>
-
-              {/* Offer Letter Details Section */}
-              <div className="p-3.5 rounded-xl bg-purple-50/50 border border-purple-100 space-y-2.5">
-                <div className="flex items-center space-x-1.5 text-purple-900 font-bold text-xs">
-                  <FileCheck className="w-4 h-4 text-purple-600" />
-                  <span>Offer Letter & Salary Details</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-slate-600 mb-1">Offered Monthly Salary</label>
-                    <input
-                      type="text"
-                      value={candidateUpdateForm.salary}
-                      onChange={(e) => setCandidateUpdateForm({ ...candidateUpdateForm, salary: e.target.value })}
-                      placeholder="e.g. 6,500 AED / Month"
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-600 mb-1">Offer Acceptance Status</label>
-                    <select
-                      value={candidateUpdateForm.offerStatus}
-                      onChange={(e) => setCandidateUpdateForm({ ...candidateUpdateForm, offerStatus: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 text-xs cursor-pointer"
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Released">Released</option>
-                      <option value="Accepted">Accepted by Candidate</option>
-                      <option value="Declined">Declined</option>
-                    </select>
-                  </div>
-                </div>
               </div>
 
               {/* Visa & Flight Deployment Section */}
@@ -4624,12 +4731,14 @@ export default function VendorHRDashboardPage() {
                   }}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs cursor-pointer"
                 >
-                  <option value="">Choose a candidate</option>
-                  {applications.map((a) => (
-                    <option key={a.applicationId} value={a.applicationId}>
-                      {a.candidateName} — {a.jobTitle}
-                    </option>
-                  ))}
+                  <option value="">Choose a candidate for interview</option>
+                  {applications
+                    .filter((a) => !["Selected", "Rejected", "Joined", "Deployed"].includes(a.recruitmentStage))
+                    .map((a) => (
+                      <option key={a.applicationId} value={a.applicationId}>
+                        {a.candidateName} — {a.jobTitle} [{a.recruitmentStage || "Shortlisted"}]
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -4638,12 +4747,10 @@ export default function VendorHRDashboardPage() {
                 <select
                   value={scheduleForm.round}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, round: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs cursor-pointer"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs cursor-pointer font-bold"
                 >
-                  <option value="L1 Interview">L1 Technical Interview</option>
-                  <option value="L2 Interview">L2 Project Lead Interview</option>
-                  <option value="HR Interview">Client HR Interview</option>
-                  <option value="Trade Test">Practical Trade Test (On-Site)</option>
+                  <option value="Technical Interview">Technical Interview</option>
+                  <option value="Client Evaluation">Client Evaluation</option>
                 </select>
               </div>
 
@@ -4671,13 +4778,15 @@ export default function VendorHRDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-bold mb-1">Interviewer Name</label>
-                <input
-                  type="text"
+                <label className="block text-slate-700 font-bold mb-1">Interviewer (Vendor HR ya Admin / Super Admin)</label>
+                <select
                   value={scheduleForm.interviewerName}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, interviewerName: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs"
-                />
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs cursor-pointer font-bold"
+                >
+                  <option value="Vendor HR">Vendor HR ({hrUserName})</option>
+                  <option value="Admin / Super Admin">Admin / Super Admin</option>
+                </select>
               </div>
 
               <div>
