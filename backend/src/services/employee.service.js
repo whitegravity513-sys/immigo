@@ -213,6 +213,20 @@ export class EmployeeService {
       console.error("Failed to send employee credentials email:", mailErr.message);
     }
 
+    try {
+      await NotificationService.createNotification({
+        type: "EMPLOYEE_CREATED",
+        title: "New Employee Enrolled",
+        message: `${name.trim()} (${designation || "Employee"}) registered with ID ${finalEmployeeId}`,
+        targetRole: "ADMIN",
+        targetType: "ALL",
+        employeeId: finalEmployeeId,
+        employeeName: name.trim(),
+      });
+    } catch (notifErr) {
+      console.warn("Notification notice:", notifErr?.message);
+    }
+
     return this.formatEmployee(newEmployee);
   }
 

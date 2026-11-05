@@ -232,7 +232,7 @@ export default function VendorHRDashboardPage() {
     setNotificationsList((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
     try {
       crmVendorService.markAllNotificationsRead();
-    } catch {}
+    } catch { }
   };
 
   const handleMarkNotifRead = (id) => {
@@ -241,7 +241,7 @@ export default function VendorHRDashboardPage() {
     );
     try {
       crmVendorService.markNotificationRead(id);
-    } catch {}
+    } catch { }
   };
 
   const unreadNotifCount = useMemo(() => {
@@ -532,7 +532,7 @@ export default function VendorHRDashboardPage() {
       await crmVendorService.approveMilestonePayment(candAppId, milestoneId, "Vendor HR", "Milestone payment verified by HR");
       const allApps = await crmVendorService.getApplications();
       const freshApp = allApps.find((a) => String(a.id) === String(candAppId) || String(a.applicationId) === String(candAppId)) || selectedMilestoneCandidate;
-      
+
       try {
         await vendorHRService.updateCandidateStage(candAppId, {
           processMilestones: freshApp.processMilestones,
@@ -598,11 +598,10 @@ export default function VendorHRDashboardPage() {
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold transition-all animate-in fade-in slide-in-from-top-2 ${
-            toast.type === "error"
+          className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold transition-all animate-in fade-in slide-in-from-top-2 ${toast.type === "error"
               ? "bg-rose-50 border-rose-300 text-rose-800"
               : "bg-emerald-50 border-emerald-300 text-emerald-800"
-          }`}
+            }`}
         >
           <span>{toast.message}</span>
         </div>
@@ -652,11 +651,10 @@ export default function VendorHRDashboardPage() {
                     if (item.id === "projects") setDetailedProject(null);
                     handleSelectMenu(item.id);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                    active
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${active
                       ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
                       : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
-                  }`}
+                    }`}
                 >
                   <Icon
                     size={16}
@@ -666,11 +664,10 @@ export default function VendorHRDashboardPage() {
                     <span className="truncate">{item.label}</span>
                     {item.badge ? (
                       <span
-                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                          active
+                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${active
                             ? "bg-white text-blue-700"
                             : "bg-blue-100 text-blue-800 border border-blue-200"
-                        }`}
+                          }`}
                       >
                         {item.badge}
                       </span>
@@ -808,9 +805,8 @@ export default function VendorHRDashboardPage() {
                           <div
                             key={notif.id || idx}
                             onClick={() => handleMarkNotifRead(notif.id)}
-                            className={`p-3 hover:bg-slate-50 transition cursor-pointer flex items-start space-x-2.5 ${
-                              !notif.read && !notif.isRead ? "bg-blue-50/40" : ""
-                            }`}
+                            className={`p-3 hover:bg-slate-50 transition cursor-pointer flex items-start space-x-2.5 ${!notif.read && !notif.isRead ? "bg-blue-50/40" : ""
+                              }`}
                           >
                             <div className="w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
                             <div className="flex-1 min-w-0">
@@ -830,7 +826,6 @@ export default function VendorHRDashboardPage() {
                 )}
               </div>
 
-              {/* Submit Candidate Action Button */}
               <button
                 type="button"
                 onClick={() => setShowSubmitModal(true)}
@@ -843,12 +838,9 @@ export default function VendorHRDashboardPage() {
           </div>
         </header>
 
-        {/* Active Meeting Banner */}
         <ActiveMeetingAlertBanner role={isSuperAdmin ? "super_admin" : isAdmin ? "admin" : "hr"} />
 
-        {/* Main Content Area */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto bg-[#f8fafc]">
-          {/* Breadcrumb Workspace Strip */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2 text-xs">
               <span className="font-bold text-slate-400 uppercase tracking-wider">Workspace</span>
@@ -875,7 +867,6 @@ export default function VendorHRDashboardPage() {
             </div>
           </div>
 
-          {/* Section Router: Render modular section component */}
           {activeMenu === "overview" && (
             <VendorHROverviewSection
               dashboardData={dashboardData}
@@ -1013,7 +1004,7 @@ export default function VendorHRDashboardPage() {
           )}
         </main>
 
-        {/* Global Master Footer */}
+
         <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
           <div className="w-full flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
@@ -1034,7 +1025,7 @@ export default function VendorHRDashboardPage() {
         </footer>
       </div>
 
-      {/* MODAL 1: SUBMIT NEW CANDIDATE */}
+
       <VendorHRSubmitModal
         show={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
@@ -1046,7 +1037,7 @@ export default function VendorHRDashboardPage() {
         actionLoading={actionLoading}
       />
 
-      {/* MODAL 2: CANDIDATE DETAIL & STAGE UPDATE */}
+
       <VendorHRCandidateModal
         show={showCandidateModal}
         candidate={selectedCandidate}
@@ -1061,7 +1052,7 @@ export default function VendorHRDashboardPage() {
         setShowScheduleModal={setShowScheduleModal}
       />
 
-      {/* MODAL 3: SCHEDULE INTERVIEW */}
+
       <VendorHRScheduleModal
         show={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}

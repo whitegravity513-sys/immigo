@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { connectDB } from "../config/db.js";
-import { seedDefaultEmployee } from "./employee.seed.js";
+
 import { User } from "../models/User.js";
 import { ROLES } from "../constants/roles.js";
 import { hashPassword } from "../utils/password.js";

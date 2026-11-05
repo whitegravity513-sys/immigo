@@ -14,123 +14,21 @@ const ADMIN_NOTIFICATIONS_KEY = "immigo_crm_admin_notifications_v3";
 const delay = (ms = 50) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
-const INITIAL_VENDORS = [
-  {
-    id: "VND-1001",
-    vendorId: "VND-1001",
-    companyName: "Global Staffing Solutions Pvt Ltd",
-    contactPersonName: "Rajesh Malhotra",
-    email: "vendor@immigo.com",
-    phone: "9876543210",
-    state: "Maharashtra",
-    city: "Mumbai",
-    address: "B-402, Trade Center, BKC, Mumbai",
-    pan: "ABCDE1234F",
-    gstin: "27ABCDE1234F1Z5",
-    specialization: "Construction, MEP, Welding",
-    status: "Approved",
-    mouStatus: "Approved",
-    mouSigned: true,
-    documentsUploaded: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "VND-1002",
-    vendorId: "VND-1002",
-    companyName: "Apex International Overseas",
-    contactPersonName: "Sunil Verma",
-    email: "sunil@apexoverseas.in",
-    phone: "9811223344",
-    state: "Delhi",
-    city: "New Delhi",
-    address: "12 Connaught Place, New Delhi",
-    pan: "APEXO5544E",
-    specialization: "Civil, Heavy Equipment Operators",
-    status: "Registration Pending",
-    mouStatus: "Not Sent",
-    mouSigned: false,
-    documentsUploaded: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "VND-1003",
-    vendorId: "VND-1003",
-    companyName: "Gulf Manpower Hub Ltd",
-    contactPersonName: "Mohd Rizwan",
-    email: "rizwan@gulfmanpower.com",
-    phone: "9822334455",
-    state: "Kerala",
-    city: "Kochi",
-    address: "MG Road, Ravipuram, Kochi",
-    pan: "GULFM3322D",
-    specialization: "Hospitality, Electrical, Plumbing",
-    status: "Documents Pending",
-    mouStatus: "Not Sent",
-    mouSigned: false,
-    documentsUploaded: false,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "VND-1004",
-    vendorId: "VND-1004",
-    companyName: "TransAsia Recruiters",
-    contactPersonName: "Vikram Singhania",
-    email: "vikram@transasia.co.in",
-    phone: "9733445566",
-    state: "Punjab",
-    city: "Chandigarh",
-    address: "Sector 17-C, Chandigarh",
-    pan: "TRANS8877K",
-    specialization: "Agriculture, Transport, Rigging",
-    status: "Suspended",
-    mouStatus: "Not Sent",
-    mouSigned: false,
-    documentsUploaded: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "VND-1005",
-    vendorId: "VND-1005",
-    companyName: "Skyline Overseas Pvt Ltd",
-    contactPersonName: "Pooja Batra",
-    email: "pooja@skylineoverseas.org",
-    phone: "9644556677",
-    state: "Karnataka",
-    city: "Bengaluru",
-    address: "Indiranagar 100ft Road, Bengaluru",
-    pan: "SKYLI9988P",
-    specialization: "General Labor & Logistics",
-    status: "Rejected",
-    rejectionReason: "Incomplete statutory license documentation.",
-    mouStatus: "Not Sent",
-    mouSigned: false,
-    documentsUploaded: false,
-    createdAt: new Date().toISOString(),
-  },
-];
+const INITIAL_VENDORS = [];
 
 const INITIAL_CANDIDATES = [];
-
-
 const INITIAL_APPLICATIONS = [];
-
 const INITIAL_ADMIN_NOTIFICATIONS = [];
 const INITIAL_NOTIFICATIONS = [];
 
-
-const loadData = (key, fallback) => {
+const loadData = (key, fallback = []) => {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) {
       localStorage.setItem(key, JSON.stringify(fallback));
       return fallback;
     }
-    const parsed = JSON.parse(raw);
-    if (key === VENDORS_STORAGE_KEY && Array.isArray(parsed) && parsed.length === 0 && fallback && fallback.length > 0) {
-      localStorage.setItem(key, JSON.stringify(fallback));
-      return fallback;
-    }
-    return parsed;
+    return JSON.parse(raw);
   } catch (e) {
     console.error(`Error loading key ${key}:`, e);
     return fallback;
@@ -543,29 +441,24 @@ export const crmVendorService = {
   
   
   getVendorsSync: () => {
-    return loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+    return loadData(VENDORS_STORAGE_KEY, []);
   },
 
   getVendors: async ({ search = "", status = "All", country = "All" } = {}) => {
     let vendors = [];
     try {
       const response = await apiClient.get("/admin/vendors");
-      if (response.data?.vendors && Array.isArray(response.data.vendors) && response.data.vendors.length > 0) {
+      if (response.data?.vendors && Array.isArray(response.data.vendors)) {
         vendors = response.data.vendors.map((v) => ({
           ...v,
           id: v.vendorId || v._id,
         }));
         saveData(VENDORS_STORAGE_KEY, vendors);
       } else {
-        vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+        vendors = loadData(VENDORS_STORAGE_KEY, []);
       }
     } catch {
-      vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
-    }
-
-    if (!vendors || vendors.length === 0) {
-      vendors = INITIAL_VENDORS;
-      saveData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
+      vendors = loadData(VENDORS_STORAGE_KEY, []);
     }
 
     if (status !== "All") {

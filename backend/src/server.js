@@ -3,7 +3,6 @@ import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { logger } from "./utils/logger.js";
 import { startCronJobs } from "./utils/cronJobs.js";
-import { seedDefaultEmployee } from "./seed/employee.seed.js";
 import { meetingScheduler } from "./services/meetingScheduler.service.js";
 
 const PORT = env.PORT || process.env.PORT || 5000;
@@ -15,10 +14,6 @@ process.on("uncaughtException", (error) => {
 
 const startServer = async () => {
   await connectDB();
-
-  await seedDefaultEmployee(false).catch((e) => {
-    logger.warn("Employee auto-provision check:", e?.message);
-  });
 
   const server = app.listen(PORT, () => {
     logger.info(`ImmiGo Enterprise Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);

@@ -1,33 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
-  Building2,
-  Briefcase,
   Users,
-  UserCheck,
-  ArrowRight,
-  CheckCircle2,
   AlertCircle,
-  Clock,
-  Search,
-  ChevronRight,
-  ShieldCheck,
-  FileText,
-  RotateCcw,
-  Check,
   Plus,
-  Send,
-  UserX,
-  Eye,
-  Filter,
-  CheckSquare,
-  ExternalLink,
-  Video,
-  Lock,
 } from "lucide-react";
-import crmVendorService from "../../services/crmVendorService";
-import { crmClientService } from "../../services/crmClientService";
-import { initialClients } from "../../data/mockClients";
+import crmVendorService from "../../services/crmVendorService.js";
+import { crmClientService } from "../../services/crmClientService.js";
+import { initialClients } from "../../data/mockClients.js";
+
+import SubmissionStepsNav from "../../components/vendor/candidate-submission/SubmissionStepsNav.jsx";
+import CandidatePoolFilterCards from "../../components/vendor/candidate-submission/CandidatePoolFilterCards.jsx";
+import CandidateSelectionTable from "../../components/vendor/candidate-submission/CandidateSelectionTable.jsx";
+import {
+  ProjectAssignmentForm,
+  ConfirmSubmissionModal,
+  SubmissionSuccessBanner,
+} from "../../components/vendor/candidate-submission/ProjectAssignmentForm.jsx";
 
 export default function SubmitCandidate() {
   const [searchParams] = useSearchParams();
@@ -40,28 +29,19 @@ export default function SubmitCandidate() {
   const [busyCandidates, setBusyCandidates] = useState([]);
   const [applications, setApplications] = useState([]);
   const [availableProjectsList, setAvailableProjectsList] = useState([]);
-  const [excludedBusyCount, setExcludedBusyCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  
   const [categoryFilter, setCategoryFilter] = useState("All");
-
-  
   const [currentStep, setCurrentStep] = useState(1);
 
-  
-  const [selectedClientId, setSelectedClientId] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("");
   const [selectedCandidateIds, setSelectedCandidateIds] = useState(
     preselectedCandidateId ? [preselectedCandidateId] : []
   );
   const [vendorNotes, setVendorNotes] = useState("");
-
-  
   const [candidateSearch, setCandidateSearch] = useState("");
 
-  
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(null);
@@ -92,9 +72,7 @@ export default function SubmitCandidate() {
             localStorage.getItem("crm_clients_data_v2") ||
             "[]";
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            clientList = parsed;
-          }
+          if (Array.isArray(parsed) && parsed.length > 0) clientList = parsed;
         } catch {}
       }
       if (!clientList.length && Array.isArray(initialClients) && initialClients.length > 0) {
@@ -103,14 +81,12 @@ export default function SubmitCandidate() {
       setClients(clientList);
       setApplications(appRes || []);
 
-      const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
-      
       const allFound = [];
       const seenProjIds = new Set();
       const addProj = (p, c) => {
         if (!p) return;
         const key = String(p.id || p.projectId || p._id || "");
-        if (!key || DUMMY_PROJECT_IDS.includes(key)) return;
+        if (!key) return;
         if (!seenProjIds.has(key)) {
           seenProjIds.add(key);
           allFound.push({
@@ -118,327 +94,248 @@ export default function SubmitCandidate() {
             id: key,
             clientId: p.clientId || c?.id || c?._id,
             clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
-            projectName: p.projectName || p.name || p.title || "Overseas Project",
-            country: p.country || c?.country || "Overseas",
-            manpowerRequirements: p.manpowerRequirements || [],
           });
         }
       };
 
-      (availProjects || []).forEach((p) => addProj(p));
-      (clientList || []).forEach((c) => {
-        (c.projects || []).forEach((p) => addProj(p, c));
+      if (Array.isArray(availProjects)) {
+        availProjects.forEach((p) => addProj(p, null));
+      }
+      clientList.forEach((c) => {
+        if (Array.isArray(c.projects)) {
+          c.projects.forEach((p) => addProj(p, c));
+        }
       });
-
       setAvailableProjectsList(allFound);
 
-      
-      const busyDisqualifyingStatuses = [
-        "Selected",
+      const allCands = candRes || [];
+      const rawApps = appRes || [];
+      const activeStages = [
+        "Applied",
+        "Screening",
         "Shortlisted",
-        "Interview",
         "Interview Scheduled",
+        "Interview",
+        "Selected",
+        "Offer Released",
+        "Visa Processing",
         "Under Review",
-        "Submitted",
-        "Completed",
-        "On Hold",
       ];
 
-      let busyCount = 0;
-      const eligibleCandidates = [];
-      const inProgressCandidates = [];
-
-      (candRes || []).forEach((c) => {
-        const cApps = (appRes || []).filter((a) => a.candidateId === c.id);
-
-        const busyApp = cApps.find((a) => busyDisqualifyingStatuses.includes(a.status));
-        if (busyApp) {
-          busyCount++;
-          inProgressCandidates.push({
-            ...c,
-            category: "in_progress",
-            poolStatus: busyApp.status,
-            activeProjectName: busyApp.projectName || busyApp.clientName || "Assigned Project",
-            activeClientName: busyApp.clientName || "Client",
-            activePosition: busyApp.position || c.currentPosition,
-            activeStatus: busyApp.status,
-            activeSubmittedAt: busyApp.submittedAt,
-            interviewDetails: busyApp.interviewDetails,
-            applicationId: busyApp.id || busyApp.applicationId,
-            applicationsCount: cApps.length,
-          });
-          return;
+      const busyMap = new Map();
+      rawApps.forEach((app) => {
+        const cId = String(app.candidateId || app.candidate?.id || "");
+        const stage = app.recruitmentStage || app.status || "";
+        if (cId && activeStages.includes(stage)) {
+          busyMap.set(cId, app);
         }
-
-        const isFresh = cApps.length === 0;
-        const rejectedApp = cApps.find((a) => a.status === "Rejected");
-        const isRejected = !isFresh && cApps.every((a) => a.status === "Rejected");
-
-        if (!isFresh && !isRejected) {
-          busyCount++;
-          const otherApp = cApps[0];
-          inProgressCandidates.push({
-            ...c,
-            category: "in_progress",
-            poolStatus: otherApp?.status || "Under Review",
-            activeProjectName: otherApp?.projectName || otherApp?.clientName || "Assigned Project",
-            activeClientName: otherApp?.clientName || "Client",
-            activePosition: otherApp?.position || c.currentPosition,
-            activeStatus: otherApp?.status || "Under Review",
-            activeSubmittedAt: otherApp?.submittedAt,
-            interviewDetails: otherApp?.interviewDetails,
-            applicationId: otherApp?.id || otherApp?.applicationId,
-            applicationsCount: cApps.length,
-          });
-          return;
-        }
-
-        eligibleCandidates.push({
-          ...c,
-          category: isFresh ? "fresh" : "rejected",
-          poolStatus: isFresh ? "Fresh Candidate" : "Rejected",
-          lastProjectInfo: rejectedApp ? (rejectedApp.projectName || rejectedApp.clientName) : null,
-          lastRejectionReason: rejectedApp?.rejectionReason || "Criteria did not match client requirement.",
-          applicationsCount: cApps.length,
-        });
       });
 
-      setExcludedBusyCount(inProgressCandidates.length);
-      setCandidates(eligibleCandidates);
-      setBusyCandidates(inProgressCandidates);
+      const assignableList = [];
+      const inProgressList = [];
 
-      
-      const preselectedProjId = searchParams.get("projectId") || searchParams.get("project");
-      if (preselectedProjId) {
-        const matchingClient = clientList.find((c) =>
-          (c.projects || []).some((p) => String(p.id || p.projectId || p._id) === String(preselectedProjId))
-        );
-        const matchingProj = matchingClient?.projects?.find(
-          (p) => String(p.id || p.projectId || p._id) === String(preselectedProjId)
-        ) || (availProjects || []).find((p) => String(p.id || p.projectId || p._id) === String(preselectedProjId));
+      allCands.forEach((cand) => {
+        const cid = String(cand.id);
+        const activeApp = busyMap.get(cid);
 
-        if (matchingProj) {
-          const resolvedPId = String(matchingProj.id || matchingProj.projectId || matchingProj._id);
-          setSelectedProjectId(resolvedPId);
-          setSelectedClientId(matchingProj.clientId || matchingClient?.id || matchingClient?._id);
-          if (matchingProj.manpowerRequirements?.length > 0) {
-            setSelectedPosition(
-              matchingProj.manpowerRequirements[0].position ||
-              matchingProj.manpowerRequirements[0].positionTitle || ""
-            );
-          }
+        if (activeApp) {
+          inProgressList.push({
+            ...cand,
+            category: "in_progress",
+            activeApp,
+            activeStatus: activeApp.recruitmentStage || activeApp.status,
+            activeProjectName: activeApp.projectName || "Assigned Project",
+            activeProjectId: activeApp.projectId,
+            interviewDetails: activeApp.interviewDetails || null,
+          });
+        } else {
+          const candApps = rawApps.filter((a) => String(a.candidateId || a.candidate?.id) === cid);
+          const wasRejected = candApps.some((a) => a.recruitmentStage === "Rejected" || a.status === "Rejected");
+          const lastRejectedApp = candApps.find((a) => a.recruitmentStage === "Rejected" || a.status === "Rejected");
+
+          assignableList.push({
+            ...cand,
+            category: wasRejected ? "rejected" : "fresh",
+            lastRejectionReason: lastRejectedApp?.rejectionReason || "Position closed / Not selected",
+            lastProjectInfo: lastRejectedApp ? `${lastRejectedApp.projectName} (${lastRejectedApp.position || "Role"})` : null,
+          });
         }
-      }
+      });
+
+      setCandidates(assignableList);
+      setBusyCandidates(inProgressList);
 
       if (preselectedCandidateId) {
-        const isEligible = eligibleCandidates.some((c) => c.id === preselectedCandidateId);
-        if (isEligible) {
-          setSelectedCandidateIds([preselectedCandidateId]);
-        }
+        setSelectedCandidateIds([preselectedCandidateId]);
+        setCurrentStep(2);
       }
     } catch (err) {
-      console.error("Error loading assign candidate data:", err);
-      setErrorMessage("Failed to load required data. Please refresh.");
+      setErrorMessage("Failed to load candidate roster: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
   };
 
-  const allProjects = useMemo(() => {
-    const DUMMY_PROJECT_IDS = ["prj-dxb-101", "prj-ksa-201", "prj-qat-301", "PRJ-101", "PRJ-102", "PRJ-103", "PRJ-104", "PRJ-105"];
-    const list = [];
-    const seen = new Set();
-    const addP = (p, c) => {
-      if (!p) return;
-      const k = String(p.id || p.projectId || p._id || "");
-      if (!k || DUMMY_PROJECT_IDS.includes(k)) return;
-      if (!seen.has(k)) {
-        seen.add(k);
-        list.push({
-          ...p,
-          id: k,
-          clientId: p.clientId || c?.id || c?._id,
-          clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
-          projectName: p.projectName || p.name || p.title || "Overseas Project",
-          country: p.country || c?.country || "Overseas",
-          manpowerRequirements: p.manpowerRequirements || [],
-        });
-      }
-    };
+  const allProjects = useMemo(() => availableProjectsList, [availableProjectsList]);
 
-    (availableProjectsList || []).forEach((p) => addP(p));
-    (clients || []).forEach((c) => (c.projects || []).forEach((p) => addP(p, c)));
-    return list;
-  }, [availableProjectsList, clients]);
-
-  
-  useEffect(() => {
-    if (allProjects.length === 1 && !selectedProjectId) {
-      handleSelectProjectByName(allProjects[0].id);
-    }
+  const selectedProject = useMemo(() => {
+    if (!selectedProjectId) return null;
+    return allProjects.find((p) => String(p.id) === String(selectedProjectId)) || null;
   }, [allProjects, selectedProjectId]);
 
-  const selectedProject = allProjects.find((p) => String(p.id) === String(selectedProjectId));
-  
   const availableRequirements = useMemo(() => {
     if (!selectedProject) return [];
-    if (Array.isArray(selectedProject.manpowerRequirements) && selectedProject.manpowerRequirements.length > 0) {
-      return selectedProject.manpowerRequirements;
-    }
-    const fallbackTitle = selectedProject.positionTitle || selectedProject.primaryPosition || "General Trade Position";
-    const fallbackQty = selectedProject.totalHeadcount || selectedProject.totalManpower || 1;
-    return [{
-      id: `mpr-${selectedProject.id || "1"}-1`,
-      position: fallbackTitle,
-      positionTitle: fallbackTitle,
-      quantity: fallbackQty,
-    }];
+    return selectedProject.requirements || selectedProject.jobRequirements || [];
   }, [selectedProject]);
 
-  const selectedRequirement = availableRequirements.find((r) => r.positionTitle === selectedPosition || r.position === selectedPosition);
-  
-  const requiredHeadcount = selectedRequirement ? Number(selectedRequirement.quantity || 0) : 0;
-  const projectSubmissions = applications.filter(
-    (a) =>
-      String(a.projectId) === String(selectedProjectId) &&
-      (!selectedPosition || a.position === selectedPosition) &&
-      a.status !== "Rejected"
-  );
-  const selectedOrShortlisted = projectSubmissions.filter((a) =>
-    ["Selected", "Shortlisted", "Completed"].includes(a.status)
-  ).length;
-  const remainingSlots = Math.max(0, requiredHeadcount - selectedOrShortlisted);
-
-  const handleSelectProjectByName = (projId) => {
-    setSelectedProjectId(projId);
-    setErrorMessage("");
-
-    const targetProj = allProjects.find((p) => String(p.id) === String(projId));
-    if (targetProj) {
-      setSelectedClientId(targetProj.clientId);
-      const reqs = Array.isArray(targetProj.manpowerRequirements) && targetProj.manpowerRequirements.length > 0
-        ? targetProj.manpowerRequirements
-        : [{ position: targetProj.positionTitle || targetProj.primaryPosition || "General Trade Position" }];
-      setSelectedPosition(reqs[0].position || reqs[0].positionTitle || "");
-    } else {
-      setSelectedClientId("");
-      setSelectedPosition("");
-    }
-  };
-
-  
-  const displaySourceList = categoryFilter === "in_progress" ? busyCandidates : candidates;
-
-  const filteredCandidates = displaySourceList.filter((c) => {
-    if (categoryFilter !== "All" && categoryFilter !== "in_progress" && c.category !== categoryFilter) {
-      return false;
-    }
-    if (!candidateSearch) return true;
-    const q = candidateSearch.toLowerCase();
-    return (
-      c.fullName?.toLowerCase().includes(q) ||
-      c.id?.toLowerCase().includes(q) ||
-      c.currentPosition?.toLowerCase().includes(q) ||
-      c.passportNumber?.toLowerCase().includes(q) ||
-      c.activeProjectName?.toLowerCase().includes(q) ||
-      c.activeStatus?.toLowerCase().includes(q) ||
-      c.skills?.some((s) => s.toLowerCase().includes(q))
+  const requiredHeadcount = useMemo(() => {
+    if (!selectedPosition) return null;
+    const req = availableRequirements.find(
+      (r) => (r.position || r.positionTitle)?.toLowerCase() === selectedPosition.toLowerCase()
     );
-  });
+    return req ? Number(req.quantity) || 0 : null;
+  }, [availableRequirements, selectedPosition]);
 
-  const toggleSelection = (id) => {
+  const selectedOrShortlisted = useMemo(() => {
+    if (!selectedProjectId) return 0;
+    return applications.filter(
+      (a) =>
+        String(a.projectId) === String(selectedProjectId) &&
+        ["Selected", "Shortlisted", "Visa Processing"].includes(a.recruitmentStage || a.status)
+    ).length;
+  }, [applications, selectedProjectId]);
+
+  const filteredCandidates = useMemo(() => {
+    let list = [];
+    if (categoryFilter === "in_progress") {
+      list = [...busyCandidates];
+    } else {
+      list = [...candidates];
+      if (categoryFilter === "fresh") list = list.filter((c) => c.category === "fresh");
+      else if (categoryFilter === "rejected") list = list.filter((c) => c.category === "rejected");
+    }
+
+    if (candidateSearch.trim()) {
+      const q = candidateSearch.toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.fullName?.toLowerCase().includes(q) ||
+          c.id?.toLowerCase().includes(q) ||
+          c.currentPosition?.toLowerCase().includes(q) ||
+          c.passportNumber?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [candidates, busyCandidates, categoryFilter, candidateSearch]);
+
+  const freshCount = useMemo(() => candidates.filter((c) => c.category === "fresh").length, [candidates]);
+  const rejectedCount = useMemo(() => candidates.filter((c) => c.category === "rejected").length, [candidates]);
+
+  const toggleSelection = (candidateId) => {
     setSelectedCandidateIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(candidateId) ? prev.filter((id) => id !== candidateId) : [...prev, candidateId]
     );
   };
 
   const toggleAll = () => {
-    if (selectedCandidateIds.length === filteredCandidates.length) {
+    if (selectedCandidateIds.length === filteredCandidates.length && filteredCandidates.length > 0) {
       setSelectedCandidateIds([]);
     } else {
       setSelectedCandidateIds(filteredCandidates.map((c) => c.id));
     }
   };
 
-  
+  const handleNextStep = () => {
+    if (selectedCandidateIds.length === 0) {
+      setErrorMessage("Please select at least 1 candidate to proceed.");
+      return;
+    }
+    setErrorMessage("");
+    setCurrentStep(2);
+  };
+
   const handleDirectAssignCandidate = (candidateId) => {
     setSelectedCandidateIds([candidateId]);
     setErrorMessage("");
     setCurrentStep(2);
   };
 
-  const handleNextStep = () => {
-    if (selectedCandidateIds.length === 0) {
-      setErrorMessage("Please select at least one candidate to proceed.");
-      return;
+  const handleSelectProjectByName = (projId) => {
+    setSelectedProjectId(projId);
+    const proj = allProjects.find((p) => String(p.id) === String(projId));
+    if (proj) {
+      const reqs = proj.requirements || proj.jobRequirements || [];
+      if (reqs.length > 0) {
+        setSelectedPosition(reqs[0].position || reqs[0].positionTitle || "");
+      } else {
+        setSelectedPosition("");
+      }
     }
-    setErrorMessage("");
-    setCurrentStep(2);
   };
 
   const handleOpenConfirm = (e) => {
     e.preventDefault();
-    setErrorMessage("");
-
-    if (selectedCandidateIds.length === 0) {
-      setErrorMessage("No candidates selected.");
-      return;
-    }
     if (!selectedProjectId) {
-      setErrorMessage("Please select an active Target Project.");
+      setErrorMessage("Please select a target Project.");
       return;
     }
     if (!selectedPosition) {
-      setErrorMessage("Please select the Target Trade / Position Role.");
+      setErrorMessage("Please select or enter the Trade/Position.");
       return;
     }
-
-    
-    const alreadySubmitted = selectedCandidateIds.filter(cid => 
-      applications.some(
-        a => a.candidateId === cid && String(a.projectId) === String(selectedProjectId) && a.status !== "Rejected"
-      )
-    );
-
-    if (alreadySubmitted.length > 0) {
-      const names = alreadySubmitted.map(id => candidates.find(c => c.id === id)?.fullName).join(", ");
-      setErrorMessage(`The following candidate(s) are already active in this project: ${names}`);
-      return;
-    }
-
+    setErrorMessage("");
     setShowConfirmModal(true);
   };
 
-  const handleFinalSubmit = async () => {
+  const handleConfirmSubmit = async () => {
+    setShowConfirmModal(false);
+    setSubmitting(true);
+    setErrorMessage("");
+
     try {
-      setSubmitting(true);
-      setErrorMessage("");
+      const projectObj = selectedProject;
+      const clientObj = clients.find((c) => String(c.id) === String(projectObj?.clientId)) || null;
 
-      const promises = selectedCandidateIds.map((cid) =>
-        crmVendorService.submitCandidateToProject({
-          vendorId: vendor?.id || "VND-1001",
-          candidateId: cid,
-          clientId: selectedClientId,
+      const submissions = selectedCandidateIds.map((cId) => {
+        const cand = candidates.find((c) => c.id === cId) || {};
+        return {
+          candidateId: cId,
+          candidateName: cand.fullName,
+          candidatePhone: cand.phoneNumber,
+          candidateEmail: cand.email,
+          passportNumber: cand.passportNumber,
+          clientId: projectObj?.clientId || clientObj?.id,
+          clientName: projectObj?.clientName || clientObj?.companyName || "Direct Client",
           projectId: selectedProjectId,
+          projectName: projectObj?.projectName || projectObj?.name || "Overseas Project",
           position: selectedPosition,
-        })
-      );
-
-      await Promise.all(promises);
-
-      setShowConfirmModal(false);
-      setSubmitSuccess({
-        count: selectedCandidateIds.length,
-        projectName: selectedProject?.projectName || "Project",
-        position: selectedPosition
+          destinationCountry: projectObj?.country || "Overseas",
+          vendorId: vendor?.id || "VND-1001",
+          vendorName: vendor?.companyName || "Partner Agency",
+          notes: vendorNotes,
+          submittedAt: new Date().toISOString(),
+          status: "Under Review",
+          recruitmentStage: "Screening",
+        };
       });
-      
-      
+
+      await crmVendorService.submitBatchCandidates(submissions);
+
+      setSubmitSuccess({
+        count: submissions.length,
+        projectName: projectObj?.projectName || "Overseas Project",
+        position: selectedPosition,
+      });
+
+      setSelectedCandidateIds([]);
+      setVendorNotes("");
+      setSelectedProjectId("");
+      setSelectedPosition("");
+      setCurrentStep(1);
+
       await loadData();
     } catch (err) {
-      console.error("Assignment failed:", err);
-      setShowConfirmModal(false);
-      setErrorMessage(err.message || "Assignment failed. Please try again.");
+      setErrorMessage(err.message || "Failed to submit candidates.");
     } finally {
       setSubmitting(false);
     }
@@ -450,145 +347,56 @@ export default function SubmitCandidate() {
     setSelectedProjectId("");
     setSelectedPosition("");
     setVendorNotes("");
-    setErrorMessage("");
     setCurrentStep(1);
+    loadData();
   };
-
-  const freshCount = candidates.filter((c) => c.category === "fresh").length;
-  const rejectedCount = candidates.filter((c) => c.category === "rejected").length;
 
   if (loading) {
     return (
-      <div className="p-4 max-w-6xl mx-auto flex items-center justify-center min-h-[350px]">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-semibold text-slate-500">Loading assignable candidates...</p>
-        </div>
+      <div className="p-8 text-center bg-white rounded-xl border border-slate-200 max-w-4xl mx-auto my-6">
+        <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-xs font-semibold text-slate-700">Loading candidate assignment workspace...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
-      {}
-      <div className="mb-2">
+    <div className="space-y-4 max-w-6xl w-full mx-auto font-sans antialiased text-slate-800 pb-10 text-xs">
+      {/* Step Indicator */}
+      <SubmissionStepsNav currentStep={currentStep} setCurrentStep={setCurrentStep} />
+
+      {/* Header Banner */}
+      <div className="bg-white rounded-lg border border-slate-300 shadow-xs p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-              <Link to="/vendor/candidates" className="hover:text-blue-600 font-medium">My Candidates</Link>
-              <ChevronRight size={12} />
-              <span className="font-bold text-slate-800">Assign Candidate</span>
-            </div>
-            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-              <UserCheck className="text-blue-600" size={24} />
-              <span>Assign Candidate to Project</span>
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <Users size={18} className="text-blue-600" />
+              <span>Assign Candidates to Client Projects</span>
             </h1>
-            <p className="text-xs text-slate-600 mt-0.5">
-              Select eligible candidates to deploy. Only <strong className="text-emerald-700">Fresh Candidates</strong> and <strong className="text-rose-700">Rejected Candidates</strong> (ready for re-assignment) are displayed.
+            <p className="text-[11px] text-slate-600 font-medium mt-0.5">
+              Allocate verified candidates from your agency roster to active client projects.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/vendor/candidates/add"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold shadow-2xs transition cursor-pointer"
-            >
-              <Plus size={14} />
-              <span>Register New Candidate</span>
-            </Link>
-          </div>
+          <Link
+            to="/vendor/candidates/add"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+          >
+            <Plus size={13} />
+            <span>Register New Candidate</span>
+          </Link>
         </div>
 
-        {}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
-          <div
-            onClick={() => setCategoryFilter("All")}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              categoryFilter === "All"
-                ? "bg-slate-100 border-slate-400 ring-2 ring-slate-400 shadow-xs"
-                : "bg-white border-slate-200 hover:bg-slate-50 shadow-2xs"
-            }`}
-          >
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Assignable</span>
-            <span className="text-base sm:text-lg font-bold text-slate-900">{candidates.length}</span>
-            <span className="text-[10px] text-slate-400 block">In available pool</span>
-          </div>
-          <div
-            onClick={() => setCategoryFilter("fresh")}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              categoryFilter === "fresh"
-                ? "bg-emerald-100 border-emerald-400 ring-2 ring-emerald-500 shadow-xs"
-                : "bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/70 shadow-2xs"
-            }`}
-          >
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Fresh Candidates</span>
-            <span className="text-base sm:text-lg font-bold text-emerald-800">{freshCount}</span>
-            <span className="text-[10px] text-emerald-600 block">Never submitted</span>
-          </div>
-          <div
-            onClick={() => setCategoryFilter("rejected")}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              categoryFilter === "rejected"
-                ? "bg-rose-100 border-rose-400 ring-2 ring-rose-500 shadow-xs"
-                : "bg-rose-50/70 border-rose-200 hover:bg-rose-100/70 shadow-2xs"
-            }`}
-          >
-            <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Rejected (Reusable)</span>
-            <span className="text-base sm:text-lg font-bold text-rose-800">{rejectedCount}</span>
-            <span className="text-[10px] text-rose-600 block">Ready to re-assign</span>
-          </div>
-          <div
-            onClick={() => setCategoryFilter("in_progress")}
-            className={`p-2 rounded-lg border transition-all cursor-pointer ${
-              categoryFilter === "in_progress"
-                ? "bg-indigo-100 border-indigo-400 ring-2 ring-indigo-500 shadow-xs"
-                : "bg-indigo-50/70 border-indigo-200 hover:bg-indigo-100/70 shadow-2xs"
-            }`}
-          >
-            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">In Progress / Active</span>
-            <span className="text-base sm:text-lg font-bold text-indigo-800">{busyCandidates.length}</span>
-            <span className="text-[10px] text-indigo-600 block">Click to view list ({busyCandidates.length})</span>
-          </div>
-        </div>
+        <CandidatePoolFilterCards
+          totalCandidates={candidates.length}
+          freshCount={freshCount}
+          rejectedCount={rejectedCount}
+          busyCandidatesCount={busyCandidates.length}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+        />
       </div>
 
-      {submitSuccess && (
-        <div className="p-5 rounded-lg bg-emerald-50 border border-emerald-300 shadow-xs">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-xs">
-              <CheckCircle2 size={22} />
-            </div>
-            <div className="flex-1">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 mb-1">
-                Assignment Successful
-              </span>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                {submitSuccess.count} Candidate(s) Assigned to {submitSuccess.projectName}
-              </h2>
-              <p className="text-xs text-slate-700 mt-0.5">
-                Role: <strong className="text-slate-900">{submitSuccess.position}</strong>. Candidates have been placed under review and excluded from the available roster.
-              </p>
-
-              <div className="mt-4 flex flex-wrap gap-2.5">
-                <Link
-                  to="/vendor/applications"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-2xs"
-                >
-                  <FileText size={14} />
-                  <span>View in Applications</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={resetFormForNext}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
-                >
-                  <RotateCcw size={14} className="text-slate-500" />
-                  <span>Assign More Candidates</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SubmissionSuccessBanner submitSuccess={submitSuccess} onReset={resetFormForNext} />
 
       {errorMessage && (
         <div className="p-3 rounded-lg bg-rose-50 border border-rose-300 text-rose-800 text-xs font-semibold flex items-center gap-2.5">
@@ -597,594 +405,60 @@ export default function SubmitCandidate() {
         </div>
       )}
 
-      {}
       {currentStep === 1 && !submitSuccess && (
-        <div className="bg-white rounded-lg border border-slate-300 shadow-xs w-full overflow-hidden flex flex-col">
-          {}
-          <div className="p-4 sm:p-5 border-b border-slate-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center">1</span>
-                  <span>Select Candidate(s) to Assign</span>
-                </h2>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Pick candidate(s) to assign to a client project, or click "Assign Project" directly on any row.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedCandidateIds.length > 0 && (
-                  <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200">
-                    {selectedCandidateIds.length} Selected
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  disabled={selectedCandidateIds.length === 0}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs"
-                >
-                  <span>Proceed to Assign ({selectedCandidateIds.length})</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-
-            {}
-            <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              {}
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-bold overflow-x-auto">
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter("All")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    categoryFilter === "All"
-                      ? "bg-white text-blue-700 shadow-2xs font-bold"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  All Assignable ({candidates.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter("fresh")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
-                    categoryFilter === "fresh"
-                      ? "bg-white text-emerald-700 shadow-2xs font-bold"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <CheckCircle2 size={12} className="text-emerald-500" />
-                  <span>Fresh ({freshCount})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter("rejected")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
-                    categoryFilter === "rejected"
-                      ? "bg-white text-rose-700 shadow-2xs font-bold"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <RotateCcw size={12} className="text-rose-500" />
-                  <span>Rejected ({rejectedCount})</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter("in_progress")}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap ${
-                    categoryFilter === "in_progress"
-                      ? "bg-white text-indigo-700 shadow-2xs font-bold"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Clock size={12} className="text-indigo-500" />
-                  <span>In Progress / Active ({busyCandidates.length})</span>
-                </button>
-              </div>
-
-              {}
-              <div className="relative flex-1 sm:max-w-xs">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search by name, ID, trade, project..."
-                  value={candidateSearch}
-                  onChange={(e) => setCandidateSearch(e.target.value)}
-                  className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
-                />
-              </div>
-            </div>
-
-            {categoryFilter === "in_progress" && (
-              <div className="mt-3 p-3 bg-indigo-50/90 border border-indigo-200 rounded-lg text-xs text-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
-                <div className="flex items-center gap-2">
-                  <Clock size={16} className="text-indigo-600 shrink-0" />
-                  <span>
-                    Showing <strong>{filteredCandidates.length}</strong> candidate(s) currently active in recruitment stages (Interview, Selected, Under Review).
-                  </span>
-                </div>
-                <Link
-                  to="/vendor/applications"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 underline whitespace-nowrap"
-                >
-                  <span>View in Applications</span>
-                  <ExternalLink size={12} />
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {}
-          <div className="overflow-x-auto bg-white max-h-[500px]">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
-                <tr>
-                  <th className="py-1 px-2 text-[10px] w-12 text-center">
-                    {categoryFilter !== "in_progress" ? (
-                      <input
-                        type="checkbox"
-                        checked={selectedCandidateIds.length === filteredCandidates.length && filteredCandidates.length > 0}
-                        onChange={toggleAll}
-                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
-                        title="Select all"
-                      />
-                    ) : (
-                      <span className="text-[10px] font-bold text-slate-400">#</span>
-                    )}
-                  </th>
-                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Candidate Details</th>
-                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Trade / Position</th>
-                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">Experience</th>
-                  <th className="py-1 px-2 text-[10px] font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                    {categoryFilter === "in_progress" ? "Active Status & Project" : "Eligibility Status"}
-                  </th>
-                  <th className="py-1 px-2 text-[10px] text-right font-bold text-slate-700 uppercase tracking-wider text-[10px]">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredCandidates.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="text-center py-12 text-slate-500">
-                      <div className="max-w-xs mx-auto space-y-2">
-                        <Users size={32} className="mx-auto text-slate-300" />
-                        <p className="font-bold text-slate-700">
-                          {categoryFilter === "in_progress"
-                            ? "No candidates currently in progress."
-                            : "No candidates available for assignment."}
-                        </p>
-                        <p className="text-[11px] text-slate-400">
-                          {categoryFilter === "in_progress"
-                            ? "Candidates will appear here once submitted or scheduled for client interviews."
-                            : candidates.length === 0
-                            ? "All registered candidates are currently in review, shortlisted, or selected."
-                            : "No candidates match the current filter or search criteria."}
-                        </p>
-                        <Link
-                          to="/vendor/candidates/add"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-bold mt-2"
-                        >
-                          <Plus size={13} />
-                          <span>Register New Candidate</span>
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredCandidates.map((c) => (
-                    <tr
-                      key={c.id}
-                      className={`hover:bg-slate-50/70 transition-colors ${
-                        selectedCandidateIds.includes(c.id) ? "bg-blue-50/40" : ""
-                      }`}
-                    >
-                      <td className="py-1 px-2 text-center">
-                        {c.category === "in_progress" ? (
-                          <span
-                            className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-400 mx-auto"
-                            title="Candidate is active on an assigned project"
-                          >
-                            <Lock size={12} />
-                          </span>
-                        ) : (
-                          <input
-                            type="checkbox"
-                            checked={selectedCandidateIds.includes(c.id)}
-                            onChange={() => toggleSelection(c.id)}
-                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
-                          />
-                        )}
-                      </td>
-                      <td className="py-1 px-2">
-                        <div className="flex items-center gap-3">
-                          {c.photo ? (
-                            <img
-                              src={c.photo}
-                              alt={c.fullName}
-                              className="w-9 h-9 rounded-full object-cover border border-slate-200"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs uppercase">
-                              {c.fullName ? c.fullName.charAt(0) : "C"}
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                              <span>{c.fullName}</span>
-                              <span className="text-[10px] font-mono text-slate-400">({c.id})</span>
-                            </div>
-                            <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
-                              <span>Pass: {c.passportNumber || "N/A"}</span>
-                              {c.phoneNumber && <span>• {c.phoneNumber}</span>}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-1 px-2">
-                        <span className="font-bold text-slate-800 block">{c.currentPosition || "General Labor"}</span>
-                      </td>
-                      <td className="py-1 px-2">
-                        <div className="font-bold text-slate-700 flex items-center gap-1">
-                          <Briefcase size={12} className="text-slate-400" />
-                          <span>{c.experienceYears || 0} yrs</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 block">{c.qualification || "Trade Certified"}</span>
-                      </td>
-                      <td className="py-1 px-2">
-                        {c.category === "in_progress" ? (
-                          <div>
-                            {c.activeStatus === "Interview" || c.activeStatus === "Interview Scheduled" ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                <Video size={11} className="text-purple-600 shrink-0" />
-                                <span>Interview Scheduled</span>
-                              </span>
-                            ) : c.activeStatus === "Selected" ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <UserCheck size={11} className="text-emerald-600 shrink-0" />
-                                <span>Selected</span>
-                              </span>
-                            ) : c.activeStatus === "On Hold" ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                <Clock size={11} className="text-amber-600 shrink-0" />
-                                <span>On Hold</span>
-                              </span>
-                            ) : c.activeStatus === "Under Review" || c.activeStatus === "Shortlisted" ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                <Clock size={11} className="text-blue-600 shrink-0" />
-                                <span>Under Review</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                <Clock size={11} className="text-amber-600 shrink-0" />
-                                <span>{c.activeStatus || "In Process"}</span>
-                              </span>
-                            )}
-                            <span
-                              className="text-[10px] text-slate-700 font-semibold block mt-0.5 truncate max-w-[160px]"
-                              title={c.activeProjectName}
-                            >
-                              Proj: {c.activeProjectName}
-                            </span>
-                            {c.interviewDetails?.dateTime && (
-                              <span className="text-[10px] text-purple-700 font-medium block truncate max-w-[160px]">
-                                Date: {c.interviewDetails.dateTime}
-                              </span>
-                            )}
-                          </div>
-                        ) : c.category === "fresh" ? (
-                          <div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <UserCheck size={11} className="text-emerald-600 shrink-0" />
-                              <span>Fresh Candidate</span>
-                            </span>
-                            <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">
-                              Ready for first project
-                            </span>
-                          </div>
-                        ) : (
-                          <div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                              <RotateCcw size={11} className="text-rose-600 shrink-0" />
-                              <span>Rejected (Reusable)</span>
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-medium block mt-0.5 truncate max-w-[150px]" title={c.lastRejectionReason}>
-                              Prev: {c.lastProjectInfo || "Previous Project"}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-1 px-2 text-right whitespace-nowrap">
-                        {c.category === "in_progress" ? (
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Link
-                              to="/vendor/applications"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition-colors"
-                              title="View and track application"
-                            >
-                              <FileText size={12} />
-                              <span>Track</span>
-                            </Link>
-                            <Link
-                              to={`/vendor/candidates/${c.id}`}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-                              title="View Profile"
-                            >
-                              <Eye size={13} />
-                            </Link>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleDirectAssignCandidate(c.id)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-                            title="Assign this candidate to a project"
-                          >
-                            <Send size={11} />
-                            <span>Assign Project</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {}
-          <div className="p-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-            <span className="text-slate-500">
-              Showing <strong className="text-slate-900">{filteredCandidates.length}</strong> of{" "}
-              {categoryFilter === "in_progress" ? busyCandidates.length : candidates.length}{" "}
-              {categoryFilter === "in_progress" ? "candidate(s) in progress" : "assignable candidate(s)"}
-            </span>
-            {selectedCandidateIds.length > 0 && (
-              <button
-                type="button"
-                onClick={handleNextStep}
-                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Proceed with {selectedCandidateIds.length} candidate(s)</span>
-                <ArrowRight size={13} />
-              </button>
-            )}
-          </div>
-        </div>
+        <CandidateSelectionTable
+          candidates={candidates}
+          filteredCandidates={filteredCandidates}
+          selectedCandidateIds={selectedCandidateIds}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          candidateSearch={candidateSearch}
+          setCandidateSearch={setCandidateSearch}
+          freshCount={freshCount}
+          rejectedCount={rejectedCount}
+          busyCandidates={busyCandidates}
+          toggleSelection={toggleSelection}
+          toggleAll={toggleAll}
+          onDirectAssign={handleDirectAssignCandidate}
+        />
       )}
 
-      {}
       {currentStep === 2 && !submitSuccess && (
-        <form onSubmit={handleOpenConfirm} className="space-y-4">
-          <div className="bg-white rounded-lg border border-slate-300 shadow-xs p-4 sm:p-5">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-              <div>
-                <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center">2</span>
-                  <span>Assign to Project Details</span>
-                </h2>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Select target project and trade role for the <strong className="text-blue-700">{selectedCandidateIds.length} selected candidate(s)</strong>.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-              >
-                Back to Candidates List
-              </button>
-            </div>
-
-            {}
-            <div className="mb-4 p-3 bg-blue-50/50 rounded-lg border border-blue-200 text-xs">
-              <span className="font-bold text-blue-900 block mb-1">
-                Selected Candidate(s) for Assignment ({selectedCandidateIds.length}):
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {selectedCandidateIds.map((cid) => {
-                  const c = candidates.find((cand) => cand.id === cid);
-                  return (
-                    <span
-                      key={cid}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-blue-200 text-[11px] font-bold text-slate-800"
-                    >
-                      <span>{c?.fullName || cid}</span>
-                      <span className="text-[10px] text-slate-400">({c?.currentPosition || "Trade"})</span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Select Project Name <span className="text-rose-500">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        const projs = await crmVendorService.getAvailableProjects(vendor?.id);
-                        setAvailableProjectsList(projs || []);
-                      } catch {}
-                    }}
-                    className="text-[10px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer"
-                    title="Reload latest projects from Admin"
-                  >
-                    <RotateCcw size={10} />
-                    <span>Refresh</span>
-                  </button>
-                </div>
-                <select
-                  value={selectedProjectId}
-                  onChange={(e) => handleSelectProjectByName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
-                  required
-                >
-                  <option value="">
-                    {allProjects.length === 0
-                      ? "-- No Projects Added by Admin Yet --"
-                      : "-- Choose Target Project --"}
-                  </option>
-                  {allProjects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.projectName || p.name || p.title || "Overseas Project"} ({p.country || "Overseas"}) - {p.clientName || "Direct Client"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">
-                  Target Trade / Position Role <span className="text-rose-500">*</span>
-                </label>
-                {availableRequirements.length > 0 ? (
-                  <select
-                    value={selectedPosition}
-                    onChange={(e) => setSelectedPosition(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
-                    required
-                  >
-                    <option value="">-- Select Project Position --</option>
-                    {availableRequirements.map((req, idx) => (
-                      <option key={req.id || idx} value={req.position || req.positionTitle}>
-                        {req.position || req.positionTitle} ({req.quantity} required)
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    value={selectedPosition}
-                    onChange={(e) => setSelectedPosition(e.target.value)}
-                    placeholder="Enter Trade / Position title..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
-                    required
-                  />
-                )}
-              </div>
-            </div>
-
-            {selectedProject && (
-              <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
-                <div className="flex items-center justify-between font-bold text-slate-900 border-b border-slate-200 pb-1.5 mb-2">
-                  <span>Project Overview & Vacancy Status</span>
-                  <span className="text-blue-600 font-semibold">{selectedProject.country}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Positions Required</span>
-                    <span className="font-bold text-slate-900">
-                      {requiredHeadcount || selectedProject.totalManpowerRequired || "Flexible"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-bold">In Selection / Shortlist</span>
-                    <span className="font-bold text-slate-900">{selectedOrShortlisted} candidates</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-4">
-              <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-1.5">
-                Vendor Submission Notes (Optional)
-              </label>
-              <textarea
-                rows={3}
-                value={vendorNotes}
-                onChange={(e) => setVendorNotes(e.target.value)}
-                placeholder="Add trade qualification, GCC experience highlights or availability remarks for client review..."
-                className="w-full p-2.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="mt-5 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className="py-2.5 px-4 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={!selectedProjectId || !selectedPosition}
-                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
-              >
-                <UserCheck size={16} />
-                <span>Assign {selectedCandidateIds.length} Candidate(s)</span>
-              </button>
-            </div>
-          </div>
-        </form>
+        <ProjectAssignmentForm
+          selectedCandidateIds={selectedCandidateIds}
+          candidates={candidates}
+          allProjects={allProjects}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={handleSelectProjectByName}
+          selectedPosition={selectedPosition}
+          setSelectedPosition={setSelectedPosition}
+          availableRequirements={availableRequirements}
+          selectedProject={selectedProject}
+          requiredHeadcount={requiredHeadcount}
+          selectedOrShortlisted={selectedOrShortlisted}
+          vendorNotes={vendorNotes}
+          setVendorNotes={setVendorNotes}
+          onBack={() => setCurrentStep(1)}
+          onSubmit={handleOpenConfirm}
+          onRefreshProjects={async () => {
+            try {
+              const projs = await crmVendorService.getAvailableProjects(vendor?.id);
+              setAvailableProjectsList(projs || []);
+            } catch {}
+          }}
+        />
       )}
 
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-5 shadow-2xl border border-slate-300 space-y-4">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold">
-                <UserCheck size={20} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Confirm Project Assignment</h3>
-                <p className="text-xs text-slate-500">
-                  Verify details before assigning {selectedCandidateIds.length} candidates.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs bg-slate-50 p-3.5 rounded-lg border border-slate-200">
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Candidates Selected:</span>
-                <span className="font-bold text-slate-900">{selectedCandidateIds.length} Candidates</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Target Project:</span>
-                <span className="font-bold text-blue-700">
-                  {selectedProject?.projectName} ({selectedProject?.country})
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500 font-medium">Trade / Role:</span>
-                <span className="font-bold text-slate-900">{selectedPosition}</span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-500">
-              * Note: Once assigned, candidates will be placed into the project review pipeline and removed from this list.
-            </p>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                className="px-3.5 py-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleFinalSubmit}
-                disabled={submitting}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Assigning...</span>
-                  </>
-                ) : (
-                  <span>Confirm Assignment</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmSubmissionModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        selectedCandidateIds={selectedCandidateIds}
+        selectedProject={selectedProject}
+        selectedPosition={selectedPosition}
+        candidates={candidates}
+        onConfirm={handleConfirmSubmit}
+        submitting={submitting}
+      />
     </div>
   );
 }
