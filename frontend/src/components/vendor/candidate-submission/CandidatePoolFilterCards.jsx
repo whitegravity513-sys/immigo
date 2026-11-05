@@ -64,3 +64,4 @@ export default function CandidatePoolFilterCards({
     </div>
   );
 }
+

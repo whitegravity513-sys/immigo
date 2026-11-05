@@ -23,3 +23,4 @@ export default function VendorMetricsBar({ stats }) {
     </div>
   );
 }
+

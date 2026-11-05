@@ -68,3 +68,4 @@ export default function VendorProjectsTab({ projects, onOpenAssignModal, onRemov
     </div>
   );
 }
+

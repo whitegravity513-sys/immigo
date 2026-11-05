@@ -43,3 +43,4 @@ export default function CandidateProfileBar({ application, totalPaid, totalAmoun
     </div>
   );
 }
+

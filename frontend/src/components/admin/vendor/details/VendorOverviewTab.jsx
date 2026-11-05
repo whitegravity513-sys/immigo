@@ -82,3 +82,4 @@ export default function VendorOverviewTab({ vendor }) {
     </div>
   );
 }
+
