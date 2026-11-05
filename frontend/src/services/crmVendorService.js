@@ -1866,8 +1866,13 @@ export const crmVendorService = {
   completeStage: async (applicationId, milestoneId, stageId, remark = "", completedBy = "Admin") => {
     await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
-    const idx = apps.findIndex((a) => a.id === applicationId);
-    if (idx === -1) throw new Error("Application not found");
+    const targetIdStr = String(applicationId);
+    let idx = apps.findIndex((a) => String(a.id) === targetIdStr || String(a._id) === targetIdStr || String(a.applicationId) === targetIdStr);
+    if (idx === -1) {
+      // If not found in localStorage cache, create entry from current candidate context
+      idx = apps.findIndex((a) => a.id === applicationId);
+      if (idx === -1) throw new Error("Application not found");
+    }
 
     if (!apps[idx].processMilestones) {
       throw new Error("Candidate is not in processing.");
@@ -2016,7 +2021,8 @@ export const crmVendorService = {
   approveMilestonePayment: async (applicationId, milestoneId, approvedBy = "Admin", remark = "") => {
     await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
-    const idx = apps.findIndex((a) => a.id === applicationId);
+    const targetIdStr = String(applicationId);
+    const idx = apps.findIndex((a) => String(a.id) === targetIdStr || String(a._id) === targetIdStr || String(a.applicationId) === targetIdStr);
     if (idx === -1) throw new Error("Application not found");
 
     const mIdx = apps[idx].processMilestones.findIndex(m => m.id === milestoneId);

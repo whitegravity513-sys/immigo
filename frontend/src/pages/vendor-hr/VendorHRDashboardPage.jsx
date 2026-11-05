@@ -47,9 +47,14 @@ import {
   ShieldCheck,
   BarChart3,
   RotateCcw,
+  Lock,
+  Unlock,
+  IndianRupee,
+  Circle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import vendorHRService from "../../services/vendorHRService.js";
+import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import ActiveMeetingAlertBanner from "../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 
@@ -157,6 +162,16 @@ export default function VendorHRDashboardPage() {
     jobTitle: "",
     notes: "",
   });
+
+  // Candidate Lifecycle Segregation: "pre_selection" vs "post_selection"
+  const [candidateLifecycleTab, setCandidateLifecycleTab] = useState("pre_selection");
+
+  // Post-Selection Milestone Processing Stepper state
+  const [showMilestoneStepperModal, setShowMilestoneStepperModal] = useState(false);
+  const [selectedMilestoneCandidate, setSelectedMilestoneCandidate] = useState(null);
+  const [completingStageId, setCompletingStageId] = useState(null);
+  const [stageCompletionRemark, setStageCompletionRemark] = useState("");
+
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -446,6 +461,118 @@ export default function VendorHRDashboardPage() {
     }
   };
 
+  // Open Post-Selection Milestone Processing Stepper
+  const openMilestoneStepper = async (cand) => {
+    let milestones = cand.processMilestones;
+    if (!Array.isArray(milestones) || milestones.length === 0) {
+      milestones = crmVendorService.syncAppMilestonesWithProject ? crmVendorService.syncAppMilestonesWithProject(cand) : [];
+    }
+
+    const candAppId = cand.applicationId || cand.id || cand._id;
+    try {
+      const allApps = await crmVendorService.getApplications();
+      const existing = allApps.find(
+        (a) => String(a.id) === String(candAppId) || String(a.applicationId) === String(candAppId)
+      );
+      if (existing && Array.isArray(existing.processMilestones) && existing.processMilestones.length > 0) {
+        milestones = existing.processMilestones;
+      } else {
+        const raw = localStorage.getItem("crm_vendor_applications");
+        const list = raw ? JSON.parse(raw) : [];
+        const existsInList = list.some((a) => String(a.id) === String(candAppId) || String(a.applicationId) === String(candAppId));
+        if (!existsInList) {
+          list.push({
+            ...cand,
+            id: candAppId,
+            applicationId: candAppId,
+            status: "Selected",
+            processMilestones: milestones,
+          });
+          localStorage.setItem("crm_vendor_applications", JSON.stringify(list));
+        }
+      }
+    } catch (e) {
+      console.warn("Milestone sync notice:", e);
+    }
+
+    setSelectedMilestoneCandidate({ ...cand, processMilestones: milestones });
+    setCompletingStageId(null);
+    setStageCompletionRemark("");
+    setShowMilestoneStepperModal(true);
+  };
+
+  // Complete a Milestone Sub-Stage (Updates sequential progression & notifies Vendor)
+  const handleCompleteMilestoneStage = async (milestoneId, stageId) => {
+    if (!stageCompletionRemark.trim()) {
+      showToast("Please enter verification remarks before completing this stage.", "error");
+      return;
+    }
+    try {
+      setActionLoading(true);
+      const candAppId = selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id;
+
+      // 1. Advance stage in CRM Vendor Service to enforce milestone sequential locks
+      const updatedApp = await crmVendorService.completeStage(
+        candAppId,
+        milestoneId,
+        stageId,
+        stageCompletionRemark.trim(),
+        "Vendor HR"
+      );
+
+      // 2. Persist to MongoDB backend if available
+      try {
+        await vendorHRService.updateCandidateStage(candAppId, {
+          processMilestones: updatedApp.processMilestones,
+          remarks: `Stage [${stageId}] completed by Vendor HR: ${stageCompletionRemark.trim()}`,
+        });
+      } catch (backendErr) {
+        console.warn("Backend updateCandidateStage sync notice:", backendErr?.message);
+      }
+
+      // 3. Update local state and reload
+      setSelectedMilestoneCandidate({ ...selectedMilestoneCandidate, ...updatedApp });
+      setCompletingStageId(null);
+      setStageCompletionRemark("");
+      showToast("Stage marked as Completed! Real-time progress reflected to Vendor.");
+      await loadData();
+    } catch (err) {
+      showToast(err.message || "Failed to complete milestone stage", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Verify / Simulate Vendor Milestone Payment (Unlocks stages for Vendor HR)
+  const handleApproveMilestonePayment = async (milestoneId) => {
+    try {
+      setActionLoading(true);
+      const candAppId = selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id;
+      await crmVendorService.approveMilestonePayment(candAppId, milestoneId, "Vendor HR", "Milestone payment verified by HR");
+
+      const allApps = await crmVendorService.getApplications();
+      const freshApp = allApps.find((a) => String(a.id) === String(candAppId) || String(a.applicationId) === String(candAppId)) || selectedMilestoneCandidate;
+      
+      // Persist to backend if available
+      try {
+        await vendorHRService.updateCandidateStage(candAppId, {
+          processMilestones: freshApp.processMilestones,
+          remarks: `Milestone [${milestoneId}] payment approved/verified by Vendor HR`,
+        });
+      } catch (backendErr) {
+        console.warn("Backend payment approval notice:", backendErr?.message);
+      }
+
+      setSelectedMilestoneCandidate({ ...selectedMilestoneCandidate, ...freshApp });
+      showToast("Vendor milestone payment verified! Milestone stages are now unlocked for processing.");
+      await loadData();
+    } catch (err) {
+      showToast(err.message || "Failed to verify milestone payment", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Dynamic Pipeline Columns for Overview & Kanban
   const pipelineColumns = useMemo(() => {
     const getAppsForStage = (stageName, aliases = []) => {
@@ -671,14 +798,34 @@ export default function VendorHRDashboardPage() {
 
   const hrUserName = user?.name || "Priya Sharma";
 
-  // Filtered Candidates list for Candidates tab
+  // Filtered Candidates list for Candidates tab (Segregated by Pre-Selection vs Post-Selection Milestones)
   const filteredCandidates = useMemo(() => {
     return applications.filter((cand) => {
+      const isPostSelection = [
+        "Selected",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Joined",
+        "Deployed",
+      ].includes(cand.recruitmentStage);
+
+      if (candidateLifecycleTab === "pre_selection" && isPostSelection) {
+        return false;
+      }
+      if (candidateLifecycleTab === "post_selection" && !isPostSelection) {
+        return false;
+      }
+
       const matchSearch =
         !candidateSearch ||
         cand.candidateName?.toLowerCase().includes(candidateSearch.toLowerCase()) ||
         cand.candidateEmail?.toLowerCase().includes(candidateSearch.toLowerCase()) ||
         cand.candidatePhone?.includes(candidateSearch) ||
+        cand.passportNumber?.toLowerCase().includes(candidateSearch.toLowerCase()) ||
+        cand.jobTitle?.toLowerCase().includes(candidateSearch.toLowerCase()) ||
+        cand.projectName?.toLowerCase().includes(candidateSearch.toLowerCase()) ||
         cand.applicationId?.toLowerCase().includes(candidateSearch.toLowerCase());
 
       const matchStage =
@@ -688,7 +835,38 @@ export default function VendorHRDashboardPage() {
 
       return matchSearch && matchStage;
     });
-  }, [applications, candidateSearch, candidateStageFilter]);
+  }, [applications, candidateSearch, candidateStageFilter, candidateLifecycleTab]);
+
+  // Pre-Selection vs Post-Selection Counts
+  const preSelectionCount = useMemo(() => {
+    return applications.filter((cand) => {
+      const isPostSelection = [
+        "Selected",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Joined",
+        "Deployed",
+      ].includes(cand.recruitmentStage);
+      return !isPostSelection;
+    }).length;
+  }, [applications]);
+
+  const postSelectionCount = useMemo(() => {
+    return applications.filter((cand) => {
+      const isPostSelection = [
+        "Selected",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Joined",
+        "Deployed",
+      ].includes(cand.recruitmentStage);
+      return isPostSelection;
+    }).length;
+  }, [applications]);
 
   // Filtered Projects for My Projects view
   const filteredProjects = useMemo(() => {
@@ -2306,299 +2484,596 @@ export default function VendorHRDashboardPage() {
             </div>
           )}
 
-          {/* VIEW 4: CANDIDATES MANAGEMENT (Search, Filters, Full Table, Stage/Offer/Visa Tracker) */}
+          {/* VIEW 4: CANDIDATES MANAGEMENT (Segregated Pre-Selection vs Post-Selection Paid Milestones) */}
           {activeMenu === "candidates" && (
             <div className="space-y-4">
+              {/* Lifecycle Stage Segregation Switcher */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCandidateLifecycleTab("pre_selection");
+                    setCandidateStageFilter("ALL");
+                  }}
+                  className={`p-3 rounded-xl transition text-left cursor-pointer flex items-center justify-between ${
+                    candidateLifecycleTab === "pre_selection"
+                      ? "bg-white shadow-xs border border-blue-200 text-blue-900"
+                      : "hover:bg-white/60 text-slate-600"
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
+                        candidateLifecycleTab === "pre_selection"
+                          ? "bg-blue-600 text-white"
+                          : "bg-slate-200 text-slate-600"
+                      }`}
+                    >
+                      1
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold flex items-center gap-1.5">
+                        <span>Pre-Selection Screening & Interviews</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            candidateLifecycleTab === "pre_selection"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
+                          {preSelectionCount} Candidates
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Initial screening, profile review, interview scheduling, shortlist & reassignments
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={16}
+                    className={candidateLifecycleTab === "pre_selection" ? "text-blue-600" : "text-slate-400"}
+                  />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCandidateLifecycleTab("post_selection");
+                    setCandidateStageFilter("ALL");
+                  }}
+                  className={`p-3 rounded-xl transition text-left cursor-pointer flex items-center justify-between ${
+                    candidateLifecycleTab === "post_selection"
+                      ? "bg-white shadow-xs border border-teal-200 text-teal-900"
+                      : "hover:bg-white/60 text-slate-600"
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
+                        candidateLifecycleTab === "post_selection"
+                          ? "bg-teal-600 text-white"
+                          : "bg-slate-200 text-slate-600"
+                      }`}
+                    >
+                      2
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold flex items-center gap-1.5">
+                        <span>Selected Candidates & Paid Milestones</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            candidateLifecycleTab === "post_selection"
+                              ? "bg-teal-100 text-teal-800"
+                              : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
+                          {postSelectionCount} Selected
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Paid milestone progression: Trade, Medical, Visa & Sequential stage execution
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={16}
+                    className={candidateLifecycleTab === "post_selection" ? "text-teal-600" : "text-slate-400"}
+                  />
+                </button>
+              </div>
+
+              {/* Search & Filter Bar */}
               <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-                {/* Search */}
                 <div className="relative flex-1 min-w-[240px]">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={candidateSearch}
                     onChange={(e) => setCandidateSearch(e.target.value)}
-                    placeholder="Search candidate by name, email, phone or ID..."
+                    placeholder="Search candidate by name, passport, trade, project or phone..."
                     className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                   />
                 </div>
 
-                {/* Stage Filter */}
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-semibold text-slate-500">Stage:</span>
+                  <span className="text-xs font-semibold text-slate-500">
+                    {candidateLifecycleTab === "pre_selection" ? "Screening Stage:" : "Deployment Stage:"}
+                  </span>
                   <select
                     value={candidateStageFilter}
                     onChange={(e) => setCandidateStageFilter(e.target.value)}
                     className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-600 cursor-pointer"
                   >
-                    <option value="ALL">All Stages ({applications.length})</option>
-                    <option value="Applied">1. Applied ({applications.filter((a) => a.recruitmentStage === "Applied" || a.status === "Applied").length})</option>
-                    <option value="Screening">2. In Screening ({applications.filter((a) => a.recruitmentStage === "Screening").length})</option>
-                    <option value="Shortlisted">3. Shortlisted ({applications.filter((a) => a.recruitmentStage === "Shortlisted").length})</option>
-                    <option value="Interview Scheduled">4. In Interview ({applications.filter((a) => a.recruitmentStage?.includes("Interview")).length})</option>
-                    <option value="Selected">5. Selected ({applications.filter((a) => a.recruitmentStage === "Selected").length})</option>
-                    <option value="On Hold">On Hold ({applications.filter((a) => a.recruitmentStage === "On Hold" || a.status === "On Hold").length})</option>
-                    <option value="Rejected">Rejected ({applications.filter((a) => a.recruitmentStage === "Rejected" || a.status === "Rejected").length})</option>
+                    {candidateLifecycleTab === "pre_selection" ? (
+                      <>
+                        <option value="ALL">All Pre-Selection ({preSelectionCount})</option>
+                        <option value="Applied">1. Applied</option>
+                        <option value="Screening">2. In Screening</option>
+                        <option value="Shortlisted">3. Shortlisted</option>
+                        <option value="Interview Scheduled">4. In Interview</option>
+                        <option value="On Hold">On Hold</option>
+                        <option value="Rejected">Rejected (In Vendor Pool)</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="ALL">All Selected Candidates ({postSelectionCount})</option>
+                        <option value="Selected">1. Selected for Deployment</option>
+                        <option value="Offer Released">2. Offer Released</option>
+                        <option value="Visa Processing">3. Visa Processing</option>
+                        <option value="Visa Issued">4. Visa Issued</option>
+                        <option value="Joined">5. Joined / Deployed</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
 
-              {/* Table */}
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
-                      <tr>
-                        <th className="py-3 px-4">Candidate Profile & CV</th>
-                        <th className="py-3 px-4">Job & Project</th>
-                        <th className="py-3 px-3">Recruitment Stage</th>
-                        <th className="py-3 px-4">HR Screening & Lifecycle Actions</th>
-                        <th className="py-3 px-4 text-right">Dossier</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium">
-                      {filteredCandidates.length === 0 ? (
+              {/* TAB 1 CONTENT: PRE-SELECTION FUNNEL */}
+              {candidateLifecycleTab === "pre_selection" && (
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                  <div className="p-3 bg-blue-50/50 border-b border-blue-100 flex items-center justify-between text-xs">
+                    <div className="flex items-center space-x-2 text-blue-900 font-semibold">
+                      <ShieldCheck className="w-4 h-4 text-blue-600" />
+                      <span>Initial Candidate Evaluation: Review CV & passport, shortlist, hold, reject, or schedule interview.</span>
+                    </div>
+                    <span className="text-[11px] text-blue-700 font-medium">
+                      {filteredCandidates.length} Candidates in Funnel
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
                         <tr>
-                          <td colSpan="5" className="py-10 text-center text-slate-400">
-                            No candidates found matching criteria.
-                          </td>
+                          <th className="py-3 px-4">Candidate Profile & CV</th>
+                          <th className="py-3 px-4">Job & Project</th>
+                          <th className="py-3 px-3">Screening Stage</th>
+                          <th className="py-3 px-4">HR Screening & Lifecycle Decisions</th>
+                          <th className="py-3 px-4 text-right">Dossier</th>
                         </tr>
-                      ) : (
-                        filteredCandidates.map((cand, idx) => {
-                          const resumeLink = cand.resumeUrl || (Array.isArray(cand.documents) && cand.documents[0]?.fileUrl);
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        {filteredCandidates.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="py-10 text-center text-slate-400">
+                              No pre-selection candidates found matching criteria.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredCandidates.map((cand, idx) => {
+                            const resumeLink = cand.resumeUrl || (Array.isArray(cand.documents) && cand.documents[0]?.fileUrl);
 
-                          return (
-                            <tr key={cand.applicationId || idx} className="hover:bg-blue-50/20 transition">
-                              {/* Col 1: Profile + Resume */}
-                              <td className="py-3 px-4">
-                                <div className="flex items-start space-x-2.5">
-                                  <img
-                                    src={AVATARS[idx % AVATARS.length]}
-                                    alt={cand.candidateName}
-                                    className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5"
-                                  />
-                                  <div className="min-w-0">
-                                    <div className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</div>
-                                    <div className="text-[10px] text-slate-400 font-mono">
-                                      {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                            return (
+                              <tr key={cand.applicationId || cand.id || idx} className="hover:bg-blue-50/20 transition">
+                                {/* Col 1: Profile + Resume */}
+                                <td className="py-3 px-4">
+                                  <div className="flex items-start space-x-2.5">
+                                    <img
+                                      src={AVATARS[idx % AVATARS.length]}
+                                      alt={cand.candidateName}
+                                      className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5"
+                                    />
+                                    <div className="min-w-0">
+                                      <div className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</div>
+                                      <div className="text-[10px] text-slate-400 font-mono">
+                                        {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                                      </div>
+                                      <div className="text-[10px] text-slate-500 truncate mt-0.5">
+                                        {cand.candidatePhone || cand.candidateEmail}
+                                      </div>
+                                      {resumeLink ? (
+                                        <a
+                                          href={resumeLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-[9.5px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 mt-1 cursor-pointer transition"
+                                          title="Open Candidate Resume / CV in new tab"
+                                        >
+                                          <FileText size={10} />
+                                          <span>View CV / Resume</span>
+                                          <ExternalLink size={9} />
+                                        </a>
+                                      ) : (
+                                        <span className="inline-flex items-center gap-1 text-[9.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded mt-1">
+                                          <FileText size={10} />
+                                          <span>CV Verified</span>
+                                        </span>
+                                      )}
                                     </div>
-                                    <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                                      {cand.candidatePhone || cand.candidateEmail}
-                                    </div>
-                                    {resumeLink ? (
-                                      <a
-                                        href={resumeLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-[9.5px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 mt-1 cursor-pointer transition"
-                                        title="Open Candidate Resume / CV in new tab"
-                                      >
-                                        <FileText size={10} />
-                                        <span>View CV / Resume</span>
-                                        <ExternalLink size={9} />
-                                      </a>
-                                    ) : (
-                                      <span className="inline-flex items-center gap-1 text-[9.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded mt-1">
-                                        <FileText size={10} />
-                                        <span>CV Verified</span>
-                                      </span>
-                                    )}
                                   </div>
-                                </div>
-                              </td>
+                                </td>
 
-                              {/* Col 2: Job & Project */}
-                              <td className="py-3 px-4">
-                                <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
-                                  {cand.jobTitle || "Specialist Technician"}
-                                </div>
-                                <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                  <Building2 size={11} className="text-slate-400 shrink-0" />
-                                  <span className="truncate max-w-[180px]">{cand.projectName || "Overseas Deployment"}</span>
-                                </div>
-                                <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
-                                  Vendor: {cand.vendorName || vendorName}
-                                </div>
-                              </td>
+                                {/* Col 2: Job & Project */}
+                                <td className="py-3 px-4">
+                                  <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
+                                    {cand.jobTitle || "Specialist Technician"}
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                    <Building2 size={11} className="text-slate-400 shrink-0" />
+                                    <span className="truncate max-w-[180px]">{cand.projectName || "Overseas Deployment"}</span>
+                                  </div>
+                                  <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
+                                    Vendor: {cand.vendorName || vendorName}
+                                  </div>
+                                </td>
 
-                              {/* Col 3: Current Stage Badge */}
-                              <td className="py-3 px-3">
-                                <span
-                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap ${
-                                    cand.recruitmentStage === "Joined" || cand.recruitmentStage === "Deployed"
-                                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                                      : cand.recruitmentStage === "Selected"
-                                      ? "bg-teal-50 text-teal-800 border-teal-200"
-                                      : cand.recruitmentStage === "Shortlisted"
-                                      ? "bg-indigo-50 text-indigo-800 border-indigo-200"
-                                      : cand.recruitmentStage?.includes("Interview")
-                                      ? "bg-purple-50 text-purple-800 border-purple-200"
-                                      : cand.recruitmentStage === "Rejected" || cand.status === "Rejected"
-                                      ? "bg-rose-50 text-rose-700 border-rose-200"
-                                      : cand.recruitmentStage === "On Hold" || cand.status === "On Hold"
-                                      ? "bg-amber-50 text-amber-800 border-amber-200"
-                                      : "bg-slate-100 text-slate-700 border-slate-200"
-                                  }`}
-                                >
-                                  {cand.recruitmentStage === "Rejected" || cand.status === "Rejected" ? "✕ " : "● "}
-                                  {cand.recruitmentStage || cand.status || "Applied"}
-                                </span>
-                                {cand.rejectionReason && (
-                                  <div
-                                    className="text-[10px] text-rose-600 font-medium truncate max-w-[160px] mt-1"
-                                    title={cand.rejectionReason}
+                                {/* Col 3: Current Stage Badge */}
+                                <td className="py-3 px-3">
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap ${
+                                      cand.recruitmentStage === "Shortlisted"
+                                        ? "bg-indigo-50 text-indigo-800 border-indigo-200"
+                                        : cand.recruitmentStage?.includes("Interview")
+                                        ? "bg-purple-50 text-purple-800 border-purple-200"
+                                        : cand.recruitmentStage === "Rejected" || cand.status === "Rejected"
+                                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                                        : cand.recruitmentStage === "On Hold" || cand.status === "On Hold"
+                                        ? "bg-amber-50 text-amber-800 border-amber-200"
+                                        : "bg-slate-100 text-slate-700 border-slate-200"
+                                    }`}
                                   >
-                                    Reason: {cand.rejectionReason}
-                                  </div>
-                                )}
-                              </td>
+                                    {cand.recruitmentStage === "Rejected" || cand.status === "Rejected" ? "✕ " : "● "}
+                                    {cand.recruitmentStage || cand.status || "Applied"}
+                                  </span>
+                                  {cand.rejectionReason && (
+                                    <div
+                                      className="text-[10px] text-rose-600 font-medium truncate max-w-[160px] mt-1"
+                                      title={cand.rejectionReason}
+                                    >
+                                      Reason: {cand.rejectionReason}
+                                    </div>
+                                  )}
+                                </td>
 
-                              {/* Col 4: Pre-Screening Decisions & Lifecycle Actions */}
-                              <td className="py-3 px-4">
-                                {/* Case A: Pre-selection Screening (Applied / Screening / On Hold) */}
-                                {["Applied", "Screening", "On Hold"].includes(cand.recruitmentStage || cand.status) && (
-                                  <div className="space-y-1">
-                                    <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
-                                      Screening Decision:
-                                    </span>
-                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                {/* Col 4: Pre-Screening Decisions & Lifecycle Actions */}
+                                <td className="py-3 px-4">
+                                  {/* Case A: Applied / Screening / On Hold */}
+                                  {["Applied", "Screening", "On Hold"].includes(cand.recruitmentStage || cand.status) && (
+                                    <div className="space-y-1">
+                                      <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                                        Screening Decision:
+                                      </span>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleQuickStage(cand, "Shortlisted")}
+                                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                          title="Shortlist for Interview"
+                                        >
+                                          <Check size={11} />
+                                          <span>Shortlist</span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleQuickStage(cand, "On Hold")}
+                                          className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[11px] border border-amber-200 transition cursor-pointer"
+                                          title="Put on Hold"
+                                        >
+                                          <span>Hold</span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleQuickStage(cand, "Rejected", "Rejected during HR screening")}
+                                          className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
+                                          title="Reject Candidate"
+                                        >
+                                          <X size={11} />
+                                          <span>Reject</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Case B: Shortlisted -> Schedule Interview */}
+                                  {cand.recruitmentStage === "Shortlisted" && (
+                                    <div className="space-y-1">
+                                      <span className="text-[10px] font-bold text-indigo-600 block">Shortlisted Cleared:</span>
                                       <button
                                         type="button"
-                                        onClick={() => handleQuickStage(cand, "Shortlisted")}
-                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                        title="Shortlist for Interview"
+                                        onClick={() => {
+                                          setScheduleInterviewTarget(cand);
+                                          setScheduleForm((prev) => ({
+                                            ...prev,
+                                            applicationId: cand.applicationId,
+                                            round: "L1 Interview",
+                                          }));
+                                          setShowScheduleModal(true);
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
                                       >
-                                        <Check size={11} />
-                                        <span>Shortlist</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleQuickStage(cand, "On Hold")}
-                                        className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[11px] border border-amber-200 transition cursor-pointer"
-                                        title="Put on Hold"
-                                      >
-                                        <span>Hold</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleQuickStage(cand, "Rejected", "Rejected during HR screening")}
-                                        className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
-                                        title="Reject Candidate"
-                                      >
-                                        <X size={11} />
-                                        <span>Reject</span>
+                                        <Calendar size={12} />
+                                        <span>Schedule Interview</span>
                                       </button>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
-                                {/* Case B: Shortlisted -> Schedule Interview */}
-                                {cand.recruitmentStage === "Shortlisted" && (
-                                  <div className="space-y-1">
-                                    <span className="text-[10px] font-bold text-indigo-600 block">Shortlisted Cleared:</span>
+                                  {/* Case C: Interview Scheduled / L1 / L2 -> Select or Reject */}
+                                  {(cand.recruitmentStage?.includes("Interview") || cand.status?.includes("Interview")) && (
+                                    <div className="space-y-1">
+                                      <span className="text-[10px] font-bold text-purple-700 block">Interview Active:</span>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleQuickStage(cand, "Selected")}
+                                          className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                          title="Select Candidate (Cleared Interview & Opens Paid Milestones!)"
+                                        >
+                                          <Check size={11} />
+                                          <span>Select Candidate</span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleQuickStage(cand, "Rejected", "Did not clear technical interview round")}
+                                          className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
+                                          title="Reject Candidate"
+                                        >
+                                          <X size={11} />
+                                          <span>Reject</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Case D: Rejected -> Available in Vendor Pool for Reassignment */}
+                                  {(cand.recruitmentStage === "Rejected" || cand.status === "Rejected") && (
+                                    <div className="space-y-1">
+                                      <span className="text-[10px] font-bold text-slate-400 block">In Vendor Pool:</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => openReassignModal(cand)}
+                                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                        title="Submit this candidate to a different overseas project"
+                                      >
+                                        <RotateCcw size={12} />
+                                        <span>Apply to Another Project</span>
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Col 5: Dossier Details */}
+                                <td className="py-3 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => openCandidateModal(cand)}
+                                    className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
+                                  >
+                                    <span>Manage</span>
+                                    <ArrowRight size={12} />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2 CONTENT: POST-SELECTION PAID MILESTONES & STAGE STEPPER */}
+              {candidateLifecycleTab === "post_selection" && (
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                  <div className="p-3 bg-teal-50/70 border-b border-teal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center space-x-2 text-teal-950 font-bold">
+                      <Award className="w-4 h-4 text-teal-700" />
+                      <span>Post-Selection Deployment Workflow: Paid Milestones unlock strictly after Vendor Payment. Subsequent milestones remain locked until preceding milestones are completed.</span>
+                    </div>
+                    <span className="text-[11px] text-teal-800 font-bold shrink-0">
+                      {filteredCandidates.length} Selected Candidates
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
+                        <tr>
+                          <th className="py-3 px-4">Selected Candidate & Overseas Project</th>
+                          <th className="py-3 px-3">Recruitment Stage</th>
+                          <th className="py-3 px-4">Current Milestone & Progress</th>
+                          <th className="py-3 px-4">Milestone Payment Gate</th>
+                          <th className="py-3 px-4 text-right">Milestone Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        {filteredCandidates.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="py-10 text-center text-slate-400">
+                              No selected candidates found matching criteria. Select candidates from Tab 1 to initiate deployment milestones.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredCandidates.map((cand, idx) => {
+                            const milestones = Array.isArray(cand.processMilestones) && cand.processMilestones.length > 0
+                              ? cand.processMilestones
+                              : (crmVendorService.syncAppMilestonesWithProject ? crmVendorService.syncAppMilestonesWithProject(cand) : []);
+
+                            // Calculate Active Milestone
+                            let activeM = null;
+                            let activeMIdx = 0;
+                            for (let mIdx = 0; mIdx < milestones.length; mIdx++) {
+                              const m = milestones[mIdx];
+                              const isMComplete = m.status === "Completed" || (Array.isArray(m.stages) && m.stages.length > 0 && m.stages.every(s => s.status === "Completed"));
+                              if (!isMComplete) {
+                                activeM = m;
+                                activeMIdx = mIdx;
+                                break;
+                              }
+                            }
+                            if (!activeM && milestones.length > 0) {
+                              activeM = milestones[milestones.length - 1];
+                              activeMIdx = milestones.length - 1;
+                            }
+
+                            // Calculate Overall Progress
+                            const totalStages = milestones.reduce((sum, m) => sum + (Array.isArray(m.stages) ? m.stages.length : 0), 0);
+                            const doneStages = milestones.reduce((sum, m) => sum + (Array.isArray(m.stages) ? m.stages.filter(s => s.status === "Completed").length : 0), 0);
+                            const percentDone = totalStages > 0 ? Math.round((doneStages / totalStages) * 100) : 0;
+
+                            // Calculate Payment & Lock State
+                            const prevM = activeMIdx > 0 ? milestones[activeMIdx - 1] : null;
+                            const isPrevDone = activeMIdx === 0 || prevM?.status === "Completed" || (Array.isArray(prevM?.stages) && prevM.stages.length > 0 && prevM.stages.every(s => s.status === "Completed"));
+                            const isMApproved = activeM?.paymentStatus === "Approved" || activeM?.status === "Paid";
+                            const mAmt = Number(activeM?.paymentAmount || activeM?.amount || 0);
+                            const mRequiresPayment = isPrevDone && mAmt > 0 && !isMApproved;
+                            const isMLocked = !isPrevDone;
+
+                            const currentSubStage = activeM?.stages?.find(s => s.status !== "Completed") || activeM?.stages?.[0];
+
+                            return (
+                              <tr key={cand.applicationId || cand.id || idx} className="hover:bg-teal-50/20 transition">
+                                {/* Col 1: Profile + Passport */}
+                                <td className="py-3 px-4">
+                                  <div className="flex items-start space-x-2.5">
+                                    <img
+                                      src={AVATARS[idx % AVATARS.length]}
+                                      alt={cand.candidateName}
+                                      className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5"
+                                    />
+                                    <div className="min-w-0">
+                                      <div className="font-bold text-slate-900 text-xs truncate flex items-center gap-1.5">
+                                        <span>{cand.candidateName}</span>
+                                        <span className="text-[10px] text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded font-mono font-bold">
+                                          Selected
+                                        </span>
+                                      </div>
+                                      <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                        {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                                      </div>
+                                      <div className="text-[10px] text-slate-600 font-bold truncate mt-1">
+                                        {cand.jobTitle || "Technician"} • <span className="text-blue-700 font-semibold">{cand.projectName}</span>
+                                      </div>
+                                      <div className="text-[9.5px] text-slate-400">
+                                        Vendor: {cand.vendorName || vendorName}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Col 2: Overall Recruitment Stage */}
+                                <td className="py-3 px-3">
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap ${
+                                      cand.recruitmentStage === "Joined" || cand.recruitmentStage === "Deployed"
+                                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                        : cand.recruitmentStage === "Visa Issued"
+                                        ? "bg-indigo-50 text-indigo-800 border-indigo-200"
+                                        : cand.recruitmentStage === "Visa Processing"
+                                        ? "bg-purple-50 text-purple-800 border-purple-200"
+                                        : "bg-teal-50 text-teal-800 border-teal-200"
+                                    }`}
+                                  >
+                                    ● {cand.recruitmentStage || "Selected"}
+                                  </span>
+                                  <div className="text-[10px] text-slate-400 mt-1 font-semibold">
+                                    Overall: {percentDone}% Done
+                                  </div>
+                                </td>
+
+                                {/* Col 3: Current Milestone & Progress */}
+                                <td className="py-3 px-4">
+                                  <div className="space-y-1.5 max-w-[220px]">
+                                    <div className="text-[11px] font-bold text-slate-900 truncate">
+                                      {activeM?.name || `Milestone ${activeMIdx + 1}`}
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                      <div
+                                        className="bg-teal-600 h-1.5 rounded-full transition-all duration-300"
+                                        style={{ width: `${percentDone}%` }}
+                                      />
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                                      <Clock size={10} className="text-slate-400 shrink-0" />
+                                      <span className="truncate">Stage: {currentSubStage?.name || "Processing"}</span>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Col 4: Payment Lock Status */}
+                                <td className="py-3 px-4">
+                                  {isMLocked ? (
+                                    <div className="space-y-0.5">
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
+                                        <Lock size={10} />
+                                        <span>Milestone Locked</span>
+                                      </span>
+                                      <div className="text-[9.5px] text-slate-400">Complete previous milestone first</div>
+                                    </div>
+                                  ) : mRequiresPayment ? (
+                                    <div className="space-y-0.5">
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
+                                        <Lock size={10} className="text-amber-600" />
+                                        <span>Payment Required: ₹{mAmt.toLocaleString()}</span>
+                                      </span>
+                                      <div className="text-[9.5px] text-amber-700 font-semibold">
+                                        Stages locked awaiting vendor payment
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-0.5">
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                                        <Unlock size={10} className="text-emerald-600" />
+                                        <span>Payment Approved</span>
+                                      </span>
+                                      <div className="text-[9.5px] text-emerald-700 font-semibold">
+                                        Stages unlocked for HR verification
+                                      </div>
+                                    </div>
+                                  )}
+                                </td>
+
+                                {/* Col 5: Milestone Actions */}
+                                <td className="py-3 px-4 text-right">
+                                  <div className="flex items-center justify-end space-x-1.5">
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        setScheduleInterviewTarget(cand);
-                                        setScheduleForm((prev) => ({
-                                          ...prev,
-                                          applicationId: cand.applicationId,
-                                          round: "L1 Interview",
-                                        }));
-                                        setShowScheduleModal(true);
-                                      }}
-                                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                      onClick={() => openMilestoneStepper(cand)}
+                                      className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer inline-flex items-center gap-1.5"
+                                      title="Open Sequential Milestone Stepper to Update Stages"
                                     >
-                                      <Calendar size={12} />
-                                      <span>Schedule Interview</span>
+                                      <Award size={12} />
+                                      <span>Update Stages</span>
                                     </button>
-                                  </div>
-                                )}
-
-                                {/* Case C: Interview Scheduled / L1 / L2 -> Select or Reject */}
-                                {(cand.recruitmentStage?.includes("Interview") || cand.status?.includes("Interview")) && (
-                                  <div className="space-y-1">
-                                    <span className="text-[10px] font-bold text-purple-700 block">Interview Round Active:</span>
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleQuickStage(cand, "Selected")}
-                                        className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                        title="Select Candidate (Cleared Interview)"
-                                      >
-                                        <Check size={11} />
-                                        <span>Select</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleQuickStage(cand, "Rejected", "Did not clear technical interview round")}
-                                        className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
-                                        title="Reject Candidate"
-                                      >
-                                        <X size={11} />
-                                        <span>Reject</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Case D: Selected -> Milestones & Deployment */}
-                                {["Selected", "Offer Released", "Visa Processing", "Visa Issued", "Joined"].includes(cand.recruitmentStage) && (
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                        Selected for Project
-                                      </span>
-                                      <span className="text-[9.5px] font-bold text-indigo-600">
-                                        Milestones Unlocked
-                                      </span>
-                                    </div>
                                     <button
                                       type="button"
                                       onClick={() => openCandidateModal(cand)}
-                                      className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-[11px] border border-teal-200 transition inline-flex items-center gap-1 cursor-pointer"
+                                      className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer"
+                                      title="Open Full Candidate Dossier"
                                     >
-                                      <Award size={12} />
-                                      <span>Update Milestones & Stage</span>
+                                      Manage
                                     </button>
                                   </div>
-                                )}
-
-                                {/* Case E: Rejected -> Reassign to Another Project! */}
-                                {(cand.recruitmentStage === "Rejected" || cand.status === "Rejected") && (
-                                  <div className="space-y-1">
-                                    <span className="text-[10px] font-bold text-slate-400 block">Available in Vendor Pool:</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => openReassignModal(cand)}
-                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                                      title="Submit this candidate to a different overseas project"
-                                    >
-                                      <RotateCcw size={12} />
-                                      <span>Apply to Another Project</span>
-                                    </button>
-                                  </div>
-                                )}
-                              </td>
-
-                              {/* Col 5: Dossier Details */}
-                              <td className="py-3 px-4 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => openCandidateModal(cand)}
-                                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
-                                >
-                                  <span>Manage</span>
-                                  <ArrowRight size={12} />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -3826,6 +4301,357 @@ export default function VendorHRDashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: POST-SELECTION MILESTONE STEPPER & STAGE VERIFICATION */}
+      {showMilestoneStepperModal && selectedMilestoneCandidate && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-teal-900 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                    <span>Candidate Deployment Milestones</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                      Sequential Paid Stages
+                    </span>
+                  </h3>
+                  <div className="text-xs text-slate-300 flex items-center gap-2 mt-0.5 flex-wrap">
+                    <span className="font-semibold text-white">{selectedMilestoneCandidate.candidateName}</span>
+                    <span>•</span>
+                    <span className="font-mono text-slate-300">
+                      {selectedMilestoneCandidate.passportNumber
+                        ? `🛂 ${selectedMilestoneCandidate.passportNumber}`
+                        : `ID: ${selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id}`}
+                    </span>
+                    <span>•</span>
+                    <span className="text-teal-300">{selectedMilestoneCandidate.projectName}</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMilestoneStepperModal(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Stepper Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
+              {/* Sequential Rule Banner */}
+              <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 flex items-start space-x-3 text-xs">
+                <ShieldCheck className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
+                <div className="text-slate-700 space-y-1">
+                  <span className="font-bold text-blue-900 block">
+                    Strict Sequential Progression & Payment Gate Rules:
+                  </span>
+                  <p className="text-[11.5px] leading-relaxed text-slate-600">
+                    1. <strong>Payment Gate:</strong> Stages for a milestone unlock <em>only after</em> the Vendor pays for that milestone (Approved).
+                    <br />
+                    2. <strong>Sequential Lock:</strong> Milestone 2 & subsequent milestones remain <strong>LOCKED</strong> until all stages of the previous milestone are 100% completed by Vendor HR.
+                    <br />
+                    3. <strong>Live Sync:</strong> Stages completed here immediately update the Vendor Portal in real-time.
+                  </p>
+                </div>
+              </div>
+
+              {/* Milestones Container */}
+              <div className="space-y-4">
+                {(selectedMilestoneCandidate.processMilestones || []).map((milestone, mIdx) => {
+                  const milestones = selectedMilestoneCandidate.processMilestones || [];
+                  const prevMilestone = mIdx > 0 ? milestones[mIdx - 1] : null;
+                  const isPrevCompleted =
+                    mIdx === 0 ||
+                    prevMilestone?.status === "Completed" ||
+                    (Array.isArray(prevMilestone?.stages) &&
+                      prevMilestone.stages.length > 0 &&
+                      prevMilestone.stages.every((s) => s.status === "Completed"));
+
+                  const isMilestoneStagesCompleted =
+                    Array.isArray(milestone.stages) &&
+                    milestone.stages.length > 0 &&
+                    milestone.stages.every((s) => s.status === "Completed");
+
+                  const isCompleted = milestone.status === "Completed" || isMilestoneStagesCompleted;
+                  const isLocked = !isPrevCompleted;
+                  const isApproved = milestone.paymentStatus === "Approved" || milestone.status === "Paid";
+                  const amt = Number(milestone.paymentAmount || milestone.amount || 0);
+                  const requiresPayment = !isLocked && amt > 0 && !isApproved;
+                  const isUnlockedAndActive = !isLocked && !requiresPayment && !isCompleted;
+
+                  return (
+                    <div
+                      key={milestone.id || mIdx}
+                      className={`rounded-2xl border transition overflow-hidden ${
+                        isCompleted
+                          ? "border-emerald-200 bg-emerald-50/20"
+                          : isUnlockedAndActive
+                          ? "border-blue-300 bg-white shadow-xs ring-2 ring-blue-50"
+                          : requiresPayment
+                          ? "border-amber-300 bg-amber-50/20"
+                          : "border-slate-200 bg-slate-50/60 opacity-85"
+                      }`}
+                    >
+                      {/* Milestone Header */}
+                      <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
+                              isCompleted
+                                ? "bg-emerald-600 text-white"
+                                : isUnlockedAndActive
+                                ? "bg-blue-600 text-white"
+                                : requiresPayment
+                                ? "bg-amber-600 text-white"
+                                : "bg-slate-300 text-slate-600"
+                            }`}
+                          >
+                            {isCompleted ? <Check size={14} /> : isLocked ? <Lock size={12} /> : `M${mIdx + 1}`}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-900 text-xs sm:text-sm">
+                              {milestone.name || `Milestone ${mIdx + 1}`}
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                              {milestone.stages?.length || 0} Sub-stages in this deployment phase
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Status Pills */}
+                        <div className="flex items-center space-x-2">
+                          {/* Payment Amount / Approval Badge */}
+                          {amt > 0 ? (
+                            isApproved ? (
+                              <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                                <Unlock size={11} className="text-emerald-700" />
+                                <span>Paid: ₹{amt.toLocaleString()}</span>
+                              </span>
+                            ) : isLocked ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-600 flex items-center gap-1">
+                                <Lock size={10} />
+                                <span>Fee: ₹{amt.toLocaleString()}</span>
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 animate-pulse">
+                                <IndianRupee size={11} className="text-amber-800" />
+                                <span>Awaiting Payment: ₹{amt.toLocaleString()}</span>
+                              </span>
+                            )
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
+                              No Fee
+                            </span>
+                          )}
+
+                          {/* Milestone Progress Status */}
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold ${
+                              isCompleted
+                                ? "bg-emerald-100 text-emerald-800"
+                                : isUnlockedAndActive
+                                ? "bg-blue-100 text-blue-800"
+                                : requiresPayment
+                                ? "bg-amber-100 text-amber-900"
+                                : "bg-slate-200 text-slate-600"
+                            }`}
+                          >
+                            {isCompleted
+                              ? "✓ Completed"
+                              : isUnlockedAndActive
+                              ? "● In Progress"
+                              : requiresPayment
+                              ? "🔒 Payment Gate Active"
+                              : "🔒 Locked"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Milestone Body */}
+                      <div className="p-3.5 sm:p-4">
+                        {/* CASE 1: Previous milestone incomplete -> Strictly Locked */}
+                        {isLocked && (
+                          <div className="p-3 rounded-xl bg-slate-100/90 border border-slate-200 flex items-center space-x-2.5 text-xs text-slate-600">
+                            <Lock size={15} className="text-slate-400 shrink-0" />
+                            <div>
+                              <span className="font-bold text-slate-700">Milestone Locked: </span>
+                              <span>All stages of {prevMilestone?.name || `Milestone ${mIdx}`} must be 100% completed before this milestone can begin.</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* CASE 2: Previous milestone done, but Payment is required from Vendor */}
+                        {requiresPayment && (
+                          <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 space-y-2.5 text-xs">
+                            <div className="flex items-start space-x-2.5">
+                              <Lock size={16} className="text-amber-700 shrink-0 mt-0.5" />
+                              <div className="text-amber-900">
+                                <span className="font-bold">Sub-stages Gated by Payment: </span>
+                                <span>
+                                  Vendor has not yet completed payment for this milestone (<strong>₹{amt.toLocaleString()}</strong>). Sub-stages cannot be updated by HR until payment is verified.
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between pt-1 border-t border-amber-200/80">
+                              <span className="text-[11px] text-amber-800 font-medium">
+                                Received payment offline / bank transfer?
+                              </span>
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleApproveMilestonePayment(milestone.id)}
+                                className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+                              >
+                                <Check size={12} />
+                                <span>Verify & Approve Payment (₹{amt.toLocaleString()})</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* CASE 3: Milestone is unlocked and active OR completed -> Show Stages */}
+                        {!isLocked && !requiresPayment && (
+                          <div className="space-y-3">
+                            {(milestone.stages || []).map((stage, sIdx) => {
+                              const isStageDone = stage.status === "Completed";
+                              const isPrevStageDone =
+                                sIdx === 0 || milestone.stages[sIdx - 1]?.status === "Completed";
+                              const isStageActive = !isStageDone && isPrevStageDone;
+                              const isStageLocked = !isPrevStageDone;
+
+                              return (
+                                <div
+                                  key={stage.id || sIdx}
+                                  className={`p-3 rounded-xl border transition ${
+                                    isStageDone
+                                      ? "bg-emerald-50/60 border-emerald-200"
+                                      : isStageActive
+                                      ? "bg-blue-50/40 border-blue-300 ring-1 ring-blue-100"
+                                      : "bg-slate-50 border-slate-200 opacity-60"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-start space-x-2.5 min-w-0">
+                                      <div className="mt-0.5 shrink-0">
+                                        {isStageDone ? (
+                                          <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                                            <Check size={11} />
+                                          </div>
+                                        ) : isStageActive ? (
+                                          <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center animate-pulse">
+                                            <Circle size={8} fill="currentColor" />
+                                          </div>
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center">
+                                            <Lock size={10} />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="font-bold text-xs text-slate-900 truncate">
+                                          {sIdx + 1}. {stage.name}
+                                        </div>
+                                        {isStageDone && (
+                                          <div className="text-[10.5px] text-emerald-800 mt-0.5 space-y-0.5">
+                                            <div>
+                                              ✓ Completed on {stage.completedAt || "Recent"} by {stage.completedBy || "Vendor HR"}
+                                            </div>
+                                            {stage.remark && (
+                                              <div className="text-[10px] text-slate-600 italic">
+                                                Remark: "{stage.remark}"
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        {isStageLocked && (
+                                          <div className="text-[10px] text-slate-400 mt-0.5">
+                                            Locked: Complete Stage {sIdx} first
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Action Box for Active Stage */}
+                                    {isStageActive && (
+                                      <div className="shrink-0 flex items-center space-x-2">
+                                        {completingStageId === stage.id ? (
+                                          <div className="flex items-center space-x-1.5 animate-in fade-in">
+                                            <input
+                                              type="text"
+                                              value={stageCompletionRemark}
+                                              onChange={(e) => setStageCompletionRemark(e.target.value)}
+                                              placeholder="Enter verification remark..."
+                                              className="px-2.5 py-1 bg-white border border-blue-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 w-44 sm:w-56"
+                                            />
+                                            <button
+                                              type="button"
+                                              disabled={actionLoading}
+                                              onClick={() => handleCompleteMilestoneStage(milestone.id, stage.id)}
+                                              className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer disabled:opacity-50"
+                                            >
+                                              {actionLoading ? "Saving..." : "Confirm"}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setCompletingStageId(null);
+                                                setStageCompletionRemark("");
+                                              }}
+                                              className="px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                                            >
+                                              Cancel
+                                            </button>
+                                          </div>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setCompletingStageId(stage.id);
+                                              setStageCompletionRemark(`Verified by Vendor HR (${hrUserName})`);
+                                            }}
+                                            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer flex items-center gap-1.5"
+                                          >
+                                            <Check size={12} />
+                                            <span>Mark Stage Done</span>
+                                          </button>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-teal-600" />
+                <span>All updates reflect immediately in the Vendor's Candidate Tracking portal.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMilestoneStepperModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+              >
+                Close Stepper
+              </button>
+            </div>
           </div>
         </div>
       )}
