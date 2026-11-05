@@ -494,7 +494,7 @@ export default function VendorHRDashboardPage() {
   }, [projectsList, projectSearch]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex font-sans antialiased">
+    <div className="h-screen overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -508,15 +508,19 @@ export default function VendorHRDashboardPage() {
         </div>
       )}
 
-      {/* 1. LEFT SIDEBAR (Dark Navy #0B0F19 matching image 1) */}
-      <aside className="w-64 bg-[#0B0F19] text-white flex flex-col justify-between shrink-0 min-h-screen p-4 border-r border-slate-900 select-none">
-        <div className="space-y-6">
-          {/* Logo & Portal Label */}
-          <div className="px-2 pt-2">
-            <ImmiGoLogo size="sm" theme="light" subtitle="Vendor HR Portal" />
-          </div>
+      {/* 1. LEFT SIDEBAR (Matching other Dashboards: AdminMasterSidebar & VendorManagementSidebar) */}
+      <aside className="w-[240px] flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none">
+        {/* Top Header */}
+        <div className="h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs shrink-0">
+          <ImmiGoLogo size="sm" theme="light" subtitle="Vendor HR Portal" />
+        </div>
 
-          {/* Navigation Links */}
+        {/* Dynamic Navigation Items */}
+        <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+          <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
+            Vendor HR Workspace
+          </p>
+
           <nav className="space-y-1">
             {navMenuItems.map((item) => {
               const Icon = item.icon;
@@ -524,165 +528,150 @@ export default function VendorHRDashboardPage() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveMenu(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition cursor-pointer ${
+                  type="button"
+                  onClick={() => {
+                    if (item.id === "projects") setDetailedProject(null);
+                    setActiveMenu(item.id);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
                     active
-                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/80"
+                      ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
+                      : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
                   }`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <Icon className={`w-4 h-4 ${active ? "text-white" : "text-slate-400"}`} />
-                    <span>{item.label}</span>
+                  <Icon
+                    size={16}
+                    className={`shrink-0 ${active ? "text-white" : "text-slate-500"}`}
+                  />
+                  <div className="flex-1 flex items-center justify-between min-w-0 pr-1 text-left">
+                    <span className="truncate">{item.label}</span>
+                    {item.badge ? (
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                          active
+                            ? "bg-white text-blue-700"
+                            : "bg-blue-100 text-blue-800 border border-blue-200"
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    ) : active ? (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                    ) : null}
                   </div>
-                  {Boolean(item.badge) && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300">
-                      {item.badge}
-                    </span>
-                  )}
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Bottom Section: Help card & Profile pill */}
-        <div className="space-y-3 pt-4 border-t border-slate-800/80">
-          {/* Need Help Card */}
-          <div
-            onClick={() => alert("Vendor HR Support Desk: support@immigo.com | Toll Free: 1800-244-836")}
-            className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between cursor-pointer hover:border-slate-700 transition"
+        {/* Clean Sign Out Footer matching Dashboard Footer height (48px) */}
+        <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
+          <button
+            type="button"
+            onClick={logout}
+            className="flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group w-full px-3"
+            title="Sign Out"
           >
-            <div className="flex items-center space-x-2.5">
-              <Headphones className="w-4 h-4 text-indigo-400" />
-              <div>
-                <div className="text-xs font-semibold text-white">Need Help?</div>
-                <div className="text-[10px] text-slate-400">Contact Support</div>
-              </div>
-            </div>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-          </div>
-
-          {/* User Profile Pill */}
-          <div
-            onClick={() => setActiveMenu("profile")}
-            className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1 cursor-pointer hover:border-slate-700 transition"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <img
-                  src={AVATARS[0]}
-                  alt={hrUserName}
-                  className="w-8 h-8 rounded-full object-cover border border-indigo-400/40"
-                />
-                <div>
-                  <div className="text-xs font-bold text-white leading-tight">{hrUserName}</div>
-                  <div className="text-[10px] text-slate-400">Vendor HR</div>
-                </div>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-            </div>
-            <div className="text-[10px] text-slate-400 font-medium pl-10 truncate">
-              Vendor: {vendorName}
-            </div>
-          </div>
+            <LogOut size={13} className="shrink-0 transition-transform group-hover:-translate-x-0.5" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
 
       {/* 2. MAIN WORKSPACE */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Header */}
-        <header className="bg-white border-b border-slate-200/80 px-8 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20 shadow-xs">
-          <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center space-x-2">
-              <span>Good morning, {hrUserName.split(" ")[0]}</span>
-              <span className="text-2xl">👋</span>
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {activeMenu === "overview" && "Here's your recruitment overview for today"}
-              {activeMenu === "projects" && "Assigned overseas projects and trade allocations"}
-              {activeMenu === "jobs" && "Open job positions and manpower requirements"}
-              {activeMenu === "candidates" && "Complete candidate directory and status management"}
-              {activeMenu === "pipeline" && "Interactive recruitment Kanban board"}
-              {activeMenu === "interviews" && "Scheduled technical rounds and evaluations"}
-              {activeMenu === "offers" && "Offer letters released and salary packages"}
-              {activeMenu === "joined" && "Visa processing, flight booking and deployed personnel"}
-              {activeMenu === "activity" && "Real-time recruitment activity audit trail"}
-              {activeMenu === "profile" && "Account settings and vendor agency details"}
-            </p>
-          </div>
-
-          {/* Top Right Controls matching Image 1 */}
-          <div className="flex items-center space-x-3">
-            {/* Dynamic Project Selector Dropdown */}
-            <div className="relative flex items-center">
-              <Building2 className="w-3.5 h-3.5 text-slate-500 absolute left-3 pointer-events-none" />
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="pl-8 pr-7 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs appearance-none hover:bg-slate-50 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option value="ALL">All Projects ({projectsList.length})</option>
-                {projectsList.map((p) => (
-                  <option key={p.projectId || p.id} value={p.projectId || p.id}>
-                    {p.projectName} ({p.projectId})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 pointer-events-none" />
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Top Navbar matching AdminMasterNavbar */}
+        <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
+          <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
+            {/* Left Side: Breadcrumb & Title */}
+            <div className="flex items-center gap-2 truncate">
+              <span className="flex items-end gap-0.5 select-none font-bold text-base tracking-tighter leading-none text-white">
+                <span>immi</span>
+                <span className="text-cyan-400">Go</span>
+                <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
+                  <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <ChevronRight size={13} className="text-blue-400 shrink-0" />
+              <span className="text-white font-bold text-sm sm:text-[14px] tracking-tight truncate drop-shadow-2xs">
+                Vendor HR Dashboard
+              </span>
+              <span className="text-blue-400 hidden sm:inline">•</span>
+              <span className="text-xs text-blue-200 hidden sm:inline capitalize">
+                {activeMenu === "overview" && "Executive Overview"}
+                {activeMenu === "projects" && (detailedProject ? `Projects / ${detailedProject.projectName}` : "Assigned Projects")}
+                {activeMenu === "jobs" && "Required Trade Jobs"}
+                {activeMenu === "candidates" && "Candidate Directory"}
+                {activeMenu === "pipeline" && "Recruitment Pipeline"}
+                {activeMenu === "interviews" && "Interview Schedules"}
+                {activeMenu === "offers" && "Visa Issued & Granted"}
+                {activeMenu === "activity" && "Audit Activity"}
+                {activeMenu === "profile" && "Agency Profile"}
+              </span>
             </div>
 
-            {/* Date Range Dropdown */}
-            <div className="relative flex items-center">
-              <Calendar className="w-3.5 h-3.5 text-slate-500 absolute left-3 pointer-events-none" />
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="pl-8 pr-7 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs appearance-none hover:bg-slate-50 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option value="Last 30 Days">Last 30 Days</option>
-                <option value="Today">Today</option>
-                <option value="Last 7 Days">Last 7 Days</option>
-                <option value="All Time">All Time</option>
-              </select>
-              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 pointer-events-none" />
-            </div>
+            {/* Right Side: Agency Pill + Project Filter + HR Profile + Notifications */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Dynamic Project Selector Dropdown */}
+              <div className="relative hidden md:flex items-center">
+                <Building2 className="w-3.5 h-3.5 text-blue-300 absolute left-2.5 pointer-events-none" />
+                <select
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="pl-7 pr-6 py-1.5 rounded-lg bg-blue-900/60 border border-blue-700/60 text-xs font-semibold text-blue-100 shadow-xs appearance-none hover:bg-blue-800/80 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                >
+                  <option value="ALL" className="bg-slate-900 text-white">All Projects ({projectsList.length})</option>
+                  {projectsList.map((p) => (
+                    <option key={p.projectId || p.id} value={p.projectId || p.id} className="bg-slate-900 text-white">
+                      {p.projectName} ({p.projectId})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3 h-3 text-blue-300 absolute right-2 pointer-events-none" />
+              </div>
 
-            {/* Notification Bell with Badge */}
-            <div className="relative">
+              {/* Agency Representation Badge */}
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-800/60 border border-blue-600/40 text-xs font-bold text-cyan-300 shadow-xs truncate max-w-[200px]">
+                <ShieldCheck size={13} className="text-cyan-400 shrink-0" />
+                <span className="truncate">{vendorName}</span>
+              </div>
+
+              {/* User Pill */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-900/80 border border-blue-700/60 text-xs font-semibold text-blue-200">
+                <User size={13} className="text-cyan-400 shrink-0" />
+                <span className="hidden sm:inline font-bold">{hrUserName}</span>
+                <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">HR</span>
+              </div>
+
+              {/* Notification Bell */}
               <button
+                type="button"
                 onClick={() => setActiveMenu("activity")}
-                className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-xs relative cursor-pointer"
+                className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs"
+                title="Activity & Notifications"
               >
-                <Bell className="w-4 h-4" />
+                <Bell size={15} />
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
                   {interviews.length || 3}
                 </span>
               </button>
             </div>
-
-            {/* Logout icon */}
-            <button
-              onClick={() => logout()}
-              title="Sign Out"
-              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-red-600 hover:bg-red-50 shadow-xs transition cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </header>
 
-        {/* Content Body */}
-        <div className="p-8 space-y-6 max-w-[1600px] w-full">
-          {/* Active Meeting Banner (visible until completed) */}
+        {/* Scrollable Main Content */}
+        <main className="flex-1 p-3 sm:p-5 w-full overflow-y-auto max-w-full overflow-x-hidden">
+          {/* Active Meeting Alert Banner */}
           <ActiveMeetingAlertBanner />
+
           {/* Quick Action Strip */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Workspace / {activeMenu.toUpperCase()}
               </span>
-              <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
+              <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                 {vendorName}
               </span>
             </div>
@@ -690,15 +679,16 @@ export default function VendorHRDashboardPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={loadData}
-                className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                className="p-1.5 px-2.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1 text-xs font-semibold shadow-2xs"
                 title="Refresh Data"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-blue-600" : ""}`} />
+                <span>Refresh</span>
               </button>
 
               <button
                 onClick={() => setShowSubmitModal(true)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/25 flex items-center space-x-1.5 transition cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Submit Candidate</span>
@@ -2439,8 +2429,31 @@ export default function VendorHRDashboardPage() {
               </div>
             </div>
           )}
-        </div>
-      </main>
+        </main>
+
+        {/* Dashboard Footer matching other dashboards (AppFooter style) */}
+        <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
+          <div className="w-full flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="flex items-end gap-0.5 select-none font-bold text-sm tracking-tight leading-none text-white">
+                <span>immi</span>
+                <span className="text-cyan-400">Go</span>
+              </div>
+              <span className="hidden sm:inline-block text-[11px] text-blue-300/80 pl-3 border-l border-blue-800/80">
+                Vendor HR Portal • Global Manpower Supply Command Center
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-white font-medium">
+              <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
+              <span className="text-cyan-400">&bull;</span>
+              <span className="font-semibold text-cyan-300 tracking-wide">
+                Designed by White Gravity Web Solutions
+              </span>
+            </div>
+          </div>
+        </footer>
+      </div>
 
       {/* MODAL 1: SUBMIT NEW CANDIDATE */}
       {showSubmitModal && (
