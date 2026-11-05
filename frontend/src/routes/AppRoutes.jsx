@@ -91,7 +91,6 @@ const InvoiceReceiptPage = lazy(() => import("../pages/common/InvoiceReceiptPage
 
 const LandingPage = lazy(() => import("../pages/public/LandingPage.jsx"));
 const ContactPage = lazy(() => import("../pages/public/ContactPage.jsx"));
-const RegisterPage = lazy(() => import("../pages/public/RegisterPage.jsx"));
 const CandidateLogin = lazy(() => import("../pages/candidate/CandidateLogin.jsx"));
 const CandidateDashboard = lazy(() => import("../pages/candidate/CandidateDashboard.jsx"));
 const CandidatePaymentPage = lazy(() => import("../pages/candidate/CandidatePaymentPage.jsx"));
@@ -227,13 +226,13 @@ export default function AppRoutes() {
           }
         />
         <Route path="/vendor/register" element={<VendorRegister />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register" element={<Navigate to="/candidate/login" replace />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/contact-us" element={<ContactPage />} />
 
         <Route path="/candidate" element={<LandingPage />} />
         <Route path="/candidate/portal" element={<LandingPage />} />
-        <Route path="/candidate/register" element={<RegisterPage />} />
+        <Route path="/candidate/register" element={<Navigate to="/candidate/login" replace />} />
         <Route
           path="/candidate/login"
           element={

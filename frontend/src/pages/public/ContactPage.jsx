@@ -66,15 +66,9 @@ export default function ContactPage() {
           <div className="flex items-center gap-2.5">
             <Link
               to="/candidate/login"
-              className="px-3 py-1.5 text-xs font-bold text-blue-200 hover:text-white border border-blue-700/60 hover:bg-blue-800/60 rounded-lg transition-all cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-xs transition-all cursor-pointer"
             >
               Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-xs transition-all cursor-pointer"
-            >
-              Register
             </Link>
           </div>
         </div>

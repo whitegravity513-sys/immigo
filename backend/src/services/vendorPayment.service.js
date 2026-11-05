@@ -105,7 +105,6 @@ export class VendorPaymentService {
         },
       });
     } catch {
-      // Silent notification fallback
     }
 
     return milestone;

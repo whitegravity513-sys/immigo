@@ -689,3 +689,4 @@ export default function VendorHRProjectsSection({
     </div>
   );
 }
+

@@ -264,11 +264,10 @@ export default function EmployeeLoginPage() {
             {}
             <div className="mb-5 space-y-1">
               <h1 className="text-2xl sm:text-[28px] font-bold text-[#261b4d] tracking-tight leading-tight">
-                Welcome To Family
+                Employee Operations Portal
               </h1>
-              <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                A community of over hundreds of members.<br className="hidden sm:inline" />
-                To share arts and ideas.
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Authorized workforce gateway for recruitment officers, caseworkers, and operational staff.
               </p>
             </div>
 

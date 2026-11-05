@@ -12,10 +12,8 @@ class MeetingSchedulerService {
     this.isRunning = true;
     console.log("⏰ Meeting Reminder Scheduler initialized (1-minute tick).");
 
-    // Run first check after 10 seconds
     setTimeout(() => this.checkMeetingReminders(), 10000);
 
-    // Then check every 60 seconds
     this.interval = setInterval(() => {
       this.checkMeetingReminders();
     }, 60 * 1000);
@@ -31,7 +29,6 @@ class MeetingSchedulerService {
   parseMeetingDateTime(dateStr, timeStr) {
     try {
       if (!dateStr) return null;
-      // Handle "14:30" or "02:30 PM"
       let hours = 0;
       let minutes = 0;
 
@@ -64,7 +61,6 @@ class MeetingSchedulerService {
       const todayStr = now.toISOString().split("T")[0];
       const tomorrowStr = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-      // Find active meetings scheduled within next 48 hours
       const meetings = await Meeting.find({
         status: { $in: ["SCHEDULED", "RESCHEDULED"] },
         date: { $gte: todayStr, $lte: tomorrowStr },
@@ -80,21 +76,18 @@ class MeetingSchedulerService {
         const remindersSent = meeting.remindersSent || [];
         let updated = false;
 
-        // 1. 24 Hours Reminder (between 23h 30m and 24h 30m)
         if (diffMinutes <= 1470 && diffMinutes >= 1350 && !remindersSent.includes("24h")) {
           await this.sendMeetingReminder(meeting, "24 Hours Reminder", `Upcoming meeting in 24 hours: "${meeting.title}" on ${meeting.date} at ${meeting.startTime}.`);
           remindersSent.push("24h");
           updated = true;
         }
 
-        // 2. 1 Hour Reminder (between 50m and 75m)
         if (diffMinutes <= 75 && diffMinutes >= 45 && !remindersSent.includes("1h")) {
           await this.sendMeetingReminder(meeting, "1 Hour Reminder", `Your meeting "${meeting.title}" begins in 1 hour at ${meeting.startTime}. Click to prepare and join.`);
           remindersSent.push("1h");
           updated = true;
         }
 
-        // 3. 15 Minutes Urgent Reminder (between 1m and 20m)
         if (diffMinutes <= 20 && diffMinutes >= 1 && !remindersSent.includes("15m")) {
           await this.sendMeetingReminder(meeting, "🚨 Starting in 15 Minutes", `Meeting "${meeting.title}" starts in 15 minutes! Click below to join now.`);
           remindersSent.push("15m");
@@ -123,7 +116,6 @@ class MeetingSchedulerService {
     };
 
     try {
-      // 1. Send to Admin / Organizer
       await Notification.create({
         type: "MEETING_REMINDER",
         title: `⏰ [${prefix}] ${meeting.title}`,
@@ -133,7 +125,6 @@ class MeetingSchedulerService {
         metadata: meetingMetadata,
       });
 
-      // 2. Send to Vendor if applicable
       if (meeting.vendorId) {
         await Notification.create({
           type: "MEETING_REMINDER",
@@ -145,7 +136,6 @@ class MeetingSchedulerService {
         });
       }
 
-      // 3. Send to target employees if applicable
       if (Array.isArray(meeting.targetEmployees) && meeting.targetEmployees.length > 0) {
         await Promise.all(
           meeting.targetEmployees.map((empId) =>

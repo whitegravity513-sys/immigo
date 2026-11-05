@@ -11,7 +11,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ROLES } from "../constants/roles.js";
 
-// Helper to log candidate activity
 export const logCandidateMeetingActivity = async ({
   meeting,
   actionType,
@@ -52,7 +51,6 @@ export const logCandidateMeetingActivity = async ({
       status: newStatus || meeting.status,
       visibility: "ALL",
 
-      // Dedicated Candidate Audit Fields
       candidateId: meeting.candidateId,
       candidateName: meeting.candidateName || "",
       updatedByUserId: updaterId,
@@ -82,7 +80,6 @@ export const logCandidateMeetingActivity = async ({
   }
 };
 
-// CREATE MEETING
 export const createMeeting = asyncHandler(async (req, res) => {
   const {
     title,
@@ -128,14 +125,11 @@ export const createMeeting = asyncHandler(async (req, res) => {
   const isEmployeeHR = role === ROLES.HR && (hrType === "EMPLOYEE_HR" || hrType === "");
   const isVendorHR = role === ROLES.HR && hrType === "VENDOR_HR";
 
-  // Validate Permissions according to Section 9
   if (isVendor) {
-    // Vendor can schedule meetings with their assigned candidates or with Vendor HR
     if (vendorId && req.vendorId && String(vendorId) !== String(req.vendorId)) {
       throw new ApiError(403, "Vendors can only schedule meetings for their own agency or assigned candidates.");
     }
   } else if (isVendorHR) {
-    // Vendor HR can schedule meetings with assigned vendors and their candidates, or with Admin/Super Admin
     if (vendorId) {
       const assigned = req.assignedVendors || [];
       const hasAccess = assigned.some(
@@ -146,13 +140,11 @@ export const createMeeting = asyncHandler(async (req, res) => {
       }
     }
   } else if (isEmployeeHR && !isSuperAdmin && role !== ROLES.ADMIN) {
-    // Employee HR can schedule internal HR/employee meetings or with Admin/Super Admin
     if (candidateId && !isSuperAdmin) {
       throw new ApiError(403, "Employee Management HR is restricted to workforce and internal meetings.");
     }
   }
 
-  // Derive organizer info from token
   const organizerId = req.userId || req.user?._id?.toString() || req.user?.id || req.vendorId;
   const organizerName = req.user?.name || req.user?.companyName || req.vendorName || "Organizer";
   const organizerRole = isSuperAdmin
@@ -165,7 +157,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     ? "EMPLOYEE_HR"
     : role;
 
-  // Resolve target employees (by ID, employeeId, email, or name)
   let resolvedTargetEmployees = [];
   const processedAttendees = Array.isArray(attendees) ? [...attendees] : [];
 
@@ -199,7 +190,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     }
   }
 
-  // Also check if any attendee has an Employee match
   for (const att of processedAttendees) {
     if (att && (att.role === "EMPLOYEE" || att.name)) {
       const empDoc = await Employee.findOne({
@@ -215,7 +205,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     }
   }
 
-  // Determine effective target type
   const hasSpecificTargets =
     resolvedTargetEmployees.length > 0 ||
     (Array.isArray(targetVendors) && targetVendors.length > 0) ||
@@ -254,7 +243,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     remindersSent: [],
   });
 
-  // Log Candidate Activity if candidate attached
   if (candidateId) {
     await logCandidateMeetingActivity({
       meeting,
@@ -266,7 +254,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
     });
   }
 
-  // Dispatch Notifications
   const meetingMetadata = {
     meetingId: meeting._id.toString(),
     meetingLink: meeting.meetingLink,
@@ -280,7 +267,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
   };
 
   try {
-    // 1. VENDOR DISCUSSION MEETINGS
     if (meetingType === "VENDOR_DISCUSSION") {
       if (effectiveTargetType === "ALL") {
         const activeVendors = await Vendor.find({ status: { $ne: "Rejected" } }).select("vendorId companyName email");
@@ -306,7 +292,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
           });
         }
       } else {
-        // Specific Vendors
         const targetVList = [
           ...new Set([
             ...(Array.isArray(targetVendors) ? targetVendors : []),
@@ -325,7 +310,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
             metadata: meetingMetadata,
           });
 
-          // Also notify assigned Vendor HRs
           const assignedVHRs = await User.find({
             role: "HR",
             hrType: "VENDOR_HR",
@@ -345,7 +329,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
       }
     }
 
-    // 2. INTERNAL HR MEETINGS
     else if (meetingType === "INTERNAL_HR") {
       if (effectiveTargetType === "ALL") {
         const allHRs = await User.find({ role: "HR", isActive: { $ne: false } }).select("_id hrType");
@@ -360,7 +343,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
           });
         }
       } else {
-        // Specific HRs
         const targetHRList = [
           ...new Set([
             ...(Array.isArray(targetHRs) ? targetHRs : []),
@@ -382,7 +364,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
       }
     }
 
-    // 3. EMPLOYEE MEETINGS
     else if (meetingType === "EMPLOYEE") {
       if (effectiveTargetType === "ALL") {
         await NotificationService.createNotification({
@@ -411,7 +392,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
       }
     }
 
-    // 4. CANDIDATE INTERVIEWS
     else if (meetingType === "CANDIDATE_INTERVIEW") {
       if (meeting.vendorId && !isVendor) {
         await Notification.create({
@@ -458,7 +438,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
       }
     }
 
-    // 5. GENERAL MEETINGS
     else {
       if (effectiveTargetType === "ALL") {
         await NotificationService.createNotification({
@@ -482,7 +461,6 @@ export const createMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// GET MEETINGS (With Role & Vendor filtering)
 export const getAdminMeetings = asyncHandler(async (req, res) => {
   const { month, year, date, status, candidateId, vendorId, meetingType, upcoming } = req.query;
   const filter = {};
@@ -494,7 +472,6 @@ export const getAdminMeetings = asyncHandler(async (req, res) => {
   const isEmployeeHR = role === ROLES.HR && (hrType === "EMPLOYEE_HR" || hrType === "");
   const isVendorHR = role === ROLES.HR && hrType === "VENDOR_HR";
 
-  // Role based filtering
   if (isVendor) {
     filter.$or = [
       { vendorId: req.vendorId },
@@ -568,7 +545,6 @@ export const getAdminMeetings = asyncHandler(async (req, res) => {
   return res.status(200).json(meetings);
 });
 
-// GET DASHBOARD MEETING STATS & CALENDAR DATA
 export const getMeetingCalendarStats = asyncHandler(async (req, res) => {
   const role = req.userRole || req.user?.role || "ADMIN";
   const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
@@ -666,7 +642,6 @@ export const getMeetingCalendarStats = asyncHandler(async (req, res) => {
   });
 });
 
-// UPDATE MEETING
 export const updateMeeting = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
@@ -713,7 +688,6 @@ export const updateMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// RESCHEDULE MEETING
 export const rescheduleMeeting = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { date, startTime, endTime, meetingLink, remarks } = req.body;
@@ -756,7 +730,6 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     });
   }
 
-  // Send rescheduling notification
   try {
     const message = `Meeting "${meeting.title}" has been RESCHEDULED to ${meeting.date} at ${meeting.startTime}. Click to join.`;
     await Notification.create({
@@ -782,7 +755,6 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// CANCEL MEETING
 export const cancelMeeting = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { reason = "" } = req.body;
@@ -824,7 +796,6 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// DELETE MEETING
 export const deleteMeeting = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const meeting = await Meeting.findByIdAndDelete(id);
@@ -837,7 +808,6 @@ export const deleteMeeting = asyncHandler(async (req, res) => {
   });
 });
 
-// GET EMPLOYEES FOR MEETING SELECTION & SEARCH
 export const getMeetingEmployees = asyncHandler(async (req, res) => {
   const { search = "" } = req.query;
   const filter = { status: { $ne: "inactive" } };
@@ -869,7 +839,6 @@ export const getMeetingEmployees = asyncHandler(async (req, res) => {
   });
 });
 
-// GET VENDORS FOR MEETING SELECTION & SEARCH
 export const getMeetingVendors = asyncHandler(async (req, res) => {
   const { search = "" } = req.query;
   const filter = { status: { $ne: "Rejected" } };
@@ -903,7 +872,6 @@ export const getMeetingVendors = asyncHandler(async (req, res) => {
   });
 });
 
-// GET HR USERS FOR MEETING SELECTION & SEARCH
 export const getMeetingHRs = asyncHandler(async (req, res) => {
   const { search = "", hrType = "" } = req.query;
   const filter = { role: "HR", isActive: { $ne: false } };
@@ -939,7 +907,6 @@ export const getMeetingHRs = asyncHandler(async (req, res) => {
   });
 });
 
-// GET CANDIDATES FOR MEETING SELECTION & SEARCH
 export const getMeetingCandidates = asyncHandler(async (req, res) => {
   const { search = "", vendorId = "" } = req.query;
   const filter = {};
@@ -984,7 +951,6 @@ export const getMeetingCandidates = asyncHandler(async (req, res) => {
   });
 });
 
-// GET EMPLOYEE MEETINGS
 export const getEmployeeMeetings = asyncHandler(async (req, res) => {
   const employeeId = req.employee?._id || req.user?._id;
   const employeeEmail = req.employee?.email || req.user?.email;
@@ -1026,7 +992,6 @@ export const getEmployeeMeetings = asyncHandler(async (req, res) => {
   });
 });
 
-// BROADCAST NOTIFICATION (existing support)
 export const sendBroadcastNotification = asyncHandler(async (req, res) => {
   const { title, message, targetRole = "ALL" } = req.body;
   if (!title || !message) {

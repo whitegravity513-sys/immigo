@@ -303,7 +303,6 @@ export class ProjectAssignmentService {
     const user = await User.findById(hrUserId);
     if (!user) throw new ApiError(404, "HR user account not found.");
 
-    // Update user's assigned vendors list
     const currentAssigned = Array.isArray(user.assignedVendors) ? user.assignedVendors : [];
     const mergedVendors = Array.from(new Set([...currentAssigned, ...vendorIds]));
     user.assignedVendors = mergedVendors;
@@ -325,7 +324,6 @@ export class ProjectAssignmentService {
         if (!project) continue;
         const normalizedProjId = project.projectId || project._id.toString();
 
-        // 1. Ensure Vendor is assigned to Project
         let vendorAssignment = await ProjectAssignment.findOne({
           assignmentType: "VENDOR_PROJECT",
           projectId: normalizedProjId,
@@ -342,11 +340,9 @@ export class ProjectAssignmentService {
               notes: notes || "Auto-assigned via HR Project & Vendor batch allocation",
             });
           } catch (e) {
-            // Already assigned or caught
           }
         }
 
-        // 2. Ensure HR is assigned to Project for this Vendor
         let hrAssignment = await ProjectAssignment.findOne({
           assignmentType: "VENDOR_HR_PROJECT",
           projectId: normalizedProjId,
@@ -377,7 +373,6 @@ export class ProjectAssignmentService {
           createdAssignments.push(hrAssignment);
         }
 
-        // Ensure in project.assignedVendorHRs
         project.assignedVendorHRs = project.assignedVendorHRs || [];
         const alreadyInProject = project.assignedVendorHRs.some(
           (h) => String(h.userId) === String(user._id) && h.vendorId === normalizedVendorId

@@ -608,13 +608,13 @@ export function VendorRegister() {
 
                 <div className="pt-2 border-t border-dashed border-slate-200 text-center">
                   <span className="text-[10px] text-slate-500 block">
-                    Looking for overseas employment as an individual candidate?
+                    Already registered as a licensed agency?
                   </span>
                   <Link
-                    to="/register"
-                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                    to="/vendor/login"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
                   >
-                    <span>Register as Candidate</span>
+                    <span>Vendor Agency Sign In</span>
                     <ArrowRight size={11} />
                   </Link>
                 </div>

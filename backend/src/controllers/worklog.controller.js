@@ -18,7 +18,6 @@ export const saveTodayWorkLog = asyncHandler(async (req, res) => {
 
   const targetDate = date || getISTDate();
 
-  // 1. Cannot edit if already submitted
   const existingLog = await DailyWorkLog.findOne({
     employee: employeeId,
     date: targetDate,
@@ -31,7 +30,6 @@ export const saveTodayWorkLog = asyncHandler(async (req, res) => {
     );
   }
 
-  // 2. Can only submit after shift check-out
   const attendance = await Attendance.findOne({
     employeeId,
     date: targetDate,

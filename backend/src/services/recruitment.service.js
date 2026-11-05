@@ -30,7 +30,6 @@ export class RecruitmentService {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Find or create candidate profile without duplicating
     let candidate = await Candidate.findOne({ email: cleanEmail });
     if (!candidate) {
       const candidateId = `CAND-${Date.now().toString().slice(-6)}`;
@@ -61,7 +60,6 @@ export class RecruitmentService {
     const isVendorHR = actorUser?.hrType === "VENDOR_HR";
     const isEmployeeHR = actorUser?.hrType === "EMPLOYEE_HR";
 
-    // Enforce Vendor HR authorization
     if (isVendorHR) {
       const allowedVendors = Array.isArray(actorUser?.assignedVendors)
         ? actorUser.assignedVendors
@@ -174,7 +172,6 @@ export class RecruitmentService {
       application.processMilestones = processMilestones;
     }
 
-    // Attach documents if provided
     if (newDocument && (newDocument.fileUrl || newDocument.name || newDocument.fileName)) {
       application.documents = application.documents || [];
       const docEntry = {
@@ -192,7 +189,6 @@ export class RecruitmentService {
       };
       application.documents.push(docEntry);
 
-      // Sync to Candidate document repository so Vendor portal displays it immediately
       try {
         const candidateDoc = await Candidate.findOne({
           $or: [

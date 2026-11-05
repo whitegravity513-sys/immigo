@@ -64,7 +64,6 @@ export const getJobs = asyncHandler(async (req, res) => {
   const isVendorHR = req.user?.hrType === "VENDOR_HR";
   if (isVendorHR) {
     const allowedVendors = Array.isArray(req.user?.assignedVendors) ? req.user.assignedVendors : [];
-    // Find active project assignments for this vendor
     const activeAssignments = await ProjectAssignment.find({
       assignmentType: "VENDOR_PROJECT",
       vendorId: { $in: allowedVendors },

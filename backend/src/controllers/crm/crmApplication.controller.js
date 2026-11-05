@@ -94,7 +94,6 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     await app.save();
   }
 
-  // Automatic permanent Candidate Activity Log
   try {
     const updaterName = req.user?.name || req.user?.companyName || "Admin";
     const updaterRole = req.userRole || req.user?.role || "ADMIN";

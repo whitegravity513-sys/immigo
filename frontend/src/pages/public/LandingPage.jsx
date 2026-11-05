@@ -481,8 +481,8 @@ export default function LandingPage() {
             {[
               {
                 step: "01",
-                title: "Registration & Profiling",
-                desc: "Candidates or partner agencies register online with passport, trade documentation, and experience details.",
+                title: "Agency Sourcing & Profiling",
+                desc: "Accredited partner agencies submit candidate dossiers with verified passport, trade certificates, and experience details.",
                 icon: FileText,
               },
               {

@@ -7,7 +7,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ROLES } from "../constants/roles.js";
 
-// Helper to verify candidate ownership / vendor assignment
 const verifyCandidateAccess = async (req, candidateId) => {
   const role = req.userRole || req.user?.role || "ADMIN";
   const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
@@ -24,7 +23,6 @@ const verifyCandidateAccess = async (req, candidateId) => {
     throw new ApiError(403, "Forbidden: Employee Management HR does not have access to candidate recruitment data.");
   }
 
-  // Find candidate's vendor
   let vendorId = "";
   let candidateName = "";
 
@@ -68,7 +66,6 @@ const verifyCandidateAccess = async (req, candidateId) => {
   return { authorized: true, vendorId, candidateName };
 };
 
-// GET CANDIDATE ACTIVITY HISTORY (Audit Timeline)
 export const getCandidateActivityHistory = asyncHandler(async (req, res) => {
   const { candidateId } = req.params;
   if (!candidateId) {
@@ -97,7 +94,6 @@ export const getCandidateActivityHistory = asyncHandler(async (req, res) => {
   });
 });
 
-// ADD CANDIDATE PROCESS REMARK / STATUS UPDATE
 export const addCandidateProcessRemark = asyncHandler(async (req, res) => {
   const { candidateId } = req.params;
   const {
@@ -155,7 +151,6 @@ export const addCandidateProcessRemark = asyncHandler(async (req, res) => {
     remarks: remarks || "",
   });
 
-  // Also update CrmCandidateApplication if application exists
   try {
     const updateFields = {};
     if (newStatus) updateFields.status = newStatus;
@@ -178,7 +173,6 @@ export const addCandidateProcessRemark = asyncHandler(async (req, res) => {
   });
 });
 
-// GET CANDIDATE DETAILS WITH ASSIGNED VENDOR
 export const getCandidateProcessDetails = asyncHandler(async (req, res) => {
   const { candidateId } = req.params;
   await verifyCandidateAccess(req, candidateId);

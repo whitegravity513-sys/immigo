@@ -154,7 +154,6 @@ export const getHrLeaves = asyncHandler(async (req, res) => {
 export const getHrPerformanceReport = asyncHandler(async (req, res) => {
   const { hrId, vendorId, startDate, endDate } = req.query;
 
-  // 1. Target HR accounts
   let hrQuery = { role: ROLES.HR };
   if (req.userRole === ROLES.HR) {
     hrQuery._id = req.user._id;
@@ -163,7 +162,6 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
   }
   const hrUsers = await User.find(hrQuery).select("name email hrType assignedVendors isActive");
 
-  // 2. Date filters if passed
   const dateFilter = {};
   if (startDate) dateFilter.$gte = new Date(startDate);
   if (endDate) dateFilter.$lte = new Date(endDate);
@@ -179,7 +177,6 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
     activityQuery.vendorId = vendorId;
   }
 
-  // 3. Meeting metrics
   const meetingQuery = {};
   if (Object.keys(dateFilter).length > 0) meetingQuery.meetingDate = dateFilter;
   if (req.userRole === ROLES.HR) {
@@ -196,24 +193,20 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
     Vendor.find().select("vendorId companyName"),
   ]);
 
-  // Candidates processed
   const uniqueCandidateIds = new Set(activities.map((a) => a.candidateId).filter(Boolean));
   const totalCandidatesProcessed = uniqueCandidateIds.size;
 
-  // Candidate status distribution
   const statusDistribution = {};
   crmApps.forEach((app) => {
     const st = app.status || "Submitted";
     statusDistribution[st] = (statusDistribution[st] || 0) + 1;
   });
 
-  // Meetings stats
   const totalMeetingsScheduled = meetings.length;
   const meetingsCompleted = meetings.filter((m) => m.status === "COMPLETED").length;
   const meetingsCancelled = meetings.filter((m) => m.status === "CANCELLED").length;
   const meetingsRescheduled = meetings.filter((m) => m.status === "RESCHEDULED").length;
 
-  // Meeting outcomes
   const outcomeBreakdown = {};
   meetings.forEach((m) => {
     if (m.outcome) {
@@ -221,7 +214,6 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
     }
   });
 
-  // Transition times (hours between status changes in ActivityLog for each candidate)
   const candidateHistoryMap = {};
   activities.forEach((act) => {
     if (!candidateHistoryMap[act.candidateId]) {
@@ -244,7 +236,6 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
   });
   const avgTransitionHours = transitionCount > 0 ? Number((totalTransitionHours / transitionCount).toFixed(1)) : 0;
 
-  // Vendor performance by HR
   const vendorPerformance = allVendors.map((vnd) => {
     const vId = vnd.vendorId || vnd._id.toString();
     const vApps = crmApps.filter((a) => a.vendorId === vId);
@@ -260,7 +251,6 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
     };
   });
 
-  // Per-HR breakdown
   const hrPerformance = hrUsers.map((hr) => {
     const hrUid = hr._id.toString();
     const hrActivities = activities.filter((a) => a.updatedByUserId === hrUid);

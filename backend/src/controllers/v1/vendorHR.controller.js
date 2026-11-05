@@ -116,7 +116,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
 
   const userIdStr = user?._id?.toString() || user?.id || "";
 
-  // 1. Fetch Assignments
   const assignmentQuery = isAdminOrSuper
     ? { status: "Active" }
     : {
@@ -132,7 +131,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     ...new Set(assignments.map((a) => a.projectId).filter(Boolean)),
   ];
 
-  // 2. Fetch full Project details, Vendor organization details, and Client details
   const projectSearchQuery = isAdminOrSuper
     ? { status: { $ne: "Deleted" } }
     : {
@@ -160,14 +158,12 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
 
   const clientMap = new Map(clientDocs.map((c) => [c._id.toString(), c]));
 
-  // Combine project info with assigned vendors for Admin, Super Admin & Vendor views
   const enrichedProjects = projectDocs.map((doc) => {
     const pId = doc.projectId || doc._id?.toString();
     const matchingAssignments = assignments.filter(
       (a) => a.projectId === pId || a.projectRef?.toString() === pId
     );
     
-    // Vendor names assigned from both ProjectAssignment and doc.assignedVendors
     const vendorNamesSet = new Set();
     matchingAssignments.forEach((a) => {
       if (a.vendorName) vendorNamesSet.add(a.vendorName);
@@ -216,11 +212,9 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     };
   });
 
-  // Filter by requested project if provided
   const filterProjectId = req.query.projectId;
   const isProjectFiltered = filterProjectId && filterProjectId !== "ALL";
 
-  // 3. Fetch Applications, Jobs, Interviews, Activities
   const appQuery = {
     ...(req.query.vendorId && req.query.vendorId !== "ALL"
       ? {
@@ -294,7 +288,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     ActivityLog.find(activityQuery).sort({ createdAt: -1 }).limit(30).lean(),
   ]);
 
-  // Enrich applications with real candidate documents, passport details, interview details, and real destinations
   const candidateIds = rawApplications.map((a) => a.candidateId).filter(Boolean);
   const candidateRecords =
     candidateIds.length > 0
@@ -309,7 +302,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     const cRec = candidateMap.get(app.candidateId);
     const proj = projectMap.get(app.projectId);
     
-    // Generate deterministic real passport number if missing
     let passportNumber = app.passportNumber || cRec?.profile?.passportNumber;
     if (!passportNumber) {
       const hashStr = `${app.applicationId || ""}_${app.candidateName || ""}_${idx}`;
@@ -321,7 +313,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
       passportNumber = `P${Math.abs(hash).toString().padStart(7, "0").slice(0, 7)}`;
     }
 
-    // Match real interview details from interviews collection
     const matchedInterview = interviews.find(
       (i) =>
         i.candidateId === app.candidateId ||
@@ -354,7 +345,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
                 }
               : app.interview));
 
-    // Dynamic verified candidate documents
     const combinedDocs = [
       ...(Array.isArray(app.documents) ? app.documents : []),
       ...(Array.isArray(cRec?.documents) ? cRec.documents : []),
@@ -416,7 +406,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     };
   });
 
-  // Enrich required jobs with real projects, client names and salary packages
   const allJobs = dbJobs.map((j) => {
     const proj = projectMap.get(j.projectId);
     let salaryRange = j.salaryRange;
@@ -475,7 +464,6 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     }
   });
 
-  // Also update project counts (jobsCount and candidatesCount) dynamically from actual data
   enrichedProjects.forEach((ep) => {
     const pJobs = allJobs.filter((j) => j.projectId === ep.projectId);
     ep.jobsCount = pJobs.length;
