@@ -117,16 +117,16 @@ function LoginRouteHandler({ isAuthenticated, isAdmin, isSuperAdmin, isHR, isVen
           isSuperAdmin
             ? "/super-admin/dashboard"
             : isVendorHR
-            ? "/vendor-hr/dashboard"
-            : isHR
-            ? "/hr/dashboard"
-            : isAdmin
-            ? "/admin/dashboard"
-            : isVendor
-            ? "/vendor/dashboard"
-            : isCandidate
-            ? "/candidate/dashboard"
-            : "/employee/dashboard"
+              ? "/vendor-hr/dashboard"
+              : isHR
+                ? "/hr/dashboard"
+                : isAdmin
+                  ? "/admin/dashboard"
+                  : isVendor
+                    ? "/vendor/dashboard"
+                    : isCandidate
+                      ? "/candidate/dashboard"
+                      : "/employee/dashboard"
         }
         replace
       />
@@ -172,7 +172,7 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        {}
+        { }
         <Route path="/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/vendor/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/admin/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
@@ -462,7 +462,7 @@ export default function AppRoutes() {
         />
         <Route path="/hr/*" element={<Navigate to="/hr/dashboard" replace />} />
 
-        {}
+        { }
         <Route
           path="/employee/dashboard"
           element={
@@ -472,7 +472,7 @@ export default function AppRoutes() {
           }
         />
 
-        {}
+        { }
         <Route
           path="/client/dashboard"
           element={
@@ -739,7 +739,7 @@ export default function AppRoutes() {
           }
         />
 
-        {}
+        { }
         <Route
           path="/clients"
           element={
@@ -853,7 +853,7 @@ export default function AppRoutes() {
           }
         />
 
-        {}
+        { }
         <Route
           path="/admin/vendor"
           element={
@@ -901,7 +901,7 @@ export default function AppRoutes() {
 
         <Route path="/admin/vendors" element={<Navigate to="/admin/vendor/vendors" replace />} />
 
-        {}
+        { }
         <Route
           path="/vendor"
           element={
@@ -978,14 +978,14 @@ export default function AppRoutes() {
                   isSuperAdmin
                     ? "/super-admin/dashboard"
                     : isHR
-                    ? "/hr/dashboard"
-                    : isVendor
-                    ? "/vendor/dashboard"
-                    : isCandidate
-                    ? "/candidate/dashboard"
-                    : isAdmin
-                    ? "/admin/dashboard"
-                    : "/employee/dashboard"
+                      ? "/hr/dashboard"
+                      : isVendor
+                        ? "/vendor/dashboard"
+                        : isCandidate
+                          ? "/candidate/dashboard"
+                          : isAdmin
+                            ? "/admin/dashboard"
+                            : "/employee/dashboard"
                 }
                 replace
               />
