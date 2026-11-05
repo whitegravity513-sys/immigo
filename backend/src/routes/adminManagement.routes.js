@@ -37,7 +37,7 @@ router.get(
 router.post(
   "/admins",
   authenticateRBAC,
-  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
+  requireSuperAdmin,
   createAdmin
 );
 
@@ -51,14 +51,14 @@ router.get(
 router.patch(
   "/admins/:id",
   authenticateRBAC,
-  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
+  requireSuperAdmin,
   updateAdmin
 );
 
 router.delete(
   "/admins/:id",
   authenticateRBAC,
-  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
+  requireSuperAdmin,
   deleteAdmin
 );
 
@@ -72,7 +72,7 @@ router.get(
 router.put(
   "/admins/:id/permissions",
   authenticateRBAC,
-  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
+  requireSuperAdmin,
   updateAdminPermissions
 );
 

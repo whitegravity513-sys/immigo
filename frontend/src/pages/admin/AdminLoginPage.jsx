@@ -7,12 +7,7 @@ import AdminLoginForm from "../../components/auth/AdminLoginForm.jsx";
 import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
 import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
 import globePinIllustration from "../../assets/immigo-globe-pin.jpg";
-import { CheckCircle2, Info } from "lucide-react";
-
-const ADMIN_DUMMY_CREDENTIALS = [
-  { role: "Super Admin", email: "admin@vista.com", password: "12345", note: "Full system access", color: "bg-blue-50 border-blue-200 text-blue-800" },
-  { role: "Admin", email: "admin@immigo.com", password: "admin123", note: "Module management", color: "bg-indigo-50 border-indigo-200 text-indigo-800" },
-];
+import { CheckCircle2 } from "lucide-react";
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -38,9 +33,6 @@ export default function AdminLoginPage() {
   };
 
   
-  const [showCredentials, setShowCredentials] = useState(false);
-  const [prefill, setPrefill] = useState(null);
-
   const renderAdminLoginCard = () => (
     <div className="w-full max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-200/90 p-4 sm:p-5 text-left relative mx-auto">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -83,43 +75,7 @@ export default function AdminLoginPage() {
       <AdminLoginForm
         onLoginSuccess={handleSuccess}
         onForgotPassword={() => setForgotModal(true)}
-        prefill={prefill}
       />
-
-      {/* Collapsible Demo Credentials */}
-      <div className="mt-3 border-t border-slate-100 pt-2.5">
-        <button
-          type="button"
-          onClick={() => setShowCredentials(!showCredentials)}
-          className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-slate-50 hover:bg-blue-50 border border-dashed border-slate-200 hover:border-blue-300 rounded-lg text-[11px] font-bold text-slate-600 hover:text-blue-700 transition-all cursor-pointer"
-        >
-          <Info size={12} />
-          <span>{showCredentials ? "Hide" : "Show"} Account Credentials</span>
-        </button>
-
-        {showCredentials && (
-          <div className="mt-2 space-y-1.5">
-            {ADMIN_DUMMY_CREDENTIALS.map((cred) => (
-              <div
-                key={cred.email}
-                onClick={() => setPrefill({ email: cred.email, password: cred.password })}
-                className={`p-2 rounded-lg border ${cred.color} cursor-pointer hover:shadow-xs transition-all`}
-                title="Click to fill"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold truncate">{cred.role} <span className="font-mono font-normal opacity-80 text-[10px]">({cred.email})</span></p>
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-white/70 px-1.5 py-0.5 rounded shrink-0">
-                    {cred.note}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
     </div>
   );
 

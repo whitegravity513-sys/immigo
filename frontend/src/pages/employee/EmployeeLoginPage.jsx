@@ -175,26 +175,6 @@ export default function EmployeeLoginPage() {
     return () => clearTimeout(timer);
   }, [error]);
 
-    const handleDemoLogin = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const data = await employeeLogin("IMMI-0124-1598", "12345");
-      const token = data?.token || data?.accessToken;
-      if (token) {
-        const empData = { ...(data.employee || {}), role: "employee" };
-        login(token, empData, "employee");
-        navigate("/employee/dashboard", { replace: true });
-      } else {
-        setError("Employee demo login failed.");
-      }
-    } catch (err) {
-      setError(err?.response?.data?.message || "Demo login failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleIdChange = (e) => {
     const val = e.target.value;
     setEmployeeId(val);
@@ -389,18 +369,6 @@ export default function EmployeeLoginPage() {
                   <span>Login</span>
                 )}
               </button>
-
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  disabled={loading}
-                  className="w-full py-2.5 px-4 rounded-full border border-dashed border-[#3b2875]/40 hover:border-[#3b2875] bg-purple-50/70 hover:bg-purple-100/70 text-[#3b2875] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
-                >
-                  <Zap size={14} className="text-amber-500 fill-amber-500" />
-                  <span>1-Click Demo Login (Employee)</span>
-                </button>
-              </div>
             </form>
           </div>
         </div>

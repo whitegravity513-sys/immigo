@@ -456,7 +456,7 @@ export function PermissionManagementPage() {
   };
 
   const togglePermission = (permKey) => {
-    if (selectedAdminData?.isSuperAdmin) return;
+    if (!isSuperAdmin || selectedAdminData?.isSuperAdmin) return;
 
     setEffectivePermissions((prev) => {
       const exists = prev.includes(permKey);
@@ -469,24 +469,24 @@ export function PermissionManagementPage() {
   };
 
   const selectAllInGroup = (group) => {
-    if (selectedAdminData?.isSuperAdmin) return;
+    if (!isSuperAdmin || selectedAdminData?.isSuperAdmin) return;
     const groupKeys = group.subsections.flatMap((s) => s.actions.map((a) => a.key));
     setEffectivePermissions((prev) => Array.from(new Set([...prev, ...groupKeys])));
   };
 
   const clearAllInGroup = (group) => {
-    if (selectedAdminData?.isSuperAdmin) return;
+    if (!isSuperAdmin || selectedAdminData?.isSuperAdmin) return;
     const groupKeys = new Set(group.subsections.flatMap((s) => s.actions.map((a) => a.key)));
     setEffectivePermissions((prev) => prev.filter((k) => !groupKeys.has(k)));
   };
 
   const handleSelectAllGlobal = () => {
-    if (selectedAdminData?.isSuperAdmin) return;
+    if (!isSuperAdmin || selectedAdminData?.isSuperAdmin) return;
     setEffectivePermissions(allCurrentKeys);
   };
 
   const handleClearAllGlobal = () => {
-    if (selectedAdminData?.isSuperAdmin) return;
+    if (!isSuperAdmin || selectedAdminData?.isSuperAdmin) return;
     setEffectivePermissions([]);
   };
 
@@ -506,7 +506,7 @@ export function PermissionManagementPage() {
   }, [effectivePermissions, initialPermissions, allCurrentKeys]);
 
   const handleSaveChanges = async () => {
-    if (!selectedAdminId) return;
+    if (!isSuperAdmin || !selectedAdminId) return;
 
     try {
       setSaving(true);
@@ -1218,7 +1218,7 @@ export function PermissionManagementPage() {
 
                     {/* Save / Reset Buttons */}
                     <div className="flex items-center gap-2">
-                      {changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
+                      {isSuperAdmin && changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
                         <button
                           type="button"
                           onClick={() => setEffectivePermissions([...initialPermissions])}
@@ -1229,7 +1229,7 @@ export function PermissionManagementPage() {
                         </button>
                       )}
 
-                      {!selectedAdminData.isSuperAdmin && (
+                      {isSuperAdmin && !selectedAdminData.isSuperAdmin && (
                         <button
                           type="button"
                           onClick={() => setIsConfirmSaveOpen(true)}
@@ -1282,7 +1282,7 @@ export function PermissionManagementPage() {
                   )}
 
                   {/* Global Controls & Accordion Toggle Bar */}
-                  {!selectedAdminData.isSuperAdmin && (
+                  {isSuperAdmin && !selectedAdminData.isSuperAdmin && (
                     <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
                       <div className="flex items-center gap-1.5">
                         <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">
@@ -1452,7 +1452,7 @@ export function PermissionManagementPage() {
                                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
                                     {sub.actions.map((act) => {
                                       const checked = isPermissionChecked(act.key);
-                                      const disabled = selectedAdminData.isSuperAdmin;
+                                      const disabled = selectedAdminData.isSuperAdmin || !isSuperAdmin;
 
                                       return (
                                         <label

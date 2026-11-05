@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import NotificationBell from "../NotificationBell.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
 export const AdminHeader = ({
   user,
@@ -76,13 +77,7 @@ export const AdminHeader = ({
 
           <div className="flex flex-col justify-center min-w-0">
             <div className="flex items-center gap-2 truncate">
-              <span className="hidden sm:flex items-end gap-0.5 select-none font-bold text-lg tracking-tighter leading-none text-white">
-                <span>immi</span>
-                <span className="text-cyan-400">Go</span>
-                <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
-                  <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
+              <ImmiGoLogo size="xs" theme="light" className="hidden sm:flex" />
               <ChevronRight size={13} className="text-blue-400 shrink-0 hidden sm:inline" />
               <span className="text-white font-bold text-sm sm:text-[15px] tracking-tight truncate drop-shadow-2xs">
                 {getSectionTitle(view)}

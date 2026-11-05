@@ -20,6 +20,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
 import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
 
@@ -45,18 +46,7 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor }) {
       {}
       <div className="h-16 flex items-center justify-between px-5 border-b border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-900/70 border border-blue-700/50 text-cyan-400 flex items-center justify-center font-bold shadow-xs">
-            <Building2 size={18} />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5 leading-none">
-              <span className="font-bold text-white text-base tracking-tight">immi</span>
-              <span className="font-bold text-cyan-400 text-base tracking-tight">Go</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold text-blue-200/80 tracking-wider mt-0.5">
-              Vendor Portal
-            </span>
-          </div>
+          <ImmiGoLogo size="sm" theme="light" subtitle="Vendor Portal" />
         </div>
 
         {}

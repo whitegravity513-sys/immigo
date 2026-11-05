@@ -9,6 +9,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { ImmiGoLogo } from "../common/ImmiGoLogo.jsx";
 
 export default function CandidateSidebar({
   candidate,
@@ -49,18 +50,7 @@ export default function CandidateSidebar({
       >
         <div className="h-[52px] min-h-[52px] flex items-center justify-between px-4 border-b border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-blue-900/70 border border-blue-700/50 text-cyan-400 flex items-center justify-center font-semibold shadow-xs">
-              <User size={16} />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1 leading-none">
-                <span className="font-bold text-white text-sm tracking-tight">immi</span>
-                <span className="font-bold text-cyan-400 text-sm tracking-tight">Go</span>
-              </div>
-              <span className="text-[10px] uppercase font-semibold text-blue-200/80 tracking-wider mt-0.5">
-                Candidate Portal
-              </span>
-            </div>
+            <ImmiGoLogo size="xs" theme="light" subtitle="Candidate Portal" />
           </div>
 
           {mobileOpen && (

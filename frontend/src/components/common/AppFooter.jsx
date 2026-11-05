@@ -1,5 +1,6 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
+import { ImmiGoLogo } from "./ImmiGoLogo.jsx";
 
 export default function AppFooter({
   role = "admin",
@@ -32,10 +33,7 @@ export default function AppFooter({
     <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
       <div className="w-full flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="flex items-end gap-0.5 select-none font-bold text-sm tracking-tight leading-none text-white">
-            <span>immi</span>
-            <span className="text-cyan-400">Go</span>
-          </div>
+          <ImmiGoLogo size="xs" theme="light" />
         </div>
 
         {/* Copyright and developer attribution */}

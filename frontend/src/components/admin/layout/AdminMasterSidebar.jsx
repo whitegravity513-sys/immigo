@@ -24,6 +24,9 @@ import {
   History,
   User as UserIcon,
   Plane,
+  Award,
+  Clock,
+  XCircle,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -219,16 +222,16 @@ export function AdminMasterSidebar({
       view: "jobs",
     },
     {
-      title: "Candidates",
+      title: "All Candidates",
       icon: Users,
       path: "/admin/hr-activities?tab=vendorHRDashboard&view=candidates",
       view: "candidates",
     },
     {
-      title: "Recruitment Pipeline",
-      icon: Layers,
-      path: "/admin/hr-activities?tab=vendorHRDashboard&view=pipeline",
-      view: "pipeline",
+      title: "Shortlisted",
+      icon: UserCheck,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=shortlisted",
+      view: "shortlisted",
     },
     {
       title: "Interviews",
@@ -237,22 +240,28 @@ export function AdminMasterSidebar({
       view: "interviews",
     },
     {
-      title: "Visa Issued & Granted",
+      title: "Selected Candidates",
+      icon: Award,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=milestones",
+      view: "milestones",
+    },
+    {
+      title: "Visa Allotted",
       icon: Plane,
-      path: "/admin/hr-activities?tab=vendorHRDashboard&view=visaIssued",
-      view: "visaIssued",
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=visa-allotted",
+      view: "visa-allotted",
     },
     {
-      title: "Activity History",
-      icon: History,
-      path: "/admin/hr-activities?tab=vendorHRDashboard&view=activity",
-      view: "activity",
+      title: "On Hold",
+      icon: Clock,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=on-hold",
+      view: "on-hold",
     },
     {
-      title: "Profile",
-      icon: UserIcon,
-      path: "/admin/hr-activities?tab=vendorHRDashboard&view=profile",
-      view: "profile",
+      title: "Rejected Candidates",
+      icon: XCircle,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=rejected",
+      view: "rejected",
     },
   ];
 

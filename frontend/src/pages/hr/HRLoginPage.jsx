@@ -22,23 +22,6 @@ import AuthErrorMessage from "../../components/auth/AuthErrorMessage.jsx";
 import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
 import AuthHeader from "../../components/auth/AuthHeader.jsx";
 
-const HR_DUMMY_CREDENTIALS = [
-  {
-    role: "HR Manager",
-    email: "hr@immigo.com",
-    password: "hr123456",
-    note: "Workforce & Leaves",
-    color: "bg-blue-50 border-blue-200 text-blue-900",
-  },
-  {
-    role: "HR Executive",
-    email: "hrexec@immigo.com",
-    password: "hr123456",
-    note: "Attendance & Records",
-    color: "bg-indigo-50 border-indigo-200 text-indigo-900",
-  },
-];
-
 export default function HRLoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -52,7 +35,6 @@ export default function HRLoginPage() {
 
   const [forgotModal, setForgotModal] = useState(false);
   const [resetSuccessNotice, setResetSuccessNotice] = useState(false);
-  const [showCredentials, setShowCredentials] = useState(false);
 
   useEffect(() => {
     if (!error) return;
@@ -363,50 +345,6 @@ export default function HRLoginPage() {
                     Your activity is secure and monitored.
                   </p>
                 </div>
-              </div>
-
-              {/* Demo Credentials Helper (Collapsible) */}
-              <div className="mt-2 border-t border-slate-100 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCredentials(!showCredentials)}
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 bg-slate-50 hover:bg-blue-50/60 border border-dashed border-slate-300 rounded-lg text-[10px] font-bold text-slate-700 hover:text-blue-800 transition-all cursor-pointer"
-                >
-                  <Info size={12} className="text-blue-600" />
-                  <span>{showCredentials ? "Hide" : "Show"} Demo Credentials (HR Staff)</span>
-                </button>
-
-                {showCredentials && (
-                  <div className="mt-2 space-y-1.5">
-                    {HR_DUMMY_CREDENTIALS.map((cred) => (
-                      <div
-                        key={cred.email}
-                        onClick={() => {
-                          setIdentifier(cred.email);
-                          setPassword(cred.password);
-                        }}
-                        className={`p-2 rounded-lg border ${cred.color} cursor-pointer hover:shadow-xs transition-all`}
-                        title="Click to auto-fill"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="flex items-center gap-1">
-                              <p className="text-[10px] font-bold">{cred.role}</p>
-                              <span className="text-[8px] text-blue-600 font-medium">
-                                (Click to fill)
-                              </span>
-                            </div>
-                            <p className="text-[9px] font-mono opacity-80">Email: {cred.email}</p>
-                            <p className="text-[9px] font-mono opacity-70">Password: {cred.password}</p>
-                          </div>
-                          <span className="text-[8px] font-bold uppercase tracking-wider bg-white/70 px-1.5 py-0.5 rounded-full shrink-0 shadow-2xs">
-                            {cred.note}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -19,7 +19,6 @@ const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
 
 
 const HRDashboard = lazy(() => import("../pages/hr/HRDashboard.jsx"));
-const VendorHRDashboard = lazy(() => import("../pages/hr/VendorHRDashboard.jsx"));
 const VendorHRLoginPage = lazy(() => import("../pages/vendor-hr/VendorHRLoginPage.jsx"));
 const VendorHRDashboardPage = lazy(() => import("../pages/vendor-hr/VendorHRDashboardPage.jsx"));
 const HRLoginPage = lazy(() => import("../pages/hr/HRLoginPage.jsx"));
@@ -87,7 +86,6 @@ const AdminMilestonesList = lazy(() => import("../pages/admin/vendor/AdminMilest
 const AdminDocumentsList = lazy(() => import("../pages/admin/vendor/AdminDocumentsList.jsx"));
 const AdminRefundsList = lazy(() => import("../pages/admin/vendor/AdminRefundsList.jsx"));
 const AdminVendorDetailsPage = lazy(() => import("../pages/admin/vendor/AdminVendorDetailsPage.jsx"));
-const HRActivityMonitoringPage = lazy(() => import("../pages/admin/hr/HRActivityMonitoringPage.jsx"));
 const AdminMasterLayout = lazy(() => import("../components/admin/layout/AdminMasterLayout.jsx"));
 const InvoiceReceiptPage = lazy(() => import("../pages/common/InvoiceReceiptPage.jsx"));
 
@@ -881,7 +879,7 @@ export default function AppRoutes() {
           <Route path="documents" element={<AdminDocumentsList />} />
           <Route path="vendors/:id" element={<AdminVendorDetailsPage />} />
           <Route path="details/:id" element={<AdminVendorDetailsPage />} />
-          <Route path="activities" element={<HRActivityMonitoringPage />} />
+          <Route path="activities" element={<Navigate to="/admin/hr-activities" replace />} />
         </Route>
 
         <Route
@@ -896,7 +894,7 @@ export default function AppRoutes() {
           path="/admin/hr-activities"
           element={
             <ProtectedRoute allowedRole={["admin", "super_admin"]}>
-              <HRActivityMonitoringPage />
+              <VendorHRDashboardPage />
             </ProtectedRoute>
           }
         />

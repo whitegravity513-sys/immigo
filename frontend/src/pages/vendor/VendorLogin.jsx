@@ -111,21 +111,6 @@ export function VendorLogin() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const res = await crmVendorService.loginVendor("vendor@immigo.com", "12345");
-      login(res.token, { ...res.vendor, role: "vendor" }, "vendor");
-      const from = location.state?.from?.pathname || "/vendor/dashboard";
-      navigate(from, { replace: true });
-    } catch (err) {
-      setError(err.message || "Vendor demo login failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-100">
       <div
@@ -511,18 +496,6 @@ export function VendorLogin() {
                   </>
                 )}
               </button>
-
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  disabled={loading}
-                  className="w-full py-2.5 px-4 rounded-xl border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/70 text-slate-700 hover:text-blue-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
-                >
-                  <Zap size={14} className="text-amber-500 fill-amber-500" />
-                  <span>1-Click Demo Login (Vendor)</span>
-                </button>
-              </div>
 
               <div className="text-center pt-3 border-t border-slate-100 text-xs text-slate-500">
                 <span>Don't have a vendor account? </span>

@@ -198,29 +198,6 @@ export default function VendorHRLoginPage() {
             </p>
           </div>
 
-          {/* Quick Demo Credentials Pill */}
-          <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200/80 flex items-center justify-between text-xs shadow-2xs">
-            <div className="space-y-0.5 min-w-0 pr-2">
-              <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                <span className="truncate">Demo Vendor HR Account</span>
-              </div>
-              <div className="text-[11px] text-blue-700 font-medium truncate">
-                priya.sharma@vendorhr.com • Password@123
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("priya.sharma@vendorhr.com");
-                setPassword("Password@123");
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-2xs transition shrink-0 cursor-pointer"
-            >
-              Fill Demo
-            </button>
-          </div>
-
           {/* Error Message */}
           {error && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start space-x-2 animate-in fade-in">

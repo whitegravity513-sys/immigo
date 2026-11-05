@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -115,10 +115,48 @@ const AVATARS = [
 ];
 
 export default function VendorHRDashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperAdmin, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeMenu, setActiveMenu] = useState("overview");
+
+  // Sync activeMenu with URL query params ?view=...
+  const urlView = searchParams.get("view");
+  useEffect(() => {
+    if (!urlView) return;
+    const viewMap = {
+      overview: "overview",
+      projects: "projects",
+      jobs: "jobs",
+      candidates: "candidates",
+      shortlisted: "shortlisted",
+      interviews: "interviews",
+      milestones: "milestones",
+      selected: "milestones",
+      "visa-allotted": "visa-allotted",
+      visaIssued: "visa-allotted",
+      "on-hold": "on-hold",
+      hold: "on-hold",
+      rejected: "rejected",
+      profile: "profile",
+    };
+    if (viewMap[urlView] && viewMap[urlView] !== activeMenu) {
+      setActiveMenu(viewMap[urlView]);
+    }
+  }, [urlView]);
+
+  const handleSelectMenu = (menuId) => {
+    setActiveMenu(menuId);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("view", menuId);
+        return next;
+      },
+      { replace: true }
+    );
+  };
   const [selectedProject, setSelectedProject] = useState("ALL");
   const [dateRange, setDateRange] = useState("Last 30 Days");
 
@@ -325,22 +363,22 @@ export default function VendorHRDashboardPage() {
   // Tag-based navigation: Clicking on any tag/stage or performing stage action navigates immediately to its dedicated section
   const navigateByTag = (stageOrTag, cand = null) => {
     const s = (stageOrTag || "").toLowerCase();
+    let target = "candidates";
     if (s.includes("shortlist")) {
-      setActiveMenu("shortlisted");
+      target = "shortlisted";
     } else if (s.includes("interview")) {
-      setActiveMenu("interviews");
+      target = "interviews";
     } else if (s.includes("select")) {
-      setActiveMenu("milestones");
+      target = "milestones";
       if (cand) setSelectedMilestoneApp(cand);
     } else if (s.includes("visa") || s.includes("joined") || s.includes("deploy")) {
-      setActiveMenu("visa-allotted");
+      target = "visa-allotted";
     } else if (s.includes("hold")) {
-      setActiveMenu("on-hold");
+      target = "on-hold";
     } else if (s.includes("reject")) {
-      setActiveMenu("rejected");
-    } else {
-      setActiveMenu("candidates");
+      target = "rejected";
     }
+    handleSelectMenu(target);
   };
 
   // Handle Candidate Submission
@@ -1022,9 +1060,11 @@ export default function VendorHRDashboardPage() {
     dashboardData?.vendor?.companyName ||
     user?.vendors?.[0]?.companyName ||
     user?.vendorName ||
-    "Global Staffing Solutions Pvt Ltd";
+    "";
 
-  const hrUserName = user?.name || "Priya Sharma";
+  const hrUserName =
+    user?.name ||
+    (isSuperAdmin ? "Super Admin" : isAdmin ? "System Admin" : "Vendor HR");
 
   // Filtered Candidates list for Candidates tab (Pre-selection screening)
   const filteredCandidates = useMemo(() => {
@@ -1219,13 +1259,32 @@ export default function VendorHRDashboardPage() {
       <aside className="w-[240px] flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none">
         {/* Top Header */}
         <div className="h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs shrink-0">
-          <ImmiGoLogo size="sm" theme="light" subtitle="Vendor HR Portal" />
+          <ImmiGoLogo
+            size="sm"
+            theme="light"
+            subtitle={isSuperAdmin ? "Super Admin Portal" : isAdmin ? "Admin Portal" : "Vendor HR Portal"}
+          />
         </div>
+
+        {/* Back to Admin Dashboard Pill (Prominent at top of Sidebar) */}
+        {(isSuperAdmin || isAdmin) && (
+          <div className="p-3 pb-1.5 border-b border-blue-200/60 bg-blue-50/60">
+            <button
+              type="button"
+              onClick={() => navigate(isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard")}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-blue-950 bg-white hover:bg-blue-100/90 border border-blue-200/90 shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+              title="Return to Main Admin Dashboard"
+            >
+              <ArrowLeft size={14} className="text-blue-600 transition-transform group-hover:-translate-x-0.5" />
+              <span>{isSuperAdmin ? "Back to Super Admin" : "Back to Admin Dashboard"}</span>
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Navigation Items */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
           <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
-            Vendor HR Workspace
+            {isSuperAdmin ? "Super Admin HR Console" : isAdmin ? "Admin HR Console" : "Vendor HR Workspace"}
           </p>
 
           <nav className="space-y-1">
@@ -1238,7 +1297,7 @@ export default function VendorHRDashboardPage() {
                   type="button"
                   onClick={() => {
                     if (item.id === "projects") setDetailedProject(null);
-                    setActiveMenu(item.id);
+                    handleSelectMenu(item.id);
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
                     active
@@ -1288,21 +1347,15 @@ export default function VendorHRDashboardPage() {
 
       {/* 2. MAIN WORKSPACE */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Top Navbar matching AdminMasterNavbar */}
+        {/* Single Clean Top Navbar */}
         <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
           <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
-            {/* Left Side: Breadcrumb & Title */}
-            <div className="flex items-center gap-2 truncate">
-              <span className="flex items-end gap-0.5 select-none font-bold text-base tracking-tighter leading-none text-white">
-                <span>immi</span>
-                <span className="text-cyan-400">Go</span>
-                <svg viewBox="0 0 20 20" fill="none" className="w-2.5 h-2.5 text-orange-400 mb-0.5 ml-0.5 shrink-0">
-                  <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
+            {/* Left Side: Logo & Breadcrumb Title */}
+            <div className="flex items-center gap-2.5 truncate">
+              <ImmiGoLogo size="xs" theme="light" />
               <ChevronRight size={13} className="text-blue-400 shrink-0" />
               <span className="text-white font-bold text-sm sm:text-[14px] tracking-tight truncate drop-shadow-2xs">
-                Vendor HR Dashboard
+                {isSuperAdmin ? "Super Admin Operations" : isAdmin ? "Admin Operations" : "Vendor HR Dashboard"}
               </span>
               <span className="text-blue-400 hidden sm:inline">•</span>
               <span className="text-xs text-blue-200 hidden sm:inline capitalize">
@@ -1320,37 +1373,43 @@ export default function VendorHRDashboardPage() {
               </span>
             </div>
 
-            {/* Right Side: Agency Pill + Project Filter + HR Profile + Notifications */}
+            {/* Right Side: Profile & Notifications (Clean: Nothing extra for Super Admin) */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Dynamic Project Selector Dropdown */}
-              <div className="relative hidden md:flex items-center">
-                <Building2 className="w-3.5 h-3.5 text-blue-300 absolute left-2.5 pointer-events-none" />
-                <select
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                  className="pl-7 pr-6 py-1.5 rounded-lg bg-blue-900/60 border border-blue-700/60 text-xs font-semibold text-blue-100 shadow-xs appearance-none hover:bg-blue-800/80 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                >
-                  <option value="ALL" className="bg-slate-900 text-white">All Projects ({projectsList.length})</option>
-                  {projectsList.map((p) => (
-                    <option key={p.projectId || p.id} value={p.projectId || p.id} className="bg-slate-900 text-white">
-                      {p.projectName} ({p.projectId})
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-3 h-3 text-blue-300 absolute right-2 pointer-events-none" />
-              </div>
+              {/* Dynamic Project Selector Dropdown (Shown only for Vendor HR, not Super Admin) */}
+              {!isSuperAdmin && !isAdmin && (
+                <div className="relative hidden md:flex items-center">
+                  <Building2 className="w-3.5 h-3.5 text-blue-300 absolute left-2.5 pointer-events-none" />
+                  <select
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    className="pl-7 pr-6 py-1.5 rounded-lg bg-blue-900/60 border border-blue-700/60 text-xs font-semibold text-blue-100 shadow-xs appearance-none hover:bg-blue-800/80 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-400"
+                  >
+                    <option value="ALL" className="bg-slate-900 text-white">All Projects ({projectsList.length})</option>
+                    {projectsList.map((p) => (
+                      <option key={p.projectId || p.id} value={p.projectId || p.id} className="bg-slate-900 text-white">
+                        {p.projectName} ({p.projectId})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3 h-3 text-blue-300 absolute right-2 pointer-events-none" />
+                </div>
+              )}
 
-              {/* Agency Representation Badge */}
-              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-800/60 border border-blue-600/40 text-xs font-bold text-cyan-300 shadow-xs truncate max-w-[200px]">
-                <ShieldCheck size={13} className="text-cyan-400 shrink-0" />
-                <span className="truncate">{vendorName}</span>
-              </div>
+              {/* Agency Representation Badge (Shown only for Vendor HR, not Super Admin) */}
+              {!isSuperAdmin && !isAdmin && vendorName && (
+                <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-800/60 border border-blue-600/40 text-xs font-bold text-cyan-300 shadow-xs truncate max-w-[200px]">
+                  <ShieldCheck size={13} className="text-cyan-400 shrink-0" />
+                  <span className="truncate">{vendorName}</span>
+                </div>
+              )}
 
               {/* User Pill */}
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-900/80 border border-blue-700/60 text-xs font-semibold text-blue-200">
                 <User size={13} className="text-cyan-400 shrink-0" />
                 <span className="hidden sm:inline font-bold">{hrUserName}</span>
-                <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">HR</span>
+                <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">
+                  {isSuperAdmin ? "SUPER" : isAdmin ? "ADMIN" : "HR"}
+                </span>
               </div>
 
               {/* Notification Bell with Direct Flyout Popover */}
@@ -1457,9 +1516,11 @@ export default function VendorHRDashboardPage() {
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                 Workspace / {activeMenu.toUpperCase()}
               </span>
-              <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                {vendorName}
-              </span>
+              {!isSuperAdmin && !isAdmin && vendorName ? (
+                <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                  {vendorName}
+                </span>
+              ) : null}
             </div>
 
             <div className="flex items-center space-x-2">
@@ -4421,10 +4482,7 @@ export default function VendorHRDashboardPage() {
         <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
           <div className="w-full flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="flex items-end gap-0.5 select-none font-bold text-sm tracking-tight leading-none text-white">
-                <span>immi</span>
-                <span className="text-cyan-400">Go</span>
-              </div>
+              <ImmiGoLogo size="xs" theme="light" />
               <span className="hidden sm:inline-block text-[11px] text-blue-300/80 pl-3 border-l border-blue-800/80">
                 Vendor HR Portal • Global Manpower Supply Command Center
               </span>

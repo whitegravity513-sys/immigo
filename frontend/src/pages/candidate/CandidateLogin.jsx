@@ -31,30 +31,6 @@ export default function CandidateLogin() {
   const [errorMsg, setErrorMsg] = useState("");
   const [statusNotice, setStatusNotice] = useState(null);
 
-  const handleDemoLogin = async () => {
-    setErrorMsg("");
-    setStatusNotice(null);
-    setLoading(true);
-    try {
-      const res = await apiClient.post("/auth/candidate/login", {
-        email: "candidate@immigo.com",
-        password: "Password@123",
-      });
-      if (res.data?.success) {
-        login(res.data.token, res.data.candidate, "candidate");
-        navigate("/candidate/dashboard");
-      } else {
-        setErrorMsg("Candidate demo login failed.");
-      }
-    } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Demo login failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -268,18 +244,6 @@ export default function CandidateLogin() {
                   <span>Login</span>
                 )}
               </button>
-
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  disabled={loading}
-                  className="w-full py-2.5 px-4 rounded-full border border-dashed border-[#3b2875]/40 hover:border-[#3b2875] bg-purple-50/70 hover:bg-purple-100/70 text-[#3b2875] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99] disabled:opacity-60"
-                >
-                  <Zap size={14} className="text-amber-500 fill-amber-500" />
-                  <span>1-Click Demo Login (Candidate)</span>
-                </button>
-              </div>
 
               {/* Registration Link */}
               <div className="pt-2 text-center text-xs text-slate-500">
