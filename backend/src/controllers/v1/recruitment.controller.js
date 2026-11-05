@@ -52,6 +52,21 @@ export const recordInterviewFeedback = asyncHandler(async (req, res) => {
   return ApiResponse.send(res, 200, "Interview feedback recorded successfully", interview);
 });
 
+export const reassignCandidateApplication = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { projectId, projectName, jobId, jobTitle, notes } = req.body;
+  const application = await RecruitmentService.reassignCandidateApplication({
+    applicationId: id,
+    projectId,
+    projectName,
+    jobId,
+    jobTitle,
+    notes,
+    actorUser: req.user,
+  });
+  return ApiResponse.send(res, 200, "Candidate application successfully reassigned to new project", application);
+});
+
 export const getApplications = asyncHandler(async (req, res) => {
   const { projectId, vendorId, stage, status, search, page = 1, limit = 50 } = req.query;
   const filter = {};

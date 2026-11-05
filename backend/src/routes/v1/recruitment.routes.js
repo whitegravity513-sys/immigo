@@ -4,6 +4,7 @@ import {
   updateCandidateStage,
   scheduleInterview,
   recordInterviewFeedback,
+  reassignCandidateApplication,
   getApplications,
   getInterviews,
 } from "../../controllers/v1/recruitment.controller.js";
@@ -15,6 +16,7 @@ router.use(authenticateRBAC);
 
 router.post("/candidates", submitCandidate);
 router.put("/applications/:id/stage", updateCandidateStage);
+router.post("/applications/:id/reassign", reassignCandidateApplication);
 router.post("/interviews", scheduleInterview);
 router.put("/interviews/:id/feedback", recordInterviewFeedback);
 router.get("/applications", getApplications);

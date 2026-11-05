@@ -46,6 +46,7 @@ import {
   Target,
   ShieldCheck,
   BarChart3,
+  RotateCcw,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import vendorHRService from "../../services/vendorHRService.js";
@@ -147,6 +148,15 @@ export default function VendorHRDashboardPage() {
   const [scheduleInterviewTarget, setScheduleInterviewTarget] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackInterviewTarget, setFeedbackInterviewTarget] = useState(null);
+  const [showReassignModal, setShowReassignModal] = useState(false);
+  const [reassignTargetCandidate, setReassignTargetCandidate] = useState(null);
+  const [reassignForm, setReassignForm] = useState({
+    projectId: "",
+    projectName: "",
+    jobId: "",
+    jobTitle: "",
+    notes: "",
+  });
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -366,6 +376,71 @@ export default function VendorHRDashboardPage() {
       await loadData();
     } catch (err) {
       showToast(err.response?.data?.message || err.message || "Failed to record feedback", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Quick Action: Shortlist, Hold, or Reject from candidate list
+  const handleQuickStage = async (cand, newStage, remarks = "") => {
+    try {
+      setActionLoading(true);
+      const appId = cand.applicationId || cand.id || cand._id;
+      await vendorHRService.updateCandidateStage(appId, {
+        stage: newStage,
+        remarks: remarks || `Candidate marked as ${newStage} by Vendor HR screening`,
+      });
+      showToast(`Candidate [${cand.candidateName}] updated to ${newStage}!`);
+      await loadData();
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message || "Failed to update candidate stage", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Open Reassign Modal for Rejected Candidate
+  const openReassignModal = (cand) => {
+    setReassignTargetCandidate(cand);
+    const otherProj = projectsList.find((p) => p.projectId !== cand.projectId) || projectsList[0];
+    const initialJob = jobs.find((j) => j.projectId === otherProj?.projectId);
+    setReassignForm({
+      projectId: otherProj?.projectId || "",
+      projectName: otherProj?.projectName || "",
+      jobId: initialJob?.jobId || "",
+      jobTitle: initialJob?.title || "",
+      notes: `Reassigned from rejected project [${cand.projectName || cand.projectId}]`,
+    });
+    setShowReassignModal(true);
+  };
+
+  // Submit Reassignment to Another Project
+  const handleReassignSubmit = async (e) => {
+    e.preventDefault();
+    if (!reassignTargetCandidate || !reassignForm.projectId) {
+      showToast("Please select a target project for reassignment.", "error");
+      return;
+    }
+    try {
+      setActionLoading(true);
+      const appId = reassignTargetCandidate.applicationId || reassignTargetCandidate.id || reassignTargetCandidate._id;
+      const targetProj = projectsList.find((p) => p.projectId === reassignForm.projectId);
+      const targetJob = jobs.find((j) => j.jobId === reassignForm.jobId);
+
+      await vendorHRService.reassignCandidate(appId, {
+        projectId: reassignForm.projectId,
+        projectName: targetProj?.projectName || "Overseas Project",
+        jobId: reassignForm.jobId,
+        jobTitle: targetJob?.title || reassignForm.jobTitle || targetProj?.projectName,
+        notes: reassignForm.notes || "Candidate re-applied to new project vacancy",
+      });
+
+      showToast(`Candidate [${reassignTargetCandidate.candidateName}] reassigned to ${targetProj?.projectName || "new project"}!`);
+      setShowReassignModal(false);
+      setReassignTargetCandidate(null);
+      await loadData();
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message || "Failed to reassign candidate", "error");
     } finally {
       setActionLoading(false);
     }
@@ -2256,15 +2331,13 @@ export default function VendorHRDashboardPage() {
                     className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-600 cursor-pointer"
                   >
                     <option value="ALL">All Stages ({applications.length})</option>
-                    <option value="Applied">Applied</option>
-                    <option value="Screening">Screening</option>
-                    <option value="L1 Interview">L1 Interview</option>
-                    <option value="L2 Interview">L2 Interview</option>
-                    <option value="Selected">Selected</option>
-                    <option value="Offer Released">Offer Released</option>
-                    <option value="Visa Processing">Visa Processing</option>
-                    <option value="Visa Issued">Visa Issued</option>
-                    <option value="Joined">Joined</option>
+                    <option value="Applied">1. Applied ({applications.filter((a) => a.recruitmentStage === "Applied" || a.status === "Applied").length})</option>
+                    <option value="Screening">2. In Screening ({applications.filter((a) => a.recruitmentStage === "Screening").length})</option>
+                    <option value="Shortlisted">3. Shortlisted ({applications.filter((a) => a.recruitmentStage === "Shortlisted").length})</option>
+                    <option value="Interview Scheduled">4. In Interview ({applications.filter((a) => a.recruitmentStage?.includes("Interview")).length})</option>
+                    <option value="Selected">5. Selected ({applications.filter((a) => a.recruitmentStage === "Selected").length})</option>
+                    <option value="On Hold">On Hold ({applications.filter((a) => a.recruitmentStage === "On Hold" || a.status === "On Hold").length})</option>
+                    <option value="Rejected">Rejected ({applications.filter((a) => a.recruitmentStage === "Rejected" || a.status === "Rejected").length})</option>
                   </select>
                 </div>
               </div>
@@ -2273,109 +2346,254 @@ export default function VendorHRDashboardPage() {
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
                       <tr>
-                        <th className="py-3 px-4">Candidate Profile</th>
+                        <th className="py-3 px-4">Candidate Profile & CV</th>
                         <th className="py-3 px-4">Job & Project</th>
-                        <th className="py-3 px-4">Current Stage</th>
-                        <th className="py-3 px-4">Offer Letter Status</th>
-                        <th className="py-3 px-4">Visa & Flight Status</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
+                        <th className="py-3 px-3">Recruitment Stage</th>
+                        <th className="py-3 px-4">HR Screening & Lifecycle Actions</th>
+                        <th className="py-3 px-4 text-right">Dossier</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium">
                       {filteredCandidates.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="py-8 text-center text-slate-400">
+                          <td colSpan="5" className="py-10 text-center text-slate-400">
                             No candidates found matching criteria.
                           </td>
                         </tr>
                       ) : (
-                        filteredCandidates.map((cand, idx) => (
-                          <tr key={cand.applicationId || idx} className="hover:bg-slate-50/70 transition">
-                            <td className="py-3 px-4 flex items-center space-x-2.5">
-                              <img
-                                src={AVATARS[idx % AVATARS.length]}
-                                alt={cand.candidateName}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                              <div>
-                                <div className="font-bold text-slate-900">{cand.candidateName}</div>
-                                <div className="text-[10px] text-slate-400">{cand.candidateEmail}</div>
-                                <div className="text-[10px] text-slate-400">{cand.candidatePhone}</div>
-                              </div>
-                            </td>
+                        filteredCandidates.map((cand, idx) => {
+                          const resumeLink = cand.resumeUrl || (Array.isArray(cand.documents) && cand.documents[0]?.fileUrl);
 
-                            <td className="py-3 px-4">
-                              <div className="font-bold text-slate-800">{cand.jobTitle}</div>
-                              <div className="text-[10px] text-slate-500">{cand.projectName}</div>
-                            </td>
-
-                            <td className="py-3 px-4">
-                              <span
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                                  cand.recruitmentStage === "Joined"
-                                    ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                                    : cand.recruitmentStage === "Selected"
-                                    ? "bg-teal-50 text-teal-800 border-teal-200"
-                                    : cand.recruitmentStage?.includes("Offer")
-                                    ? "bg-purple-50 text-purple-800 border-purple-200"
-                                    : cand.recruitmentStage?.includes("Visa")
-                                    ? "bg-blue-50 text-blue-800 border-blue-200"
-                                    : "bg-slate-100 text-slate-700 border-slate-200"
-                                }`}
-                              >
-                                {cand.recruitmentStage || cand.status || "Applied"}
-                              </span>
-                            </td>
-
-                            <td className="py-3 px-4">
-                              {cand.offerDetails?.offerStatus && cand.offerDetails.offerStatus !== "Pending" ? (
-                                <div className="space-y-0.5">
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                    {cand.offerDetails.offerStatus}
-                                  </span>
-                                  <div className="text-[10px] font-bold text-slate-700">
-                                    {formatSalary(cand.offerDetails.salary || "Standard CTC")}
+                          return (
+                            <tr key={cand.applicationId || idx} className="hover:bg-blue-50/20 transition">
+                              {/* Col 1: Profile + Resume */}
+                              <td className="py-3 px-4">
+                                <div className="flex items-start space-x-2.5">
+                                  <img
+                                    src={AVATARS[idx % AVATARS.length]}
+                                    alt={cand.candidateName}
+                                    className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5"
+                                  />
+                                  <div className="min-w-0">
+                                    <div className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</div>
+                                    <div className="text-[10px] text-slate-400 font-mono">
+                                      {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 truncate mt-0.5">
+                                      {cand.candidatePhone || cand.candidateEmail}
+                                    </div>
+                                    {resumeLink ? (
+                                      <a
+                                        href={resumeLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-[9.5px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 mt-1 cursor-pointer transition"
+                                        title="Open Candidate Resume / CV in new tab"
+                                      >
+                                        <FileText size={10} />
+                                        <span>View CV / Resume</span>
+                                        <ExternalLink size={9} />
+                                      </a>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 text-[9.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded mt-1">
+                                        <FileText size={10} />
+                                        <span>CV Verified</span>
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                              ) : (
-                                <span className="text-[11px] text-slate-400">—</span>
-                              )}
-                            </td>
+                              </td>
 
-                            <td className="py-3 px-4">
-                              {cand.visaDetails?.visaStatus && cand.visaDetails.visaStatus !== "Not Started" ? (
-                                <div className="space-y-0.5">
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    {cand.visaDetails.visaStatus}
-                                  </span>
-                                  {cand.visaDetails.visaNumber && (
-                                    <div className="text-[10px] text-slate-500">
-                                      #{cand.visaDetails.visaNumber}
-                                    </div>
-                                  )}
-                                  {cand.visaDetails.flightDetails && (
-                                    <div className="text-[9.5px] text-emerald-700 font-semibold">
-                                      ✈️ {cand.visaDetails.flightDetails}
-                                    </div>
-                                  )}
+                              {/* Col 2: Job & Project */}
+                              <td className="py-3 px-4">
+                                <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
+                                  {cand.jobTitle || "Specialist Technician"}
                                 </div>
-                              ) : (
-                                <span className="text-[11px] text-slate-400">—</span>
-                              )}
-                            </td>
+                                <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                  <Building2 size={11} className="text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[180px]">{cand.projectName || "Overseas Deployment"}</span>
+                                </div>
+                                <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
+                                  Vendor: {cand.vendorName || vendorName}
+                                </div>
+                              </td>
 
-                            <td className="py-3 px-4 text-right">
-                              <button
-                                onClick={() => openCandidateModal(cand)}
-                                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer"
-                              >
-                                Manage Candidate
-                              </button>
-                            </td>
-                          </tr>
-                        ))
+                              {/* Col 3: Current Stage Badge */}
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap ${
+                                    cand.recruitmentStage === "Joined" || cand.recruitmentStage === "Deployed"
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                                      : cand.recruitmentStage === "Selected"
+                                      ? "bg-teal-50 text-teal-800 border-teal-200"
+                                      : cand.recruitmentStage === "Shortlisted"
+                                      ? "bg-indigo-50 text-indigo-800 border-indigo-200"
+                                      : cand.recruitmentStage?.includes("Interview")
+                                      ? "bg-purple-50 text-purple-800 border-purple-200"
+                                      : cand.recruitmentStage === "Rejected" || cand.status === "Rejected"
+                                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                                      : cand.recruitmentStage === "On Hold" || cand.status === "On Hold"
+                                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                                      : "bg-slate-100 text-slate-700 border-slate-200"
+                                  }`}
+                                >
+                                  {cand.recruitmentStage === "Rejected" || cand.status === "Rejected" ? "✕ " : "● "}
+                                  {cand.recruitmentStage || cand.status || "Applied"}
+                                </span>
+                                {cand.rejectionReason && (
+                                  <div
+                                    className="text-[10px] text-rose-600 font-medium truncate max-w-[160px] mt-1"
+                                    title={cand.rejectionReason}
+                                  >
+                                    Reason: {cand.rejectionReason}
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Col 4: Pre-Screening Decisions & Lifecycle Actions */}
+                              <td className="py-3 px-4">
+                                {/* Case A: Pre-selection Screening (Applied / Screening / On Hold) */}
+                                {["Applied", "Screening", "On Hold"].includes(cand.recruitmentStage || cand.status) && (
+                                  <div className="space-y-1">
+                                    <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                                      Screening Decision:
+                                    </span>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleQuickStage(cand, "Shortlisted")}
+                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                        title="Shortlist for Interview"
+                                      >
+                                        <Check size={11} />
+                                        <span>Shortlist</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleQuickStage(cand, "On Hold")}
+                                        className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-[11px] border border-amber-200 transition cursor-pointer"
+                                        title="Put on Hold"
+                                      >
+                                        <span>Hold</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleQuickStage(cand, "Rejected", "Rejected during HR screening")}
+                                        className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
+                                        title="Reject Candidate"
+                                      >
+                                        <X size={11} />
+                                        <span>Reject</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Case B: Shortlisted -> Schedule Interview */}
+                                {cand.recruitmentStage === "Shortlisted" && (
+                                  <div className="space-y-1">
+                                    <span className="text-[10px] font-bold text-indigo-600 block">Shortlisted Cleared:</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setScheduleInterviewTarget(cand);
+                                        setScheduleForm((prev) => ({
+                                          ...prev,
+                                          applicationId: cand.applicationId,
+                                          round: "L1 Interview",
+                                        }));
+                                        setShowScheduleModal(true);
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                    >
+                                      <Calendar size={12} />
+                                      <span>Schedule Interview</span>
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Case C: Interview Scheduled / L1 / L2 -> Select or Reject */}
+                                {(cand.recruitmentStage?.includes("Interview") || cand.status?.includes("Interview")) && (
+                                  <div className="space-y-1">
+                                    <span className="text-[10px] font-bold text-purple-700 block">Interview Round Active:</span>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleQuickStage(cand, "Selected")}
+                                        className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                        title="Select Candidate (Cleared Interview)"
+                                      >
+                                        <Check size={11} />
+                                        <span>Select</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleQuickStage(cand, "Rejected", "Did not clear technical interview round")}
+                                        className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
+                                        title="Reject Candidate"
+                                      >
+                                        <X size={11} />
+                                        <span>Reject</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Case D: Selected -> Milestones & Deployment */}
+                                {["Selected", "Offer Released", "Visa Processing", "Visa Issued", "Joined"].includes(cand.recruitmentStage) && (
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                        Selected for Project
+                                      </span>
+                                      <span className="text-[9.5px] font-bold text-indigo-600">
+                                        Milestones Unlocked
+                                      </span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => openCandidateModal(cand)}
+                                      className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-[11px] border border-teal-200 transition inline-flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Award size={12} />
+                                      <span>Update Milestones & Stage</span>
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Case E: Rejected -> Reassign to Another Project! */}
+                                {(cand.recruitmentStage === "Rejected" || cand.status === "Rejected") && (
+                                  <div className="space-y-1">
+                                    <span className="text-[10px] font-bold text-slate-400 block">Available in Vendor Pool:</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => openReassignModal(cand)}
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                      title="Submit this candidate to a different overseas project"
+                                    >
+                                      <RotateCcw size={12} />
+                                      <span>Apply to Another Project</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Col 5: Dossier Details */}
+                              <td className="py-3 px-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => openCandidateModal(cand)}
+                                  className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  <span>Manage</span>
+                                  <ArrowRight size={12} />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>
@@ -3051,6 +3269,85 @@ export default function VendorHRDashboardPage() {
               </button>
             </div>
 
+            {/* Candidate Master CV / Resume Dossier Link */}
+            {selectedCandidate.resumeUrl || (Array.isArray(selectedCandidate.documents) && selectedCandidate.documents[0]?.fileUrl) ? (
+              <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between text-xs">
+                <span className="text-blue-900 font-semibold flex items-center gap-1.5">
+                  <FileText size={13} className="text-blue-600" />
+                  <span>Candidate CV / Resume Dossier:</span>
+                </span>
+                <a
+                  href={selectedCandidate.resumeUrl || selectedCandidate.documents[0].fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 hover:text-blue-900 font-bold inline-flex items-center gap-1 underline cursor-pointer"
+                >
+                  <span>Open Full CV / Resume PDF</span>
+                  <ExternalLink size={11} />
+                </a>
+              </div>
+            ) : null}
+
+            {/* Alert Banner if Candidate is Rejected -> Quick Reassign Access */}
+            {(selectedCandidate.recruitmentStage === "Rejected" || selectedCandidate.status === "Rejected") && (
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-bold text-rose-900 text-xs">Candidate Rejected for this Project</h4>
+                  <p className="text-[11px] text-rose-700 mt-0.5">
+                    This candidate profile remains active in your vendor talent pool. You can re-allocate them to another overseas client project right away.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCandidateModal(false);
+                    openReassignModal(selectedCandidate);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                >
+                  <RotateCcw size={12} />
+                  <span>Reassign to Other Project</span>
+                </button>
+              </div>
+            )}
+
+            {/* Post-Selection Milestone Tracker & Payment Status */}
+            {["Selected", "Offer Released", "Visa Processing", "Visa Issued", "Joined"].includes(selectedCandidate.recruitmentStage) && (
+              <div className="p-3.5 rounded-xl bg-teal-50/70 border border-teal-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-teal-900 text-xs flex items-center gap-1.5">
+                    <Award size={14} className="text-teal-700" />
+                    <span>Selected Candidate • Deployment Milestones</span>
+                  </h4>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-emerald-700 border border-emerald-300">
+                    Vendor Milestone Payment: Verified / Active
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[10.5px]">
+                  <div className="p-2 rounded bg-white border border-teal-100 flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold">1</span>
+                    <span className="font-semibold text-slate-700 truncate">Docs Verified</span>
+                  </div>
+                  <div className="p-2 rounded bg-white border border-teal-100 flex items-center gap-1.5">
+                    <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold">2</span>
+                    <span className="font-semibold text-slate-700 truncate">Trade & Medical</span>
+                  </div>
+                  <div className="p-2 rounded bg-white border border-teal-100 flex items-center gap-1.5">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      ["Visa Processing", "Visa Issued", "Joined"].includes(candidateUpdateForm.stage) ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-600"
+                    }`}>3</span>
+                    <span className="font-semibold text-slate-700 truncate">Visa Approved</span>
+                  </div>
+                  <div className="p-2 rounded bg-white border border-teal-100 flex items-center gap-1.5">
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                      ["Joined", "Deployed"].includes(candidateUpdateForm.stage) ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-600"
+                    }`}>4</span>
+                    <span className="font-semibold text-slate-700 truncate">Flight Mobilized</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleCandidateUpdate} className="space-y-4 text-xs font-medium">
               {/* Stage Transition Select */}
               <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-100 space-y-2">
@@ -3400,6 +3697,132 @@ export default function VendorHRDashboardPage() {
                   className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xs transition cursor-pointer disabled:opacity-50"
                 >
                   {actionLoading ? "Submitting..." : "Save Evaluation"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* MODAL 5: REASSIGN REJECTED CANDIDATE TO ANOTHER PROJECT */}
+      {showReassignModal && reassignTargetCandidate && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Reassign Candidate to Another Project</h3>
+                <p className="text-xs text-slate-500">
+                  Re-allocate {reassignTargetCandidate.candidateName} from vendor candidate pool
+                </p>
+              </div>
+              <button
+                onClick={() => setShowReassignModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Candidate Summary Box */}
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Candidate Name:</span>
+                <span className="font-bold text-slate-900">{reassignTargetCandidate.candidateName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Passport / ID:</span>
+                <span className="font-mono text-slate-700">
+                  {reassignTargetCandidate.passportNumber || reassignTargetCandidate.candidateId}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Previous / Rejected Project:</span>
+                <span className="text-rose-700 font-semibold truncate max-w-[220px]">
+                  {reassignTargetCandidate.projectName}
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleReassignSubmit} className="space-y-3.5 text-xs font-medium">
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Select New Target Project *</label>
+                <select
+                  required
+                  value={reassignForm.projectId}
+                  onChange={(e) => {
+                    const selectedProjId = e.target.value;
+                    const matchedProj = projectsList.find((p) => p.projectId === selectedProjId);
+                    const defaultJob = jobs.find((j) => j.projectId === selectedProjId);
+                    setReassignForm({
+                      ...reassignForm,
+                      projectId: selectedProjId,
+                      projectName: matchedProj?.projectName || "",
+                      jobId: defaultJob?.jobId || "",
+                      jobTitle: defaultJob?.title || "",
+                    });
+                  }}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer font-bold"
+                >
+                  <option value="">Select an available active project</option>
+                  {projectsList.map((p) => (
+                    <option key={p.projectId} value={p.projectId}>
+                      {p.projectName} ({p.destinationCountry || "Overseas"})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Target Trade Job / Designation</label>
+                <select
+                  value={reassignForm.jobId}
+                  onChange={(e) => {
+                    const jbId = e.target.value;
+                    const jb = jobs.find((j) => j.jobId === jbId);
+                    setReassignForm({
+                      ...reassignForm,
+                      jobId: jbId,
+                      jobTitle: jb?.title || "",
+                    });
+                  }}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+                >
+                  <option value="">Select Trade Job</option>
+                  {jobs
+                    .filter((j) => !reassignForm.projectId || j.projectId === reassignForm.projectId)
+                    .map((j) => (
+                      <option key={j.jobId} value={j.jobId}>
+                        {j.title} ({j.department || "Technical"})
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Reassignment Notes & Justification</label>
+                <textarea
+                  rows="2"
+                  value={reassignForm.notes}
+                  onChange={(e) => setReassignForm({ ...reassignForm, notes: e.target.value })}
+                  placeholder="e.g. Candidate trade skill verified; re-allocated to Dubai Metro project requirement"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowReassignModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <RotateCcw size={13} />
+                  <span>{actionLoading ? "Reassigning..." : "Confirm Reassignment"}</span>
                 </button>
               </div>
             </form>

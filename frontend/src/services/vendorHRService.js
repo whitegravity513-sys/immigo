@@ -26,6 +26,11 @@ export const vendorHRService = {
     return response.data?.data || response.data;
   },
 
+  async reassignCandidate(applicationId, data) {
+    const response = await apiClient.post(`/v1/recruitment/applications/${applicationId}/reassign`, data);
+    return response.data?.data || response.data;
+  },
+
   async scheduleInterview(interviewData) {
     const response = await apiClient.post("/v1/recruitment/interviews", interviewData);
     return response.data?.data || response.data;

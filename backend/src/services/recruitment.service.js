@@ -377,7 +377,12 @@ export class RecruitmentService {
         application.recruitmentStage = "Selected";
         application.status = "Selected";
       } else if (recommendation === "Rejected") {
+        application.recruitmentStage = "Rejected";
         application.status = "Rejected";
+        application.rejectionReason = feedback || "Did not clear technical evaluation";
+      } else if (recommendation === "Hold" || recommendation === "On Hold") {
+        application.recruitmentStage = "On Hold";
+        application.status = "On Hold";
       } else {
         application.recruitmentStage = "Interview Completed";
         application.status = "In Progress";
@@ -405,6 +410,90 @@ export class RecruitmentService {
     });
 
     return interview;
+  }
+
+  static async reassignCandidateApplication({
+    applicationId,
+    projectId,
+    projectName,
+    jobId,
+    jobTitle,
+    notes = "",
+    actorUser,
+  }) {
+    if (!applicationId || !projectId) {
+      throw new ApiError(400, "Application ID and target Project ID are required.");
+    }
+
+    const application = await CandidateApplication.findOne({
+      $or: [
+        { applicationId },
+        { _id: applicationId.match(/^[0-9a-fA-F]{24}$/) ? applicationId : null },
+      ],
+    });
+
+    if (!application) {
+      throw new ApiError(404, "Candidate application not found.");
+    }
+
+    const project = await Project.findOne({
+      $or: [{ projectId }, { _id: projectId.match(/^[0-9a-fA-F]{24}$/) ? projectId : null }],
+    });
+    const targetProjectName = projectName || project?.title || project?.projectName || "Overseas Project";
+
+    let job = null;
+    if (jobId) {
+      job = await Job.findOne({
+        $or: [{ jobId }, { _id: jobId.match(/^[0-9a-fA-F]{24}$/) ? jobId : null }],
+      });
+    }
+    const targetJobTitle = jobTitle || job?.title || application.jobTitle || targetProjectName;
+
+    const prevProj = application.projectName;
+    application.projectId = project?.projectId || projectId;
+    application.projectName = targetProjectName;
+    application.clientId = project?.clientId?.toString() || application.clientId || "";
+    application.jobId = job?.jobId || jobId || "";
+    application.jobTitle = targetJobTitle;
+    application.position = targetJobTitle;
+    application.recruitmentStage = "Applied";
+    application.status = "Applied";
+    application.rejectionReason = "";
+    application.interview = null;
+    application.offerDetails = { offerStatus: "Pending", salary: "" };
+    application.visaDetails = { visaStatus: "Not Started", visaNumber: "" };
+
+    application.statusHistory = application.statusHistory || [];
+    application.statusHistory.push({
+      status: "Reassigned to New Project",
+      updatedBy: actorUser?.name || "HR Staff",
+      note: notes || `Reassigned from [${prevProj}] to [${targetProjectName}] - ${targetJobTitle}`,
+      date: new Date(),
+    });
+
+    await application.save();
+
+    await ActivityLog.create({
+      userType: actorUser?.role || "HR",
+      userId: actorUser?._id?.toString() || actorUser?.id || "System",
+      userName: actorUser?.name || "HR Staff",
+      action: "CANDIDATE_REASSIGNED_PROJECT",
+      title: `Candidate Reassigned: [${application.candidateName}] -> ${targetProjectName}`,
+      description: `Candidate reallocated from [${prevProj}] to [${targetProjectName}] for trade [${targetJobTitle}].`,
+      entityType: "Candidate",
+      entityId: application.candidateId,
+      entityName: application.candidateName,
+      candidateId: application.candidateId,
+      candidateName: application.candidateName,
+      vendorId: application.vendorId,
+      vendorName: application.vendorName,
+      status: "Applied",
+      newStatus: "Applied",
+      visibility: "ALL",
+      remarks: notes || `Reassigned by ${actorUser?.name} (${actorUser?.role || "HR"})`,
+    });
+
+    return application;
   }
 }
 
