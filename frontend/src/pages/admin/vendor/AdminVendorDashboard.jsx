@@ -15,6 +15,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import ActiveMeetingAlertBanner from "../../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 
 export default function AdminVendorDashboard() {
   const [stats, setStats] = useState(null);
@@ -72,6 +73,9 @@ export default function AdminVendorDashboard() {
           Overview of vendors, candidates, submissions and payments
         </p>
       </div>
+
+      {/* Active Meeting Banner (until completed) */}
+      <ActiveMeetingAlertBanner />
 
       {}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">

@@ -15,6 +15,15 @@ import {
   UserCheck,
   KeyRound,
   Calendar,
+  ArrowLeft,
+  Activity,
+  Layers,
+  ExternalLink,
+  FileCheck,
+  CheckCircle2,
+  History,
+  User as UserIcon,
+  Plane,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -81,6 +90,23 @@ export function AdminMasterSidebar({
     if (path === "/admin/settings") {
       return currentPath.startsWith("/admin/settings");
     }
+    if (path.startsWith("/admin/hr-activities")) {
+      const searchTab = new URLSearchParams(location.search).get("tab") || "vendorHRDashboard";
+      const targetTab = new URLSearchParams(path.split("?")[1] || "").get("tab");
+      const searchView = new URLSearchParams(location.search).get("view") || "overview";
+      const targetView = new URLSearchParams(path.split("?")[1] || "").get("view");
+      if (targetView) {
+        return (
+          currentPath.startsWith("/admin/hr-activities") &&
+          searchTab === targetTab &&
+          searchView === targetView
+        );
+      }
+      if (targetTab) {
+        return currentPath.startsWith("/admin/hr-activities") && searchTab === targetTab;
+      }
+      return currentPath.startsWith("/admin/hr-activities");
+    }
     return currentPath === path;
   };
 
@@ -98,11 +124,18 @@ export function AdminMasterSidebar({
       alwaysVisible: true,
     },
     {
+      title: "Assign to HR",
+      icon: UserCheck,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=assignments",
+      check: () => Boolean(isSuperAdmin || role === "ADMIN"),
+      badge: "Allocation",
+    },
+    {
       title: "Vendor HR Dashboard",
       icon: ShieldCheck,
-      path: "/hr/vendor-dashboard",
-      badge: isVendorHR ? "" : "HR",
-      check: () => Boolean(isVendorHR),
+      path: isVendorHR ? "/hr/vendor-dashboard" : "/admin/hr-activities?tab=vendorHRDashboard&view=overview",
+      badge: isVendorHR ? "" : "Live",
+      check: () => Boolean(isSuperAdmin || role === "ADMIN" || isVendorHR),
     },
     {
       title: "HR Management",
@@ -162,6 +195,67 @@ export function AdminMasterSidebar({
     return true;
   });
 
+  const currentView = new URLSearchParams(location.search).get("view") || "overview";
+  const isHRActivitySection =
+    currentPath.startsWith("/admin/hr-activities") && currentView !== "assignments";
+
+  const hrActivityNavItems = [
+    {
+      title: "Overview",
+      icon: LayoutDashboard,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=overview",
+      view: "overview",
+    },
+    {
+      title: "My Projects",
+      icon: FolderKanban,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=projects",
+      view: "projects",
+    },
+    {
+      title: "Jobs",
+      icon: Briefcase,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=jobs",
+      view: "jobs",
+    },
+    {
+      title: "Candidates",
+      icon: Users,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=candidates",
+      view: "candidates",
+    },
+    {
+      title: "Recruitment Pipeline",
+      icon: Layers,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=pipeline",
+      view: "pipeline",
+    },
+    {
+      title: "Interviews",
+      icon: Calendar,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=interviews",
+      view: "interviews",
+    },
+    {
+      title: "Visa Issued & Granted",
+      icon: Plane,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=visaIssued",
+      view: "visaIssued",
+    },
+    {
+      title: "Activity History",
+      icon: History,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=activity",
+      view: "activity",
+    },
+    {
+      title: "Profile",
+      icon: UserIcon,
+      path: "/admin/hr-activities?tab=vendorHRDashboard&view=profile",
+      view: "profile",
+    },
+  ];
+
   const adminName =
     (typeof user?.name === "string" ? user.name : user?.name?.first) ||
     user?.email?.split("@")[0] ||
@@ -217,48 +311,121 @@ export function AdminMasterSidebar({
 
         {/* Dynamic Navigation Items */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
-          {!collapsed && (
-            <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
-              {isSuperAdmin ? "Super Admin Operations" : "Management Modules"}
-            </p>
+          {isHRActivitySection ? (
+            <>
+              {/* Back to Main Admin Dashboard Button */}
+              <div className="mb-2.5">
+                <Link
+                  to={isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard"}
+                  onClick={() => setMobileOpen(false)}
+                  className={`w-full flex items-center gap-2 px-2.5 py-2 text-[11px] font-bold text-blue-800 bg-white/90 hover:bg-white hover:text-blue-900 border border-blue-200/80 rounded-xl transition-colors shadow-2xs ${
+                    collapsed ? "justify-center" : ""
+                  }`}
+                  title="Return to Main Admin Dashboard"
+                >
+                  <ArrowLeft size={13} className="shrink-0 text-blue-600" />
+                  {!collapsed && <span className="truncate">Main Admin Dashboard</span>}
+                </Link>
+              </div>
+
+              {!collapsed && (
+                <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
+                  Vendor HR Workspace
+                </p>
+              )}
+
+              {hrActivityNavItems.map((item, idx) => {
+                if (item.isHeader) {
+                  if (collapsed) return <hr key={idx} className="border-blue-200/60 my-2" />;
+                  return (
+                    <p
+                      key={idx}
+                      className="text-[10px] font-extrabold text-blue-900/60 uppercase tracking-[0.14em] px-3 pt-3 pb-1"
+                    >
+                      {item.title}
+                    </p>
+                  );
+                }
+
+                const Icon = item.icon;
+                const isItemActive = item.view
+                  ? currentView === item.view || (item.view === "visaIssued" && currentView === "offers")
+                  : isActive(item.path);
+
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.path}
+                    target={item.target}
+                    onClick={() => setMobileOpen(false)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
+                      isItemActive
+                        ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
+                        : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
+                    }`}
+                    title={collapsed ? item.title : undefined}
+                  >
+                    <Icon
+                      size={15}
+                      className={`shrink-0 ${isItemActive ? "text-white" : "text-slate-500"}`}
+                    />
+                    {!collapsed && (
+                      <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
+                        <span className="truncate">{item.title}</span>
+                        {isItemActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                        )}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </>
+          ) : (
+            <>
+              {!collapsed && (
+                <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
+                  {isSuperAdmin ? "Super Admin Operations" : "Management Modules"}
+                </p>
+              )}
+
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isItemActive = isActive(item.path);
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
+                      isItemActive
+                        ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
+                        : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
+                    }`}
+                    title={collapsed ? item.title : undefined}
+                  >
+                    <Icon
+                      size={16}
+                      className={`shrink-0 ${isItemActive ? "text-white" : "text-slate-500"}`}
+                    />
+                    {!collapsed && (
+                      <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
+                        <span className="truncate">{item.title}</span>
+                        {item.badge && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-sans shadow-2xs">
+                            {item.badge}
+                          </span>
+                        )}
+                        {isItemActive && !item.badge && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                        )}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </>
           )}
-
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isItemActive = isActive(item.path);
-            return (
-              <Link
-                key={item.title}
-                to={item.path}
-                onClick={() => setMobileOpen(false)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                  isItemActive
-                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
-                    : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
-                }`}
-                title={collapsed ? item.title : undefined}
-              >
-                <Icon
-                  size={16}
-                  className={`shrink-0 ${isItemActive ? "text-white" : "text-slate-500"}`}
-                />
-                {!collapsed && (
-                  <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
-                    <span className="truncate">{item.title}</span>
-                    {item.badge && (
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-sans shadow-2xs">
-                        {item.badge}
-                      </span>
-                    )}
-                    {isItemActive && !item.badge && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                    )}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-
         </div>
 
         {/* Footer matching Dashboard Footer height (48px) with clean Sign Out button */}

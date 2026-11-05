@@ -7,12 +7,20 @@ import {
   rescheduleMeeting,
   cancelMeeting,
   deleteMeeting,
+  getMeetingEmployees,
+  getMeetingVendors,
+  getMeetingHRs,
+  getMeetingCandidates,
   sendBroadcastNotification,
 } from "../../controllers/meeting.controller.js";
 import { requirePermission } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
+router.get("/meetings/employees", requirePermission("meetings.view"), getMeetingEmployees);
+router.get("/meetings/vendors", requirePermission("meetings.view"), getMeetingVendors);
+router.get("/meetings/hrs", requirePermission("meetings.view"), getMeetingHRs);
+router.get("/meetings/candidates", requirePermission("meetings.view"), getMeetingCandidates);
 router.get("/meetings/calendar-stats", requirePermission("meetings.view"), getMeetingCalendarStats);
 router.post("/meetings", requirePermission("meetings.create"), createMeeting);
 router.get("/meetings", requirePermission("meetings.view"), getAdminMeetings);

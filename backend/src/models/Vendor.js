@@ -229,6 +229,20 @@ const vendorSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    paymentTerms: {
+      type: String,
+      default: "Milestone Based",
+    },
+    contractDetails: {
+      startDate: { type: Date, default: null },
+      endDate: { type: Date, default: null },
+      contractDocUrl: { type: String, default: "" },
+      terms: { type: String, default: "" },
+    },
+    vendorNotes: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

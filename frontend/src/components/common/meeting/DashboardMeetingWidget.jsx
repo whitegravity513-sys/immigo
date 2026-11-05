@@ -13,9 +13,12 @@ import {
   Building2,
   RefreshCw,
   X,
+  User,
+  Search,
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import DynamicMeetingParticipantSelector from "./DynamicMeetingParticipantSelector.jsx";
 
 export default function DashboardMeetingWidget({
   role = "ADMIN",
@@ -41,14 +44,89 @@ export default function DashboardMeetingWidget({
   const [formData, setFormData] = useState({
     title: "",
     meetingType: "CANDIDATE_INTERVIEW",
+    platform: "Google Meet",
     date: todayStr,
     startTime: "11:00",
     endTime: "12:00",
     meetingLink: "",
     candidateName: "",
+    candidateEmail: "",
+    candidateId: "",
+    vendorId: "",
     vendorName: "",
     description: "",
   });
+
+  const [targetMode, setTargetMode] = useState("SPECIFIC");
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [candidateData, setCandidateData] = useState({
+    candidateId: "",
+    candidateName: "",
+    candidateEmail: "",
+    vendorId: "",
+    vendorName: "",
+    jobTitle: "",
+    projectName: "",
+  });
+
+  const handleMeetingTypeChange = (newType) => {
+    setSelectedParticipants([]);
+    setTargetMode("SPECIFIC");
+    const defaultTitles = {
+      CANDIDATE_INTERVIEW: "Candidate Interview Round",
+      VENDOR_DISCUSSION: "Vendor Agency Coordination Sync",
+      INTERNAL_HR: "HR Operations & Recruitment Review",
+      EMPLOYEE: "Employee One-on-One Discussion",
+      GENERAL: "Company Operations Sync",
+    };
+    setFormData((prev) => ({
+      ...prev,
+      meetingType: newType,
+      title: defaultTitles[newType] || prev.title,
+    }));
+  };
+
+  const handleAddParticipant = (p) => {
+    setSelectedParticipants((prev) => {
+      const next = [...prev, p];
+      if (
+        next.length === 1 &&
+        (!formData.title ||
+          formData.title.includes("Discussion") ||
+          formData.title.includes("Sync") ||
+          formData.title.includes("Round"))
+      ) {
+        setFormData((f) => ({
+          ...f,
+          title: `Discussion with ${p.name || p.companyName}`,
+        }));
+      }
+      return next;
+    });
+  };
+
+  const handleRemoveParticipant = (id) => {
+    setSelectedParticipants((prev) =>
+      prev.filter((p) => (p.id || p.code || p.name) !== id)
+    );
+  };
+
+  const handleCandidateChange = (cand) => {
+    setCandidateData(cand);
+    if (cand.candidateName) {
+      setFormData((f) => ({
+        ...f,
+        candidateId: cand.candidateId || "",
+        candidateName: cand.candidateName || "",
+        candidateEmail: cand.candidateEmail || "",
+        vendorId: cand.vendorId || "",
+        vendorName: cand.vendorName || "",
+        title: `Interview: ${cand.candidateName}${
+          cand.jobTitle ? ` - ${cand.jobTitle}` : ""
+        }`,
+      }));
+    }
+  };
 
   useEffect(() => {
     loadDateMeetings();
@@ -86,25 +164,83 @@ export default function DashboardMeetingWidget({
     try {
       setSubmitting(true);
       setFormError("");
+
+      const targetEmployees = selectedParticipants
+        .filter((p) => p.role === "EMPLOYEE" || formData.meetingType === "EMPLOYEE")
+        .map((p) => p.id || p._id);
+
+      const targetVendors = selectedParticipants
+        .filter((p) => p.role === "VENDOR" || formData.meetingType === "VENDOR_DISCUSSION")
+        .map((p) => p.code || p.id || p.vendorId);
+
+      const targetHRs = selectedParticipants
+        .filter((p) => p.role?.includes("HR") || formData.meetingType === "INTERNAL_HR")
+        .map((p) => p.id || p._id);
+
+      const attendees = selectedParticipants.map((p) => ({
+        id: p.id || p._id || p.code || "",
+        name: p.name || p.companyName,
+        email: p.email || "",
+        role: p.role || formData.meetingType,
+        code: p.code || "",
+        companyName: p.companyName || "",
+        designation: p.designation || "",
+      }));
+
       const payload = {
-        ...formData,
-        candidateId: formData.candidateId || (formData.candidateName ? `CAND-${Date.now().toString().slice(-4)}` : ""),
-        vendorId: formData.vendorId || (assignedVendors.length > 0 ? assignedVendors[0] : ""),
+        title: formData.title.trim(),
+        description: formData.description?.trim() || "",
+        meetingType: formData.meetingType,
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        meetingLink: formData.meetingLink.trim(),
+        platform: formData.platform || "Google Meet",
+        targetType: targetMode,
+        targetEmployees,
+        targetVendors,
+        targetHRs,
+        attendees,
+        candidateId: candidateData.candidateId || formData.candidateId || "",
+        candidateName: candidateData.candidateName || formData.candidateName || "",
+        candidateEmail: candidateData.candidateEmail || formData.candidateEmail || "",
+        vendorId:
+          candidateData.vendorId ||
+          formData.vendorId ||
+          (targetVendors.length === 1 ? targetVendors[0] : assignedVendors[0] || ""),
+        vendorName: candidateData.vendorName || formData.vendorName || "",
       };
+
       await meetingService.createMeeting(payload);
       setIsModalOpen(false);
       setFormData({
         title: "",
         meetingType: "CANDIDATE_INTERVIEW",
+        platform: "Google Meet",
         date: todayStr,
         startTime: "11:00",
         endTime: "12:00",
         meetingLink: "",
         candidateName: "",
+        candidateEmail: "",
+        candidateId: "",
+        vendorId: "",
         vendorName: "",
         description: "",
       });
+      setSelectedParticipants([]);
+      setTargetMode("SPECIFIC");
+      setCandidateData({
+        candidateId: "",
+        candidateName: "",
+        candidateEmail: "",
+        vendorId: "",
+        vendorName: "",
+        jobTitle: "",
+        projectName: "",
+      });
       loadDateMeetings();
+      window.dispatchEvent(new CustomEvent("immigo:meeting-update"));
     } catch (err) {
       setFormError(err?.response?.data?.message || "Failed to schedule meeting");
     } finally {
@@ -287,6 +423,22 @@ export default function DashboardMeetingWidget({
                       <span className="text-[10px] text-slate-400 italic">No link</span>
                     )}
 
+                    {!isCompleted && !isCancelled && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await meetingService.markMeetingCompleted(mId);
+                          loadDateMeetings();
+                          window.dispatchEvent(new CustomEvent("immigo:meeting-update"));
+                        }}
+                        className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] inline-flex items-center gap-1 border border-emerald-200 cursor-pointer"
+                        title="Mark meeting as completed"
+                      >
+                        <CheckCircle2 size={10} />
+                        <span>Complete</span>
+                      </button>
+                    )}
+
                     <Link
                       to={fullCalendarLink}
                       className="text-[11px] text-slate-500 hover:text-blue-600 font-semibold inline-flex items-center gap-0.5"
@@ -347,12 +499,55 @@ export default function DashboardMeetingWidget({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Technical Trade Interview"
+                  placeholder="e.g. Technical Interview / Partnership Sync"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Meeting Type</label>
+                  <select
+                    value={formData.meetingType}
+                    onChange={(e) => handleMeetingTypeChange(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
+                  >
+                    <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
+                    <option value="VENDOR_DISCUSSION">Vendor Discussion</option>
+                    <option value="INTERNAL_HR">Internal HR Meeting</option>
+                    <option value="EMPLOYEE">Employee Discussion</option>
+                    <option value="GENERAL">General Conference</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Platform</label>
+                  <select
+                    value={formData.platform || "Google Meet"}
+                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
+                  >
+                    <option value="Google Meet">Google Meet</option>
+                    <option value="Zoom">Zoom</option>
+                    <option value="Microsoft Teams">Microsoft Teams</option>
+                    <option value="In-Person">In-Person</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Dynamic Adaptive Participant Selector */}
+              <DynamicMeetingParticipantSelector
+                meetingType={formData.meetingType}
+                targetMode={targetMode}
+                onTargetModeChange={setTargetMode}
+                selectedParticipants={selectedParticipants}
+                onAddParticipant={handleAddParticipant}
+                onRemoveParticipant={handleRemoveParticipant}
+                candidateData={candidateData}
+                onCandidateChange={handleCandidateChange}
+              />
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -360,6 +555,7 @@ export default function DashboardMeetingWidget({
                   <input
                     type="date"
                     required
+                    min={new Date().toISOString().split("T")[0]}
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs"
@@ -394,17 +590,6 @@ export default function DashboardMeetingWidget({
                   placeholder="https://meet.google.com/xyz"
                   value={formData.meetingLink}
                   onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Candidate / Attendee Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Rahul Sharma"
-                  value={formData.candidateName}
-                  onChange={(e) => setFormData({ ...formData, candidateName: e.target.value })}
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs"
                 />
               </div>

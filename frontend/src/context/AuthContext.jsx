@@ -88,6 +88,8 @@ export const AuthProvider = ({ children }) => {
       ) {
         // Normal Admin & Super Admin both redirect directly to /admin/login
         targetLogin = "/admin/login";
+      } else if (previousRole === "vendor_hr" || currentPath.startsWith("/vendor-hr")) {
+        targetLogin = "/vendor-hr/login";
       } else if (previousRole === "hr" || currentPath.startsWith("/hr")) {
         targetLogin = "/hr/login";
       } else if (previousRole === "vendor" || currentPath.startsWith("/vendor")) {

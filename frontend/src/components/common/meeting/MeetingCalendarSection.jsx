@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import DynamicMeetingParticipantSelector from "./DynamicMeetingParticipantSelector.jsx";
 
 export default function MeetingCalendarSection({
   role = "ADMIN",
@@ -46,7 +47,7 @@ export default function MeetingCalendarSection({
 
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("month"); // 'month' | 'week' | 'day' | 'list'
+  const [viewMode, setViewMode] = useState("day"); // Default: 'day' | 'week' | 'list' | 'month'
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDateStr, setSelectedDateStr] = useState(
     new Date().toISOString().split("T")[0]
@@ -80,6 +81,77 @@ export default function MeetingCalendarSection({
     vendorName: "",
     description: "",
   });
+
+  const [targetMode, setTargetMode] = useState("SPECIFIC");
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [candidateData, setCandidateData] = useState({
+    candidateId: filterCandidateId || "",
+    candidateName: "",
+    candidateEmail: "",
+    vendorId: assignedVendors.length === 1 ? assignedVendors[0] : "",
+    vendorName: "",
+    jobTitle: "",
+    projectName: "",
+  });
+
+  const handleMeetingTypeChange = (newType) => {
+    setSelectedParticipants([]);
+    setTargetMode("SPECIFIC");
+    const defaultTitles = {
+      CANDIDATE_INTERVIEW: "Candidate Interview Round",
+      VENDOR_DISCUSSION: "Vendor Agency Coordination Sync",
+      INTERNAL_HR: "HR Operations & Recruitment Review",
+      EMPLOYEE: "Employee One-on-One Discussion",
+      GENERAL: "Company Operations Sync",
+    };
+    setScheduleForm((prev) => ({
+      ...prev,
+      meetingType: newType,
+      title: defaultTitles[newType] || prev.title,
+    }));
+  };
+
+  const handleAddParticipant = (p) => {
+    setSelectedParticipants((prev) => {
+      const next = [...prev, p];
+      if (
+        next.length === 1 &&
+        (!scheduleForm.title ||
+          scheduleForm.title.includes("Discussion") ||
+          scheduleForm.title.includes("Sync") ||
+          scheduleForm.title.includes("Round"))
+      ) {
+        setScheduleForm((f) => ({
+          ...f,
+          title: `Discussion with ${p.name || p.companyName}`,
+        }));
+      }
+      return next;
+    });
+  };
+
+  const handleRemoveParticipant = (id) => {
+    setSelectedParticipants((prev) =>
+      prev.filter((p) => (p.id || p.code || p.name) !== id)
+    );
+  };
+
+  const handleCandidateChange = (cand) => {
+    setCandidateData(cand);
+    if (cand.candidateName) {
+      setScheduleForm((f) => ({
+        ...f,
+        candidateId: cand.candidateId || "",
+        candidateName: cand.candidateName || "",
+        candidateEmail: cand.candidateEmail || "",
+        vendorId: cand.vendorId || "",
+        vendorName: cand.vendorName || "",
+        title: `Interview: ${cand.candidateName}${
+          cand.jobTitle ? ` - ${cand.jobTitle}` : ""
+        }`,
+      }));
+    }
+  };
 
   const [rescheduleForm, setRescheduleForm] = useState({
     date: "",
@@ -232,7 +304,54 @@ export default function MeetingCalendarSection({
     e.preventDefault();
     try {
       setSubmitting(true);
-      await meetingService.createMeeting(scheduleForm);
+
+      const targetEmployees = selectedParticipants
+        .filter((p) => p.role === "EMPLOYEE" || scheduleForm.meetingType === "EMPLOYEE")
+        .map((p) => p.id || p._id);
+
+      const targetVendors = selectedParticipants
+        .filter((p) => p.role === "VENDOR" || scheduleForm.meetingType === "VENDOR_DISCUSSION")
+        .map((p) => p.code || p.id || p.vendorId);
+
+      const targetHRs = selectedParticipants
+        .filter((p) => p.role?.includes("HR") || scheduleForm.meetingType === "INTERNAL_HR")
+        .map((p) => p.id || p._id);
+
+      const attendees = selectedParticipants.map((p) => ({
+        id: p.id || p._id || p.code || "",
+        name: p.name || p.companyName,
+        email: p.email || "",
+        role: p.role || scheduleForm.meetingType,
+        code: p.code || "",
+        companyName: p.companyName || "",
+        designation: p.designation || "",
+      }));
+
+      const payload = {
+        title: scheduleForm.title.trim(),
+        description: scheduleForm.description.trim(),
+        meetingType: scheduleForm.meetingType,
+        date: scheduleForm.date,
+        startTime: scheduleForm.startTime,
+        endTime: scheduleForm.endTime,
+        meetingLink: scheduleForm.meetingLink.trim(),
+        platform: scheduleForm.platform,
+        targetType: targetMode,
+        targetEmployees,
+        targetVendors,
+        targetHRs,
+        attendees,
+        candidateId: candidateData.candidateId || scheduleForm.candidateId || "",
+        candidateName: candidateData.candidateName || scheduleForm.candidateName || "",
+        candidateEmail: candidateData.candidateEmail || scheduleForm.candidateEmail || "",
+        vendorId:
+          candidateData.vendorId ||
+          scheduleForm.vendorId ||
+          (targetVendors.length === 1 ? targetVendors[0] : ""),
+        vendorName: candidateData.vendorName || scheduleForm.vendorName || "",
+      };
+
+      await meetingService.createMeeting(payload);
       showToast("Meeting scheduled successfully! Invitations sent.");
       setShowScheduleModal(false);
       setScheduleForm({
@@ -250,7 +369,19 @@ export default function MeetingCalendarSection({
         vendorName: "",
         description: "",
       });
+      setSelectedParticipants([]);
+      setTargetMode("SPECIFIC");
+      setCandidateData({
+        candidateId: "",
+        candidateName: "",
+        candidateEmail: "",
+        vendorId: "",
+        vendorName: "",
+        jobTitle: "",
+        projectName: "",
+      });
       loadData();
+      window.dispatchEvent(new CustomEvent("immigo:meeting-update"));
     } catch (err) {
       showToast(err?.response?.data?.message || "Failed to schedule meeting", "error");
     } finally {
@@ -326,34 +457,34 @@ export default function MeetingCalendarSection({
       )}
 
       {/* Header with Title, View Toggles & Schedule Button */}
-      <div className="p-4 sm:p-5 border-b border-slate-200 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-300 shadow-inner">
-            <Calendar size={20} />
+      <div className="px-4 py-2.5 sm:px-5 sm:py-3 border-b border-slate-200 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-cyan-300 shadow-inner shrink-0">
+            <Calendar size={17} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-base sm:text-lg text-white tracking-tight">
+              <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-tight">
                 Meeting Calendar & Scheduling
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+              <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
                 Live System
               </span>
             </div>
-            <p className="text-xs text-blue-200/80 mt-0.5">
+            <p className="text-[11px] text-blue-200/80 leading-tight">
               Scheduled appointments, candidate interviews, and partnership conferences.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* View Mode Buttons */}
-          <div className="flex items-center bg-white/10 p-1 rounded-xl border border-white/15 text-xs font-semibold">
-            {["month", "week", "day", "list"].map((v) => (
+          {/* View Mode Buttons: Day first, Month last */}
+          <div className="flex items-center bg-white/10 p-0.5 rounded-lg border border-white/15 text-xs font-semibold">
+            {["day", "week", "list", "month"].map((v) => (
               <button
                 key={v}
                 onClick={() => setViewMode(v)}
-                className={`px-2.5 py-1 rounded-lg capitalize transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md capitalize transition-all cursor-pointer ${
                   viewMode === v ? "bg-white text-slate-900 font-bold shadow-xs" : "text-blue-100 hover:text-white"
                 }`}
               >
@@ -364,125 +495,144 @@ export default function MeetingCalendarSection({
 
           <button
             onClick={() => setShowScheduleModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-md transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-md transition-all cursor-pointer"
           >
-            <Plus size={15} />
+            <Plus size={14} />
             <span>Schedule Meeting</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Stats Strip (7 Key Metrics from Section 10) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 p-3 sm:p-4 bg-slate-50/70 border-b border-slate-200 text-xs">
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's</div>
-          <div className="text-lg font-bold text-blue-600 mt-0.5">{stats.todayMeetingsCount || 0}</div>
-          <div className="text-[10px] text-slate-500">Scheduled for today</div>
+      {/* Sleek Compact KPI Stats Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 p-2 px-4 bg-slate-50/70 border-b border-slate-200 text-xs">
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's</span>
+          <span className="text-sm font-extrabold text-blue-600 leading-tight">{stats.todayMeetingsCount || 0}</span>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</div>
-          <div className="text-lg font-bold text-indigo-600 mt-0.5">{stats.upcomingMeetingsCount || 0}</div>
-          <div className="text-[10px] text-slate-500">Future scheduled</div>
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Upcoming</span>
+          <span className="text-sm font-extrabold text-indigo-600 leading-tight">{stats.upcomingMeetingsCount || 0}</span>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs col-span-2 sm:col-span-1">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Next Meeting</div>
-          <div className="text-xs font-bold text-slate-900 mt-1 truncate">
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start col-span-2 sm:col-span-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Next</span>
+          <span className="text-xs font-bold text-slate-900 truncate max-w-full">
             {stats.nextMeeting?.title || "None Scheduled"}
-          </div>
-          <div className="text-[10px] text-blue-600 font-semibold truncate">
-            {stats.nextMeeting ? `${stats.nextMeeting.date} at ${stats.nextMeeting.startTime}` : "All caught up"}
-          </div>
+          </span>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Active</div>
-          <div className="text-lg font-bold text-slate-900 mt-0.5">{stats.totalScheduledMeetings || 0}</div>
-          <div className="text-[10px] text-slate-500">In calendar</div>
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active</span>
+          <span className="text-sm font-extrabold text-slate-900 leading-tight">{stats.totalScheduledMeetings || 0}</span>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Next 7 Days</div>
-          <div className="text-lg font-bold text-purple-600 mt-0.5">{stats.next7DaysMeetingsCount || 0}</div>
-          <div className="text-[10px] text-slate-500">Within this week</div>
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">7 Days</span>
+          <span className="text-sm font-extrabold text-purple-600 leading-tight">{stats.next7DaysMeetingsCount || 0}</span>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completed</div>
-          <div className="text-lg font-bold text-emerald-600 mt-0.5">{stats.completedMeetingsCount || 0}</div>
-          <div className="text-[10px] text-slate-500">Finished calls</div>
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Completed</span>
+          <span className="text-sm font-extrabold text-emerald-600 leading-tight">{stats.completedMeetingsCount || 0}</span>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cancelled</div>
-          <div className="text-lg font-bold text-rose-500 mt-0.5">{stats.cancelledMeetingsCount || 0}</div>
-          <div className="text-[10px] text-slate-500">Revoked sessions</div>
+        <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cancelled</span>
+          <span className="text-sm font-extrabold text-rose-500 leading-tight">{stats.cancelledMeetingsCount || 0}</span>
         </div>
       </div>
 
       {/* Main Calendar / View Container */}
-      <div className="p-4 sm:p-5">
+      <div className="p-3 sm:p-4">
         {/* Navigation Toolbar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 mb-3">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => {
                 const prev = new Date(currentDate);
-                if (viewMode === "month") prev.setMonth(prev.getMonth() - 1);
-                else if (viewMode === "week") prev.setDate(prev.getDate() - 7);
-                else prev.setDate(prev.getDate() - 1);
+                if (viewMode === "month") {
+                  prev.setMonth(prev.getMonth() - 1);
+                } else if (viewMode === "week") {
+                  prev.setDate(prev.getDate() - 7);
+                  setSelectedDateStr(prev.toISOString().split("T")[0]);
+                } else {
+                  prev.setDate(prev.getDate() - 1);
+                  setSelectedDateStr(prev.toISOString().split("T")[0]);
+                }
                 setCurrentDate(prev);
               }}
-              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
+              className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
+              title="Previous"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={15} />
             </button>
-            <span className="font-bold text-sm sm:text-base text-slate-800 min-w-[140px] text-center">
-              {currentDate.toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric",
-              })}
+            <span className="font-extrabold text-xs sm:text-sm text-slate-900 min-w-[130px] text-center">
+              {viewMode === "day"
+                ? currentDate.toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : currentDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
             </span>
             <button
               onClick={() => {
                 const next = new Date(currentDate);
-                if (viewMode === "month") next.setMonth(next.getMonth() + 1);
-                else if (viewMode === "week") next.setDate(next.getDate() + 7);
-                else next.setDate(next.getDate() + 1);
+                if (viewMode === "month") {
+                  next.setMonth(next.getMonth() + 1);
+                } else if (viewMode === "week") {
+                  next.setDate(next.getDate() + 7);
+                  setSelectedDateStr(next.toISOString().split("T")[0]);
+                } else {
+                  next.setDate(next.getDate() + 1);
+                  setSelectedDateStr(next.toISOString().split("T")[0]);
+                }
                 setCurrentDate(next);
               }}
-              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
+              className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
+              title="Next"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={15} />
             </button>
             <button
               onClick={() => {
-                setCurrentDate(new Date());
-                setSelectedDateStr(new Date().toISOString().split("T")[0]);
+                const today = new Date();
+                setCurrentDate(today);
+                setSelectedDateStr(today.toISOString().split("T")[0]);
               }}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer"
+              className="px-2 py-0.5 rounded-lg text-xs font-bold border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer"
             >
               Today
             </button>
+
+            {viewMode === "day" && (
+              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-700">
+                {selectedDateMeetings.length} {selectedDateMeetings.length === 1 ? "Meeting" : "Meetings"}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-56">
-              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <div className="relative flex-1 sm:w-52">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search meeting or candidate..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="w-full pl-7 pr-3 py-1 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
               />
             </div>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white"
+              className="px-2 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white"
             >
               <option value="ALL">All Statuses</option>
               <option value="SCHEDULED">Scheduled</option>
@@ -493,7 +643,123 @@ export default function MeetingCalendarSection({
           </div>
         </div>
 
-        {/* 1. MONTH VIEW */}
+        {/* 1. DAY VIEW (DEFAULT) */}
+        {viewMode === "day" && (
+          <div className="space-y-2.5">
+            {selectedDateMeetings.length === 0 ? (
+              <div className="text-center py-7 border border-dashed border-slate-200 rounded-xl bg-slate-50/70 p-4 space-y-2">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-2xs">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-800 text-xs">No meetings scheduled for {selectedDateStr}</div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    There are no interviews, vendor discussions, or internal appointments booked for this day.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setScheduleForm((prev) => ({ ...prev, date: selectedDateStr }));
+                    setShowScheduleModal(true);
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer"
+                >
+                  <Plus size={13} />
+                  <span>Schedule Meeting for this Day</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {selectedDateMeetings.map((m) => (
+                  <MeetingCard
+                    key={m._id || m.id}
+                    meeting={m}
+                    onViewDetails={setSelectedMeetingDetail}
+                    onReschedule={setMeetingToReschedule}
+                    onCancel={setMeetingToCancel}
+                    onRecordOutcome={setMeetingToRecordOutcome}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. WEEK VIEW */}
+        {viewMode === "week" && (
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+            {weekDays.map((wDay) => {
+              const dayMeetings = filteredMeetings.filter((m) => m.date === wDay.dateStr);
+              const isToday = wDay.dateStr === todayStr;
+
+              return (
+                <div
+                  key={wDay.dateStr}
+                  className={`p-2.5 rounded-xl border ${
+                    isToday ? "border-blue-400 bg-blue-50/20" : "border-slate-200 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between border-b pb-2 mb-2">
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-400 uppercase">{wDay.dayName}</div>
+                      <div className={`text-base font-bold ${isToday ? "text-blue-600" : "text-slate-800"}`}>
+                        {wDay.dayNum}
+                      </div>
+                    </div>
+                    {dayMeetings.length > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
+                        {dayMeetings.length}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 max-h-[420px] overflow-y-auto custom-scrollbar">
+                    {dayMeetings.map((m) => (
+                      <MeetingCard
+                        key={m._id || m.id}
+                        meeting={m}
+                        compact={true}
+                        onViewDetails={setSelectedMeetingDetail}
+                        onReschedule={setMeetingToReschedule}
+                        onCancel={setMeetingToCancel}
+                        onRecordOutcome={setMeetingToRecordOutcome}
+                      />
+                    ))}
+                    {dayMeetings.length === 0 && (
+                      <div className="text-[11px] text-slate-400 py-4 text-center">Empty</div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 3. LIST VIEW */}
+        {viewMode === "list" && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredMeetings.length === 0 ? (
+                <div className="col-span-full text-center py-12 border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-xs">
+                  No meetings match your filter criteria.
+                </div>
+              ) : (
+                filteredMeetings.map((m) => (
+                  <MeetingCard
+                    key={m._id || m.id}
+                    meeting={m}
+                    onViewDetails={setSelectedMeetingDetail}
+                    onReschedule={setMeetingToReschedule}
+                    onCancel={setMeetingToCancel}
+                    onRecordOutcome={setMeetingToRecordOutcome}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 4. MONTH VIEW (LAST) */}
         {viewMode === "month" && (
           <div className="space-y-4">
             <div className="grid grid-cols-7 gap-1 border border-slate-200 rounded-xl overflow-hidden bg-slate-100">
@@ -605,83 +871,6 @@ export default function MeetingCalendarSection({
           </div>
         )}
 
-        {/* 2. WEEK VIEW */}
-        {viewMode === "week" && (
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
-            {weekDays.map((wDay) => {
-              const dayMeetings = filteredMeetings.filter((m) => m.date === wDay.dateStr);
-              const isToday = wDay.dateStr === todayStr;
-
-              return (
-                <div
-                  key={wDay.dateStr}
-                  className={`p-2.5 rounded-xl border ${
-                    isToday ? "border-blue-400 bg-blue-50/20" : "border-slate-200 bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between border-b pb-2 mb-2">
-                    <div>
-                      <div className="text-[11px] font-bold text-slate-400 uppercase">{wDay.dayName}</div>
-                      <div className={`text-base font-bold ${isToday ? "text-blue-600" : "text-slate-800"}`}>
-                        {wDay.dayNum}
-                      </div>
-                    </div>
-                    {dayMeetings.length > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
-                        {dayMeetings.length}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 max-h-[420px] overflow-y-auto custom-scrollbar">
-                    {dayMeetings.map((m) => (
-                      <MeetingCard
-                        key={m._id || m.id}
-                        meeting={m}
-                        compact={true}
-                        onViewDetails={setSelectedMeetingDetail}
-                        onReschedule={setMeetingToReschedule}
-                        onCancel={setMeetingToCancel}
-                        onRecordOutcome={setMeetingToRecordOutcome}
-                      />
-                    ))}
-                    {dayMeetings.length === 0 && (
-                      <div className="text-[11px] text-slate-400 py-4 text-center">Empty</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* 3. DAY VIEW */}
-        {viewMode === "day" && (
-          <div className="space-y-3">
-            <h4 className="font-bold text-sm text-slate-800">
-              Day Schedule: {selectedDateStr}
-            </h4>
-            <div className="space-y-2">
-              {selectedDateMeetings.length === 0 ? (
-                <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-400 text-xs">
-                  No appointments scheduled for this day.
-                </div>
-              ) : (
-                selectedDateMeetings.map((m) => (
-                  <MeetingCard
-                    key={m._id || m.id}
-                    meeting={m}
-                    onViewDetails={setSelectedMeetingDetail}
-                    onReschedule={setMeetingToReschedule}
-                    onCancel={setMeetingToCancel}
-                    onRecordOutcome={setMeetingToRecordOutcome}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
         {/* 4. LIST VIEW */}
         {viewMode === "list" && (
           <div className="space-y-3">
@@ -742,7 +931,7 @@ export default function MeetingCalendarSection({
                   <label className="block text-slate-700 font-bold mb-1">Meeting Type</label>
                   <select
                     value={scheduleForm.meetingType}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, meetingType: e.target.value })}
+                    onChange={(e) => handleMeetingTypeChange(e.target.value)}
                     className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
                   >
                     <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
@@ -767,6 +956,18 @@ export default function MeetingCalendarSection({
                   </select>
                 </div>
               </div>
+
+              {/* Dynamic Adaptive Participant Selector directly under Meeting Type */}
+              <DynamicMeetingParticipantSelector
+                meetingType={scheduleForm.meetingType}
+                targetMode={targetMode}
+                onTargetModeChange={setTargetMode}
+                selectedParticipants={selectedParticipants}
+                onAddParticipant={handleAddParticipant}
+                onRemoveParticipant={handleRemoveParticipant}
+                candidateData={candidateData}
+                onCandidateChange={handleCandidateChange}
+              />
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -810,54 +1011,6 @@ export default function MeetingCalendarSection({
                   value={scheduleForm.meetingLink}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, meetingLink: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-blue-600 focus:outline-none"
-                />
-              </div>
-
-              {/* Candidate reference fields */}
-              <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Candidate ID / Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. CAND-1029 or Amit Kumar"
-                    value={scheduleForm.candidateName || scheduleForm.candidateId}
-                    onChange={(e) =>
-                      setScheduleForm({
-                        ...scheduleForm,
-                        candidateName: e.target.value,
-                        candidateId: scheduleForm.candidateId || e.target.value,
-                      })
-                    }
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Candidate Email</label>
-                  <input
-                    type="email"
-                    placeholder="candidate@gmail.com"
-                    value={scheduleForm.candidateEmail}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, candidateEmail: e.target.value })}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Vendor reference */}
-              <div>
-                <label className="block text-slate-700 font-bold mb-1">Vendor Agency (if candidate meeting)</label>
-                <input
-                  type="text"
-                  placeholder="Vendor Name or ID (e.g. VND-1001)"
-                  value={scheduleForm.vendorName || scheduleForm.vendorId}
-                  onChange={(e) =>
-                    setScheduleForm({
-                      ...scheduleForm,
-                      vendorName: e.target.value,
-                      vendorId: scheduleForm.vendorId || e.target.value,
-                    })
-                  }
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
                 />
               </div>
 

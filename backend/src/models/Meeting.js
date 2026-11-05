@@ -6,6 +6,9 @@ const attendeeSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, default: "" },
     role: { type: String, default: "" },
+    code: { type: String, default: "" },
+    companyName: { type: String, default: "" },
+    designation: { type: String, default: "" },
     attendance: {
       type: String,
       enum: ["Present", "Absent", "Pending"],
@@ -89,6 +92,18 @@ const meetingSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Employee",
+      },
+    ],
+    targetVendors: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    targetHRs: [
+      {
+        type: String,
+        trim: true,
       },
     ],
 

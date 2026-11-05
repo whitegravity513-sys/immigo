@@ -61,7 +61,7 @@ const projectSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "Pending",
-      enum: ["Pending", "In Progress", "Completed"],
+      enum: ["Pending", "In Progress", "Completed", "Active", "On Hold"],
     },
     startDate: {
       type: Date,
@@ -70,6 +70,63 @@ const projectSchema = new mongoose.Schema(
     deadline: {
       type: Date,
       default: null,
+    },
+    hiringRequirements: {
+      type: String,
+      default: "",
+    },
+    jobPositions: [
+      {
+        title: String,
+        openings: { type: Number, default: 1 },
+        filled: { type: Number, default: 0 },
+        description: String,
+      },
+    ],
+    totalHiringTarget: {
+      type: Number,
+      default: 0,
+    },
+    projectAdmin: {
+      type: String,
+      default: "",
+    },
+    assignedAdmins: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    assignedEmployeeHRs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    assignedVendors: [
+      {
+        vendorId: { type: String, trim: true },
+        vendorName: { type: String, default: "" },
+        assignedAt: { type: Date, default: Date.now },
+        status: { type: String, default: "Active" },
+      },
+    ],
+    assignedVendorHRs: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        name: { type: String, default: "" },
+        email: { type: String, default: "" },
+        vendorId: { type: String, default: "" },
+        assignedAt: { type: Date, default: Date.now },
+      },
+    ],
+    recruitmentConfig: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    notes: {
+      type: String,
+      default: "",
     },
   },
   {

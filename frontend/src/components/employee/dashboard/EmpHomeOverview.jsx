@@ -26,6 +26,7 @@ import { compressImage } from "../EmployeeProfileDocsTab.jsx";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
 import EmployeeRecentActivitySection from "./EmployeeRecentActivitySection.jsx";
+import ActiveMeetingAlertBanner from "../../common/meeting/ActiveMeetingAlertBanner.jsx";
 
 export default function EmpHomeOverview({
   user,
@@ -201,44 +202,8 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {}
-      {unacknowledgedMeeting && (
-        <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-700 text-white rounded-xl p-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 border border-purple-400/40">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-              <Video size={16} className="text-white animate-pulse" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-1.5 py-0.5 rounded">Meeting Scheduled</span>
-                <span className="text-xs text-purple-200 font-bold">{unacknowledgedMeeting.startTime} • {unacknowledgedMeeting.date}</span>
-              </div>
-              <h4 className="text-xs font-bold text-white mt-0.5 truncate max-w-md">{unacknowledgedMeeting.title}</h4>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => handleAcknowledgeMeeting(unacknowledgedMeeting._id || unacknowledgedMeeting.id)}
-              className="px-3 py-1.5 bg-white text-purple-900 hover:bg-purple-50 rounded-lg text-xs font-bold shadow-xs cursor-pointer transition-all flex items-center gap-1"
-            >
-              <CheckCircle2 size={13} className="text-emerald-600" />
-              <span>Acknowledge</span>
-            </button>
-            {unacknowledgedMeeting.meetingLink && (
-              <a
-                href={unacknowledgedMeeting.meetingLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1"
-              >
-                <span>Join</span>
-                <ExternalLink size={11} />
-              </a>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Active Scheduled Meeting Banner (visible until completed) */}
+      <ActiveMeetingAlertBanner customRole="employee" />
 
       <div
         className="text-white rounded-xl p-2.5 sm:p-3 shadow-sm shadow-blue-900/20 border border-blue-500/40 relative overflow-hidden"

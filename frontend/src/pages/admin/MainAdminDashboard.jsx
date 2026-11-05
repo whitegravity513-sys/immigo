@@ -30,6 +30,7 @@ import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
 import activityService from "../../services/activityService.js";
 import DashboardMeetingWidget from "../../components/common/meeting/DashboardMeetingWidget.jsx";
+import ActiveMeetingAlertBanner from "../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 import HRPerformanceReportSection from "../../components/common/reports/HRPerformanceReportSection.jsx";
 import appConfig from "../../config/appConfig.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -352,7 +353,7 @@ export function MainAdminDashboard() {
             </div>
             <div className="flex items-center gap-2">
               <Link
-                to="/hr/vendor-dashboard"
+                to="/admin/hr-activities?tab=vendorHRDashboard&view=overview"
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-colors"
               >
                 <Briefcase size={13} className="text-cyan-300" />
@@ -367,6 +368,9 @@ export function MainAdminDashboard() {
               </Link>
             </div>
           </div>
+
+          {/* Active Meeting Alert Banner (visible until completed) */}
+          <ActiveMeetingAlertBanner />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-2.5">
             <div className="lg:col-span-1 p-2 sm:p-2.5 rounded-lg bg-indigo-600 text-white shadow-xs flex flex-col justify-between overflow-hidden relative">

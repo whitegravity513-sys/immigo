@@ -75,10 +75,8 @@ export class AdminAuthService {
 
       if (isSuper) {
         user.role = ROLES.SUPER_ADMIN;
-      } else if (isHr) {
-        user.role = ROLES.HR;
-      } else {
-        user.role = ROLES.ADMIN;
+      } else if (!user.role || user.role === ROLES.USER) {
+        user.role = isHr ? ROLES.HR : ROLES.ADMIN;
       }
 
       user.lastLoginAt = new Date();

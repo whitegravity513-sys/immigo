@@ -26,6 +26,7 @@ import AdminMasterLayout from "../../components/admin/layout/AdminMasterLayout.j
 import { useAuth } from "../../context/AuthContext.jsx";
 import crmVendorService from "../../services/crmVendorService.js";
 import DashboardMeetingWidget from "../../components/common/meeting/DashboardMeetingWidget.jsx";
+import ActiveMeetingAlertBanner from "../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 import CandidateActivityTimeline from "../../components/common/candidate/CandidateActivityTimeline.jsx";
 import HRPerformanceReportSection from "../../components/common/reports/HRPerformanceReportSection.jsx";
 
@@ -237,6 +238,9 @@ export function VendorHRDashboard() {
             </span>
           </div>
         </div>
+
+        {/* Active Scheduled Meeting Alert Banner (visible until completed) */}
+        <ActiveMeetingAlertBanner />
 
         {/* 6 Key Metrics Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">

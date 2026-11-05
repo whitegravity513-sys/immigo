@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
 import Employee from "../models/Employee.js";
+import User from "../models/User.js";
+import Vendor from "../models/Vendor.js";
+import CandidateApplication from "../models/CandidateApplication.js";
 import ActivityLog from "../models/ActivityLog.js";
 import Notification from "../models/Notification.js";
 import NotificationService from "../services/notification.service.js";
@@ -92,6 +95,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
     platform = "Google Meet",
     targetType = "ALL",
     targetEmployees = [],
+    targetVendors = [],
+    targetHRs = [],
     attendees = [],
     candidateId = "",
     candidateName = "",
@@ -160,6 +165,65 @@ export const createMeeting = asyncHandler(async (req, res) => {
     ? "EMPLOYEE_HR"
     : role;
 
+  // Resolve target employees (by ID, employeeId, email, or name)
+  let resolvedTargetEmployees = [];
+  const processedAttendees = Array.isArray(attendees) ? [...attendees] : [];
+
+  if (Array.isArray(targetEmployees) && targetEmployees.length > 0) {
+    for (const empRef of targetEmployees) {
+      if (!empRef) continue;
+      let empDoc = null;
+      if (mongoose.Types.ObjectId.isValid(empRef)) {
+        empDoc = await Employee.findById(empRef);
+      }
+      if (!empDoc) {
+        empDoc = await Employee.findOne({
+          $or: [{ employeeId: empRef }, { email: empRef }, { name: empRef }],
+        });
+      }
+      if (empDoc) {
+        resolvedTargetEmployees.push(empDoc._id);
+        if (!processedAttendees.some((a) => a.id === empDoc._id.toString() || a.email === empDoc.email)) {
+          processedAttendees.push({
+            id: empDoc._id.toString(),
+            name: empDoc.name,
+            email: empDoc.email,
+            role: "EMPLOYEE",
+            code: empDoc.employeeId,
+            designation: empDoc.designation,
+          });
+        }
+      } else if (mongoose.Types.ObjectId.isValid(empRef)) {
+        resolvedTargetEmployees.push(empRef);
+      }
+    }
+  }
+
+  // Also check if any attendee has an Employee match
+  for (const att of processedAttendees) {
+    if (att && (att.role === "EMPLOYEE" || att.name)) {
+      const empDoc = await Employee.findOne({
+        $or: [
+          ...(att.id && mongoose.Types.ObjectId.isValid(att.id) ? [{ _id: att.id }] : []),
+          ...(att.email ? [{ email: att.email }] : []),
+          ...(att.name ? [{ name: att.name }] : []),
+        ],
+      });
+      if (empDoc && !resolvedTargetEmployees.some((id) => id.toString() === empDoc._id.toString())) {
+        resolvedTargetEmployees.push(empDoc._id);
+      }
+    }
+  }
+
+  // Determine effective target type
+  const hasSpecificTargets =
+    resolvedTargetEmployees.length > 0 ||
+    (Array.isArray(targetVendors) && targetVendors.length > 0) ||
+    (Array.isArray(targetHRs) && targetHRs.length > 0) ||
+    targetType === "SPECIFIC";
+
+  const effectiveTargetType = hasSpecificTargets ? "SPECIFIC" : targetType;
+
   const meeting = await Meeting.create({
     title: title.trim(),
     description: description.trim(),
@@ -169,9 +233,11 @@ export const createMeeting = asyncHandler(async (req, res) => {
     endTime,
     meetingLink: meetingLink.trim(),
     platform,
-    targetType,
-    targetEmployees: targetType === "SPECIFIC" ? targetEmployees : [],
-    attendees: Array.isArray(attendees) ? attendees : [],
+    targetType: effectiveTargetType,
+    targetEmployees: resolvedTargetEmployees,
+    targetVendors: Array.isArray(targetVendors) ? targetVendors : [],
+    targetHRs: Array.isArray(targetHRs) ? targetHRs : [],
+    attendees: processedAttendees,
     candidateId,
     candidateName,
     candidateEmail,
@@ -214,42 +280,196 @@ export const createMeeting = asyncHandler(async (req, res) => {
   };
 
   try {
-    // Notify vendor if candidate meeting
-    if (meeting.vendorId && !isVendor) {
-      await Notification.create({
-        type: "MEETING",
-        title: `📅 Meeting Scheduled: ${meeting.title}`,
-        message: `A meeting has been scheduled for candidate ${meeting.candidateName || "Partner"} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-        targetRole: "VENDOR",
-        targetVendorId: meeting.vendorId,
-        metadata: meetingMetadata,
-      });
+    // 1. VENDOR DISCUSSION MEETINGS
+    if (meetingType === "VENDOR_DISCUSSION") {
+      if (effectiveTargetType === "ALL") {
+        const activeVendors = await Vendor.find({ status: { $ne: "Rejected" } }).select("vendorId companyName email");
+        for (const v of activeVendors) {
+          await Notification.create({
+            type: "MEETING",
+            title: `📅 Vendor Conference: ${meeting.title}`,
+            message: `A vendor conference "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+            targetRole: "VENDOR",
+            targetVendorId: v.vendorId,
+            metadata: meetingMetadata,
+          });
+        }
+        const allVendorHRs = await User.find({ role: "HR", hrType: "VENDOR_HR" }).select("_id");
+        for (const vhr of allVendorHRs) {
+          await Notification.create({
+            type: "MEETING",
+            title: `📅 Vendor Conference: ${meeting.title}`,
+            message: `A vendor conference "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+            targetRole: "VENDOR_HR",
+            targetUserId: vhr._id.toString(),
+            metadata: meetingMetadata,
+          });
+        }
+      } else {
+        // Specific Vendors
+        const targetVList = [
+          ...new Set([
+            ...(Array.isArray(targetVendors) ? targetVendors : []),
+            ...(meeting.vendorId ? [meeting.vendorId] : []),
+            ...processedAttendees.filter((a) => a.role === "VENDOR").map((a) => a.code || a.id),
+          ]),
+        ].filter(Boolean);
+
+        for (const vRef of targetVList) {
+          await Notification.create({
+            type: "MEETING",
+            title: `📅 Vendor Discussion: ${meeting.title}`,
+            message: `You are invited to a meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+            targetRole: "VENDOR",
+            targetVendorId: vRef,
+            metadata: meetingMetadata,
+          });
+
+          // Also notify assigned Vendor HRs
+          const assignedVHRs = await User.find({
+            role: "HR",
+            hrType: "VENDOR_HR",
+            assignedVendors: vRef,
+          }).select("_id");
+          for (const vhr of assignedVHRs) {
+            await Notification.create({
+              type: "MEETING",
+              title: `📅 Vendor Discussion: ${meeting.title}`,
+              message: `Vendor meeting "${meeting.title}" involving agency ${vRef} is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+              targetRole: "VENDOR_HR",
+              targetUserId: vhr._id.toString(),
+              metadata: meetingMetadata,
+            });
+          }
+        }
+      }
     }
 
-    // Notify employee targets if applicable
-    if (targetType === "ALL") {
-      await NotificationService.createNotification({
-        type: "MEETING",
-        title: `📅 New Meeting: ${meeting.title}`,
-        message: `A company meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-        targetRole: "EMPLOYEE",
-        targetType: "ALL",
-        metadata: meetingMetadata,
-      });
-    } else if (targetType === "SPECIFIC" && Array.isArray(targetEmployees) && targetEmployees.length > 0) {
-      await Promise.all(
-        targetEmployees.map((empId) =>
-          NotificationService.createNotification({
+    // 2. INTERNAL HR MEETINGS
+    else if (meetingType === "INTERNAL_HR") {
+      if (effectiveTargetType === "ALL") {
+        const allHRs = await User.find({ role: "HR", isActive: { $ne: false } }).select("_id hrType");
+        for (const hr of allHRs) {
+          await Notification.create({
             type: "MEETING",
-            title: `📅 Meeting Invitation: ${meeting.title}`,
-            message: `You are invited to a meeting on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-            targetRole: "EMPLOYEE",
-            targetType: "SPECIFIC",
-            targetEmployeeId: empId,
+            title: `📅 HR Operations Sync: ${meeting.title}`,
+            message: `HR Team sync "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+            targetRole: hr.hrType || "HR",
+            targetUserId: hr._id.toString(),
             metadata: meetingMetadata,
-          })
-        )
-      );
+          });
+        }
+      } else {
+        // Specific HRs
+        const targetHRList = [
+          ...new Set([
+            ...(Array.isArray(targetHRs) ? targetHRs : []),
+            ...(meeting.hrId ? [meeting.hrId] : []),
+            ...processedAttendees.filter((a) => a.role?.includes("HR")).map((a) => a.id),
+          ]),
+        ].filter(Boolean);
+
+        for (const hrUserId of targetHRList) {
+          await Notification.create({
+            type: "MEETING",
+            title: `📅 HR Meeting: ${meeting.title}`,
+            message: `You are invited to an HR meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+            targetRole: "HR",
+            targetUserId: String(hrUserId),
+            metadata: meetingMetadata,
+          });
+        }
+      }
+    }
+
+    // 3. EMPLOYEE MEETINGS
+    else if (meetingType === "EMPLOYEE") {
+      if (effectiveTargetType === "ALL") {
+        await NotificationService.createNotification({
+          type: "MEETING",
+          title: `📅 Company Meeting: ${meeting.title}`,
+          message: `A company meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+          targetRole: "EMPLOYEE",
+          targetType: "ALL",
+          metadata: meetingMetadata,
+        });
+      } else if (resolvedTargetEmployees.length > 0) {
+        await Promise.all(
+          resolvedTargetEmployees.map((empId) =>
+            NotificationService.createNotification({
+              type: "MEETING",
+              title: `📅 Meeting Invitation: ${meeting.title}`,
+              message: `You are invited to a meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+              targetRole: "EMPLOYEE",
+              targetType: "SPECIFIC",
+              targetEmployeeId: empId,
+              employeeId: empId,
+              metadata: meetingMetadata,
+            })
+          )
+        );
+      }
+    }
+
+    // 4. CANDIDATE INTERVIEWS
+    else if (meetingType === "CANDIDATE_INTERVIEW") {
+      if (meeting.vendorId && !isVendor) {
+        await Notification.create({
+          type: "MEETING",
+          title: `📅 Candidate Interview: ${meeting.title}`,
+          message: `An interview has been scheduled for candidate ${meeting.candidateName || "Partner"} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+          targetRole: "VENDOR",
+          targetVendorId: meeting.vendorId,
+          metadata: meetingMetadata,
+        });
+
+        const vendorHRUsers = await User.find({
+          role: "HR",
+          hrType: "VENDOR_HR",
+          assignedVendors: meeting.vendorId,
+        }).select("_id name email");
+
+        for (const vhr of vendorHRUsers) {
+          await Notification.create({
+            type: "MEETING",
+            title: `📅 Candidate Interview: ${meeting.title}`,
+            message: `Interview "${meeting.title}" for ${meeting.candidateName || "candidate"} is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+            targetRole: "VENDOR_HR",
+            targetUserId: vhr._id.toString(),
+            metadata: meetingMetadata,
+          });
+        }
+      }
+      if (resolvedTargetEmployees.length > 0) {
+        await Promise.all(
+          resolvedTargetEmployees.map((empId) =>
+            NotificationService.createNotification({
+              type: "MEETING",
+              title: `📅 Candidate Interview: ${meeting.title}`,
+              message: `You are scheduled to interview candidate ${meeting.candidateName} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+              targetRole: "EMPLOYEE",
+              targetType: "SPECIFIC",
+              targetEmployeeId: empId,
+              employeeId: empId,
+              metadata: meetingMetadata,
+            })
+          )
+        );
+      }
+    }
+
+    // 5. GENERAL MEETINGS
+    else {
+      if (effectiveTargetType === "ALL") {
+        await NotificationService.createNotification({
+          type: "MEETING",
+          title: `📅 General Meeting: ${meeting.title}`,
+          message: `A meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
+          targetRole: "ALL",
+          targetType: "ALL",
+          metadata: meetingMetadata,
+        });
+      }
     }
   } catch (err) {
     console.error("Failed to dispatch meeting notification:", err.message);
@@ -278,21 +498,34 @@ export const getAdminMeetings = asyncHandler(async (req, res) => {
   if (isVendor) {
     filter.$or = [
       { vendorId: req.vendorId },
+      { targetVendors: req.vendorId },
       { createdBy: req.userId },
       { "attendees.id": req.vendorId },
+      { "attendees.code": req.vendorId },
       { "attendees.email": req.user?.email },
+      { targetType: "ALL", meetingType: "VENDOR_DISCUSSION" },
     ];
   } else if (isVendorHR && !isSuperAdmin && role !== ROLES.ADMIN) {
     const assigned = req.assignedVendors || [];
     filter.$or = [
       { vendorId: { $in: assigned } },
+      { targetVendors: { $in: assigned } },
       { hrId: req.userId },
+      { targetHRs: req.userId },
       { createdBy: req.userId },
+      { "attendees.id": req.userId },
+      { "attendees.email": req.user?.email },
+      { targetType: "ALL", meetingType: { $in: ["VENDOR_DISCUSSION", "INTERNAL_HR"] } },
     ];
   } else if (isEmployeeHR && !isSuperAdmin && role !== ROLES.ADMIN) {
     filter.$or = [
       { meetingType: { $in: ["INTERNAL_HR", "EMPLOYEE", "GENERAL"] } },
       { createdBy: req.userId },
+      { hrId: req.userId },
+      { targetHRs: req.userId },
+      { "attendees.id": req.userId },
+      { "attendees.email": req.user?.email },
+      { targetType: "ALL" },
     ];
   }
 
@@ -348,21 +581,34 @@ export const getMeetingCalendarStats = asyncHandler(async (req, res) => {
   if (isVendor) {
     baseFilter.$or = [
       { vendorId: req.vendorId },
+      { targetVendors: req.vendorId },
       { createdBy: req.userId },
       { "attendees.id": req.vendorId },
+      { "attendees.code": req.vendorId },
       { "attendees.email": req.user?.email },
+      { targetType: "ALL", meetingType: "VENDOR_DISCUSSION" },
     ];
   } else if (isVendorHR && !isSuperAdmin && role !== ROLES.ADMIN) {
     const assigned = req.assignedVendors || [];
     baseFilter.$or = [
       { vendorId: { $in: assigned } },
+      { targetVendors: { $in: assigned } },
       { hrId: req.userId },
+      { targetHRs: req.userId },
       { createdBy: req.userId },
+      { "attendees.id": req.userId },
+      { "attendees.email": req.user?.email },
+      { targetType: "ALL", meetingType: { $in: ["VENDOR_DISCUSSION", "INTERNAL_HR"] } },
     ];
   } else if (isEmployeeHR && !isSuperAdmin && role !== ROLES.ADMIN) {
     baseFilter.$or = [
       { meetingType: { $in: ["INTERNAL_HR", "EMPLOYEE", "GENERAL"] } },
       { createdBy: req.userId },
+      { hrId: req.userId },
+      { targetHRs: req.userId },
+      { "attendees.id": req.userId },
+      { "attendees.email": req.user?.email },
+      { targetType: "ALL" },
     ];
   }
 
@@ -591,10 +837,158 @@ export const deleteMeeting = asyncHandler(async (req, res) => {
   });
 });
 
+// GET EMPLOYEES FOR MEETING SELECTION & SEARCH
+export const getMeetingEmployees = asyncHandler(async (req, res) => {
+  const { search = "" } = req.query;
+  const filter = { status: { $ne: "inactive" } };
+  if (search) {
+    const q = String(search).trim();
+    filter.$or = [
+      { name: { $regex: q, $options: "i" } },
+      { employeeId: { $regex: q, $options: "i" } },
+      { email: { $regex: q, $options: "i" } },
+      { designation: { $regex: q, $options: "i" } },
+    ];
+  }
+  const employees = await Employee.find(filter)
+    .select("_id employeeId name email designation department")
+    .limit(50)
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    employees: employees.map((e) => ({
+      id: e._id.toString(),
+      _id: e._id.toString(),
+      name: e.name,
+      employeeId: e.employeeId,
+      email: e.email,
+      designation: e.designation || "Employee",
+      department: e.department || "General",
+    })),
+  });
+});
+
+// GET VENDORS FOR MEETING SELECTION & SEARCH
+export const getMeetingVendors = asyncHandler(async (req, res) => {
+  const { search = "" } = req.query;
+  const filter = { status: { $ne: "Rejected" } };
+  if (search) {
+    const q = String(search).trim();
+    filter.$or = [
+      { companyName: { $regex: q, $options: "i" } },
+      { vendorId: { $regex: q, $options: "i" } },
+      { contactPerson: { $regex: q, $options: "i" } },
+      { email: { $regex: q, $options: "i" } },
+    ];
+  }
+  const vendors = await Vendor.find(filter)
+    .select("_id vendorId companyName contactPerson email phone mobile status")
+    .limit(50)
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    vendors: vendors.map((v) => ({
+      id: v.vendorId || v._id.toString(),
+      _id: v._id.toString(),
+      vendorId: v.vendorId,
+      companyName: v.companyName,
+      name: v.companyName,
+      contactPerson: v.contactPerson || v.companyName,
+      email: v.email,
+      phone: v.phone || v.mobile || "",
+      status: v.status || "Active",
+    })),
+  });
+});
+
+// GET HR USERS FOR MEETING SELECTION & SEARCH
+export const getMeetingHRs = asyncHandler(async (req, res) => {
+  const { search = "", hrType = "" } = req.query;
+  const filter = { role: "HR", isActive: { $ne: false } };
+  if (hrType) {
+    filter.hrType = hrType;
+  }
+  if (search) {
+    const q = String(search).trim();
+    filter.$or = [
+      { name: { $regex: q, $options: "i" } },
+      { email: { $regex: q, $options: "i" } },
+      { department: { $regex: q, $options: "i" } },
+    ];
+  }
+  const hrs = await User.find(filter)
+    .select("_id name email role hrType assignedVendors department phone")
+    .limit(50)
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    hrs: hrs.map((h) => ({
+      id: h._id.toString(),
+      _id: h._id.toString(),
+      name: h.name,
+      email: h.email,
+      role: h.role,
+      hrType: h.hrType || "EMPLOYEE_HR",
+      assignedVendors: h.assignedVendors || [],
+      department: h.department || "",
+      phone: h.phone || "",
+    })),
+  });
+});
+
+// GET CANDIDATES FOR MEETING SELECTION & SEARCH
+export const getMeetingCandidates = asyncHandler(async (req, res) => {
+  const { search = "", vendorId = "" } = req.query;
+  const filter = {};
+  if (vendorId) {
+    filter.vendorId = vendorId;
+  }
+  if (search) {
+    const q = String(search).trim();
+    filter.$or = [
+      { candidateName: { $regex: q, $options: "i" } },
+      { candidateId: { $regex: q, $options: "i" } },
+      { candidateEmail: { $regex: q, $options: "i" } },
+      { position: { $regex: q, $options: "i" } },
+      { projectName: { $regex: q, $options: "i" } },
+    ];
+  }
+  const candidates = await CandidateApplication.find(filter)
+    .select(
+      "_id applicationId candidateId candidateName candidateEmail candidatePhone position projectName vendorId vendorName currentStage"
+    )
+    .limit(50)
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    candidates: candidates.map((c) => ({
+      id: c.candidateId || c._id.toString(),
+      _id: c._id.toString(),
+      applicationId: c.applicationId,
+      candidateId: c.candidateId,
+      name: c.candidateName,
+      candidateName: c.candidateName,
+      email: c.candidateEmail,
+      candidateEmail: c.candidateEmail,
+      phone: c.candidatePhone,
+      position: c.position || "Candidate",
+      projectName: c.projectName || "",
+      vendorId: c.vendorId || "",
+      vendorName: c.vendorName || "",
+      stage: c.currentStage || "Applied",
+    })),
+  });
+});
+
 // GET EMPLOYEE MEETINGS
 export const getEmployeeMeetings = asyncHandler(async (req, res) => {
   const employeeId = req.employee?._id || req.user?._id;
   const employeeEmail = req.employee?.email || req.user?.email;
+  const employeeName = req.employee?.name || req.user?.name;
 
   const query = {
     status: { $ne: "CANCELLED" },
@@ -603,12 +997,25 @@ export const getEmployeeMeetings = asyncHandler(async (req, res) => {
   const orConditions = [{ targetType: "ALL" }];
   if (employeeId) {
     orConditions.push({ targetEmployees: employeeId });
+    orConditions.push({ targetEmployees: employeeId.toString() });
+    orConditions.push({ "attendees.id": employeeId.toString() });
     orConditions.push({ "attendees.userId": employeeId.toString() });
   }
   if (employeeEmail) {
     orConditions.push({ "attendees.email": employeeEmail.toLowerCase() });
   }
+  if (employeeName) {
+    orConditions.push({ "attendees.name": { $regex: new RegExp(`^${employeeName}$`, "i") } });
+  }
   query.$or = orConditions;
+
+  if (req.query.upcoming === "true") {
+    const todayStr = new Date().toISOString().split("T")[0];
+    query.date = { $gte: todayStr };
+    query.status = { $in: ["SCHEDULED", "RESCHEDULED"] };
+  } else if (req.query.status && req.query.status !== "ALL") {
+    query.status = req.query.status;
+  }
 
   const meetings = await Meeting.find(query).sort({ date: 1, startTime: 1 });
 

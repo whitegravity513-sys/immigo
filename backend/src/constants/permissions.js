@@ -192,6 +192,7 @@ export const ROLE_DEFAULT_PERMISSIONS = {
   VENDOR_HR: [
     "vendors.view",
     "candidates.view",
+    "candidates.create",
     "candidates.update",
     "meetings.view",
     "meetings.create",

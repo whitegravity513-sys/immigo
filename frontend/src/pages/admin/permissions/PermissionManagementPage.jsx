@@ -25,6 +25,10 @@ import {
   CheckSquare,
   Square,
   CheckCircle2,
+  Info,
+  Layers,
+  Calendar,
+  ExternalLink,
 } from "lucide-react";
 import AdminMasterLayout from "../../../components/admin/layout/AdminMasterLayout.jsx";
 import permissionService from "../../../services/permissionService.js";
@@ -240,11 +244,11 @@ export function PermissionManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [selectedAdminId, setSelectedAdminId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState(isSuperAdmin ? "ADMIN" : "HR");
+  const [roleFilter, setRoleFilter] = useState("ALL");
 
   useEffect(() => {
     if (!isSuperAdmin) {
-      setRoleFilter("HR");
+      setRoleFilter("EMPLOYEE_HR");
     }
   }, [isSuperAdmin]);
 
@@ -367,6 +371,38 @@ export function PermissionManagementPage() {
     setExpandedGroups(updated);
   };
 
+  const isSelectedAdmin =
+    selectedAdminData?.role === "ADMIN" || selectedAdminData?.role === "SUPER_ADMIN";
+  const isSelectedVendorHR =
+    selectedAdminData?.role === "HR" && selectedAdminData?.hrType === "VENDOR_HR";
+  const isSelectedEmployeeHR =
+    selectedAdminData?.role === "HR" && selectedAdminData?.hrType !== "VENDOR_HR";
+
+  const handleFilterClick = (filterKey) => {
+    setRoleFilter(filterKey);
+    const matching = admins.filter((adm) => {
+      if (!isSuperAdmin && adm.role !== "HR") return false;
+      const isVendor = adm.role === "HR" && adm.hrType === "VENDOR_HR";
+      const isEmp = adm.role === "HR" && adm.hrType !== "VENDOR_HR";
+      const isAdm = adm.role === "ADMIN" || adm.role === "SUPER_ADMIN";
+
+      if (filterKey === "ALL") return true;
+      if (filterKey === "ADMIN") return isAdm;
+      if (filterKey === "EMPLOYEE_HR") return isEmp;
+      if (filterKey === "VENDOR_HR") return isVendor;
+      return true;
+    });
+
+    if (matching.length > 0) {
+      const alreadySelected = matching.some(
+        (m) => (m.id || m._id) === selectedAdminId
+      );
+      if (!alreadySelected) {
+        selectAdmin(matching[0].id || matching[0]._id);
+      }
+    }
+  };
+
   const filteredAdmins = useMemo(() => {
     return admins.filter((adm) => {
       if (!isSuperAdmin && adm.role !== "HR") return false;
@@ -375,20 +411,37 @@ export function PermissionManagementPage() {
         adm.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         adm.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesRole =
-        roleFilter === "ALL"
-          ? true
-          : adm.role?.toUpperCase() === roleFilter.toUpperCase();
+      if (!matchesSearch) return false;
 
-      return matchesSearch && matchesRole;
+      const isVendor = adm.role === "HR" && adm.hrType === "VENDOR_HR";
+      const isEmp = adm.role === "HR" && adm.hrType !== "VENDOR_HR";
+      const isAdm = adm.role === "ADMIN" || adm.role === "SUPER_ADMIN";
+
+      if (roleFilter === "ALL") return true;
+      if (roleFilter === "ADMIN") return isAdm;
+      if (roleFilter === "EMPLOYEE_HR") return isEmp;
+      if (roleFilter === "VENDOR_HR") return isVendor;
+
+      return true;
     });
   }, [admins, searchTerm, roleFilter, isSuperAdmin]);
 
   const visibleGroups = useMemo(() => {
     if (!selectedAdminData) return MANAGEMENT_GROUPS;
-    const targetRole = selectedAdminData.role || "ADMIN";
-    return MANAGEMENT_GROUPS.filter((g) => g.forRoles.includes(targetRole));
-  }, [selectedAdminData]);
+
+    // Vendor HR: fixed agency scope, no custom permission groups
+    if (isSelectedVendorHR) {
+      return [];
+    }
+
+    // Employee HR: strictly workforce & employee operations
+    if (isSelectedEmployeeHR) {
+      return MANAGEMENT_GROUPS.filter((g) => g.id === "hr");
+    }
+
+    // Admin / Super Admin: show all management modules
+    return MANAGEMENT_GROUPS;
+  }, [selectedAdminData, isSelectedVendorHR, isSelectedEmployeeHR]);
 
   const allCurrentKeys = useMemo(() => {
     return visibleGroups.flatMap((g) =>
@@ -489,6 +542,25 @@ export function PermissionManagementPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleOpenCreateModal = () => {
+    let initialRole = "EMPLOYEE_HR";
+    if (roleFilter === "ADMIN" && isSuperAdmin) {
+      initialRole = "ADMIN";
+    } else if (roleFilter === "VENDOR_HR") {
+      initialRole = "VENDOR_HR";
+    }
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      role: initialRole,
+      hrType: initialRole === "ADMIN" ? "" : initialRole,
+      assignedVendors: [],
+      notes: "",
+    });
+    setIsCreateModalOpen(true);
   };
 
   const handleCreateAdmin = async (e) => {
@@ -641,20 +713,20 @@ export function PermissionManagementPage() {
           <div className="flex items-center gap-2.5 shrink-0">
             {/* Quick Metrics */}
             <div className="hidden md:flex items-center gap-2 text-[11px] font-medium text-blue-200/90 bg-white/10 px-3 py-1 rounded-xl border border-white/10">
-              <span>Admins: <strong className="text-white font-bold">{admins.filter((a) => a.role === "ADMIN").length}</strong></span>
+              <span>Admins: <strong className="text-white font-bold">{admins.filter((a) => a.role === "ADMIN" || a.role === "SUPER_ADMIN").length}</strong></span>
               <span className="text-white/30">&bull;</span>
-              <span>HR: <strong className="text-white font-bold">{admins.filter((a) => a.role === "HR").length}</strong></span>
+              <span>Employee HR: <strong className="text-white font-bold">{admins.filter((a) => a.role === "HR" && a.hrType !== "VENDOR_HR").length}</strong></span>
               <span className="text-white/30">&bull;</span>
-              <span>Modules: <strong className="text-white font-bold">{MANAGEMENT_GROUPS.length}</strong></span>
+              <span>Vendor HR: <strong className="text-white font-bold">{admins.filter((a) => a.role === "HR" && a.hrType === "VENDOR_HR").length}</strong></span>
             </div>
 
             <button
               type="button"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleOpenCreateModal}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-xs transition-all cursor-pointer hover:scale-101"
             >
               <UserPlus size={13} />
-              <span>Create Admin / HR</span>
+              <span>Create Account</span>
             </button>
           </div>
         </div>
@@ -686,34 +758,47 @@ export function PermissionManagementPage() {
                 />
               </div>
 
-              {/* Role Filter Pills */}
-              {isSuperAdmin ? (
-                <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px]">
-                  {[
-                    { key: "ADMIN", label: "Admins" },
-                    { key: "HR", label: "HR Staff" },
-                    { key: "ALL", label: "All" },
-                  ].map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setRoleFilter(item.key)}
-                      className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                        roleFilter === item.key
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                  <span>HR Staff Directory</span>
-                  <span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded font-semibold">HR Only</span>
-                </div>
-              )}
+              {/* 3-Role Segmentation Filter Pills */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10px]">
+                {[
+                  { key: "ALL", label: `All (${admins.length})` },
+                  ...(isSuperAdmin
+                    ? [
+                        {
+                          key: "ADMIN",
+                          label: `Admin (${
+                            admins.filter((a) => a.role === "ADMIN" || a.role === "SUPER_ADMIN").length
+                          })`,
+                        },
+                      ]
+                    : []),
+                  {
+                    key: "EMPLOYEE_HR",
+                    label: `Employee HR (${
+                      admins.filter((a) => a.role === "HR" && a.hrType !== "VENDOR_HR").length
+                    })`,
+                  },
+                  {
+                    key: "VENDOR_HR",
+                    label: `Vendor HR (${
+                      admins.filter((a) => a.role === "HR" && a.hrType === "VENDOR_HR").length
+                    })`,
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => handleFilterClick(item.key)}
+                    className={`px-2 py-1 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                      roleFilter === item.key
+                        ? "bg-blue-600 text-white shadow-2xs"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Account Card List */}
@@ -726,6 +811,8 @@ export function PermissionManagementPage() {
                 filteredAdmins.map((adm) => {
                   const isSelected = selectedAdminId === adm.id || selectedAdminId === adm._id;
                   const isSuper = adm.role === "SUPER_ADMIN";
+                  const isVendor = adm.role === "HR" && adm.hrType === "VENDOR_HR";
+                  const isEmployee = adm.role === "HR" && adm.hrType !== "VENDOR_HR";
 
                   return (
                     <div
@@ -752,11 +839,11 @@ export function PermissionManagementPage() {
                           <div className="text-[10px] text-slate-500 truncate mt-0.5">
                             {adm.email}
                           </div>
-                          {adm.role === "HR" && adm.hrType === "VENDOR_HR" && (
+                          {isVendor && (
                             <div className="text-[9.5px] text-cyan-700 font-semibold truncate mt-0.5">
                               {Array.isArray(adm.assignedVendors) && adm.assignedVendors.length > 0
-                                ? `${adm.assignedVendors.length} Vendors Assigned`
-                                : "No Vendors Assigned"}
+                                ? `${adm.assignedVendors.length} Agencies Linked`
+                                : "No Agency Linked"}
                             </div>
                           )}
                         </div>
@@ -765,26 +852,35 @@ export function PermissionManagementPage() {
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider shrink-0 ${
                             isSuper
                               ? "bg-amber-100 text-amber-800 border border-amber-300"
-                              : adm.role === "HR" && adm.hrType === "VENDOR_HR"
+                              : isVendor
                               ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
-                              : adm.role === "HR"
+                              : isEmployee
                               ? "bg-purple-100 text-purple-800 border border-purple-200"
                               : "bg-blue-100 text-blue-800 border border-blue-200"
                           }`}
                         >
-                          {adm.role === "HR"
-                            ? adm.hrType === "VENDOR_HR"
-                              ? "Vendor HR"
-                              : "Employee HR"
-                            : adm.role}
+                          {isSuper
+                            ? "Super Admin"
+                            : isVendor
+                            ? "Vendor HR"
+                            : isEmployee
+                            ? "Employee HR"
+                            : "Admin"}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2 pt-1.5 border-t border-slate-100">
-                        <span className="flex items-center gap-1 font-medium">
-                          <Lock size={10} className="text-blue-500" />
-                          <span>{adm.permissionCount} Perms Active</span>
-                        </span>
+                        {isVendor ? (
+                          <span className="flex items-center gap-1 font-semibold text-cyan-700">
+                            <Briefcase size={10} className="text-cyan-600" />
+                            <span>Agency Scoped (Fixed Role)</span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 font-medium">
+                            <Lock size={10} className="text-blue-500" />
+                            <span>{adm.permissionCount} Perms Active</span>
+                          </span>
+                        )}
 
                         <div className="flex items-center gap-1">
                           {!isSuper && (
@@ -833,324 +929,599 @@ export function PermissionManagementPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: ACCORDION MANAGEMENT PERMISSIONS */}
+          {/* RIGHT COLUMN: ACCORDION MANAGEMENT PERMISSIONS OR VENDOR HR VIEW */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-3">
             {selectedAdminData ? (
-              <div>
-                {/* Account Details & Save Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-base font-bold text-slate-900 tracking-tight">
-                        {selectedAdminData.name}
-                      </h2>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                          selectedAdminData.isSuperAdmin
-                            ? "bg-amber-100 text-amber-900 border border-amber-300"
-                            : selectedAdminData.role === "HR"
-                            ? "bg-purple-100 text-purple-900 border border-purple-200"
-                            : "bg-blue-100 text-blue-900 border border-blue-200"
-                        }`}
-                      >
-                        {selectedAdminData.role}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                      {selectedAdminData.email} &bull; Granted Capabilities:{" "}
-                      <strong className="text-blue-600 font-bold">
-                        {selectedAdminData.isSuperAdmin
-                          ? "All Access (Wildcard *)"
-                          : `${effectivePermissions.length} / ${allCurrentKeys.length} Permissions`}
-                      </strong>
-                    </p>
-                  </div>
-
-                  {/* Save / Reset Buttons */}
-                  <div className="flex items-center gap-2">
-                    {changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => setEffectivePermissions([...initialPermissions])}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer"
-                      >
-                        <RotateCcw size={12} />
-                        <span>Reset</span>
-                      </button>
-                    )}
-
-                    {!selectedAdminData.isSuperAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => setIsConfirmSaveOpen(true)}
-                        disabled={!changesDiff.hasChanges || saving}
-                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          changesDiff.hasChanges
-                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
-                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        }`}
-                      >
-                        <Save size={13} />
-                        <span>{saving ? "Saving..." : "Save Changes"}</span>
-                        {changesDiff.hasChanges && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Super Admin Notice */}
-                {selectedAdminData.isSuperAdmin && (
-                  <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
-                    <ShieldCheck size={16} className="text-amber-600 shrink-0" />
+              isSelectedVendorHR ? (
+                /* DEDICATED VENDOR HR AGENCY & SCOPE VIEW (NO ROLE CHECKBOXES) */
+                <div className="space-y-3.5">
+                  {/* Account Details & Action Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
                     <div>
-                      <strong>Super Administrator:</strong> Full system access is active. All
-                      modules & sub-sections are automatically authorized.
-                    </div>
-                  </div>
-                )}
-
-                {/* Global Controls & Accordion Toggle Bar */}
-                {!selectedAdminData.isSuperAdmin && (
-                  <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">
-                        Quick Expand:
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setAllGroups(true)}
-                        className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:text-blue-600 font-semibold text-[11px] cursor-pointer shadow-2xs"
-                      >
-                        Expand All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAllGroups(false)}
-                        className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:text-blue-600 font-semibold text-[11px] cursor-pointer shadow-2xs"
-                      >
-                        Collapse All
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={handleSelectAllGlobal}
-                        className="px-2.5 py-1 rounded-md bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-[11px] cursor-pointer"
-                      >
-                        Select All Modules
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleClearAllGlobal}
-                        className="px-2.5 py-1 rounded-md bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[11px] cursor-pointer"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Changes Pending Bar */}
-                {changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
-                  <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <AlertTriangle size={13} className="text-amber-600 shrink-0" />
-                      <span>
-                        Pending changes: <strong>+{changesDiff.added.length}</strong> granted,{" "}
-                        <strong>-{changesDiff.removed.length}</strong> revoked. Click &apos;Save Changes&apos; to commit.
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* ACCORDION MANAGEMENT GROUPS LIST */}
-                <div className="mt-3 space-y-2.5">
-                  {visibleGroups.map((group) => {
-                    const GroupIcon = group.icon;
-                    const isOpen = Boolean(expandedGroups[group.id]);
-
-                    const groupAllKeys = group.subsections.flatMap((s) =>
-                      s.actions.map((a) => a.key)
-                    );
-                    const grantedInGroup = groupAllKeys.filter((k) =>
-                      isPermissionChecked(k)
-                    ).length;
-                    const isAllGranted =
-                      groupAllKeys.length > 0 && grantedInGroup === groupAllKeys.length;
-
-                    return (
-                      <div
-                        key={group.id}
-                        className="border border-slate-200 rounded-xl overflow-hidden transition-all duration-150 shadow-2xs bg-white"
-                      >
-                        {/* ACCORDION HEADER (Click to expand/collapse) */}
-                        <div
-                          onClick={() => toggleGroup(group.id)}
-                          className={`px-3 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
-                            isOpen ? "bg-slate-50 border-b border-slate-200" : group.headerBg
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="text-slate-400 group-hover:text-slate-600 transition-transform">
-                              {isOpen ? (
-                                <ChevronDown size={16} className="text-blue-600" />
-                              ) : (
-                                <ChevronRight size={16} />
-                              )}
-                            </div>
-
-                            <span className={`p-1.5 rounded-lg border ${group.color}`}>
-                              <GroupIcon size={14} />
-                            </span>
-
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-xs text-slate-900">
-                                  {group.title}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-normal hidden sm:inline truncate">
-                                  &bull; {group.desc}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Right: Granted Count Badge + Quick Module Selector */}
-                          <div
-                            className="flex items-center gap-2 shrink-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                isAllGranted
-                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                  : grantedInGroup > 0
-                                  ? "bg-blue-100 text-blue-800 border border-blue-200"
-                                  : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
-                              {grantedInGroup} / {groupAllKeys.length} Granted
-                            </span>
-
-                            {!selectedAdminData.isSuperAdmin && (
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => selectAllInGroup(group)}
-                                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer"
-                                  title="Grant all in this section"
-                                >
-                                  Select All
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => clearAllInGroup(group)}
-                                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
-                                  title="Clear all in this section"
-                                >
-                                  Clear
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* ACCORDION CONTENT (SUBSECTIONS & GRANULAR CAPABILITIES) */}
-                        {isOpen && (
-                          <div className="p-3 bg-slate-50/40 space-y-3 animate-in fade-in duration-150">
-                            {group.subsections.map((sub) => (
-                              <div
-                                key={sub.id}
-                                className="bg-white rounded-lg border border-slate-200/80 p-3 space-y-2"
-                              >
-                                {/* Subsection Header */}
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                                  <div>
-                                    <h4 className="font-bold text-xs text-slate-900">
-                                      {sub.name}
-                                    </h4>
-                                    <p className="text-[10px] text-slate-400">
-                                      {sub.desc}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {/* Granular Action Switches / Checkboxes */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
-                                  {sub.actions.map((act) => {
-                                    const checked = isPermissionChecked(act.key);
-                                    const disabled = selectedAdminData.isSuperAdmin;
-
-                                    return (
-                                      <label
-                                        key={act.key}
-                                        onClick={(e) => {
-                                          if (disabled) return;
-                                          e.preventDefault();
-                                          togglePermission(act.key);
-                                        }}
-                                        className={`flex items-start gap-2 p-2 rounded-lg border text-left transition-all select-none ${
-                                          disabled
-                                            ? "opacity-60 bg-slate-50 border-slate-200 cursor-default"
-                                            : checked
-                                            ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-500/20 cursor-pointer shadow-2xs"
-                                            : "bg-white border-slate-200/80 hover:border-slate-300 cursor-pointer"
-                                        }`}
-                                      >
-                                        <div className="mt-0.5 shrink-0">
-                                          {checked ? (
-                                            <CheckSquare
-                                              size={15}
-                                              className="text-blue-600"
-                                            />
-                                          ) : (
-                                            <Square
-                                              size={15}
-                                              className="text-slate-300 hover:text-slate-400"
-                                            />
-                                          )}
-                                        </div>
-
-                                        <div className="min-w-0">
-                                          <div className="flex items-center gap-1">
-                                            <span
-                                              className={`text-xs font-bold leading-tight truncate ${
-                                                checked ? "text-blue-900" : "text-slate-800"
-                                              }`}
-                                            >
-                                              {act.label}
-                                            </span>
-                                            {act.isDanger && (
-                                              <span className="text-[8px] bg-rose-100 text-rose-700 px-1 py-0.2 rounded font-bold uppercase">
-                                                Delete
-                                              </span>
-                                            )}
-                                            {act.isHighlight && (
-                                              <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded font-bold uppercase">
-                                                Approval
-                                              </span>
-                                            )}
-                                          </div>
-                                          <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                                            {act.desc}
-                                          </p>
-                                        </div>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                          {selectedAdminData.name}
+                        </h2>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-cyan-100 text-cyan-900 border border-cyan-200">
+                          Vendor HR
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                          Fixed Agency Scope
+                        </span>
+                        {!selectedAdminData.isActive && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+                            Disabled
+                          </span>
                         )}
                       </div>
-                    );
-                  })}
+                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                        {selectedAdminData.email} &bull; Scope:{" "}
+                        <strong className="text-cyan-700 font-bold">
+                          {selectedAdminData.assignedVendors?.length || 0} Vendor Agencies Assigned
+                        </strong>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditFormData({
+                            id: selectedAdminData.id || selectedAdminData._id,
+                            name: selectedAdminData.name,
+                            email: selectedAdminData.email,
+                            role: "VENDOR_HR",
+                            hrType: "VENDOR_HR",
+                            assignedVendors: selectedAdminData.assignedVendors || [],
+                            isActive: selectedAdminData.isActive !== false,
+                          });
+                          setIsEditModalOpen(true);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-700 text-white shadow-xs cursor-pointer transition-all"
+                      >
+                        <Edit2 size={12} />
+                        <span>Edit Agency Assignment</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAdminToDelete(selectedAdminData)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 cursor-pointer"
+                        title="Delete Account"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Policy Alert Banner */}
+                  <div className="p-3 rounded-xl bg-cyan-50/80 border border-cyan-200 text-cyan-950 text-xs flex items-start gap-2.5">
+                    <ShieldCheck size={18} className="text-cyan-700 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 leading-relaxed">
+                      <strong className="font-bold text-cyan-900">
+                        Vendor HR Policy: Fixed Role Scope (No Custom Role Needed)
+                      </strong>
+                      <p className="text-cyan-800 text-[11px]">
+                        Vendor HR accounts are pre-configured by the system with fixed capabilities. Direct role and permission matrix checkboxes are disabled to guarantee multi-vendor data isolation. Capabilities are strictly bounded to candidates submitted under their assigned recruitment agency.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Assigned Vendor Agencies List */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-cyan-100 text-cyan-800">
+                          <Briefcase size={14} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-xs text-slate-900">
+                            Assigned Recruitment Agencies ({selectedAdminData.assignedVendors?.length || 0})
+                          </h3>
+                          <p className="text-[10px] text-slate-500">
+                            This Vendor HR can manage candidate pipelines and attend interviews for these agencies only:
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {(!selectedAdminData.assignedVendors || selectedAdminData.assignedVendors.length === 0) ? (
+                      <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-center space-y-2">
+                        <AlertTriangle size={20} className="text-amber-600 mx-auto" />
+                        <p className="font-bold">No Vendor Agency Currently Assigned</p>
+                        <p className="text-[11px] text-amber-700 max-w-md mx-auto">
+                          This Vendor HR account has not been linked to any recruitment agency yet. Assign an agency to authorize candidate pipeline visibility.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditFormData({
+                              id: selectedAdminData.id || selectedAdminData._id,
+                              name: selectedAdminData.name,
+                              email: selectedAdminData.email,
+                              role: "VENDOR_HR",
+                              hrType: "VENDOR_HR",
+                              assignedVendors: [],
+                              isActive: selectedAdminData.isActive !== false,
+                            });
+                            setIsEditModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-xs"
+                        >
+                          Assign Vendor Agency Now
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+                        {selectedAdminData.assignedVendors.map((vId) => {
+                          const vendorObj = availableVendors.find(
+                            (v) => (v.vendorId || v.id) === vId
+                          );
+                          return (
+                            <div
+                              key={vId}
+                              className="p-3 rounded-xl border border-cyan-200 bg-cyan-50/40 space-y-1.5"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h4 className="font-bold text-xs text-slate-900 truncate">
+                                    {vendorObj?.companyName || `Vendor ${vId}`}
+                                  </h4>
+                                  <span className="text-[10px] font-mono text-cyan-800 bg-cyan-100 px-1.5 py-0.2 rounded font-semibold">
+                                    ID: {vId}
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
+                                  {vendorObj?.status || "Active Agency"}
+                                </span>
+                              </div>
+
+                              <div className="text-[10.5px] text-slate-600 space-y-0.5 pt-1 border-t border-cyan-100">
+                                {vendorObj?.contactPersonName && (
+                                  <div>Contact: <strong>{vendorObj.contactPersonName}</strong></div>
+                                )}
+                                {vendorObj?.email && (
+                                  <div className="text-slate-500 truncate">Email: {vendorObj.email}</div>
+                                )}
+                                {vendorObj?.phone && (
+                                  <div className="text-slate-500">Phone: {vendorObj.phone}</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pre-Configured Capabilities */}
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-800">
+                        <CheckCircle2 size={14} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-xs text-slate-900">
+                          Pre-Configured System Capabilities (Automatically Active)
+                        </h3>
+                        <p className="text-[10px] text-slate-500">
+                          These features are automatically enabled for Vendor HR without custom role configuration:
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+                      <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/60 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <UserCheck size={13} className="text-blue-600" />
+                            Candidate Submissions
+                          </span>
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            Active
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-tight">
+                          Register applicants, upload passports, trade certificates, and resumes under assigned agency.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/60 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <Layers size={13} className="text-indigo-600" />
+                            Live Stage Tracker
+                          </span>
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            Active
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-tight">
+                          Monitor real-time pipeline: Applied, Screening, L1/L2 Interview, Selected, Offer Letter & Visa.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/60 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <Calendar size={13} className="text-purple-600" />
+                            Interview Schedules
+                          </span>
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            Active
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-tight">
+                          View scheduled interview dates and join video conferencing sessions with agency candidates.
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/60 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <Lock size={13} className="text-cyan-700" />
+                            Multi-Tenant Isolation
+                          </span>
+                          <span className="text-[9px] font-bold text-cyan-800 bg-cyan-50 px-1.5 py-0.2 rounded border border-cyan-200">
+                            Enforced
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-tight">
+                          Strict database isolation: blocked from viewing other vendors, workforce employee records, or finance.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* ACCORDION PERMISSIONS VIEW FOR ADMIN & EMPLOYEE HR */
+                <div>
+                  {/* Account Details & Save Bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                          {selectedAdminData.name}
+                        </h2>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                            selectedAdminData.isSuperAdmin
+                              ? "bg-amber-100 text-amber-900 border border-amber-300"
+                              : isSelectedEmployeeHR
+                              ? "bg-purple-100 text-purple-900 border border-purple-200"
+                              : "bg-blue-100 text-blue-900 border border-blue-200"
+                          }`}
+                        >
+                          {selectedAdminData.isSuperAdmin
+                            ? "Super Admin"
+                            : isSelectedEmployeeHR
+                            ? "Employee HR"
+                            : "Admin"}
+                        </span>
+                        {!selectedAdminData.isActive && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+                            Disabled
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                        {selectedAdminData.email} &bull; Granted Capabilities:{" "}
+                        <strong className="text-blue-600 font-bold">
+                          {selectedAdminData.isSuperAdmin
+                            ? "All Access (Wildcard *)"
+                            : isSelectedEmployeeHR
+                            ? `${effectivePermissions.length} / ${allCurrentKeys.length} Employee HR Permissions`
+                            : `${effectivePermissions.length} / ${allCurrentKeys.length} Permissions`}
+                        </strong>
+                      </p>
+                    </div>
+
+                    {/* Save / Reset Buttons */}
+                    <div className="flex items-center gap-2">
+                      {changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setEffectivePermissions([...initialPermissions])}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                        >
+                          <RotateCcw size={12} />
+                          <span>Reset</span>
+                        </button>
+                      )}
+
+                      {!selectedAdminData.isSuperAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setIsConfirmSaveOpen(true)}
+                          disabled={!changesDiff.hasChanges || saving}
+                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            changesDiff.hasChanges
+                              ? "bg-blue-600 hover:bg-blue-700 text-white shadow-xs cursor-pointer"
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                          }`}
+                        >
+                          <Save size={13} />
+                          <span>{saving ? "Saving..." : "Save Changes"}</span>
+                          {changesDiff.hasChanges && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Super Admin Notice */}
+                  {selectedAdminData.isSuperAdmin && (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
+                      <ShieldCheck size={16} className="text-amber-600 shrink-0" />
+                      <div>
+                        <strong>Super Administrator:</strong> Full system access is active. All
+                        modules & sub-sections are automatically authorized.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Employee HR Informational Scope Note */}
+                  {isSelectedEmployeeHR && (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-purple-50/80 border border-purple-200 text-purple-900 text-xs flex items-center gap-2.5">
+                      <Users size={16} className="text-purple-600 shrink-0" />
+                      <div>
+                        <strong>Employee HR Scope:</strong> Configured exclusively for workforce operations — employee profiles, daily attendance registers, leave approvals, and internal staff meetings.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Admin Informational Scope Note */}
+                  {isSelectedAdmin && !selectedAdminData.isSuperAdmin && (
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-900 text-xs flex items-center gap-2.5">
+                      <Shield size={16} className="text-blue-600 shrink-0" />
+                      <div>
+                        <strong>Administrator Scope:</strong> Full operational access across all 7 management modules (HR, Clients, Projects, Vendors, Candidates, Finance, and Reports).
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Global Controls & Accordion Toggle Bar */}
+                  {!selectedAdminData.isSuperAdmin && (
+                    <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider">
+                          Quick Expand:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setAllGroups(true)}
+                          className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:text-blue-600 font-semibold text-[11px] cursor-pointer shadow-2xs"
+                        >
+                          Expand All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAllGroups(false)}
+                          className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:text-blue-600 font-semibold text-[11px] cursor-pointer shadow-2xs"
+                        >
+                          Collapse All
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleSelectAllGlobal}
+                          className="px-2.5 py-1 rounded-md bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-[11px] cursor-pointer"
+                        >
+                          {isSelectedEmployeeHR ? "Select All HR Modules" : "Select All Modules"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearAllGlobal}
+                          className="px-2.5 py-1 rounded-md bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[11px] cursor-pointer"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Changes Pending Bar */}
+                  {changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
+                    <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                        <span>
+                          Pending changes: <strong>+{changesDiff.added.length}</strong> granted,{" "}
+                          <strong>-{changesDiff.removed.length}</strong> revoked. Click &apos;Save Changes&apos; to commit.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ACCORDION MANAGEMENT GROUPS LIST */}
+                  <div className="mt-3 space-y-2.5">
+                    {visibleGroups.map((group) => {
+                      const GroupIcon = group.icon;
+                      const isOpen = Boolean(expandedGroups[group.id]);
+
+                      const groupAllKeys = group.subsections.flatMap((s) =>
+                        s.actions.map((a) => a.key)
+                      );
+                      const grantedInGroup = groupAllKeys.filter((k) =>
+                        isPermissionChecked(k)
+                      ).length;
+                      const isAllGranted =
+                        groupAllKeys.length > 0 && grantedInGroup === groupAllKeys.length;
+
+                      return (
+                        <div
+                          key={group.id}
+                          className="border border-slate-200 rounded-xl overflow-hidden transition-all duration-150 shadow-2xs bg-white"
+                        >
+                          {/* ACCORDION HEADER (Click to expand/collapse) */}
+                          <div
+                            onClick={() => toggleGroup(group.id)}
+                            className={`px-3 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
+                              isOpen ? "bg-slate-50 border-b border-slate-200" : group.headerBg
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="text-slate-400 group-hover:text-slate-600 transition-transform">
+                                {isOpen ? (
+                                  <ChevronDown size={16} className="text-blue-600" />
+                                ) : (
+                                  <ChevronRight size={16} />
+                                )}
+                              </div>
+
+                              <span className={`p-1.5 rounded-lg border ${group.color}`}>
+                                <GroupIcon size={14} />
+                              </span>
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-xs text-slate-900">
+                                    {group.title}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-normal hidden sm:inline truncate">
+                                    &bull; {group.desc}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right: Granted Count Badge + Quick Module Selector */}
+                            <div
+                              className="flex items-center gap-2 shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                  isAllGranted
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                    : grantedInGroup > 0
+                                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                    : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {grantedInGroup} / {groupAllKeys.length} Granted
+                              </span>
+
+                              {!selectedAdminData.isSuperAdmin && (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => selectAllInGroup(group)}
+                                    className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-pointer"
+                                    title="Grant all in this section"
+                                  >
+                                    Select All
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => clearAllInGroup(group)}
+                                    className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+                                    title="Clear all in this section"
+                                  >
+                                    Clear
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* ACCORDION CONTENT (SUBSECTIONS & GRANULAR CAPABILITIES) */}
+                          {isOpen && (
+                            <div className="p-3 bg-slate-50/40 space-y-3 animate-in fade-in duration-150">
+                              {group.subsections.map((sub) => (
+                                <div
+                                  key={sub.id}
+                                  className="bg-white rounded-lg border border-slate-200/80 p-3 space-y-2"
+                                >
+                                  {/* Subsection Header */}
+                                  <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                                    <div>
+                                      <h4 className="font-bold text-xs text-slate-900">
+                                        {sub.name}
+                                      </h4>
+                                      <p className="text-[10px] text-slate-400">
+                                        {sub.desc}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Granular Action Switches / Checkboxes */}
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
+                                    {sub.actions.map((act) => {
+                                      const checked = isPermissionChecked(act.key);
+                                      const disabled = selectedAdminData.isSuperAdmin;
+
+                                      return (
+                                        <label
+                                          key={act.key}
+                                          onClick={(e) => {
+                                            if (disabled) return;
+                                            e.preventDefault();
+                                            togglePermission(act.key);
+                                          }}
+                                          className={`flex items-start gap-2 p-2 rounded-lg border text-left transition-all select-none ${
+                                            disabled
+                                              ? "opacity-60 bg-slate-50 border-slate-200 cursor-default"
+                                              : checked
+                                              ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-500/20 cursor-pointer shadow-2xs"
+                                              : "bg-white border-slate-200/80 hover:border-slate-300 cursor-pointer"
+                                          }`}
+                                        >
+                                          <div className="mt-0.5 shrink-0">
+                                            {checked ? (
+                                              <CheckSquare
+                                                size={15}
+                                                className="text-blue-600"
+                                              />
+                                            ) : (
+                                              <Square
+                                                size={15}
+                                                className="text-slate-300 hover:text-slate-400"
+                                              />
+                                            )}
+                                          </div>
+
+                                          <div className="min-w-0">
+                                            <div className="flex items-center gap-1">
+                                              <span
+                                                className={`text-xs font-bold leading-tight truncate ${
+                                                  checked ? "text-blue-900" : "text-slate-800"
+                                                }`}
+                                              >
+                                                {act.label}
+                                              </span>
+                                              {act.isDanger && (
+                                                <span className="text-[8px] bg-rose-100 text-rose-700 px-1 py-0.2 rounded font-bold uppercase">
+                                                  Delete
+                                                </span>
+                                              )}
+                                              {act.isHighlight && (
+                                                <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded font-bold uppercase">
+                                                  Approval
+                                                </span>
+                                              )}
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                                              {act.desc}
+                                            </p>
+                                          </div>
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )
             ) : (
               <div className="text-center py-12 text-slate-400 text-xs">
                 Select an account from the left directory to inspect and assign permissions.
@@ -1162,7 +1533,7 @@ export function PermissionManagementPage() {
         {/* MODAL: CREATE ADMIN OR HR ACCOUNT */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3 animate-in fade-in zoom-in-95">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-md w-full shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between border-b pb-2.5">
                 <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                   <UserPlus size={16} className="text-blue-600" />
@@ -1176,84 +1547,155 @@ export function PermissionManagementPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateAdmin} className="space-y-2.5 text-xs">
+              <form onSubmit={handleCreateAdmin} className="space-y-3 text-xs">
+                {/* 3 Account Types Selection */}
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">
-                    Role & HR Specialization
+                  <label className="block text-slate-800 font-bold mb-1.5">
+                    Select Account Type *
                   </label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        role: e.target.value,
-                        hrType:
-                          e.target.value === "VENDOR_HR"
-                            ? "VENDOR_HR"
-                            : e.target.value === "EMPLOYEE_HR"
-                            ? "EMPLOYEE_HR"
-                            : "",
-                      })
-                    }
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold text-xs"
-                  >
-                    <option value="EMPLOYEE_HR">Employee Management HR</option>
-                    <option value="VENDOR_HR">Vendor Management HR</option>
-                    {isSuperAdmin && <option value="ADMIN">ADMIN (Operations Administrator)</option>}
-                  </select>
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Admin */}
+                    {isSuperAdmin && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            role: "ADMIN",
+                            hrType: "",
+                            assignedVendors: [],
+                          })
+                        }
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          formData.role === "ADMIN"
+                            ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500/20 text-blue-900"
+                            : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1 font-bold text-xs mb-1">
+                          <Shield size={13} className="text-blue-600" />
+                          <span>Admin</span>
+                        </div>
+                        <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight">
+                          Full admin with all 7 module permissions.
+                        </p>
+                      </button>
+                    )}
+
+                    {/* Employee HR */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          role: "EMPLOYEE_HR",
+                          hrType: "EMPLOYEE_HR",
+                          assignedVendors: [],
+                        })
+                      }
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        formData.role === "EMPLOYEE_HR"
+                          ? "bg-purple-50 border-purple-500 ring-2 ring-purple-500/20 text-purple-900"
+                          : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 font-bold text-xs mb-1">
+                        <Users size={13} className="text-purple-600" />
+                        <span>Employee HR</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight">
+                        Workforce directory, attendance & leaves only.
+                      </p>
+                    </button>
+
+                    {/* Vendor HR */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          role: "VENDOR_HR",
+                          hrType: "VENDOR_HR",
+                        })
+                      }
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        formData.role === "VENDOR_HR"
+                          ? "bg-cyan-50 border-cyan-500 ring-2 ring-cyan-500/20 text-cyan-900"
+                          : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 font-bold text-xs mb-1">
+                        <Briefcase size={13} className="text-cyan-600" />
+                        <span>Vendor HR</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight">
+                        Agency recruitment HR. Fixed role scope (No custom role).
+                      </p>
+                    </button>
+                  </div>
                 </div>
 
-                {/* If Vendor Management HR, show Vendor Assignment checklist */}
+                {/* If Vendor HR: Info Banner & Vendor Agency Selection */}
                 {formData.role === "VENDOR_HR" && (
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <label className="block text-slate-800 font-bold mb-0.5">
-                      Assign Recruitment Vendors (Multi-Vendor Supported) *
-                    </label>
-                    <p className="text-[10px] text-slate-500">
-                      This HR user will only be allowed to access candidates and milestones from these vendors.
-                    </p>
-                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar border-t border-slate-200 pt-1.5 mt-1">
-                      {availableVendors.length === 0 ? (
-                        <div className="text-[11px] text-slate-400 italic">No vendors found.</div>
-                      ) : (
-                        availableVendors.map((vnd) => {
-                          const vId = vnd.vendorId || vnd.id;
-                          const isChecked = (formData.assignedVendors || []).includes(vId);
-                          return (
-                            <label
-                              key={vId}
-                              className="flex items-center gap-2 p-1 rounded-lg hover:bg-white text-slate-700 cursor-pointer text-xs"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={(e) => {
-                                  const curr = formData.assignedVendors || [];
-                                  if (e.target.checked) {
-                                    setFormData({ ...formData, assignedVendors: [...curr, vId] });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      assignedVendors: curr.filter((id) => id !== vId),
-                                    });
-                                  }
-                                }}
-                                className="rounded text-blue-600"
-                              />
-                              <span className="font-bold text-slate-900 truncate">
-                                {vnd.companyName}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-mono">({vId})</span>
-                            </label>
-                          );
-                        })
-                      )}
+                  <div className="p-3 rounded-xl bg-cyan-50/80 border border-cyan-200 space-y-2">
+                    <div className="flex items-start gap-1.5">
+                      <Info size={14} className="text-cyan-700 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-cyan-900 font-medium leading-relaxed">
+                        <strong>No Role Setup Required:</strong> Vendor HR accounts are created with fixed, automated recruitment permissions scoped strictly to the selected agency.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-800 font-bold mb-1 text-[11px]">
+                        Assign Vendor Agency (Select Agency) *
+                      </label>
+                      <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar bg-white rounded-lg border border-slate-200 p-2">
+                        {availableVendors.length === 0 ? (
+                          <div className="text-[11px] text-slate-400 italic">No vendors found in system.</div>
+                        ) : (
+                          availableVendors.map((vnd) => {
+                            const vId = vnd.vendorId || vnd.id;
+                            const isChecked = (formData.assignedVendors || []).includes(vId);
+                            return (
+                              <label
+                                key={vId}
+                                className={`flex items-center gap-2 p-1.5 rounded-md hover:bg-slate-50 text-slate-800 cursor-pointer text-xs border ${
+                                  isChecked ? "bg-cyan-50/50 border-cyan-300" : "border-transparent"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    const curr = formData.assignedVendors || [];
+                                    if (e.target.checked) {
+                                      setFormData({ ...formData, assignedVendors: [...curr, vId] });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        assignedVendors: curr.filter((id) => id !== vId),
+                                      });
+                                    }
+                                  }}
+                                  className="rounded text-cyan-600"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold text-slate-900 truncate">
+                                    {vnd.companyName}
+                                  </div>
+                                  <span className="text-[9.5px] text-slate-500 font-mono">ID: {vId}</span>
+                                </div>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Full Name</label>
+                  <label className="block text-slate-700 font-bold mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
@@ -1265,7 +1707,7 @@ export function PermissionManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Email / Gmail Address</label>
+                  <label className="block text-slate-700 font-bold mb-1">Email / Gmail Address *</label>
                   <input
                     type="email"
                     required
@@ -1277,7 +1719,7 @@ export function PermissionManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Password</label>
+                  <label className="block text-slate-700 font-bold mb-1">Password *</label>
                   <input
                     type="password"
                     required
@@ -1309,10 +1751,16 @@ export function PermissionManagementPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={saving}
-                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer text-xs"
+                    disabled={saving || (formData.role === "VENDOR_HR" && (formData.assignedVendors || []).length === 0)}
+                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer text-xs shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {saving ? "Creating..." : "Create Account"}
+                    {saving
+                      ? "Creating..."
+                      : formData.role === "VENDOR_HR"
+                      ? "Create Vendor HR"
+                      : formData.role === "EMPLOYEE_HR"
+                      ? "Create Employee HR"
+                      : "Create Admin"}
                   </button>
                 </div>
               </form>
@@ -1323,9 +1771,12 @@ export function PermissionManagementPage() {
         {/* MODAL: EDIT ACCOUNT DETAILS */}
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-md w-full shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between border-b pb-2.5">
-                <h3 className="font-bold text-slate-900 text-sm">Edit Account Details</h3>
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                  <Edit2 size={15} className="text-blue-600" />
+                  <span>Edit Account Details</span>
+                </h3>
                 <button
                   onClick={() => setIsEditModalOpen(false)}
                   className="text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -1334,9 +1785,153 @@ export function PermissionManagementPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleEditAdmin} className="space-y-2.5 text-xs">
+              <form onSubmit={handleEditAdmin} className="space-y-3 text-xs">
+                {/* 3 Account Types Selection */}
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Full Name</label>
+                  <label className="block text-slate-800 font-bold mb-1.5">
+                    Account Type *
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Admin */}
+                    {isSuperAdmin && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditFormData({
+                            ...editFormData,
+                            role: "ADMIN",
+                            hrType: "",
+                          })
+                        }
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          editFormData.role === "ADMIN"
+                            ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500/20 text-blue-900"
+                            : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1 font-bold text-xs mb-1">
+                          <Shield size={13} className="text-blue-600" />
+                          <span>Admin</span>
+                        </div>
+                        <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight">
+                          Full admin with all 7 module permissions.
+                        </p>
+                      </button>
+                    )}
+
+                    {/* Employee HR */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditFormData({
+                          ...editFormData,
+                          role: "EMPLOYEE_HR",
+                          hrType: "EMPLOYEE_HR",
+                        })
+                      }
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        editFormData.role === "EMPLOYEE_HR" || (editFormData.role === "HR" && editFormData.hrType !== "VENDOR_HR")
+                          ? "bg-purple-50 border-purple-500 ring-2 ring-purple-500/20 text-purple-900"
+                          : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 font-bold text-xs mb-1">
+                        <Users size={13} className="text-purple-600" />
+                        <span>Employee HR</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight">
+                        Workforce directory, attendance & leaves only.
+                      </p>
+                    </button>
+
+                    {/* Vendor HR */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditFormData({
+                          ...editFormData,
+                          role: "VENDOR_HR",
+                          hrType: "VENDOR_HR",
+                        })
+                      }
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                        editFormData.role === "VENDOR_HR" || (editFormData.role === "HR" && editFormData.hrType === "VENDOR_HR")
+                          ? "bg-cyan-50 border-cyan-500 ring-2 ring-cyan-500/20 text-cyan-900"
+                          : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 font-bold text-xs mb-1">
+                        <Briefcase size={13} className="text-cyan-600" />
+                        <span>Vendor HR</span>
+                      </div>
+                      <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight">
+                        Agency recruitment HR. Fixed role scope.
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* If Vendor HR, show Vendor Assignment checklist */}
+                {(editFormData.role === "VENDOR_HR" || editFormData.hrType === "VENDOR_HR") && (
+                  <div className="p-3 rounded-xl bg-cyan-50/80 border border-cyan-200 space-y-2">
+                    <div className="flex items-start gap-1.5">
+                      <Info size={14} className="text-cyan-700 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-cyan-900 font-medium leading-relaxed">
+                        <strong>Fixed Role:</strong> Permissions are pre-assigned and restricted to candidates belonging to the selected vendor agencies.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-800 font-bold mb-1 text-[11px]">
+                        Assign Recruitment Agencies *
+                      </label>
+                      <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar bg-white rounded-lg border border-slate-200 p-2">
+                        {availableVendors.length === 0 ? (
+                          <div className="text-[11px] text-slate-400 italic">No vendors found.</div>
+                        ) : (
+                          availableVendors.map((vnd) => {
+                            const vId = vnd.vendorId || vnd.id;
+                            const isChecked = (editFormData.assignedVendors || []).includes(vId);
+                            return (
+                              <label
+                                key={vId}
+                                className={`flex items-center gap-2 p-1.5 rounded-md hover:bg-slate-50 text-slate-800 cursor-pointer text-xs border ${
+                                  isChecked ? "bg-cyan-50/50 border-cyan-300" : "border-transparent"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    const curr = editFormData.assignedVendors || [];
+                                    if (e.target.checked) {
+                                      setEditFormData({ ...editFormData, assignedVendors: [...curr, vId] });
+                                    } else {
+                                      setEditFormData({
+                                        ...editFormData,
+                                        assignedVendors: curr.filter((id) => id !== vId),
+                                      });
+                                    }
+                                  }}
+                                  className="rounded text-cyan-600"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-bold text-slate-900 truncate">
+                                    {vnd.companyName}
+                                  </div>
+                                  <span className="text-[9.5px] text-slate-500 font-mono">ID: {vId}</span>
+                                </div>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
@@ -1347,7 +1942,7 @@ export function PermissionManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">Email Address</label>
+                  <label className="block text-slate-700 font-bold mb-1">Email Address *</label>
                   <input
                     type="email"
                     required
@@ -1356,80 +1951,6 @@ export function PermissionManagementPage() {
                     className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">Account Role & Specialization</label>
-                  <select
-                    value={editFormData.role}
-                    onChange={(e) => {
-                      const selected = e.target.value;
-                      setEditFormData({
-                        ...editFormData,
-                        role: selected,
-                        hrType:
-                          selected === "VENDOR_HR"
-                            ? "VENDOR_HR"
-                            : selected === "EMPLOYEE_HR"
-                            ? "EMPLOYEE_HR"
-                            : "",
-                      });
-                    }}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold"
-                  >
-                    <option value="EMPLOYEE_HR">Employee Management HR</option>
-                    <option value="VENDOR_HR">Vendor Management HR</option>
-                    {isSuperAdmin && <option value="ADMIN">ADMIN</option>}
-                  </select>
-                </div>
-
-                {/* If Vendor Management HR, show Vendor Assignment checklist */}
-                {editFormData.role === "VENDOR_HR" && (
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <label className="block text-slate-800 font-bold mb-0.5">
-                      Assign Recruitment Vendors (Multi-Vendor Supported) *
-                    </label>
-                    <p className="text-[10px] text-slate-500">
-                      This HR user will only be allowed to access candidates and milestones from these vendors.
-                    </p>
-                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar border-t border-slate-200 pt-1.5 mt-1">
-                      {availableVendors.length === 0 ? (
-                        <div className="text-[11px] text-slate-400 italic">No vendors found.</div>
-                      ) : (
-                        availableVendors.map((vnd) => {
-                          const vId = vnd.vendorId || vnd.id;
-                          const isChecked = (editFormData.assignedVendors || []).includes(vId);
-                          return (
-                            <label
-                              key={vId}
-                              className="flex items-center gap-2 p-1 rounded-lg hover:bg-white text-slate-700 cursor-pointer text-xs"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={(e) => {
-                                  const curr = editFormData.assignedVendors || [];
-                                  if (e.target.checked) {
-                                    setEditFormData({ ...editFormData, assignedVendors: [...curr, vId] });
-                                  } else {
-                                    setEditFormData({
-                                      ...editFormData,
-                                      assignedVendors: curr.filter((id) => id !== vId),
-                                    });
-                                  }
-                                }}
-                                className="rounded text-blue-600"
-                              />
-                              <span className="font-bold text-slate-900 truncate">
-                                {vnd.companyName}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-mono">({vId})</span>
-                            </label>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 <div className="flex items-center gap-2 pt-1">
                   <input
@@ -1455,7 +1976,7 @@ export function PermissionManagementPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer text-xs"
+                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer text-xs shadow-xs"
                   >
                     {saving ? "Saving..." : "Update Details"}
                   </button>

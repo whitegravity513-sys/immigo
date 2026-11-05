@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   Edit,
@@ -16,6 +17,7 @@ import {
   FileCheck,
   Eye,
   Download,
+  ExternalLink,
 } from "lucide-react";
 import VendorStatusBadge from "../list/VendorStatusBadge.jsx";
 
@@ -48,9 +50,18 @@ export default function VendorDetailView({
           <span>Back to All Vendors</span>
         </button>
 
-        <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-          Vendor Dossier • {selectedVendor.id}
-        </span>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/admin/vendor/${selectedVendor.id || selectedVendor.vendorId}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs"
+          >
+            <span>Full 8-Tab Workspace</span>
+            <ExternalLink size={13} />
+          </Link>
+          <span className="text-[11px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+            Vendor Dossier • {selectedVendor.id || selectedVendor.vendorId}
+          </span>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">

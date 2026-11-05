@@ -60,6 +60,15 @@ export class NotificationService {
           targetRole: { $in: ["CANDIDATE", "ALL"] },
           ...(options.userId ? { $or: [{ targetType: "ALL" }, { targetUserId: String(options.userId) }] } : {}),
         };
+      } else if (role === "HR" || role === "VENDOR_HR") {
+        query = {
+          $or: [
+            { targetRole: { $in: ["HR", "VENDOR_HR", "ALL", "ADMIN"] } },
+            ...(options.userId ? [{ targetUserId: String(options.userId) }] : []),
+            ...(options.vendorId ? [{ targetVendorId: String(options.vendorId) }] : []),
+            { targetRole: { $exists: false } },
+          ],
+        };
       } else {
         query = {
           $or: [

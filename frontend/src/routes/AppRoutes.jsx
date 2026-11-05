@@ -20,6 +20,8 @@ const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
 
 const HRDashboard = lazy(() => import("../pages/hr/HRDashboard.jsx"));
 const VendorHRDashboard = lazy(() => import("../pages/hr/VendorHRDashboard.jsx"));
+const VendorHRLoginPage = lazy(() => import("../pages/vendor-hr/VendorHRLoginPage.jsx"));
+const VendorHRDashboardPage = lazy(() => import("../pages/vendor-hr/VendorHRDashboardPage.jsx"));
 const HRLoginPage = lazy(() => import("../pages/hr/HRLoginPage.jsx"));
 const PermissionManagementPage = lazy(() => import("../pages/admin/permissions/PermissionManagementPage.jsx"));
 const MeetingsPage = lazy(() => import("../pages/common/MeetingsPage.jsx"));
@@ -84,6 +86,8 @@ const AdminPaymentHistory = lazy(() => import("../pages/admin/vendor/AdminPaymen
 const AdminMilestonesList = lazy(() => import("../pages/admin/vendor/AdminMilestonesList.jsx"));
 const AdminDocumentsList = lazy(() => import("../pages/admin/vendor/AdminDocumentsList.jsx"));
 const AdminRefundsList = lazy(() => import("../pages/admin/vendor/AdminRefundsList.jsx"));
+const AdminVendorDetailsPage = lazy(() => import("../pages/admin/vendor/AdminVendorDetailsPage.jsx"));
+const HRActivityMonitoringPage = lazy(() => import("../pages/admin/hr/HRActivityMonitoringPage.jsx"));
 const AdminMasterLayout = lazy(() => import("../components/admin/layout/AdminMasterLayout.jsx"));
 const InvoiceReceiptPage = lazy(() => import("../pages/common/InvoiceReceiptPage.jsx"));
 
@@ -115,7 +119,7 @@ function LoginRouteHandler({ isAuthenticated, isAdmin, isSuperAdmin, isHR, isVen
           isSuperAdmin
             ? "/super-admin/dashboard"
             : isVendorHR
-            ? "/hr/vendor-dashboard"
+            ? "/vendor-hr/dashboard"
             : isHR
             ? "/hr/dashboard"
             : isAdmin
@@ -132,6 +136,9 @@ function LoginRouteHandler({ isAuthenticated, isAdmin, isSuperAdmin, isHR, isVen
   }
 
   const roleParam = (searchParams.get("role") || searchParams.get("tab") || "").toLowerCase();
+  if (roleParam === "vendor-hr" || roleParam === "vendorhr") {
+    return <Navigate to="/vendor-hr/login" replace />;
+  }
   if (roleParam === "hr") {
     return <Navigate to="/hr/login" replace />;
   }
@@ -390,7 +397,36 @@ export default function AppRoutes() {
           path="/hr/vendor-dashboard"
           element={
             <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
-              <VendorHRDashboard />
+              <VendorHRDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Dedicated Vendor HR Routes */}
+        <Route path="/vendor-hr" element={<Navigate to="/vendor-hr/dashboard" replace />} />
+        <Route
+          path="/vendor-hr/login"
+          element={
+            isAuthenticated && isVendorHR ? (
+              <Navigate to="/vendor-hr/dashboard" replace />
+            ) : (
+              <VendorHRLoginPage />
+            )
+          }
+        />
+        <Route
+          path="/vendor-hr/dashboard"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <VendorHRDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vendor-hr/dashboard/*"
+          element={
+            <ProtectedRoute allowedRole={["hr", "admin", "super_admin"]}>
+              <VendorHRDashboardPage />
             </ProtectedRoute>
           }
         />
@@ -843,7 +879,27 @@ export default function AppRoutes() {
           <Route path="milestones" element={<AdminMilestonesList />} />
           <Route path="milestones-manage" element={<AdminCandidateMilestones />} />
           <Route path="documents" element={<AdminDocumentsList />} />
+          <Route path="vendors/:id" element={<AdminVendorDetailsPage />} />
+          <Route path="details/:id" element={<AdminVendorDetailsPage />} />
+          <Route path="activities" element={<HRActivityMonitoringPage />} />
         </Route>
+
+        <Route
+          path="/admin/vendor/:id"
+          element={
+            <ProtectedRoute allowedRole={["admin", "super_admin"]}>
+              <AdminVendorDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/hr-activities"
+          element={
+            <ProtectedRoute allowedRole={["admin", "super_admin"]}>
+              <HRActivityMonitoringPage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/admin/vendors" element={<Navigate to="/admin/vendor/vendors" replace />} />
 

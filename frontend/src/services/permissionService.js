@@ -31,6 +31,10 @@ export const permissionService = {
     return res.data;
   },
 
+  async updateAdminDetails(adminId, data) {
+    return this.updateAdmin(adminId, data);
+  },
+
   async deleteAdmin(adminId) {
     const res = await apiClient.delete(`/admins/${adminId}`);
     return res.data;
