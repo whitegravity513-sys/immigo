@@ -322,6 +322,27 @@ export default function VendorHRDashboardPage() {
     loadData();
   }, [user, selectedProject]);
 
+  // Tag-based navigation: Clicking on any tag/stage or performing stage action navigates immediately to its dedicated section
+  const navigateByTag = (stageOrTag, cand = null) => {
+    const s = (stageOrTag || "").toLowerCase();
+    if (s.includes("shortlist")) {
+      setActiveMenu("shortlisted");
+    } else if (s.includes("interview")) {
+      setActiveMenu("interviews");
+    } else if (s.includes("select")) {
+      setActiveMenu("milestones");
+      if (cand) setSelectedMilestoneApp(cand);
+    } else if (s.includes("visa") || s.includes("joined") || s.includes("deploy")) {
+      setActiveMenu("visa-allotted");
+    } else if (s.includes("hold")) {
+      setActiveMenu("on-hold");
+    } else if (s.includes("reject")) {
+      setActiveMenu("rejected");
+    } else {
+      setActiveMenu("candidates");
+    }
+  };
+
   // Handle Candidate Submission
   const handleCandidateSubmit = async (e) => {
     e.preventDefault();
@@ -414,6 +435,8 @@ export default function VendorHRDashboardPage() {
       showToast(`Candidate stage updated to ${candidateUpdateForm.stage}!`);
       setShowCandidateModal(false);
       await loadData();
+      // Instantly navigate to target section
+      navigateByTag(candidateUpdateForm.stage, selectedCandidate);
     } catch (err) {
       showToast(err.response?.data?.message || err.message || "Failed to update candidate", "error");
     } finally {
@@ -440,6 +463,8 @@ export default function VendorHRDashboardPage() {
       setShowScheduleModal(false);
       setScheduleInterviewTarget(null);
       await loadData();
+      // Instantly navigate to interviews section
+      setActiveMenu("interviews");
     } catch (err) {
       showToast(err.response?.data?.message || err.message || "Failed to schedule interview", "error");
     } finally {
@@ -485,6 +510,8 @@ export default function VendorHRDashboardPage() {
       }
       showToast(`Candidate [${cand.candidateName}] updated to ${newStage}!`);
       await loadData();
+      // Instantly navigate to target section as requested ("slect ya shorlist kren par uss section ma chla jye ussi time")
+      navigateByTag(newStage, cand);
     } catch (err) {
       showToast(err.response?.data?.message || err.message || "Failed to update candidate stage", "error");
     } finally {
@@ -3001,24 +3028,35 @@ export default function VendorHRDashboardPage() {
                                 </div>
                               </td>
 
-                              {/* Col 3: Current Stage Badge */}
+                              {/* Col 3: Current Stage Badge (Click to open section) */}
                               <td className="py-3 px-3">
-                                <span
-                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap ${
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigateByTag(cand.recruitmentStage || cand.status, cand);
+                                  }}
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap cursor-pointer hover:shadow-xs hover:scale-105 active:scale-95 transition ${
                                     cand.recruitmentStage === "Shortlisted"
-                                      ? "bg-indigo-50 text-indigo-800 border-indigo-200"
+                                      ? "bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100"
                                       : cand.recruitmentStage?.includes("Interview")
-                                      ? "bg-purple-50 text-purple-800 border-purple-200"
+                                      ? "bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100"
                                       : cand.recruitmentStage === "Rejected" || cand.status === "Rejected"
-                                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                                      ? "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
                                       : cand.recruitmentStage === "On Hold" || cand.status === "On Hold"
-                                      ? "bg-amber-50 text-amber-800 border-amber-200"
-                                      : "bg-slate-100 text-slate-700 border-slate-200"
+                                      ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                                      : cand.recruitmentStage === "Selected"
+                                      ? "bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100"
+                                      : cand.recruitmentStage === "Visa Issued"
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                                      : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
                                   }`}
+                                  title={`Click to open ${cand.recruitmentStage || cand.status || "Candidates"} section`}
                                 >
                                   {cand.recruitmentStage === "Rejected" || cand.status === "Rejected" ? "✕ " : "● "}
-                                  {cand.recruitmentStage || cand.status || "Applied"}
-                                </span>
+                                  <span>{cand.recruitmentStage || cand.status || "Applied"}</span>
+                                  <ArrowRight size={10} className="text-slate-400 shrink-0" />
+                                </button>
                                 {cand.rejectionReason && (
                                   <div
                                     className="text-[10px] text-rose-600 font-medium truncate max-w-[160px] mt-1"
@@ -3239,9 +3277,14 @@ export default function VendorHRDashboardPage() {
                             <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Dubai Project"}</div>
                           </td>
                           <td className="py-3.5 px-3 text-center">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            <button
+                              type="button"
+                              onClick={() => navigateByTag("Shortlisted", cand)}
+                              className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 cursor-pointer hover:scale-105 transition"
+                              title="Click to view Shortlisted section"
+                            >
                               Shortlisted
-                            </span>
+                            </button>
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="flex items-center justify-center gap-2">
@@ -3395,9 +3438,14 @@ export default function VendorHRDashboardPage() {
                             </td>
                             <td className="py-3.5 px-3 text-center">
                               <div className="space-y-1">
-                                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                <button
+                                  type="button"
+                                  onClick={() => navigateByTag("Interview", cand)}
+                                  className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 cursor-pointer hover:scale-105 transition"
+                                  title="Click to view Interviews section"
+                                >
                                   Interview
-                                </span>
+                                </button>
                                 <div>
                                   <span className="inline-block px-2 py-0.2 rounded-full text-[9.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
                                     {item.round || "Technical"} ({item.status || "Scheduled"})
@@ -3559,9 +3607,14 @@ export default function VendorHRDashboardPage() {
                             <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Project"}</div>
                           </td>
                           <td className="py-3.5 px-3 text-center">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            <button
+                              type="button"
+                              onClick={() => navigateByTag("On Hold", cand)}
+                              className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer hover:scale-105 transition"
+                              title="Click to view On Hold section"
+                            >
                               On Hold
-                            </span>
+                            </button>
                           </td>
                           <td className="py-3.5 px-4 text-center">
                             <div className="flex items-center justify-center gap-2">
@@ -3687,9 +3740,14 @@ export default function VendorHRDashboardPage() {
                             <div className="text-[11px] text-slate-500 font-medium truncate mt-0.5">{cand.projectName || "Previous Project"}</div>
                           </td>
                           <td className="py-3.5 px-3 text-center">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            <button
+                              type="button"
+                              onClick={() => navigateByTag("Rejected", cand)}
+                              className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 cursor-pointer hover:scale-105 transition"
+                              title="Click to view Rejected section"
+                            >
                               Rejected
-                            </span>
+                            </button>
                           </td>
                           <td className="py-3.5 px-4 text-center">
                             <button
@@ -3975,8 +4033,13 @@ export default function VendorHRDashboardPage() {
 
                                   {/* Col 3: Stage Badge */}
                                   <td className="py-3 px-3">
-                                    <span
-                                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap ${
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigateByTag(cand.recruitmentStage || "Selected", cand);
+                                      }}
+                                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap cursor-pointer hover:scale-105 transition ${
                                         cand.recruitmentStage === "Joined" || cand.recruitmentStage === "Deployed"
                                           ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                                           : cand.recruitmentStage === "Visa Issued"
@@ -3985,9 +4048,10 @@ export default function VendorHRDashboardPage() {
                                           ? "bg-purple-50 text-purple-800 border-purple-200"
                                           : "bg-teal-50 text-teal-800 border-teal-200"
                                       }`}
+                                      title={`Click to view ${cand.recruitmentStage || "Selected"} section`}
                                     >
                                       ● {cand.recruitmentStage || "Selected"}
-                                    </span>
+                                    </button>
                                     <div className="text-[10px] text-slate-400 mt-1 font-semibold">
                                       Overall: {percentDone}% Done
                                     </div>
@@ -4243,10 +4307,15 @@ export default function VendorHRDashboardPage() {
                             <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Project"}</div>
                           </td>
                           <td className="py-3.5 px-3 text-center">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => navigateByTag("Visa Allotted", cand)}
+                              className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1 cursor-pointer hover:scale-105 transition"
+                              title="Click to view Visa Allotted section"
+                            >
                               <CheckCircle2 size={11} className="text-emerald-600" />
                               <span>Visa Allotted</span>
-                            </span>
+                            </button>
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="font-mono font-bold text-slate-900 text-xs">
