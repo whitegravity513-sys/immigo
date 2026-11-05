@@ -536,20 +536,22 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                   )}
                 </div>
 
-                {}
-                {isAdmin && isPaymentSubmitted && !paymentAction && (
+                {/* Admin Verification Controls */}
+                {isAdmin && (isPaymentSubmitted || requiresPayment) && !paymentAction && (
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setPaymentAction({ mId: milestone.id, action: "Reject" })}
-                      className="px-3 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-bold rounded-lg transition-colors cursor-pointer"
-                    >
-                      Reject
-                    </button>
+                    {isPaymentSubmitted && (
+                      <button
+                        onClick={() => setPaymentAction({ mId: milestone.id, action: "Reject" })}
+                        className="px-3 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-bold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Reject
+                      </button>
+                    )}
                     <button
                       onClick={() => setPaymentAction({ mId: milestone.id, action: "Approve" })}
                       className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold rounded-lg transition-colors cursor-pointer"
                     >
-                      Approve Payment
+                      {isPaymentSubmitted ? "Approve Payment" : "Verify & Approve Payment"}
                     </button>
                   </div>
                 )}
