@@ -4,6 +4,10 @@ import { ArrowLeft, ExternalLink, Clock, CreditCard } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 
+const APPLICATION_STORAGE_KEYS = new Set([
+  "immigo_crm_applications_v3",
+]);
+
 export default function VendorProcessingDetails() {
   const { appId } = useParams();
   const [vendor, setVendor] = useState(null);
@@ -11,21 +15,33 @@ export default function VendorProcessingDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
-    const handleUpdate = () => loadData();
+    loadData(false);
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !APPLICATION_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadData(true);
+      }, 60);
+    };
     window.addEventListener("immigo:application-update", handleUpdate);
     window.addEventListener("immigo:dashboard-update", handleUpdate);
     window.addEventListener("storage", handleUpdate);
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
   }, [appId]);
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (silent !== true) {
+        setLoading(true);
+      }
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
       const data = await crmVendorService.getApplications(curVendor?.id);
@@ -38,11 +54,13 @@ export default function VendorProcessingDetails() {
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (silent !== true) {
+        setLoading(false);
+      }
     }
   };
 
-  if (loading) {
+  if (loading && !currentApp) {
     return (
       <div className="p-12 text-center text-slate-500">
         Loading deployment timeline...

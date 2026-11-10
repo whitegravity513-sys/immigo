@@ -9,6 +9,12 @@ import {
 } from "../../components/vendor/dashboard/index.js";
 import DashboardMeetingWidget from "../../components/common/meeting/DashboardMeetingWidget.jsx";
 
+const VENDOR_PORTAL_STORAGE_KEYS = new Set([
+  "immigo_crm_candidates_v3",
+  "immigo_crm_applications_v3",
+  "immigo_crm_vendors_v3",
+]);
+
 export function VendorDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,10 +22,17 @@ export function VendorDashboard() {
   const vendor = crmVendorService.getCurrentVendor();
 
   useEffect(() => {
-    loadDashboardData();
+    loadDashboardData(false);
 
-    const handleUpdate = () => {
-      loadDashboardData();
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !VENDOR_PORTAL_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadDashboardData(true);
+      }, 100);
     };
 
     window.addEventListener("immigo:application-update", handleUpdate);
@@ -28,6 +41,7 @@ export function VendorDashboard() {
     window.addEventListener("storage", handleUpdate);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:candidate-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
@@ -35,8 +49,10 @@ export function VendorDashboard() {
     };
   }, [vendor?.id]);
 
-  const loadDashboardData = async () => {
-    setLoading(true);
+  const loadDashboardData = async (silent = false) => {
+    if (silent !== true) {
+      setLoading(true);
+    }
     try {
       const [data, projs] = await Promise.all([
         crmVendorService.getVendorDashboardStats(vendor?.id),
@@ -49,7 +65,9 @@ export function VendorDashboard() {
     } catch (err) {
       console.error("Failed to load vendor dashboard:", err);
     } finally {
-      setLoading(false);
+      if (silent !== true) {
+        setLoading(false);
+      }
     }
   };
 

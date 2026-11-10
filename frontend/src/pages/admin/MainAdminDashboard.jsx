@@ -30,6 +30,14 @@ import activityService from "../../services/activityService.js";
 import appConfig from "../../config/appConfig.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
+const MAIN_DASHBOARD_STORAGE_KEYS = new Set([
+  "immigo_crm_vendors_v3",
+  "immigo_crm_candidates_v3",
+  "immigo_crm_applications_v3",
+  "immigo_crm_refunds_v3",
+  "crm_clients_data_v3",
+]);
+
 export function MainAdminDashboard() {
   const { isSuperAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -76,8 +84,15 @@ export function MainAdminDashboard() {
   useEffect(() => {
     loadDashboardData();
 
-    const handleUpdate = () => {
-      loadDashboardData();
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !MAIN_DASHBOARD_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadDashboardData();
+      }, 120);
     };
 
     window.addEventListener("immigo:application-update", handleUpdate);
@@ -87,6 +102,7 @@ export function MainAdminDashboard() {
     window.addEventListener("storage", handleUpdate);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:candidate-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);

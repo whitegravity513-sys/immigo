@@ -21,6 +21,11 @@ import {
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
 
+const CANDIDATE_DASHBOARD_STORAGE_KEYS = new Set([
+  "immigo_crm_candidates_v3",
+  "immigo_crm_applications_v3",
+]);
+
 export default function AdminCandidateDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
@@ -41,8 +46,10 @@ export default function AdminCandidateDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  const fetchDashboardData = async (silent = false) => {
+    if (silent !== true) {
+      setLoading(true);
+    }
     try {
       const [statsRes, regRes, appRes] = await Promise.all([
         apiClient.get("/admin/candidates/stats"),
@@ -62,15 +69,24 @@ export default function AdminCandidateDashboard() {
     } catch (err) {
       console.error("Failed to fetch candidate dashboard data:", err);
     } finally {
-      setLoading(false);
+      if (silent !== true) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(false);
 
-    const handleUpdate = () => {
-      fetchDashboardData();
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !CANDIDATE_DASHBOARD_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchDashboardData(true);
+      }, 100);
     };
 
     window.addEventListener("immigo:application-update", handleUpdate);
@@ -79,6 +95,7 @@ export default function AdminCandidateDashboard() {
     window.addEventListener("storage", handleUpdate);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:candidate-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
@@ -223,7 +240,7 @@ export default function AdminCandidateDashboard() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={fetchDashboardData}
+            onClick={() => fetchDashboardData(false)}
             disabled={loading}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
           >

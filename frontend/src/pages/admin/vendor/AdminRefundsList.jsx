@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import refundService from "../../../services/refundService.js";
 
+const REFUND_STORAGE_KEYS = new Set([
+  "immigo_crm_refunds_v3",
+  "immigo_crm_applications_v3",
+]);
+
 export default function AdminRefundsList() {
   const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,25 +41,39 @@ export default function AdminRefundsList() {
   const [editPaymentRef, setEditPaymentRef] = useState("");
 
   useEffect(() => {
-    loadRefunds();
-    const handleUpdate = () => loadRefunds();
+    loadRefunds(false);
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !REFUND_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadRefunds(true);
+      }, 60);
+    };
     window.addEventListener("immigo:refund-update", handleUpdate);
     window.addEventListener("storage", handleUpdate);
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:refund-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
   }, []);
 
-  const loadRefunds = async () => {
+  const loadRefunds = async (silent = false) => {
     try {
-      setLoading(true);
+      if (silent !== true) {
+        setLoading(true);
+      }
       const data = await refundService.getAllRefunds();
       setRefunds(data || []);
     } catch (err) {
       console.error("Failed to load refunds:", err);
     } finally {
-      setLoading(false);
+      if (silent !== true) {
+        setLoading(false);
+      }
     }
   };
 
@@ -98,7 +117,7 @@ export default function AdminRefundsList() {
       setPaymentRef("");
       setProcessRefundAmount("");
       setProcessTotalPaid("");
-      loadRefunds();
+      loadRefunds(true);
       alert(`Refund of ₹${amtToRefund.toLocaleString()} processed successfully for ${selectedRefund.candidateName}!`);
     } catch (err) {
       alert(err.message);
@@ -108,7 +127,7 @@ export default function AdminRefundsList() {
   const handleApproveRefund = async (refund) => {
     try {
       await refundService.updateRefundStatus(refund.id, "Refund Pending");
-      loadRefunds();
+      loadRefunds(true);
       alert(`Refund request for ${refund.candidateName} approved. It is now in processing queue.`);
     } catch (err) {
       alert(err.message);
@@ -122,7 +141,7 @@ export default function AdminRefundsList() {
       await refundService.updateRefundStatus(rejectRefundModal.id, "Rejected", rejectReason);
       setRejectRefundModal(null);
       setRejectReason("");
-      loadRefunds();
+      loadRefunds(true);
     } catch (err) {
       alert(err.message);
     }
@@ -141,7 +160,7 @@ export default function AdminRefundsList() {
         totalPaid: isNaN(paid) ? editRefundModal.totalPaid : paid,
       });
       setEditRefundModal(null);
-      loadRefunds();
+      loadRefunds(true);
     } catch (err) {
       alert(err.message);
     }

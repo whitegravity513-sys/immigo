@@ -7,6 +7,12 @@ import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
 import { isMeetingExpired } from "../../utils/formatters.js";
 
+const ADMIN_NOTIF_STORAGE_KEYS = new Set([
+  "immigo_crm_admin_notifications_v3",
+  "immigo_deleted_admin_notifications_v1",
+  "immigo_admin_notifs_cleared_ts",
+]);
+
 export default function NotificationBell({ className }) {
   const { user, isSuperAdmin } = useAuth();
   const location = useLocation();
@@ -15,6 +21,8 @@ export default function NotificationBell({ className }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const lastAdminReadAllTsRef = useRef(0);
+  const isFetchingRef = useRef(false);
+  const lastNotifSigRef = useRef("");
 
   const currentUserId = String(user?.id || user?._id || "");
   const rawRole = String(user?.role || "").toUpperCase();
@@ -59,6 +67,8 @@ export default function NotificationBell({ className }) {
   };
 
   const fetchNotifications = async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const deletedIds = getDeletedAdminIds();
       const clearedTs = getClearedTs();
@@ -91,7 +101,7 @@ export default function NotificationBell({ className }) {
           }));
         } catch {}
 
-        localAdminNotifs = (crmVendorService.getAdminNotifications() || []).map((n) => ({
+        localAdminNotifs = (crmVendorService.getAdminNotifications({ sync: false }) || []).map((n) => ({
           _id: n.id,
           id: n.id,
           title: n.title,
@@ -180,16 +190,28 @@ export default function NotificationBell({ className }) {
       });
 
       const unread = processed.filter((n) => !n.isRead && !n.read).length;
-      setNotifications(processed);
-      setUnreadCount(unread);
+      const sig = JSON.stringify({
+        unread,
+        items: processed.map((n) => [n._id || n.id, Boolean(n.isRead || n.read), n.title, n.message, n.createdAt, n.link]),
+      });
+      if (lastNotifSigRef.current !== sig) {
+        lastNotifSigRef.current = sig;
+        setNotifications(processed);
+        setUnreadCount(unread);
+      }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
+    } finally {
+      isFetchingRef.current = false;
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    const handleImmediateWakeup = () => {
+    const handleImmediateWakeup = (e) => {
+      if (e?.type === "storage" && (!e.key || !ADMIN_NOTIF_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
       fetchNotifications();
     };
     window.addEventListener("immigo:admin-notification", handleImmediateWakeup);
@@ -218,6 +240,7 @@ export default function NotificationBell({ className }) {
 
   const handleMarkAllAsRead = async () => {
     lastAdminReadAllTsRef.current = Date.now();
+    lastNotifSigRef.current = "";
     setUnreadCount(0);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
 
@@ -235,6 +258,7 @@ export default function NotificationBell({ className }) {
 
   const handleMarkOneAsRead = async (id) => {
     const sId = String(id || "");
+    lastNotifSigRef.current = "";
     setNotifications((prev) =>
       prev.map((n) => (String(n._id) === sId || String(n.id) === sId ? { ...n, isRead: true, read: true } : n))
     );
@@ -255,6 +279,7 @@ export default function NotificationBell({ className }) {
   const handleDeleteOne = async (id, e) => {
     if (e) e.stopPropagation();
     const sId = String(id || "");
+    lastNotifSigRef.current = "";
 
     const deletedIds = getDeletedAdminIds();
     deletedIds.add(sId);
@@ -299,6 +324,7 @@ export default function NotificationBell({ className }) {
   };
 
   const handleClearAll = async () => {
+    lastNotifSigRef.current = "";
     try {
       localStorage.setItem("immigo_admin_notifs_cleared_ts", Date.now().toString());
     } catch {}

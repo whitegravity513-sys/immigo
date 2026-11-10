@@ -6,6 +6,12 @@ import crmVendorService from "../../../services/crmVendorService.js";
 import AppFooter from "../../common/AppFooter.jsx";
 import { VendorOnboarding } from "./VendorOnboarding.jsx";
 
+const VENDOR_SYNC_STORAGE_KEYS = new Set([
+  "immigo_crm_vendors_v3",
+  "user",
+  "immigo_user",
+]);
+
 export function VendorLayout({ children, title = "Vendor Portal" }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [vendor, setVendor] = useState(() => crmVendorService.getCurrentVendor());
@@ -62,14 +68,19 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
         syncVendor();
       }
     }, 30000);
+    const handleStorage = (e) => {
+      if (e?.key && VENDOR_SYNC_STORAGE_KEYS.has(e.key)) {
+        syncVendor();
+      }
+    };
     window.addEventListener("focus", syncVendor);
-    window.addEventListener("storage", syncVendor);
+    window.addEventListener("storage", handleStorage);
 
     return () => {
       isMounted = false;
       clearInterval(timer);
       window.removeEventListener("focus", syncVendor);
-      window.removeEventListener("storage", syncVendor);
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
 

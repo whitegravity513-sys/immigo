@@ -17,15 +17,29 @@ import {
 import crmVendorService from "../../../services/crmVendorService";
 import ActiveMeetingAlertBanner from "../../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 
+const VENDOR_DASHBOARD_STORAGE_KEYS = new Set([
+  "immigo_crm_vendors_v3",
+  "immigo_crm_candidates_v3",
+  "immigo_crm_applications_v3",
+  "immigo_crm_admin_notifications_v3",
+]);
+
 export default function AdminVendorDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStats();
+    loadStats(false);
 
-    const handleUpdate = () => {
-      loadStats();
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !VENDOR_DASHBOARD_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadStats(true);
+      }, 60);
     };
 
     window.addEventListener("immigo:application-update", handleUpdate);
@@ -35,6 +49,7 @@ export default function AdminVendorDashboard() {
     window.addEventListener("storage", handleUpdate);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:candidate-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
@@ -43,19 +58,23 @@ export default function AdminVendorDashboard() {
     };
   }, []);
 
-  const loadStats = async () => {
+  const loadStats = async (silent = false) => {
     try {
-      setLoading(true);
+      if (silent !== true) {
+        setLoading(true);
+      }
       const data = await crmVendorService.getAdminVendorOverviewStats();
       setStats(data);
     } catch (err) {
       console.error("Failed to load vendor management dashboard stats:", err);
     } finally {
-      setLoading(false);
+      if (silent !== true) {
+        setLoading(false);
+      }
     }
   };
 
-  if (loading || !stats) {
+  if (loading && !stats) {
     return (
       <div className="p-12 text-center">
         <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

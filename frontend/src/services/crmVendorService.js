@@ -35,10 +35,13 @@ const loadData = (key, fallback = []) => {
   }
 };
 
-const saveData = (key, data) => {
+const saveData = (key, data, { silent = false } = {}) => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
-    if (typeof window !== "undefined") {
+    const serialized = JSON.stringify(data);
+    if (localStorage.getItem(key) !== serialized) {
+      localStorage.setItem(key, serialized);
+    }
+    if (!silent && typeof window !== "undefined") {
       if (key === APPLICATIONS_STORAGE_KEY) {
         window.dispatchEvent(new CustomEvent("immigo:application-update", { detail: data }));
         window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
@@ -49,7 +52,6 @@ const saveData = (key, data) => {
         window.dispatchEvent(new CustomEvent("immigo:vendor-update", { detail: data }));
         window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
       }
-      window.dispatchEvent(new Event("storage"));
     }
   } catch (e) {
     console.error(`Error saving key ${key}:`, e);
@@ -88,7 +90,7 @@ export const crmVendorService = {
         } else {
           vendors.unshift(vendor);
         }
-        saveData(VENDORS_STORAGE_KEY, vendors);
+        saveData(VENDORS_STORAGE_KEY, vendors, { silent: true });
 
         return vendor;
       }
@@ -453,7 +455,7 @@ export const crmVendorService = {
           ...v,
           id: v.vendorId || v._id,
         }));
-        saveData(VENDORS_STORAGE_KEY, vendors);
+        saveData(VENDORS_STORAGE_KEY, vendors, { silent: true });
       } else {
         vendors = loadData(VENDORS_STORAGE_KEY, []);
       }
@@ -856,7 +858,7 @@ export const crmVendorService = {
           }
         });
         const merged = Array.from(map.values());
-        saveData(CANDIDATES_STORAGE_KEY, merged);
+        saveData(CANDIDATES_STORAGE_KEY, merged, { silent: true });
       }
     } catch {}
 
@@ -1257,7 +1259,7 @@ export const crmVendorService = {
         local.forEach((a) => map.set(a.id, a));
         res.data.applications.forEach((a) => map.set(a.id, { ...(map.get(a.id) || {}), ...a }));
         const merged = Array.from(map.values());
-        saveData(APPLICATIONS_STORAGE_KEY, merged);
+        saveData(APPLICATIONS_STORAGE_KEY, merged, { silent: true });
       }
     } catch {}
 
@@ -1349,7 +1351,6 @@ export const crmVendorService = {
               }
             }
           });
-          dataChanged = true;
         }
 
         
@@ -1404,7 +1405,7 @@ export const crmVendorService = {
     });
 
     if (dataChanged) {
-      saveData(APPLICATIONS_STORAGE_KEY, apps);
+      saveData(APPLICATIONS_STORAGE_KEY, apps, { silent: true });
     }
 
     return apps;
@@ -2181,7 +2182,7 @@ export const crmVendorService = {
         const map = new Map();
         local.forEach((a) => map.set(a.id, a));
         res.data.applications.forEach((a) => map.set(a.id, { ...(map.get(a.id) || {}), ...a }));
-        saveData(APPLICATIONS_STORAGE_KEY, Array.from(map.values()));
+        saveData(APPLICATIONS_STORAGE_KEY, Array.from(map.values()), { silent: true });
       }
     } catch {}
 
@@ -2349,7 +2350,7 @@ export const crmVendorService = {
               const isRead = Boolean(prev.read || n.read);
               map.set(key, { ...prev, ...n, read: isRead });
             });
-            saveData(VENDOR_NOTIFICATIONS_KEY, Array.from(map.values()));
+            saveData(VENDOR_NOTIFICATIONS_KEY, Array.from(map.values()), { silent: true });
           }
         })
         .catch(() => {});
@@ -2372,7 +2373,7 @@ export const crmVendorService = {
           map.set(key, { ...prev, ...n, read: isRead });
         });
         const list = Array.from(map.values());
-        saveData(VENDOR_NOTIFICATIONS_KEY, list);
+        saveData(VENDOR_NOTIFICATIONS_KEY, list, { silent: true });
         return list.filter((n) => !vendorId || !n.vendorId || n.vendorId === vendorId);
       }
     } catch {}
@@ -2445,7 +2446,7 @@ export const crmVendorService = {
   
   
   
-  getAdminNotifications: () => {
+  getAdminNotifications: ({ sync = true } = {}) => {
     let staffRole = "ADMIN";
     let currentUserId = "";
     let assignedVendors = [];
@@ -2469,27 +2470,29 @@ export const crmVendorService = {
       return [];
     }
 
-    try {
-      const params = new URLSearchParams({ role: staffRole });
-      if (currentUserId) params.set("userId", currentUserId);
-      if (assignedVendors.length > 0) params.set("assignedVendors", assignedVendors.join(","));
+    if (sync) {
+      try {
+        const params = new URLSearchParams({ role: staffRole });
+        if (currentUserId) params.set("userId", currentUserId);
+        if (assignedVendors.length > 0) params.set("assignedVendors", assignedVendors.join(","));
 
-      apiClient.get(`/crm-sync/notifications?${params.toString()}`)
-        .then((res) => {
-          if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
-            const current = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
-            const map = new Map();
-            current.forEach((n) => map.set(n.id || n._id, n));
-            res.data.notifications.forEach((n) => {
-              const key = n.id || n._id;
-              const prev = map.get(key) || {};
-              const isRead = Boolean(prev.read || n.read);
-              map.set(key, { ...prev, ...n, read: isRead });
-            });
-            saveData(ADMIN_NOTIFICATIONS_KEY, Array.from(map.values()));
-          }
-        }).catch(() => {});
-    } catch {}
+        apiClient.get(`/crm-sync/notifications?${params.toString()}`)
+          .then((res) => {
+            if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
+              const current = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
+              const map = new Map();
+              current.forEach((n) => map.set(n.id || n._id, n));
+              res.data.notifications.forEach((n) => {
+                const key = n.id || n._id;
+                const prev = map.get(key) || {};
+                const isRead = Boolean(prev.read || n.read);
+                map.set(key, { ...prev, ...n, read: isRead });
+              });
+              saveData(ADMIN_NOTIFICATIONS_KEY, Array.from(map.values()), { silent: true });
+            }
+          }).catch(() => {});
+      } catch {}
+    }
     return loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
   },
 
@@ -2532,7 +2535,6 @@ export const crmVendorService = {
     if (typeof window !== "undefined") {
       try {
         window.dispatchEvent(new CustomEvent("immigo:admin-notification", { detail: newNotif }));
-        window.dispatchEvent(new Event("storage"));
       } catch {}
     }
     return newNotif;

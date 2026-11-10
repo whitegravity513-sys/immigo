@@ -838,7 +838,7 @@ export default function VendorHRDashboardPage() {
           </div>
         </header>
 
-        <ActiveMeetingAlertBanner role={isSuperAdmin ? "super_admin" : isAdmin ? "admin" : "hr"} />
+        <ActiveMeetingAlertBanner customRole={isSuperAdmin ? "SUPER_ADMIN" : isAdmin ? "ADMIN" : "VENDOR_HR"} />
 
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto bg-[#f8fafc]">
           <div className="flex items-center justify-between mb-4">

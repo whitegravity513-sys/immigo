@@ -13,13 +13,15 @@ const loadData = (key, fallback = []) => {
   }
 };
 
-const saveData = (key, data) => {
+const saveData = (key, data, { silent = false } = {}) => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
-    if (typeof window !== "undefined") {
+    const serialized = JSON.stringify(data);
+    if (localStorage.getItem(key) !== serialized) {
+      localStorage.setItem(key, serialized);
+    }
+    if (!silent && typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("immigo:refund-update", { detail: data }));
       window.dispatchEvent(new CustomEvent("immigo:dashboard-update", { detail: data }));
-      window.dispatchEvent(new Event("storage"));
     }
   } catch (e) {
     console.error("Storage save failed:", e);
@@ -139,7 +141,7 @@ export const refundService = {
     });
 
     if (needsSync) {
-      saveData(REFUNDS_STORAGE_KEY, enriched);
+      saveData(REFUNDS_STORAGE_KEY, enriched, { silent: true });
     }
 
     return enriched;
