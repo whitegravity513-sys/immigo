@@ -118,6 +118,9 @@ export class NotificationService {
         message: n.message,
         read: Boolean(n.read),
         targetRole: n.targetRole,
+        employeeId:
+          n.metadata?.employeeId ||
+          (n.employeeId?._id ? n.employeeId._id.toString() : typeof n.employeeId === "string" ? n.employeeId : ""),
         employeeName: n.employeeName || n.employeeId?.name || "System",
         employeeCode: n.employeeId?.employeeId || "",
         createdAt: n.createdAt,

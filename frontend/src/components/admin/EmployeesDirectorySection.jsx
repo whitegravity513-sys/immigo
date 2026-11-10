@@ -115,7 +115,7 @@ export default function EmployeesDirectorySection({
                     </td>
                     <td className="px-2.5 py-2 text-xs">
                       <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold truncate inline-block max-w-[110px]">
-                        {emp.department || "General"}
+                        {emp.department || "—"}
                       </span>
                     </td>
                     <td className="px-2.5 py-2 text-xs">
@@ -240,7 +240,6 @@ export default function EmployeesDirectorySection({
         </div>
       </div>
 
-      {}
       <DeleteConfirmModal
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}

@@ -19,8 +19,10 @@ const cleanObjectId = (id) => {
 export class EmployeeService {
   static formatEmployee(employee) {
     if (!employee) return null;
+    const plain = employee.toObject ? employee.toObject() : employee;
     return {
-      ...(employee.toObject ? employee.toObject() : employee),
+      ...plain,
+      documents: Array.isArray(plain.documents) ? plain.documents : [],
       id: employee._id ? employee._id.toString() : (employee.id || ""),
       _id: employee._id ? employee._id.toString() : (employee.id || ""),
     };
@@ -173,7 +175,7 @@ export class EmployeeService {
       personalEmail: cleanPersonalEmail,
       password: hashedPassword,
       rawPassword: password,
-      department: department ? department.trim() : "General",
+      department: department ? department.trim() : "",
       designation: designation || role || "Employee",
       phone: cleanPhone,
       address: address ? address.trim() : "",
@@ -282,7 +284,7 @@ export class EmployeeService {
       emp.password = await bcrypt.hash(password, 10);
       emp.rawPassword = password;
     }
-    if (department !== undefined) emp.department = department ? department.trim() : "General";
+    if (department !== undefined) emp.department = department ? department.trim() : "";
     if (designation !== undefined) emp.designation = designation;
     if (phone !== undefined) emp.phone = phone ? phone.trim() : "";
     if (address !== undefined) emp.address = address ? address.trim() : "";
@@ -362,110 +364,9 @@ export class EmployeeService {
     return this.formatEmployee(emp);
   }
 
-  static async getEmployeeProfile(id) {
-    const cleanId = cleanObjectId(id);
-    if (!cleanId) {
-      throw new ApiError(404, "Employee not found");
-    }
-    const emp = await Employee.findById(cleanId).select("-password +documents");
-    if (!emp) {
-      throw new ApiError(404, "Employee not found");
-    }
-    return this.formatEmployee(emp);
-  }
-
-  static async updateContactDetails(id, contactData) {
-    const cleanId = cleanObjectId(id);
-    if (!cleanId) {
-      throw new ApiError(404, "Employee not found");
-    }
-    const emp = await Employee.findById(cleanId);
-    if (!emp) {
-      throw new ApiError(404, "Employee not found");
-    }
-
-    const { phone, address, emergencyContact } = contactData;
-    if (phone !== undefined) emp.phone = phone.trim();
-    if (address !== undefined) emp.address = address.trim();
-    if (emergencyContact !== undefined) emp.emergencyContact = emergencyContact;
-
-    await emp.save();
-    return this.formatEmployee(emp);
-  }
-
-  static async updateProfilePhoto(id, profileImage) {
-    if (!profileImage) {
-      throw new ApiError(400, "profileImage is required");
-    }
-
-    const cleanId = cleanObjectId(id);
-    if (!cleanId) {
-      throw new ApiError(404, "Employee not found");
-    }
-    const emp = await Employee.findById(cleanId);
-    if (!emp) {
-      throw new ApiError(404, "Employee not found");
-    }
-
-    const storedPhotoUrl = saveBase64File(profileImage, "profiles", "photo.png");
-    emp.profileImage = storedPhotoUrl;
-    await emp.save();
-    return this.formatEmployee(emp);
-  }
-
-  static async uploadDocument(id, docData, uploadedBy = "Employee") {
-    const { name, type, url } = docData;
-    if (!name || !url) {
-      throw new ApiError(400, "Document name and file are required");
-    }
-
-    const cleanId = cleanObjectId(id);
-    if (!cleanId) {
-      throw new ApiError(404, "Employee not found");
-    }
-    const emp = await Employee.findById(cleanId).select("+documents");
-    if (!emp) {
-      throw new ApiError(404, "Employee not found");
-    }
-
-    if (!Array.isArray(emp.documents)) {
-      emp.documents = [];
-    }
-
-    const storedDocUrl = saveBase64File(url, "documents", name);
-
-    const newDoc = {
-      name: name.trim(),
-      type: type || "Other",
-      url: storedDocUrl,
-      uploadedBy,
-      status: uploadedBy === "Admin" ? "Verified" : "Submitted",
-      uploadedAt: new Date(),
-    };
-
-    emp.documents.push(newDoc);
-    await emp.save();
-    return this.formatEmployee(emp);
-  }
-
-  static async deleteDocument(employeeId, docId) {
-    const cleanId = cleanObjectId(employeeId);
-    if (!cleanId) {
-      throw new ApiError(404, "Employee not found");
-    }
-    const emp = await Employee.findById(cleanId).select("+documents");
-    if (!emp) {
-      throw new ApiError(404, "Employee not found");
-    }
-
-    emp.documents = emp.documents.filter((d) => d._id.toString() !== docId && d.id !== docId);
-    await emp.save();
-    return this.formatEmployee(emp);
-  }
-
   static async getEmployeeHistory(id, startDate, endDate) {
-    const cleanId = String(id || "").replace(/^virtual-/, "").trim();
-    if (!cleanId || !mongoose.Types.ObjectId.isValid(cleanId)) {
+    const rawId = String(id || "").replace(/^virtual-/, "").trim();
+    if (!rawId) {
       return {
         employee: null,
         attendanceHistory: [],
@@ -473,14 +374,27 @@ export class EmployeeService {
       };
     }
 
-    const emp = await Employee.findById(cleanId).select("-password");
-    const query = { employeeId: cleanId };
+    const cleanId = cleanObjectId(rawId);
+    const emp = cleanId
+      ? await Employee.findById(cleanId).select("-password +documents")
+      : await Employee.findOne({ employeeId: rawId }).select("-password +documents");
+
+    if (!emp) {
+      return {
+        employee: null,
+        attendanceHistory: [],
+        leaveHistory: [],
+      };
+    }
+
+    const empIds = [emp._id, emp._id.toString(), emp.employeeId].filter(Boolean);
+    const query = { employeeId: { $in: empIds } };
     if (startDate && endDate) {
       query.date = { $gte: startDate, $lte: endDate };
     }
 
     const attendances = await Attendance.find(query).sort({ date: -1 });
-    const leaves = await Leave.find({ employee: cleanId }).sort({ createdAt: -1 });
+    const leaves = await Leave.find({ employeeId: { $in: empIds } }).sort({ createdAt: -1 });
 
     const attendanceHistory = attendances.map((a) => ({
       ...(a.toObject ? a.toObject() : a),
@@ -495,17 +409,17 @@ export class EmployeeService {
     }));
 
     return {
-      employee: emp ? this.formatEmployee(emp) : null,
+      employee: this.formatEmployee(emp),
       attendanceHistory,
       leaveHistory,
     };
   }
 
-  static async getEmployeeMonthlyDetails(employeeId, month, year, customStartDate = null, customEndDate = null) {
+  static async getEmployeeMonthlyDetails(employeeId, month, year, customStartDate = null, customEndDate = null, includeInternalRemarks = true) {
     const cleanId = cleanObjectId(employeeId);
     let emp = null;
     if (cleanId) {
-      emp = await Employee.findById(cleanId);
+      emp = await Employee.findById(cleanId).select("-password +documents");
     }
     if (!emp) {
       emp = await Employee.findOne({
@@ -514,7 +428,7 @@ export class EmployeeService {
           { email: String(employeeId).trim().toLowerCase() },
           ...(cleanId ? [{ _id: cleanId }] : [])
         ]
-      });
+      }).select("-password +documents");
     }
     if (!emp) {
       throw new ApiError(404, "Employee not found");
@@ -729,7 +643,10 @@ export class EmployeeService {
     const avgSecondsPerDay = workedDaysCount > 0 ? Math.floor(totalWorkSecondsAll / workedDaysCount) : 0;
 
     const formattedLeaves = (leaves || []).map((l) => {
-      const obj = typeof l.toObject === "function" ? l.toObject() : l;
+      const obj = typeof l.toObject === "function" ? { ...l.toObject() } : { ...l };
+      if (!includeInternalRemarks) {
+        delete obj.adminRemark;
+      }
       return {
         ...obj,
         id: (l._id || l.id || "").toString(),
@@ -827,13 +744,16 @@ export class EmployeeService {
   }
 
   static async getEmployeeProfile(id) {
-    const cleanId = cleanObjectId(id) || id;
-    const emp = await Employee.findById(cleanId).select("-password").lean();
+    const cleanId = cleanObjectId(id);
+    const emp = cleanId
+      ? await Employee.findById(cleanId).select("-password +documents").lean()
+      : await Employee.findOne({ employeeId: String(id || "").trim() }).select("-password +documents").lean();
     if (!emp) {
       throw new ApiError(404, "Employee not found");
     }
     return {
       ...emp,
+      documents: Array.isArray(emp.documents) ? emp.documents : [],
       id: emp._id.toString(),
       _id: emp._id.toString(),
     };
@@ -913,12 +833,7 @@ export class EmployeeService {
     };
 
     emp.documents.push(newDoc);
-
-    console.log("5. Saving employee document");
-
     await emp.save();
-
-    console.log("6. Document saved successfully");
 
     if (uploadedBy === "Employee") {
       try {

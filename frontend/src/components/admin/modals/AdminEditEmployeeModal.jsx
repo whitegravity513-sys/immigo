@@ -1,5 +1,16 @@
 import DateInput from "../../common/DateInput.jsx";
 
+const DEPARTMENTS = [
+  "Engineering & Tech",
+  "Operations",
+  "Sales & Marketing",
+  "Human Resources",
+  "Finance & Accounts",
+  "Immigration & Legal",
+  "Client Services",
+  "Administration",
+];
+
 export default function EditEmployeeModal({
   editingEmployee,
   setEditingEmployee,
@@ -91,15 +102,25 @@ export default function EditEmployeeModal({
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   Department
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Engineering, Sales"
-                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
-                  value={editForm.department || ""}
+                <select
+                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+                  value={editForm.department && editForm.department !== "General" ? editForm.department : ""}
                   onChange={(e) =>
                     setEditForm({ ...editForm, department: e.target.value })
                   }
-                />
+                >
+                  <option value="">-- Select Department --</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                  {editForm.department &&
+                    editForm.department !== "General" &&
+                    !DEPARTMENTS.includes(editForm.department) && (
+                      <option value={editForm.department}>{editForm.department}</option>
+                    )}
+                </select>
               </div>
             </div>
 

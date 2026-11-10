@@ -72,7 +72,10 @@ export const getMyMonthlyDetails = asyncHandler(async (req, res) => {
   const details = await EmployeeService.getEmployeeMonthlyDetails(
     req.user.id || req.user._id,
     month,
-    year
+    year,
+    null,
+    null,
+    false
   );
   return res.status(200).json(details);
 });

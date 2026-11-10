@@ -1,9 +1,9 @@
 import React from "react";
-import { FileUp } from "lucide-react";
+import { FileUp, AlertCircle } from "lucide-react";
 import DateInput from "../common/DateInput.jsx";
+import { getIndiaDateString } from "../../utils/formatters.js";
 
 export default function ApplyLeaveModal({
-  leaveBalance,
   leaveForm,
   setLeaveForm,
   handleLeaveSubmit,
@@ -11,9 +11,30 @@ export default function ApplyLeaveModal({
   fileLabel,
   loading,
 }) {
+  const todayStr = getIndiaDateString();
+  const isPastSelected = Boolean(
+    (leaveForm.startDate && leaveForm.startDate < todayStr) ||
+      (leaveForm.endDate && leaveForm.endDate < todayStr)
+  );
+  const isInvalidRange = Boolean(
+    leaveForm.startDate && leaveForm.endDate && leaveForm.endDate < leaveForm.startDate
+  );
+
+  let totalDays = 0;
+  if (leaveForm.startDate && leaveForm.endDate && !isInvalidRange) {
+    const [sy, sm, sd] = String(leaveForm.startDate).split("-").map(Number);
+    const [ey, em, ed] = String(leaveForm.endDate).split("-").map(Number);
+    if (sy && sm && sd && ey && em && ed) {
+      const startUtc = Date.UTC(sy, sm - 1, sd);
+      const endUtc = Date.UTC(ey, em - 1, ed);
+      if (endUtc >= startUtc) {
+        totalDays = Math.floor((endUtc - startUtc) / (1000 * 3600 * 24)) + 1;
+      }
+    }
+  }
+
   return (
     <div className="max-w-lg mx-auto space-y-6">
-
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 sm:p-5">
         <h3 className="text-sm font-bold text-slate-800 mb-3.5">Apply for Leave</h3>
         <form onSubmit={handleLeaveSubmit} className="space-y-3">
@@ -40,35 +61,60 @@ export default function ApplyLeaveModal({
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
-            {["startDate", "endDate"].map((key) => (
-              <div key={key} className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {key === "startDate" ? "Start Date" : "End Date"}
-                </label>
-                <DateInput
-                  className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
-                  value={leaveForm[key]}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, [key]: e.target.value })}
-                  required
-                />
-              </div>
-            ))}
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                Start Date
+              </label>
+              <DateInput
+                min={todayStr}
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                value={leaveForm.startDate}
+                onChange={(e) => {
+                  const nextStart = e.target.value;
+                  setLeaveForm((prev) => ({
+                    ...prev,
+                    startDate: nextStart,
+                    endDate: !prev.endDate || (nextStart && prev.endDate < nextStart) ? nextStart : prev.endDate,
+                  }));
+                }}
+                required
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                End Date
+              </label>
+              <DateInput
+                min={leaveForm.startDate && leaveForm.startDate >= todayStr ? leaveForm.startDate : todayStr}
+                className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                value={leaveForm.endDate}
+                onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })}
+                required
+              />
+            </div>
           </div>
 
-          {leaveForm.startDate && leaveForm.endDate &&
-            (() => {
-              const start = new Date(leaveForm.startDate);
-              const end = new Date(leaveForm.endDate);
-              if (isNaN(start) || isNaN(end) || end < start) return null;
-              const timeDiff = Math.abs(end.getTime() - start.getTime());
-              const totalDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
-              return (
-                <div className="p-2.5 bg-blue-50/80 border border-blue-200 text-blue-800 rounded-lg text-xs font-semibold flex items-center justify-between">
-                  <span>Leave Duration:</span>
-                  <strong className="font-bold">{totalDays} Day(s) (Standard 1 leave / day)</strong>
-                </div>
-              );
-            })()}
+          {isPastSelected && (
+            <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+              <AlertCircle size={13} className="shrink-0" />
+              <span>Past dates ke liye leave apply nahi kar sakte. Aaj ya future date select karein.</span>
+            </div>
+          )}
+
+          {!isPastSelected && isInvalidRange && (
+            <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-[11px] font-bold flex items-center gap-1.5">
+              <AlertCircle size={13} className="shrink-0" />
+              <span>End date start date se pehle nahi ho sakti.</span>
+            </div>
+          )}
+
+          {totalDays > 0 && !isPastSelected && (
+            <div className="p-2.5 bg-blue-50/80 border border-blue-200 text-blue-800 rounded-lg text-xs font-semibold flex items-center justify-between">
+              <span>Leave Duration:</span>
+              <strong className="font-bold">{totalDays} Day(s) (Standard 1 leave / day)</strong>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Reason</label>
@@ -102,8 +148,8 @@ export default function ApplyLeaveModal({
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md shadow-xs transition-all text-xs cursor-pointer disabled:opacity-60"
+            disabled={loading || isPastSelected || isInvalidRange}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md shadow-xs transition-all text-xs cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Submitting…" : "Submit Leave Request"}
           </button>

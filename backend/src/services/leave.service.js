@@ -2,12 +2,17 @@ import Leave from "../models/Leave.js";
 import Employee from "../models/Employee.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
+import { getTodayDateString, normalizeDateString } from "../utils/dateUtils.js";
 
 export class LeaveService {
-  static formatLeave(leave) {
+  static formatLeave(leave, includeInternalRemark = true) {
     if (!leave) return null;
+    const obj = leave.toObject ? leave.toObject() : { ...leave };
+    if (!includeInternalRemark) {
+      delete obj.adminRemark;
+    }
     return {
-      ...leave.toObject(),
+      ...obj,
       id: leave._id.toString(),
       _id: leave._id.toString(),
       employee: leave.employeeId
@@ -92,13 +97,26 @@ export class LeaveService {
       throw new ApiError(400, "All fields (startDate, endDate, reason) are required");
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (end < start) {
+    const todayStr = getTodayDateString();
+    const startStr = normalizeDateString(startDate);
+    const endStr = normalizeDateString(endDate);
+    if (!startStr || !endStr) {
+      throw new ApiError(400, "Invalid leave dates provided");
+    }
+    if (startStr < todayStr || endStr < todayStr) {
+      throw new ApiError(400, "Leave cannot be applied for past dates. Please select today or a future date.");
+    }
+    if (endStr < startStr) {
       throw new ApiError(400, "End date cannot be earlier than start date");
     }
 
-    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const [sy, sm, sd] = startStr.split("-").map(Number);
+    const [ey, em, ed] = endStr.split("-").map(Number);
+    const startUtc = Date.UTC(sy, sm - 1, sd);
+    const endUtc = Date.UTC(ey, em - 1, ed);
+    const diffDays = Math.floor((endUtc - startUtc) / (1000 * 60 * 60 * 24)) + 1;
+    const start = new Date(`${startStr}T00:00:00.000Z`);
+    const end = new Date(`${endStr}T00:00:00.000Z`);
 
     const leave = await Leave.create({
       employeeId,
@@ -119,7 +137,7 @@ export class LeaveService {
       await NotificationService.createNotification({
         type: "LEAVE_APPLY",
         title: `Leave Applied: ${empName} (${empIdCode})`,
-        message: `Employee [${empIdCode}] ${empName} applied for ${leaveType} leave (${diffDays} day${diffDays > 1 ? "s" : ""}) from ${start.toLocaleDateString("en-IN")} to ${end.toLocaleDateString("en-IN")}. Reason: "${reason}"`,
+        message: `Employee [${empIdCode}] ${empName} applied for ${leaveType} leave (${diffDays} day${diffDays > 1 ? "s" : ""}) from ${startStr} to ${endStr}. Reason: "${reason}"`,
         employeeId,
         employeeName: `${empName} (${empIdCode})`,
         metadata: { employeeId: empIdCode, name: empName, leaveId: leave._id, leaveType, diffDays, reason },
@@ -127,16 +145,20 @@ export class LeaveService {
     } catch (e) {
     }
 
-    return this.formatLeave(leave);
+    return this.formatLeave(leave, false);
   }
 
   static async getLeaveHistory(employeeId) {
     const leaves = await Leave.find({ employeeId }).sort({ createdAt: -1 });
-    return leaves.map((l) => ({
-      ...l.toObject(),
-      id: l._id.toString(),
-      _id: l._id.toString(),
-    }));
+    return leaves.map((l) => {
+      const obj = l.toObject();
+      delete obj.adminRemark;
+      return {
+        ...obj,
+        id: l._id.toString(),
+        _id: l._id.toString(),
+      };
+    });
   }
 }
 

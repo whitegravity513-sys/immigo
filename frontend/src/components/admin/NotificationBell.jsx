@@ -1,15 +1,24 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { apiClient } from "../../services/apiClient.js";
 import crmVendorService from "../../services/crmVendorService.js";
 import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
 
 export default function NotificationBell({ className }) {
+  const { user } = useAuth();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const lastAdminReadAllTsRef = useRef(0);
+
+  const portalBase =
+    (user?.role || "").toUpperCase() === "HR" || location.pathname.startsWith("/hr")
+      ? "/hr/dashboard"
+      : "/admin/dashboard";
 
   const getDeletedAdminIds = () => {
     try {
@@ -98,7 +107,18 @@ export default function NotificationBell({ className }) {
           n.read ||
           (lastAdminReadAllTsRef.current && itemTime <= lastAdminReadAllTsRef.current)
         );
-        return { ...n, isRead, read: isRead };
+        const rawEmpId = n.employeeId || n.metadata?.employeeId || n.employeeCode || "";
+        let link = n.link || "";
+        if (!link) {
+          if ((n.type === "DOCUMENT_UPLOAD" || n.type === "DOCUMENT_UPDATE") && rawEmpId) {
+            link = `${portalBase}/employee/${rawEmpId}?tab=documents`;
+          } else if (n.type === "LEAVE_APPLY") {
+            link = `${portalBase}/leaves`;
+          } else if (n.type === "EMPLOYEE_CREATED" && rawEmpId) {
+            link = `${portalBase}/employee/${rawEmpId}`;
+          }
+        }
+        return { ...n, isRead, read: isRead, link };
       });
 
       const unread = processed.filter((n) => !n.isRead && !n.read).length;
@@ -180,7 +200,6 @@ export default function NotificationBell({ className }) {
     const deletedIds = getDeletedAdminIds();
     deletedIds.add(sId);
 
-    // Also find matching item to blacklist title-createdAt
     let targetItem = null;
     setNotifications((prev) => {
       targetItem = prev.find((n) => String(n._id) === sId || String(n.id) === sId);

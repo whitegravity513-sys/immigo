@@ -42,6 +42,7 @@ import { toLocalDateStr } from "../../utils/formatters.js";
 import PastAttendanceModal from "../../components/admin/modals/PastAttendanceModal.jsx";
 import DocPreviewModal from "../../components/admin/modals/DocPreviewModal.jsx";
 import TextModal from "../../components/admin/modals/TextModal.jsx";
+import LeaveActionModal from "../../components/admin/modals/LeaveActionModal.jsx";
 
 function AdminDashboard({ user, token, onLogout }) {
   const [renewalMenuOpen, setRenewalMenuOpen] = useState(true);
@@ -472,6 +473,7 @@ function AdminDashboard({ user, token, onLogout }) {
         {editingAttendance && (
           <EditAttendance
             attendance={editingAttendance}
+            holidays={holidays}
             onClose={() => setEditingAttendance(null)}
             onSaved={fetchAdminReports}
           />
@@ -512,7 +514,17 @@ function AdminDashboard({ user, token, onLogout }) {
         pastAttendanceModal={pastAttendanceModal}
         setPastAttendanceModal={setPastAttendanceModal}
         employeeHistory={employeeHistory}
+        holidays={holidays}
         handleSavePastAttendance={handleSavePastAttendance}
+        loading={loading}
+      />
+
+      <LeaveActionModal
+        leaveActionModal={leaveActionModal}
+        setLeaveActionModal={setLeaveActionModal}
+        leaveActionRemark={leaveActionRemark}
+        setLeaveActionRemark={setLeaveActionRemark}
+        handleSubmitLeaveAction={handleSubmitLeaveAction}
         loading={loading}
       />
 

@@ -177,7 +177,6 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {}
       {complianceInfo?.isComplianceOnHold && (
         <div className="bg-amber-500/10 border border-amber-400/40 text-amber-950 rounded-lg px-3 py-1.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in fade-in duration-200">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -202,7 +201,6 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {/* Active Scheduled Meeting Banner (visible until completed) */}
       <ActiveMeetingAlertBanner customRole="employee" />
 
       <div
@@ -305,7 +303,6 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      {}
       {activeHoliday && (
         <div
           className={`p-4 sm:p-5 rounded-xl border transition-all animate-in fade-in duration-200 ${
@@ -327,7 +324,7 @@ export default function EmpHomeOverview({
                   </span>
                   <span className="text-xs font-bold text-amber-800">
                     {activeHoliday.date
-                      ? new Date(activeHoliday.date).toLocaleDateString("en-IN", {
+                      ? new Date(`${String(activeHoliday.date).split("T")[0]}T00:00:00`).toLocaleDateString("en-IN", {
                           weekday: "long",
                           day: "numeric",
                           month: "short",
@@ -374,7 +371,6 @@ export default function EmpHomeOverview({
         </div>
       )}
 
-      {/* 4 Attendance Stat Cards in 1 Single Row */}
       <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full">
         <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -569,7 +565,16 @@ export default function EmpHomeOverview({
               )}
 
               <div className="flex flex-wrap items-center gap-1.5">
-                {(statusRecord?.isInactive || statusRecord?.employeeStatus === "inactive" || user?.status === "inactive") ? (
+                {isHolidayToday ? (
+                  <div className="w-full p-2.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-950 text-xs font-semibold text-center space-y-1">
+                    <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">
+                      <Calendar size={11} className="text-indigo-700" /> Official Holiday: {activeHoliday?.title || "Holiday"}
+                    </div>
+                    <p className="text-[11px] font-bold text-indigo-900">
+                      Aaj holiday hai — aaj attendance check-in aur break mark nahi hogi.
+                    </p>
+                  </div>
+                ) : (statusRecord?.isInactive || statusRecord?.employeeStatus === "inactive" || user?.status === "inactive") ? (
                   <div className="w-full p-2.5 rounded-lg bg-rose-50 border border-rose-300 text-rose-900 text-xs font-semibold text-center space-y-1">
                     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
                       <AlertCircle size={11} className="text-rose-600" /> Account Inactive
@@ -590,13 +595,13 @@ export default function EmpHomeOverview({
                   </button>
                 ) : null}
 
-                {status === "Checked Out" && (
+                {!isHolidayToday && status === "Checked Out" && (
                   <div className="flex-1 min-w-[150px] py-1.5 px-2.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">
                     <span>🔒 Shift Completed (Checked Out)</span>
                   </div>
                 )}
 
-                {status === "Active" && (
+                {!isHolidayToday && status === "Active" && (
                   <button
                     type="button"
                     onClick={() => handleBreakStart && handleBreakStart("Break")}
@@ -609,7 +614,7 @@ export default function EmpHomeOverview({
                   </button>
                 )}
 
-                {(status === "On Break" || isOnBreak) && (
+                {!isHolidayToday && (status === "On Break" || isOnBreak) && (
                   <button
                     type="button"
                     onClick={() => handleBreakEnd && handleBreakEnd()}
@@ -621,7 +626,7 @@ export default function EmpHomeOverview({
                   </button>
                 )}
 
-                {(status === "Active" || status === "On Break") && (
+                {!isHolidayToday && (status === "Active" || status === "On Break") && (
                   <button
                     type="button"
                     onClick={() => handleCheckOut && handleCheckOut()}
@@ -634,7 +639,7 @@ export default function EmpHomeOverview({
                   </button>
                 )}
 
-                {status === "Checked Out" && (
+                {!isHolidayToday && status === "Checked Out" && (
                   <div className="w-full py-1.5 px-2 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-[10px] font-bold text-center flex items-center justify-center gap-1.5 shadow-2xs">
                     <CheckCircle2 size={12} className="text-emerald-700 shrink-0" />
                     <span>Shift completed at {fmtTime(statusRecord?.checkOutTime)}. Check-in for next shift will be active after 12:00 AM midnight.</span>
@@ -654,7 +659,6 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      {/* Full Width My Recent Activity */}
       <div className="w-full">
         <EmployeeRecentActivitySection user={user} />
       </div>

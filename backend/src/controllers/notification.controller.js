@@ -4,14 +4,15 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 export const getNotifications = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit || "30", 10);
   const user = req.user;
+  const roleUpper = String(user?.role || "").toUpperCase();
   const isSuperAdmin =
-    user?.role === "SUPER_ADMIN" ||
+    roleUpper === "SUPER_ADMIN" ||
     user?.isSuperAdmin === true ||
     (user?.email && user.email.toLowerCase() === (process.env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase());
 
   const result = await NotificationService.getNotifications(limit, {
     isSuperAdmin,
-    role: user?.role,
+    role: roleUpper || user?.role,
     userId: user?.id || user?._id,
   });
   return res.status(200).json(result);

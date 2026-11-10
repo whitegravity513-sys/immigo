@@ -12,6 +12,7 @@ import {
   Filter
 } from "lucide-react";
 import DateInput from "../common/DateInput.jsx";
+import { getIndiaDateString } from "../../utils/formatters.js";
 
 export default function LeaveManagementSection({
   leaveBalance = 0,
@@ -36,13 +37,25 @@ export default function LeaveManagementSection({
     return lv.status === statusFilter;
   });
 
+  const todayStr = getIndiaDateString();
+  const isPastSelected = Boolean(
+    (leaveForm.startDate && leaveForm.startDate < todayStr) ||
+      (leaveForm.endDate && leaveForm.endDate < todayStr)
+  );
+  const isInvalidRange = Boolean(
+    leaveForm.startDate && leaveForm.endDate && leaveForm.endDate < leaveForm.startDate
+  );
+
   let leaveDurationDays = 0;
-  if (leaveForm.startDate && leaveForm.endDate) {
-    const start = new Date(leaveForm.startDate);
-    const end = new Date(leaveForm.endDate);
-    if (!isNaN(start) && !isNaN(end) && end >= start) {
-      const timeDiff = Math.abs(end.getTime() - start.getTime());
-      leaveDurationDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+  if (leaveForm.startDate && leaveForm.endDate && !isInvalidRange) {
+    const [sy, sm, sd] = String(leaveForm.startDate).split("-").map(Number);
+    const [ey, em, ed] = String(leaveForm.endDate).split("-").map(Number);
+    if (sy && sm && sd && ey && em && ed) {
+      const startUtc = Date.UTC(sy, sm - 1, sd);
+      const endUtc = Date.UTC(ey, em - 1, ed);
+      if (endUtc >= startUtc) {
+        leaveDurationDays = Math.floor((endUtc - startUtc) / (1000 * 3600 * 24)) + 1;
+      }
     }
   }
 
@@ -132,9 +145,17 @@ export default function LeaveManagementSection({
                   Start Date
                 </label>
                 <DateInput
+                  min={todayStr}
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
                   value={leaveForm.startDate}
-                  onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })}
+                  onChange={(e) => {
+                    const nextStart = e.target.value;
+                    setLeaveForm((prev) => ({
+                      ...prev,
+                      startDate: nextStart,
+                      endDate: !prev.endDate || (nextStart && prev.endDate < nextStart) ? nextStart : prev.endDate,
+                    }));
+                  }}
                   required
                 />
               </div>
@@ -144,6 +165,7 @@ export default function LeaveManagementSection({
                   End Date
                 </label>
                 <DateInput
+                  min={leaveForm.startDate && leaveForm.startDate >= todayStr ? leaveForm.startDate : todayStr}
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
                   value={leaveForm.endDate}
                   onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })}
@@ -152,7 +174,21 @@ export default function LeaveManagementSection({
               </div>
             </div>
 
-            {leaveDurationDays > 0 && (
+            {isPastSelected && (
+              <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11px] font-bold flex items-center gap-1.5">
+                <AlertCircle size={13} className="shrink-0" />
+                <span>Past dates ke liye leave apply nahi kar sakte. Aaj ya future date select karein.</span>
+              </div>
+            )}
+
+            {!isPastSelected && isInvalidRange && (
+              <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11px] font-bold flex items-center gap-1.5">
+                <AlertCircle size={13} className="shrink-0" />
+                <span>End date start date se pehle nahi ho sakti.</span>
+              </div>
+            )}
+
+            {leaveDurationDays > 0 && !isPastSelected && (
               <div className="p-2 bg-blue-50 border border-blue-200 text-blue-900 rounded-md text-[11px] font-semibold flex items-center justify-between">
                 <span>Requested Duration:</span>
                 <strong className="font-bold text-blue-700">
@@ -195,8 +231,8 @@ export default function LeaveManagementSection({
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full mt-1 py-1.5 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              disabled={loading || isPastSelected || isInvalidRange}
+              className="w-full mt-1 py-1.5 px-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Submitting Application…" : "Submit Leave Application"}
             </button>

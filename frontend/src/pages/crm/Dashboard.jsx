@@ -418,7 +418,6 @@ export function Dashboard() {
                 </div>
               </div>
 
-              {/* Punch-in / Staff list preview */}
               <div className="divide-y divide-gray-100">
                 {loading ? (
                   <LoadingSkeleton type="card" count={2} />
@@ -435,7 +434,7 @@ export function Dashboard() {
                         : rec.employee?.name?.first
                         ? `${rec.employee.name.first} ${rec.employee.name.last || ""}`
                         : "Employee");
-                    const empDept = rec.department || rec.employee?.department || "General";
+                    const empDept = rec.department || rec.employee?.department || "";
                     const isAct = rec.status === "Active" || (rec.checkInTime && !rec.checkOutTime);
                     const isPresent =
                       isAct ||
@@ -461,7 +460,7 @@ export function Dashboard() {
                               {empName}
                             </p>
                             <p className="text-[10px] text-gray-400 truncate">
-                              {empDept} • {rec.checkInTime ? `In: ${formatTime(rec.checkInTime)}` : "No punch"}
+                              {empDept ? `${empDept} • ` : ""}{rec.checkInTime ? `In: ${formatTime(rec.checkInTime)}` : "No punch"}
                             </p>
                           </div>
                         </div>

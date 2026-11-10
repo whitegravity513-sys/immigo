@@ -126,7 +126,7 @@ export function WorkforceMetricModal({
                         />
                       </div>
                       <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                        {emp.department || "General"} • {emp.designation || "Staff"}
+                        {emp.department ? `${emp.department} • ` : ""}{emp.designation || "Staff"}
                       </p>
                     </div>
                   </div>

@@ -110,6 +110,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const [todayMeetings, setTodayMeetings] = useState([]);
 
   const [liveAdminNotification, setLiveAdminNotification] = useState(null);
+  const [holidayPopupOpen, setHolidayPopupOpen] = useState(false);
 
   useEffect(() => {
     const handleNewAdminNotif = (e) => {
@@ -160,7 +161,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     if (!token) return;
     fetchAll();
 
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = getIndiaDateString();
     apiClient.get(`/employee/meetings`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => {
@@ -342,6 +343,11 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   );
 
   const handleCheckIn = () => {
+    if (isHolidayToday) {
+      setHolidayPopupOpen(true);
+      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — aaj attendance mark nahi hogi.`);
+      return;
+    }
     if (isInactiveAccount) {
       setErrorMsg("Your employee account is inactive. You cannot mark attendance. Please contact Administrator.");
       return;
@@ -356,44 +362,64 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     });
   };
 
-  const handleCheckOut = () => apiCall(async () => {
-    try {
-      const wlRes = await apiClient.get("/employee/worklog/today");
-      const hasWorkLog = Boolean(wlRes.data?.log?.logText && wlRes.data.log.logText.trim().length > 0);
-      if (!hasWorkLog && !checkOutNote.trim()) {
-        setErrorMsg("⚠️ Please enter and save Today's Work Log before checking out! (Work log is mandatory)");
-        const wlEl = document.getElementById("daily-worklog-section");
-        if (wlEl) wlEl.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-    } catch {
-      
+  const handleCheckOut = () => {
+    if (isHolidayToday) {
+      setHolidayPopupOpen(true);
+      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — official holiday par attendance action allowed nahi hai.`);
+      return;
     }
+    return apiCall(async () => {
+      try {
+        const wlRes = await apiClient.get("/employee/worklog/today");
+        const hasWorkLog = Boolean(wlRes.data?.log?.logText && wlRes.data.log.logText.trim().length > 0);
+        if (!hasWorkLog && !checkOutNote.trim()) {
+          setErrorMsg("⚠️ Please enter and save Today's Work Log before checking out! (Work log is mandatory)");
+          const wlEl = document.getElementById("daily-worklog-section");
+          if (wlEl) wlEl.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+      } catch {
+      }
 
-    const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
-    const res = await apiClient.post(`/employee/check-out`, { location: loc, checkOutNote });
-    const rec = res.data?.record || res.data?.attendance;
-    if (rec) setStatusRecord(rec);
-    setSuccessMsg(res.data?.message || "Checked out successfully");
-    setCheckOutNote("");
-    await fetchAll(true);
-  });
+      const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
+      const res = await apiClient.post(`/employee/check-out`, { location: loc, checkOutNote });
+      const rec = res.data?.record || res.data?.attendance;
+      if (rec) setStatusRecord(rec);
+      setSuccessMsg(res.data?.message || "Checked out successfully");
+      setCheckOutNote("");
+      await fetchAll(true);
+    });
+  };
 
-  const handleBreakStart = (type = "Break") => apiCall(async () => {
-    const res = await apiClient.post(`/employee/break/start`, { breakType: type });
-    const rec = res.data?.record || res.data?.attendance;
-    if (rec) setStatusRecord(rec);
-    setSuccessMsg(res.data?.message || "Break started. Work timer paused.");
-    fetchAll(true);
-  });
+  const handleBreakStart = (type = "Break") => {
+    if (isHolidayToday) {
+      setHolidayPopupOpen(true);
+      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — aaj break tracking band hai.`);
+      return;
+    }
+    return apiCall(async () => {
+      const res = await apiClient.post(`/employee/break/start`, { breakType: type });
+      const rec = res.data?.record || res.data?.attendance;
+      if (rec) setStatusRecord(rec);
+      setSuccessMsg(res.data?.message || "Break started. Work timer paused.");
+      fetchAll(true);
+    });
+  };
 
-  const handleBreakEnd = () => apiCall(async () => {
-    const res = await apiClient.post(`/employee/break/end`);
-    const rec = res.data?.record || res.data?.attendance;
-    if (rec) setStatusRecord(rec);
-    setSuccessMsg(res.data?.message || "Break ended. Work timer resumed.");
-    fetchAll(true);
-  });
+  const handleBreakEnd = () => {
+    if (isHolidayToday) {
+      setHolidayPopupOpen(true);
+      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — aaj attendance action allowed nahi hai.`);
+      return;
+    }
+    return apiCall(async () => {
+      const res = await apiClient.post(`/employee/break/end`);
+      const rec = res.data?.record || res.data?.attendance;
+      if (rec) setStatusRecord(rec);
+      setSuccessMsg(res.data?.message || "Break ended. Work timer resumed.");
+      fetchAll(true);
+    });
+  };
 
   const handleLeaveFile = (e) => {
     const file = e.target.files[0];
@@ -407,7 +433,19 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
 
   const handleLeaveSubmit = (e) => {
     e.preventDefault();
-    if (!leaveForm.startDate || !leaveForm.endDate || !leaveForm.reason) { setErrorMsg("Fill all required fields."); return; }
+    if (!leaveForm.startDate || !leaveForm.endDate || !leaveForm.reason?.trim()) {
+      setErrorMsg("Fill all required fields.");
+      return;
+    }
+    const todayStr = getIndiaDateString();
+    if (leaveForm.startDate < todayStr || leaveForm.endDate < todayStr) {
+      setErrorMsg("Past dates ke liye leave apply nahi kar sakte. Kripya aaj ya aane wali date select karein.");
+      return;
+    }
+    if (leaveForm.endDate < leaveForm.startDate) {
+      setErrorMsg("End date start date se pehle nahi ho sakti.");
+      return;
+    }
     apiCall(async () => {
       const payload = {
         ...leaveForm,
@@ -431,8 +469,9 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const lastBreak = statusRecord?.breaks?.[statusRecord.breaks.length - 1];
   const overLimit = (lunchSeconds + breakSeconds) > 3600;
   const todayDateStr = getIndiaDateString();
-  const todayHoliday = holidays.find((h) => h.date === todayDateStr);
-  const isHolidayToday = Boolean(todayHoliday);
+  const matchedHoliday = holidays.find((h) => String(h?.date || "").split("T")[0] === todayDateStr);
+  const isHolidayToday = Boolean(matchedHoliday || statusRecord?.isHolidayToday || status === "Holiday");
+  const todayHoliday = matchedHoliday || (isHolidayToday ? { title: statusRecord?.holidayTitle || "Official Holiday", date: todayDateStr } : null);
 
   const todayDateObj = new Date();
   const dayOfWeekToday = todayDateObj.getDay();
@@ -477,6 +516,8 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         setLiveAdminNotification={setLiveAdminNotification}
         todayHoliday={todayHoliday}
         isHolidayToday={isHolidayToday}
+        holidayPopupOpen={holidayPopupOpen}
+        setHolidayPopupOpen={setHolidayPopupOpen}
         announcements={announcements}
         errorMsg={errorMsg}
         successMsg={successMsg}

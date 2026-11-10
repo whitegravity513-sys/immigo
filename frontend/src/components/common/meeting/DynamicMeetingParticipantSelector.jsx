@@ -465,7 +465,7 @@ export default function DynamicMeetingParticipantSelector({
                                 {e.name}
                               </div>
                               <div className="text-[10px] text-slate-500 truncate">
-                                {e.designation || "Staff"} • <span className="font-mono font-semibold text-blue-700">{e.employeeId}</span> • {e.department || "General"}
+                                {e.designation || "Staff"} • <span className="font-mono font-semibold text-blue-700">{e.employeeId}</span>{e.department ? ` • ${e.department}` : ""}
                               </div>
                             </div>
                           </div>

@@ -16,7 +16,7 @@ export default function LeaveApprovalsSection({
     if (!handleDirectLeaveAction) return;
     setSubmittingId(leaveId);
     try {
-      await handleDirectLeaveAction(leaveId, "Approved", "Approved by Admin");
+      await handleDirectLeaveAction(leaveId, "Approved", "");
     } finally {
       setSubmittingId(null);
     }
@@ -26,8 +26,7 @@ export default function LeaveApprovalsSection({
     if (!handleDirectLeaveAction) return;
     setSubmittingId(leaveId);
     try {
-      const remark = rejectRemark.trim() || "Rejected by Admin";
-      await handleDirectLeaveAction(leaveId, "Rejected", remark);
+      await handleDirectLeaveAction(leaveId, "Rejected", rejectRemark.trim());
       setRejectingId(null);
       setRejectRemark("");
     } finally {
@@ -40,7 +39,7 @@ export default function LeaveApprovalsSection({
       <div className="px-3 sm:px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
-          <p className="text-[11px] text-slate-500">Review employee leave claims and approve or reject inline directly (No popups)</p>
+          <p className="text-[11px] text-slate-500">Approve or reject leave requests — internal notes stay private to Admin &amp; HR</p>
         </div>
       </div>
       <div className="overflow-x-auto w-full">
@@ -130,11 +129,11 @@ export default function LeaveApprovalsSection({
                     {isRejectingThis ? (
                       <div className="flex flex-col gap-2 p-2.5 bg-rose-50/90 border border-rose-200 rounded-xl min-w-[250px] animate-in fade-in duration-150">
                         <span className="text-[11px] font-bold text-rose-800 flex items-center gap-1">
-                          <AlertCircle size={13} /> Rejection Remark:
+                          <AlertCircle size={13} /> Internal Note (Optional — Admin &amp; HR Only):
                         </span>
                         <input
                           type="text"
-                          placeholder="e.g. Incomplete proof / Not permitted"
+                          placeholder="Optional internal note (hidden from employee)"
                           value={rejectRemark}
                           onChange={(e) => setRejectRemark(e.target.value)}
                           className="w-full px-2.5 py-1 text-xs bg-white border border-rose-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-rose-500 text-slate-800"

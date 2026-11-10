@@ -407,7 +407,7 @@ export function EmployeeDocumentsTab({
               </button>
             </div>
 
-            <div className="flex-1 overflow-auto flex items-center justify-center p-2 bg-slate-50 rounded-xl">
+            <div className="flex-1 overflow-auto flex flex-col items-center justify-center p-2 bg-slate-50 rounded-xl gap-3">
               {previewDocModal.url?.startsWith("data:image/") ||
               /\.(png|jpe?g|webp|svg)$/i.test(previewDocModal.url || "") ? (
                 <img
@@ -415,6 +415,26 @@ export function EmployeeDocumentsTab({
                   alt={previewDocModal.name}
                   className="max-h-[60vh] object-contain rounded-lg"
                 />
+              ) : previewDocModal.url?.startsWith("data:application/pdf") ||
+                /\.pdf(\?|$)/i.test(previewDocModal.url || "") ? (
+                <div className="w-full space-y-2">
+                  <iframe
+                    src={formatFileUrl(previewDocModal.url)}
+                    title={previewDocModal.name}
+                    className="w-full h-[55vh] rounded-lg border border-slate-200 bg-white"
+                  />
+                  <div className="flex justify-center">
+                    <a
+                      href={formatFileUrl(previewDocModal.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      download={previewDocModal.name}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700"
+                    >
+                      <ExternalLink size={14} /> Download PDF
+                    </a>
+                  </div>
+                </div>
               ) : (
                 <div className="text-center py-10 space-y-3">
                   <FileText size={48} className="mx-auto text-blue-500" />

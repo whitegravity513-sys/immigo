@@ -36,7 +36,7 @@ export function EmployeeLeavesTab({
                 "Days",
                 "Reason",
                 "Status",
-                "Admin Remark",
+                "Internal Note (Admin/HR Only)",
               ].map((h) => (
                 <th
                   key={h}
@@ -94,7 +94,7 @@ export function EmployeeLeavesTab({
                           ? "bg-rose-50 text-rose-700"
                           : "bg-slate-50 text-slate-600"
                         }`}
-                      onClick={() => openTextModal("Admin Remark", l.adminRemark)}
+                      onClick={() => openTextModal("Internal Note (Admin & HR Only)", l.adminRemark)}
                     >
                       {l.adminRemark}
                     </span>

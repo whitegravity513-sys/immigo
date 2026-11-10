@@ -58,7 +58,7 @@ export const RegisterEmployeeSection = ({
     "Finance & Accounts",
     "Immigration & Legal",
     "Client Services",
-    "General / Administration",
+    "Administration",
   ];
 
   const computeImmiId = (joiningDate, dob) => {
@@ -78,7 +78,8 @@ export const RegisterEmployeeSection = ({
       return `${day}${yr}`;
     };
 
-    const joinPart = formatPart(joiningDate) || formatPart(new Date().toISOString().split("T")[0]) || "DDYY";
+    const todayIst = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+    const joinPart = formatPart(joiningDate) || formatPart(todayIst) || "DDYY";
     const dobPart = formatPart(dob);
     if (!dobPart) {
       return `IMMI-${joinPart}-DDYY(DOB)`;
@@ -451,14 +452,16 @@ export const RegisterEmployeeSection = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-600">Department</label>
+                <label className="text-xs font-bold text-slate-600">Department *</label>
                 <select
-                  value={employeeForm.department || departments[0]}
+                  required
+                  value={employeeForm.department || ""}
                   onChange={(e) =>
                     setEmployeeForm({ ...employeeForm, department: e.target.value })
                   }
                   className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium cursor-pointer"
                 >
+                  <option value="">-- Select Department --</option>
                   {departments.map((dept) => (
                     <option key={dept} value={dept}>
                       {dept}

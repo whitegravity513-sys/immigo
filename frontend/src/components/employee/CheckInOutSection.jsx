@@ -43,7 +43,7 @@ export default function CheckInOutSection({
           </div>
           <div>
             <span className="font-bold text-sm block text-indigo-900">Official Company Holiday: {todayHoliday?.title || "Holiday"}</span>
-            <span className="text-indigo-700 font-medium">Office operations are closed today. Daily attendance check-in is not required. Enjoy your holiday!</span>
+            <span className="text-indigo-700 font-medium">Aaj holiday hai — aaj daily attendance check-in aur break tracking band rahegi. Enjoy your holiday!</span>
           </div>
         </div>
       )}
@@ -101,7 +101,7 @@ export default function CheckInOutSection({
                   <Calendar size={14} /> Official Company Holiday
                 </div>
                 <p className="text-xs text-indigo-900 font-semibold">
-                  Attendance check-in is not required today for &ldquo;{todayHoliday?.title || "Holiday"}&rdquo;.
+                  Aaj holiday hai (&ldquo;{todayHoliday?.title || "Holiday"}&rdquo;) — aaj attendance mark nahi ho sakti.
                 </p>
                 <p className="text-[11px] text-indigo-600">
                   No absent penalty or salary deductions are applied on official holidays.
@@ -136,7 +136,7 @@ export default function CheckInOutSection({
               </div>
             ) : null}
 
-            {(status === "Active" || status === "On Break") && (
+            {!isHolidayToday && (status === "Active" || status === "On Break") && (
               <div className="space-y-3">
                 <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export default function CheckInOutSection({
               </div>
             )}
 
-            {status === "Checked Out" && (
+            {!isHolidayToday && status === "Checked Out" && (
               <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300/80 text-emerald-950 rounded-2xl font-medium flex flex-col items-center justify-center gap-3 text-center shadow-xs">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 border border-emerald-200 shadow-inner">
                   <CheckCircle size={26} className="text-emerald-600" />

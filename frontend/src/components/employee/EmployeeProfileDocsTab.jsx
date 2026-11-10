@@ -331,8 +331,12 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                 <EmployeeIdBadge id={profile?.employeeId} />
                 <span>•</span>
                 <span className="text-blue-700 font-bold">{profile?.designation || "Employee"}</span>
-                <span>•</span>
-                <span className="text-slate-600 font-medium">{profile?.department || "General"}</span>
+                {profile?.department && (
+                  <>
+                    <span>•</span>
+                    <span className="text-slate-600 font-medium">{profile.department}</span>
+                  </>
+                )}
               </div>
               <p className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-0.5">
                 <Mail size={12} className="text-slate-400" />

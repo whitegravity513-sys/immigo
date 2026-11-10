@@ -209,7 +209,7 @@ export default function AttendanceCalendarSection({
       `"${r.email || ""}"`,
       `"${r.personalEmail || ""}"`,
       `"${r.phone || ""}"`,
-      `"${r.department || "General"}"`,
+      `"${r.department || ""}"`,
       `"${r.designation || "Employee"}"`,
       `"${r.date || selectedDate}"`,
       `"${r.status || "Absent"}"`,
@@ -621,7 +621,7 @@ export default function AttendanceCalendarSection({
                       </td>
 
                       <td className="px-3 py-1.5">
-                        <div className="font-semibold text-slate-700">{emp.department || "General"}</div>
+                        <div className="font-semibold text-slate-700">{emp.department || "—"}</div>
                         <div className="text-[11px] text-slate-400">{emp.designation || "Employee"}</div>
                       </td>
 

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Calendar as CalendarIcon,
   Award,
@@ -72,8 +73,19 @@ export default function EmployeeDetailSection({
     ? employeeHistory.leaveHistory
     : [];
   const safeHolidays = Array.isArray(holidays) ? holidays : [];
+  const location = useLocation();
+  const validTabs = ["attendance", "payments", "documents", "leaves"];
+  const urlTab = new URLSearchParams(location.search).get("tab");
 
-  const [activeTab, setActiveTab] = useState("attendance");
+  const [activeTab, setActiveTab] = useState(
+    urlTab && validTabs.includes(urlTab) ? urlTab : "attendance"
+  );
+
+  useEffect(() => {
+    if (urlTab && validTabs.includes(urlTab)) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab, selectedEmployeeId]);
 
   const joiningDateStr = (() => {
     if (!emp?.joiningDate) return null;

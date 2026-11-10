@@ -6,6 +6,7 @@ import Holiday from "../models/Holiday.js";
 import DailyWorkLog from "../models/DailyWorkLog.js";
 import {
   getTodayDateString,
+  normalizeDateString,
   isSunday,
   isSecondOrFourthSaturday,
   isWeeklyOff,
@@ -93,7 +94,7 @@ export class AttendanceService {
       let leaveDays = 0;
 
       while (cur <= todayDate) {
-        const dStr = cur.toISOString().split("T")[0];
+        const dStr = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}-${String(cur.getDate()).padStart(2, "0")}`;
         const dayOfWeek = cur.getDay(); 
         const dayOfMonth = cur.getDate();
         const satCount = Math.ceil(dayOfMonth / 7);
@@ -172,6 +173,7 @@ export class AttendanceService {
         status: defaultStatus,
         employeeStatus: emp?.status || "active",
         isInactive: emp?.status === "inactive",
+        isHolidayToday: Boolean(holiday),
         holidayTitle: holiday ? holiday.title : null,
         isOffDay: Boolean(holiday || weeklyOff),
         offReason,
@@ -200,6 +202,7 @@ export class AttendanceService {
       status: effectiveStatus,
       employeeStatus: emp?.status || "active",
       isInactive: emp?.status === "inactive",
+      isHolidayToday: Boolean(holiday),
       holidayTitle: holiday ? holiday.title : null,
       isOffDay: Boolean(holiday || weeklyOff),
       offReason,
@@ -225,11 +228,11 @@ export class AttendanceService {
 
     const today = getTodayDateString();
 
-    const todayHoliday = await Holiday.findOne({ date: today }).lean();
+    const todayHoliday = await getHolidayForDate(today);
     if (todayHoliday) {
       throw new ApiError(
         400,
-        `Today is an official company holiday: "${todayHoliday.title}". Attendance check-in is not required.`
+        `Today is an official company holiday: "${todayHoliday.title}". Attendance cannot be marked on a declared holiday.`
       );
     }
 
@@ -311,6 +314,13 @@ export class AttendanceService {
     }
 
     const today = getTodayDateString();
+    const todayHoliday = await getHolidayForDate(today);
+    if (todayHoliday) {
+      throw new ApiError(
+        400,
+        `Today is an official company holiday: "${todayHoliday.title}". Attendance actions are disabled on a declared holiday.`
+      );
+    }
     let record = await Attendance.findOne({ employeeId, date: today });
     const now = new Date();
 
@@ -377,6 +387,13 @@ export class AttendanceService {
     }
 
     const today = getTodayDateString();
+    const todayHoliday = await getHolidayForDate(today);
+    if (todayHoliday) {
+      throw new ApiError(
+        400,
+        `Today is an official company holiday: "${todayHoliday.title}". Attendance actions are disabled on a declared holiday.`
+      );
+    }
     const record = await Attendance.findOne({ employeeId, date: today });
 
     if (!record) {
@@ -437,8 +454,14 @@ export class AttendanceService {
     }
 
     const today = getTodayDateString();
+    const todayHoliday = await getHolidayForDate(today);
+    if (todayHoliday) {
+      throw new ApiError(
+        400,
+        `Today is an official company holiday: "${todayHoliday.title}". Attendance cannot be marked on a declared holiday.`
+      );
+    }
 
-    
     let worklog = await DailyWorkLog.findOne({ employee: employeeId, date: today });
     if (!worklog || !worklog.logText || !worklog.logText.trim()) {
       if (checkOutNote && checkOutNote.trim()) {
@@ -602,7 +625,7 @@ export class AttendanceService {
       const resolvedDepartment =
         emp.department ||
         emp.employmentDetails?.department ||
-        "General";
+        "";
 
       if (record) {
         let calculatedWorkSeconds = record.totalWorkSeconds || 0;
@@ -868,6 +891,15 @@ export class AttendanceService {
       throw new ApiError(400, "Employee ID and date are required");
     }
 
+    const targetDate = normalizeDateString(date) || String(date).trim();
+    const declaredHoliday = await getHolidayForDate(targetDate);
+    if (declaredHoliday) {
+      throw new ApiError(
+        400,
+        `Official company holiday: "${declaredHoliday.title}". Attendance cannot be marked on a declared holiday.`
+      );
+    }
+
     const cleanId = String(employeeId || "").replace(/^virtual-/, "").trim();
     let emp = null;
     if (mongoose.Types.ObjectId.isValid(cleanId)) {
@@ -881,21 +913,21 @@ export class AttendanceService {
     }
 
     if (emp.joiningDate) {
-      const joiningDateStr = new Date(emp.joiningDate).toISOString().split("T")[0];
-      if (date < joiningDateStr) {
+      const joiningDateStr = normalizeDateString(emp.joiningDate);
+      if (joiningDateStr && targetDate < joiningDateStr) {
         throw new ApiError(
           400,
-          `Attendance date (${date}) cannot be earlier than employee joining date (${joiningDateStr})`
+          `Attendance date (${targetDate}) cannot be earlier than employee joining date (${joiningDateStr})`
         );
       }
     }
 
-    let record = await Attendance.findOne({ employeeId: emp._id, date });
+    let record = await Attendance.findOne({ employeeId: emp._id, date: targetDate });
 
     if (!record) {
       record = new Attendance({
         employeeId: emp._id,
-        date,
+        date: targetDate,
         status: status || "Present",
         checkInTime: checkInTime ? new Date(checkInTime) : null,
         checkOutTime: checkOutTime ? new Date(checkOutTime) : null,
@@ -926,12 +958,12 @@ export class AttendanceService {
     try {
       NotificationService.createNotification({
         type: "ATTENDANCE_UPDATE",
-        title: `Attendance Updated for ${date}`,
-        message: `Admin updated your attendance for ${date} to status "${record.status}".`,
+        title: `Attendance Updated for ${targetDate}`,
+        message: `Admin updated your attendance for ${targetDate} to status "${record.status}".`,
         targetRole: "EMPLOYEE",
         targetType: "SPECIFIC",
         targetEmployeeId: emp._id,
-        metadata: { date, status: record.status },
+        metadata: { date: targetDate, status: record.status },
       });
     } catch (e) {
     }

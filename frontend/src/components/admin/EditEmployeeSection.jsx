@@ -23,6 +23,17 @@ import {
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import DateInput from "../common/DateInput.jsx";
 
+const DEPARTMENTS = [
+  "Engineering & Tech",
+  "Operations",
+  "Sales & Marketing",
+  "Human Resources",
+  "Finance & Accounts",
+  "Immigration & Legal",
+  "Client Services",
+  "Administration",
+];
+
 export default function EditEmployeeSection({
   editingEmployee,
   editForm,
@@ -252,13 +263,23 @@ export default function EditEmployeeSection({
 
             <div className="space-y-0.5">
               <label className="text-[11px] font-semibold text-slate-700">Department</label>
-              <input
-                type="text"
-                value={editForm.department || ""}
+              <select
+                value={editForm.department && editForm.department !== "General" ? editForm.department : ""}
                 onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
-                placeholder="e.g. Technology, Sales, HR"
-                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 transition-colors"
-              />
+                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+              >
+                <option value="">-- Select Department --</option>
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+                {editForm.department &&
+                  editForm.department !== "General" &&
+                  !DEPARTMENTS.includes(editForm.department) && (
+                    <option value={editForm.department}>{editForm.department}</option>
+                  )}
+              </select>
             </div>
 
             <div className="space-y-0.5">

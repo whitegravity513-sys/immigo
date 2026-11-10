@@ -54,10 +54,12 @@ export function EmployeeProfileHeader({
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 font-medium">
               <EmployeeIdBadge id={emp.employeeId} />
-              <span>&bull;</span>
-              <span className="text-slate-500">
-                {emp.department || "General Department"}
-              </span>
+              {emp.department && (
+                <>
+                  <span>&bull;</span>
+                  <span className="text-slate-500">{emp.department}</span>
+                </>
+              )}
               <span>&bull;</span>
               <span className="font-semibold text-slate-800">
                 {emp.designation || "Employee"}

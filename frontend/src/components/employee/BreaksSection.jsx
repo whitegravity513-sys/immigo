@@ -54,7 +54,14 @@ export default function BreaksSection({
           <div className="text-xs font-bold text-sky-700 uppercase tracking-wider">Total Break Time Used Today</div>
         </div>
 
-        {(isActive || isOnBreak) && !isCheckedOut && (
+        {isHolidayToday && (
+          <div className="p-5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-2xl font-semibold text-center text-sm space-y-1">
+            <div className="text-base font-bold text-indigo-950">Official Holiday Declared</div>
+            <p className="text-xs text-indigo-700">Aaj holiday hai — aaj break aur attendance tracking band hai.</p>
+          </div>
+        )}
+
+        {!isHolidayToday && (isActive || isOnBreak) && !isCheckedOut && (
           <div className="flex gap-3">
             {!isOnBreak ? (
               <button
@@ -76,7 +83,7 @@ export default function BreaksSection({
           </div>
         )}
 
-        {status === "Absent" && (
+        {!isHolidayToday && status === "Absent" && (
           <div className="p-5 bg-slate-50 border border-slate-200 text-slate-600 rounded-2xl font-semibold text-center text-sm space-y-1">
             <div className="text-base font-bold text-slate-800">Not checked in yet</div>
             <p className="text-xs text-slate-400">Check in first to start tracking breaks.</p>

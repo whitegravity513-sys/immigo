@@ -78,7 +78,7 @@ export function EmployeePaymentsTab({ emp, formatDate }) {
             <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
               <span className="text-slate-500">Department</span>
               <span className="font-bold text-slate-900">
-                {emp?.department || "General"}
+                {emp?.department || "—"}
               </span>
             </div>
             <div className="flex justify-between items-center py-1 border-b border-slate-200/60">

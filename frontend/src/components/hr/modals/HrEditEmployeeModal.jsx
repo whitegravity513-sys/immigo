@@ -2,6 +2,17 @@ import React, { useState, useEffect } from "react";
 import { X, User, Save, Loader2 } from "lucide-react";
 import DateInput from "../../common/DateInput.jsx";
 
+const DEPARTMENTS = [
+  "Engineering & Tech",
+  "Operations",
+  "Sales & Marketing",
+  "Human Resources",
+  "Finance & Accounts",
+  "Immigration & Legal",
+  "Client Services",
+  "Administration",
+];
+
 export default function EditEmployeeModal({
   isOpen,
   onClose,
@@ -34,9 +45,11 @@ export default function EditEmployeeModal({
       let formattedDate = "";
       if (employee.joiningDate) {
         try {
-          formattedDate = new Date(employee.joiningDate).toISOString().split("T")[0];
+          formattedDate = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Kolkata",
+          }).format(new Date(employee.joiningDate));
         } catch {
-          formattedDate = employee.joiningDate;
+          formattedDate = String(employee.joiningDate).split("T")[0];
         }
       }
 
@@ -45,7 +58,7 @@ export default function EditEmployeeModal({
         email: employee.email || "",
         personalEmail: employee.personalEmail || "",
         phone: employee.phone || "",
-        department: employee.department || "General",
+        department: employee.department && employee.department !== "General" ? employee.department : "",
         designation: employee.designation || employee.role || "",
         status: employee.status || "active",
         joiningDate: formattedDate,
@@ -174,14 +187,24 @@ export default function EditEmployeeModal({
               <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Department
               </label>
-              <input
-                type="text"
+              <select
                 name="department"
-                value={formData.department}
+                value={formData.department && formData.department !== "General" ? formData.department : ""}
                 onChange={handleChange}
-                placeholder="e.g. Operations, Engineering, HR"
-                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none"
-              />
+                className="w-full border border-slate-300 rounded-md px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 outline-none bg-white cursor-pointer"
+              >
+                <option value="">-- Select Department --</option>
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+                {formData.department &&
+                  formData.department !== "General" &&
+                  !DEPARTMENTS.includes(formData.department) && (
+                    <option value={formData.department}>{formData.department}</option>
+                  )}
+              </select>
             </div>
 
             <div>

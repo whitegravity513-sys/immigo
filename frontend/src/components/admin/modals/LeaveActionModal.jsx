@@ -46,28 +46,26 @@ export default function LeaveActionModal({
         <div className="p-6 space-y-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Admin Remark{" "}
-              {!isApproved ? (
-                <span className="text-rose-500">*</span>
-              ) : (
-                <span className="text-slate-500">(Optional)</span>
-              )}
+              Internal Note / Reason{" "}
+              <span className="text-slate-500 normal-case font-semibold">
+                (Optional — Admin &amp; HR Only)
+              </span>
             </label>
             <textarea
               rows={3}
               className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 resize-none"
               placeholder={
-                !isApproved ? "Enter reason for rejection..." : "Enter optional remark..."
+                !isApproved
+                  ? "Optional internal note (hidden from employee)..."
+                  : "Optional internal remark (hidden from employee)..."
               }
               value={leaveActionRemark}
               onChange={(e) => setLeaveActionRemark(e.target.value)}
               autoFocus
             />
-            {!isApproved && (
-              <p className="text-[11px] text-rose-500 font-medium">
-                Remark is required when rejecting a leave application.
-              </p>
-            )}
+            <p className="text-[11px] text-slate-500 font-medium">
+              Saved privately for Admin &amp; HR reference only. Employees only see Accepted / Rejected status.
+            </p>
           </div>
           <div className="flex items-center gap-3 pt-1">
             <button

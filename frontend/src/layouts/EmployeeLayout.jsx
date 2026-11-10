@@ -20,6 +20,8 @@ export default function EmployeeLayout({
   setLiveAdminNotification,
   todayHoliday,
   isHolidayToday,
+  holidayPopupOpen = false,
+  setHolidayPopupOpen,
   announcements,
   errorMsg,
   successMsg,
@@ -32,6 +34,8 @@ export default function EmployeeLayout({
       <HolidayAnnouncementModals
         todayHoliday={todayHoliday}
         isHolidayToday={isHolidayToday}
+        forceOpen={holidayPopupOpen}
+        onCloseForce={() => setHolidayPopupOpen && setHolidayPopupOpen(false)}
         announcements={announcements}
         onViewAnnouncements={() => setView("announcements")}
         onViewCalendar={() => setView("calendar")}

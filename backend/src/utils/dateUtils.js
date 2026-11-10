@@ -70,6 +70,26 @@ export const getWorkingDays = (year, month, holidayDatesSet = new Set()) => {
   return days;
 };
 
+export const normalizeDateString = (dateInput) => {
+  if (!dateInput) return "";
+  if (typeof dateInput === "string") {
+    const trimmed = dateInput.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+      return trimmed.slice(0, 10);
+    }
+  }
+  const dt = new Date(dateInput);
+  if (Number.isNaN(dt.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(dt);
+};
+
 export const getHolidayForDate = async (dateStr) => {
-  return await Holiday.findOne({ date: dateStr });
+  const normalized = normalizeDateString(dateStr) || String(dateStr || "").trim();
+  if (!normalized) return null;
+  return await Holiday.findOne({ date: { $regex: `^${normalized}` } });
 };

@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/apiError.js";
+import { getTodayDateString, normalizeDateString } from "../utils/dateUtils.js";
 
 export const validateApplyLeave = (req, res, next) => {
   const { leaveType, startDate, endDate, reason } = req.body;
@@ -20,12 +21,28 @@ export const validateApplyLeave = (req, res, next) => {
     errors.push("Reason for leave is required");
   }
 
-  if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+  const todayStr = getTodayDateString();
+  const startStr = normalizeDateString(startDate);
+  const endStr = normalizeDateString(endDate);
+
+  if (startDate && !startStr) {
+    errors.push("Invalid start date");
+  }
+  if (endDate && !endStr) {
+    errors.push("Invalid end date");
+  }
+  if (startStr && startStr < todayStr) {
+    errors.push("Leave cannot be applied for past dates");
+  }
+  if (endStr && endStr < todayStr) {
+    errors.push("Leave end date cannot be in the past");
+  }
+  if (startStr && endStr && startStr > endStr) {
     errors.push("Start date cannot be after end date");
   }
 
   if (errors.length > 0) {
-    return next(new ApiError(400, "Validation Failed", errors));
+    return next(new ApiError(400, errors[0], errors));
   }
 
   next();

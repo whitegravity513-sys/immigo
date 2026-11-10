@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import apiClient from "../services/apiClient.js";
-import { toLocalDateStr } from "../utils/formatters.js";
+import { toLocalDateStr, getIndiaDateString } from "../utils/formatters.js";
 
 export const useAdminDashboard = (user, token, navigate, location, view) => {
 const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -53,7 +53,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       return `${day}${yr}`;
     };
 
-    const joinPart = formatPart(joiningDate) || formatPart(new Date().toISOString().split("T")[0]) || "DDYY";
+    const joinPart = formatPart(joiningDate) || formatPart(getIndiaDateString()) || "DDYY";
     const dobPart = formatPart(dob);
     if (!dobPart) {
       return `IMMI-${joinPart}-DDYY(DOB)`;
@@ -62,7 +62,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   };
 
   const openAddEmployeeModal = () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getIndiaDateString();
     const dynamicId = generateImmiEmployeeId(today, "");
     
     setEmployeeForm(prev => ({
@@ -87,7 +87,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     previousPackage: "",
     currentPackage: "",
     experience: "",
-    joiningDate: new Date().toISOString().split("T")[0],
+    joiningDate: getIndiaDateString(),
     dob: "",
     employeeId: "",
     profileImage: "",
@@ -134,6 +134,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   useEffect(() => { if (errorMsg) { const t = setTimeout(() => setErrorMsg(""), 6000); return () => clearTimeout(t); } }, [errorMsg]);
   useEffect(() => { if (successMsg) { const t = setTimeout(() => setSuccessMsg(""), 6000); return () => clearTimeout(t); } }, [successMsg]);
   useEffect(() => { if (token) fetchAdminReports(); }, [token, view]);
+  useEffect(() => { if (token) fetchHolidays(); }, [token]);
   useEffect(() => { if (token && (view === "live" || view === "dashboard")) fetchNotes(null); }, [view, token]);
 
   useEffect(() => {
@@ -184,7 +185,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       } else if (view === "live" || view === "dashboard") {
         let url = `/admin/attendance`;
         if (filterStart && filterEnd) {
-          url = `/admin/attendance/range?start=${filterStart.toISOString().split('T')[0]}&end=${filterEnd.toISOString().split('T')[0]}`;
+          url = `/admin/attendance/range?start=${toLocalDateStr(filterStart)}&end=${toLocalDateStr(filterEnd)}`;
         }
         const r = await apiClient.get(url, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
         setAttendanceReport(r.data);
@@ -218,7 +219,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   async function fetchNotes(dateObj) {
     setNotesLoading(true);
     try {
-      const dateStr = dateObj ? (typeof dateObj === "string" ? dateObj : dateObj.toISOString().split('T')[0]) : new Date().toISOString().split('T')[0];
+      const dateStr = dateObj ? (typeof dateObj === "string" ? dateObj : toLocalDateStr(dateObj)) : getIndiaDateString();
       const r = await apiClient.get(`/admin/attendance/notes?date=${dateStr}`);
       setNotesData(Array.isArray(r.data) ? r.data : []);
     } catch (err) {
@@ -364,6 +365,16 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
       setErrorMsg("Date is required!");
       return;
     }
+    const targetDateStr = String(pastAttendanceModal.date || "").split("T")[0];
+    const holidayOnDate = (holidays || []).find(
+      (h) => String(h?.date || "").split("T")[0] === targetDateStr
+    );
+    if (holidayOnDate) {
+      setErrorMsg(
+        `Official Holiday (${holidayOnDate.title || "Holiday"}) — Aaj holiday hai, is date par attendance mark nahi ho sakti.`
+      );
+      return;
+    }
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
@@ -479,7 +490,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleOpenAddModal = () => {
     setErrorMsg("");
-    const today = new Date().toISOString().split("T")[0];
+    const today = getIndiaDateString();
     const dynamicId = generateImmiEmployeeId(today, "");
 
     setEmployeeForm({
@@ -535,6 +546,11 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     if (!employeeForm.dob) {
       setErrorMsg("Please enter employee Date of Birth (DOB).");
+      return;
+    }
+
+    if (!employeeForm.department?.trim()) {
+      setErrorMsg("Please select employee department.");
       return;
     }
 
@@ -665,8 +681,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     setLoading(true);
     setErrorMsg("");
     try {
-      const defaultRemark = action === "Approved" ? "Approved by Admin" : "Rejected by Admin";
-      const finalRemark = remark.trim() || defaultRemark;
+      const finalRemark = (remark || "").trim();
       const r = await apiClient.put(`/admin/leaves/${leaveId}`, {
         status: action,
         adminRemark: finalRemark,
@@ -688,13 +703,19 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const handleSubmitLeaveAction = async () => {
     if (!leaveActionModal) return;
     const { leaveId, action } = leaveActionModal;
-    if (action === "Rejected" && !leaveActionRemark.trim()) { setErrorMsg("Rejection remark is required!"); return; }
     setLoading(true);
+    setErrorMsg("");
     try {
       const r = await apiClient.put(`/admin/leaves/${leaveId}`, { status: action, adminRemark: leaveActionRemark.trim() });
-      setSuccessMsg(r.data.message); setLeaveActionModal(null); setLeaveActionRemark(""); fetchAdminReports();
-    } catch (err) { setErrorMsg(err.response?.data?.message || "Failed to update leave status."); }
-    finally { setLoading(false); }
+      setSuccessMsg(r.data.message);
+      setLeaveActionModal(null);
+      setLeaveActionRemark("");
+      fetchAdminReports();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || "Failed to update leave status.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatDuration = (s) => {

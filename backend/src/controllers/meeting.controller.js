@@ -834,7 +834,7 @@ export const getMeetingEmployees = asyncHandler(async (req, res) => {
       employeeId: e.employeeId,
       email: e.email,
       designation: e.designation || "Employee",
-      department: e.department || "General",
+      department: e.department || "",
     })),
   });
 });
