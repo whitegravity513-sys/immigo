@@ -4,10 +4,17 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const buildStaffContext = async (user) => {
   const roleUpper = String(user?.role || "").toUpperCase();
+  const superAdminEmails = [
+    process.env.SUPER_ADMIN_EMAIL,
+    process.env.SUPERADMIN_EMAIL,
+    "admin@vista.com",
+  ]
+    .filter(Boolean)
+    .map((e) => String(e).trim().toLowerCase());
   const isSuperAdmin =
     roleUpper === "SUPER_ADMIN" ||
     user?.isSuperAdmin === true ||
-    (user?.email && user.email.toLowerCase() === (process.env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase());
+    (user?.email && superAdminEmails.includes(String(user.email).trim().toLowerCase()));
 
   const userId = user?.id || user?._id ? String(user.id || user._id) : null;
   let hrType = user?.hrType || "";

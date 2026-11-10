@@ -1,9 +1,10 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Vendor from "../models/Vendor.js";
-import NotificationService from "../services/notification.service.js";
+import NotificationService, { resolveActorInfo } from "../services/notification.service.js";
 import ActivityService from "../services/activity.service.js";
 import env from "../config/env.js";
+import { extractToken } from "../middleware/auth.middleware.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
@@ -67,19 +68,61 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   });
 
   try {
-    await NotificationService.createNotification({
-      type: "VENDOR_REGISTERED",
-      title: `New Vendor Registered: ${newVendor.companyName}`,
-      message: `${newVendor.companyName} (${newVendor.vendorId}) has registered as a recruitment partner. Review and approval required.`,
-      targetRole: "ADMIN",
-      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
-      targetType: "ALL",
-      targetVendorId: newVendor.vendorId,
-      actorId: newVendor.vendorId,
-      actorRole: "VENDOR",
-      moduleScope: "VENDOR",
-      metadata: { vendorId: newVendor._id, vendorCode: newVendor.vendorId },
-    });
+    let staffActor = null;
+    if (!req.body?.isSelfRegistration) {
+      const token = extractToken(req);
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, env.JWT_SECRET);
+          const { actorRole } = resolveActorInfo(decoded);
+          if (["ADMIN", "SUPER_ADMIN", "HR", "VENDOR_HR", "EMPLOYEE_HR"].includes(actorRole)) {
+            staffActor = decoded;
+          }
+        } catch {}
+      }
+    }
+
+    const regMetadata = {
+      vendorId: newVendor._id,
+      vendorCode: newVendor.vendorId,
+      link: "/admin/vendor/vendors?tab=registered",
+    };
+
+    if (staffActor) {
+      await NotificationService.notifyStaffAction({
+        actor: staffActor,
+        type: "VENDOR_REGISTERED",
+        title: `New Vendor Registered: ${newVendor.companyName}`,
+        message: `${newVendor.companyName} (${newVendor.vendorId}) has been added to the partner network. Review and approval required.`,
+        moduleScope: "VENDOR",
+        targetVendorId: newVendor.vendorId,
+        metadata: regMetadata,
+      });
+    } else {
+      const regNotifBase = {
+        type: "VENDOR_REGISTERED",
+        title: `New Vendor Registered: ${newVendor.companyName}`,
+        message: `${newVendor.companyName} (${newVendor.vendorId}) has registered as a recruitment partner. Review and approval required.`,
+        targetType: "ALL",
+        targetVendorId: newVendor.vendorId,
+        actorId: newVendor.vendorId,
+        actorRole: "VENDOR",
+        moduleScope: "VENDOR",
+        metadata: regMetadata,
+      };
+      await Promise.all([
+        NotificationService.createNotification({
+          ...regNotifBase,
+          targetRole: "SUPER_ADMIN",
+          targetRoles: ["SUPER_ADMIN"],
+        }),
+        NotificationService.createNotification({
+          ...regNotifBase,
+          targetRole: "ADMIN",
+          targetRoles: ["ADMIN"],
+        }),
+      ]);
+    }
   } catch (err) {
     console.error("Failed to notify admin of vendor registration:", err.message);
   }

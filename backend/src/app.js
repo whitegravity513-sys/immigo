@@ -17,6 +17,7 @@ import { ApiResponse } from "./utils/apiResponse.js";
 import { ApiError } from "./utils/apiError.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use("/uploads", cors(corsOptions), express.static(path.join(process.cwd(), "uploads")));
 

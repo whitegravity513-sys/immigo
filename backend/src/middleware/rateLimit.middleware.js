@@ -3,10 +3,15 @@ import rateLimit from "express-rate-limit";
 const isDev = process.env.NODE_ENV !== "production";
 
 export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: isDev ? 10000 : 5000,
+  windowMs: 60 * 1000,
+  max: isDev ? 50000 : 10000,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
+  skip: (req) =>
+    req.method === "OPTIONS" ||
+    req.path === "/health" ||
+    Boolean(req.originalUrl && req.originalUrl.startsWith("/api/health")),
   message: {
     success: false,
     statusCode: 429,
@@ -16,9 +21,10 @@ export const apiLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 500 : 60,
+  max: isDev ? 500 : 120,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
   message: {
     success: false,
     statusCode: 429,
@@ -28,9 +34,10 @@ export const authLimiter = rateLimit({
 
 export const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 100 : 20,
+  max: isDev ? 100 : 30,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
   message: {
     success: false,
     statusCode: 429,
@@ -40,9 +47,10 @@ export const otpLimiter = rateLimit({
 
 export const paymentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 200 : 100,
+  max: isDev ? 300 : 150,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
   message: {
     success: false,
     statusCode: 429,

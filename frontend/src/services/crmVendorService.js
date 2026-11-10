@@ -119,14 +119,6 @@ export const crmVendorService = {
       vendors.unshift(newVendor);
       saveData(VENDORS_STORAGE_KEY, vendors);
 
-      crmVendorService.addAdminNotification({
-        title: "New Vendor Agency Registered 🏢",
-        message: `${newVendor.companyName || "New Agency"} (${newVendor.id || newVendor.vendorId}) registered for partner network.`,
-        type: "info",
-        vendorId: newVendor.id || newVendor.vendorId,
-        link: "/admin/vendor/vendors?tab=registered",
-      });
-      
       return { success: true, vendor: newVendor, ...newVendor };
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to register vendor");

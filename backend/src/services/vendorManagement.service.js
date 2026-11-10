@@ -5,6 +5,7 @@ import ProjectAssignment from "../models/ProjectAssignment.js";
 import CandidateApplication from "../models/CandidateApplication.js";
 import VendorPaymentMilestone from "../models/VendorPaymentMilestone.js";
 import ActivityLog from "../models/ActivityLog.js";
+import NotificationService from "./notification.service.js";
 import { ApiError } from "../utils/apiError.js";
 import bcrypt from "bcryptjs";
 
@@ -77,6 +78,49 @@ export class VendorManagementService {
       vendorName: vendor.companyName,
       remarks: vendorNotes || "Vendor created successfully",
     });
+
+    try {
+      const regMetadata = {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: "/admin/vendor/vendors?tab=registered",
+      };
+      if (actorUser) {
+        await NotificationService.notifyStaffAction({
+          actor: actorUser,
+          type: "VENDOR_REGISTERED",
+          title: `New Vendor Added: ${vendor.companyName}`,
+          message: `${vendor.companyName} (${vendor.vendorId}) has been added to the partner network.`,
+          moduleScope: "VENDOR",
+          targetVendorId: vendor.vendorId,
+          metadata: regMetadata,
+        });
+      } else {
+        const base = {
+          type: "VENDOR_REGISTERED",
+          title: `New Vendor Registered: ${vendor.companyName}`,
+          message: `${vendor.companyName} (${vendor.vendorId}) has registered as a recruitment partner. Review and approval required.`,
+          targetType: "ALL",
+          targetVendorId: vendor.vendorId,
+          actorId: vendor.vendorId,
+          actorRole: "VENDOR",
+          moduleScope: "VENDOR",
+          metadata: regMetadata,
+        };
+        await Promise.all([
+          NotificationService.createNotification({
+            ...base,
+            targetRole: "SUPER_ADMIN",
+            targetRoles: ["SUPER_ADMIN"],
+          }),
+          NotificationService.createNotification({
+            ...base,
+            targetRole: "ADMIN",
+            targetRoles: ["ADMIN"],
+          }),
+        ]);
+      }
+    } catch {}
 
     return vendor;
   }

@@ -175,6 +175,7 @@ export function VendorRegister() {
         gstin: formData.gstin.trim().toUpperCase() || undefined,
         password: formData.password,
         status: "Registration Pending",
+        isSelfRegistration: true,
       };
 
       const registerFn = crmVendorService.registerVendor || crmVendorService.register;

@@ -12,9 +12,7 @@ import {
   RefreshCw,
   Building2,
 } from "lucide-react";
-import axios from "axios";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import apiClient from "../../../services/apiClient.js";
 
 export default function HRPerformanceReportSection({ hrId = null, vendorId = null, isSuperAdmin = false }) {
   const [loading, setLoading] = useState(true);
@@ -30,20 +28,11 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
     try {
       setLoading(true);
       setError(null);
-      const token =
-        localStorage.getItem("adminToken") ||
-        localStorage.getItem("token") ||
-        localStorage.getItem("empToken") ||
-        localStorage.getItem("vendorToken");
-
       const params = {};
       if (hrId) params.hrId = hrId;
       if (vendorId) params.vendorId = vendorId;
 
-      const res = await axios.get(`${API_BASE}/hr/performance-reports`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-      });
+      const res = await apiClient.get("/hr/performance-reports", { params });
 
       if (res.data?.success) {
         setReport(res.data.report);

@@ -2,8 +2,18 @@ import Notification from "../models/Notification.js";
 import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 
-const SUPER_ADMIN_EMAIL = () =>
-  (process.env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
+const isConfiguredSuperAdminEmail = (email) => {
+  if (!email) return false;
+  const clean = String(email).trim().toLowerCase();
+  const candidates = [
+    process.env.SUPER_ADMIN_EMAIL,
+    process.env.SUPERADMIN_EMAIL,
+    "admin@vista.com",
+  ]
+    .filter(Boolean)
+    .map((e) => String(e).trim().toLowerCase());
+  return candidates.includes(clean);
+};
 
 export const resolveActorInfo = (actor) => {
   if (!actor) return { actorId: null, actorRole: null };
@@ -13,7 +23,7 @@ export const resolveActorInfo = (actor) => {
   const isSuper =
     actor.isSuperAdmin === true ||
     rawRole === "SUPER_ADMIN" ||
-    (actor.email && String(actor.email).toLowerCase() === SUPER_ADMIN_EMAIL());
+    isConfiguredSuperAdminEmail(actor.email);
 
   if (isSuper) return { actorId, actorRole: "SUPER_ADMIN" };
   if (rawRole === "ADMIN") return { actorId, actorRole: "ADMIN" };
@@ -475,6 +485,9 @@ export class NotificationService {
         message: n.message,
         read: Boolean(n.read),
         targetRole: n.targetRole,
+        targetRoles: n.targetRoles || [],
+        targetVendorId: n.targetVendorId || null,
+        link: n.metadata?.link || "",
         actorId: n.actorId || null,
         actorRole: n.actorRole || null,
         moduleScope: n.moduleScope || "GENERAL",

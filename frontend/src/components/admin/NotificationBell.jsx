@@ -23,13 +23,14 @@ export default function NotificationBell({ className }) {
   const lastAdminReadAllTsRef = useRef(0);
   const isFetchingRef = useRef(false);
   const lastNotifSigRef = useRef("");
+  const lastFetchAtRef = useRef(0);
 
   const currentUserId = String(user?.id || user?._id || "");
   const rawRole = String(user?.role || "").toUpperCase();
   const hrType = String(user?.hrType || "").toUpperCase();
   const assignedVendors = Array.isArray(user?.assignedVendors) ? user.assignedVendors.map(String) : [];
 
-  const effectiveStaffRole = isSuperAdmin || rawRole === "SUPER_ADMIN"
+  const effectiveStaffRole = isSuperAdmin || user?.isSuperAdmin || rawRole === "SUPER_ADMIN"
     ? "SUPER_ADMIN"
     : rawRole === "HR"
     ? hrType === "VENDOR_HR"
@@ -69,6 +70,7 @@ export default function NotificationBell({ className }) {
   const fetchNotifications = async () => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
+    lastFetchAtRef.current = Date.now();
     try {
       const deletedIds = getDeletedAdminIds();
       const clearedTs = getClearedTs();
@@ -93,7 +95,7 @@ export default function NotificationBell({ className }) {
             isRead: !!n.read,
             read: !!n.read,
             type: n.type || "INFO",
-            link: n.link || "/admin/vendor-candidates",
+            link: n.link || "/admin/vendor/candidates",
             actorId: n.actorId || null,
             actorRole: n.actorRole || null,
             recipientRole: n.recipientRole || null,
@@ -176,7 +178,7 @@ export default function NotificationBell({ className }) {
           (lastAdminReadAllTsRef.current && itemTime <= lastAdminReadAllTsRef.current)
         );
         const rawEmpId = n.employeeId || n.metadata?.employeeId || n.employeeCode || "";
-        let link = n.link || "";
+        let link = n.link || n.metadata?.link || "";
         if (!link) {
           if ((n.type === "DOCUMENT_UPLOAD" || n.type === "DOCUMENT_UPDATE") && rawEmpId) {
             link = `${portalBase}/employee/${rawEmpId}?tab=documents`;
@@ -184,6 +186,8 @@ export default function NotificationBell({ className }) {
             link = `${portalBase}/leaves`;
           } else if (n.type === "EMPLOYEE_CREATED" && rawEmpId) {
             link = `${portalBase}/employee/${rawEmpId}`;
+          } else if (n.type === "VENDOR_REGISTERED") {
+            link = "/admin/vendor/vendors?tab=registered";
           }
         }
         return { ...n, isRead, read: isRead, link };
@@ -207,6 +211,7 @@ export default function NotificationBell({ className }) {
   };
 
   useEffect(() => {
+    lastNotifSigRef.current = "";
     fetchNotifications();
     const handleImmediateWakeup = (e) => {
       if (e?.type === "storage" && (!e.key || !ADMIN_NOTIF_STORAGE_KEYS.has(e.key))) {
@@ -214,8 +219,19 @@ export default function NotificationBell({ className }) {
       }
       fetchNotifications();
     };
+    const handleFocusOrVisible = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      if (Date.now() - lastFetchAtRef.current < 3000) {
+        return;
+      }
+      fetchNotifications();
+    };
     window.addEventListener("immigo:admin-notification", handleImmediateWakeup);
     window.addEventListener("storage", handleImmediateWakeup);
+    window.addEventListener("focus", handleFocusOrVisible);
+    document.addEventListener("visibilitychange", handleFocusOrVisible);
     const interval = setInterval(() => {
       if (typeof document !== "undefined" && !document.hidden) {
         fetchNotifications();
@@ -224,6 +240,8 @@ export default function NotificationBell({ className }) {
     return () => {
       window.removeEventListener("immigo:admin-notification", handleImmediateWakeup);
       window.removeEventListener("storage", handleImmediateWakeup);
+      window.removeEventListener("focus", handleFocusOrVisible);
+      document.removeEventListener("visibilitychange", handleFocusOrVisible);
       clearInterval(interval);
     };
   }, [currentUserId, effectiveStaffRole]);

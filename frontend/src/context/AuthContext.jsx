@@ -137,7 +137,9 @@ export const AuthProvider = ({ children }) => {
     role,
     loading,
     isAuthenticated: Boolean(token && role),
-    isSuperAdmin: (role || "").toUpperCase().replace(/[\s_-]/g, "") === "SUPERADMIN",
+    isSuperAdmin:
+      Boolean(user?.isSuperAdmin) ||
+      (role || "").toUpperCase().replace(/[\s_-]/g, "") === "SUPERADMIN",
     isAdmin: ["ADMIN", "SUPERADMIN"].includes((role || "").toUpperCase().replace(/[\s_-]/g, "")),
     isHR: isHrRole,
     isEmployeeHR,
