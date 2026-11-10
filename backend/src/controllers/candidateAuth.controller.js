@@ -7,7 +7,7 @@ import CandidateApplication from "../models/CandidateApplication.js";
 import Project from "../models/Project.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import ActivityLog from "../models/ActivityLog.js";
-import Notification from "../models/Notification.js";
+import NotificationService from "../services/notification.service.js";
 import CrmNotification from "../models/CrmNotification.js";
 import { sendCandidatePaymentReceiptEmail } from "../services/email.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -800,12 +800,17 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   await app.save();
 
   try {
-    await Notification.create({
+    await NotificationService.createNotification({
       type: "EXPENSE_UPDATE",
       title: isAutoApproved ? "Candidate Milestone Paid Online! 💳" : "Candidate Submitted Payment Reference 📋",
       message: `${candidate.fullName} paid ₹${Number(paidAmt).toLocaleString()} for "${milestones[mIdx].name}" on project ${app.projectName} (Ref: ${refNum}).`,
       targetRole: "ADMIN",
+      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
       targetType: "ALL",
+      targetVendorId: app.vendorId && app.vendorId !== "DIRECT" ? String(app.vendorId) : null,
+      actorId: candidate.candidateId,
+      actorRole: "CANDIDATE",
+      moduleScope: "CANDIDATE",
     });
 
     await CrmNotification.create({

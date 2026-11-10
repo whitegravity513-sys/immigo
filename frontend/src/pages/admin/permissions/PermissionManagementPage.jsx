@@ -17,6 +17,9 @@ import ConfirmSaveModal from "../../../components/admin/permissions/ConfirmSaveM
 export function PermissionManagementPage() {
   const { user: currentUser } = useAuth();
   const { isSuperAdmin } = usePermissions();
+  const canManageStaff = Boolean(
+    isSuperAdmin || String(currentUser?.role || "").toUpperCase() === "ADMIN"
+  );
 
   const [adminsList, setAdminsList] = useState([]);
   const [availableVendors, setAvailableVendors] = useState([]);
@@ -57,6 +60,7 @@ export function PermissionManagementPage() {
     id: "",
     name: "",
     email: "",
+    password: "",
     role: "ADMIN",
     hrType: "",
     assignedVendors: [],
@@ -82,15 +86,16 @@ export function PermissionManagementPage() {
       setLoading(true);
       const res = await permissionService.getAdmins();
       if (res && res.success) {
-        const list = res.data || [];
+        const list = res.admins || res.data || [];
         setAdminsList(list);
         if (list.length > 0 && !selectedAdminId) {
-          const defaultSelect = list.find((a) => !a.isSuperAdmin && a.role !== "SUPER_ADMIN") || list[0];
+          const defaultSelect =
+            list.find((a) => !a.isSuperAdmin && a.role !== "SUPER_ADMIN") || list[0];
           setSelectedAdminId(defaultSelect.id || defaultSelect._id);
         }
       }
     } catch (err) {
-      showFeedback(err.message || "Failed to load staff list", "error");
+      showFeedback(err.response?.data?.message || err.message || "Failed to load staff list", "error");
     } finally {
       setLoading(false);
     }
@@ -103,35 +108,43 @@ export function PermissionManagementPage() {
 
   useEffect(() => {
     if (!selectedAdminData) return;
-    const isVendor = selectedAdminData.role === "VENDOR_HR" || (selectedAdminData.role === "HR" && selectedAdminData.hrType === "VENDOR_HR");
+    const isVendor =
+      selectedAdminData.role === "VENDOR_HR" ||
+      (selectedAdminData.role === "HR" && selectedAdminData.hrType === "VENDOR_HR");
     if (isVendor) {
       setInitialPermissions([]);
       setEffectivePermissions([]);
       return;
     }
 
-    if (selectedAdminData.permissions && Array.isArray(selectedAdminData.permissions)) {
-      setInitialPermissions([...selectedAdminData.permissions]);
-      setEffectivePermissions([...selectedAdminData.permissions]);
-    } else {
-      setInitialPermissions([]);
-      setEffectivePermissions([]);
-    }
+    const existingPerms = Array.isArray(selectedAdminData.assignedPermissions)
+      ? selectedAdminData.assignedPermissions
+      : Array.isArray(selectedAdminData.permissions)
+      ? selectedAdminData.permissions
+      : [];
+    setInitialPermissions([...existingPerms]);
+    setEffectivePermissions([...existingPerms]);
   }, [selectedAdminData]);
 
   const showFeedback = (msg, type = "success") => {
     setFeedbackMsg({ text: msg, type });
-    setTimeout(() => setFeedbackMsg(null), 4000);
+    setTimeout(() => setFeedbackMsg(null), 5000);
   };
 
   const isSelectedVendorHR = useMemo(() => {
     if (!selectedAdminData) return false;
-    return selectedAdminData.role === "VENDOR_HR" || (selectedAdminData.role === "HR" && selectedAdminData.hrType === "VENDOR_HR");
+    return (
+      selectedAdminData.role === "VENDOR_HR" ||
+      (selectedAdminData.role === "HR" && selectedAdminData.hrType === "VENDOR_HR")
+    );
   }, [selectedAdminData]);
 
   const isSelectedEmployeeHR = useMemo(() => {
     if (!selectedAdminData) return false;
-    return selectedAdminData.role === "EMPLOYEE_HR" || (selectedAdminData.role === "HR" && selectedAdminData.hrType !== "VENDOR_HR");
+    return (
+      selectedAdminData.role === "EMPLOYEE_HR" ||
+      (selectedAdminData.role === "HR" && selectedAdminData.hrType !== "VENDOR_HR")
+    );
   }, [selectedAdminData]);
 
   const isSelectedAdmin = useMemo(() => {
@@ -212,17 +225,29 @@ export function PermissionManagementPage() {
       setSaving(true);
       await permissionService.updateAdminPermissions(
         selectedAdminData.id || selectedAdminData._id,
-        effectivePermissions
+        { permissions: effectivePermissions }
       );
       setInitialPermissions([...effectivePermissions]);
       setIsConfirmSaveOpen(false);
       showFeedback(`Permissions successfully updated for ${selectedAdminData.name}!`);
       loadAdmins();
     } catch (err) {
-      showFeedback(err.message || "Failed to update permissions", "error");
+      showFeedback(err.response?.data?.message || err.message || "Failed to update permissions", "error");
     } finally {
       setSaving(false);
     }
+  };
+
+  const openCreateDrawer = () => {
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      role: isSuperAdmin ? "ADMIN" : "EMPLOYEE_HR",
+      hrType: isSuperAdmin ? "" : "EMPLOYEE_HR",
+      assignedVendors: [],
+    });
+    setIsCreateModalOpen(true);
   };
 
   const handleCreateAdmin = async (e) => {
@@ -237,13 +262,23 @@ export function PermissionManagementPage() {
         hrType: formData.hrType,
         assignedVendors: formData.assignedVendors || [],
       };
-      await permissionService.createAdmin(payload);
-      showFeedback(`Account created for ${formData.name}!`);
+      const res = await permissionService.createAdmin(payload);
+      showFeedback(res?.message || `Account created for ${formData.name}!`);
       setIsCreateModalOpen(false);
-      setFormData({ name: "", email: "", password: "", role: "ADMIN", hrType: "", assignedVendors: [] });
-      loadAdmins();
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: isSuperAdmin ? "ADMIN" : "EMPLOYEE_HR",
+        hrType: isSuperAdmin ? "" : "EMPLOYEE_HR",
+        assignedVendors: [],
+      });
+      await loadAdmins();
+      if (res?.admin?.id || res?.admin?._id) {
+        setSelectedAdminId(res.admin.id || res.admin._id);
+      }
     } catch (err) {
-      showFeedback(err.message || "Failed to create account", "error");
+      showFeedback(err.response?.data?.message || err.message || "Failed to create account", "error");
     } finally {
       setSaving(false);
     }
@@ -253,19 +288,23 @@ export function PermissionManagementPage() {
     e.preventDefault();
     try {
       setSaving(true);
-      await permissionService.updateAdmin(editFormData.id, {
+      const payload = {
         name: editFormData.name,
         email: editFormData.email,
         role: editFormData.role,
         hrType: editFormData.hrType,
         assignedVendors: editFormData.assignedVendors || [],
         isActive: editFormData.isActive,
-      });
-      showFeedback(`Account updated for ${editFormData.name}!`);
+      };
+      if (editFormData.password && String(editFormData.password).trim()) {
+        payload.password = String(editFormData.password).trim();
+      }
+      const res = await permissionService.updateAdmin(editFormData.id, payload);
+      showFeedback(res?.message || `Account updated for ${editFormData.name}!`);
       setIsEditModalOpen(false);
-      loadAdmins();
+      await loadAdmins();
     } catch (err) {
-      showFeedback(err.message || "Failed to update account", "error");
+      showFeedback(err.response?.data?.message || err.message || "Failed to update account", "error");
     } finally {
       setSaving(false);
     }
@@ -283,7 +322,7 @@ export function PermissionManagementPage() {
       }
       loadAdmins();
     } catch (err) {
-      showFeedback(err.message || "Failed to delete account", "error");
+      showFeedback(err.response?.data?.message || err.message || "Failed to delete account", "error");
     } finally {
       setDeletingAdmin(false);
     }
@@ -312,7 +351,7 @@ export function PermissionManagementPage() {
             setSearchQuery={setSearchQuery}
             selectedAdminId={selectedAdminId}
             onSelectAdmin={setSelectedAdminId}
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onOpenCreateModal={openCreateDrawer}
             onOpenEditModal={(adm) => {
               const isVendorRole = adm.role === "HR" && adm.hrType === "VENDOR_HR";
               const isEmpRole = adm.role === "HR" && adm.hrType !== "VENDOR_HR";
@@ -320,6 +359,7 @@ export function PermissionManagementPage() {
                 id: adm.id || adm._id,
                 name: adm.name,
                 email: adm.email,
+                password: adm.rawPassword || "",
                 role: isVendorRole ? "VENDOR_HR" : isEmpRole ? "EMPLOYEE_HR" : adm.role,
                 hrType: adm.hrType || (adm.role === "HR" ? "EMPLOYEE_HR" : ""),
                 assignedVendors: adm.assignedVendors || [],
@@ -329,6 +369,7 @@ export function PermissionManagementPage() {
             }}
             onOpenDeleteModal={setAdminToDelete}
             isSuperAdmin={isSuperAdmin}
+            canManageStaff={canManageStaff}
           />
 
           <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3.5 sm:p-4 space-y-3">
@@ -342,6 +383,7 @@ export function PermissionManagementPage() {
                       id: adm.id || adm._id,
                       name: adm.name,
                       email: adm.email,
+                      password: adm.rawPassword || "",
                       role: "VENDOR_HR",
                       hrType: "VENDOR_HR",
                       assignedVendors: adm.assignedVendors || [],

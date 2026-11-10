@@ -1,7 +1,7 @@
 import CrmCandidateApplication from "../../models/CrmCandidateApplication.js";
 import CrmOverseasClient from "../../models/CrmOverseasClient.js";
 import CrmNotification from "../../models/CrmNotification.js";
-import Notification from "../../models/Notification.js";
+import NotificationService, { resolveActorInfo } from "../../services/notification.service.js";
 import ActivityService from "../../services/activity.service.js";
 import { recordCandidateActivity } from "../../services/candidateActivity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -33,22 +33,32 @@ export const submitApplication = asyncHandler(async (req, res) => {
 
   try {
     const adminMsg = `Vendor ${appData.vendorName || appData.vendorId || "Partner"} submitted ${appData.candidateName} for "${appData.projectName}" (${appData.position || "Role"}).`;
+    const actorMeta = req.user ? resolveActorInfo(req.user) : { actorId: appData.vendorId ? String(appData.vendorId) : null, actorRole: "VENDOR" };
 
     await CrmNotification.create({
       notificationId: `notif-adm-${Date.now()}`,
       recipientRole: "ADMIN",
+      vendorId: appData.vendorId ? String(appData.vendorId) : null,
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
       title: "New Candidate Assigned to Project",
       message: adminMsg,
       type: "info",
       link: "/admin/vendor-candidates",
     });
 
-    await Notification.create({
+    await NotificationService.createNotification({
       type: "DOCUMENT_UPLOAD",
       title: "New Candidate Assigned to Project",
       message: adminMsg,
       targetRole: "ADMIN",
+      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
       targetType: "ALL",
+      targetVendorId: appData.vendorId ? String(appData.vendorId) : null,
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
+      moduleScope: "VENDOR",
+      metadata: { vendorId: appData.vendorId || null },
     });
   } catch {}
 
@@ -151,15 +161,30 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
           ? `${app.candidateName} was put On Hold for ${app.projectName}. Candidate is reusable for other projects.`
           : `Candidate ${app.candidateName} status changed to "${updateData.status}" on project ${app.projectName}.`;
 
+      const actorMeta = resolveActorInfo(req.user);
       await CrmNotification.create({
         notificationId: `notif-ven-${Date.now()}`,
         recipientRole: "VENDOR",
         vendorId: app.vendorId,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
         title: statusTitle,
         message: statusMsg,
         type: updateData.status === "Selected" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
         link: updateData.status === "Selected" ? "/vendor/selected" : updateData.status === "Rejected" ? "/vendor/rejected" : "/vendor/applications",
       });
+
+      if (actorMeta.actorRole === "ADMIN" || actorMeta.actorRole === "SUPER_ADMIN" || actorMeta.actorRole === "VENDOR_HR") {
+        await NotificationService.notifyStaffAction({
+          actor: req.user,
+          type: "UPDATE",
+          title: statusTitle,
+          message: statusMsg,
+          moduleScope: "CANDIDATE",
+          targetVendorId: app.vendorId || null,
+          metadata: { applicationId: app.applicationId, candidateId: app.candidateId },
+        });
+      }
 
       if (updateData.status === "Selected") {
         try {

@@ -110,6 +110,7 @@ class MeetingSchedulerService {
       meetingLink: meeting.meetingLink,
       date: meeting.date,
       startTime: meeting.startTime,
+      endTime: meeting.endTime,
       platform: meeting.platform,
       title: meeting.title,
       isReminder: true,

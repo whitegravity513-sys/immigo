@@ -20,7 +20,7 @@ export const getAttendanceByDate = asyncHandler(async (req, res) => {
 });
 
 export const updateAttendance = asyncHandler(async (req, res) => {
-  const record = await AttendanceService.updateAttendance(req.body);
+  const record = await AttendanceService.updateAttendance(req.body, req.user);
   return res.status(200).json({ message: "Attendance updated successfully", attendance: record });
 });
 

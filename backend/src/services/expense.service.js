@@ -247,7 +247,11 @@ export class ExpenseService {
           title: "New Expense Claim Submitted",
           message: `${empName} submitted an expense claim of ₹${Number(expense.amount || 0).toLocaleString("en-IN")} for "${expense.title}".`,
           targetRole: "ADMIN",
+          targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
           targetType: "ALL",
+          actorId: finalEmployeeId ? String(finalEmployeeId) : null,
+          actorRole: "EMPLOYEE",
+          moduleScope: "WORKFORCE",
           metadata: {
             expenseId: expense._id?.toString(),
             employeeId: finalEmployeeId?.toString(),
@@ -263,7 +267,7 @@ export class ExpenseService {
     return this.formatExpense(expense);
   }
 
-  static async reviewExpense(id, { status, adminRemark, adminId, paymentMode, transactionRef, paymentNote }) {
+  static async reviewExpense(id, { status, adminRemark, adminId, actor = null, paymentMode, transactionRef, paymentNote }) {
     const cleanId = String(id || "").replace(/^virtual-/, "").trim();
     if (!cleanId || !mongoose.Types.ObjectId.isValid(cleanId)) {
       throw new ApiError(400, "Invalid expense ID provided.");
@@ -308,13 +312,14 @@ export class ExpenseService {
           ? `Your approved expense "${expense.title}" of ₹${Number(expense.amount || 0).toLocaleString("en-IN")} has been PAID/REIMBURSED via ${expense.paymentMode || "Bank Transfer"}${expense.transactionRef ? ` (Ref: ${expense.transactionRef})` : ""}.`
           : `Your expense "${expense.title}" for ₹${Number(expense.amount || 0).toLocaleString("en-IN")} has been ${status.toLowerCase()}.${adminRemark ? ` Remark: "${adminRemark}"` : ""}`;
 
-        await NotificationService.createNotification({
+        await NotificationService.notifyStaffAction({
+          actor: actor || (adminId ? { id: adminId, role: "ADMIN" } : null),
           type: "EXPENSE_UPDATE",
           title: `Expense Claim ${status}`,
           message: msg,
-          targetRole: "EMPLOYEE",
-          targetType: "SPECIFIC",
+          moduleScope: "WORKFORCE",
           targetEmployeeId: empId,
+          employeeId: empId,
           metadata: {
             expenseId: expense._id,
             status,

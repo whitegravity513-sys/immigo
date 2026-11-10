@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Vendor from "../models/Vendor.js";
-import Notification from "../models/Notification.js";
+import NotificationService from "../services/notification.service.js";
 import ActivityService from "../services/activity.service.js";
 import env from "../config/env.js";
 import { ApiError } from "../utils/apiError.js";
@@ -67,12 +67,17 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   });
 
   try {
-    await Notification.create({
+    await NotificationService.createNotification({
       type: "VENDOR_REGISTERED",
       title: `New Vendor Registered: ${newVendor.companyName}`,
       message: `${newVendor.companyName} (${newVendor.vendorId}) has registered as a recruitment partner. Review and approval required.`,
       targetRole: "ADMIN",
+      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
       targetType: "ALL",
+      targetVendorId: newVendor.vendorId,
+      actorId: newVendor.vendorId,
+      actorRole: "VENDOR",
+      moduleScope: "VENDOR",
       metadata: { vendorId: newVendor._id, vendorCode: newVendor.vendorId },
     });
   } catch (err) {
@@ -249,12 +254,17 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
-    await Notification.create({
+    await NotificationService.createNotification({
       type: "DOCUMENT_UPLOAD",
       title: `Vendor Documents Submitted: ${vendor.companyName}`,
       message: `${vendor.companyName} (${vendor.vendorId}) has uploaded compliance documents for review.`,
       targetRole: "ADMIN",
+      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
       targetType: "ALL",
+      targetVendorId: vendor.vendorId,
+      actorId: vendor.vendorId,
+      actorRole: "VENDOR",
+      moduleScope: "VENDOR",
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {
@@ -313,12 +323,17 @@ export const signVendorMou = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
-    await Notification.create({
+    await NotificationService.createNotification({
       type: "DOCUMENT_UPDATE",
       title: `Signed MOU Submitted: ${vendor.companyName}`,
       message: `${vendor.companyName} (${vendor.vendorId}) has submitted their signed MOU agreement (${signMethod.toUpperCase()} method). Admin review required.`,
       targetRole: "ADMIN",
+      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
       targetType: "ALL",
+      targetVendorId: vendor.vendorId,
+      actorId: vendor.vendorId,
+      actorRole: "VENDOR",
+      moduleScope: "VENDOR",
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {

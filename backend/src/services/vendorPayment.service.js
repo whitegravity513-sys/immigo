@@ -2,7 +2,7 @@ import VendorPaymentMilestone from "../models/VendorPaymentMilestone.js";
 import Vendor from "../models/Vendor.js";
 import Project from "../models/Project.js";
 import ActivityLog from "../models/ActivityLog.js";
-import Notification from "../models/Notification.js";
+import NotificationService from "./notification.service.js";
 import { ApiError } from "../utils/apiError.js";
 
 export class VendorPaymentService {
@@ -92,12 +92,13 @@ export class VendorPaymentService {
     });
 
     try {
-      await Notification.create({
+      await NotificationService.notifyStaffAction({
+        actor: actorUser,
         type: "PAYMENT",
         title: "New Payment Milestone Created",
         message: `Milestone "${milestone.milestoneName}" for ₹${parsedAmount} was created for project ${project.title}.`,
-        recipientType: "ALL_ADMINS",
-        targetRole: "ADMIN",
+        moduleScope: "VENDOR",
+        targetVendorId: vendor.vendorId || vendor._id.toString(),
         metadata: {
           milestoneId: milestone.milestoneId,
           vendorId: vendor.vendorId || vendor._id.toString(),

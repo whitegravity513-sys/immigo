@@ -9,8 +9,16 @@ const crmNotificationSchema = new mongoose.Schema(
     },
     recipientRole: {
       type: String,
-      enum: ["ADMIN", "VENDOR", "CANDIDATE", "ALL"],
+      enum: ["ADMIN", "SUPER_ADMIN", "VENDOR", "VENDOR_HR", "CANDIDATE", "ALL"],
       default: "ALL",
+    },
+    actorId: {
+      type: String,
+      default: null,
+    },
+    actorRole: {
+      type: String,
+      default: null,
     },
     vendorId: {
       type: String,

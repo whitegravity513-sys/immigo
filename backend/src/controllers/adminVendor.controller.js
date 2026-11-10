@@ -1,5 +1,5 @@
 import Vendor from "../models/Vendor.js";
-import Notification from "../models/Notification.js";
+import NotificationService from "../services/notification.service.js";
 import ActivityService from "../services/activity.service.js";
 import {
   sendVendorRegistrationApprovedEmail,
@@ -62,12 +62,13 @@ export const approveRegistration = asyncHandler(async (req, res) => {
   }
 
   try {
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "SYSTEM",
       title: `Registration Approved: ${vendor.companyName}`,
       message: `Your vendor registration has been approved. Please log in to complete your compliance document submission.`,
-      targetRole: "ALL",
-      targetType: "ALL",
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {
@@ -189,12 +190,13 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "DOCUMENT_UPDATE",
       title: `Official MOU Generated for ${vendor.companyName}`,
       message: `Your compliance documents have been verified by ImmiGo Admin! Official MOU agreement has been issued. Please review, choose your signature option, and submit.`,
-      targetRole: "ALL",
-      targetType: "ALL",
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {
@@ -238,12 +240,13 @@ export const requestDocCorrection = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "SYSTEM",
       title: `Document Correction Required: ${vendor.companyName}`,
       message: `Admin has requested document corrections. Remarks: ${vendor.adminRemarks}`,
-      targetRole: "ALL",
-      targetType: "ALL",
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {
@@ -301,12 +304,13 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
   }
 
   try {
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "SYSTEM",
       title: `Vendor Account Activated: ${vendor.companyName}`,
       message: `Congratulations! Your vendor partner account has been fully activated by ImmiGo Admin. You now have full access to candidate deployment and projects.`,
-      targetRole: "ALL",
-      targetType: "ALL",
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {
@@ -389,12 +393,13 @@ export const rejectVendor = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "SYSTEM",
       title: `Vendor Application Rejected: ${vendor.companyName}`,
       message: `Your vendor application status was updated to Rejected. Reason: ${vendor.rejectionReason}`,
-      targetRole: "ALL",
-      targetType: "ALL",
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {
@@ -435,12 +440,13 @@ export const toggleSuspendVendor = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "SYSTEM",
       title: `Vendor Account Status Changed: ${vendor.companyName}`,
       message: `Vendor account status is now ${vendor.status}.`,
-      targetRole: "ALL",
-      targetType: "ALL",
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
       metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
     });
   } catch (err) {

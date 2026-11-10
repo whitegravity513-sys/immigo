@@ -507,6 +507,115 @@ export const sendCredentialsEmail = async ({
   }
 };
 
+export const sendStaffAccountCredentialsEmail = async ({
+  to,
+  name = "Staff Member",
+  email = "",
+  password = "",
+  roleLabel = "Staff",
+  isPasswordReset = false,
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/admin/login`;
+  const loginEmail = email || to;
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Staff Portal Access - ImmiGo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+    .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+    .creds-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
+    .cred-row { padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 13px; }
+    .cred-row:last-child { border-bottom: none; }
+    .cred-label { font-weight: 600; color: #64748b; margin-right: 8px; }
+    .cred-value { font-weight: 800; color: #0f172a; font-family: monospace; font-size: 14px; }
+    .btn { display: inline-block; background-color: #3b2875; color: #ffffff !important; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 9999px; text-decoration: none; margin-bottom: 20px; text-align: center; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #3b2875; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #3b2875; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;">
+            Admin & Management Portal
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="title">${isPasswordReset ? `Password Updated, ${name}` : `Welcome, ${name}!`}</div>
+    <div class="text">
+      ${isPasswordReset
+        ? `Your login password for the <strong>${roleLabel}</strong> portal account has been updated by an administrator. Use your updated credentials below to sign in:`
+        : `Your official <strong>${roleLabel}</strong> account has been created. Use the login ID and password below to access the portal:`}
+    </div>
+
+    <div class="creds-box">
+      <div class="cred-row">
+        <span class="cred-label">Role:</span>
+        <span class="cred-value" style="font-family: inherit;">${roleLabel}</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Login Email / ID:</span>
+        <span class="cred-value" style="color: #2563eb;">${loginEmail}</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Password:</span>
+        <span class="cred-value">${password}</span>
+      </div>
+      <div class="cred-row">
+        <span class="cred-label">Portal URL:</span>
+        <span class="cred-value"><a href="${finalPortalUrl}" style="color: #2563eb; text-decoration: underline;">${finalPortalUrl}</a></span>
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="${finalPortalUrl}" class="btn">Sign In to Portal</a>
+    </div>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to,
+    subject: isPasswordReset
+      ? `[ImmiGo] Updated Portal Login Credentials (${roleLabel})`
+      : `[ImmiGo] Your Staff Portal Account Credentials (${roleLabel})`,
+    html: htmlContent,
+    text: `Dear ${name},\n\n${isPasswordReset ? `Your ${roleLabel} portal password has been updated.` : `Your ${roleLabel} portal account has been created.`}\n\nLogin Email / ID: ${loginEmail}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nBest regards,\nImmiGo Team`,
+  };
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info(`[STAFF CREDENTIALS EMAIL SIMULATED] To: ${to}`);
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(mailOptions);
+    logger.info(`Staff credentials email sent to ${to}: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send staff credentials email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 export const sendCandidateApprovalEmail = async ({
   to,
   candidateName = "Candidate",
@@ -965,6 +1074,7 @@ export default {
   sendVendorRegistrationApprovedEmail,
   sendVendorActivationEmail,
   sendCredentialsEmail,
+  sendStaffAccountCredentialsEmail,
   sendCandidateApprovalEmail,
   sendCandidateRejectionEmail,
   sendCandidateInterviewEmail,

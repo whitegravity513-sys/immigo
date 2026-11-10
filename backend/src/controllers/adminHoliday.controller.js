@@ -8,7 +8,7 @@ export const getHolidays = asyncHandler(async (req, res) => {
 
 export const createHoliday = asyncHandler(async (req, res) => {
   const { date, title, description } = req.body;
-  const holiday = await HolidayService.createOrUpdateHoliday(date, title, description);
+  const holiday = await HolidayService.createOrUpdateHoliday(date, title, description, req.user);
   return res.status(200).json({ message: "Holiday saved successfully", holiday });
 });
 

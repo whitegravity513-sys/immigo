@@ -6,7 +6,7 @@ import Vendor from "../models/Vendor.js";
 import CandidateApplication from "../models/CandidateApplication.js";
 import ActivityLog from "../models/ActivityLog.js";
 import Notification from "../models/Notification.js";
-import NotificationService from "../services/notification.service.js";
+import NotificationService, { resolveActorInfo } from "../services/notification.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ROLES } from "../constants/roles.js";
@@ -267,6 +267,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
   };
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     if (meetingType === "VENDOR_DISCUSSION") {
       if (effectiveTargetType === "ALL") {
         const activeVendors = await Vendor.find({ status: { $ne: "Rejected" } }).select("vendorId companyName email");
@@ -277,6 +278,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
             message: `A vendor conference "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "VENDOR",
             targetVendorId: v.vendorId,
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
             metadata: meetingMetadata,
           });
         }
@@ -288,6 +292,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
             message: `A vendor conference "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "VENDOR_HR",
             targetUserId: vhr._id.toString(),
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
             metadata: meetingMetadata,
           });
         }
@@ -307,6 +314,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
             message: `You are invited to a meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "VENDOR",
             targetVendorId: vRef,
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
             metadata: meetingMetadata,
           });
 
@@ -322,6 +332,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
               message: `Vendor meeting "${meeting.title}" involving agency ${vRef} is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
               targetRole: "VENDOR_HR",
               targetUserId: vhr._id.toString(),
+              actorId: actorMeta.actorId,
+              actorRole: actorMeta.actorRole,
+              moduleScope: "MEETING",
               metadata: meetingMetadata,
             });
           }
@@ -339,6 +352,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
             message: `HR Team sync "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: hr.hrType || "HR",
             targetUserId: hr._id.toString(),
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
             metadata: meetingMetadata,
           });
         }
@@ -358,6 +374,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
             message: `You are invited to an HR meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "HR",
             targetUserId: String(hrUserId),
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
             metadata: meetingMetadata,
           });
         }
@@ -372,6 +391,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
           message: `A company meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
           targetRole: "EMPLOYEE",
           targetType: "ALL",
+          actor: req.user,
+          moduleScope: "MEETING",
           metadata: meetingMetadata,
         });
       } else if (resolvedTargetEmployees.length > 0) {
@@ -385,6 +406,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
               targetType: "SPECIFIC",
               targetEmployeeId: empId,
               employeeId: empId,
+              actor: req.user,
+              moduleScope: "MEETING",
               metadata: meetingMetadata,
             })
           )
@@ -400,6 +423,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
           message: `An interview has been scheduled for candidate ${meeting.candidateName || "Partner"} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
           targetRole: "VENDOR",
           targetVendorId: meeting.vendorId,
+          actorId: actorMeta.actorId,
+          actorRole: actorMeta.actorRole,
+          moduleScope: "MEETING",
           metadata: meetingMetadata,
         });
 
@@ -416,6 +442,9 @@ export const createMeeting = asyncHandler(async (req, res) => {
             message: `Interview "${meeting.title}" for ${meeting.candidateName || "candidate"} is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
             targetRole: "VENDOR_HR",
             targetUserId: vhr._id.toString(),
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
             metadata: meetingMetadata,
           });
         }
@@ -431,6 +460,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
               targetType: "SPECIFIC",
               targetEmployeeId: empId,
               employeeId: empId,
+              actor: req.user,
+              moduleScope: "MEETING",
               metadata: meetingMetadata,
             })
           )
@@ -444,12 +475,23 @@ export const createMeeting = asyncHandler(async (req, res) => {
           type: "MEETING",
           title: `📅 General Meeting: ${meeting.title}`,
           message: `A meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
-          targetRole: "ALL",
+          targetRole: "EMPLOYEE",
           targetType: "ALL",
+          actor: req.user,
+          moduleScope: "MEETING",
           metadata: meetingMetadata,
         });
       }
     }
+
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
+      type: "MEETING",
+      title: `📅 Meeting Scheduled: ${meeting.title}`,
+      message: `Meeting "${meeting.title}" scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+      moduleScope: "MEETING",
+      metadata: meetingMetadata,
+    });
   } catch (err) {
     console.error("Failed to dispatch meeting notification:", err.message);
   }
@@ -731,17 +773,35 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
   }
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     const message = `Meeting "${meeting.title}" has been RESCHEDULED to ${meeting.date} at ${meeting.startTime}. Click to join.`;
     await Notification.create({
       type: "MEETING_RESCHEDULED",
       title: `🔄 Meeting Rescheduled: ${meeting.title}`,
       message,
-      targetRole: "ALL",
+      targetRole: "EMPLOYEE",
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
+      moduleScope: "MEETING",
       metadata: {
         meetingId: meeting._id.toString(),
         meetingLink: meeting.meetingLink,
         date: meeting.date,
         startTime: meeting.startTime,
+        endTime: meeting.endTime,
+      },
+    });
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
+      type: "MEETING_RESCHEDULED",
+      title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+      message,
+      moduleScope: "MEETING",
+      metadata: {
+        meetingId: meeting._id.toString(),
+        date: meeting.date,
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
       },
     });
   } catch (err) {
@@ -780,11 +840,23 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
   }
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     await Notification.create({
       type: "MEETING_CANCELLED",
       title: `❌ Meeting Cancelled: ${meeting.title}`,
       message: `The meeting scheduled for ${meeting.date} at ${meeting.startTime} has been cancelled. Reason: ${reason || "Cancelled by host."}`,
-      targetRole: "ALL",
+      targetRole: "EMPLOYEE",
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
+      moduleScope: "MEETING",
+      metadata: { meetingId: meeting._id.toString() },
+    });
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
+      type: "MEETING_CANCELLED",
+      title: `❌ Meeting Cancelled: ${meeting.title}`,
+      message: `Meeting "${meeting.title}" scheduled for ${meeting.date} was cancelled.`,
+      moduleScope: "MEETING",
       metadata: { meetingId: meeting._id.toString() },
     });
   } catch (err) {}

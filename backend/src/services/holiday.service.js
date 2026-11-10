@@ -18,7 +18,7 @@ export class HolidayService {
     return holidays.map((h) => this.formatHoliday(h));
   }
 
-  static async createOrUpdateHoliday(date, title, description = "") {
+  static async createOrUpdateHoliday(date, title, description = "", actor = null) {
     if (!date || !title) {
       throw new ApiError(400, "Date and title are required");
     }
@@ -58,8 +58,23 @@ export class HolidayService {
         type: "HOLIDAY_ANNOUNCEMENT",
         title: `Official Holiday Declared: ${title}`,
         message: `Office will remain closed on ${date} (${title}). Attendance is not required. ${description || ""}`.trim(),
-        targetRole: "ALL",
+        targetRole: "EMPLOYEE",
+        targetRoles: ["EMPLOYEE"],
         targetType: "ALL",
+        actor,
+        moduleScope: "HOLIDAY",
+        metadata: {
+          holidayId: holiday._id.toString(),
+          date,
+          title,
+        },
+      });
+      await NotificationService.notifyStaffAction({
+        actor,
+        type: "HOLIDAY_ANNOUNCEMENT",
+        title: `Official Holiday Declared: ${title}`,
+        message: `Official holiday declared for ${date} (${title}).`,
+        moduleScope: "HOLIDAY",
         metadata: {
           holidayId: holiday._id.toString(),
           date,

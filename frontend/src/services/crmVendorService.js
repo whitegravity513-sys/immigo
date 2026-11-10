@@ -2446,8 +2446,35 @@ export const crmVendorService = {
   
   
   getAdminNotifications: () => {
+    let staffRole = "ADMIN";
+    let currentUserId = "";
+    let assignedVendors = [];
     try {
-      apiClient.get("/crm-sync/notifications?role=ADMIN")
+      const storedUser = JSON.parse(localStorage.getItem("user") || localStorage.getItem("adminUser") || "null");
+      if (storedUser) {
+        currentUserId = String(storedUser.id || storedUser._id || "");
+        const rUpper = String(storedUser.role || "").toUpperCase();
+        if (storedUser.isSuperAdmin || rUpper === "SUPER_ADMIN") {
+          staffRole = "SUPER_ADMIN";
+        } else if (rUpper === "HR") {
+          staffRole = String(storedUser.hrType || "").toUpperCase() === "VENDOR_HR" ? "VENDOR_HR" : "EMPLOYEE_HR";
+        } else if (rUpper) {
+          staffRole = rUpper;
+        }
+        assignedVendors = Array.isArray(storedUser.assignedVendors) ? storedUser.assignedVendors : [];
+      }
+    } catch {}
+
+    if (staffRole === "EMPLOYEE_HR") {
+      return [];
+    }
+
+    try {
+      const params = new URLSearchParams({ role: staffRole });
+      if (currentUserId) params.set("userId", currentUserId);
+      if (assignedVendors.length > 0) params.set("assignedVendors", assignedVendors.join(","));
+
+      apiClient.get(`/crm-sync/notifications?${params.toString()}`)
         .then((res) => {
           if (res.data?.success && Array.isArray(res.data.notifications) && res.data.notifications.length > 0) {
             const current = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
@@ -2467,20 +2494,40 @@ export const crmVendorService = {
   },
 
   addAdminNotification: (notif) => {
+    let actorId = "";
+    let actorRole = "";
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user") || localStorage.getItem("adminUser") || "null");
+      if (storedUser) {
+        actorId = String(storedUser.id || storedUser._id || "");
+        const rUpper = String(storedUser.role || "").toUpperCase();
+        if (storedUser.isSuperAdmin || rUpper === "SUPER_ADMIN") {
+          actorRole = "SUPER_ADMIN";
+        } else if (rUpper === "HR") {
+          actorRole = String(storedUser.hrType || "").toUpperCase() === "VENDOR_HR" ? "VENDOR_HR" : "EMPLOYEE_HR";
+        } else {
+          actorRole = rUpper;
+        }
+      }
+    } catch {}
+
+    const targetRecipientRole =
+      notif.recipientRole || (actorRole === "ADMIN" ? "SUPER_ADMIN" : "ADMIN");
+
     const notifs = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
     const newNotif = {
       id: `admin-notif-${Date.now()}-${Math.floor(Math.random() * 100)}`,
       timestamp: new Date().toISOString(),
       read: false,
+      actorId: actorId || null,
+      actorRole: actorRole || null,
+      recipientRole: targetRecipientRole,
       ...notif,
     };
     notifs.unshift(newNotif);
     saveData(ADMIN_NOTIFICATIONS_KEY, notifs);
     try {
-      apiClient.post("/crm-sync/notifications", {
-        ...newNotif,
-        recipientRole: "ADMIN",
-      }).catch(() => {});
+      apiClient.post("/crm-sync/notifications", newNotif).catch(() => {});
     } catch {}
     if (typeof window !== "undefined") {
       try {

@@ -28,8 +28,23 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
       type: "ANNOUNCEMENT",
       title: `Announcement: ${title}`,
       message,
-      targetRole: "ALL",
+      targetRole: "EMPLOYEE",
+      targetRoles: ["EMPLOYEE"],
       targetType: "ALL",
+      actor: req.user,
+      moduleScope: "ANNOUNCEMENT",
+      metadata: {
+        announcementId: announcement._id,
+        category: announcement.category,
+        date: announcement.date,
+      },
+    });
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
+      type: "ANNOUNCEMENT",
+      title: `Announcement: ${title}`,
+      message,
+      moduleScope: "ANNOUNCEMENT",
       metadata: {
         announcementId: announcement._id,
         category: announcement.category,

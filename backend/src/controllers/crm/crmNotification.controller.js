@@ -1,42 +1,87 @@
+import mongoose from "mongoose";
 import CrmNotification from "../../models/CrmNotification.js";
-import Notification from "../../models/Notification.js";
+import NotificationService, { resolveActorInfo } from "../../services/notification.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
-export const getNotifications = asyncHandler(async (req, res) => {
-  const { role, vendorId } = req.query;
+const buildCrmNotifFilter = ({ role, vendorId, userId, assignedVendors }) => {
   const filter = {};
+  const andConditions = [];
+
+  if (userId) {
+    andConditions.push({ actorId: { $ne: String(userId) } });
+  }
 
   if (role) {
-    if (role.toUpperCase() === "ADMIN") {
-      filter.$or = [
-        { recipientRole: { $in: ["ADMIN", "ALL"] } },
-        { recipientRole: { $exists: false } },
-        { recipientRole: null },
-      ];
-    } else if (role.toUpperCase() === "VENDOR") {
+    const r = String(role).toUpperCase();
+    if (r === "SUPER_ADMIN") {
+      andConditions.push({
+        $or: [
+          { recipientRole: { $in: ["SUPER_ADMIN", "ADMIN", "ALL"] } },
+          { recipientRole: { $exists: false } },
+          { recipientRole: null },
+        ],
+      });
+    } else if (r === "ADMIN") {
+      andConditions.push({ actorRole: { $ne: "ADMIN" } });
+      andConditions.push({
+        $or: [
+          { recipientRole: { $in: ["ADMIN", "ALL"] } },
+          { recipientRole: { $exists: false } },
+          { recipientRole: null },
+        ],
+      });
+    } else if (r === "VENDOR_HR") {
+      const vList = Array.isArray(assignedVendors)
+        ? assignedVendors.map((v) => String(v))
+        : typeof assignedVendors === "string" && assignedVendors
+        ? assignedVendors.split(",").map((v) => v.trim()).filter(Boolean)
+        : [];
+      andConditions.push({
+        $or: [
+          { recipientRole: { $in: ["VENDOR_HR", "ADMIN", "ALL"] } },
+          { recipientRole: { $exists: false } },
+          { recipientRole: null },
+        ],
+      });
+      if (vList.length > 0) {
+        andConditions.push({ vendorId: { $in: vList } });
+      } else {
+        andConditions.push({ recipientRole: "VENDOR_HR" });
+      }
+    } else if (r === "VENDOR") {
       const roleConditions = [
         { recipientRole: { $in: ["VENDOR", "ALL"] } },
         { recipientRole: { $exists: false } },
         { recipientRole: null },
       ];
+      andConditions.push({ $or: roleConditions });
       if (vendorId) {
-        filter.$and = [
-          { $or: roleConditions },
-          {
-            $or: [
-              { vendorId: String(vendorId) },
-              { vendorId: null },
-              { vendorId: { $exists: false } },
-              { recipientRole: "ALL" },
-            ],
-          },
-        ];
-      } else {
-        filter.$or = roleConditions;
+        andConditions.push({
+          $or: [
+            { vendorId: String(vendorId) },
+            { vendorId: null },
+            { vendorId: { $exists: false } },
+            { recipientRole: "ALL" },
+          ],
+        });
       }
     }
   }
 
+  if (andConditions.length > 0) {
+    filter.$and = andConditions;
+  }
+  return filter;
+};
+
+export const getNotifications = asyncHandler(async (req, res) => {
+  const { role, vendorId, userId, assignedVendors } = req.query;
+  const rUpper = String(role || "").toUpperCase();
+  if (rUpper === "EMPLOYEE_HR") {
+    return res.status(200).json({ success: true, notifications: [] });
+  }
+
+  const filter = buildCrmNotifFilter({ role, vendorId, userId, assignedVendors });
   const notifs = await CrmNotification.find(filter).sort({ createdAt: -1 }).limit(100).lean();
   const formatted = (notifs || []).map((n) => ({
     ...n,
@@ -53,22 +98,44 @@ export const getNotifications = asyncHandler(async (req, res) => {
 export const createNotification = asyncHandler(async (req, res) => {
   const notifData = req.body;
   const notifId = notifData.id || notifData.notificationId || `notif-${Date.now()}-${Math.floor(Math.random() * 100)}`;
+  const reqActor = req.user ? resolveActorInfo(req.user) : { actorId: null, actorRole: null };
+  const actorId = notifData.actorId ? String(notifData.actorId) : reqActor.actorId;
+  const actorRole = notifData.actorRole || reqActor.actorRole;
 
   const created = await CrmNotification.create({
     ...notifData,
+    actorId,
+    actorRole,
     notificationId: notifId,
   });
 
   if (notifData.recipientRole === "ADMIN" || notifData.recipientRole === "ALL") {
     try {
-      await Notification.create({
-        type: notifData.type || "SYSTEM",
-        title: notifData.title || "Vendor Update",
-        message: notifData.message,
-        targetRole: "ADMIN",
-        targetType: "ALL",
-        read: false,
-      });
+      if (actorRole === "ADMIN" || actorRole === "SUPER_ADMIN" || actorRole === "VENDOR_HR") {
+        await NotificationService.notifyStaffAction({
+          actor: { id: actorId, role: actorRole },
+          type: notifData.type || "SYSTEM",
+          title: notifData.title || "Vendor Update",
+          message: notifData.message,
+          moduleScope: "VENDOR",
+          targetVendorId: notifData.vendorId || null,
+          metadata: { vendorId: notifData.vendorId || null, link: notifData.link || "" },
+        });
+      } else {
+        await NotificationService.createNotification({
+          type: notifData.type || "SYSTEM",
+          title: notifData.title || "Vendor Update",
+          message: notifData.message,
+          targetRole: "ADMIN",
+          targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
+          targetType: "ALL",
+          targetVendorId: notifData.vendorId ? String(notifData.vendorId) : null,
+          actorId,
+          actorRole,
+          moduleScope: "VENDOR",
+          metadata: { vendorId: notifData.vendorId || null, link: notifData.link || "" },
+        });
+      }
     } catch {}
   }
 
@@ -88,32 +155,8 @@ export const markNotificationRead = asyncHandler(async (req, res) => {
 });
 
 export const markAllNotificationsRead = asyncHandler(async (req, res) => {
-  const { role, vendorId } = req.query;
-  const filter = {};
-  if (role) {
-    if (role.toUpperCase() === "ADMIN") {
-      filter.$or = [
-        { recipientRole: { $in: ["ADMIN", "ALL"] } },
-        { recipientRole: { $exists: false } },
-        { recipientRole: null },
-      ];
-    } else if (role.toUpperCase() === "VENDOR") {
-      if (vendorId) {
-        filter.$or = [
-          { vendorId: String(vendorId) },
-          { vendorId: null },
-          { vendorId: { $exists: false } },
-          { recipientRole: "ALL" },
-        ];
-      } else {
-        filter.$or = [
-          { recipientRole: { $in: ["VENDOR", "ALL"] } },
-          { recipientRole: { $exists: false } },
-          { recipientRole: null },
-        ];
-      }
-    }
-  }
+  const { role, vendorId, userId, assignedVendors } = req.query;
+  const filter = buildCrmNotifFilter({ role, vendorId, userId, assignedVendors });
   await CrmNotification.updateMany(filter, { $set: { read: true } });
   return res.status(200).json({ success: true });
 });
@@ -143,32 +186,8 @@ export const deleteNotification = asyncHandler(async (req, res) => {
 });
 
 export const clearAllNotifications = asyncHandler(async (req, res) => {
-  const { role, vendorId } = req.query;
-  const filter = {};
-  if (role) {
-    if (role.toUpperCase() === "ADMIN") {
-      filter.$or = [
-        { recipientRole: { $in: ["ADMIN", "ALL"] } },
-        { recipientRole: { $exists: false } },
-        { recipientRole: null },
-      ];
-    } else if (role.toUpperCase() === "VENDOR") {
-      if (vendorId) {
-        filter.$or = [
-          { vendorId: String(vendorId) },
-          { recipientRole: "VENDOR" },
-          { vendorId: null },
-          { vendorId: { $exists: false } },
-        ];
-      } else {
-        filter.$or = [
-          { recipientRole: { $in: ["VENDOR", "ALL"] } },
-          { recipientRole: { $exists: false } },
-          { recipientRole: null },
-        ];
-      }
-    }
-  }
+  const { role, vendorId, userId, assignedVendors } = req.query;
+  const filter = buildCrmNotifFilter({ role, vendorId, userId, assignedVendors });
   await CrmNotification.deleteMany(filter);
   return res.status(200).json({ success: true, message: "Notifications cleared successfully" });
 });

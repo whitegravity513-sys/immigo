@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Clock,
   Calendar,
@@ -7,16 +7,10 @@ import {
   Coffee,
   CheckCircle2,
   AlertCircle,
-  Video,
   CalendarPlus,
-  ChevronDown,
-  ChevronUp,
   Play,
   Timer,
-  ExternalLink,
   ChevronRight,
-  ShieldCheck,
-  FileText,
   Megaphone,
   PartyPopper,
   Camera,
@@ -38,7 +32,6 @@ export default function EmpHomeOverview({
   breakSeconds = 0,
   fmtDur = (s) => `${s}s`,
   fmtTime = (t) => t,
-  todayMeetings = [],
   announcements = [],
   holidays = [],
   setView,
@@ -47,53 +40,59 @@ export default function EmpHomeOverview({
   handleBreakStart,
   handleBreakEnd,
   isOnBreak = false,
-  isActive = false,
-  isCheckedOut = false,
-  overLimit = false,
   monthlyData,
   loading = false,
   isHolidayToday,
   todayHoliday,
-  isWeeklyOffToday,
-  weeklyOffReason,
   errorMsg = "",
   successMsg = "",
   complianceInfo = { isComplianceOnHold: false, missingDocs: [], rejectedDocs: [] },
 }) {
-  const [showMorePast, setShowMorePast] = useState(false);
-
   const todayDateStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
   }).format(new Date());
 
-  const [holidayAcknowledged, setHolidayAcknowledged] = useState(() => {
-    return !!localStorage.getItem(`immigo_holiday_ack_${todayDateStr}`);
-  });
+  const activeHoliday =
+    todayHoliday || (isHolidayToday ? { title: "Company Holiday", date: todayDateStr } : null);
 
-  const [meetingAcks, setMeetingAcks] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("immigo_meeting_acks") || "{}");
-    } catch {
-      return {};
+  const upcomingHolidays = useMemo(() => {
+    const list = Array.isArray(holidays) ? holidays : [];
+    const merged = [...list];
+    if (activeHoliday && activeHoliday.date) {
+      const aDate = String(activeHoliday.date).trim().slice(0, 10);
+      if (!merged.some((h) => String(h?.date || "").trim().slice(0, 10) === aDate)) {
+        merged.push(activeHoliday);
+      }
     }
-  });
+    return merged
+      .filter((h) => {
+        const d = String(h?.date || "").trim().slice(0, 10);
+        return d && d >= todayDateStr;
+      })
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  }, [holidays, activeHoliday, todayDateStr]);
 
-  const handleAcknowledgeHoliday = () => {
-    localStorage.setItem(`immigo_holiday_ack_${todayDateStr}`, "true");
-    setHolidayAcknowledged(true);
+  const activeAnnouncements = useMemo(() => {
+    const list = Array.isArray(announcements) ? announcements : [];
+    return list
+      .filter((a) => {
+        const d = String(a?.date || "").trim().slice(0, 10);
+        return d && d >= todayDateStr;
+      })
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  }, [announcements, todayDateStr]);
+
+  const topHoliday = upcomingHolidays[0] || null;
+  const topAnnouncement = activeAnnouncements[0] || null;
+
+  const formatShortDate = (dateVal) => {
+    if (!dateVal) return "";
+    const clean = String(dateVal).trim().slice(0, 10);
+    return new Date(`${clean}T00:00:00`).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+    });
   };
-
-  const handleAcknowledgeMeeting = (id) => {
-    const updated = { ...meetingAcks, [id]: new Date().toISOString() };
-    setMeetingAcks(updated);
-    localStorage.setItem("immigo_meeting_acks", JSON.stringify(updated));
-  };
-
-  const unacknowledgedMeeting = (todayMeetings || []).find(
-    (m) => m && !meetingAcks[m._id || m.id]
-  );
-
-  const activeHoliday = todayHoliday || (isHolidayToday ? { title: "Company Holiday", date: todayDateStr } : null);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
@@ -146,6 +145,63 @@ export default function EmpHomeOverview({
 
   return (
     <div className="space-y-3.5 w-full text-slate-800">
+      {(topHoliday || topAnnouncement) && (
+        <div className="bg-amber-50/90 border border-amber-200/90 rounded-lg px-2.5 py-1.5 shadow-2xs flex flex-wrap items-center justify-between gap-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+            {topHoliday && (
+              <div className="inline-flex items-center gap-1.5 text-amber-950 font-semibold min-w-0">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900 font-bold text-[10px] uppercase tracking-wider shrink-0">
+                  <PartyPopper size={11} />
+                  Holiday
+                </span>
+                <span className="font-bold truncate">{topHoliday.title}</span>
+                <span className="text-amber-700 font-bold shrink-0">
+                  ({formatShortDate(topHoliday.date)})
+                </span>
+              </div>
+            )}
+
+            {topHoliday && topAnnouncement && (
+              <span className="text-amber-300 font-bold hidden sm:inline">|</span>
+            )}
+
+            {topAnnouncement && (
+              <div className="inline-flex items-center gap-1.5 text-indigo-950 font-semibold min-w-0">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold text-[10px] uppercase tracking-wider shrink-0">
+                  <Megaphone size={11} />
+                  Notice
+                </span>
+                <span className="font-bold truncate">{topAnnouncement.title}</span>
+                <span className="text-indigo-700 font-bold shrink-0">
+                  ({formatShortDate(topAnnouncement.date)})
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {topHoliday && (
+              <button
+                type="button"
+                onClick={() => setView("calendar")}
+                className="px-2 py-0.5 rounded bg-white hover:bg-amber-100/70 text-amber-900 border border-amber-200 font-bold text-[10px] cursor-pointer transition-colors"
+              >
+                Holidays
+              </button>
+            )}
+            {topAnnouncement && (
+              <button
+                type="button"
+                onClick={() => setView("announcements")}
+                className="px-2 py-0.5 rounded bg-white hover:bg-indigo-50 text-indigo-900 border border-indigo-200 font-bold text-[10px] cursor-pointer transition-colors"
+              >
+                Notices
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {(status === "On Break" || isOnBreak) && (
         <div className="bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 text-white rounded-2xl p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150 border border-sky-400/50">
           <div className="flex items-center gap-3">
@@ -214,7 +270,7 @@ export default function EmpHomeOverview({
           <div className="flex items-center gap-4">
             <div className="relative shrink-0 group">
               <div
-                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white text-blue-600 font-bold text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative`}
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white text-blue-600 font-bold text-lg flex items-center justify-center shadow-md border-2 border-white/80 overflow-hidden relative"
               >
                 {currentAvatar ? (
                   <img
@@ -303,74 +359,6 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      {activeHoliday && (
-        <div
-          className={`p-4 sm:p-5 rounded-xl border transition-all animate-in fade-in duration-200 ${
-            holidayAcknowledged
-              ? "bg-amber-50/70 border-amber-200/90 text-amber-950"
-              : "bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100/70 border-amber-300 shadow-sm text-slate-800"
-          }`}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-            <div className="flex items-start sm:items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-white flex items-center justify-center shrink-0 shadow-sm">
-                <PartyPopper size={20} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-200/90 text-amber-900 border border-amber-300 flex items-center gap-1">
-                    <Calendar size={11} className="text-amber-700" />
-                    Official Company Holiday
-                  </span>
-                  <span className="text-xs font-bold text-amber-800">
-                    {activeHoliday.date
-                      ? new Date(`${String(activeHoliday.date).split("T")[0]}T00:00:00`).toLocaleDateString("en-IN", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "Today"}
-                  </span>
-                </div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5">
-                  {activeHoliday.title || "Holiday Celebration"}
-                </h3>
-                <p className="text-xs text-slate-600 mt-0.5 max-w-2xl leading-relaxed">
-                  {activeHoliday.description ||
-                    "Official company holiday. Regular shifts and work logs are optional today, and your holiday credit is accounted for by HRMS."}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              {holidayAcknowledged ? (
-                <div className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold shadow-2xs">
-                  <CheckCircle2 size={15} className="text-emerald-600" />
-                  <span>✓ Acknowledged</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleAcknowledgeHoliday}
-                  className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                >
-                  <CheckCircle2 size={15} />
-                  <span>Acknowledge Holiday</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setView("calendar")}
-                className="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl transition cursor-pointer shadow-2xs"
-              >
-                View Holidays
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full">
         <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
@@ -436,43 +424,6 @@ export default function EmpHomeOverview({
             </div>
             <div className="text-[8.5px] font-medium text-slate-500 mt-0.5 truncate" title="Shifts Under 8 Hours">
               ● Under 8 Hours
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-2 sm:p-2.5 rounded-xl border bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-100/50 border-blue-300/80 text-slate-800 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-start sm:items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-xs bg-blue-600 text-white">
-              <ShieldCheck size={14} />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-                  Daily Attendance Verification
-                </span>
-                <span className="text-[10px] font-semibold text-slate-500">
-                  Today: {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                <span className="text-[11px] font-semibold text-slate-800">
-                  Status: <strong className="text-blue-900 font-bold">{status}</strong>
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-[11px] text-slate-600">
-                  In: <strong className="font-semibold text-slate-800">{statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "Not marked"}</strong>
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-[11px] text-slate-600">
-                  Out: <strong className="font-semibold text-slate-800">{statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : (status === "Active" ? "In Progress" : "Pending")}</strong>
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="text-[11px] text-slate-600">
-                  Worked: <strong className="font-semibold text-slate-800">{fmtDur(workSeconds)}</strong>
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -654,7 +605,7 @@ export default function EmpHomeOverview({
           <DailyWorkLogSection
             status={status}
             statusRecord={statusRecord}
-            isCheckedOut={isCheckedOut || status === "Checked Out" || Boolean(statusRecord?.checkOutTime)}
+            isCheckedOut={Boolean(status === "Checked Out" || statusRecord?.checkOutTime)}
           />
         </div>
       </div>
@@ -665,4 +616,3 @@ export default function EmpHomeOverview({
     </div>
   );
 }
-

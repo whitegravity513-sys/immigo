@@ -2,7 +2,7 @@ import EmployeeService from "../services/employee.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createEmployee = asyncHandler(async (req, res) => {
-  const newEmployee = await EmployeeService.createEmployee(req.body);
+  const newEmployee = await EmployeeService.createEmployee(req.body, req.user);
   return res.status(201).json({
     message: `Employee created successfully with ID: ${newEmployee.employeeId}`,
     employee: newEmployee,
@@ -68,11 +68,12 @@ export const deleteAdminDocument = asyncHandler(async (req, res) => {
 
 export const reviewAdminDocument = asyncHandler(async (req, res) => {
   const { status, verificationNote } = req.body;
-  const adminId = req.user?._id || req.admin?._id || null;
+  const adminId = req.user?._id || req.user?.id || req.admin?._id || null;
   const employee = await EmployeeService.reviewDocument(req.params.id, req.params.docId, {
     status,
     verificationNote,
     adminId,
+    actor: req.user,
   });
   return res.status(200).json({
     message: `Document ${status === "Verified" ? "approved" : "rejected"} successfully`,

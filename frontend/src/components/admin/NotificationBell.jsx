@@ -5,9 +5,10 @@ import { apiClient } from "../../services/apiClient.js";
 import crmVendorService from "../../services/crmVendorService.js";
 import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
+import { isMeetingExpired } from "../../utils/formatters.js";
 
 export default function NotificationBell({ className }) {
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -15,8 +16,21 @@ export default function NotificationBell({ className }) {
   const dropdownRef = useRef(null);
   const lastAdminReadAllTsRef = useRef(0);
 
+  const currentUserId = String(user?.id || user?._id || "");
+  const rawRole = String(user?.role || "").toUpperCase();
+  const hrType = String(user?.hrType || "").toUpperCase();
+  const assignedVendors = Array.isArray(user?.assignedVendors) ? user.assignedVendors.map(String) : [];
+
+  const effectiveStaffRole = isSuperAdmin || rawRole === "SUPER_ADMIN"
+    ? "SUPER_ADMIN"
+    : rawRole === "HR"
+    ? hrType === "VENDOR_HR"
+      ? "VENDOR_HR"
+      : "EMPLOYEE_HR"
+    : rawRole || "ADMIN";
+
   const portalBase =
-    (user?.role || "").toUpperCase() === "HR" || location.pathname.startsWith("/hr")
+    rawRole === "HR" || location.pathname.startsWith("/hr")
       ? "/hr/dashboard"
       : "/admin/dashboard";
 
@@ -37,6 +51,13 @@ export default function NotificationBell({ className }) {
     }
   };
 
+  const buildCrmQueryString = () => {
+    const params = new URLSearchParams({ role: effectiveStaffRole });
+    if (currentUserId) params.set("userId", currentUserId);
+    if (assignedVendors.length > 0) params.set("assignedVendors", assignedVendors.join(","));
+    return params.toString();
+  };
+
   const fetchNotifications = async () => {
     try {
       const deletedIds = getDeletedAdminIds();
@@ -49,36 +70,73 @@ export default function NotificationBell({ className }) {
       } catch {}
 
       let crmNotifs = [];
-      try {
-        const crmRes = await apiClient.get("/crm-sync/notifications?role=ADMIN");
-        crmNotifs = (crmRes.data?.notifications || []).map((n) => ({
-          _id: n.id || n.notificationId,
-          id: n.id || n.notificationId,
+      let localAdminNotifs = [];
+      if (effectiveStaffRole !== "EMPLOYEE_HR") {
+        try {
+          const crmRes = await apiClient.get(`/crm-sync/notifications?${buildCrmQueryString()}`);
+          crmNotifs = (crmRes.data?.notifications || []).map((n) => ({
+            _id: n.id || n.notificationId,
+            id: n.id || n.notificationId,
+            title: n.title,
+            message: n.message,
+            createdAt: n.timestamp || n.createdAt,
+            isRead: !!n.read,
+            read: !!n.read,
+            type: n.type || "INFO",
+            link: n.link || "/admin/vendor-candidates",
+            actorId: n.actorId || null,
+            actorRole: n.actorRole || null,
+            recipientRole: n.recipientRole || null,
+            vendorId: n.vendorId || null,
+          }));
+        } catch {}
+
+        localAdminNotifs = (crmVendorService.getAdminNotifications() || []).map((n) => ({
+          _id: n.id,
+          id: n.id,
           title: n.title,
           message: n.message,
-          createdAt: n.timestamp || n.createdAt,
+          createdAt: n.timestamp,
           isRead: !!n.read,
           read: !!n.read,
           type: n.type || "INFO",
-          link: n.link || "/admin/vendor-candidates",
+          link: n.link,
+          actorId: n.actorId || null,
+          actorRole: n.actorRole || null,
+          recipientRole: n.recipientRole || null,
+          vendorId: n.vendorId || null,
         }));
-      } catch {}
-
-      const localAdminNotifs = (crmVendorService.getAdminNotifications() || []).map((n) => ({
-        _id: n.id,
-        id: n.id,
-        title: n.title,
-        message: n.message,
-        createdAt: n.timestamp,
-        isRead: !!n.read,
-        read: !!n.read,
-        type: n.type || "INFO",
-        link: n.link,
-      }));
+      }
 
       const all = [...crmNotifs, ...localAdminNotifs, ...backendNotifs];
       const seen = new Set();
       const merged = all.filter((n) => {
+        if (n.actorId && currentUserId && String(n.actorId) === currentUserId) {
+          return false;
+        }
+        if (effectiveStaffRole === "ADMIN") {
+          if (n.actorRole === "ADMIN" || n.recipientRole === "SUPER_ADMIN") {
+            return false;
+          }
+        }
+        if (effectiveStaffRole === "SUPER_ADMIN") {
+          if (n.actorRole === "SUPER_ADMIN") {
+            return false;
+          }
+        }
+        if (effectiveStaffRole === "VENDOR_HR" && assignedVendors.length > 0 && n.vendorId) {
+          if (!assignedVendors.includes(String(n.vendorId))) {
+            return false;
+          }
+        }
+
+        const typeUpper = String(n.type || "").toUpperCase();
+        if ((typeUpper === "MEETING" || typeUpper === "MEETING_REMINDER") && n.metadata?.date) {
+          if (isMeetingExpired(n.metadata)) {
+            return false;
+          }
+        }
+
         const key = String(n._id || n.id || `${n.title}-${n.createdAt}`);
         const id1 = String(n._id || "");
         const id2 = String(n.id || "");
@@ -146,7 +204,7 @@ export default function NotificationBell({ className }) {
       window.removeEventListener("storage", handleImmediateWakeup);
       clearInterval(interval);
     };
-  }, []);
+  }, [currentUserId, effectiveStaffRole]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -164,10 +222,11 @@ export default function NotificationBell({ className }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true, read: true })));
 
     try {
-      await Promise.allSettled([
-        apiClient.put("/admin/notifications/read-all"),
-        apiClient.put("/crm-sync/notifications/read-all?role=ADMIN"),
-      ]);
+      const requests = [apiClient.put("/admin/notifications/read-all")];
+      if (effectiveStaffRole !== "EMPLOYEE_HR") {
+        requests.push(apiClient.put(`/crm-sync/notifications/read-all?${buildCrmQueryString()}`));
+      }
+      await Promise.allSettled(requests);
       crmVendorService.markAllAdminNotificationsRead();
     } catch (err) {
       console.error("Failed to mark all as read:", err);
@@ -247,10 +306,11 @@ export default function NotificationBell({ className }) {
     setNotifications([]);
     setUnreadCount(0);
     try {
-      await Promise.allSettled([
-        apiClient.delete("/admin/notifications"),
-        apiClient.delete("/crm-sync/notifications?role=ADMIN"),
-      ]);
+      const requests = [apiClient.delete("/admin/notifications")];
+      if (effectiveStaffRole !== "EMPLOYEE_HR") {
+        requests.push(apiClient.delete(`/crm-sync/notifications?${buildCrmQueryString()}`));
+      }
+      await Promise.allSettled(requests);
       crmVendorService.clearAllAdminNotifications();
     } catch (err) {
       console.error("Failed to clear notifications:", err);
@@ -264,13 +324,13 @@ export default function NotificationBell({ className }) {
         onClick={() => setIsOpen(!isOpen)}
         className={
           className ||
-          "relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer border border-slate-200 shadow-2xs focus:outline-none"
+          "relative p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all flex items-center justify-center cursor-pointer border border-slate-200/80 bg-white shadow-2xs focus:outline-none"
         }
         title="Notifications"
       >
-        <Bell size={17} className={className ? "text-blue-200 hover:text-white" : "text-slate-700"} />
+        <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-xs animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -285,11 +345,7 @@ export default function NotificationBell({ className }) {
         onClearAll={handleClearAll}
         onMarkOneRead={handleMarkOneAsRead}
         onDeleteOne={handleDeleteOne}
-        onItemClick={(item) => {
-          const sId = item.id || item._id;
-          handleMarkOneAsRead(sId);
-        }}
-        viewAllLink="/admin/candidates/selected"
+        portalBase={portalBase}
       />
     </div>
   );

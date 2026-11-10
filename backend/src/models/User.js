@@ -28,6 +28,12 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    rawPassword: {
+      type: String,
+      default: "",
+      select: false,
+    },
+
     role: {
       type: String,
       enum: Object.values(ROLES),

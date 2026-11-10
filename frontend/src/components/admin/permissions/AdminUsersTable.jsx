@@ -12,6 +12,7 @@ export default function AdminUsersTable({
   onOpenEditModal,
   onOpenDeleteModal,
   isSuperAdmin,
+  canManageStaff = false,
 }) {
   const filteredAdmins = adminsList.filter((adm) => {
     const q = searchQuery.toLowerCase();
@@ -31,7 +32,7 @@ export default function AdminUsersTable({
           <p className="text-[10px] text-slate-500">Select user to configure permissions</p>
         </div>
 
-        {isSuperAdmin && (
+        {(isSuperAdmin || canManageStaff) && (
           <button
             type="button"
             onClick={onOpenCreateModal}

@@ -62,6 +62,7 @@ export const reviewExpense = asyncHandler(async (req, res) => {
     status,
     adminRemark,
     adminId: rawAdminId,
+    actor: req.user,
     paymentMode,
     transactionRef,
     paymentNote,

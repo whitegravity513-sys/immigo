@@ -1,6 +1,7 @@
 import CrmOverseasClient from "../../models/CrmOverseasClient.js";
 import Project from "../../models/Project.js";
 import CrmNotification from "../../models/CrmNotification.js";
+import NotificationService, { resolveActorInfo } from "../../services/notification.service.js";
 import ActivityService from "../../services/activity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateNextClientId } from "../../utils/idGenerator.js";
@@ -121,6 +122,7 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
   await doc.save();
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     const isAll =
       (fullProject.vendorAssignmentType || fullProject.vendorVisibility) !== "Specific Vendor" &&
       (fullProject.vendorAssignmentType || fullProject.vendorVisibility) !== "specific";
@@ -130,6 +132,8 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
         notificationId: `notif-${Date.now()}`,
         recipientRole: "VENDOR",
         vendorId: null,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
         title: "New Overseas Project Available",
         message: `Project "${fullProject.projectName}" (${fullProject.country}) is open for candidate submissions.`,
         type: "info",
@@ -142,6 +146,8 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
           notificationId: `notif-${Date.now()}-${vId}`,
           recipientRole: "VENDOR",
           vendorId: String(vId),
+          actorId: actorMeta.actorId,
+          actorRole: actorMeta.actorRole,
           title: "Project Assigned Directly to You",
           message: `Admin has assigned project "${fullProject.projectName}" (${fullProject.country}) to your agency.`,
           type: "info",
@@ -149,6 +155,15 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
         });
       }
     }
+
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
+      type: "UPDATE",
+      title: "Overseas Project Configured",
+      message: `Project "${fullProject.projectName}" (${fullProject.country}) saved.`,
+      moduleScope: "VENDOR",
+      metadata: { projectId: fullProject.id },
+    });
   } catch {}
 
   return res.status(200).json({ success: true, project: fullProject });

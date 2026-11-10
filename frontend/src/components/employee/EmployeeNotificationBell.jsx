@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import apiClient from "../../services/apiClient.js";
 import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
+import { isMeetingExpired } from "../../utils/formatters.js";
 
 export default function EmployeeNotificationBell({ token, onSelectMeeting, onNewNotification, onViewAll, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +32,10 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         list = list.filter((n) => {
           const notifId = String(n.id || n._id);
           if (deletedIds.has(notifId)) return false;
+          const typeUpper = String(n.type || "").toUpperCase();
+          if ((typeUpper === "MEETING" || typeUpper === "MEETING_REMINDER") && n.metadata?.date) {
+            if (isMeetingExpired(n.metadata)) return false;
+          }
           const itemTime = n.createdAt ? new Date(n.createdAt).getTime() : 0;
           return !clearedTs || (itemTime && itemTime > clearedTs);
         });

@@ -1,7 +1,7 @@
 import Candidate from "../models/Candidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
 import ActivityLog from "../models/ActivityLog.js";
-import Notification from "../models/Notification.js";
+import NotificationService, { resolveActorInfo } from "../services/notification.service.js";
 import CrmNotification from "../models/CrmNotification.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -654,27 +654,35 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
 
   if (status === "Selected" && previousStatus !== "Selected") {
     try {
+      const actorMeta = resolveActorInfo(req.user);
       await CrmNotification.create({
         notificationId: `notif-cand-${Date.now()}`,
         recipientRole: "CANDIDATE",
         candidateId: app.candidateId,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
         title: "Congratulations! You are Selected! 🎉",
         message: `You have been selected for ${app.projectName} (${app.position || "Specialist"}). Your deployment milestone process has commenced!`,
         link: "/candidate/dashboard",
         type: "success",
       });
 
-      await Notification.create({
+      await NotificationService.notifyStaffAction({
+        actor: req.user,
         type: "UPDATE",
         title: "Direct Candidate Selected 🎉",
         message: `${app.candidateName} has been selected for ${app.projectName} (${app.position || "Specialist"}). Milestone workflow initiated.`,
-        targetRole: "ADMIN",
-        targetType: "ALL",
+        moduleScope: "CANDIDATE",
+        targetVendorId: app.vendorId && app.vendorId !== "DIRECT" ? app.vendorId : null,
+        metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
       });
 
       await CrmNotification.create({
         notificationId: `notif-adm-${Date.now()}`,
-        recipientRole: "ADMIN",
+        recipientRole: actorMeta.actorRole === "ADMIN" ? "SUPER_ADMIN" : "ADMIN",
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
+        vendorId: app.vendorId && app.vendorId !== "DIRECT" ? String(app.vendorId) : null,
         title: "Candidate Selected & Milestones Initiated 🎯",
         message: `${app.candidateName} on "${app.projectName}" is now marked Selected. Milestones & processing stages are active.`,
         link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
@@ -856,22 +864,27 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
   await app.save();
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     await CrmNotification.create({
       notificationId: `notif-cand-${Date.now()}`,
       recipientRole: "CANDIDATE",
       candidateId: app.candidateId,
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
       title: "Milestone Plan Configured 📋",
       message: `Your processing milestone plan for ${app.projectName} (Total Fee: ₹${Number(finalTotal).toLocaleString()}) has been updated. Milestone 1 is active.`,
       link: "/candidate/dashboard",
       type: "info",
     });
 
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "UPDATE",
       title: "Direct Candidate Milestones Configured",
       message: `Milestone plan updated for ${app.candidateName} on ${app.projectName} (₹${Number(finalTotal).toLocaleString()})`,
-      targetRole: "ADMIN",
-      targetType: "ALL",
+      moduleScope: "CANDIDATE",
+      targetVendorId: app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined" ? app.vendorId : null,
+      metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
     });
 
     if (app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined") {
@@ -879,6 +892,8 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
         notificationId: `notif-vnd-${Date.now()}`,
         recipientRole: "VENDOR",
         vendorId: String(app.vendorId),
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
         title: "Candidate Milestones & Documents Updated 📋",
         message: `Milestone progress and clearance documents updated for candidate ${app.candidateName} on "${app.projectName}".`,
         link: `/vendor/candidates`,
@@ -985,23 +1000,28 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
   await app.save();
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     const stageTitle = stages[sIdx].name;
     await CrmNotification.create({
       notificationId: `notif-cand-${Date.now()}`,
       recipientRole: "CANDIDATE",
       candidateId: app.candidateId,
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
       title: `Processing Step: ${status || "Updated"} 🚀`,
       message: `"${stageTitle}" on project ${app.projectName} is now ${status}. ${remark ? `Note: ${remark}` : ""}`,
       link: "/candidate/dashboard",
       type: status === "Completed" ? "success" : "info",
     });
 
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "UPDATE",
       title: `Candidate Stage ${status}`,
       message: `${app.candidateName} - ${stageTitle} marked ${status} by ${req.user?.name || "Admin"}`,
-      targetRole: "ADMIN",
-      targetType: "ALL",
+      moduleScope: "CANDIDATE",
+      targetVendorId: app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined" ? app.vendorId : null,
+      metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
     });
 
     await sendCandidateMilestoneUpdateEmail({
@@ -1098,22 +1118,27 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
   await app.save();
 
   try {
+    const actorMeta = resolveActorInfo(req.user);
     await CrmNotification.create({
       notificationId: `notif-cand-${Date.now()}`,
       recipientRole: "CANDIDATE",
       candidateId: app.candidateId,
+      actorId: actorMeta.actorId,
+      actorRole: actorMeta.actorRole,
       title: "Payment Received & Verified! 💳",
       message: `Payment of ₹${Number(paidAmt).toLocaleString()} for "${milestones[mIdx].name}" has been verified. Processing stages are active.`,
       link: `/invoice/${app.applicationId}/${milestoneId}`,
       type: "success",
     });
 
-    await Notification.create({
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
       type: "UPDATE",
       title: "Milestone Payment Recorded",
       message: `₹${Number(paidAmt).toLocaleString()} received for ${app.candidateName} (${milestones[mIdx].name})`,
-      targetRole: "ADMIN",
-      targetType: "ALL",
+      moduleScope: "CANDIDATE",
+      targetVendorId: app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined" ? app.vendorId : null,
+      metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
     });
 
     await sendCandidatePaymentReceiptEmail({

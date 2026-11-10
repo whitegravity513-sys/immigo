@@ -30,6 +30,26 @@ const notificationSchema = new mongoose.Schema(
       ],
       default: "ADMIN",
     },
+    targetRoles: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    actorId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+    actorRole: {
+      type: String,
+      default: null,
+    },
+    moduleScope: {
+      type: String,
+      default: "GENERAL",
+      index: true,
+    },
     targetType: {
       type: String,
       enum: ["ALL", "SPECIFIC"],

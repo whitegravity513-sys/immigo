@@ -293,6 +293,11 @@ export class AttendanceService {
         message: `Employee [${empIdCode}] ${empName} checked in at ${timeStr}`,
         employeeId,
         employeeName: `${empName} (${empIdCode})`,
+        targetRole: "ADMIN",
+        targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
+        actorId: String(employeeId),
+        actorRole: "EMPLOYEE",
+        moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, date: today, time: now, location },
       });
     } catch (e) {
@@ -366,6 +371,11 @@ export class AttendanceService {
         message: `Employee [${empIdCode}] ${empName} went on ${normalizedType} break at ${timeStr}`,
         employeeId,
         employeeName: `${empName} (${empIdCode})`,
+        targetRole: "ADMIN",
+        targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
+        actorId: String(employeeId),
+        actorRole: "EMPLOYEE",
+        moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, breakType: normalizedType, startTime: breakStart },
       });
     } catch (e) {
@@ -433,6 +443,11 @@ export class AttendanceService {
         message: `Employee [${empIdCode}] ${empName} resumed work after break`,
         employeeId,
         employeeName: `${empName} (${empIdCode})`,
+        targetRole: "ADMIN",
+        targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
+        actorId: String(employeeId),
+        actorRole: "EMPLOYEE",
+        moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName },
       });
     } catch (e) {
@@ -555,6 +570,11 @@ export class AttendanceService {
         message: `Employee [${empIdCode}] ${empName} checked out at ${timeStr} (Total Work: ${hrs}h ${mins}m)`,
         employeeId,
         employeeName: `${empName} (${empIdCode})`,
+        targetRole: "ADMIN",
+        targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
+        actorId: String(employeeId),
+        actorRole: "EMPLOYEE",
+        moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, date: today, time: now, checkOutNote, totalWorkSeconds: record.totalWorkSeconds },
       });
     } catch (e) {
@@ -885,7 +905,7 @@ export class AttendanceService {
     return records.map((r) => this.formatAttendance(r));
   }
 
-  static async updateAttendance(data) {
+  static async updateAttendance(data, actor = null) {
     const { employeeId, date, status, checkInTime, checkOutTime, note, halfSalaryDeduct } = data;
     if (!employeeId || !date) {
       throw new ApiError(400, "Employee ID and date are required");
@@ -956,13 +976,15 @@ export class AttendanceService {
     await record.save();
 
     try {
-      NotificationService.createNotification({
+      await NotificationService.notifyStaffAction({
+        actor,
         type: "ATTENDANCE_UPDATE",
         title: `Attendance Updated for ${targetDate}`,
         message: `Admin updated your attendance for ${targetDate} to status "${record.status}".`,
-        targetRole: "EMPLOYEE",
-        targetType: "SPECIFIC",
+        moduleScope: "WORKFORCE",
         targetEmployeeId: emp._id,
+        employeeId: emp._id,
+        employeeName: emp.name || "",
         metadata: { date: targetDate, status: record.status },
       });
     } catch (e) {

@@ -33,7 +33,7 @@ export class LeaveService {
     return leaves.map((l) => this.formatLeave(l));
   }
 
-  static async updateLeaveStatus(id, status, adminRemark = "") {
+  static async updateLeaveStatus(id, status, adminRemark = "", actor = null) {
     if (!["Approved", "Rejected"].includes(status)) {
       throw new ApiError(400, "Invalid status value. Use 'Approved' or 'Rejected'");
     }
@@ -67,13 +67,15 @@ export class LeaveService {
 
     try {
       const empId = leave.employeeId?._id || leave.employeeId;
-      await NotificationService.createNotification({
+      await NotificationService.notifyStaffAction({
+        actor,
         type: "LEAVE_UPDATE",
         title: `Leave ${status}`,
         message: `Your leave application has been ${status.toLowerCase()}.`,
-        targetRole: "EMPLOYEE",
-        targetType: "SPECIFIC",
+        moduleScope: "WORKFORCE",
         targetEmployeeId: empId,
+        employeeId: empId,
+        employeeName: leave.employeeId?.name || "",
         metadata: { leaveId: leave._id, status },
       });
     } catch (e) {
@@ -140,6 +142,11 @@ export class LeaveService {
         message: `Employee [${empIdCode}] ${empName} applied for ${leaveType} leave (${diffDays} day${diffDays > 1 ? "s" : ""}) from ${startStr} to ${endStr}. Reason: "${reason}"`,
         employeeId,
         employeeName: `${empName} (${empIdCode})`,
+        targetRole: "ADMIN",
+        targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
+        actorId: String(employeeId),
+        actorRole: "EMPLOYEE",
+        moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, leaveId: leave._id, leaveType, diffDays, reason },
       });
     } catch (e) {

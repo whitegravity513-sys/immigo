@@ -6,22 +6,18 @@ import {
   Clock,
   CheckCircle2,
   ExternalLink,
-  Users,
-  Building2,
-  User,
-  Radio,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
+import { getIndiaDateString, isMeetingExpired } from "../../../utils/formatters.js";
 
 export default function ActiveMeetingAlertBanner({
   customRole = null,
   contextVendorId = null,
   className = "",
 }) {
-  const { user, role, isSuperAdmin, isVendor } = useAuth();
+  const { role, isSuperAdmin, isVendor } = useAuth();
   const effectiveRole = customRole || (isSuperAdmin ? "SUPER_ADMIN" : role || "ADMIN");
 
   const [activeMeeting, setActiveMeeting] = useState(null);
@@ -31,24 +27,21 @@ export default function ActiveMeetingAlertBanner({
 
   const fetchActiveMeeting = async () => {
     try {
-      const todayStr = new Date().toISOString().split("T")[0];
+      const todayStr = getIndiaDateString();
 
-      // If logged in as an Employee
       if (effectiveRole === "employee" || effectiveRole === "EMPLOYEE") {
         const res = await meetingService.getEmployeeMeetings({ upcoming: "true" });
         const list = Array.isArray(res) ? res : res?.meetings || [];
         const uncompleted = list.filter(
           (m) =>
             m &&
-            m.status !== "COMPLETED" &&
-            m.status !== "CANCELLED" &&
-            (m.date >= todayStr || m.date === todayStr)
+            m.date >= todayStr &&
+            !isMeetingExpired(m)
         );
         setActiveMeeting(uncompleted[0] || null);
         return;
       }
 
-      // Other roles: Admin, HR, Vendor HR, Vendor
       const params = { upcoming: "true", status: "SCHEDULED" };
       if (contextVendorId) params.vendorId = contextVendorId;
 
@@ -61,18 +54,15 @@ export default function ActiveMeetingAlertBanner({
         ? res.data
         : [];
 
-      // Find the first scheduled/rescheduled meeting that is not completed
       const uncompleted = list.filter(
         (m) =>
           m &&
-          m.status !== "COMPLETED" &&
-          m.status !== "CANCELLED" &&
-          (m.date >= todayStr || m.date === todayStr)
+          m.date >= todayStr &&
+          !isMeetingExpired(m)
       );
 
       setActiveMeeting(uncompleted[0] || null);
-    } catch (err) {
-      // Non-blocking error
+    } catch {
       setActiveMeeting(null);
     } finally {
       setLoading(false);
@@ -109,7 +99,7 @@ export default function ActiveMeetingAlertBanner({
     }
   };
 
-  if (loading || !activeMeeting) {
+  if (loading || !activeMeeting || isMeetingExpired(activeMeeting)) {
     if (notice) {
       return (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-2xs">
@@ -120,7 +110,6 @@ export default function ActiveMeetingAlertBanner({
     return null;
   }
 
-  // Format participant info
   const empAttendee = activeMeeting.attendees?.find((a) => a.role === "EMPLOYEE");
   const attendeesList = Array.isArray(activeMeeting.attendees) ? activeMeeting.attendees : [];
   const attendeeNames = attendeesList.map((a) => a.name || a.companyName).filter(Boolean);
@@ -146,8 +135,7 @@ export default function ActiveMeetingAlertBanner({
       ? `Host: ${activeMeeting.createdByName}`
       : "";
 
-  const isToday =
-    activeMeeting.date === new Date().toISOString().split("T")[0];
+  const isToday = activeMeeting.date === getIndiaDateString();
 
   const calendarLink =
     isVendor
@@ -162,13 +150,10 @@ export default function ActiveMeetingAlertBanner({
     <div
       className={`relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-3.5 sm:p-4 shadow-lg border border-blue-500/30 transition-all ${className}`}
     >
-      {/* Background soft ambient glow */}
       <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 rounded-full bg-blue-500/10 blur-xl pointer-events-none" />
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
-        {/* Left Info Column */}
         <div className="flex items-start gap-3 min-w-0">
-          {/* Live pulsing dot icon */}
           <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 text-cyan-300 shadow-inner">
             <div className="relative flex items-center justify-center">
               <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400 opacity-75"></span>
@@ -210,7 +195,7 @@ export default function ActiveMeetingAlertBanner({
               <span className="flex items-center gap-1 text-slate-300">
                 <Calendar className="w-3.5 h-3.5 text-slate-400" />
                 <span>
-                  {new Date(activeMeeting.date).toLocaleDateString("en-IN", {
+                  {new Date(`${activeMeeting.date}T00:00:00`).toLocaleDateString("en-IN", {
                     weekday: "short",
                     day: "numeric",
                     month: "short",
@@ -222,7 +207,6 @@ export default function ActiveMeetingAlertBanner({
           </div>
         </div>
 
-        {/* Right Action Buttons Column */}
         <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap pt-2 md:pt-0 border-t border-white/10 md:border-t-0">
           {activeMeeting.meetingLink ? (
             <a
@@ -263,4 +247,3 @@ export default function ActiveMeetingAlertBanner({
     </div>
   );
 }
-

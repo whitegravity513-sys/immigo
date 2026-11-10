@@ -64,7 +64,7 @@ export class EmployeeService {
     return candidate;
   }
 
-  static async createEmployee(data) {
+  static async createEmployee(data, actor = null) {
     const {
       name,
       email,
@@ -216,14 +216,15 @@ export class EmployeeService {
     }
 
     try {
-      await NotificationService.createNotification({
+      await NotificationService.notifyStaffAction({
+        actor,
         type: "EMPLOYEE_CREATED",
         title: "New Employee Enrolled",
         message: `${name.trim()} (${designation || "Employee"}) registered with ID ${finalEmployeeId}`,
-        targetRole: "ADMIN",
-        targetType: "ALL",
-        employeeId: finalEmployeeId,
+        moduleScope: "WORKFORCE",
+        employeeId: newEmployee._id,
         employeeName: name.trim(),
+        metadata: { employeeCode: finalEmployeeId },
       });
     } catch (notifErr) {
       console.warn("Notification notice:", notifErr?.message);
@@ -842,7 +843,11 @@ export class EmployeeService {
           title: "New Employee Document Submitted",
           message: `${emp.name} (${emp.employeeId}) uploaded compliance document "${docName}" (${docType}). Awaiting verification.`,
           targetRole: "ADMIN",
+          targetRoles: ["SUPER_ADMIN", "ADMIN", "EMPLOYEE_HR"],
           targetType: "ALL",
+          actorId: emp._id.toString(),
+          actorRole: "EMPLOYEE",
+          moduleScope: "WORKFORCE",
           employeeId: emp._id,
           employeeName: emp.name,
           metadata: {
@@ -860,7 +865,7 @@ export class EmployeeService {
     return this.formatEmployee(emp);
   }
 
-  static async reviewDocument(id, docId, { status, verificationNote, adminId = null }) {
+  static async reviewDocument(id, docId, { status, verificationNote, adminId = null, actor = null }) {
     const cleanId = cleanObjectId(id) || id;
     if (!["Verified", "Rejected", "Submitted"].includes(status)) {
       throw new ApiError(400, "Invalid status. Use 'Verified' or 'Rejected'.");
@@ -890,14 +895,14 @@ export class EmployeeService {
 
     try {
       const isApproved = status === "Verified";
-      await NotificationService.createNotification({
+      await NotificationService.notifyStaffAction({
+        actor: actor || (adminId ? { id: adminId, role: "ADMIN" } : null),
         type: "DOCUMENT_UPDATE",
         title: isApproved ? `Document Approved: ${doc.name}` : `Document Rejected: ${doc.name}`,
         message: isApproved
           ? `Your document "${doc.name}" (${doc.type}) has been verified and approved by HR.`
           : `Your document "${doc.name}" (${doc.type}) was rejected by HR. Reason: ${doc.verificationNote || "Please re-upload a clear and valid document."}`,
-        targetRole: "EMPLOYEE",
-        targetType: "SPECIFIC",
+        moduleScope: "WORKFORCE",
         targetEmployeeId: emp._id,
         employeeId: emp._id,
         employeeName: emp.name,

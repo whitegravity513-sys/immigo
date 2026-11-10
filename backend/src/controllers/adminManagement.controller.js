@@ -6,6 +6,8 @@ import AuditLog from "../models/AuditLog.js";
 import { ROLES } from "../constants/roles.js";
 import { MODULES, ALL_PERMISSIONS } from "../constants/permissions.js";
 import PermissionService from "../services/permission.service.js";
+import NotificationService from "../services/notification.service.js";
+import { sendStaffAccountCredentialsEmail } from "../services/email.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { logAudit } from "../middleware/rbac.middleware.js";
@@ -35,7 +37,7 @@ export const getAdmins = asyncHandler(async (req, res) => {
     ];
   }
 
-  const users = await User.find(query).sort({ createdAt: -1 });
+  const users = await User.find(query).select("+rawPassword").sort({ createdAt: -1 });
 
   const userIds = users.map((u) => u._id);
   const userPerms = await UserPermission.find({ userId: { $in: userIds } });
@@ -61,6 +63,7 @@ export const getAdmins = asyncHandler(async (req, res) => {
         department: u.department || "",
         isActive: u.isActive,
         isSuperAdmin: resolved.isSuperAdmin,
+        rawPassword: u.rawPassword || "",
         permissionCount: resolved.permissions.includes("*")
           ? ALL_PERMISSIONS.length
           : resolved.permissions.length,
@@ -81,7 +84,7 @@ export const getAdmins = asyncHandler(async (req, res) => {
 
 export const getAdminById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const user = await User.findById(id);
+  const user = await User.findById(id).select("+rawPassword");
 
   if (!user) {
     throw new ApiError(404, "Admin account not found");
@@ -104,6 +107,7 @@ export const getAdminById = asyncHandler(async (req, res) => {
       department: user.department || "",
       isActive: user.isActive,
       isSuperAdmin: resolved.isSuperAdmin,
+      rawPassword: user.rawPassword || "",
       assignedPermissions: permDoc ? permDoc.assignedPermissions : [],
       deniedPermissions: permDoc ? permDoc.deniedPermissions : [],
       effectivePermissions: resolved.permissions,
@@ -164,12 +168,18 @@ export const createAdmin = asyncHandler(async (req, res) => {
     }
   }
 
-  const passwordHash = await bcrypt.hash(String(password).trim(), 10);
+  const plainPassword = String(password).trim();
+  if (plainPassword.length < 6) {
+    throw new ApiError(400, "Password must be at least 6 characters.");
+  }
+
+  const passwordHash = await bcrypt.hash(plainPassword, 10);
 
   const newUser = await User.create({
     name: String(name).trim(),
     email: cleanEmail,
     passwordHash,
+    rawPassword: plainPassword,
     role: assignedRole,
     hrType: assignedHrType,
     assignedVendors: Array.isArray(assignedVendors) ? assignedVendors : [],
@@ -189,6 +199,35 @@ export const createAdmin = asyncHandler(async (req, res) => {
       notes,
     });
   }
+
+  const roleLabel =
+    assignedRole === ROLES.ADMIN
+      ? "Administrator"
+      : assignedHrType === "VENDOR_HR"
+      ? "Vendor HR"
+      : "Employee HR";
+
+  let emailResult = { success: false };
+  try {
+    emailResult = await sendStaffAccountCredentialsEmail({
+      to: newUser.email,
+      name: newUser.name,
+      email: newUser.email,
+      password: plainPassword,
+      roleLabel,
+    });
+  } catch (mailErr) {
+    emailResult = { success: false, error: mailErr?.message };
+  }
+
+  await NotificationService.notifyStaffAction({
+    actor: req.user,
+    type: "STAFF_ACCOUNT",
+    title: "Staff Account Created",
+    message: `${newUser.name} (${roleLabel}) was added to the portal.`,
+    moduleScope: "GENERAL",
+    metadata: { staffId: newUser._id.toString(), email: newUser.email, role: assignedRole },
+  });
 
   await logAudit({
     req,
@@ -210,7 +249,10 @@ export const createAdmin = asyncHandler(async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    message: `Account for ${newUser.name} created successfully.`,
+    emailSent: Boolean(emailResult?.success),
+    message: emailResult?.success
+      ? `Account for ${newUser.name} created and login credentials sent to ${newUser.email}.`
+      : `Account for ${newUser.name} created successfully.`,
     admin: {
       id: newUser._id.toString(),
       _id: newUser._id.toString(),
@@ -219,8 +261,11 @@ export const createAdmin = asyncHandler(async (req, res) => {
       role: newUser.role,
       hrType: newUser.hrType,
       assignedVendors: newUser.assignedVendors,
+      phone: newUser.phone || "",
+      department: newUser.department || "",
       isActive: newUser.isActive,
       isSuperAdmin: resolved.isSuperAdmin,
+      rawPassword: plainPassword,
       effectivePermissions: resolved.permissions,
       assignedPermissions: userPermDoc?.assignedPermissions || [],
     },
@@ -241,7 +286,7 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     password,
   } = req.body;
 
-  const targetUser = await User.findById(id);
+  const targetUser = await User.findById(id).select("+rawPassword");
   if (!targetUser) {
     throw new ApiError(404, "Admin/HR account not found");
   }
@@ -254,7 +299,7 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     if (targetUser.role !== ROLES.HR) {
       throw new ApiError(403, "Admins are strictly permitted to manage HR staff accounts only.");
     }
-    if (role && role !== ROLES.HR) {
+    if (role && role !== ROLES.HR && role !== "EMPLOYEE_HR" && role !== "VENDOR_HR") {
       throw new ApiError(403, "Admins cannot change an account role away from HR.");
     }
   }
@@ -306,13 +351,51 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     targetUser.isActive = Boolean(isActive);
   }
 
-  if (password && String(password).trim().length >= 6) {
-    targetUser.passwordHash = await bcrypt.hash(String(password).trim(), 10);
-    targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1;
-    targetUser.passwordChangedAt = new Date();
+  let passwordChanged = false;
+  const trimmedPassword = password !== undefined && password !== null ? String(password).trim() : "";
+  if (trimmedPassword) {
+    if (trimmedPassword.length < 6) {
+      throw new ApiError(400, "Password must be at least 6 characters.");
+    }
+    if (trimmedPassword !== (targetUser.rawPassword || "")) {
+      targetUser.passwordHash = await bcrypt.hash(trimmedPassword, 10);
+      targetUser.rawPassword = trimmedPassword;
+      targetUser.tokenVersion = (targetUser.tokenVersion || 0) + 1;
+      targetUser.passwordChangedAt = new Date();
+      passwordChanged = true;
+    }
   }
 
   await targetUser.save();
+
+  const roleLabel =
+    targetUser.role === ROLES.ADMIN
+      ? "Administrator"
+      : targetUser.hrType === "VENDOR_HR"
+      ? "Vendor HR"
+      : "Employee HR";
+
+  if (passwordChanged) {
+    try {
+      await sendStaffAccountCredentialsEmail({
+        to: targetUser.email,
+        name: targetUser.name,
+        email: targetUser.email,
+        password: trimmedPassword,
+        roleLabel,
+        isPasswordReset: true,
+      });
+    } catch {}
+  }
+
+  await NotificationService.notifyStaffAction({
+    actor: req.user,
+    type: "STAFF_ACCOUNT",
+    title: "Staff Account Updated",
+    message: `Account details updated for ${targetUser.name} (${roleLabel}).`,
+    moduleScope: "GENERAL",
+    metadata: { staffId: targetUser._id.toString(), email: targetUser.email, passwordChanged },
+  });
 
   await logAudit({
     req,
@@ -328,7 +411,9 @@ export const updateAdmin = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: "Account details updated successfully.",
+    message: passwordChanged
+      ? "Account updated and new password emailed successfully."
+      : "Account details updated successfully.",
     admin: {
       id: targetUser._id.toString(),
       _id: targetUser._id.toString(),
@@ -341,6 +426,7 @@ export const updateAdmin = asyncHandler(async (req, res) => {
       department: targetUser.department,
       isActive: targetUser.isActive,
       isSuperAdmin: resolved.isSuperAdmin,
+      rawPassword: targetUser.rawPassword || "",
       effectivePermissions: resolved.permissions,
     },
   });

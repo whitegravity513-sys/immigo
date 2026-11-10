@@ -23,6 +23,7 @@ import {
   getIndiaDateString,
   getDateKey,
   isDateInLeaveRange,
+  isMeetingExpired,
 } from "../../utils/formatters.js";
 
 export default function EmployeeDashboard({ user, token, onLogout }) {
@@ -166,7 +167,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => {
       const all = Array.isArray(res.data) ? res.data : [];
-      setTodayMeetings(all.filter((m) => m.date === todayStr));
+      setTodayMeetings(all.filter((m) => m.date === todayStr && !isMeetingExpired(m)));
     }).catch(() => { });
 
     

@@ -8,7 +8,7 @@ export const getLeaves = asyncHandler(async (req, res) => {
 
 export const updateLeaveStatus = asyncHandler(async (req, res) => {
   const { status, adminRemark } = req.body;
-  const leave = await LeaveService.updateLeaveStatus(req.params.id, status, adminRemark);
+  const leave = await LeaveService.updateLeaveStatus(req.params.id, status, adminRemark, req.user);
   return res.status(200).json({
     message: `Leave application status updated to ${status}`,
     leave,
