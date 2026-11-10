@@ -8,14 +8,15 @@ import {
   AlertCircle,
   Loader2,
   Lock,
-  Send,
-  Info,
+  Save,
 } from "lucide-react";
 
 export default function DailyWorkLogSection({
   status,
   statusRecord,
   isCheckedOut: propIsCheckedOut = false,
+  onDraftLogChange,
+  onWorkLogSaved,
 }) {
   const [logText, setLogText] = useState("");
   const [savedText, setSavedText] = useState("");
@@ -41,10 +42,12 @@ export default function DailyWorkLogSection({
             setBackendCheckedOut(Boolean(res.data.isCheckedOut));
           }
           if (res.data?.log) {
-            setLogText(res.data.log.logText || "");
-            setSavedText(res.data.log.logText || "");
+            const existing = res.data.log.logText || "";
+            setLogText(existing);
+            setSavedText(existing);
             setLastSavedAt(res.data.log.updatedAt || res.data.log.submittedAt);
             setIsSubmitted(true);
+            if (onWorkLogSaved) onWorkLogSaved(existing);
           } else if (res.data?.isSubmitted) {
             setIsSubmitted(true);
           }
@@ -68,23 +71,38 @@ export default function DailyWorkLogSection({
     backendCheckedOut
   );
 
-  const alreadySubmitted = isSubmitted || Boolean(savedText && lastSavedAt);
+  const hasCheckedIn = Boolean(
+    hasCheckedOut ||
+    status === "Active" ||
+    status === "On Break" ||
+    statusRecord?.checkInTime
+  );
+
+  const isLocked = hasCheckedOut && (isSubmitted || Boolean(savedText && lastSavedAt));
+  const hasSavedDraft = Boolean(savedText && lastSavedAt);
+  const isDirty = logText.trim() !== savedText.trim();
+
+  const handleTextChange = (val) => {
+    if (isLocked || !hasCheckedIn) return;
+    setLogText(val);
+    if (onDraftLogChange) onDraftLogChange(val);
+  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    if (alreadySubmitted) {
+    if (isLocked) {
       setStatusMsg({
         type: "error",
-        text: "Your daily work log has already been submitted and cannot be edited.",
+        text: "Your shift is checked out and today's work log is locked.",
       });
       return;
     }
 
-    if (!hasCheckedOut) {
+    if (!hasCheckedIn) {
       setStatusMsg({
         type: "error",
-        text: "Daily work log can only be submitted after completing shift check-out.",
+        text: "Please check in your shift first before saving today's work log.",
       });
       setTimeout(() => setStatusMsg({ type: "", text: "" }), 5000);
       return;
@@ -93,7 +111,7 @@ export default function DailyWorkLogSection({
     if (!logText.trim()) {
       setStatusMsg({
         type: "error",
-        text: "Please enter your work details before submitting.",
+        text: "Please enter your work details before saving.",
       });
       setTimeout(() => setStatusMsg({ type: "", text: "" }), 4000);
       return;
@@ -107,12 +125,17 @@ export default function DailyWorkLogSection({
         logText: logText.trim(),
       });
       const submittedLog = res.data?.log;
-      setSavedText(submittedLog?.logText || logText.trim());
-      setLastSavedAt(submittedLog?.submittedAt || new Date());
+      const finalSavedText = submittedLog?.logText || logText.trim();
+      setLogText(finalSavedText);
+      setSavedText(finalSavedText);
+      setLastSavedAt(submittedLog?.updatedAt || submittedLog?.submittedAt || new Date());
       setIsSubmitted(true);
+      if (onWorkLogSaved) onWorkLogSaved(finalSavedText);
       setStatusMsg({
         type: "success",
-        text: "Work log submitted successfully! It is now locked for Admin review.",
+        text: hasCheckedOut
+          ? "Work log submitted and locked for Admin review."
+          : "Work log saved! You can now click Check Out to finish your shift.",
       });
       setTimeout(() => setStatusMsg({ type: "", text: "" }), 6000);
     } catch (err) {
@@ -120,7 +143,7 @@ export default function DailyWorkLogSection({
         type: "error",
         text:
           err.response?.data?.message ||
-          "Failed to submit work log. Please ensure you have checked out.",
+          "Failed to save work log. Please try again.",
       });
       setTimeout(() => setStatusMsg({ type: "", text: "" }), 6000);
     } finally {
@@ -145,8 +168,10 @@ export default function DailyWorkLogSection({
   };
 
   const insertBullet = () => {
-    if (alreadySubmitted) return;
-    setLogText((prev) => (prev ? `${prev}\n• ` : "• "));
+    if (isLocked || !hasCheckedIn) return;
+    const next = logText ? `${logText}\n• ` : "• ";
+    setLogText(next);
+    if (onDraftLogChange) onDraftLogChange(next);
   };
 
   const formatISTTime = (isoString) => {
@@ -175,20 +200,25 @@ export default function DailyWorkLogSection({
         </div>
 
         <div className="flex items-center gap-2">
-          {alreadySubmitted ? (
+          {isLocked ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold">
               <CheckCircle2 size={11} className="text-emerald-600" />
               Submitted {formatISTTime(lastSavedAt)} • Locked
             </span>
-          ) : hasCheckedOut ? (
+          ) : hasSavedDraft && !isDirty ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold">
+              <CheckCircle2 size={11} className="text-emerald-600" />
+              Saved {formatISTTime(lastSavedAt)} • Ready to Check Out
+            </span>
+          ) : hasCheckedIn ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 border border-sky-300 text-sky-800 text-[10px] font-bold">
-              <Send size={10} className="text-sky-600" />
-              Ready to Submit
+              <Save size={10} className="text-sky-600" />
+              Enter Work Before Check-Out
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-300 text-amber-900 text-[10px] font-bold">
               <Lock size={10} className="text-amber-600" />
-              Check-Out Required
+              Check-In Required
             </span>
           )}
         </div>
@@ -223,26 +253,27 @@ export default function DailyWorkLogSection({
           ) : (
             <>
               <textarea
+                id="daily-worklog-textarea"
                 value={logText}
-                onChange={(e) => !alreadySubmitted && setLogText(e.target.value)}
-                readOnly={alreadySubmitted}
-                disabled={alreadySubmitted}
+                onChange={(e) => handleTextChange(e.target.value)}
+                readOnly={isLocked || !hasCheckedIn}
+                disabled={isLocked || !hasCheckedIn}
                 rows={2}
                 placeholder={
-                  alreadySubmitted
+                  isLocked
                     ? "Work log submitted and locked."
-                    : hasCheckedOut
-                      ? "Enter tasks or accomplishments completed today..."
-                      : "Check out shift first to submit work log..."
+                    : hasCheckedIn
+                      ? "Enter tasks or accomplishments completed today before checking out..."
+                      : "Check in to your shift first to log today's work..."
                 }
                 className={`w-full text-xs rounded-lg p-2 outline-none transition-all font-medium leading-relaxed resize-y min-h-[48px] border ${
-                  alreadySubmitted
+                  isLocked || !hasCheckedIn
                     ? "bg-slate-50 text-slate-700 border-slate-200 cursor-not-allowed select-text opacity-95"
                     : "bg-white text-slate-900 hover:bg-slate-50/50 focus:bg-white border-2 border-slate-300 focus:border-blue-600 placeholder:text-slate-400"
                 }`}
               />
 
-              {!alreadySubmitted && (
+              {!isLocked && hasCheckedIn && (
                 <div className="flex items-center justify-between pt-0.5 text-[10px] text-slate-600 font-medium">
                   <button
                     type="button"
@@ -268,21 +299,26 @@ export default function DailyWorkLogSection({
             <span>{showHistory ? "Hide Past Logs" : "View Past Work Logs"}</span>
           </button>
 
-          {alreadySubmitted ? (
+          {isLocked ? (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
               <CheckCircle2 size={13} className="text-emerald-600" />
               <span>Submitted & Locked</span>
             </div>
-          ) : !hasCheckedOut ? (
+          ) : !hasCheckedIn ? (
             <button
               type="button"
               disabled={true}
-              title="Please check out your shift first to submit"
+              title="Please check in your shift first"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-80"
             >
               <Lock size={12} />
-              <span>Check Out First to Submit</span>
+              <span>Check In First</span>
             </button>
+          ) : hasSavedDraft && !isDirty ? (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+              <CheckCircle2 size={13} className="text-emerald-600" />
+              <span>Work Log Saved</span>
+            </div>
           ) : (
             <button
               type="button"
@@ -297,12 +333,12 @@ export default function DailyWorkLogSection({
               {saving ? (
                 <>
                   <Loader2 size={12} className="animate-spin" />
-                  <span>Submitting...</span>
+                  <span>Saving...</span>
                 </>
               ) : (
                 <>
-                  <Send size={12} />
-                  <span>Submit Today's Log</span>
+                  <Save size={12} />
+                  <span>{hasSavedDraft ? "Update Work Log" : "Save Work Log"}</span>
                 </>
               )}
             </button>

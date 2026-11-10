@@ -370,20 +370,28 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       return;
     }
     return apiCall(async () => {
+      const trimmedNote = (checkOutNote || "").trim();
+      let hasSavedWorkLog = false;
       try {
         const wlRes = await apiClient.get("/employee/worklog/today");
-        const hasWorkLog = Boolean(wlRes.data?.log?.logText && wlRes.data.log.logText.trim().length > 0);
-        if (!hasWorkLog && !checkOutNote.trim()) {
-          setErrorMsg("⚠️ Please enter and save Today's Work Log before checking out! (Work log is mandatory)");
-          const wlEl = document.getElementById("daily-worklog-section");
-          if (wlEl) wlEl.scrollIntoView({ behavior: "smooth" });
-          return;
-        }
+        hasSavedWorkLog = Boolean(wlRes.data?.log?.logText && wlRes.data.log.logText.trim().length > 0);
       } catch {
       }
 
+      if (!hasSavedWorkLog && !trimmedNote) {
+        setErrorMsg("Please enter and save Today's Work Log before checking out.");
+        const wlEl = document.getElementById("daily-worklog-section");
+        if (wlEl) wlEl.scrollIntoView({ behavior: "smooth" });
+        const wlInput = document.getElementById("daily-worklog-textarea");
+        if (wlInput) wlInput.focus();
+        return;
+      }
+
       const loc = { latitude: null, longitude: null, address: "Web Portal", device: getDevice() };
-      const res = await apiClient.post(`/employee/check-out`, { location: loc, checkOutNote });
+      const res = await apiClient.post(`/employee/check-out`, {
+        location: loc,
+        checkOutNote: trimmedNote,
+      });
       const rec = res.data?.record || res.data?.attendance;
       if (rec) setStatusRecord(rec);
       setSuccessMsg(res.data?.message || "Checked out successfully");
@@ -557,6 +565,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
               weeklyOffReason={weeklyOffReason}
               errorMsg={errorMsg}
               successMsg={successMsg}
+              setCheckOutNote={setCheckOutNote}
             />
           )}
           {view === "calendar" && (

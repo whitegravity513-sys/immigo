@@ -478,27 +478,27 @@ export class AttendanceService {
     }
 
     let worklog = await DailyWorkLog.findOne({ employee: employeeId, date: today });
-    if (!worklog || !worklog.logText || !worklog.logText.trim()) {
-      if (checkOutNote && checkOutNote.trim()) {
-        worklog = await DailyWorkLog.findOneAndUpdate(
-          { employee: employeeId, date: today },
-          {
-            employee: employeeId,
-            date: today,
-            logText: checkOutNote.trim(),
-            updatedAt: new Date(),
-          },
-          { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
-      } else {
-        throw new ApiError(
-          400,
-          "Please enter your Today's Work Log before checking out. (Work Log is mandatory to complete shift)"
-        );
-      }
+    const trimmedNote = typeof checkOutNote === "string" ? checkOutNote.trim() : "";
+
+    if (trimmedNote) {
+      worklog = await DailyWorkLog.findOneAndUpdate(
+        { employee: employeeId, date: today },
+        {
+          employee: employeeId,
+          date: today,
+          logText: trimmedNote,
+          updatedAt: new Date(),
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    } else if (!worklog || !worklog.logText || !worklog.logText.trim()) {
+      throw new ApiError(
+        400,
+        "Please enter and save Today's Work Log before checking out. (Work Log is mandatory to complete shift)"
+      );
     }
 
-    const finalNote = checkOutNote || worklog?.logText || "";
+    const finalNote = trimmedNote || worklog?.logText || "";
 
     let record = await Attendance.findOne({ employeeId, date: today });
     const now = new Date();

@@ -18,27 +18,27 @@ export const saveTodayWorkLog = asyncHandler(async (req, res) => {
 
   const targetDate = date || getISTDate();
 
-  const existingLog = await DailyWorkLog.findOne({
-    employee: employeeId,
-    date: targetDate,
-  });
-
-  if (existingLog) {
-    throw new ApiError(
-      400,
-      "Your daily work log for today has already been submitted and cannot be edited."
-    );
-  }
-
   const attendance = await Attendance.findOne({
     employeeId,
     date: targetDate,
   });
 
-  if (!attendance || !attendance.checkOutTime) {
+  if (!attendance || !attendance.checkInTime) {
     throw new ApiError(
       400,
-      "Daily work log can only be submitted after completing shift check-out."
+      "Please check in your shift first before saving today's work log."
+    );
+  }
+
+  const existingLog = await DailyWorkLog.findOne({
+    employee: employeeId,
+    date: targetDate,
+  });
+
+  if (attendance.checkOutTime && existingLog) {
+    throw new ApiError(
+      400,
+      "Your shift is already checked out and today's work log is locked."
     );
   }
 
@@ -47,17 +47,27 @@ export const saveTodayWorkLog = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Employee not found");
   }
 
-  const log = await DailyWorkLog.create({
-    employee: employeeId,
-    date: targetDate,
-    logText: logText.trim(),
-    submittedAt: new Date(),
-    updatedAt: new Date(),
-  });
+  let log;
+  if (existingLog) {
+    existingLog.logText = logText.trim();
+    existingLog.updatedAt = new Date();
+    log = await existingLog.save();
+  } else {
+    log = await DailyWorkLog.create({
+      employee: employeeId,
+      date: targetDate,
+      logText: logText.trim(),
+      submittedAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
 
   return res.status(200).json({
     success: true,
-    message: "Work log submitted successfully and locked.",
+    message: attendance.checkOutTime
+      ? "Work log submitted successfully and locked."
+      : "Work log saved! You can now proceed to Check Out.",
+    isCheckedOut: Boolean(attendance.checkOutTime),
     log,
   });
 });

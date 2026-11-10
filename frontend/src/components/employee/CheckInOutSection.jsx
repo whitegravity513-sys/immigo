@@ -177,13 +177,13 @@ export default function CheckInOutSection({
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Shift Note / Remarks <span className="font-normal text-slate-400 normal-case">(optional)</span>
+                  <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    Today's Work Log / Shift Summary <span className="font-normal text-slate-400 normal-case">(required if not already saved)</span>
                   </label>
                   <textarea
                     rows={2}
                     className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"
-                    placeholder="Add an optional note about today's work…"
+                    placeholder="Enter today's work summary before checking out…"
                     value={checkOutNote}
                     onChange={(e) => setCheckOutNote(e.target.value)}
                   />

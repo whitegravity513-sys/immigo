@@ -47,6 +47,7 @@ export default function EmpHomeOverview({
   errorMsg = "",
   successMsg = "",
   complianceInfo = { isComplianceOnHold: false, missingDocs: [], rejectedDocs: [] },
+  setCheckOutNote,
 }) {
   const todayDateStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
@@ -606,6 +607,8 @@ export default function EmpHomeOverview({
             status={status}
             statusRecord={statusRecord}
             isCheckedOut={Boolean(status === "Checked Out" || statusRecord?.checkOutTime)}
+            onDraftLogChange={(val) => setCheckOutNote && setCheckOutNote(val)}
+            onWorkLogSaved={(val) => setCheckOutNote && setCheckOutNote(val)}
           />
         </div>
       </div>
