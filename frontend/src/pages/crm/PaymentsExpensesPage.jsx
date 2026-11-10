@@ -27,6 +27,7 @@ import crmClientService from "../../services/crmClientService.js";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import TransactionDetailModal from "../../components/crm/payments/TransactionDetailModal.jsx";
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import DateInput from "../../components/common/DateInput.jsx";
 
 const TABS = [
   { id: "all", label: "All Transactions" },
@@ -528,10 +529,10 @@ export default function PaymentsExpensesPage() {
 
           {}
           <div>
-            <input
-              type="date"
+            <DateInput
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              isClearable
               className="w-full px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-hidden"
               placeholder="Start Date"
             />
@@ -539,10 +540,10 @@ export default function PaymentsExpensesPage() {
 
           {}
           <div>
-            <input
-              type="date"
+            <DateInput
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              isClearable
               className="w-full px-3 py-2 bg-gray-50/50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-hidden"
               placeholder="End Date"
             />

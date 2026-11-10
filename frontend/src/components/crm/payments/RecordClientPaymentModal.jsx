@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import crmClientService from "../../../services/crmClientService.js";
+import DateInput from "../../common/DateInput.jsx";
 
 const PAYMENT_METHODS = [
   "Bank Transfer",
@@ -407,11 +408,10 @@ export function RecordClientPaymentModal({
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 Payment Date <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={formData.paymentDate}
                 onChange={(e) => setFormData((prev) => ({ ...prev, paymentDate: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-xs bg-white focus:ring-1 focus:ring-blue-500"
               />
             </div>
 

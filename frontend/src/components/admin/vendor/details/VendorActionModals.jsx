@@ -1,4 +1,5 @@
 import React from "react";
+import DateInput from "../../../common/DateInput.jsx";
 
 export function AssignProjectModal({
   isOpen,
@@ -239,8 +240,7 @@ export function CreateMilestoneModal({
 
           <div>
             <label className="block text-slate-300 font-bold mb-1">Due Date</label>
-            <input
-              type="date"
+            <DateInput
               value={milestoneForm.dueDate}
               onChange={(e) => setMilestoneForm({ ...milestoneForm, dueDate: e.target.value })}
               className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs cursor-pointer"

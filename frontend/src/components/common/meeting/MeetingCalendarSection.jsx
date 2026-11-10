@@ -27,6 +27,7 @@ import {
 import meetingService from "../../../services/meetingService.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import DynamicMeetingParticipantSelector from "./DynamicMeetingParticipantSelector.jsx";
+import DateInput, { MonthYearSelector } from "../DateInput.jsx";
 
 export default function MeetingCalendarSection({
   role = "ADMIN",
@@ -548,57 +549,66 @@ export default function MeetingCalendarSection({
         {/* Navigation Toolbar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 mb-3">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <button
-              onClick={() => {
-                const prev = new Date(currentDate);
-                if (viewMode === "month") {
-                  prev.setMonth(prev.getMonth() - 1);
-                } else if (viewMode === "week") {
-                  prev.setDate(prev.getDate() - 7);
-                  setSelectedDateStr(prev.toISOString().split("T")[0]);
-                } else {
-                  prev.setDate(prev.getDate() - 1);
-                  setSelectedDateStr(prev.toISOString().split("T")[0]);
-                }
-                setCurrentDate(prev);
-              }}
-              className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
-              title="Previous"
-            >
-              <ChevronLeft size={15} />
-            </button>
-            <span className="font-extrabold text-xs sm:text-sm text-slate-900 min-w-[130px] text-center">
-              {viewMode === "day"
-                ? currentDate.toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })
-                : currentDate.toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-            </span>
-            <button
-              onClick={() => {
-                const next = new Date(currentDate);
-                if (viewMode === "month") {
-                  next.setMonth(next.getMonth() + 1);
-                } else if (viewMode === "week") {
-                  next.setDate(next.getDate() + 7);
-                  setSelectedDateStr(next.toISOString().split("T")[0]);
-                } else {
-                  next.setDate(next.getDate() + 1);
-                  setSelectedDateStr(next.toISOString().split("T")[0]);
-                }
-                setCurrentDate(next);
-              }}
-              className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
-              title="Next"
-            >
-              <ChevronRight size={15} />
-            </button>
+            {viewMode === "month" ? (
+              <MonthYearSelector
+                zeroBased
+                month={currentDate.getMonth()}
+                year={currentDate.getFullYear()}
+                onChange={(m, y) => setCurrentDate(new Date(y, m, 1))}
+                minYear={2020}
+                maxYear={new Date().getFullYear() + 5}
+              />
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    const prev = new Date(currentDate);
+                    if (viewMode === "week") {
+                      prev.setDate(prev.getDate() - 7);
+                      setSelectedDateStr(prev.toISOString().split("T")[0]);
+                    } else {
+                      prev.setDate(prev.getDate() - 1);
+                      setSelectedDateStr(prev.toISOString().split("T")[0]);
+                    }
+                    setCurrentDate(prev);
+                  }}
+                  className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
+                  title="Previous"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+                <span className="font-extrabold text-xs sm:text-sm text-slate-900 min-w-[130px] text-center">
+                  {viewMode === "day"
+                    ? currentDate.toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : currentDate.toLocaleDateString("en-US", {
+                        month: "long",
+                        year: "numeric",
+                      })}
+                </span>
+                <button
+                  onClick={() => {
+                    const next = new Date(currentDate);
+                    if (viewMode === "week") {
+                      next.setDate(next.getDate() + 7);
+                      setSelectedDateStr(next.toISOString().split("T")[0]);
+                    } else {
+                      next.setDate(next.getDate() + 1);
+                      setSelectedDateStr(next.toISOString().split("T")[0]);
+                    }
+                    setCurrentDate(next);
+                  }}
+                  className="p-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 cursor-pointer"
+                  title="Next"
+                >
+                  <ChevronRight size={15} />
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 const today = new Date();
@@ -972,8 +982,7 @@ export default function MeetingCalendarSection({
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Date *</label>
-                  <input
-                    type="date"
+                  <DateInput
                     required
                     min={new Date().toISOString().split("T")[0]}
                     value={scheduleForm.date}
@@ -1162,8 +1171,7 @@ export default function MeetingCalendarSection({
 
               <div>
                 <label className="block text-slate-700 font-bold mb-1">New Date *</label>
-                <input
-                  type="date"
+                <DateInput
                   required
                   min={new Date().toISOString().split("T")[0]}
                   value={rescheduleForm.date || meetingToReschedule.date}

@@ -14,13 +14,13 @@ import {
   Trash2,
   Edit2,
   ChevronLeft,
-  ChevronRight,
   Search,
   AlertCircle,
   CheckCircle2,
   Send,
   X,
-  } from "lucide-react";
+} from "lucide-react";
+import DateInput, { MonthYearSelector } from "../../../components/common/DateInput.jsx";
 
 export default function CalendarMeetings() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -92,14 +92,6 @@ export default function CalendarMeetings() {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
-  };
 
   const handleToday = () => {
     setCurrentDate(new Date());
@@ -319,22 +311,14 @@ export default function CalendarMeetings() {
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={handlePrevMonth}
-                className="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
-                title="Previous Month"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <button
-                onClick={handleNextMonth}
-                className="w-7 h-7 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 cursor-pointer"
-                title="Next Month"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
+            <MonthYearSelector
+              zeroBased
+              month={currentMonth}
+              year={currentYear}
+              onChange={(m, y) => setCurrentDate(new Date(y, m, 1))}
+              minYear={2020}
+              maxYear={new Date().getFullYear() + 5}
+            />
           </div>
 
           <div className="grid grid-cols-7 border-b border-slate-200 text-center py-1.5 bg-slate-100 text-[10px] font-bold text-slate-800 uppercase tracking-wider">
@@ -709,8 +693,7 @@ export default function CalendarMeetings() {
                   <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
                     Date *
                   </label>
-                  <input
-                    type="date"
+                  <DateInput
                     required
                     min={todayStr}
                     value={formData.date}

@@ -17,6 +17,7 @@ import {
 import crmVendorService from "../../services/crmVendorService.js";
 import { apiClient } from "../../services/apiClient.js";
 import appConfig from "../../config/appConfig.js";
+import DateInput from "../common/DateInput.jsx";
 
 export default function CandidateProcessTimeline({ application, isAdmin = false, onUpdate }) {
   const [activeStageForm, setActiveStageForm] = useState(null); 
@@ -622,7 +623,7 @@ export default function CandidateProcessTimeline({ application, isAdmin = false,
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Date</label>
-                            <input type="date" value={vendorPaymentForm.date} onChange={e => setVendorPaymentForm({...vendorPaymentForm, date: e.target.value})} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500" />
+                            <DateInput value={vendorPaymentForm.date} onChange={e => setVendorPaymentForm({...vendorPaymentForm, date: e.target.value})} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none bg-white focus:border-indigo-500" />
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Method</label>

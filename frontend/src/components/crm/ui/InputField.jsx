@@ -1,4 +1,5 @@
 import React from "react";
+import DateInput from "../../common/DateInput.jsx";
 
 export function InputField({
   label,
@@ -32,31 +33,53 @@ export function InputField({
 
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400">
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400 z-10">
             <Icon size={14} />
           </div>
         )}
 
-        <input
-          id={name}
-          name={name}
-          type={type}
-          value={value ?? ""}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled}
-          min={min}
-          max={max}
-          step={step}
-          autoComplete={autoComplete}
-          className={`w-full text-xs rounded-md border transition-all duration-150 py-1.5 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
-            Icon ? "pl-8 pr-3" : "px-2.5"
-          } ${
-            error
-              ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-              : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 focus:outline-none"
-          }`}
-        />
+        {type === "date" || type === "datetime-local" ? (
+          <DateInput
+            id={name}
+            name={name}
+            value={value ?? ""}
+            onChange={onChange}
+            placeholder={placeholder}
+            disabled={disabled}
+            required={required}
+            min={min}
+            max={max}
+            includeTime={type === "datetime-local"}
+            className={`w-full text-xs rounded-md border transition-all duration-150 py-1.5 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
+              Icon ? "pl-8 pr-2.5" : "px-2.5"
+            } ${
+              error
+                ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+                : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 focus:outline-none"
+            }`}
+          />
+        ) : (
+          <input
+            id={name}
+            name={name}
+            type={type}
+            value={value ?? ""}
+            onChange={onChange}
+            placeholder={placeholder}
+            disabled={disabled}
+            min={min}
+            max={max}
+            step={step}
+            autoComplete={autoComplete}
+            className={`w-full text-xs rounded-md border transition-all duration-150 py-1.5 bg-white text-gray-900 placeholder:text-gray-400 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${
+              Icon ? "pl-8 pr-3" : "px-2.5"
+            } ${
+              error
+                ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+                : "border-gray-300 hover:border-gray-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 focus:outline-none"
+            }`}
+          />
+        )}
       </div>
 
       {error ? (

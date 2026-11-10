@@ -19,6 +19,7 @@ import {
 import meetingService from "../../../services/meetingService.js";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import DynamicMeetingParticipantSelector from "./DynamicMeetingParticipantSelector.jsx";
+import DateInput from "../DateInput.jsx";
 
 export default function DashboardMeetingWidget({
   role = "ADMIN",
@@ -295,12 +296,10 @@ export default function DashboardMeetingWidget({
             >
               Tomorrow
             </button>
-            <input
-              type="date"
+            <DateInput
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-[11px] px-1.5 py-0.5 text-slate-600 border-l border-slate-200 focus:outline-hidden"
-              title="Select custom date"
+              className="text-[11px] px-2 py-1 text-slate-700 font-medium border-l border-slate-200 hover:bg-slate-50 rounded-r-md focus:outline-none"
             />
           </div>
 
@@ -552,13 +551,12 @@ export default function DashboardMeetingWidget({
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Date *</label>
-                  <input
-                    type="date"
+                  <DateInput
                     required
                     min={new Date().toISOString().split("T")[0]}
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs"
+                    className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs bg-white"
                   />
                 </div>
                 <div>

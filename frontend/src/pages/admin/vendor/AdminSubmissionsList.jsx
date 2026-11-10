@@ -21,6 +21,7 @@ import {
   Sliders,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import DateInput from "../../../components/common/DateInput.jsx";
 
 export default function AdminSubmissionsList() {
   const [submissions, setSubmissions] = useState([]);
@@ -437,8 +438,7 @@ export default function AdminSubmissionsList() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Interview Date</label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={interviewDate}
                       onChange={(e) => setInterviewDate(e.target.value)}
                       disabled={isFinalized}

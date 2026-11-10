@@ -1616,28 +1616,6 @@ button.text-white, button.bg-green-600, button.bg-rose-600, button.bg-emerald-60
 }
 
 
-.react-datepicker {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-.react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
-  color: #0f172a !important;
-}
-.react-datepicker__day:hover {
-  background-color: #f1f5f9 !important;
-}
-.react-datepicker__day--selected {
-  background-color: #22c55e !important; 
-  color: #ffffff !important;
-}
-.react-datepicker__header {
-  background-color: #f8fafc !important;
-  border-bottom: 1px solid #e2e8f0 !important;
-}
-.react-datepicker__current-month {
-  color: #0f172a !important;
-}
-
 
 
 

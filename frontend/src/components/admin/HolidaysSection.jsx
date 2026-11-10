@@ -1,4 +1,5 @@
 import React from "react";
+import DateInput from "../common/DateInput.jsx";
 
 export default function HolidaysSection({
   handleCreateHolidaySubmit,
@@ -24,8 +25,7 @@ export default function HolidaysSection({
           <form onSubmit={handleCreateHolidaySubmit} className="space-y-3">
             <div className="flex flex-col gap-0.5">
               <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Holiday Date</label>
-              <input
-                type="date"
+              <DateInput
                 className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                 value={holidayForm.date}
                 onChange={e => setHolidayForm({ ...holidayForm, date: e.target.value })}

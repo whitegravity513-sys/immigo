@@ -1,6 +1,4 @@
 import React from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import {
   Calendar,
   Coffee,
@@ -13,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEmployeeMonthlyReport } from "../../../hooks/useEmployeeMonthlyReport";
 import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
+import DateInput from "../../../components/common/DateInput.jsx";
 
 const EMPLOYEE_REPORT_FIELDS = [
   { key: "employeeId", label: "Employee ID", category: "Employee", defaultSelected: true },
@@ -31,77 +30,6 @@ const EMPLOYEE_REPORT_FIELDS = [
   { key: "paidDays", label: "Total Paid Days", category: "Salary", defaultSelected: true },
   { key: "earnedSalary", label: "Final Payable Salary", category: "Salary", defaultSelected: true },
 ];
-
-const datePickerStyles = `
-  .react-datepicker-wrapper {
-    width: 100%;
-  }
-  .react-datepicker__input-container {
-    width: 100%;
-  }
-  .react-datepicker {
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #000000 !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-  }
-  .react-datepicker__header {
-    background-color: #3b82f6 !important;
-    color: #ffffff !important;
-    border-bottom: 1px solid #cbd5e1 !important;
-  }
-  .react-datepicker__month {
-    color: #000000 !important;
-  }
-  .react-datepicker__month-year {
-    color: #ffffff !important;
-    font-weight: bold !important;
-  }
-  .react-datepicker__day {
-    color: #000000 !important;
-    background-color: #ffffff !important;
-  }
-  .react-datepicker__day:hover {
-    background-color: #dbeafe !important;
-    color: #000000 !important;
-  }
-  .react-datepicker__day--selected {
-    background-color: #3b82f6 !important;
-    color: #ffffff !important;
-  }
-  .react-datepicker__day-name {
-    color: #000000 !important;
-  }
-  .react-datepicker__navigation {
-    top: 10px !important;
-  }
-  .react-datepicker__navigation--previous,
-  .react-datepicker__navigation--next {
-    width: 28px !important;
-    height: 28px !important;
-    line-height: 28px !important;
-    background-color: transparent !important;
-    color: #ffffff !important;
-  }
-  .react-datepicker__navigation--previous:hover,
-  .react-datepicker__navigation--next:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-  }
-  .react-datepicker__day--outside-month {
-    color: #cbd5e1 !important;
-  }
-  .react-datepicker__day--today {
-    font-weight: bold !important;
-    background-color: #fef08a !important;
-    color: #000000 !important;
-  }
-`;
-
-const styleSheet = document.createElement("style");
-styleSheet.textContent = datePickerStyles;
-if (document.head) {
-  document.head.appendChild(styleSheet);
-}
 
 function EmployeeMonthlyReport({ token, onGoBack }) {
   const {
@@ -245,10 +173,10 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
 
             {!useDateRange ? (
               <div>
-                <DatePicker
+                <DateInput
                   selected={selectedMonth}
                   onChange={(date) => {
-                    setSelectedMonth(date);
+                    setSelectedMonth(date || new Date());
                     setCustomStartDate(null);
                     setCustomEndDate(null);
                   }}
@@ -275,7 +203,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 mb-0.5">From Date</label>
-                  <DatePicker
+                  <DateInput
                     selected={customStartDate}
                     onChange={(date) => setCustomStartDate(date)}
                     dateFormat="dd MMM yyyy"
@@ -286,7 +214,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 mb-0.5">To Date</label>
-                  <DatePicker
+                  <DateInput
                     selected={customEndDate}
                     onChange={(date) => setCustomEndDate(date)}
                     dateFormat="dd MMM yyyy"

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Download, X, FileSpreadsheet, CheckSquare, Square, Check, AlertCircle } from "lucide-react";
+import DateInput from "../../../common/DateInput.jsx";
 
 export const DEFAULT_CANDIDATE_FIELDS = [
   { key: "fullName", label: "Candidate Name", defaultSelected: true },
@@ -99,8 +100,7 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
               <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
                 From Date
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
                 className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-blue-500"
@@ -111,8 +111,7 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
               <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
                 To Date
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
                 className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-white outline-none focus:border-blue-500"

@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { compressImage, formatFileUrl } from "./EmployeeProfileDocsTab.jsx";
+import DateInput from "../common/DateInput.jsx";
 
 export default function EmployeeExpensesTab({ user, token }) {
   const [expenses, setExpenses] = useState([]);
@@ -427,8 +428,7 @@ export default function EmployeeExpensesTab({ user, token }) {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Expense *</label>
-                <input
-                  type="date"
+                <DateInput
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}

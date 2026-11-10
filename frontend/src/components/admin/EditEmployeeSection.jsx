@@ -21,6 +21,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import DateInput from "../common/DateInput.jsx";
 
 export default function EditEmployeeSection({
   editingEmployee,
@@ -275,10 +276,10 @@ export default function EditEmployeeSection({
             <div className="space-y-0.5">
               <label className="text-[11px] font-semibold text-slate-700">Joining Date *</label>
               <div className="relative">
-                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="date"
+                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                <DateInput
                   required
+                  hideIcon
                   value={editForm.joiningDate || ""}
                   onChange={(e) => setEditForm({ ...editForm, joiningDate: e.target.value })}
                   className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 transition-colors"
@@ -289,9 +290,9 @@ export default function EditEmployeeSection({
             <div className="space-y-0.5">
               <label className="text-[11px] font-semibold text-slate-700">Date of Birth (DOB)</label>
               <div className="relative">
-                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="date"
+                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                <DateInput
+                  hideIcon
                   value={editForm.dob || ""}
                   onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
                   className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 transition-colors"
@@ -302,9 +303,9 @@ export default function EditEmployeeSection({
             <div className="space-y-0.5">
               <label className="text-[11px] font-semibold text-slate-700">Date of Leaving (Optional)</label>
               <div className="relative">
-                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="date"
+                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                <DateInput
+                  hideIcon
                   value={editForm.leavingDate || ""}
                   onChange={(e) => setEditForm({ ...editForm, leavingDate: e.target.value })}
                   className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-blue-500 transition-colors"

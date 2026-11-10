@@ -1,3 +1,5 @@
+import DateInput from "../../common/DateInput.jsx";
+
 export default function EditEmployeeModal({
   editingEmployee,
   setEditingEmployee,
@@ -161,8 +163,7 @@ export default function EditEmployeeModal({
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   Joining Date
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                   value={editForm.joiningDate}
                   onChange={(e) => setEditForm({ ...editForm, joiningDate: e.target.value })}
@@ -173,8 +174,7 @@ export default function EditEmployeeModal({
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   Date of Birth (DOB)
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                   value={editForm.dob || ""}
                   onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
@@ -186,8 +186,7 @@ export default function EditEmployeeModal({
               <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 Date of Leaving <span className="font-normal normal-case text-slate-400">(if applicable)</span>
               </label>
-              <input
-                type="date"
+              <DateInput
                 className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                 value={editForm.leavingDate}
                 onChange={(e) => setEditForm({ ...editForm, leavingDate: e.target.value })}

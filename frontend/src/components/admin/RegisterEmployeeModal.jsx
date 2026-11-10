@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Plus,
 } from "lucide-react";
+import DateInput from "../common/DateInput.jsx";
 
 export const RegisterEmployeeModal = ({
   isOpen,
@@ -363,8 +364,7 @@ export const RegisterEmployeeModal = ({
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-700">Date of Joining (DOJ) *</label>
-                  <input
-                    type="date"
+                  <DateInput
                     required
                     value={employeeForm.joiningDate || ""}
                     onChange={(e) => {
@@ -388,8 +388,7 @@ export const RegisterEmployeeModal = ({
                       <span className="text-[10px] font-bold text-emerald-600">Selected ✓</span>
                     )}
                   </div>
-                  <input
-                    type="date"
+                  <DateInput
                     required
                     value={employeeForm.dob || ""}
                     onChange={(e) => {

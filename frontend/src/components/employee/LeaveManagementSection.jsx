@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Filter
 } from "lucide-react";
+import DateInput from "../common/DateInput.jsx";
 
 export default function LeaveManagementSection({
   leaveBalance = 0,
@@ -130,8 +131,7 @@ export default function LeaveManagementSection({
                 <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                   Start Date
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
                   value={leaveForm.startDate}
                   onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })}
@@ -143,8 +143,7 @@ export default function LeaveManagementSection({
                 <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                   End Date
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
                   value={leaveForm.endDate}
                   onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })}

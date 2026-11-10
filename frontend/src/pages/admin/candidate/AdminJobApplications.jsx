@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
+import DateInput from "../../../components/common/DateInput.jsx";
 
 export default function AdminJobApplications({ prefilteredStatus = "All" }) {
   const [applications, setApplications] = useState([]);
@@ -349,8 +350,7 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Date</label>
-                  <input
-                    type="date"
+                  <DateInput
                     value={interviewForm.scheduledDate}
                     onChange={(e) =>
                       setInterviewForm({ ...interviewForm, scheduledDate: e.target.value })

@@ -11,6 +11,7 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
+import DateInput from "../../common/DateInput.jsx";
 
 export function WorkforceAttendanceTable({
   filteredAttendance,
@@ -36,14 +37,13 @@ export function WorkforceAttendanceTable({
       <div className="px-3 py-1.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-t-xl">
         <div className="flex items-center gap-1.5 flex-wrap">
           <div className="flex items-center gap-1 px-2 py-0.5 bg-white rounded-lg shadow-2xs border border-slate-200/80 shrink-0">
-            <Calendar size={12} className="text-blue-600 shrink-0" />
-            <input
-              type="date"
+            <Calendar size={12} className="text-blue-600 shrink-0 pointer-events-none" />
+            <DateInput
               value={selectedDate}
               max={todayDate}
               onChange={(e) => handleDateChange(e.target.value)}
-              className="bg-transparent text-[11px] font-bold text-slate-800 outline-none cursor-pointer max-w-[120px]"
-              title="Select date to inspect past attendance"
+              hideIcon
+              className="bg-transparent text-[11px] font-bold text-slate-800 outline-none cursor-pointer min-w-[82px]"
             />
           </div>
 

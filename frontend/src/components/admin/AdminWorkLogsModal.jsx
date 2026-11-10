@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import DateInput from "../common/DateInput.jsx";
 
 export default function AdminWorkLogsModal({ isOpen, onClose }) {
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -120,12 +121,12 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
         <div className="p-3 sm:p-4 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
             <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
-              <Calendar size={14} className="text-slate-500" />
-              <input
-                type="date"
+              <Calendar size={14} className="text-slate-500 pointer-events-none" />
+              <DateInput
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="text-xs font-bold text-slate-700 bg-transparent outline-none cursor-pointer"
+                hideIcon
+                className="text-xs font-bold text-slate-700 bg-transparent outline-none cursor-pointer min-w-[86px]"
               />
             </div>
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import apiClient from '../../services/apiClient.js';
+import DateInput from '../common/DateInput.jsx';
 import {
   CheckCircle,
   AlertCircle,
@@ -210,8 +211,7 @@ export default function EditAttendance({ attendance, onClose, onSaved }) {
               <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
                 Date
               </label>
-              <input
-                type="date"
+              <DateInput
                 className="w-full bg-white border border-slate-200 rounded-md px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 transition-colors"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}

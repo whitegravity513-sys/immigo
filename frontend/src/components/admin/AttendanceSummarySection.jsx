@@ -1,5 +1,6 @@
 import React from "react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import { MonthYearSelector } from "../common/DateInput.jsx";
 
 export default function AttendanceSummarySection({
   summaryMonth,
@@ -16,9 +17,6 @@ export default function AttendanceSummarySection({
   inlineLeaveLoading,
   handleSetLeaveBalance
 }) {
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -29,20 +27,16 @@ export default function AttendanceSummarySection({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
-          <select
-            className="bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
-            value={summaryMonth}
-            onChange={e => setSummaryMonth(Number(e.target.value))}
-          >
-            {months.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-          </select>
-          <select
-            className="bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
-            value={summaryYear}
-            onChange={e => setSummaryYear(Number(e.target.value))}
-          >
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
+          <MonthYearSelector
+            month={summaryMonth}
+            year={summaryYear}
+            onChange={(m, y) => {
+              setSummaryMonth(m);
+              setSummaryYear(y);
+            }}
+            minYear={2020}
+            maxYear={new Date().getFullYear() + 2}
+          />
           <button
             className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold cursor-pointer transition-colors shadow-xs"
             onClick={fetchSummary}

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { Users, UserCheck, Coffee, ShieldCheck, Play, MapPin, Eye, Pencil, FileText } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import AdminWorkLogsModal from "./AdminWorkLogsModal.jsx";
+import DateInput from "../common/DateInput.jsx";
 
 const StatCard = ({ icon, color, val, label }) => (
   <div className="bg-white p-3.5 sm:p-4 rounded-xl border-2 border-slate-300 shadow-xs flex items-center gap-3">
@@ -113,9 +112,9 @@ export default function LiveAttendanceSection({
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-2xs">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-              <DatePicker selected={filterStart} onChange={d => setFilterStart(d)} selectsStart startDate={filterStart} endDate={filterEnd} placeholderText="From" dateFormat="dd/MM/yyyy" className="text-xs font-semibold text-slate-700 bg-transparent outline-none w-18 cursor-pointer" maxDate={new Date()} />
+              <DateInput selected={filterStart} onChange={d => setFilterStart(d)} placeholderText="From" className="text-xs font-semibold text-slate-700 bg-transparent outline-none w-20 cursor-pointer" maxDate={new Date()} />
               <span className="text-slate-400 font-bold text-xs">—</span>
-              <DatePicker selected={filterEnd} onChange={d => setFilterEnd(d)} selectsEnd startDate={filterStart} endDate={filterEnd} minDate={filterStart} placeholderText="To" dateFormat="dd/MM/yyyy" className="text-xs font-semibold text-slate-700 bg-transparent outline-none w-18 cursor-pointer" maxDate={new Date()} />
+              <DateInput selected={filterEnd} onChange={d => setFilterEnd(d)} minDate={filterStart} placeholderText="To" className="text-xs font-semibold text-slate-700 bg-transparent outline-none w-20 cursor-pointer" maxDate={new Date()} />
             </div>
             {(filterStart || filterEnd) && (
               <button className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-rose-200" onClick={() => { setFilterStart(null); setFilterEnd(null); setTimeout(fetchAdminReports, 50); }}>✕ Clear</button>

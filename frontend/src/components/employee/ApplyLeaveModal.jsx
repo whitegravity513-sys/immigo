@@ -1,5 +1,6 @@
 import React from "react";
 import { FileUp } from "lucide-react";
+import DateInput from "../common/DateInput.jsx";
 
 export default function ApplyLeaveModal({
   leaveBalance,
@@ -44,8 +45,7 @@ export default function ApplyLeaveModal({
                 <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   {key === "startDate" ? "Start Date" : "End Date"}
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
                   value={leaveForm[key]}
                   onChange={(e) => setLeaveForm({ ...leaveForm, [key]: e.target.value })}

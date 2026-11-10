@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import crmVendorService from "../../services/crmVendorService.js";
+import DateInput from "../../components/common/DateInput.jsx";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -477,8 +478,7 @@ export function AddCandidate() {
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Date of issue</label>
-              <input
-                type="date"
+              <DateInput
                 name="passportIssueDate"
                 value={formData.passportIssueDate}
                 onChange={handleFieldChange}
@@ -488,8 +488,7 @@ export function AddCandidate() {
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">Date of Expiry</label>
-              <input
-                type="date"
+              <DateInput
                 name="passportExpiryDate"
                 value={formData.passportExpiryDate}
                 onChange={handleFieldChange}
@@ -499,8 +498,7 @@ export function AddCandidate() {
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1">DOB</label>
-              <input
-                type="date"
+              <DateInput
                 name="dob"
                 value={formData.dob}
                 onChange={handleFieldChange}

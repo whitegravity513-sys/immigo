@@ -1,5 +1,6 @@
 import React from "react";
 import { Save } from "lucide-react";
+import DateInput from "../common/DateInput.jsx";
 
 export default function CandidateProfileTab({
   profileForm,
@@ -56,8 +57,7 @@ export default function CandidateProfileTab({
           <label className="block font-medium text-slate-600 text-[11px] mb-0.5">
             Date of Birth
           </label>
-          <input
-            type="date"
+          <DateInput
             value={profileForm.dob}
             onChange={(e) =>
               setProfileForm({ ...profileForm, dob: e.target.value })
@@ -247,8 +247,7 @@ export default function CandidateProfileTab({
           <label className="block font-medium text-slate-600 text-[11px] mb-0.5">
             Passport Expiry Date
           </label>
-          <input
-            type="date"
+          <DateInput
             value={profileForm.passportExpiry}
             onChange={(e) =>
               setProfileForm({ ...profileForm, passportExpiry: e.target.value })

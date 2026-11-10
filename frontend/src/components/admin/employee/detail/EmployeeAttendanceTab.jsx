@@ -1,7 +1,6 @@
 import React from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { Eye } from "lucide-react";
+import DateInput, { MonthYearSelector } from "../../../common/DateInput.jsx";
 
 export function EmployeeAttendanceTab({
   emp,
@@ -57,7 +56,6 @@ export function EmployeeAttendanceTab({
       "November",
       "December",
     ];
-    const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
     const firstDayIndex = new Date(calendarYear, calendarMonth - 1, 1).getDay();
     const totalDays = new Date(calendarYear, calendarMonth, 0).getDate();
@@ -68,62 +66,20 @@ export function EmployeeAttendanceTab({
 
     return (
       <div className="p-4 sm:p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (calendarMonth === 1) {
-                  setCalendarMonth(12);
-                  setCalendarYear(calendarYear - 1);
-                } else {
-                  setCalendarMonth(calendarMonth - 1);
-                }
-              }}
-              className="p-2 hover:bg-slate-200 rounded-lg text-slate-600 cursor-pointer font-bold"
-            >
-              ◀
-            </button>
-            <span className="font-bold text-slate-800 text-sm w-36 text-center">
-              {months[calendarMonth - 1]} {calendarYear}
-            </span>
-            <button
-              onClick={() => {
-                if (calendarMonth === 12) {
-                  setCalendarMonth(1);
-                  setCalendarYear(calendarYear + 1);
-                } else {
-                  setCalendarMonth(calendarMonth + 1);
-                }
-              }}
-              className="p-2 hover:bg-slate-200 rounded-lg text-slate-600 cursor-pointer font-bold"
-            >
-              ▶
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={calendarMonth}
-              onChange={(e) => setCalendarMonth(Number(e.target.value))}
-              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer text-slate-700"
-            >
-              {months.map((m, i) => (
-                <option key={m} value={i + 1}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <select
-              value={calendarYear}
-              onChange={(e) => setCalendarYear(Number(e.target.value))}
-              className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer text-slate-700"
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/60">
+          <span className="font-bold text-slate-800 text-sm">
+            {months[calendarMonth - 1]} {calendarYear}
+          </span>
+          <MonthYearSelector
+            month={calendarMonth}
+            year={calendarYear}
+            onChange={(m, y) => {
+              setCalendarMonth(m);
+              setCalendarYear(y);
+            }}
+            minYear={2020}
+            maxYear={new Date().getFullYear() + 2}
+          />
         </div>
 
         <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
@@ -359,22 +315,20 @@ export function EmployeeAttendanceTab({
           {employeeDetailView === "table" && (
             <>
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-                <DatePicker
+                <DateInput
                   selected={detailFromDate}
                   onChange={(d) => setDetailFromDate(d)}
                   placeholderText="From date"
-                  dateFormat="dd/MM/yyyy"
                   maxDate={new Date()}
                   className="text-xs font-semibold text-slate-700 bg-transparent outline-none w-20 cursor-pointer"
                 />
               </div>
               <span className="text-slate-500 text-xs">→</span>
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-                <DatePicker
+                <DateInput
                   selected={detailToDate}
                   onChange={(d) => setDetailToDate(d)}
                   placeholderText="To date"
-                  dateFormat="dd/MM/yyyy"
                   maxDate={new Date()}
                   className="text-xs font-semibold text-slate-700 bg-transparent outline-none w-20 cursor-pointer"
                 />

@@ -1,4 +1,5 @@
 import React from "react";
+import { MonthYearSelector } from "../common/DateInput.jsx";
 
 export default function AttendanceCalendarTab({
   calendarMonth,
@@ -105,34 +106,16 @@ export default function AttendanceCalendarTab({
               Monthly shifts, leaves, and your attendance for {monthNames[calendarMonth - 1]} {calendarYear}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (calendarMonth === 1) {
-                  setCalendarMonth(12);
-                  setCalendarYear(calendarYear - 1);
-                } else {
-                  setCalendarMonth(calendarMonth - 1);
-                }
-              }}
-              className="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
-            >
-              ◀
-            </button>
-            <button
-              onClick={() => {
-                if (calendarMonth === 12) {
-                  setCalendarMonth(1);
-                  setCalendarYear(calendarYear + 1);
-                } else {
-                  setCalendarMonth(calendarMonth + 1);
-                }
-              }}
-              className="px-2 py-1 rounded-md border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
-            >
-              ▶
-            </button>
-          </div>
+          <MonthYearSelector
+            month={calendarMonth}
+            year={calendarYear}
+            onChange={(m, y) => {
+              setCalendarMonth(m);
+              setCalendarYear(y);
+            }}
+            minYear={2020}
+            maxYear={new Date().getFullYear() + 2}
+          />
         </div>
 
         {monthlyLoading && <div className="text-sm text-slate-500 mb-3">Loading calendar…</div>}

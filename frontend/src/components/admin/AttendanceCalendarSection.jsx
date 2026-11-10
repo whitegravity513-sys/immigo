@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
   UserCheck,
   UserX,
   Clock,
@@ -19,6 +17,7 @@ import {
   } from "lucide-react";
 import apiClient from "../../services/apiClient.js";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import DateInput, { MonthYearSelector } from "../common/DateInput.jsx";
 
 const formatDuration = (s) => {
   if (isNaN(s) || s <= 0) return "00h 00m";
@@ -62,12 +61,7 @@ export default function AttendanceCalendarSection({
   const [errorMsg, setErrorMsg] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); 
-
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchMonthCalendar = useCallback(async () => {
     setMonthLoading(true);
@@ -104,24 +98,6 @@ export default function AttendanceCalendarSection({
       fetchDateAttendance(selectedDate);
     }
   }, [selectedDate, fetchDateAttendance, refreshTrigger]);
-
-  const handlePrevMonth = () => {
-    if (currentMonth === 1) {
-      setCurrentMonth(12);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonth === 12) {
-      setCurrentMonth(1);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
-  };
 
   const handleJumpToToday = () => {
     const t = new Date();
@@ -291,48 +267,16 @@ export default function AttendanceCalendarSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <select
-              value={currentMonth}
-              onChange={(e) => setCurrentMonth(Number(e.target.value))}
-              className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
-            >
-              {monthNames.map((mName, idx) => (
-                <option key={mName} value={idx + 1}>
-                  {mName}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={currentYear}
-              onChange={(e) => setCurrentYear(Number(e.target.value))}
-              className="bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
-            >
-              {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1 border border-slate-200/80">
-              <button
-                type="button"
-                onClick={handlePrevMonth}
-                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs transition cursor-pointer"
-                title="Previous Month"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={handleNextMonth}
-                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs transition cursor-pointer"
-                title="Next Month"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+            <MonthYearSelector
+              month={currentMonth}
+              year={currentYear}
+              onChange={(m, y) => {
+                setCurrentMonth(m);
+                setCurrentYear(y);
+              }}
+              minYear={2020}
+              maxYear={new Date().getFullYear() + 2}
+            />
 
             <button
               type="button"
@@ -472,16 +416,15 @@ export default function AttendanceCalendarSection({
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
               <CalendarIcon size={15} className="text-slate-500" />
-              <input
-                type="date"
+              <DateInput
                 value={selectedDate}
                 onChange={(e) => {
                   if (e.target.value) {
                     setSelectedDate(e.target.value);
-                    const parsed = new Date(e.target.value);
-                    if (!isNaN(parsed.getTime())) {
-                      setCurrentMonth(parsed.getMonth() + 1);
-                      setCurrentYear(parsed.getFullYear());
+                    const [yy, mm] = e.target.value.split("-").map(Number);
+                    if (yy && mm) {
+                      setCurrentMonth(mm);
+                      setCurrentYear(yy);
                     }
                   }
                 }}

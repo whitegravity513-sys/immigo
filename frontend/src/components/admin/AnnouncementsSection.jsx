@@ -15,6 +15,7 @@ import {
   X,
   Edit,
 } from "lucide-react";
+import DateInput from "../common/DateInput.jsx";
 
 const FORM_TABS = [
   { key: "announcement", label: "Announcement", icon: Bell },
@@ -388,8 +389,7 @@ export default function AnnouncementsSection({
                     <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                       Broadcast Date
                     </label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={annForm.date}
                       onChange={(e) => setAnnForm({ ...annForm, date: e.target.value })}
                       required
@@ -475,8 +475,7 @@ export default function AnnouncementsSection({
                   <label className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
                     Holiday Date
                   </label>
-                  <input
-                    type="date"
+                  <DateInput
                     required
                     value={holidayForm?.date || ""}
                     onChange={(e) => setHolidayForm({ ...holidayForm, date: e.target.value })}

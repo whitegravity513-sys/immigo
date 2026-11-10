@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import DateInput from "../common/DateInput.jsx";
 import {
   DollarSign,
   CheckCircle,
@@ -390,13 +389,12 @@ export default function ExpensesSection({
             </div>
 
             <div className="flex items-center gap-1.5">
-              <DatePicker
+              <DateInput
                 selected={expenseFilterDate}
                 onChange={d => setExpenseFilterDate(d)}
                 placeholderText="Select Date"
-                dateFormat="dd/MM/yyyy"
                 isClearable
-                className="text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 cursor-pointer outline-none w-28 text-center"
+                className="text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 cursor-pointer outline-none w-32"
               />
               {expenseFilterDate && (
                 <button
@@ -444,8 +442,7 @@ export default function ExpensesSection({
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date *</label>
-                    <input
-                      type="date"
+                    <DateInput
                       className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
                       value={safeForm.date || ""}
                       onChange={e => setExpenseForm && setExpenseForm({ ...safeForm, date: e.target.value })}

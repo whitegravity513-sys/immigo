@@ -20,6 +20,7 @@ import {
   Plus,
 } from "lucide-react";
 import ConfigureMilestonesModal from "../ConfigureMilestonesModal.jsx";
+import DateInput from "../../../common/DateInput.jsx";
 
 export default function CandidateMasterProfileView({
   selectedCandidate,
@@ -804,11 +805,11 @@ export default function CandidateMasterProfileView({
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Interview Date & Time *</label>
-                <input
-                  type="datetime-local"
+                <DateInput
+                  includeTime
                   value={interviewForm.dateTime}
                   onChange={(e) => setInterviewForm({ ...interviewForm, dateTime: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-purple-600 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:border-purple-600 focus:outline-none bg-white"
                 />
               </div>
 

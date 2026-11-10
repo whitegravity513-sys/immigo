@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, User, Save, Loader2 } from "lucide-react";
+import DateInput from "../../common/DateInput.jsx";
 
 export default function EditEmployeeModal({
   isOpen,
@@ -161,8 +162,7 @@ export default function EditEmployeeModal({
               <label className="block text-slate-700 font-semibold mb-0.5 text-[11px]">
                 Joining Date
               </label>
-              <input
-                type="date"
+              <DateInput
                 name="joiningDate"
                 value={formData.joiningDate}
                 onChange={handleChange}

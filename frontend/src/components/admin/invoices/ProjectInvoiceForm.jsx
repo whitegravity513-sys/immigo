@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, Building2 } from "lucide-react";
+import DateInput from "../../common/DateInput.jsx";
 
 export default function ProjectInvoiceForm({
   logic, 
@@ -130,8 +131,7 @@ export default function ProjectInvoiceForm({
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
               Invoice Date <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="date"
+            <DateInput
               required
               value={formDate}
               onChange={(e) => setFormDate(e.target.value)}

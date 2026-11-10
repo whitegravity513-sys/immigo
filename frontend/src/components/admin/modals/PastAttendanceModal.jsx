@@ -1,3 +1,5 @@
+import DateInput from "../../common/DateInput.jsx";
+
 export default function PastAttendanceModal({
   pastAttendanceModal,
   setPastAttendanceModal,
@@ -49,8 +51,7 @@ export default function PastAttendanceModal({
                 </span>
               )}
             </div>
-            <input
-              type="date"
+            <DateInput
               min={empJoiningDateStr || undefined}
               className={`w-full bg-slate-50 border rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-blue-500 ${
                 isBeforeJoining ? "border-rose-400 bg-rose-50" : "border-slate-200"
