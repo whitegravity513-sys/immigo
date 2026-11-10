@@ -178,6 +178,10 @@ const buildStaffVisibilityQuery = (options = {}) => {
             { targetRole: { $in: ["EMPLOYEE_HR", "HR"] } },
             { targetRoles: { $in: ["EMPLOYEE_HR", "HR"] } },
             {
+              targetRole: "ALL",
+              moduleScope: { $in: ["ANNOUNCEMENT", "HOLIDAY", "MEETING"] },
+            },
+            {
               targetRole: { $in: ["ADMIN", "ALL"] },
               actorRole: { $nin: ["ADMIN", "SUPER_ADMIN"] },
             },

@@ -19,7 +19,8 @@ export default function AdminUsersTable({
     const nameMatch = adm.name?.toLowerCase().includes(q);
     const emailMatch = adm.email?.toLowerCase().includes(q);
     const roleMatch = (adm.role || "").toLowerCase().includes(q);
-    return nameMatch || emailMatch || roleMatch;
+    const hrTypeMatch = (adm.hrType || "").toLowerCase().includes(q);
+    return nameMatch || emailMatch || roleMatch || hrTypeMatch;
   });
 
   return (

@@ -77,10 +77,11 @@ export default function EmpHomeOverview({
     const list = Array.isArray(announcements) ? announcements : [];
     return list
       .filter((a) => {
-        const d = String(a?.date || "").trim().slice(0, 10);
+        const rawDate = a?.date || a?.createdAt || "";
+        const d = String(rawDate).trim().slice(0, 10);
         return d && d >= todayDateStr;
       })
-      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      .sort((a, b) => String(a.date || a.createdAt || "").localeCompare(String(b.date || b.createdAt || "")));
   }, [announcements, todayDateStr]);
 
   const topHoliday = upcomingHolidays[0] || null;

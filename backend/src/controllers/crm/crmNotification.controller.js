@@ -156,6 +156,9 @@ export const markNotificationRead = asyncHandler(async (req, res) => {
 
 export const markAllNotificationsRead = asyncHandler(async (req, res) => {
   const { role, vendorId, userId, assignedVendors } = req.query;
+  if (String(role || "").toUpperCase() === "EMPLOYEE_HR") {
+    return res.status(200).json({ success: true });
+  }
   const filter = buildCrmNotifFilter({ role, vendorId, userId, assignedVendors });
   await CrmNotification.updateMany(filter, { $set: { read: true } });
   return res.status(200).json({ success: true });
@@ -187,6 +190,9 @@ export const deleteNotification = asyncHandler(async (req, res) => {
 
 export const clearAllNotifications = asyncHandler(async (req, res) => {
   const { role, vendorId, userId, assignedVendors } = req.query;
+  if (String(role || "").toUpperCase() === "EMPLOYEE_HR") {
+    return res.status(200).json({ success: true, message: "Notifications cleared successfully" });
+  }
   const filter = buildCrmNotifFilter({ role, vendorId, userId, assignedVendors });
   await CrmNotification.deleteMany(filter);
   return res.status(200).json({ success: true, message: "Notifications cleared successfully" });

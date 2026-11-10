@@ -575,7 +575,7 @@ export class AttendanceService {
         actorId: String(employeeId),
         actorRole: "EMPLOYEE",
         moduleScope: "WORKFORCE",
-        metadata: { employeeId: empIdCode, name: empName, date: today, time: now, checkOutNote, totalWorkSeconds: record.totalWorkSeconds },
+        metadata: { employeeId: empIdCode, name: empName, date: today, time: now, checkOutNote: finalNote, totalWorkSeconds: record.totalWorkSeconds },
       });
     } catch (e) {
     }

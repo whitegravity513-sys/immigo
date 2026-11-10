@@ -162,17 +162,19 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
           : `Candidate ${app.candidateName} status changed to "${updateData.status}" on project ${app.projectName}.`;
 
       const actorMeta = resolveActorInfo(req.user);
-      await CrmNotification.create({
-        notificationId: `notif-ven-${Date.now()}`,
-        recipientRole: "VENDOR",
-        vendorId: app.vendorId,
-        actorId: actorMeta.actorId,
-        actorRole: actorMeta.actorRole,
-        title: statusTitle,
-        message: statusMsg,
-        type: updateData.status === "Selected" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
-        link: updateData.status === "Selected" ? "/vendor/selected" : updateData.status === "Rejected" ? "/vendor/rejected" : "/vendor/applications",
-      });
+      if (app.vendorId) {
+        await CrmNotification.create({
+          notificationId: `notif-ven-${Date.now()}`,
+          recipientRole: "VENDOR",
+          vendorId: String(app.vendorId),
+          actorId: actorMeta.actorId,
+          actorRole: actorMeta.actorRole,
+          title: statusTitle,
+          message: statusMsg,
+          type: updateData.status === "Selected" ? "success" : updateData.status === "Rejected" ? "warning" : "info",
+          link: updateData.status === "Selected" ? "/vendor/selected" : updateData.status === "Rejected" ? "/vendor/rejected" : "/vendor/applications",
+        });
+      }
 
       if (actorMeta.actorRole === "ADMIN" || actorMeta.actorRole === "SUPER_ADMIN" || actorMeta.actorRole === "VENDOR_HR") {
         await NotificationService.notifyStaffAction({

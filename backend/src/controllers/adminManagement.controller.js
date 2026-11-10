@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
 import Role from "../models/Role.js";
 import UserPermission from "../models/UserPermission.js";
 import AuditLog from "../models/AuditLog.js";
@@ -10,7 +11,7 @@ import NotificationService from "../services/notification.service.js";
 import { sendStaffAccountCredentialsEmail } from "../services/email.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { logAudit } from "../middleware/rbac.middleware.js";
+import { logAudit, invalidateUserAuthCache } from "../middleware/rbac.middleware.js";
 
 export const getAdmins = asyncHandler(async (req, res) => {
   const { search, role, status } = req.query;
@@ -318,25 +319,45 @@ export const updateAdmin = asyncHandler(async (req, res) => {
   };
 
   if (name) targetUser.name = String(name).trim();
-  if (email) targetUser.email = String(email).trim().toLowerCase();
+  if (email) {
+    const cleanEmail = String(email).trim().toLowerCase();
+    if (cleanEmail !== targetUser.email) {
+      const emailTaken = await User.findOne({ email: cleanEmail, _id: { $ne: targetUser._id } });
+      if (emailTaken) {
+        throw new ApiError(409, "An account with this email address already exists.");
+      }
+      targetUser.email = cleanEmail;
+    }
+  }
 
   if (role) {
     if (role === "EMPLOYEE_HR" || role === "VENDOR_HR") {
       targetUser.role = ROLES.HR;
       targetUser.hrType = role;
+      if (role === "EMPLOYEE_HR") {
+        targetUser.assignedVendors = [];
+      }
     } else if ([ROLES.ADMIN, ROLES.HR].includes(role)) {
       targetUser.role = role;
+      if (role === ROLES.ADMIN) {
+        targetUser.hrType = "";
+        targetUser.assignedVendors = [];
+      }
     } else if (role === ROLES.SUPER_ADMIN) {
       throw new ApiError(403, "Accounts cannot be promoted to Super Admin.");
     }
   }
 
-  if (hrType !== undefined) {
+  if (hrType !== undefined && targetUser.role === ROLES.HR) {
     targetUser.hrType = hrType;
+    if (hrType !== "VENDOR_HR") {
+      targetUser.assignedVendors = [];
+    }
   }
 
   if (assignedVendors !== undefined && Array.isArray(assignedVendors)) {
-    targetUser.assignedVendors = assignedVendors;
+    targetUser.assignedVendors =
+      targetUser.role === ROLES.HR && targetUser.hrType === "VENDOR_HR" ? assignedVendors : [];
   }
 
   if (phone !== undefined) {
@@ -367,6 +388,16 @@ export const updateAdmin = asyncHandler(async (req, res) => {
   }
 
   await targetUser.save();
+  invalidateUserAuthCache(id);
+  PermissionService.invalidateUserCache(id);
+
+  try {
+    const adminUpdate = { email: targetUser.email };
+    if (passwordChanged) {
+      adminUpdate.password = targetUser.passwordHash;
+    }
+    await Admin.findOneAndUpdate({ email: before.email }, { $set: adminUpdate });
+  } catch {}
 
   const roleLabel =
     targetUser.role === ROLES.ADMIN
@@ -456,6 +487,9 @@ export const deleteAdmin = asyncHandler(async (req, res) => {
 
   await User.findByIdAndDelete(id);
   await UserPermission.deleteMany({ userId: id });
+  await Admin.deleteMany({ email: targetUser.email });
+  invalidateUserAuthCache(id);
+  PermissionService.invalidateUserCache(id);
 
   await logAudit({
     req,

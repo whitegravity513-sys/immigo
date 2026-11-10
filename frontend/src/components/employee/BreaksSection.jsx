@@ -37,11 +37,10 @@ export default function BreaksSection({
               <p className="text-xs text-slate-500 font-medium mt-0.5">Your total break time for today</p>
             </div>
           </div>
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
-            isOnBreak ? "bg-sky-100 text-sky-800 border border-sky-300"
-            : status === "Active" ? "bg-emerald-50 text-emerald-700 border border-emerald-300"
-            : "bg-slate-100 text-slate-600 border border-slate-200"
-          }`}>
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${isOnBreak ? "bg-sky-100 text-sky-800 border border-sky-300"
+              : status === "Active" ? "bg-emerald-50 text-emerald-700 border border-emerald-300"
+                : "bg-slate-100 text-slate-600 border border-slate-200"
+            }`}>
             <span className={`w-2 h-2 rounded-full ${statusColor} ${isOnBreak ? "animate-ping" : ""}`} />
             {isOnBreak ? "On Break" : status === "Active" ? "Working" : status}
           </div>

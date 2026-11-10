@@ -715,8 +715,18 @@ export class EmployeeService {
 
   static async getEmployeeNote(id, date) {
     const targetDate = date || getTodayDateString();
+    const rawId = String(id || "").replace(/^virtual-/, "").trim();
+    const cleanId = cleanObjectId(rawId);
+    let resolvedEmpId = cleanId;
+    if (!resolvedEmpId && rawId) {
+      const empDoc = await Employee.findOne({ employeeId: rawId }).select("_id").lean();
+      resolvedEmpId = empDoc?._id || null;
+    }
+    if (!resolvedEmpId) {
+      throw new ApiError(404, "No checkout note found for this employee on the selected date");
+    }
     const record = await Attendance.findOne({
-      employeeId: id,
+      employeeId: resolvedEmpId,
       date: targetDate,
       checkOutNote: { $nin: ["", null] },
     }).populate("employeeId", "employeeId name designation");
@@ -736,7 +746,15 @@ export class EmployeeService {
   }
 
   static async getEmployeeLeaves(id) {
-    const leaves = await Leave.find({ employeeId: id }).sort({ createdAt: -1 });
+    const rawId = String(id || "").replace(/^virtual-/, "").trim();
+    const cleanId = cleanObjectId(rawId);
+    let resolvedEmpId = cleanId;
+    if (!resolvedEmpId && rawId) {
+      const empDoc = await Employee.findOne({ employeeId: rawId }).select("_id").lean();
+      resolvedEmpId = empDoc?._id || null;
+    }
+    if (!resolvedEmpId) return [];
+    const leaves = await Leave.find({ employeeId: resolvedEmpId }).sort({ createdAt: -1 });
     return leaves.map((l) => ({
       ...l.toObject(),
       id: l._id.toString(),
@@ -923,7 +941,10 @@ export class EmployeeService {
   }
 
   static async deleteDocument(id, docId) {
-    const cleanId = cleanObjectId(id) || id;
+    const cleanId = cleanObjectId(id);
+    if (!cleanId) {
+      throw new ApiError(404, "Employee not found");
+    }
     const emp = await Employee.findById(cleanId).select("+documents");
     if (!emp) {
       throw new ApiError(404, "Employee not found");
