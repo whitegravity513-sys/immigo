@@ -23,13 +23,32 @@ export function ClientSidebar({
   const location = useLocation();
   const { user, logout } = useAuth();
   const currentPath = location.pathname;
+  const searchParams = new URLSearchParams(location.search);
+  const currentView = searchParams.get("view") || "";
+  const currentTab = searchParams.get("tab") || "";
+  const isExpenseView =
+    currentView === "expenses" ||
+    currentTab === "expenses" ||
+    currentTab === "paid_expenses" ||
+    currentTab === "pending_expenses";
 
   const isActive = (path) => {
     if (path === "/client/dashboard") return currentPath === "/client/dashboard" || currentPath === "/dashboard";
     if (path === "/client/clients") return currentPath === "/client/clients" || (currentPath.startsWith("/client/clients/") && currentPath !== "/client/clients/new");
     if (path === "/client/clients/new") return currentPath === "/client/clients/new";
-    if (path === "/client/payments-expenses") return currentPath.startsWith("/client/payments-expenses") || currentPath.startsWith("/client/payments") || currentPath.startsWith("/client/expenses");
-    if (path === "/client/ledger") return currentPath.startsWith("/client/ledger") || currentPath.startsWith("/admin/client-ledger");
+    if (path === "/client/payments-expenses?view=payments") {
+      return (
+        (currentPath === "/client/payments-expenses" && !isExpenseView) ||
+        currentPath.startsWith("/client/payments") ||
+        currentPath.startsWith("/client/ledger")
+      );
+    }
+    if (path === "/client/payments-expenses?view=expenses") {
+      return (
+        (currentPath === "/client/payments-expenses" && isExpenseView) ||
+        currentPath.startsWith("/client/expenses")
+      );
+    }
     return currentPath === path;
   };
 
@@ -108,8 +127,8 @@ export function ClientSidebar({
             { label: "Dashboard", icon: LayoutDashboard, path: "/client/dashboard" },
             { label: "All Clients", icon: Building2, path: "/client/clients" },
             { label: "Add Client", icon: Plus, path: "/client/clients/new" },
-            { label: "Payments & Expenses", icon: Receipt, path: "/client/payments-expenses" },
-            { label: "Payment Ledger", icon: CreditCard, path: "/client/ledger" },
+            { label: "Record Payment", icon: CreditCard, path: "/client/payments-expenses?view=payments" },
+            { label: "Expense", icon: Receipt, path: "/client/payments-expenses?view=expenses" },
           ].map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);

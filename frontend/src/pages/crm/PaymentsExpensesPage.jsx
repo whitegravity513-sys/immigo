@@ -29,11 +29,15 @@ import TransactionDetailModal from "../../components/crm/payments/TransactionDet
 import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 import DateInput from "../../components/common/DateInput.jsx";
 
-const TABS = [
-  { id: "all", label: "All Records" },
+const PAYMENT_TABS = [
+  { id: "received", label: "All Payment Records" },
   { id: "milestones", label: "Payable Milestones" },
-  { id: "received", label: "Payment Entries" },
-  { id: "expenses", label: "Client Expenses" },
+  { id: "paid_payments", label: "Paid Entries" },
+];
+
+const EXPENSE_TABS = [
+  { id: "expenses", label: "All Expenses" },
+  { id: "paid_expenses", label: "Paid Expenses" },
   { id: "pending_expenses", label: "Pending Expenses" },
 ];
 
@@ -49,29 +53,42 @@ const PAYMENT_METHODS = [
 export default function PaymentsExpensesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialClientId = searchParams.get("clientId") || "";
-  const initialTab = searchParams.get("tab") || "all";
+  const initialView = searchParams.get("view") || "";
+  const initialTab =
+    searchParams.get("tab") ||
+    (initialView === "expenses" ? "expenses" : "received");
   const { showToast } = useCrmToast() || { showToast: (msg) => console.log(msg) };
 
-  
   const [payments, setPayments] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState(initialClientId);
   const [selectedMethod, setSelectedMethod] = useState("All");
 
   useEffect(() => {
+    const viewParam = searchParams.get("view");
     const tabParam = searchParams.get("tab");
-    if (tabParam) setActiveTab(tabParam);
     const clientParam = searchParams.get("clientId");
-    if (clientParam) setSelectedClient(clientParam);
+    if (clientParam !== null) setSelectedClient(clientParam);
+    if (tabParam) {
+      setActiveTab(tabParam);
+    } else if (viewParam === "expenses") {
+      setActiveTab("expenses");
+    } else if (viewParam === "payments") {
+      setActiveTab("received");
+    }
   }, [searchParams]);
+
+  const isExpenseView =
+    activeTab === "expenses" ||
+    activeTab === "paid_expenses" ||
+    activeTab === "pending_expenses";
+  const visibleTabs = isExpenseView ? EXPENSE_TABS : PAYMENT_TABS;
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [sortOrder, setSortOrder] = useState("desc"); 
@@ -256,8 +273,12 @@ export default function PaymentsExpensesPage() {
     return unifiedTransactions
       .filter((tx) => {
         if (activeTab === "milestones" && (tx.type !== "payment" || !tx.isScheduledPayable)) return false;
+        if (activeTab === "paid_payments" && (tx.type !== "payment" || tx.isScheduledPayable)) return false;
         if (activeTab === "received" && tx.type !== "payment") return false;
         if (activeTab === "expenses" && tx.type !== "expense") return false;
+        if (activeTab === "paid_expenses") {
+          if (tx.type !== "expense" || tx.status !== "Paid") return false;
+        }
         if (activeTab === "pending_expenses") {
           if (tx.type !== "expense" || tx.status === "Paid") return false;
         }
@@ -375,7 +396,6 @@ export default function PaymentsExpensesPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      {}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -384,14 +404,22 @@ export default function PaymentsExpensesPage() {
                 Client Management
               </Link>
               <span>/</span>
-              <span className="text-gray-900 font-bold">Payments & Expenses</span>
+              <span className="text-gray-900 font-bold">
+                {isExpenseView ? "Expense" : "Record Payment"}
+              </span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
-              <Receipt size={24} className="text-blue-600" />
-              <span>Payments & Expense Management</span>
+              {isExpenseView ? (
+                <Receipt size={24} className="text-rose-600" />
+              ) : (
+                <CreditCard size={24} className="text-blue-600" />
+              )}
+              <span>{isExpenseView ? "Client Expense Records" : "Client Payment Records"}</span>
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              Centralized financial ledger tracking verified client receipts, outgoing project expenses, and net cash flow.
+              {isExpenseView
+                ? "Expenses incurred for client work, operations, and vendor disbursements."
+                : "Agreed payable milestones for clients and recorded payment entries."}
             </p>
           </div>
 
@@ -412,100 +440,114 @@ export default function PaymentsExpensesPage() {
               <span>Export CSV/Excel</span>
             </button>
 
-            {}
-            <Link
-              to="/client/payments/record"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm shadow-emerald-600/25 transition-all cursor-pointer"
-            >
-              <Plus size={15} />
-              <span>Record Payment</span>
-            </Link>
-
-            {}
-            <Link
-              to="/client/expenses/add"
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm shadow-rose-600/25 transition-all cursor-pointer"
-            >
-              <Plus size={15} />
-              <span>Add Expense</span>
-            </Link>
+            {isExpenseView ? (
+              <Link
+                to="/client/expenses/add"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm shadow-rose-600/25 transition-all cursor-pointer"
+              >
+                <Plus size={15} />
+                <span>Add Expense</span>
+              </Link>
+            ) : (
+              <Link
+                to="/client/payments/record"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm shadow-emerald-600/25 transition-all cursor-pointer"
+              >
+                <Plus size={15} />
+                <span>Record Payment</span>
+              </Link>
+            )}
           </div>
         </div>
 
-        {}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-6 pt-6 border-t border-gray-100">
-          <div className="bg-blue-50/50 border border-blue-200/80 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
-              <CreditCard size={12} />
-              Total Client Payable
-            </p>
-            <p className="text-xl font-bold text-blue-900 mt-1">
-              ₹{stats.totalAgreedPayable.toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] text-blue-700/70 mt-0.5 font-medium">
-              Configured client milestones
-            </p>
-          </div>
+        {isExpenseView ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-gray-100">
+            <div className="bg-rose-50/50 border border-rose-200/80 rounded-xl p-4">
+              <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
+                <TrendingDown size={12} />
+                Total Client Expenses
+              </p>
+              <p className="text-xl font-bold text-rose-800 mt-1">
+                ₹{stats.totalExpensesRecorded.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[10px] text-rose-700/70 mt-0.5 font-medium">
+                Work & operational expenses
+              </p>
+            </div>
 
-          <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-              <CheckCircle2 size={12} />
-              Payment Paid (Milestones)
-            </p>
-            <p className="text-xl font-bold text-emerald-800 mt-1">
-              ₹{stats.totalPaidOut.toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] text-emerald-700/70 mt-0.5 font-medium">
-              Settled milestone entries
-            </p>
-          </div>
+            <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4">
+              <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 size={12} />
+                Expenses Paid
+              </p>
+              <p className="text-xl font-bold text-emerald-800 mt-1">
+                ₹{stats.totalExpensesPaid.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[10px] text-emerald-700/70 mt-0.5 font-medium">
+                Paid for client work
+              </p>
+            </div>
 
-          <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
-              <Clock size={12} />
-              Pending Milestone Payable
-            </p>
-            <p className="text-xl font-bold text-amber-800 mt-1">
-              ₹{stats.totalPendingPayable.toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] text-amber-700/70 mt-0.5 font-medium">
-              Remaining balance to pay
-            </p>
+            <div className="bg-purple-50/50 border border-purple-200/80 rounded-xl p-4">
+              <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
+                <AlertCircle size={12} />
+                Pending Expenses
+              </p>
+              <p className="text-xl font-bold text-purple-800 mt-1">
+                ₹{stats.totalPendingExpenses.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[10px] text-purple-700/70 mt-0.5 font-medium">
+                Unpaid / pending claims
+              </p>
+            </div>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-gray-100">
+            <div className="bg-blue-50/50 border border-blue-200/80 rounded-xl p-4">
+              <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
+                <CreditCard size={12} />
+                Total Client Payable
+              </p>
+              <p className="text-xl font-bold text-blue-900 mt-1">
+                ₹{stats.totalAgreedPayable.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[10px] text-blue-700/70 mt-0.5 font-medium">
+                Configured client milestones
+              </p>
+            </div>
 
-          <div className="bg-rose-50/50 border border-rose-200/80 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
-              <TrendingDown size={12} />
-              Total Client Expenses
-            </p>
-            <p className="text-xl font-bold text-rose-800 mt-1">
-              ₹{stats.totalExpensesRecorded.toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] text-rose-700/70 mt-0.5 font-medium">
-              Work & operational expenses
-            </p>
-          </div>
+            <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4">
+              <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 size={12} />
+                Payment Paid (Milestones)
+              </p>
+              <p className="text-xl font-bold text-emerald-800 mt-1">
+                ₹{stats.totalPaidOut.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[10px] text-emerald-700/70 mt-0.5 font-medium">
+                Settled milestone entries
+              </p>
+            </div>
 
-          <div className="bg-purple-50/50 border border-purple-200/80 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
-              <AlertCircle size={12} />
-              Pending Expenses
-            </p>
-            <p className="text-xl font-bold text-purple-800 mt-1">
-              ₹{stats.totalPendingExpenses.toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] text-purple-700/70 mt-0.5 font-medium">
-              Unpaid / pending claims
-            </p>
+            <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-4">
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                <Clock size={12} />
+                Pending Milestone Payable
+              </p>
+              <p className="text-xl font-bold text-amber-800 mt-1">
+                ₹{stats.totalPendingPayable.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[10px] text-amber-700/70 mt-0.5 font-medium">
+                Remaining balance to pay
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-        {}
         <div className="border-b border-gray-200 px-6 pt-3 flex items-center gap-2 overflow-x-auto bg-gray-50/50">
-          {TABS.map((tab) => {
+          {visibleTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
@@ -704,9 +746,8 @@ export default function PaymentsExpensesPage() {
                         </div>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-gray-600 max-w-xs truncate">
-                        {isPayment ? `Rec: ${tx.receivedBy}` : `To: ${tx.paidTo}`}
+                        {isPayment ? `By: ${tx.receivedBy}` : `To: ${tx.paidTo}`}
                       </td>
 
                       {}
@@ -753,7 +794,9 @@ export default function PaymentsExpensesPage() {
         )}
 
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs text-gray-500">
-          <span>Showing {filteredTransactions.length} of {unifiedTransactions.length} total entries</span>
+          <span>
+            Showing {filteredTransactions.length} of {isExpenseView ? expenses.length : payments.length} {isExpenseView ? "expense entries" : "payment records"}
+          </span>
         </div>
       </div>
 

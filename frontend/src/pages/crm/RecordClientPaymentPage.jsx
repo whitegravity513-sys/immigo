@@ -240,7 +240,7 @@ export default function RecordClientPaymentPage() {
       if (formData.clientId) {
         navigate(`/client/clients/${formData.clientId}?tab=milestones`);
       } else {
-        navigate("/client/payments-expenses");
+        navigate("/client/payments-expenses?view=payments");
       }
     } catch (err) {
       console.error("Failed to record payment:", err);

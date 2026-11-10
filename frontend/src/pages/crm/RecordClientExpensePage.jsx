@@ -216,7 +216,7 @@ export default function RecordClientExpensePage() {
       if (formData.clientId) {
         navigate(`/client/clients/${formData.clientId}?tab=milestones`);
       } else {
-        navigate("/client/payments-expenses");
+        navigate("/client/payments-expenses?view=expenses");
       }
     } catch (err) {
       console.error("Failed to save expense:", err);
