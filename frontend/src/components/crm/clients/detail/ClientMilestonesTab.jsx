@@ -92,23 +92,27 @@ export function ClientMilestonesTab({
     milestones.reduce((s, m) => s + (Number(m.paymentAmount) || Number(m.amount) || 0), 0);
 
   
-  const verifiedPayments = clientPayments.filter(
+  const paidPayments = clientPayments.filter(
     (p) =>
       !p.isReversed &&
+      !p.isMilestoneSchedule &&
       (p.status === "Verified" ||
         p.status === "Completed" ||
+        p.status === "Paid" ||
+        p.status === "Received" ||
         p.paymentStatus === "Verified" ||
-        p.paymentStatus === "Completed")
+        p.paymentStatus === "Completed" ||
+        p.paymentStatus === "Paid" ||
+        p.paymentStatus === "Received")
   );
 
-  const totalVerifiedReceived = verifiedPayments.reduce(
+  const totalPaidToClient = paidPayments.reduce(
     (acc, p) => acc + (Number(p.amountPaid) || 0),
     0
   );
 
-  const remainingClientPayment = Math.max(0, totalAgreed - totalVerifiedReceived);
+  const remainingClientPayment = Math.max(0, totalAgreed - totalPaidToClient);
 
-  
   const totalExpensesRecorded =
     expenseStats.totalExpensesRecorded ||
     clientExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
@@ -125,24 +129,9 @@ export function ClientMilestonesTab({
       .filter((e) => e.status === "Pending" || e.status === "Approved")
       .reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
-  
-  const netCashFlow = totalVerifiedReceived - totalExpensesPaid;
-
-  const completedCount = milestones.filter(
-    (m) => m.paymentStatus === "Paid" || m.status === "Paid"
-  ).length;
-  const pendingDueCount = milestones.filter(
-    (m) =>
-      m.paymentStatus === "Pending" ||
-      m.paymentStatus === "Due" ||
-      m.paymentStatus === "Partially Paid" ||
-      m.status === "Pending" ||
-      m.status === "Due"
-  ).length;
-
   const paidPct =
     totalAgreed > 0
-      ? Math.min(100, Math.round((totalVerifiedReceived / totalAgreed) * 100))
+      ? Math.min(100, Math.round((totalPaidToClient / totalAgreed) * 100))
       : 0;
 
   const statusColors = {
@@ -204,8 +193,7 @@ export function ClientMilestonesTab({
   return (
     <div className="space-y-6">
       {}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <IndianRupee size={12} className="text-blue-600" />
@@ -219,25 +207,23 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
             <Receipt size={12} className="text-emerald-600" />
-            Received (Verified)
+            Payment Paid
           </p>
           <p className="text-lg font-bold text-emerald-600 mt-1 truncate">
-            ₹{Number(totalVerifiedReceived).toLocaleString("en-IN")}
+            ₹{Number(totalPaidToClient).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-emerald-700/80 font-semibold mt-0.5">
-            {paidPct}% cleared
+            {paidPct}% paid
           </p>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1">
             <TrendingUp size={12} className="text-amber-600" />
-            Remaining Balance
+            Remaining Payable
           </p>
           <p className="text-lg font-bold text-amber-600 mt-1 truncate">
             ₹{Number(remainingClientPayment).toLocaleString("en-IN")}
@@ -247,7 +233,6 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <Layers size={12} className="text-purple-600" />
@@ -261,7 +246,6 @@ export function ClientMilestonesTab({
           </p>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
             <TrendingDown size={12} className="text-rose-600" />
@@ -271,11 +255,10 @@ export function ClientMilestonesTab({
             ₹{Number(totalExpensesPaid).toLocaleString("en-IN")}
           </p>
           <p className="text-[10px] text-gray-400 mt-0.5 truncate">
-            Disbursed outward
+            Paid for client work
           </p>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-orange-600 uppercase tracking-wider flex items-center gap-1">
             <Clock size={12} className="text-orange-500" />
@@ -288,50 +271,17 @@ export function ClientMilestonesTab({
             Unpaid / claim
           </p>
         </div>
-
-        {}
-        <div
-          className={`rounded-xl border p-4 shadow-2xs ${
-            netCashFlow >= 0
-              ? "bg-emerald-50/50 border-emerald-200"
-              : "bg-rose-50/50 border-rose-200"
-          }`}
-        >
-          <p
-            className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 ${
-              netCashFlow >= 0 ? "text-emerald-700" : "text-rose-700"
-            }`}
-          >
-            {netCashFlow >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-            Net Cash Flow
-          </p>
-          <p
-            className={`text-lg font-bold mt-1 truncate ${
-              netCashFlow >= 0 ? "text-emerald-700" : "text-rose-700"
-            }`}
-          >
-            {netCashFlow < 0 ? "-" : "+"}₹{Math.abs(Number(netCashFlow)).toLocaleString("en-IN")}
-          </p>
-          <p
-            className={`text-[10px] font-semibold mt-0.5 truncate ${
-              netCashFlow >= 0 ? "text-emerald-600" : "text-rose-600"
-            }`}
-          >
-            {netCashFlow >= 0 ? "Positive Surplus" : "Deficit Outflow"}
-          </p>
-        </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center justify-between text-xs font-bold text-gray-700 mb-2">
               <span className="flex items-center gap-1.5">
                 <Receipt size={14} className="text-emerald-600" />
-                <span>Milestone Payment Collection Progress</span>
+                <span>Client Milestone Payment Progress</span>
               </span>
-              <span>{paidPct}% Completed</span>
+              <span>{paidPct}% Paid</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
               <div
@@ -387,7 +337,7 @@ export function ClientMilestonesTab({
               <span>Configured Payment Milestones</span>
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Recruitment milestone obligations and candidate deployment schedule.
+              Agreed payable milestones for this client and payment schedule.
             </p>
           </div>
           <span className="text-xs font-medium text-gray-500">
@@ -474,7 +424,7 @@ export function ClientMilestonesTab({
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
                           >
                             <CreditCard size={12} />
-                            <span>Pay (New Page)</span>
+                            <span>Record Pay</span>
                           </Link>
                         ) : (
                           <span className="text-[11px] text-emerald-600 font-semibold inline-flex items-center gap-1">
@@ -498,13 +448,13 @@ export function ClientMilestonesTab({
           <div>
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <Receipt size={17} className="text-emerald-600" />
-              <span>Payment Received History</span>
+              <span>Client Payment History</span>
               <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
                 {filteredPayments.length} Entries
               </span>
             </h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              Receipts received from client against milestones and project invoices.
+              Milestone payable schedules and recorded payments for this client.
             </p>
           </div>
 
@@ -560,7 +510,7 @@ export function ClientMilestonesTab({
           </div>
         ) : filteredPayments.length === 0 ? (
           <div className="text-center py-10 px-4 text-xs text-gray-500">
-            No received payments found. Click "Record Payment" to register a payment receipt.
+            No payment entries found. Click "Record Payment" to record a milestone payment.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -570,10 +520,10 @@ export function ClientMilestonesTab({
                   <th className="py-2 px-3 text-[10px]">Date</th>
                   <th className="py-2 px-3 text-[10px]">Project</th>
                   <th className="py-2 px-3 text-[10px]">Milestone</th>
-                  <th className="py-2 px-3 text-[10px]">Amount Received</th>
+                  <th className="py-2 px-3 text-[10px]">Amount Paid</th>
                   <th className="py-2 px-3 text-[10px]">Method</th>
                   <th className="py-2 px-3 text-[10px]">Reference / UTR</th>
-                  <th className="py-2 px-3 text-[10px]">Received By</th>
+                  <th className="py-2 px-3 text-[10px]">Recorded By</th>
                   <th className="py-2 px-3 text-[10px]">Status</th>
                   <th className="py-2 px-3 text-[10px]">Remarks</th>
                   <th className="py-2 px-3 text-[10px] text-right">Actions</th>
@@ -594,10 +544,10 @@ export function ClientMilestonesTab({
                         {p.milestoneName || "Milestone Payment"}
                       </td>
                       <td className="py-1.5 px-3 font-bold text-emerald-700 whitespace-nowrap">
-                        ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")}
+                        ₹{Number(Number(p.amountPaid) > 0 ? p.amountPaid : p.agreedMilestoneAmount || 0).toLocaleString("en-IN")}
                       </td>
                       <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
-                        {p.paymentMethod || "Bank Transfer"}
+                        {p.isMilestoneSchedule && Number(p.amountPaid) === 0 ? "Scheduled" : (p.paymentMethod || "Bank Transfer")}
                       </td>
                       <td className="py-1.5 px-3 font-mono font-bold text-blue-700 select-all">
                         {p.transactionReference || "—"}
@@ -633,16 +583,15 @@ export function ClientMilestonesTab({
               </tbody>
             </table>
 
-            {}
             <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
               <span className="text-xs text-gray-500 font-medium">
-                Showing {Math.min(3, filteredPayments.length)} of {filteredPayments.length} payment receipts
+                Showing {Math.min(3, filteredPayments.length)} of {filteredPayments.length} payment entries
               </span>
               <Link
                 to={`/client/payments-expenses?clientId=${client.id || client._id}&tab=received`}
                 className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
               >
-                <span>See All Received Payments ({filteredPayments.length})</span>
+                <span>See All Payment Entries ({filteredPayments.length})</span>
                 <ExternalLink size={12} />
               </Link>
             </div>

@@ -752,10 +752,8 @@ export default function PaymentsExpensesPage() {
           </div>
         )}
 
-        {}
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs text-gray-500">
           <span>Showing {filteredTransactions.length} of {unifiedTransactions.length} total entries</span>
-          <span>Net Filtered Cash Flow: ₹{filteredTransactions.reduce((acc, t) => acc + (t.type === "payment" ? t.amount : -t.amount), 0).toLocaleString("en-IN")}</span>
         </div>
       </div>
 
