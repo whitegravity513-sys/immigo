@@ -14,7 +14,12 @@ import LoadingSkeleton from "../ui/LoadingSkeleton.jsx";
 
 const STATUS_COLORS = {
   Completed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Verified: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Received: "bg-emerald-50 text-emerald-700 border-emerald-200",
   Pending: "bg-amber-50 text-amber-700 border-amber-200",
+  "Partially Paid": "bg-blue-50 text-blue-700 border-blue-200",
+  Due: "bg-amber-50 text-amber-700 border-amber-200",
   Reversed: "bg-rose-50 text-rose-700 border-rose-200",
 };
 
@@ -129,9 +134,13 @@ export default function ClientPaymentTable({
 
                   <td className="py-1.5 px-3 whitespace-nowrap font-mono">
                     <div className="font-bold text-gray-950 text-sm">
-                      ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")}
+                      ₹{Number(Number(p.amountPaid) > 0 ? p.amountPaid : p.agreedMilestoneAmount || 0).toLocaleString("en-IN")}
                     </div>
-                    {p.gstAmount > 0 ? (
+                    {Number(p.agreedMilestoneAmount) > 0 && Number(p.remainingMilestoneBalance) > 0 ? (
+                      <div className="text-[10px] text-amber-700 font-semibold">
+                        Paid ₹{Number(p.amountPaid || 0).toLocaleString("en-IN")} · Due ₹{Number(p.remainingMilestoneBalance).toLocaleString("en-IN")}
+                      </div>
+                    ) : p.gstAmount > 0 ? (
                       <div className="text-[10px] text-indigo-600 font-semibold">
                         Incl. GST ₹{Number(p.gstAmount).toLocaleString("en-IN")}
                       </div>
@@ -145,10 +154,10 @@ export default function ClientPaymentTable({
                   <td className="py-1.5 px-3 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                        STATUS_COLORS[p.paymentStatus] || "bg-gray-100 text-gray-700"
+                        STATUS_COLORS[p.status || p.paymentStatus] || "bg-gray-100 text-gray-700"
                       }`}
                     >
-                      {p.paymentStatus || "Completed"}
+                      {p.status || p.paymentStatus || "Completed"}
                     </span>
                     {p.isReversed && (
                       <div className="text-[10px] text-rose-500 font-semibold mt-0.5">Reversed</div>
@@ -157,6 +166,15 @@ export default function ClientPaymentTable({
 
                   <td className="py-1.5 px-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
+                      {(p.isMilestoneSchedule || p.status === "Pending" || p.status === "Partially Paid") && !p.isReversed && (
+                        <Link
+                          to={`/client/payments/record?clientId=${encodeURIComponent(p.clientId || "")}${p.milestoneId ? `&milestoneId=${encodeURIComponent(p.milestoneId)}` : ""}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                        >
+                          <Plus size={12} />
+                          <span>Pay Now</span>
+                        </Link>
+                      )}
                       <button
                         type="button"
                         onClick={() => onViewPayment(p)}
@@ -167,7 +185,7 @@ export default function ClientPaymentTable({
                         <span>Open</span>
                       </button>
 
-                      {p.paymentStatus === "Completed" && !p.isReversed && (
+                      {(p.paymentStatus === "Completed" || p.status === "Verified") && !p.isReversed && !p.isMilestoneSchedule && (
                         <button
                           type="button"
                           onClick={() => onOpenReversal(p)}

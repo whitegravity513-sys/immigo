@@ -87,9 +87,33 @@ export default function ExpensesSection({
   useEffect(() => {
     async function loadClients() {
       try {
-        const res = await apiClient.get("/admin/clients");
-        const list = res.data?.clients || res.data?.data || res.data;
-        setClients(Array.isArray(list) ? list : []);
+        const [adminRes, crmRes] = await Promise.allSettled([
+          apiClient.get("/admin/clients"),
+          apiClient.get("/crm-sync/clients"),
+        ]);
+        const adminList =
+          adminRes.status === "fulfilled"
+            ? adminRes.value.data?.clients || adminRes.value.data?.data || adminRes.value.data || []
+            : [];
+        const crmList =
+          crmRes.status === "fulfilled"
+            ? crmRes.value.data?.clients || crmRes.value.data?.data || crmRes.value.data || []
+            : [];
+        const seen = new Set();
+        const combined = [];
+        for (const c of [...(Array.isArray(crmList) ? crmList : []), ...(Array.isArray(adminList) ? adminList : [])]) {
+          const cid = String(c.clientId || c.id || c._id || "");
+          if (!cid || seen.has(cid)) continue;
+          seen.add(cid);
+          combined.push({
+            ...c,
+            _id: cid,
+            id: cid,
+            name: c.companyName || c.company || c.name || cid,
+            company: c.companyName || c.company || c.name || cid,
+          });
+        }
+        setClients(combined);
       } catch (err) {
         console.error("Failed to load clients", err);
         setClients([]);

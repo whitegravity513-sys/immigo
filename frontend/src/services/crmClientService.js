@@ -239,7 +239,13 @@ export const crmClientService = {
     all.unshift(newClient);
     saveClientsToStorage(all);
     try {
-      await apiClient.post("/crm-sync/clients", newClient);
+      const res = await apiClient.post("/crm-sync/clients", newClient);
+      if (res.data?.client) {
+        const synced = { ...newClient, ...res.data.client, id: res.data.client.id || res.data.client.clientId || newClient.id };
+        all[0] = synced;
+        saveClientsToStorage(all);
+        return synced;
+      }
     } catch {}
     return newClient;
   },
@@ -292,7 +298,13 @@ export const crmClientService = {
     saveClientsToStorage(all);
 
     try {
-      await apiClient.post("/crm-sync/clients", updated);
+      const res = await apiClient.post("/crm-sync/clients", updated);
+      if (res.data?.client) {
+        const synced = { ...updated, ...res.data.client, id: res.data.client.id || res.data.client.clientId || updated.id };
+        all[index] = synced;
+        saveClientsToStorage(all);
+        return synced;
+      }
     } catch {}
 
     return updated;

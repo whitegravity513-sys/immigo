@@ -41,6 +41,15 @@ const clientPaymentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isMilestoneSchedule: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    dueDate: {
+      type: Date,
+      default: null,
+    },
     agreedMilestoneAmount: {
       type: Number,
       required: true,
@@ -57,7 +66,8 @@ const clientPaymentSchema = new mongoose.Schema(
     amountPaid: {
       type: Number,
       required: true,
-      min: [1, "Payment amount must be greater than zero"],
+      default: 0,
+      min: [0, "Payment amount cannot be negative"],
     },
     remainingMilestoneBalance: {
       type: Number,
@@ -80,7 +90,8 @@ const clientPaymentSchema = new mongoose.Schema(
     },
     transactionReference: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
       trim: true,
       index: true,
     },
@@ -116,12 +127,34 @@ const clientPaymentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Verified", "Pending Verification", "Received", "Completed", "Reversed", "Adjusted"],
+      enum: [
+        "Pending",
+        "Due",
+        "Partially Paid",
+        "Paid",
+        "Verified",
+        "Pending Verification",
+        "Received",
+        "Completed",
+        "Reversed",
+        "Adjusted",
+      ],
       default: "Verified",
     },
     paymentStatus: {
       type: String,
-      enum: ["Verified", "Pending Verification", "Received", "Completed", "Reversed", "Adjusted"],
+      enum: [
+        "Pending",
+        "Due",
+        "Partially Paid",
+        "Paid",
+        "Verified",
+        "Pending Verification",
+        "Received",
+        "Completed",
+        "Reversed",
+        "Adjusted",
+      ],
       default: "Verified",
       index: true,
     },

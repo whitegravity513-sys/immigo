@@ -128,15 +128,24 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {isPayment ? "Total Received Amount" : "Expense Amount Paid"}
+                  {isPayment
+                    ? transaction.isMilestoneSchedule
+                      ? "Agreed Milestone Payable"
+                      : "Milestone Payment Paid"
+                    : "Client Expense Amount"}
                 </p>
                 <p
                   className={`text-3xl font-bold mt-1 ${
                     isPayment ? "text-emerald-700" : "text-rose-700"
                   }`}
                 >
-                  ₹{Number(transaction.amountPaid || transaction.amount || 0).toLocaleString("en-IN")}
+                  ₹{Number(Number(transaction.amountPaid) > 0 ? transaction.amountPaid : transaction.agreedMilestoneAmount || transaction.amount || 0).toLocaleString("en-IN")}
                 </p>
+                {isPayment && Number(transaction.agreedMilestoneAmount) > 0 && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Agreed: ₹{Number(transaction.agreedMilestoneAmount).toLocaleString("en-IN")} · Paid: ₹{Number(transaction.amountPaid || 0).toLocaleString("en-IN")} · Remaining: ₹{Number(transaction.remainingMilestoneBalance ?? Math.max(0, Number(transaction.agreedMilestoneAmount) - Number(transaction.amountPaid || 0))).toLocaleString("en-IN")}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Transaction Date</p>

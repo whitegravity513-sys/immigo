@@ -108,6 +108,8 @@ export function ClientSidebar({
             { label: "Dashboard", icon: LayoutDashboard, path: "/client/dashboard" },
             { label: "All Clients", icon: Building2, path: "/client/clients" },
             { label: "Add Client", icon: Plus, path: "/client/clients/new" },
+            { label: "Payments & Expenses", icon: Receipt, path: "/client/payments-expenses" },
+            { label: "Payment Ledger", icon: CreditCard, path: "/client/ledger" },
           ].map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);

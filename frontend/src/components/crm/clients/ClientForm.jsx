@@ -438,6 +438,23 @@ export function ClientForm({
       });
 
     const totalAgreedAmount = Number(totalPaymentInput) || formattedMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+    const finalMilestones =
+      formattedMilestones.length === 0 && totalAgreedAmount > 0
+        ? [
+            {
+              id: `mls-${Date.now()}-1`,
+              name: "Milestone 1",
+              amount: totalAgreedAmount,
+              condition: "Agreed Client Payment",
+              timeline: "",
+              description: "",
+              status: "Pending",
+              paidAmount: 0,
+              remainingBalance: totalAgreedAmount,
+              remarks: "",
+            },
+          ]
+        : formattedMilestones;
 
     onSubmit({
       ...formData,
@@ -450,7 +467,7 @@ export function ClientForm({
       contacts: sanitizedContacts,
       panNumber: (formData.panNumber || "").trim().toUpperCase(),
       panDocumentName,
-      paymentMilestones: formattedMilestones,
+      paymentMilestones: finalMilestones,
       totalAgreedAmount,
       remainingAmount: totalAgreedAmount - (Number(initialData?.totalPaidAmount) || 0),
     });
@@ -962,8 +979,8 @@ export function ClientForm({
         {}
         <FormSection
           id="milestones"
-          title="6. Payment Milestones"
-          subtitle="Configure agreed manpower recruitment expenses (selection advance, visa processing, deployment) payable to this client."
+          title="6. Client Payment Milestones (Payable Schedule)"
+          subtitle="Define the agreed amounts payable for this client. Added milestones are automatically listed in Payment Records to track paid and pending balances."
           icon={CreditCard}
         >
           <div className="space-y-4">

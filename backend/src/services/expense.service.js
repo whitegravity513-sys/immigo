@@ -3,11 +3,85 @@ import ExpenseCategory from "../models/ExpenseCategory.js";
 import Expense from "../models/Expense.js";
 import Employee from "../models/Employee.js";
 import Client from "../models/Client.js";
+import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 import { saveBase64File } from "../utils/fileStorage.js";
 
 export class ExpenseService {
+  static async resolveClientInfo(clientId) {
+    if (!clientId) return { allIds: [], canonicalId: null, clientName: "", clientObj: null };
+    const rawStr = String(clientId._id || clientId.id || clientId).trim();
+    if (!rawStr) return { allIds: [], canonicalId: null, clientName: "", clientObj: null };
+
+    const allIds = new Set([rawStr]);
+    const crmQuery = [{ clientId: rawStr }];
+    if (mongoose.Types.ObjectId.isValid(rawStr)) {
+      crmQuery.push({ _id: new mongoose.Types.ObjectId(rawStr) });
+      allIds.add(new mongoose.Types.ObjectId(rawStr));
+    }
+
+    const crmClient = await CrmOverseasClient.findOne({ $or: crmQuery }).lean();
+    if (crmClient) {
+      if (crmClient._id) {
+        allIds.add(String(crmClient._id));
+        allIds.add(crmClient._id);
+      }
+      if (crmClient.clientId) allIds.add(String(crmClient.clientId));
+      const canonicalId = crmClient.clientId || String(crmClient._id);
+      const clientName = crmClient.companyName || crmClient.name || "";
+      return {
+        allIds: Array.from(allIds),
+        canonicalId,
+        clientName,
+        clientObj: {
+          _id: String(crmClient._id),
+          id: canonicalId,
+          clientId: canonicalId,
+          name: clientName,
+          companyName: clientName,
+          company: clientName,
+        },
+      };
+    }
+
+    const adminQueries = [{ company: rawStr }, { clientId: rawStr }];
+    if (mongoose.Types.ObjectId.isValid(rawStr)) {
+      adminQueries.push({ _id: new mongoose.Types.ObjectId(rawStr) });
+    }
+    const adminClient = await Client.findOne({ $or: adminQueries }).lean();
+    if (adminClient) {
+      if (adminClient._id) {
+        allIds.add(String(adminClient._id));
+        allIds.add(adminClient._id);
+      }
+      if (adminClient.clientId) allIds.add(String(adminClient.clientId));
+      if (adminClient.company) allIds.add(String(adminClient.company));
+      const canonicalId = adminClient.clientId || String(adminClient._id);
+      const clientName = adminClient.company || adminClient.name || "";
+      return {
+        allIds: Array.from(allIds),
+        canonicalId,
+        clientName,
+        clientObj: {
+          _id: String(adminClient._id),
+          id: canonicalId,
+          clientId: canonicalId,
+          name: clientName,
+          companyName: clientName,
+          company: clientName,
+        },
+      };
+    }
+
+    return {
+      allIds: Array.from(allIds),
+      canonicalId: rawStr,
+      clientName: "",
+      clientObj: null,
+    };
+  }
+
   static formatCategory(category) {
     if (!category) return null;
     return {
@@ -17,11 +91,38 @@ export class ExpenseService {
     };
   }
 
-  static formatExpense(expense) {
+  static formatExpense(expense, clientLookupMap = null) {
     if (!expense) return null;
     const catObj = expense.categoryId;
     const empObj = expense.employeeId;
-    const clientObj = expense.clientId;
+    const rawClient = expense.clientId;
+    const rawClientStr = rawClient
+      ? String(rawClient._id || rawClient.id || rawClient).trim()
+      : "";
+    const lookedUpClient = rawClientStr && clientLookupMap ? clientLookupMap.get(rawClientStr) : null;
+    const resolvedClientName =
+      expense.clientName ||
+      lookedUpClient?.clientName ||
+      (typeof rawClient === "object" && rawClient ? rawClient.companyName || rawClient.company || rawClient.name || "" : "");
+
+    const clientObj = lookedUpClient?.clientObj
+      ? lookedUpClient.clientObj
+      : typeof rawClient === "object" && rawClient !== null
+      ? {
+          ...(rawClient.toObject ? rawClient.toObject() : rawClient),
+          id: rawClient.clientId || rawClient._id?.toString() || rawClientStr,
+          _id: rawClient._id?.toString() || rawClientStr,
+          name: resolvedClientName,
+          companyName: resolvedClientName,
+        }
+      : rawClientStr
+      ? {
+          id: rawClientStr,
+          _id: rawClientStr,
+          name: resolvedClientName || "Client",
+          companyName: resolvedClientName || "Client",
+        }
+      : null;
 
     return {
       ...(expense.toObject ? expense.toObject() : expense),
@@ -29,7 +130,9 @@ export class ExpenseService {
       _id: expense._id?.toString() || expense.id,
       name: expense.title || expense.name || "",
       title: expense.title || expense.name || "",
-      type: (expense.status === "Pending" ? "Claim" : "Expense"),
+      clientId: clientObj?.id || rawClientStr || null,
+      clientName: resolvedClientName,
+      type: expense.status === "Pending" ? "Claim" : "Expense",
       category: catObj
         ? {
             ...(catObj.toObject ? catObj.toObject() : catObj),
@@ -44,14 +147,39 @@ export class ExpenseService {
             _id: empObj._id?.toString() || empObj.toString(),
           }
         : null,
-      client: clientObj
-        ? {
-            ...(clientObj.toObject ? clientObj.toObject() : clientObj),
-            id: clientObj._id?.toString() || clientObj.toString(),
-            _id: clientObj._id?.toString() || clientObj.toString(),
-          }
-        : null,
+      client: clientObj,
     };
+  }
+
+  static async buildClientLookupMap() {
+    const map = new Map();
+    const [crmClients, adminClients] = await Promise.all([
+      CrmOverseasClient.find({}, { clientId: 1, companyName: 1 }).lean(),
+      Client.find({}, { clientId: 1, company: 1, name: 1 }).lean(),
+    ]);
+    for (const c of crmClients) {
+      const canonicalId = c.clientId || String(c._id);
+      const clientName = c.companyName || "Client";
+      const entry = {
+        canonicalId,
+        clientName,
+        clientObj: { _id: String(c._id), id: canonicalId, clientId: canonicalId, name: clientName, companyName: clientName, company: clientName },
+      };
+      map.set(String(c._id), entry);
+      if (c.clientId) map.set(String(c.clientId), entry);
+    }
+    for (const c of adminClients) {
+      const canonicalId = c.clientId || String(c._id);
+      const clientName = c.company || c.name || "Client";
+      const entry = {
+        canonicalId,
+        clientName,
+        clientObj: { _id: String(c._id), id: canonicalId, clientId: canonicalId, name: clientName, companyName: clientName, company: clientName },
+      };
+      if (!map.has(String(c._id))) map.set(String(c._id), entry);
+      if (c.clientId && !map.has(String(c.clientId))) map.set(String(c.clientId), entry);
+    }
+    return map;
   }
 
   static async getCategories() {
@@ -103,7 +231,10 @@ export class ExpenseService {
     const query = {};
 
     if (categoryId) query.categoryId = categoryId;
-    if (clientId) query.clientId = clientId;
+    if (clientId) {
+      const resolved = await ExpenseService.resolveClientInfo(clientId);
+      query.clientId = { $in: resolved.allIds };
+    }
     if (employeeId) {
       if (mongoose.Types.ObjectId.isValid(employeeId)) {
         query.$or = [
@@ -122,14 +253,16 @@ export class ExpenseService {
       };
     }
 
-    const expenses = await Expense.find(query)
-      .populate("categoryId", "name")
-      .populate("employeeId", "name employeeId email designation")
-      .populate("clientId", "name company email phone")
-      .sort({ date: -1, createdAt: -1 })
-      .lean();
+    const [expenses, clientLookupMap] = await Promise.all([
+      Expense.find(query)
+        .populate("categoryId", "name")
+        .populate("employeeId", "name employeeId email designation")
+        .sort({ date: -1, createdAt: -1 })
+        .lean(),
+      this.buildClientLookupMap(),
+    ]);
 
-    return expenses.map((e) => this.formatExpense(e));
+    return expenses.map((e) => this.formatExpense(e, clientLookupMap));
   }
 
   static async createExpense(data, userRole = "admin", userId = null) {
@@ -190,6 +323,8 @@ export class ExpenseService {
       finalEmployeeId = mongoose.Types.ObjectId.isValid(data.employeeId) ? new mongoose.Types.ObjectId(data.employeeId) : data.employeeId;
     }
 
+    const resolvedClient = clientId ? await ExpenseService.resolveClientInfo(clientId) : { canonicalId: "", clientName: "" };
+
     const expense = await Expense.create({
       title: finalTitle,
       description: (description || data.name || finalTitle).trim(),
@@ -197,8 +332,8 @@ export class ExpenseService {
       date: date ? new Date(date) : new Date(),
       categoryId: targetCategoryId,
       employeeId: finalEmployeeId,
-      clientId: clientId || null,
-      clientName: data.clientName || "",
+      clientId: resolvedClient.canonicalId || clientId || null,
+      clientName: data.clientName || resolvedClient.clientName || "",
       projectId: data.projectId || "",
       projectName: data.projectName || "",
       categoryName: customCategoryText || data.categoryName || "General",
@@ -264,7 +399,8 @@ export class ExpenseService {
       }
     }
 
-    return this.formatExpense(expense);
+    const clientLookupMap = await this.buildClientLookupMap();
+    return this.formatExpense(expense, clientLookupMap);
   }
 
   static async reviewExpense(id, { status, adminRemark, adminId, actor = null, paymentMode, transactionRef, paymentNote }) {
@@ -299,7 +435,7 @@ export class ExpenseService {
       cleanId,
       { $set: updateData },
       { new: true, runValidators: false }
-    ).populate(["categoryId", "employeeId", "clientId"]);
+    ).populate(["categoryId", "employeeId"]);
 
     if (!expense) {
       throw new ApiError(404, "Expense not found.");
@@ -334,7 +470,8 @@ export class ExpenseService {
       console.error("Failed to notify employee of expense review:", e);
     }
 
-    return this.formatExpense(expense);
+    const clientLookupMap = await this.buildClientLookupMap();
+    return this.formatExpense(expense, clientLookupMap);
   }
 
   static async updateExpense(id, data, user = {}) {
@@ -447,7 +584,8 @@ export class ExpenseService {
 
     await expense.save();
     await expense.populate(["categoryId", "employeeId"]);
-    return this.formatExpense(expense);
+    const clientLookupMap = await this.buildClientLookupMap();
+    return this.formatExpense(expense, clientLookupMap);
   }
 
   static async deleteExpense(id) {
@@ -477,17 +615,15 @@ export class ExpenseService {
       throw new ApiError(400, "Client ID is required");
     }
 
-    const clientQuery = [{ clientId: String(clientId) }];
-    if (typeof clientId === "string" && /^[0-9a-fA-F]{24}$/.test(clientId)) {
-      clientQuery.push({ clientId: new mongoose.Types.ObjectId(clientId) });
-      clientQuery.push({ clientId: clientId });
-    }
-
-    const expenses = await Expense.find({ $or: clientQuery })
-      .populate("categoryId", "name")
-      .populate("employeeId", "name employeeId")
-      .sort({ date: -1, createdAt: -1 })
-      .lean();
+    const resolvedClient = await ExpenseService.resolveClientInfo(clientId);
+    const [expenses, clientLookupMap] = await Promise.all([
+      Expense.find({ clientId: { $in: resolvedClient.allIds } })
+        .populate("categoryId", "name")
+        .populate("employeeId", "name employeeId")
+        .sort({ date: -1, createdAt: -1 })
+        .lean(),
+      this.buildClientLookupMap(),
+    ]);
 
     const totalExpensesRecorded = expenses.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
     const totalExpensesPaid = expenses
@@ -498,14 +634,14 @@ export class ExpenseService {
       .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
     return {
-      clientId,
+      clientId: resolvedClient.canonicalId || clientId,
       totalCount: expenses.length,
       totalAmount: totalExpensesRecorded,
       totalExpensesRecorded,
       totalExpensesPaid,
       pendingExpenses,
       approvedAmount: totalExpensesPaid,
-      expenses: expenses.map((e) => this.formatExpense(e)),
+      expenses: expenses.map((e) => this.formatExpense(e, clientLookupMap)),
     };
   }
 }

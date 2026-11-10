@@ -1,12 +1,21 @@
 import CrmOverseasClient from "../../models/CrmOverseasClient.js";
 import Client from "../../models/Client.js";
 import ClientPayment from "../../models/ClientPayment.js";
+import ClientPaymentService from "../../services/clientPayment.service.js";
 import ActivityService from "../../services/activity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateNextClientId } from "../../utils/idGenerator.js";
 
 export const getClients = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).sort({ createdAt: -1 }).lean();
+
+  for (const c of clients || []) {
+    if (Array.isArray(c.paymentMilestones) && c.paymentMilestones.length > 0) {
+      try {
+        await ClientPaymentService.syncClientMilestonesToPayments(c);
+      } catch {}
+    }
+  }
 
   const formatted = (clients || []).map((c) => ({
     ...c,
@@ -29,9 +38,21 @@ export const saveClient = asyncHandler(async (req, res) => {
   }
 
   let milestones = Array.isArray(clientData.paymentMilestones) ? [...clientData.paymentMilestones] : [];
+  if (milestones.length === 0 && Number(clientData.totalAgreedAmount) > 0) {
+    milestones = [
+      {
+        id: `mls-${Date.now()}-1`,
+        name: "Milestone 1",
+        amount: Number(clientData.totalAgreedAmount),
+        condition: "Agreed Client Payment",
+        status: "Pending",
+      },
+    ];
+  }
+
   milestones = milestones.map((m, idx) => {
-    const amount = Number(m.amount) || 0;
-    const paidAmount = Number(m.paidAmount) || 0;
+    const amount = Number(m.paymentAmount) || Number(m.amount) || 0;
+    const paidAmount = Number(m.amountPaid) || Number(m.paidAmount) || 0;
     const remainingBalance = Math.max(0, amount - paidAmount);
     return {
       ...m,
@@ -51,14 +72,6 @@ export const saveClient = asyncHandler(async (req, res) => {
   });
 
   const totalAgreed = milestones.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
-  
-  const existingPayments = await ClientPayment.find({
-    clientId: String(clientId),
-    status: "Completed",
-    isReversed: false,
-  }).lean();
-  const totalPaid = existingPayments.reduce((sum, p) => sum + (Number(p.amountPaid) || 0), 0);
-  const remainingAmount = Math.max(0, totalAgreed - totalPaid);
 
   let doc = await CrmOverseasClient.findOne({ $or: queryConditions });
   const isNew = !doc;
@@ -68,8 +81,6 @@ export const saveClient = asyncHandler(async (req, res) => {
       clientId: doc.clientId || clientId,
       paymentMilestones: milestones,
       totalAgreedAmount: totalAgreed,
-      totalPaidAmount: totalPaid,
-      remainingAmount,
       updatedAt: new Date(),
     });
     await doc.save();
@@ -79,9 +90,19 @@ export const saveClient = asyncHandler(async (req, res) => {
       clientId,
       paymentMilestones: milestones,
       totalAgreedAmount: totalAgreed,
-      totalPaidAmount: totalPaid,
-      remainingAmount,
+      totalPaidAmount: 0,
+      remainingAmount: totalAgreed,
     });
+  }
+
+  try {
+    await ClientPaymentService.syncClientMilestonesToPayments(doc, req.user || {});
+    const totals = await ClientPaymentService.recalculateClientTotals(doc.clientId || doc._id.toString());
+    doc.totalAgreedAmount = totals.totalAgreed;
+    doc.totalPaidAmount = totals.totalPaid;
+    doc.remainingAmount = totals.remainingAmount;
+  } catch (syncErr) {
+    console.error("Milestone payment sync error:", syncErr.message);
   }
 
   try {
@@ -113,6 +134,7 @@ export const deleteClient = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Client ID required" });
   }
 
+  const resolvedIds = Array.from(await ClientPaymentService.resolveClientIds(id));
   const query = [{ clientId: String(id) }, { id: String(id) }];
   if (typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id)) {
     query.push({ _id: id });
@@ -129,7 +151,7 @@ export const deleteClient = asyncHandler(async (req, res) => {
   } catch {}
 
   try {
-    await ClientPayment.deleteMany({ clientId: String(id) });
+    await ClientPayment.deleteMany({ clientId: { $in: resolvedIds } });
   } catch {}
 
   try {

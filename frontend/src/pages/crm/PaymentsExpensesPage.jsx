@@ -30,10 +30,10 @@ import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
 import DateInput from "../../components/common/DateInput.jsx";
 
 const TABS = [
-  { id: "all", label: "All Transactions" },
-  { id: "received", label: "Payment Received" },
-  { id: "expenses", label: "Expenses Paid" },
-  { id: "pending_verification", label: "Pending Verification" },
+  { id: "all", label: "All Records" },
+  { id: "milestones", label: "Payable Milestones" },
+  { id: "received", label: "Payment Entries" },
+  { id: "expenses", label: "Client Expenses" },
   { id: "pending_expenses", label: "Pending Expenses" },
 ];
 
@@ -116,31 +116,54 @@ export default function PaymentsExpensesPage() {
 
   
   const unifiedTransactions = useMemo(() => {
-    const pList = payments.map((p) => ({
-      id: p.id || p._id || p.paymentId,
-      rawId: p._id || p.id,
-      type: "payment", 
-      date: p.paymentDate || p.createdAt,
-      clientId: p.clientId,
-      clientName: p.clientName || "Client",
-      projectId: p.projectId || "",
-      projectName: p.projectName || "General Project",
-      title: p.milestoneName || "Milestone Payment",
-      categoryOrMilestone: p.milestoneName || "Milestone Payment",
-      amount: Number(p.amountPaid) || 0,
-      paymentMethod: p.paymentMethod || "Bank Transfer",
-      transactionReference: p.transactionReference || "—",
-      status: p.status || p.paymentStatus || "Verified",
-      receivedBy: p.receivedBy || p.recordedBy || "Admin",
-      paidTo: "ImmiGo (Company)",
-      remarks: p.remarks || "",
-      raw: p,
-    }));
+    const pList = payments.map((p) => {
+      const agreed = Number(p.agreedMilestoneAmount) || 0;
+      const paid = Number(p.amountPaid) || 0;
+      const remaining = p.remainingMilestoneBalance !== undefined ? Number(p.remainingMilestoneBalance) : Math.max(0, agreed - paid);
+      const rawStatus = p.status || p.paymentStatus || "Pending";
+      const isScheduledPayable = Boolean(
+        p.isMilestoneSchedule ||
+        rawStatus === "Pending" ||
+        rawStatus === "Partially Paid" ||
+        rawStatus === "Due"
+      );
+      const displayAmount = paid > 0 ? paid : agreed;
+      return {
+        id: p.id || p._id || p.paymentId,
+        rawId: p._id || p.id,
+        type: "payment",
+        isScheduledPayable,
+        milestoneId: p.milestoneId || "",
+        agreedAmount: agreed,
+        paidAmount: paid,
+        remainingAmount: remaining,
+        date: p.paymentDate || p.createdAt,
+        clientId: p.clientId,
+        clientName: p.clientName || "Client",
+        projectId: p.projectId || "",
+        projectName: p.projectName || "General Project",
+        title: p.milestoneName || "Milestone Payment",
+        categoryOrMilestone: p.milestoneName || "Milestone Payment",
+        amount: displayAmount,
+        paymentMethod: isScheduledPayable && paid === 0 ? "Scheduled" : (p.paymentMethod || "Bank Transfer"),
+        transactionReference: p.transactionReference || "—",
+        status: rawStatus,
+        receivedBy: p.receivedBy || p.recordedBy || "Admin",
+        paidTo: p.clientName || "Client",
+        remarks: p.remarks || "",
+        raw: p,
+      };
+    });
 
     const eList = expenses.map((e) => ({
       id: e.id || e._id,
       rawId: e._id || e.id,
-      type: "expense", 
+      type: "expense",
+      isScheduledPayable: false,
+      milestoneId: "",
+      agreedAmount: 0,
+      paidAmount: Number(e.amount) || 0,
+      remainingAmount: 0,
       date: e.date || e.createdAt,
       clientId: e.clientId,
       clientName: e.clientName || e.client?.name || e.client?.company || "Overhead / Internal",
@@ -153,7 +176,7 @@ export default function PaymentsExpensesPage() {
       transactionReference: e.transactionReference || e.transactionRef || "—",
       status: e.status || "Paid",
       receivedBy: e.recordedBy || "Admin",
-      paidTo: e.paidTo || "Vendor / Employee",
+      paidTo: e.paidTo || "Vendor / Operations",
       remarks: e.description || e.remarks || e.notes || "",
       raw: e,
     }));
@@ -161,61 +184,86 @@ export default function PaymentsExpensesPage() {
     return [...pList, ...eList];
   }, [payments, expenses]);
 
-  
+
   const stats = useMemo(() => {
-    const verifiedPayments = payments.filter(
+    const activePayments = payments.filter((p) => !p.isReversed);
+    const settledPayments = activePayments.filter(
       (p) =>
-        !p.isReversed &&
+        !p.isMilestoneSchedule &&
         (p.status === "Verified" ||
           p.status === "Completed" ||
+          p.status === "Paid" ||
+          p.status === "Received" ||
           p.paymentStatus === "Verified" ||
-          p.paymentStatus === "Completed")
+          p.paymentStatus === "Completed" ||
+          p.paymentStatus === "Paid" ||
+          p.paymentStatus === "Received")
     );
-    const totalReceived = verifiedPayments.reduce((s, p) => s + (Number(p.amountPaid) || 0), 0);
+    const totalPaidOut = settledPayments.reduce((s, p) => s + (Number(p.amountPaid) || 0), 0);
 
+    const scheduleRows = activePayments.filter(
+      (p) =>
+        p.isMilestoneSchedule ||
+        p.status === "Pending" ||
+        p.status === "Partially Paid" ||
+        p.status === "Due"
+    );
+    const totalPendingPayable = scheduleRows.reduce((s, p) => {
+      const agreed = Number(p.agreedMilestoneAmount) || 0;
+      const paid = Number(p.amountPaid) || 0;
+      const rem = p.remainingMilestoneBalance !== undefined ? Number(p.remainingMilestoneBalance) : Math.max(0, agreed - paid);
+      return s + rem;
+    }, 0);
+
+    const totalAgreedPayable = totalPaidOut + totalPendingPayable;
+
+    const totalExpensesRecorded = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
     const paidExpenses = expenses.filter((e) => e.status === "Paid");
     const totalExpensesPaid = paidExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
 
     const pendingExpenses = expenses.filter((e) => e.status === "Pending" || e.status === "Approved");
     const totalPendingExpenses = pendingExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
 
-    const pendingVerification = payments.filter(
-      (p) => p.status === "Pending Verification" || p.paymentStatus === "Pending Verification"
-    );
-    const totalPendingVerification = pendingVerification.reduce(
-      (s, p) => s + (Number(p.amountPaid) || 0),
-      0
-    );
-
-    const netCashFlow = totalReceived - totalExpensesPaid;
-
     return {
-      totalReceived,
+      totalAgreedPayable,
+      totalPaidOut,
+      totalPendingPayable,
+      totalExpensesRecorded,
       totalExpensesPaid,
       totalPendingExpenses,
-      totalPendingVerification,
-      netCashFlow,
       totalTransactions: payments.length + expenses.length,
     };
   }, [payments, expenses]);
 
-  
+
   const filteredTransactions = useMemo(() => {
+    const matchedClientIds = new Set();
+    if (selectedClient && selectedClient !== "All" && selectedClient !== "") {
+      matchedClientIds.add(String(selectedClient));
+      const matchedObj = clients.find(
+        (c) =>
+          String(c.id) === String(selectedClient) ||
+          String(c._id) === String(selectedClient) ||
+          String(c.clientId) === String(selectedClient)
+      );
+      if (matchedObj) {
+        if (matchedObj.id) matchedClientIds.add(String(matchedObj.id));
+        if (matchedObj._id) matchedClientIds.add(String(matchedObj._id));
+        if (matchedObj.clientId) matchedClientIds.add(String(matchedObj.clientId));
+      }
+    }
+
     return unifiedTransactions
       .filter((tx) => {
-        
+        if (activeTab === "milestones" && (tx.type !== "payment" || !tx.isScheduledPayable)) return false;
         if (activeTab === "received" && tx.type !== "payment") return false;
         if (activeTab === "expenses" && tx.type !== "expense") return false;
-        if (activeTab === "pending_verification") {
-          if (tx.type !== "payment" || tx.status !== "Pending Verification") return false;
-        }
         if (activeTab === "pending_expenses") {
           if (tx.type !== "expense" || tx.status === "Paid") return false;
         }
 
-        
-        if (selectedClient && selectedClient !== "All" && selectedClient !== "") {
-          if (String(tx.clientId) !== String(selectedClient)) return false;
+        if (matchedClientIds.size > 0) {
+          if (!matchedClientIds.has(String(tx.clientId))) return false;
         }
 
         
@@ -256,7 +304,7 @@ export default function PaymentsExpensesPage() {
         const timeB = new Date(b.date).getTime() || 0;
         return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
       });
-  }, [unifiedTransactions, activeTab, selectedClient, selectedMethod, startDate, endDate, search, sortOrder]);
+  }, [unifiedTransactions, activeTab, selectedClient, clients, selectedMethod, startDate, endDate, search, sortOrder]);
 
   
   const handleExport = () => {
@@ -386,62 +434,55 @@ export default function PaymentsExpensesPage() {
 
         {}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-6 pt-6 border-t border-gray-100">
-          {}
+          <div className="bg-blue-50/50 border border-blue-200/80 rounded-xl p-4">
+            <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1">
+              <CreditCard size={12} />
+              Total Client Payable
+            </p>
+            <p className="text-xl font-bold text-blue-900 mt-1">
+              ₹{stats.totalAgreedPayable.toLocaleString("en-IN")}
+            </p>
+            <p className="text-[10px] text-blue-700/70 mt-0.5 font-medium">
+              Configured client milestones
+            </p>
+          </div>
+
           <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-              <Receipt size={12} />
-              Total Received (Verified)
+              <CheckCircle2 size={12} />
+              Payment Paid (Milestones)
             </p>
             <p className="text-xl font-bold text-emerald-800 mt-1">
-              ₹{stats.totalReceived.toLocaleString("en-IN")}
+              ₹{stats.totalPaidOut.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-emerald-700/70 mt-0.5 font-medium">
-              Confirmed client receipts
-            </p>
-          </div>
-
-          <div className="bg-rose-50/50 border border-rose-200/80 rounded-xl p-4">
-            <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
-              <TrendingDown size={12} />
-              Total Expenses Paid
-            </p>
-            <p className="text-xl font-bold text-rose-800 mt-1">
-              ₹{stats.totalExpensesPaid.toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] text-rose-700/70 mt-0.5 font-medium">
-              Disbursed to vendors/ops
-            </p>
-          </div>
-
-          <div
-            className={`border rounded-xl p-4 ${
-              stats.netCashFlow >= 0
-                ? "bg-blue-50/50 border-blue-200/80 text-blue-900"
-                : "bg-amber-50/50 border-amber-200/80 text-amber-900"
-            }`}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-              {stats.netCashFlow >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-              Net Cash Flow
-            </p>
-            <p className="text-xl font-bold mt-1">
-              {stats.netCashFlow < 0 ? "-" : "+"}₹{Math.abs(stats.netCashFlow).toLocaleString("en-IN")}
-            </p>
-            <p className="text-[10px] opacity-75 mt-0.5 font-medium">
-              Verified Inflow - Outflow
+              Settled milestone entries
             </p>
           </div>
 
           <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-4">
             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
               <Clock size={12} />
-              Pending Verification
+              Pending Milestone Payable
             </p>
             <p className="text-xl font-bold text-amber-800 mt-1">
-              ₹{stats.totalPendingVerification.toLocaleString("en-IN")}
+              ₹{stats.totalPendingPayable.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-amber-700/70 mt-0.5 font-medium">
-              Requires finance audit
+              Remaining balance to pay
+            </p>
+          </div>
+
+          <div className="bg-rose-50/50 border border-rose-200/80 rounded-xl p-4">
+            <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
+              <TrendingDown size={12} />
+              Total Client Expenses
+            </p>
+            <p className="text-xl font-bold text-rose-800 mt-1">
+              ₹{stats.totalExpensesRecorded.toLocaleString("en-IN")}
+            </p>
+            <p className="text-[10px] text-rose-700/70 mt-0.5 font-medium">
+              Work & operational expenses
             </p>
           </div>
 
@@ -454,7 +495,7 @@ export default function PaymentsExpensesPage() {
               ₹{stats.totalPendingExpenses.toLocaleString("en-IN")}
             </p>
             <p className="text-[10px] text-purple-700/70 mt-0.5 font-medium">
-              Approved claims awaiting payment
+              Unpaid / pending claims
             </p>
           </div>
         </div>
@@ -590,12 +631,14 @@ export default function PaymentsExpensesPage() {
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                             isPayment
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              ? tx.isScheduledPayable
+                                ? "bg-amber-50 text-amber-700 border-amber-200"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
                               : "bg-rose-50 text-rose-700 border-rose-200"
                           }`}
                         >
-                          {isPayment ? <Receipt size={11} /> : <TrendingDown size={11} />}
-                          <span>{isPayment ? "Received" : "Expense"}</span>
+                          {isPayment ? (tx.isScheduledPayable ? <Clock size={11} /> : <Receipt size={11} />) : <TrendingDown size={11} />}
+                          <span>{isPayment ? (tx.isScheduledPayable ? "Payable Milestone" : "Payment Paid") : "Expense"}</span>
                         </span>
                       </td>
 
@@ -634,13 +677,23 @@ export default function PaymentsExpensesPage() {
 
                       {}
                       <td className="py-1.5 px-3 whitespace-nowrap">
-                        <span
+                        <div
                           className={`font-semibold text-sm ${
-                            isPayment ? "text-emerald-700" : "text-rose-700"
+                            isPayment
+                              ? tx.isScheduledPayable
+                                ? "text-amber-700"
+                                : "text-emerald-700"
+                              : "text-rose-700"
                           }`}
                         >
-                          {isPayment ? "+" : "-"}₹{tx.amount.toLocaleString("en-IN")}
-                        </span>
+                          ₹{tx.amount.toLocaleString("en-IN")}
+                        </div>
+                        {isPayment && tx.agreedAmount > 0 && (
+                          <div className="text-[10px] text-gray-500 mt-0.5">
+                            Agreed: ₹{tx.agreedAmount.toLocaleString("en-IN")}
+                            {tx.remainingAmount > 0 ? ` · Due: ₹${tx.remainingAmount.toLocaleString("en-IN")}` : ""}
+                          </div>
+                        )}
                       </td>
 
                       {}
@@ -669,6 +722,15 @@ export default function PaymentsExpensesPage() {
 
                       {}
                       <td className="py-1.5 px-3 text-right whitespace-nowrap space-x-1">
+                        {isPayment && tx.isScheduledPayable && (
+                          <Link
+                            to={`/client/payments/record?clientId=${encodeURIComponent(tx.clientId || "")}${tx.milestoneId ? `&milestoneId=${encodeURIComponent(tx.milestoneId)}` : ""}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                          >
+                            <Plus size={12} />
+                            <span>Record Pay</span>
+                          </Link>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
