@@ -20,7 +20,7 @@ const buildStaffContext = async (user) => {
   let hrType = user?.hrType || "";
   let assignedVendors = Array.isArray(user?.assignedVendors) ? user.assignedVendors : null;
 
-  if (roleUpper === "HR" && (!hrType || assignedVendors === null) && userId) {
+  if (roleUpper === "HR" && userId) {
     try {
       const dbUser = await User.findById(userId).select("hrType assignedVendors").lean();
       if (dbUser) {

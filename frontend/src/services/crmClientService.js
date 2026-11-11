@@ -58,6 +58,17 @@ export const calculateClientManpower = (client) => {
 
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const emitProjectSyncEvents = () => {
+  try {
+    localStorage.removeItem("immigo_crm_projects_cache_v1");
+  } catch {}
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("immigo:vendor-hr-refresh"));
+    window.dispatchEvent(new CustomEvent("immigo:application-update"));
+    window.dispatchEvent(new CustomEvent("immigo:dashboard-update"));
+  }
+};
+
 export const crmClientService = {
   
   getClients: async ({
@@ -189,7 +200,8 @@ export const crmClientService = {
         id: req.id || `mpr-${projectId}-${rIdx + 1}`,
         projectId: projectId,
         quantity: Number(req.quantity) || 1,
-        salary: Number(req.salary) || 0,
+        salary: req.salary !== undefined && req.salary !== null ? String(req.salary).trim() : "",
+        currency: req.currency !== undefined && req.currency !== null ? String(req.currency).trim() : "",
         minAge: Number(req.minAge) || 21,
         maxAge: Number(req.maxAge) || 45,
       }));
@@ -198,6 +210,8 @@ export const crmClientService = {
         ...proj,
         id: projectId,
         clientId: clientId,
+        salary: proj.salary !== undefined && proj.salary !== null ? String(proj.salary).trim() : "",
+        currency: proj.currency !== undefined && proj.currency !== null ? String(proj.currency).trim() : "",
         status: proj.status || "Active",
         manpowerRequirements,
       };
@@ -276,12 +290,15 @@ export const crmClientService = {
         id: req.id || `mpr-${projId}-${rIdx + 1}`,
         projectId: projId,
         quantity: Number(req.quantity) || 1,
-        salary: Number(req.salary) || 0,
+        salary: req.salary !== undefined && req.salary !== null ? String(req.salary).trim() : "",
+        currency: req.currency !== undefined && req.currency !== null ? String(req.currency).trim() : "",
       }));
       return {
         ...proj,
         id: projId,
         clientId: id,
+        salary: proj.salary !== undefined && proj.salary !== null ? String(proj.salary).trim() : "",
+        currency: proj.currency !== undefined && proj.currency !== null ? String(proj.currency).trim() : "",
         manpowerRequirements,
       };
     });
@@ -370,7 +387,8 @@ export const crmClientService = {
       id: req.id || `mpr-${projectId}-${idx + 1}`,
       projectId,
       quantity: Number(req.quantity) || 1,
-      salary: Number(req.salary) || 0,
+      salary: req.salary !== undefined && req.salary !== null ? String(req.salary).trim() : "",
+      currency: req.currency !== undefined && req.currency !== null ? String(req.currency).trim() : "",
     }));
 
     const newProject = {
@@ -378,6 +396,8 @@ export const crmClientService = {
       id: projectId,
       clientId,
       clientName: client.companyName || projectData.clientName || "Direct Overseas Client",
+      salary: projectData.salary !== undefined && projectData.salary !== null ? String(projectData.salary).trim() : "",
+      currency: projectData.currency !== undefined && projectData.currency !== null ? String(projectData.currency).trim() : "",
       status: projectData.status || "Active",
       manpowerRequirements,
     };
@@ -402,6 +422,8 @@ export const crmClientService = {
     } catch (err) {
       console.warn("Failed to sync project to backend:", err);
     }
+
+    emitProjectSyncEvents();
 
     
     try {
@@ -433,18 +455,42 @@ export const crmClientService = {
     let client = null;
     let project = null;
 
-    if (clientId && projectId) {
+    if (clientId) {
       client = all.find(
         (c) =>
           String(c.id) === String(clientId) ||
           String(c.clientId) === String(clientId) ||
           String(c._id) === String(clientId)
       );
-      if (client) {
-        project = (client.projects || []).find(
-          (p) => String(p.id || p.projectId || p._id) === String(projectId)
-        );
+    }
+
+    try {
+      const res = await apiClient.get("/crm-sync/projects");
+      if (res.data?.success && Array.isArray(res.data.projects)) {
+        const found = res.data.projects.find((p) => {
+          const candidates = [p?.id, p?.projectId, p?._id, ...(Array.isArray(p?.rawIdCandidates) ? p.rawIdCandidates : [])]
+            .filter(Boolean)
+            .map(String);
+          return candidates.includes(String(targetProjectId));
+        });
+        if (found) {
+          project = found;
+          if (!client && found.clientId) {
+            client = all.find(
+              (c) =>
+                String(c.id) === String(found.clientId) ||
+                String(c.clientId) === String(found.clientId) ||
+                String(c._id) === String(found.clientId)
+            );
+          }
+        }
       }
+    } catch {}
+
+    if (!project && client) {
+      project = (client.projects || []).find(
+        (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
+      );
     }
 
     if (!project) {
@@ -458,20 +504,6 @@ export const crmClientService = {
           break;
         }
       }
-    }
-
-    if (!project) {
-      try {
-        const res = await apiClient.get("/crm-sync/projects");
-        if (res.data?.success && Array.isArray(res.data.projects)) {
-          const found = res.data.projects.find(
-            (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
-          );
-          if (found) {
-            project = found;
-          }
-        }
-      } catch {}
     }
 
     return project
@@ -505,18 +537,53 @@ export const crmClientService = {
         )
       );
     }
-    if (!client) throw new Error("Client not found");
+    if (!client) {
+      client = {
+        id: clientId || projectData?.clientId || `cli-${Date.now()}`,
+        clientId: clientId || projectData?.clientId || `cli-${Date.now()}`,
+        companyName: projectData?.clientName || "Overseas Client",
+        projects: [],
+      };
+      all.unshift(client);
+    }
 
-    const pIdx = (client.projects || []).findIndex(
+    if (!Array.isArray(client.projects)) {
+      client.projects = [];
+    }
+
+    let pIdx = client.projects.findIndex(
       (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
     );
-    if (pIdx === -1) throw new Error("Project not found");
+    if (pIdx === -1) {
+      client.projects.unshift({ ...projectData, id: targetProjectId, clientId: client.id });
+      pIdx = 0;
+    }
+
+    const normalizedReqs = Array.isArray(projectData.manpowerRequirements)
+      ? projectData.manpowerRequirements.map((req, idx) => ({
+          ...req,
+          id: req.id || `mpr-${targetProjectId}-${idx + 1}`,
+          projectId: targetProjectId,
+          quantity: Number(req.quantity) || 1,
+          salary: req.salary !== undefined && req.salary !== null ? String(req.salary).trim() : "",
+          currency: req.currency !== undefined && req.currency !== null ? String(req.currency).trim() : "",
+        }))
+      : client.projects[pIdx].manpowerRequirements;
 
     client.projects[pIdx] = {
       ...client.projects[pIdx],
       ...projectData,
       id: targetProjectId,
       clientId: client.id,
+      salary:
+        projectData.salary !== undefined && projectData.salary !== null
+          ? String(projectData.salary).trim()
+          : client.projects[pIdx].salary || "",
+      currency:
+        projectData.currency !== undefined && projectData.currency !== null
+          ? String(projectData.currency).trim()
+          : client.projects[pIdx].currency || "",
+      manpowerRequirements: normalizedReqs,
     };
     client.updatedAt = new Date().toISOString();
 
@@ -529,13 +596,15 @@ export const crmClientService = {
       });
     } catch {}
 
+    emitProjectSyncEvents();
+
     return client.projects[pIdx];
   },
 
   
   toggleProjectStatus: async (clientId, projectId) => {
     await delay(80);
-    const all = loadClientsFromStorage();
+    let all = loadClientsFromStorage();
     const targetProjectId = projectId || clientId;
     let client = clientId
       ? all.find(
@@ -553,12 +622,39 @@ export const crmClientService = {
         )
       );
     }
-    if (!client) throw new Error("Client not found");
+    if (!client) {
+      await crmClientService.getClients({ limit: 100 });
+      all = loadClientsFromStorage();
+      client = clientId
+        ? all.find(
+            (c) =>
+              String(c.id) === String(clientId) ||
+              String(c.clientId) === String(clientId) ||
+              String(c._id) === String(clientId)
+          )
+        : null;
+      if (!client) {
+        client = all.find((c) =>
+          (c.projects || []).some(
+            (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
+          )
+        );
+      }
+    }
+    if (!client) {
+      throw new Error("Client not found");
+    }
 
-    const pIdx = (client.projects || []).findIndex(
+    if (!Array.isArray(client.projects)) {
+      client.projects = [];
+    }
+
+    const pIdx = client.projects.findIndex(
       (p) => String(p.id || p.projectId || p._id) === String(targetProjectId)
     );
-    if (pIdx === -1) throw new Error("Project not found");
+    if (pIdx === -1) {
+      throw new Error("Project not found");
+    }
 
     const currentStatus = client.projects[pIdx].status || "Active";
     const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
@@ -573,6 +669,8 @@ export const crmClientService = {
         project: client.projects[pIdx],
       });
     } catch {}
+
+    emitProjectSyncEvents();
 
     return client.projects[pIdx];
   },
@@ -607,6 +705,7 @@ export const crmClientService = {
       });
       saveClientsToStorage(all);
     }
+    emitProjectSyncEvents();
     return { success: true, id: projectId };
   },
 
@@ -630,7 +729,8 @@ export const crmClientService = {
       id: posId,
       projectId,
       quantity: Number(positionData.quantity) || 1,
-      salary: Number(positionData.salary) || 0,
+      salary: positionData.salary !== undefined && positionData.salary !== null ? String(positionData.salary).trim() : "",
+      currency: positionData.currency !== undefined && positionData.currency !== null ? String(positionData.currency).trim() : "",
       minAge: Number(positionData.minAge) || 21,
       maxAge: Number(positionData.maxAge) || 45,
     };
@@ -680,7 +780,8 @@ export const crmClientService = {
       id: positionId,
       projectId,
       quantity: Number(positionData.quantity) || 1,
-      salary: Number(positionData.salary) || 0,
+      salary: positionData.salary !== undefined && positionData.salary !== null ? String(positionData.salary).trim() : "",
+      currency: positionData.currency !== undefined && positionData.currency !== null ? String(positionData.currency).trim() : "",
     };
 
     client.updatedAt = new Date().toISOString();

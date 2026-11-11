@@ -3,8 +3,16 @@ import apiClient from "../../services/apiClient.js";
 import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
 import { isMeetingExpired } from "../../utils/formatters.js";
+import { extractEmployeeViewFromLink } from "../../utils/notificationLinks.js";
 
-export default function EmployeeNotificationBell({ token, onSelectMeeting, onNewNotification, onViewAll, className }) {
+export default function EmployeeNotificationBell({
+  token,
+  onSelectMeeting,
+  onNewNotification,
+  onViewAll,
+  onNavigateView,
+  className,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -177,13 +185,18 @@ export default function EmployeeNotificationBell({ token, onSelectMeeting, onNew
         onClearAll={handleClearAll}
         onMarkOneRead={handleMarkOneAsRead}
         onDeleteOne={handleDeleteOne}
-        onItemClick={(item) => {
+        onItemClick={(item, resolvedLink) => {
           const sId = item.id || item._id;
           handleMarkOneAsRead(sId);
-          if (item.type === "MEETING" && onSelectMeeting) {
+          const targetView = extractEmployeeViewFromLink(resolvedLink);
+          if (targetView && onNavigateView) {
+            onNavigateView(targetView);
+          }
+          if ((item.type === "MEETING" || item.type === "MEETING_REMINDER") && onSelectMeeting) {
             onSelectMeeting(item.meetingId || item.id);
           }
         }}
+        roleContext={{ isEmployee: true }}
         onViewAll={onViewAll}
       />
     </div>

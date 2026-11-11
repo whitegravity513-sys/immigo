@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Search,
   Plus,
@@ -9,15 +8,18 @@ import {
   ArrowRight,
   Check,
   X,
+  Clock,
   Calendar,
   Award,
   RotateCcw,
 } from "lucide-react";
 import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { openUploadedDocument } from "../../../utils/printDocument.js";
 
 export default function VendorHRCandidatesSection({
   applications = [],
-  vendorName = "Global Staffing Solutions Pvt Ltd",
+  vendorName = "",
+  hideProjectNames = false,
   candidateSearch = "",
   setCandidateSearch,
   candidateStageFilter = "ALL",
@@ -40,18 +42,31 @@ export default function VendorHRCandidatesSection({
   const preSelectionCount = preSelectionCandidates.length;
   const postSelectionCount = applications.filter((cand) => {
     const stage = cand.recruitmentStage || cand.status || "";
-    return ["Selected", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Joined", "Deployed"].includes(stage);
+    return [
+      "Selected",
+      "Processing",
+      "Offer Released",
+      "Offer Accepted",
+      "Visa Processing",
+      "Visa Issued",
+      "Visa Allotted",
+      "Joined",
+      "Deployed",
+      "Completed",
+    ].includes(stage);
   }).length;
 
   const filteredCandidates = preSelectionCandidates.filter((cand) => {
     if (candidateStageFilter !== "ALL") {
       const stage = cand.recruitmentStage || cand.status || "Applied";
       if (candidateStageFilter === "Applied") {
-        if (!["Applied", "Screening", "Submitted", "Under Review", "On Hold"].includes(stage)) return false;
+        if (!["Applied", "Screening", "Submitted", "Under Review"].includes(stage)) return false;
       } else if (candidateStageFilter === "Shortlisted") {
         if (stage !== "Shortlisted") return false;
       } else if (candidateStageFilter === "Interview") {
         if (!stage.includes("Interview")) return false;
+      } else if (candidateStageFilter === "On Hold") {
+        if (stage !== "On Hold" && cand.status !== "On Hold") return false;
       } else if (candidateStageFilter === "Rejected") {
         if (stage !== "Rejected") return false;
       } else if (stage !== candidateStageFilter) {
@@ -65,8 +80,9 @@ export default function VendorHRCandidatesSection({
       cand.candidateName?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
-      cand.projectName?.toLowerCase().includes(q) ||
+      (!hideProjectNames && cand.projectName?.toLowerCase().includes(q)) ||
       cand.phone?.toLowerCase().includes(q) ||
+      cand.candidatePhone?.toLowerCase().includes(q) ||
       cand.candidateEmail?.toLowerCase().includes(q)
     );
   });
@@ -114,7 +130,11 @@ export default function VendorHRCandidatesSection({
             type="text"
             value={candidateSearch}
             onChange={(e) => setCandidateSearch(e.target.value)}
-            placeholder="Search candidate by name, passport, trade, project or phone..."
+            placeholder={
+              hideProjectNames
+                ? "Search candidate by name, passport, trade or phone..."
+                : "Search candidate by name, passport, trade, project or phone..."
+            }
             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
           />
         </div>
@@ -128,9 +148,10 @@ export default function VendorHRCandidatesSection({
               label: `Applied (${
                 preSelectionCandidates.filter(
                   (c) =>
-                    !c.recruitmentStage ||
-                    ["Applied", "Screening", "Submitted", "Under Review", "On Hold"].includes(c.recruitmentStage) ||
-                    ["Applied", "Submitted", "Under Review"].includes(c.status)
+                    (!c.recruitmentStage && !c.status) ||
+                    ["Applied", "Screening", "Submitted", "Under Review"].includes(
+                      c.recruitmentStage || c.status
+                    )
                 ).length
               })`,
             },
@@ -146,6 +167,12 @@ export default function VendorHRCandidatesSection({
                 preSelectionCandidates.filter(
                   (c) => c.recruitmentStage?.includes("Interview") || c.status?.includes("Interview")
                 ).length
+              })`,
+            },
+            {
+              id: "On Hold",
+              label: `On Hold (${
+                preSelectionCandidates.filter((c) => c.recruitmentStage === "On Hold" || c.status === "On Hold").length
               })`,
             },
             {
@@ -178,9 +205,9 @@ export default function VendorHRCandidatesSection({
             <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
               <tr>
                 <th className="py-3 px-4">Candidate Profile & CV</th>
-                <th className="py-3 px-4">Job & Project</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Job & Agency" : "Job & Project"}</th>
                 <th className="py-3 px-3">Screening Stage</th>
-                <th className="py-3 px-4">HR Decisions (Admin Controls)</th>
+                <th className="py-3 px-4">Screening & HR Decisions</th>
                 <th className="py-3 px-4 text-right">Dossier</th>
               </tr>
             </thead>
@@ -214,21 +241,28 @@ export default function VendorHRCandidatesSection({
                               {cand.candidatePhone || cand.candidateEmail}
                             </div>
                             {resumeLink ? (
-                              <a
-                                href={resumeLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openUploadedDocument({
+                                    fileUrl: resumeLink,
+                                    fileName:
+                                      (Array.isArray(cand.documents) && cand.documents[0]?.fileName) ||
+                                      `${cand.candidateName || "Candidate"}_Resume`,
+                                    mimeType: Array.isArray(cand.documents) ? cand.documents[0]?.mimeType : "",
+                                  })
+                                }
                                 className="inline-flex items-center gap-1 text-[9.5px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 mt-1 cursor-pointer transition"
                                 title="Open Candidate Resume / CV in new tab"
                               >
                                 <FileText size={10} />
                                 <span>View CV / Resume</span>
                                 <ExternalLink size={9} />
-                              </a>
+                              </button>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-[9.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded mt-1">
                                 <FileText size={10} />
-                                <span>CV Verified</span>
+                                <span>No CV Uploaded</span>
                               </span>
                             )}
                           </div>
@@ -240,13 +274,17 @@ export default function VendorHRCandidatesSection({
                         <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
                           {cand.jobTitle || "Specialist Technician"}
                         </div>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <Building2 size={11} className="text-slate-400 shrink-0" />
-                          <span className="truncate max-w-[180px]">{cand.projectName || "Overseas Deployment"}</span>
-                        </div>
-                        <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
-                          Vendor: {cand.vendorName || vendorName}
-                        </div>
+                        {!hideProjectNames && (
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                            <Building2 size={11} className="text-slate-400 shrink-0" />
+                            <span className="truncate max-w-[180px]">{cand.projectName || "Overseas Deployment"}</span>
+                          </div>
+                        )}
+                        {(cand.vendorName || vendorName) && (
+                          <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
+                            Vendor: {cand.vendorName || vendorName}
+                          </div>
+                        )}
                       </td>
 
                       {/* Col 3: Current Stage Badge */}
@@ -287,14 +325,23 @@ export default function VendorHRCandidatesSection({
                             Reason: {cand.rejectionReason}
                           </div>
                         )}
+                        {(cand.recruitmentStage === "On Hold" || cand.status === "On Hold") && cand.holdReason && (
+                          <div
+                            className="text-[10px] text-amber-700 font-medium truncate max-w-[160px] mt-1"
+                            title={cand.holdReason}
+                          >
+                            Note: {cand.holdReason}
+                          </div>
+                        )}
                       </td>
 
                       {/* Col 4: Pre-Screening Decisions */}
                       <td className="py-3 px-4">
-                        {/* Applied / Screening / Submitted -> Shortlist & Reject together */}
                         {(!cand.recruitmentStage ||
-                          ["Applied", "Screening", "Submitted", "Under Review", "On Hold"].includes(cand.recruitmentStage || cand.status)) &&
+                          ["Applied", "Screening", "Submitted", "Under Review"].includes(cand.recruitmentStage || cand.status)) &&
                           cand.recruitmentStage !== "Shortlisted" &&
+                          cand.recruitmentStage !== "On Hold" &&
+                          cand.status !== "On Hold" &&
                           !cand.recruitmentStage?.includes("Interview") &&
                           cand.recruitmentStage !== "Rejected" &&
                           cand.status !== "Rejected" && (
@@ -314,8 +361,35 @@ export default function VendorHRCandidatesSection({
                               </button>
                               <button
                                 type="button"
+                                onClick={() => {
+                                  const appId = cand.applicationId || cand.id || cand._id;
+                                  setScheduleInterviewTarget({ ...cand, applicationId: appId });
+                                  setScheduleForm((prev) => ({
+                                    ...prev,
+                                    applicationId: appId,
+                                    round: "Technical Interview",
+                                  }));
+                                  setShowScheduleModal(true);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                title="Schedule Interview"
+                              >
+                                <Calendar size={11} />
+                                <span>Interview</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickStage(cand, "Selected")}
+                                className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                title="Select Candidate"
+                              >
+                                <Award size={11} />
+                                <span>Select</span>
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => handleQuickStage(cand, "Rejected", "Rejected during HR screening")}
-                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
                                 title="Reject Candidate"
                               >
                                 <X size={11} />
@@ -325,30 +399,74 @@ export default function VendorHRCandidatesSection({
                           </div>
                         )}
 
-                        {/* Shortlisted -> Schedule Interview */}
                         {cand.recruitmentStage === "Shortlisted" && (
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold text-indigo-600 block">Shortlisted Cleared:</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setScheduleInterviewTarget(cand);
-                                setScheduleForm((prev) => ({
-                                  ...prev,
-                                  applicationId: cand.applicationId,
-                                  round: "Technical Interview",
-                                }));
-                                setShowScheduleModal(true);
-                              }}
-                              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                            >
-                              <Calendar size={12} />
-                              <span>Schedule Interview</span>
-                            </button>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const appId = cand.applicationId || cand.id || cand._id;
+                                  setScheduleInterviewTarget({ ...cand, applicationId: appId });
+                                  setScheduleForm((prev) => ({
+                                    ...prev,
+                                    applicationId: appId,
+                                    round: "Technical Interview",
+                                  }));
+                                  setShowScheduleModal(true);
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              >
+                                <Calendar size={12} />
+                                <span>Schedule Interview</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickStage(cand, "Selected")}
+                                className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                              >
+                                <Award size={11} />
+                                <span>Select</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickStage(cand, "Rejected", "Rejected after shortlisting")}
+                                className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
+                              >
+                                <X size={11} />
+                                <span>Reject</span>
+                              </button>
+                            </div>
                           </div>
                         )}
 
-                        {/* Interview Scheduled / L1 / L2 -> Select or Reject */}
+                        {(cand.recruitmentStage === "On Hold" || cand.status === "On Hold") && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-amber-700 block">On Hold — Final Outcome:</span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => handleQuickStage(cand, "Selected")}
+                                className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                title="Select Candidate"
+                              >
+                                <Award size={12} />
+                                <span>Select Candidate</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickStage(cand, "Rejected", "Rejected after on-hold review")}
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
+                                title="Reject Candidate"
+                              >
+                                <X size={11} />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Interview Scheduled / L1 / L2 -> Select, Reject or Hold */}
                         {(cand.recruitmentStage?.includes("Interview") || cand.status?.includes("Interview")) && (
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold text-purple-700 block">Interview Active:</span>
@@ -365,11 +483,20 @@ export default function VendorHRCandidatesSection({
                               <button
                                 type="button"
                                 onClick={() => handleQuickStage(cand, "Rejected", "Did not clear technical interview round")}
-                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition cursor-pointer"
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
                                 title="Reject Candidate"
                               >
                                 <X size={11} />
                                 <span>Reject</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickStage(cand, "On Hold", "Candidate placed on hold after interview")}
+                                className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-[11px] border border-amber-200 transition inline-flex items-center gap-1 cursor-pointer"
+                                title="Put Candidate On Hold"
+                              >
+                                <Clock size={11} />
+                                <span>Hold</span>
                               </button>
                             </div>
                           </div>
@@ -383,10 +510,27 @@ export default function VendorHRCandidatesSection({
                               type="button"
                               onClick={() => openReassignModal(cand)}
                               className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              title="Submit this candidate to a different overseas project"
+                              title={hideProjectNames ? "Reassign this candidate to another open requirement" : "Submit this candidate to a different overseas project"}
                             >
                               <RotateCcw size={12} />
-                              <span>Apply to Another Project</span>
+                              <span>{hideProjectNames ? "Reassign Candidate" : "Apply to Another Project"}</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Completed"].includes(
+                          cand.recruitmentStage || cand.status || ""
+                        ) && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-teal-700 block">Selected Pipeline:</span>
+                            <button
+                              type="button"
+                              onClick={() => navigateByTag && navigateByTag("Selected", cand)}
+                              className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              title="Open candidate milestone and payment timeline"
+                            >
+                              <Award size={12} />
+                              <span>Selected • View Milestones</span>
                             </button>
                           </div>
                         )}

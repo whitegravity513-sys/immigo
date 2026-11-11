@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiClient } from "../../services/apiClient.js";
+import { extractEmployeeViewFromLink } from "../../utils/notificationLinks.js";
 
 import CheckInOutSection from "../../components/employee/CheckInOutSection.jsx";
 import BreaksSection from "../../components/employee/BreaksSection.jsx";
@@ -105,7 +107,34 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     rejectedDocs,
   };
 
-  const [view, setView] = useState("home");     
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [view, setViewState] = useState(() => {
+    const initialFromUrl = extractEmployeeViewFromLink(window.location.search || "");
+    return initialFromUrl || "home";
+  });
+
+  useEffect(() => {
+    const urlView = extractEmployeeViewFromLink(`?${searchParams.toString()}`);
+    if (urlView && urlView !== view) {
+      setViewState(urlView);
+    }
+  }, [searchParams]);
+
+  const setView = useCallback(
+    (nextView) => {
+      setViewState(nextView);
+      const next = new URLSearchParams(searchParams);
+      if (nextView && nextView !== "home") {
+        next.set("view", nextView);
+      } else {
+        next.delete("view");
+      }
+      next.delete("tab");
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [todayMeetings, setTodayMeetings] = useState([]);
@@ -346,7 +375,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const handleCheckIn = () => {
     if (isHolidayToday) {
       setHolidayPopupOpen(true);
-      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — aaj attendance mark nahi hogi.`);
+      setErrorMsg(`Today is an official holiday (${todayHoliday?.title || "Official Holiday"}) — attendance cannot be marked today.`);
       return;
     }
     if (isInactiveAccount) {
@@ -366,7 +395,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const handleCheckOut = () => {
     if (isHolidayToday) {
       setHolidayPopupOpen(true);
-      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — official holiday par attendance action allowed nahi hai.`);
+      setErrorMsg(`Today is an official holiday (${todayHoliday?.title || "Official Holiday"}) — attendance actions are disabled on official holidays.`);
       return;
     }
     return apiCall(async () => {
@@ -403,7 +432,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const handleBreakStart = (type = "Break") => {
     if (isHolidayToday) {
       setHolidayPopupOpen(true);
-      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — aaj break tracking band hai.`);
+      setErrorMsg(`Today is an official holiday (${todayHoliday?.title || "Official Holiday"}) — break tracking is disabled today.`);
       return;
     }
     return apiCall(async () => {
@@ -418,7 +447,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   const handleBreakEnd = () => {
     if (isHolidayToday) {
       setHolidayPopupOpen(true);
-      setErrorMsg(`Aaj holiday hai (${todayHoliday?.title || "Official Holiday"}) — aaj attendance action allowed nahi hai.`);
+      setErrorMsg(`Today is an official holiday (${todayHoliday?.title || "Official Holiday"}) — attendance actions are disabled today.`);
       return;
     }
     return apiCall(async () => {
@@ -448,11 +477,11 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     }
     const todayStr = getIndiaDateString();
     if (leaveForm.startDate < todayStr || leaveForm.endDate < todayStr) {
-      setErrorMsg("Past dates ke liye leave apply nahi kar sakte. Kripya aaj ya aane wali date select karein.");
+      setErrorMsg("Leave cannot be applied for past dates. Please select today or an upcoming date.");
       return;
     }
     if (leaveForm.endDate < leaveForm.startDate) {
-      setErrorMsg("End date start date se pehle nahi ho sakti.");
+      setErrorMsg("End date cannot be earlier than the start date.");
       return;
     }
     apiCall(async () => {

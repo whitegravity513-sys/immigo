@@ -1,10 +1,16 @@
 import Candidate from "../models/Candidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
+import CrmCandidateApplication from "../models/CrmCandidateApplication.js";
 import ActivityLog from "../models/ActivityLog.js";
 import NotificationService, { resolveActorInfo } from "../services/notification.service.js";
 import CrmNotification from "../models/CrmNotification.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  findProjectAcrossSources,
+  resolveProjectMilestonesData,
+  normalizeMilestoneStages,
+} from "../utils/projectResolver.js";
 import {
   sendCandidateApprovalEmail,
   sendCandidateRejectionEmail,
@@ -391,6 +397,21 @@ export const getCandidateApplications = asyncHandler(async (req, res) => {
   if (status && status !== "All") {
     if (status === "Interviews") {
       query.status = { $in: ["Interview Scheduled", "Interview Rescheduled", "Interview Completed"] };
+    } else if (status === "Selected") {
+      query.status = {
+        $in: [
+          "Selected",
+          "Processing",
+          "Offer Released",
+          "Offer Accepted",
+          "Visa Processing",
+          "Visa Issued",
+          "Visa Allotted",
+          "Joined",
+          "Deployed",
+          "Completed",
+        ],
+      };
     } else {
       query.status = status;
     }
@@ -430,174 +451,62 @@ export const getCandidateApplications = asyncHandler(async (req, res) => {
   });
 });
 
-export const getDefaultCandidateMilestones = () => [
-  {
-    id: "m0",
-    name: "Milestone 1: Selection & Document Clearance",
-    paymentAmount: 15000,
-    amount: 15000,
-    paymentStatus: "Payment Required",
-    status: "Active",
-    stages: [
-      {
-        id: "s0_1",
-        name: "Trade Skill & Technical Screening",
-        status: "Completed",
-        completedAt: new Date().toISOString(),
-        remark: "Candidate cleared technical assessment",
-        document: null,
-      },
-      {
-        id: "s0_2",
-        name: "Client Selection & Offer Letter Clearance",
-        status: "In Progress",
-        completedAt: null,
-        remark: "Offer letter issued and cleared",
-        document: null,
-      },
-      {
-        id: "s0_3",
-        name: "Document Verification & Attestation",
-        status: "Pending",
-        completedAt: null,
-        remark: "",
-        document: null,
-      },
-    ],
-  },
-  {
-    id: "m1",
-    name: "Milestone 2: Medical & Visa Processing",
-    paymentAmount: 15000,
-    amount: 15000,
-    paymentStatus: "Locked",
-    status: "Locked",
-    stages: [
-      {
-        id: "s1_1",
-        name: "GAMCA Medical Fitness Clearance",
-        status: "Locked",
-        completedAt: null,
-        remark: "",
-        document: null,
-      },
-      {
-        id: "s1_2",
-        name: "Visa Application & Official Work Permit",
-        status: "Locked",
-        completedAt: null,
-        remark: "",
-        document: null,
-      },
-    ],
-  },
-  {
-    id: "m2",
-    name: "Milestone 3: Emigration Clearance & Flight Deployment",
-    paymentAmount: 10000,
-    amount: 10000,
-    paymentStatus: "Locked",
-    status: "Locked",
-    stages: [
-      {
-        id: "s2_1",
-        name: "Emigration Clearance (Poe/Protector)",
-        status: "Locked",
-        completedAt: null,
-        remark: "",
-        document: null,
-      },
-      {
-        id: "s2_2",
-        name: "Air Ticket Booking & Travel Insurance",
-        status: "Locked",
-        completedAt: null,
-        remark: "",
-        document: null,
-      },
-      {
-        id: "s2_3",
-        name: "Airport Mobilization & Deployment",
-        status: "Locked",
-        completedAt: null,
-        remark: "",
-        document: null,
-      },
-    ],
-  },
-];
+export const getDefaultCandidateMilestones = () => [];
 
 export const getMilestonesForApplication = async (app) => {
   try {
-    const clients = await CrmOverseasClient.find({}).lean();
-    let targetProject = null;
-    for (const cl of clients) {
-      const prj = (cl.projects || []).find(
-        (p) =>
-          String(p.id || p.projectId || p._id) === String(app.projectId) ||
-          p.projectName === app.projectName
-      );
-      if (prj) {
-        targetProject = prj;
-        break;
+    const project = app?.projectId
+      ? await findProjectAcrossSources(app.projectId)
+      : null;
+
+    let targetProject = project;
+    if (!targetProject && app?.projectName) {
+      const clients = await CrmOverseasClient.find({}).lean();
+      for (const cl of clients) {
+        const prj = (cl.projects || []).find(
+          (p) =>
+            String(p.id || p.projectId || p._id) === String(app.projectId) ||
+            p.projectName === app.projectName
+        );
+        if (prj) {
+          targetProject = prj;
+          break;
+        }
       }
     }
 
-    const pMilestones =
-      targetProject?.paymentMilestones ||
-      targetProject?.processMilestones ||
-      targetProject?.milestones;
-
-    if (Array.isArray(pMilestones) && pMilestones.length > 0) {
-      const synced = pMilestones.map((pm, mIdx) => {
-        const amt = Number(pm.amount || pm.paymentAmount || 0);
-        const stages = (Array.isArray(pm.stages) && pm.stages.length > 0
-          ? pm.stages
-          : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }]
-        ).map((stg, sIdx) => ({
-          id: String(stg.id || `s${mIdx}_${sIdx}`),
-          name: stg.name || `Stage ${sIdx + 1}`,
-          status: mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : "Locked",
-          completedAt: null,
-          remark: "",
-        }));
-
+    if (targetProject) {
+      const resolved = resolveProjectMilestonesData(
+        targetProject,
+        app?.processMilestones || [],
+        Boolean(app?.milestonesOverridden)
+      );
+      if (resolved.processMilestones.length > 0 || resolved.totalAmount > 0) {
         return {
-          id: String(pm.id || `m${mIdx}`),
-          name: pm.name || `Milestone ${mIdx + 1}`,
-          amount: amt,
-          paymentAmount: amt,
-          paymentStatus: mIdx === 0 && amt > 0 ? "Payment Required" : "Not Required",
-          status: mIdx === 0 ? "Active" : "Locked",
-          paymentDate: null,
-          paymentRef: null,
-          paymentRemark: "",
-          approvedBy: null,
-          stages,
+          processMilestones: resolved.processMilestones,
+          paymentPlan: {
+            totalAmount: resolved.totalAmount,
+            currency: app?.paymentPlan?.currency || "INR",
+            milestones: resolved.processMilestones,
+          },
         };
-      });
-
-      const totalAmt = synced.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
-      return {
-        processMilestones: synced,
-        paymentPlan: {
-          totalAmount: totalAmt,
-          currency: "INR",
-          milestones: synced,
-        },
-      };
+      }
     }
   } catch (err) {
     console.error("Error finding project milestones:", err);
   }
 
-  const defaults = getDefaultCandidateMilestones();
+  const existing = normalizeMilestoneStages(app?.processMilestones || []);
+  const totalAmount = existing.reduce(
+    (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
   return {
-    processMilestones: defaults,
+    processMilestones: existing,
     paymentPlan: {
-      totalAmount: 40000,
-      currency: "INR",
-      milestones: defaults,
+      totalAmount,
+      currency: app?.paymentPlan?.currency || "INR",
+      milestones: existing,
     },
   };
 };
@@ -634,10 +543,14 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   if (remarks !== undefined) app.adminRemarks = remarks;
   if (rejectionReason !== undefined) app.rejectionReason = rejectionReason;
 
-  if (status === "Selected" && (!app.processMilestones || app.processMilestones.length === 0)) {
+  if (status === "Selected" && !(app.milestonesOverridden)) {
     const plan = await getMilestonesForApplication(app);
-    app.processMilestones = plan.processMilestones;
-    app.paymentPlan = plan.paymentPlan;
+    if (plan.processMilestones.length > 0) {
+      app.processMilestones = plan.processMilestones;
+      app.paymentPlan = plan.paymentPlan;
+    } else if (!app.paymentPlan) {
+      app.paymentPlan = { totalAmount: 0, currency: "INR", milestones: [] };
+    }
     if (!Array.isArray(app.payments)) {
       app.payments = [];
     }
@@ -674,7 +587,11 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
         message: `${app.candidateName} has been selected for ${app.projectName} (${app.position || "Specialist"}). Milestone workflow initiated.`,
         moduleScope: "CANDIDATE",
         targetVendorId: app.vendorId && app.vendorId !== "DIRECT" ? app.vendorId : null,
-        metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
+        metadata: {
+          candidateId: app.candidateId,
+          applicationId: app.applicationId,
+          link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
+        },
       });
 
       await CrmNotification.create({
@@ -694,7 +611,7 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
         candidateName: app.candidateName,
         projectName: app.projectName,
         position: app.position,
-        totalAmount: app.paymentPlan?.totalAmount || 40000,
+        totalAmount: app.paymentPlan?.totalAmount || 0,
       });
     } catch (notifErr) {
       console.warn("Notification error during candidate selection:", notifErr);
@@ -792,17 +709,42 @@ export const getApplicationMilestones = asyncHandler(async (req, res) => {
 
   let app = await CandidateApplication.findOne(query);
   if (!app) {
-    return res.status(404).json({ success: false, message: "Application not found." });
+    const crmApp = await CrmCandidateApplication.findOne(query).lean();
+    if (!crmApp) {
+      return res.status(404).json({ success: false, message: "Application not found." });
+    }
+    app = await CandidateApplication.create({
+      applicationId: crmApp.applicationId || crmApp._id.toString(),
+      candidateId: String(crmApp.candidateId || ""),
+      candidateName: crmApp.candidateName || "Candidate",
+      candidateEmail: crmApp.candidateData?.email || `${crmApp.candidateId}@candidate.local`,
+      candidatePhone: crmApp.candidateData?.phone || "",
+      projectId: String(crmApp.projectId || ""),
+      projectName: crmApp.projectName || "Overseas Project",
+      clientId: String(crmApp.clientId || ""),
+      clientName: crmApp.clientName || "",
+      position: crmApp.position || "",
+      vendorId: String(crmApp.vendorId || ""),
+      vendorName: crmApp.vendorName || "",
+      recruitmentStage: crmApp.status || "Selected",
+      status: crmApp.status || "Selected",
+      processMilestones: Array.isArray(crmApp.processMilestones) ? crmApp.processMilestones : [],
+      paymentPlan: crmApp.paymentPlan || { totalAmount: 0, currency: "INR", milestones: [] },
+    });
   }
 
-  if (!app.processMilestones || app.processMilestones.length === 0) {
+  if (!app.milestonesOverridden) {
     const plan = await getMilestonesForApplication(app);
-    app.processMilestones = plan.processMilestones;
-    app.paymentPlan = plan.paymentPlan;
-    if (!Array.isArray(app.payments)) {
-      app.payments = [];
+    if (plan.processMilestones.length > 0) {
+      app.processMilestones = plan.processMilestones;
+      app.paymentPlan = plan.paymentPlan;
+      if (!Array.isArray(app.payments)) {
+        app.payments = [];
+      }
+      app.markModified("processMilestones");
+      app.markModified("paymentPlan");
+      await app.save();
     }
-    await app.save();
   }
 
   return res.status(200).json({
@@ -826,17 +768,16 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Application not found." });
   }
 
-  const finalTotal = Number(totalAmount) || 40000;
-  const formattedMilestones = (milestones || []).map((m, mIdx) => {
+  const rawFormatted = (milestones || []).map((m, mIdx) => {
     const isPaid = m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed";
-    const amt = Number(m.amount || m.paymentAmount || 0);
+    const amt = Number(m.paymentAmount ?? m.amount ?? 0);
     return {
       id: m.id || `m${mIdx}`,
       name: m.name || `Milestone ${mIdx + 1}`,
       amount: amt,
       paymentAmount: amt,
-      status: m.status || (isPaid ? "Completed" : mIdx === 0 ? "Active" : "Locked"),
-      paymentStatus: isPaid ? "Approved" : m.paymentStatus || (mIdx === 0 ? "Payment Required" : "Locked"),
+      status: m.status || (isPaid ? "Completed" : mIdx === 0 ? (amt > 0 ? "Payment Required" : "Active") : "Locked"),
+      paymentStatus: isPaid ? "Approved" : amt === 0 ? "Not Required" : m.paymentStatus || (mIdx === 0 ? "Payment Required" : "Locked"),
       paymentDate: m.paymentDate || (isPaid ? new Date().toISOString().split("T")[0] : null),
       paymentRef: m.paymentRef || null,
       approvedBy: isPaid ? (m.approvedBy || req.user?.name || "Admin") : null,
@@ -852,16 +793,48 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
     };
   });
 
+  const formattedMilestones = normalizeMilestoneStages(rawFormatted);
+  const sumMilestones = formattedMilestones.reduce(
+    (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
+  const finalTotal =
+    sumMilestones > 0
+      ? sumMilestones
+      : totalAmount !== undefined && totalAmount !== null && totalAmount !== ""
+      ? Number(totalAmount)
+      : 0;
+  const shouldMarkOverridden = req.body?.customized !== false;
+
   app.paymentPlan = {
     totalAmount: finalTotal,
     currency: "INR",
     milestones: formattedMilestones,
   };
   app.processMilestones = formattedMilestones;
+  if (shouldMarkOverridden) {
+    app.set("milestonesOverridden", true);
+  }
   app.markModified("paymentPlan");
   app.markModified("processMilestones");
 
   await app.save();
+
+  try {
+    const syncSet = {
+      processMilestones: formattedMilestones,
+      paymentPlan: app.paymentPlan,
+    };
+    if (shouldMarkOverridden) {
+      syncSet.milestonesOverridden = true;
+    }
+    await CrmCandidateApplication.findOneAndUpdate(
+      { applicationId: app.applicationId },
+      {
+        $set: syncSet,
+      }
+    );
+  } catch {}
 
   try {
     const actorMeta = resolveActorInfo(req.user);
@@ -884,7 +857,11 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
       message: `Milestone plan updated for ${app.candidateName} on ${app.projectName} (₹${Number(finalTotal).toLocaleString()})`,
       moduleScope: "CANDIDATE",
       targetVendorId: app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined" ? app.vendorId : null,
-      metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
+      metadata: {
+        candidateId: app.candidateId,
+        applicationId: app.applicationId,
+        link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
+      },
     });
 
     if (app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined") {
@@ -990,14 +967,26 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
     }
   }
 
-  app.processMilestones = milestones;
+  app.processMilestones = normalizeMilestoneStages(milestones);
   if (app.paymentPlan) {
-    app.paymentPlan.milestones = milestones;
+    app.paymentPlan.milestones = app.processMilestones;
   }
   app.markModified("processMilestones");
   app.markModified("paymentPlan");
 
   await app.save();
+
+  try {
+    await CrmCandidateApplication.findOneAndUpdate(
+      { applicationId: app.applicationId },
+      {
+        $set: {
+          processMilestones: app.processMilestones,
+          paymentPlan: app.paymentPlan,
+        },
+      }
+    );
+  } catch {}
 
   try {
     const actorMeta = resolveActorInfo(req.user);
@@ -1021,7 +1010,11 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
       message: `${app.candidateName} - ${stageTitle} marked ${status} by ${req.user?.name || "Admin"}`,
       moduleScope: "CANDIDATE",
       targetVendorId: app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined" ? app.vendorId : null,
-      metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
+      metadata: {
+        candidateId: app.candidateId,
+        applicationId: app.applicationId,
+        link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
+      },
     });
 
     await sendCandidateMilestoneUpdateEmail({
@@ -1062,7 +1055,10 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Milestone not found." });
   }
 
-  const paidAmt = Number(amount) || Number(milestones[mIdx].paymentAmount) || 15000;
+  const paidAmt =
+    amount !== undefined && amount !== null && amount !== "" && !isNaN(Number(amount))
+      ? Number(amount)
+      : Number(milestones[mIdx].paymentAmount ?? milestones[mIdx].amount ?? 0);
   const isCash = String(paymentMode).toLowerCase().includes("cash");
   const refNum = referenceNumber.trim() || (isCash ? `CASH-${Date.now().toString().slice(-6)}` : `REF-${Date.now().toString().slice(-6)}`);
   const receiptNum = `INV-${app.applicationId || app.id}-${milestoneId}`;
@@ -1107,15 +1103,27 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
   };
 
   app.payments.push(paymentRecord);
-  app.processMilestones = milestones;
+  app.processMilestones = normalizeMilestoneStages(milestones);
   if (app.paymentPlan) {
-    app.paymentPlan.milestones = milestones;
+    app.paymentPlan.milestones = app.processMilestones;
   }
   app.markModified("processMilestones");
   app.markModified("paymentPlan");
   app.markModified("payments");
 
   await app.save();
+
+  try {
+    await CrmCandidateApplication.findOneAndUpdate(
+      { applicationId: app.applicationId },
+      {
+        $set: {
+          processMilestones: app.processMilestones,
+          paymentPlan: app.paymentPlan,
+        },
+      }
+    );
+  } catch {}
 
   try {
     const actorMeta = resolveActorInfo(req.user);
@@ -1138,7 +1146,11 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
       message: `₹${Number(paidAmt).toLocaleString()} received for ${app.candidateName} (${milestones[mIdx].name})`,
       moduleScope: "CANDIDATE",
       targetVendorId: app.vendorId && app.vendorId !== "DIRECT" && app.vendorId !== "undefined" ? app.vendorId : null,
-      metadata: { candidateId: app.candidateId, applicationId: app.applicationId },
+      metadata: {
+        candidateId: app.candidateId,
+        applicationId: app.applicationId,
+        link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
+      },
     });
 
     await sendCandidatePaymentReceiptEmail({

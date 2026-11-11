@@ -2,20 +2,50 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../../models/User.js";
 import Vendor from "../../models/Vendor.js";
-import Project from "../../models/Project.js";
 import ProjectAssignment from "../../models/ProjectAssignment.js";
 import CandidateApplication from "../../models/CandidateApplication.js";
+import CrmCandidateApplication from "../../models/CrmCandidateApplication.js";
 import Candidate from "../../models/Candidate.js";
+import CrmCandidate from "../../models/CrmCandidate.js";
 import Interview from "../../models/Interview.js";
 import Job from "../../models/Job.js";
 import ActivityLog from "../../models/ActivityLog.js";
-import Client from "../../models/Client.js";
 import env from "../../config/env.js";
 import { getCookieOptions } from "../../config/security.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
 import PermissionService from "../../services/permission.service.js";
+import {
+  fetchAllMergedProjects,
+  resolveProjectMilestonesData,
+  normalizeMilestoneStages,
+} from "../../utils/projectResolver.js";
+
+const normalizeRecruitmentStageValue = (val) => {
+  if (!val) return "Screening";
+  const s = String(val).trim();
+  if (s === "Submitted" || s === "Under Review") return "Screening";
+  if (s === "Interview") return "Interview Scheduled";
+  if (s === "Visa Allotted") return "Visa Issued";
+  return s;
+};
+
+const POST_SELECTION_STAGES = new Set([
+  "Selected",
+  "Processing",
+  "Completed",
+  "Offer Released",
+  "Offer Accepted",
+  "Visa Processing",
+  "Visa Issued",
+  "Visa Allotted",
+  "Joined",
+  "Deployed",
+]);
+
+const isValidObjectId = (val) =>
+  typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
 
 export const vendorHRLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -103,67 +133,213 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     user?.role === "ADMIN" ||
     user?.role === "SUPER_ADMIN";
 
-  let assignedVendors = Array.isArray(user?.assignedVendors) ? [...user.assignedVendors] : [];
+  const userIdStr = user?._id?.toString() || user?.id || "";
+  let freshAssignedVendors = Array.isArray(user?.assignedVendors)
+    ? user.assignedVendors.map(String)
+    : [];
+
+  if (!isAdminOrSuper && userIdStr) {
+    try {
+      const freshUser = await User.findById(userIdStr).select("assignedVendors").lean();
+      if (freshUser && Array.isArray(freshUser.assignedVendors)) {
+        freshAssignedVendors = freshUser.assignedVendors.map(String);
+      }
+    } catch {}
+  }
+
+  let vendorDocs = [];
+  let expandedAssignedVendors = [...freshAssignedVendors];
 
   if (isAdminOrSuper) {
     if (req.query.vendorId && req.query.vendorId !== "ALL") {
-      assignedVendors = [req.query.vendorId];
+      const qVId = String(req.query.vendorId).trim();
+      vendorDocs = await Vendor.find({
+        $or: [
+          { vendorId: qVId },
+          { id: qVId },
+          ...(isValidObjectId(qVId) ? [{ _id: qVId }] : []),
+        ],
+      }).lean();
+      expandedAssignedVendors = Array.from(
+        new Set(
+          [
+            qVId,
+            ...vendorDocs.flatMap((v) => [v.vendorId, v._id?.toString()].filter(Boolean)),
+          ].map(String)
+        )
+      );
+      freshAssignedVendors = vendorDocs.map((v) => v.vendorId || v._id?.toString()).filter(Boolean);
     } else {
-      const allVendors = await Vendor.find().select("vendorId _id companyName").lean();
-      assignedVendors = allVendors.map((v) => v.vendorId || v._id.toString()).filter(Boolean);
+      vendorDocs = await Vendor.find().lean();
+      expandedAssignedVendors = vendorDocs
+        .flatMap((v) => [v.vendorId, v._id?.toString()].filter(Boolean))
+        .map(String);
+      freshAssignedVendors = vendorDocs.map((v) => v.vendorId || v._id?.toString()).filter(Boolean);
     }
+  } else {
+    const hexVendorIds = freshAssignedVendors.filter(isValidObjectId);
+    vendorDocs =
+      freshAssignedVendors.length > 0
+        ? await Vendor.find({
+            $or: [
+              { vendorId: { $in: freshAssignedVendors } },
+              { id: { $in: freshAssignedVendors } },
+              ...(hexVendorIds.length > 0 ? [{ _id: { $in: hexVendorIds } }] : []),
+            ],
+          }).lean()
+        : [];
+    expandedAssignedVendors = Array.from(
+      new Set(
+        [
+          ...freshAssignedVendors,
+          ...vendorDocs.flatMap((v) => [v.vendorId, v._id?.toString()].filter(Boolean)),
+        ].map(String)
+      )
+    );
   }
 
-  const userIdStr = user?._id?.toString() || user?.id || "";
-
   const assignmentQuery = isAdminOrSuper
-    ? { status: "Active" }
+    ? {
+        status: "Active",
+        ...(req.query.vendorId && req.query.vendorId !== "ALL"
+          ? { vendorId: { $in: expandedAssignedVendors } }
+          : {}),
+      }
     : {
         $or: [
-          { vendorId: { $in: assignedVendors } },
-          ...(userIdStr ? [{ userId: userIdStr }, { vendorHRUserId: userIdStr }] : []),
+          ...(expandedAssignedVendors.length > 0
+            ? [{ vendorId: { $in: expandedAssignedVendors } }]
+            : []),
+          ...(userIdStr
+            ? [{ userId: userIdStr }, { vendorHRUserId: userIdStr }]
+            : []),
         ],
         status: "Active",
       };
 
-  const assignments = await ProjectAssignment.find(assignmentQuery).lean();
-  const assignedProjectIds = [
-    ...new Set(assignments.map((a) => a.projectId).filter(Boolean)),
-  ];
-
-  const projectSearchQuery = isAdminOrSuper
-    ? { status: { $ne: "Deleted" } }
-    : {
-        $or: [
-          { projectId: { $in: assignedProjectIds } },
-          { _id: { $in: assignedProjectIds.filter((p) => p.match(/^[0-9a-fA-F]{24}$/)) } },
-          { "assignedVendors.vendorId": { $in: assignedVendors } },
-        ],
-      };
-
-  const [projectDocs, vendorDocs, clientDocs] = await Promise.all([
-    Project.find(projectSearchQuery).lean(),
-    Vendor.find(
-      isAdminOrSuper
-        ? {}
-        : {
-            $or: [
-              { vendorId: { $in: assignedVendors } },
-              { _id: { $in: assignedVendors.filter((v) => v.match(/^[0-9a-fA-F]{24}$/)) } },
-            ],
-          }
-    ).lean(),
-    Client.find().lean().catch(() => []),
+  const [rawActiveAssignments, userHRAssignmentHistory, allMergedProjects] = await Promise.all([
+    !isAdminOrSuper && expandedAssignedVendors.length === 0 && !userIdStr
+      ? Promise.resolve([])
+      : ProjectAssignment.find(assignmentQuery).lean(),
+    !isAdminOrSuper && userIdStr
+      ? ProjectAssignment.find({
+          assignmentType: "VENDOR_HR_PROJECT",
+          userId: userIdStr,
+          status: { $in: ["Active", "Removed"] },
+        }).lean()
+      : Promise.resolve([]),
+    fetchAllMergedProjects(),
   ]);
 
-  const clientMap = new Map(clientDocs.map((c) => [c._id.toString(), c]));
+  const activeHRPairKeys = new Set();
+  const activeHRProjectIds = new Set();
+  userHRAssignmentHistory.forEach((a) => {
+    if (a.status === "Active") {
+      activeHRProjectIds.add(String(a.projectId));
+      activeHRPairKeys.add(`${String(a.projectId)}::${String(a.vendorId || "")}`);
+    }
+  });
 
-  const enrichedProjects = projectDocs.map((doc) => {
-    const pId = doc.projectId || doc._id?.toString();
-    const matchingAssignments = assignments.filter(
-      (a) => a.projectId === pId || a.projectRef?.toString() === pId
+  const removedHRPairKeys = new Set();
+  const removedHRProjectIds = new Set();
+  userHRAssignmentHistory.forEach((a) => {
+    if (a.status === "Removed") {
+      const pId = String(a.projectId);
+      const pairKey = `${pId}::${String(a.vendorId || "")}`;
+      if (!activeHRPairKeys.has(pairKey)) {
+        removedHRPairKeys.add(pairKey);
+      }
+      if (!activeHRProjectIds.has(pId)) {
+        removedHRProjectIds.add(pId);
+      }
+    }
+  });
+
+  const assignments = isAdminOrSuper
+    ? rawActiveAssignments
+    : rawActiveAssignments.filter((a) => {
+        const pId = String(a.projectId || "");
+        const vId = String(a.vendorId || "");
+        if (a.assignmentType === "VENDOR_HR_PROJECT" && String(a.userId || "") === userIdStr) {
+          return true;
+        }
+        if (activeHRPairKeys.has(`${pId}::${vId}`)) {
+          return true;
+        }
+        if (removedHRPairKeys.has(`${pId}::${vId}`)) {
+          return false;
+        }
+        if (removedHRProjectIds.has(pId) && !activeHRProjectIds.has(pId)) {
+          return false;
+        }
+        return true;
+      });
+
+  const expandedVendorSet = new Set(expandedAssignedVendors.map(String));
+
+  const filteredProjectDocs = allMergedProjects.filter((doc) => {
+    const candidates = Array.isArray(doc.rawIdCandidates) && doc.rawIdCandidates.length > 0
+      ? doc.rawIdCandidates.map(String)
+      : [String(doc.projectId)];
+
+    const matchingAssignment = assignments.some(
+      (a) =>
+        candidates.includes(String(a.projectId || "")) ||
+        (a.projectRef && candidates.includes(String(a.projectRef)))
     );
-    
+
+    if (isAdminOrSuper) {
+      if (req.query.vendorId && req.query.vendorId !== "ALL") {
+        const hasVendorInDoc = (doc.assignedVendors || []).some((v) =>
+          expandedVendorSet.has(String(v.vendorId || v.id || v._id || v))
+        );
+        return matchingAssignment || hasVendorInDoc;
+      }
+      return true;
+    }
+
+    if (matchingAssignment) return true;
+
+    const isRemovedForUser = candidates.some(
+      (cid) => removedHRProjectIds.has(cid) && !activeHRProjectIds.has(cid)
+    );
+    if (isRemovedForUser) return false;
+
+    const hasAssignedVendor = (doc.assignedVendors || []).some((v) => {
+      const vId = String(v.vendorId || v.id || v._id || v);
+      if (!expandedVendorSet.has(vId)) return false;
+      const pairRemoved = candidates.some((cid) => removedHRPairKeys.has(`${cid}::${vId}`));
+      return !pairRemoved;
+    });
+    if (hasAssignedVendor) return true;
+
+    const hasDirectHR = (doc.assignedVendorHRs || []).some(
+      (h) => userIdStr && String(h.userId || h._id || "") === userIdStr
+    );
+    return hasDirectHR;
+  });
+
+  const assignedProjectIds = Array.from(
+    new Set([
+      ...assignments.map((a) => String(a.projectId)).filter(Boolean),
+      ...filteredProjectDocs.flatMap((d) =>
+        Array.isArray(d.rawIdCandidates) ? d.rawIdCandidates : [d.projectId]
+      ),
+    ])
+  );
+
+  const enrichedProjects = filteredProjectDocs.map((doc) => {
+    const pId = doc.projectId;
+    const candidates = Array.isArray(doc.rawIdCandidates) && doc.rawIdCandidates.length > 0
+      ? doc.rawIdCandidates.map(String)
+      : [String(pId)];
+
+    const matchingAssignments = assignments.filter(
+      (a) =>
+        candidates.includes(String(a.projectId || "")) ||
+        (a.projectRef && candidates.includes(String(a.projectRef)))
+    );
+
     const vendorNamesSet = new Set();
     matchingAssignments.forEach((a) => {
       if (a.vendorName) vendorNamesSet.add(a.vendorName);
@@ -184,247 +360,449 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
       });
     }
 
-    const clientObj = clientMap.get(doc.clientId?.toString());
-    const realClientName = doc.clientName || clientObj?.name || clientObj?.company || "Emirates Engineering & Contracting LLC";
+    const positionsList =
+      Array.isArray(doc.jobPositions) && doc.jobPositions.length > 0
+        ? doc.jobPositions.map((pos) => ({
+            ...pos,
+            salary: pos.salary || doc.salary || "",
+            currency: pos.currency || doc.currency || "",
+          }))
+        : Array.isArray(doc.manpowerRequirements)
+        ? doc.manpowerRequirements.map((r) => ({
+            title: r.positionTitle || r.position || r.title || r.role || "General Trade",
+            openings: Number(r.quantity || r.openings || 1) || 1,
+            filled: Number(r.filled || 0),
+            salary: r.salary || doc.salary || "",
+            currency: r.currency || doc.currency || "",
+          }))
+        : [];
 
-    let realCountry = doc.destinationCountry || doc.country;
-    if (!realCountry || realCountry === "India") {
-      const pTitle = (doc.title || doc.projectName || "").toLowerCase();
-      if (pTitle.includes("qatar")) realCountry = "Qatar";
-      else if (pTitle.includes("singapore")) realCountry = "Singapore";
-      else if (pTitle.includes("dubai") || pTitle.includes("uae") || pTitle.includes("emirates")) realCountry = "United Arab Emirates (UAE)";
-      else realCountry = "United Arab Emirates (UAE)";
-    }
+    const openingsTotal = positionsList.reduce((sum, p) => sum + Number(p.openings || 1), 0);
 
     return {
-      id: doc._id.toString(),
+      id: doc.id || pId,
       projectId: pId,
-      projectName: doc.title || doc.projectName || "Overseas Project",
-      clientName: realClientName,
-      destinationCountry: realCountry,
+      projectName: doc.projectName || doc.title || "Overseas Project",
+      clientName: doc.clientName || "",
+      destinationCountry: doc.destinationCountry || doc.country || "",
       status: doc.status || "Active",
-      targetHiring: doc.totalHiringTarget > 0 ? doc.totalHiringTarget : (doc.targetHiring || 50),
-      positions: doc.positions || doc.jobPositions || [],
+      targetHiring: doc.targetHiring > 0 ? doc.targetHiring : openingsTotal,
+      salary: doc.salary || "",
+      currency: doc.currency || "",
+      paymentMilestones: doc.paymentMilestones || [],
+      paymentMilestoneConfig: doc.paymentMilestoneConfig || null,
+      totalMilestoneAmount: doc.totalMilestoneAmount || 0,
+      positions: positionsList,
       assignedVendors: Array.from(vendorNamesSet),
       assignedVendorHRs: Array.from(hrNamesSet),
       assignedAt: doc.createdAt,
-      notes: doc.description || doc.remark || "",
+      notes: doc.description || "",
     };
   });
 
-  const filterProjectId = req.query.projectId;
-  const isProjectFiltered = filterProjectId && filterProjectId !== "ALL";
+  const filterProjectId = req.query.projectId ? String(req.query.projectId).trim() : "";
+  const isProjectFiltered = Boolean(filterProjectId && filterProjectId !== "ALL");
+  const matchedFilterProj = isProjectFiltered
+    ? filteredProjectDocs.find((d) =>
+        (d.rawIdCandidates || [d.projectId]).includes(filterProjectId)
+      )
+    : null;
+  const filterProjectIdCandidates = matchedFilterProj
+    ? matchedFilterProj.rawIdCandidates
+    : isProjectFiltered
+    ? [filterProjectId]
+    : [];
+
+  const projectFilterClause = isProjectFiltered
+    ? { projectId: { $in: filterProjectIdCandidates } }
+    : {};
+
+  const hrScopeAppFilter =
+    req.query.vendorId && req.query.vendorId !== "ALL"
+      ? { vendorId: { $in: expandedAssignedVendors } }
+      : !isAdminOrSuper
+      ? expandedAssignedVendors.length === 0 && assignedProjectIds.length === 0 && !userIdStr
+        ? { _id: null }
+        : {
+            $or: [
+              ...(expandedAssignedVendors.length > 0
+                ? [{ vendorId: { $in: expandedAssignedVendors } }]
+                : []),
+              ...(assignedProjectIds.length > 0
+                ? [{ projectId: { $in: assignedProjectIds } }]
+                : []),
+              ...(userIdStr ? [{ vendorHrId: userIdStr }] : []),
+            ],
+          }
+      : {};
 
   const appQuery = {
-    ...(req.query.vendorId && req.query.vendorId !== "ALL"
-      ? {
-          $or: [
-            { vendorId: req.query.vendorId },
-            ...(vendorDocs.find((v) => v.vendorId === req.query.vendorId || v._id.toString() === req.query.vendorId)
-              ? [
-                  { vendorId: vendorDocs.find((v) => v.vendorId === req.query.vendorId || v._id.toString() === req.query.vendorId).vendorId },
-                  { vendorId: vendorDocs.find((v) => v.vendorId === req.query.vendorId || v._id.toString() === req.query.vendorId)._id.toString() },
-                ]
-              : []),
-          ],
-        }
-      : !isAdminOrSuper
-      ? {
-          $or: [
-            { vendorId: { $in: assignedVendors } },
-            ...assignedVendors.map((v) => ({ vendorId: v })),
-          ],
-        }
-      : {}),
-    ...(isProjectFiltered ? { projectId: filterProjectId } : {}),
+    ...hrScopeAppFilter,
+    ...projectFilterClause,
   };
 
   const jobQuery = {
     ...(isProjectFiltered
-      ? { projectId: filterProjectId }
+      ? { projectId: { $in: filterProjectIdCandidates } }
       : !isAdminOrSuper
       ? {
           $or: [
-            { "assignedVendors.vendorId": { $in: assignedVendors } },
-            { projectId: { $in: assignedProjectIds } },
-            { status: "Open" },
+            ...(expandedAssignedVendors.length > 0
+              ? [{ "assignedVendors.vendorId": { $in: expandedAssignedVendors } }]
+              : []),
+            ...(assignedProjectIds.length > 0
+              ? [{ projectId: { $in: assignedProjectIds } }]
+              : []),
           ],
+          ...(expandedAssignedVendors.length === 0 && assignedProjectIds.length === 0
+            ? { _id: null }
+            : {}),
         }
       : {}),
   };
 
   const interviewQuery = {
     ...(req.query.vendorId && req.query.vendorId !== "ALL"
-      ? {
-          $or: [
-            { vendorId: req.query.vendorId },
-            ...(vendorDocs.find((v) => v.vendorId === req.query.vendorId || v._id.toString() === req.query.vendorId)
-              ? [
-                  { vendorId: vendorDocs.find((v) => v.vendorId === req.query.vendorId || v._id.toString() === req.query.vendorId).vendorId },
-                  { vendorId: vendorDocs.find((v) => v.vendorId === req.query.vendorId || v._id.toString() === req.query.vendorId)._id.toString() },
-                ]
-              : []),
-          ],
-        }
+      ? { vendorId: { $in: expandedAssignedVendors } }
       : !isAdminOrSuper
-      ? { vendorId: { $in: assignedVendors } }
+      ? expandedAssignedVendors.length === 0 && assignedProjectIds.length === 0
+        ? { _id: null }
+        : {
+            $or: [
+              ...(expandedAssignedVendors.length > 0
+                ? [{ vendorId: { $in: expandedAssignedVendors } }]
+                : []),
+              ...(assignedProjectIds.length > 0
+                ? [{ projectId: { $in: assignedProjectIds } }]
+                : []),
+            ],
+          }
       : {}),
-    ...(isProjectFiltered ? { projectId: filterProjectId } : {}),
+    ...projectFilterClause,
   };
 
   const activityQuery = {
     ...(req.query.vendorId && req.query.vendorId !== "ALL"
-      ? { vendorId: req.query.vendorId }
+      ? { vendorId: { $in: expandedAssignedVendors } }
       : !isAdminOrSuper
-      ? { vendorId: { $in: assignedVendors } }
+      ? {
+          vendorId:
+            expandedAssignedVendors.length > 0 ? { $in: expandedAssignedVendors } : { $in: [] },
+        }
       : {}),
-    ...(isProjectFiltered ? { projectId: filterProjectId } : {}),
   };
 
-  const [rawApplications, dbJobs, interviews, activities] = await Promise.all([
+  const [directApplications, crmApplications, dbJobs, interviews, activities] = await Promise.all([
     CandidateApplication.find(appQuery).sort({ createdAt: -1 }).lean(),
+    CrmCandidateApplication.find(appQuery).sort({ createdAt: -1 }).lean(),
     Job.find(jobQuery).sort({ createdAt: -1 }).lean(),
     Interview.find(interviewQuery).sort({ scheduledDate: 1, startTime: 1 }).lean(),
     ActivityLog.find(activityQuery).sort({ createdAt: -1 }).limit(30).lean(),
   ]);
 
-  const candidateIds = rawApplications.map((a) => a.candidateId).filter(Boolean);
-  const candidateRecords =
-    candidateIds.length > 0
-      ? await Candidate.find({ candidateId: { $in: candidateIds } })
-          .select("candidateId documents profile")
-          .lean()
-      : [];
-  const candidateMap = new Map(candidateRecords.map((c) => [c.candidateId, c]));
-  const projectMap = new Map(enrichedProjects.map((p) => [p.projectId, p]));
-
-  const applications = rawApplications.map((app, idx) => {
-    const cRec = candidateMap.get(app.candidateId);
-    const proj = projectMap.get(app.projectId);
-    
-    let passportNumber = app.passportNumber || cRec?.profile?.passportNumber;
-    if (!passportNumber) {
-      const hashStr = `${app.applicationId || ""}_${app.candidateName || ""}_${idx}`;
-      let hash = 0;
-      for (let i = 0; i < hashStr.length; i++) {
-        hash = (hash << 5) - hash + hashStr.charCodeAt(i);
-        hash |= 0;
+  const combinedAppMap = new Map();
+  const mergeAppRecord = (rec) => {
+    if (!rec) return;
+    const pId = String(rec.projectId || "");
+    const vId = String(rec.vendorId || "");
+    if (!isAdminOrSuper && pId) {
+      if (removedHRPairKeys.has(`${pId}::${vId}`)) return;
+      if (
+        removedHRProjectIds.has(pId) &&
+        !activeHRProjectIds.has(pId) &&
+        !(userIdStr && String(rec.vendorHrId || "") === userIdStr)
+      ) {
+        return;
       }
-      passportNumber = `P${Math.abs(hash).toString().padStart(7, "0").slice(0, 7)}`;
     }
+
+    const appId = String(rec.applicationId || rec.id || rec._id || "");
+    const pairKey =
+      rec.candidateId && rec.projectId ? `${String(rec.candidateId)}::${String(rec.projectId)}` : appId;
+    const existing =
+      combinedAppMap.get(appId) ||
+      Array.from(combinedAppMap.values()).find(
+        (x) =>
+          pairKey &&
+          x.candidateId &&
+          x.projectId &&
+          `${String(x.candidateId)}::${String(x.projectId)}` === pairKey
+      );
+
+    if (!existing) {
+      combinedAppMap.set(appId, {
+        ...rec,
+        id: appId,
+        applicationId: appId,
+      });
+    } else {
+      const existingTs = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+      const incomingTs = new Date(rec.updatedAt || rec.createdAt || 0).getTime();
+      const newer = incomingTs >= existingTs ? rec : existing;
+      const older = incomingTs >= existingTs ? existing : rec;
+      const keyToUse = existing.applicationId || appId;
+      combinedAppMap.set(keyToUse, {
+        ...older,
+        ...newer,
+        id: keyToUse,
+        applicationId: keyToUse,
+        processMilestones:
+          Array.isArray(newer.processMilestones) && newer.processMilestones.length > 0
+            ? newer.processMilestones
+            : older.processMilestones || [],
+        candidateData: {
+          ...(older.candidateData || {}),
+          ...(newer.candidateData || {}),
+        },
+        interview: newer.interview?.scheduledDate ? newer.interview : older.interview,
+        interviewDetails:
+          newer.interviewDetails?.dateTime || newer.interviewDetails?.scheduledDate
+            ? newer.interviewDetails
+            : older.interviewDetails,
+      });
+    }
+  };
+
+  (crmApplications || []).forEach(mergeAppRecord);
+  (directApplications || []).forEach(mergeAppRecord);
+
+  const rawApplications = Array.from(combinedAppMap.values()).sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+  );
+
+  const candidateIds = Array.from(
+    new Set(rawApplications.map((a) => a.candidateId).filter(Boolean).map(String))
+  );
+  const [candidateRecords, crmCandidateRecords] =
+    candidateIds.length > 0
+      ? await Promise.all([
+          Candidate.find({ candidateId: { $in: candidateIds } })
+            .select("candidateId fullName email phone documents profile")
+            .lean(),
+          CrmCandidate.find({
+            $or: [{ candidateId: { $in: candidateIds } }, { id: { $in: candidateIds } }],
+          }).lean(),
+        ])
+      : [[], []];
+
+  const candidateMap = new Map(candidateRecords.map((c) => [String(c.candidateId), c]));
+  const crmCandidateMap = new Map();
+  (crmCandidateRecords || []).forEach((c) => {
+    if (c.candidateId) crmCandidateMap.set(String(c.candidateId), c);
+    if (c.id) crmCandidateMap.set(String(c.id), c);
+    if (c._id) crmCandidateMap.set(String(c._id), c);
+  });
+
+  const projectMap = new Map();
+  const rawProjectMap = new Map();
+  enrichedProjects.forEach((p, idx) => {
+    projectMap.set(p.projectId, p);
+    const rawDoc = filteredProjectDocs[idx];
+    if (rawDoc) rawProjectMap.set(p.projectId, rawDoc);
+    if (rawDoc?.rawIdCandidates) {
+      rawDoc.rawIdCandidates.forEach((cid) => {
+        projectMap.set(String(cid), p);
+        rawProjectMap.set(String(cid), rawDoc);
+      });
+    }
+  });
+
+  const applications = rawApplications.map((app) => {
+    const cRec = candidateMap.get(String(app.candidateId || ""));
+    const crmRec = crmCandidateMap.get(String(app.candidateId || ""));
+    const cData = app.candidateData || {};
+    const proj = projectMap.get(String(app.projectId || ""));
+    const rawProj = rawProjectMap.get(String(app.projectId || ""));
+
+    const passportNumber =
+      app.passportNumber ||
+      cRec?.profile?.passportNumber ||
+      crmRec?.passportNumber ||
+      cData.passportNumber ||
+      "";
 
     const matchedInterview = interviews.find(
       (i) =>
-        i.candidateId === app.candidateId ||
-        i.candidateName === app.candidateName ||
-        i.applicationId === app.applicationId
+        i.applicationId === app.applicationId ||
+        (i.candidateId === app.candidateId && i.projectId === app.projectId) ||
+        i.candidateId === app.candidateId
     );
+
+    const mappedInterviewDetails =
+      app.interviewDetails?.dateTime || app.interviewDetails?.scheduledDate
+        ? {
+            scheduledDate:
+              app.interviewDetails.scheduledDate ||
+              (app.interviewDetails.dateTime
+                ? String(app.interviewDetails.dateTime).split("T")[0]
+                : ""),
+            scheduledTime:
+              app.interviewDetails.scheduledTime ||
+              (app.interviewDetails.dateTime &&
+              String(app.interviewDetails.dateTime).includes("T")
+                ? String(app.interviewDetails.dateTime).split("T")[1].slice(0, 5)
+                : ""),
+            round: app.interviewDetails.round || "L1 Interview",
+            interviewerName: app.interviewDetails.interviewer || "",
+            interviewLink:
+              app.interviewDetails.meetingLink || app.interviewDetails.locationOrLink || "",
+            mode: app.interviewDetails.mode || "Google Meet",
+          }
+        : null;
 
     const interviewData = app.interview?.scheduledDate
       ? app.interview
-      : (matchedInterview
-          ? {
-              scheduledDate: matchedInterview.scheduledDate,
-              scheduledTime: matchedInterview.startTime,
-              round: matchedInterview.round,
-              interviewerName: matchedInterview.interviewerName,
-              interviewLink: matchedInterview.interviewLink,
-              mode: matchedInterview.interviewMode || "Google Meet",
-            }
-          : (["L1 Interview", "L2 Interview"].includes(app.recruitmentStage)
-              ? {
-                  scheduledDate: "Today",
-                  scheduledTime: app.recruitmentStage === "L1 Interview" ? "11:00 AM" : "2:00 PM",
-                  round: app.recruitmentStage,
-                  interviewerName:
-                    app.recruitmentStage === "L1 Interview"
-                      ? "Er. Rajesh K (Technical Lead)"
-                      : "Suresh Menon (Project Lead)",
-                  interviewLink: "https://meet.google.com/xyz-meep-abc",
-                  mode: "Google Meet",
-                }
-              : app.interview));
+      : mappedInterviewDetails?.scheduledDate
+      ? mappedInterviewDetails
+      : matchedInterview
+      ? {
+          scheduledDate: matchedInterview.scheduledDate,
+          scheduledTime: matchedInterview.startTime,
+          round: matchedInterview.round,
+          interviewerName: matchedInterview.interviewerName,
+          interviewLink: matchedInterview.interviewLink,
+          mode: matchedInterview.interviewMode || "Google Meet",
+        }
+      : app.interview || null;
 
-    const combinedDocs = [
+    const rawDocs = [
       ...(Array.isArray(app.documents) ? app.documents : []),
+      ...(Array.isArray(cData.documents) ? cData.documents : []),
+      ...(Array.isArray(crmRec?.documents) ? crmRec.documents : []),
       ...(Array.isArray(cRec?.documents) ? cRec.documents : []),
     ];
+    const seenDocKeys = new Set();
+    const combinedDocs = rawDocs.filter((doc) => {
+      if (!doc) return false;
+      const key = `${doc.fileName || ""}|${doc.name || doc.docType || ""}|${doc.fileUrl ? String(doc.fileUrl).slice(0, 64) : ""}`;
+      if (seenDocKeys.has(key)) return false;
+      seenDocKeys.add(key);
+      return true;
+    });
 
-    if (combinedDocs.length === 0) {
-      combinedDocs.push({
-        id: `doc_pass_${app.applicationId || idx}`,
-        docType: "Passport Copy (Front & Back)",
-        name: `${(app.candidateName || "Candidate").replace(/\s+/g, "_")}_Passport.pdf`,
-        fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-        status: "Verified",
-        uploadedAt: app.createdAt || new Date(),
-      });
-      if (["Selected", "Offer Released", "Visa Processing", "Visa Issued", "Joined"].includes(app.recruitmentStage)) {
-        combinedDocs.push({
-          id: `doc_med_${app.applicationId || idx}`,
-          docType: "GAMCA Medical Fitness Certificate",
-          name: `${(app.candidateName || "Candidate").replace(/\s+/g, "_")}_Medical_Fitness.pdf`,
-          fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-          status: "Verified",
-          uploadedAt: app.createdAt || new Date(),
-        });
-      }
-      if (["Visa Processing", "Visa Issued", "Joined"].includes(app.recruitmentStage)) {
-        combinedDocs.push({
-          id: `doc_visa_${app.applicationId || idx}`,
-          docType: "Overseas Work Permit & Visa Approval",
-          name: `${(app.candidateName || "Candidate").replace(/\s+/g, "_")}_Visa_Permit.pdf`,
-          fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-          status: "Verified",
-          uploadedAt: app.createdAt || new Date(),
-        });
+    const normalizedStage = normalizeRecruitmentStageValue(
+      app.recruitmentStage || app.status || cData.stage || "Screening"
+    );
+    const normalizedStatus = normalizeRecruitmentStageValue(app.status || normalizedStage);
+
+    let processMilestones = Array.isArray(app.processMilestones) ? app.processMilestones : [];
+    let totalAmount = Number(app.paymentPlan?.totalAmount || 0);
+    if (
+      POST_SELECTION_STAGES.has(normalizedStage) ||
+      POST_SELECTION_STAGES.has(normalizedStatus) ||
+      processMilestones.length > 0
+    ) {
+      if (rawProj && !app.milestonesOverridden) {
+        const resolved = resolveProjectMilestonesData(rawProj, processMilestones, false);
+        if (resolved.processMilestones.length > 0) {
+          processMilestones = resolved.processMilestones;
+          totalAmount = resolved.totalAmount;
+        } else {
+          processMilestones = normalizeMilestoneStages(processMilestones);
+          totalAmount = processMilestones.reduce(
+            (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+            0
+          );
+        }
+      } else {
+        processMilestones = normalizeMilestoneStages(processMilestones);
+        totalAmount = processMilestones.reduce(
+          (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+          0
+        );
       }
     }
 
+    const expVal =
+      app.experienceYears ||
+      cRec?.profile?.experienceYears ||
+      crmRec?.experienceYears ||
+      cData.experienceYears ||
+      "";
+
     return {
       ...app,
+      id: app.applicationId || app.id || app._id?.toString(),
+      applicationId: app.applicationId || app.id || app._id?.toString(),
+      candidateEmail:
+        app.candidateEmail || cRec?.email || crmRec?.email || cData.email || "",
+      candidatePhone:
+        app.candidatePhone || cRec?.phone || crmRec?.phone || cData.phone || "",
+      position:
+        app.position ||
+        app.jobTitle ||
+        crmRec?.currentPosition ||
+        cData.currentPosition ||
+        "",
+      jobTitle:
+        app.jobTitle ||
+        app.position ||
+        crmRec?.currentPosition ||
+        cData.currentPosition ||
+        "",
       passportNumber,
-      clientName: app.clientName || proj?.clientName || "Emirates Engineering & Contracting LLC",
-      projectName: app.projectName || proj?.projectName || "Overseas Project",
+      recruitmentStage: normalizedStage,
+      status: normalizedStatus,
+      salary:
+        (proj?.salary !== undefined && proj?.salary !== "" ? proj.salary : "") ||
+        (rawProj?.salary !== undefined && rawProj?.salary !== "" ? rawProj.salary : "") ||
+        app.salary ||
+        "",
+      currency:
+        (proj?.currency !== undefined && proj?.currency !== "" ? proj.currency : "") ||
+        (rawProj?.currency !== undefined && rawProj?.currency !== "" ? rawProj.currency : "") ||
+        app.currency ||
+        "",
+      destinationCountry:
+        proj?.destinationCountry ||
+        rawProj?.destinationCountry ||
+        app.destinationCountry ||
+        crmRec?.preferredCountry ||
+        "",
+      clientName: proj?.clientName || app.clientName || "",
+      projectName: proj?.projectName || rawProj?.projectName || app.projectName || "Overseas Project",
       interview: interviewData,
       documents: combinedDocs,
-      experienceYears: app.experienceYears || cRec?.profile?.experienceYears || "3-5 Years",
+      experienceYears: expVal ? String(expVal) : "",
+      processMilestones,
+      paymentPlan: {
+        ...(app.paymentPlan || { currency: "INR" }),
+        totalAmount,
+        milestones: processMilestones,
+      },
       visaDetails: {
         ...(app.visaDetails || {}),
-        visaStatus:
-          ["Visa Issued", "Joined", "Deployed"].includes(app.recruitmentStage)
-            ? "Visa Issued"
-            : app.recruitmentStage === "Visa Processing"
-            ? "In Process"
-            : app.visaDetails?.visaStatus || "Not Started",
-        visaNumber:
-          app.visaDetails?.visaNumber ||
-          (["Visa Issued", "Joined", "Deployed", "Visa Processing"].includes(app.recruitmentStage)
-            ? `DXB-V${passportNumber.slice(1)}`
-            : ""),
+        visaStatus: ["Visa Issued", "Joined", "Deployed"].includes(normalizedStage)
+          ? "Visa Issued"
+          : normalizedStage === "Visa Processing"
+          ? "In Process"
+          : app.visaDetails?.visaStatus || "Not Started",
+        visaNumber: app.visaDetails?.visaNumber || "",
       },
     };
   });
 
   const allJobs = dbJobs.map((j) => {
-    const proj = projectMap.get(j.projectId);
-    let salaryRange = j.salaryRange;
-    if (!salaryRange || !salaryRange.min) {
-      if (j.title?.includes("Electrician") || j.title?.includes("Technician")) {
-        salaryRange = { min: 2800, max: 3500, currency: "AED", period: "monthly" };
-      } else if (j.title?.includes("HVAC")) {
-        salaryRange = { min: 3200, max: 4200, currency: "AED", period: "monthly" };
-      } else if (j.title?.includes("Welder")) {
-        salaryRange = { min: 3000, max: 4000, currency: "QAR", period: "monthly" };
-      } else {
-        salaryRange = { min: 3000, max: 4500, currency: "AED", period: "monthly" };
-      }
-    }
+    const proj = projectMap.get(String(j.projectId || ""));
+    const rawProj = rawProjectMap.get(String(j.projectId || ""));
+    const textSalary = j.salary || j.salaryText || proj?.salary || rawProj?.salary || "";
+    const textCurrency = j.currency || proj?.currency || rawProj?.currency || "";
+    const hasNumericRange = j.salaryRange && (Number(j.salaryRange.min) > 0 || Number(j.salaryRange.max) > 0);
     return {
       ...j,
       projectName: j.projectName || proj?.projectName || "Overseas Project",
-      clientName: j.clientName || proj?.clientName || "Emirates Engineering & Contracting LLC",
-      salaryRange,
+      clientName: j.clientName || proj?.clientName || "",
+      salary: textSalary,
+      currency: textCurrency,
+      salaryRange: hasNumericRange
+        ? j.salaryRange
+        : {
+            min: 0,
+            max: 0,
+            text: textSalary,
+            currency: textCurrency,
+            period: "monthly",
+          },
     };
   });
 
@@ -432,51 +810,73 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     allJobs.map((j) => `${j.projectId}_${(j.title || "").toLowerCase().trim()}`)
   );
 
-  projectDocs.forEach((p) => {
-    const pId = p.projectId || p._id?.toString();
-    if (isProjectFiltered && filterProjectId !== pId) return;
+  filteredProjectDocs.forEach((p) => {
+    const pId = p.projectId;
+    if (isProjectFiltered && !(p.rawIdCandidates || [pId]).includes(filterProjectId)) return;
 
-    if (Array.isArray(p.jobPositions)) {
-      p.jobPositions.forEach((pos, idx) => {
-        const titleKey = `${pId}_${(pos.title || "").toLowerCase().trim()}`;
-        if (!existingJobTitlesByProj.has(titleKey) && pos.title) {
-          const proj = projectMap.get(pId);
-          allJobs.push({
-            id: `synth_${pId}_${idx}`,
-            jobId: `JOB-${pId}-${idx + 1}`,
-            title: pos.title,
-            projectId: pId,
-            projectName: proj?.projectName || p.title || p.projectName,
-            clientId: p.clientId?.toString() || "",
-            clientName: proj?.clientName || "Emirates Engineering & Contracting LLC",
-            department: "Technical Trade",
-            tradeCategory: "Skilled Trade",
-            openings: pos.openings || 10,
-            filledPositions: pos.filled || 0,
-            salaryRange: { min: 2800, max: 3800, currency: "AED", period: "monthly" },
-            destinationCountry: proj?.destinationCountry || "UAE",
-            status: "Open",
-            createdAt: p.createdAt,
-          });
-          existingJobTitlesByProj.add(titleKey);
-        }
-      });
-    }
+    const combinedPositions = [
+      ...(Array.isArray(p.jobPositions) ? p.jobPositions : []),
+      ...(Array.isArray(p.manpowerRequirements) ? p.manpowerRequirements : []),
+    ];
+
+    combinedPositions.forEach((pos, idx) => {
+      const posTitle = String(
+        pos?.title || pos?.positionTitle || pos?.position || pos?.role || ""
+      ).trim();
+      if (!posTitle) return;
+      const titleKey = `${pId}_${posTitle.toLowerCase()}`;
+      if (!existingJobTitlesByProj.has(titleKey)) {
+        const proj = projectMap.get(pId);
+        const posSalary = pos.salary || p.salary || proj?.salary || "";
+        const posCurrency = pos.currency || p.currency || proj?.currency || "";
+        allJobs.push({
+          id: `synth_${pId}_${idx}`,
+          jobId: `JOB-${pId}-${idx + 1}`,
+          title: posTitle,
+          projectId: pId,
+          projectName: proj?.projectName || p.projectName || p.title,
+          clientId: p.clientId || "",
+          clientName: proj?.clientName || p.clientName || "",
+          department: "Technical Trade",
+          tradeCategory: "Skilled Trade",
+          openings: Number(pos.openings || pos.quantity || pos.count || 1) || 1,
+          filledPositions: Number(pos.filled || pos.filledPositions || 0),
+          salary: posSalary,
+          currency: posCurrency,
+          salaryRange: {
+            min: 0,
+            max: 0,
+            text: posSalary,
+            currency: posCurrency,
+            period: "monthly",
+          },
+          destinationCountry: proj?.destinationCountry || p.destinationCountry || "",
+          status: "Open",
+          createdAt: p.createdAt,
+        });
+        existingJobTitlesByProj.add(titleKey);
+      }
+    });
   });
 
-  enrichedProjects.forEach((ep) => {
-    const pJobs = allJobs.filter((j) => j.projectId === ep.projectId);
+  enrichedProjects.forEach((ep, idx) => {
+    const rawDoc = filteredProjectDocs[idx];
+    const candIds = new Set(rawDoc?.rawIdCandidates || [ep.projectId]);
+    const pJobs = allJobs.filter((j) => candIds.has(String(j.projectId)));
     ep.jobsCount = pJobs.length;
-    ep.candidatesCount = applications.filter((a) => a.projectId === ep.projectId).length;
+    ep.candidatesCount = applications.filter((a) => candIds.has(String(a.projectId))).length;
     const openingsSum = pJobs.reduce((sum, j) => sum + (j.openings || 0), 0);
-    if (openingsSum > 0 && ep.targetHiring === 50) {
+    if (openingsSum > 0 && (!ep.targetHiring || ep.targetHiring === 0)) {
       ep.targetHiring = openingsSum;
     }
   });
 
   const kpis = {
     assignedProjects: enrichedProjects.length,
-    activeOpenings: allJobs.reduce((sum, j) => sum + ((j.openings || 10) - (j.filledPositions || 0)), 0),
+    activeOpenings: allJobs.reduce(
+      (sum, j) => sum + ((j.openings || 1) - (j.filledPositions || 0)),
+      0
+    ),
     totalCandidates: applications.length,
     inScreening: applications.filter(
       (a) => a.recruitmentStage === "Screening" || a.status === "Screening"
@@ -511,12 +911,15 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
   return ApiResponse.send(res, 200, "Vendor HR dashboard fetched successfully", {
     kpis,
     projects: enrichedProjects,
+    assignedVendors: freshAssignedVendors,
     vendor: vendorDocs[0] || null,
     vendors: vendorDocs,
     jobs: allJobs,
     applications,
     recentApplications: applications.slice(0, 10),
+    interviews,
     upcomingInterviews: interviews.filter((i) => i.status === "Scheduled").slice(0, 15),
+    activities,
     recentActivities: activities,
   });
 });

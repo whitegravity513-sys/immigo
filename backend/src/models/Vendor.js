@@ -187,6 +187,7 @@ const vendorSchema = new mongoose.Schema(
         fileName: String,
         type: { type: String, default: "Document" },
         fileUrl: String,
+        mimeType: { type: String, default: "" },
         size: String,
         uploadedAt: { type: Date, default: Date.now },
         status: { type: String, default: "Pending" },
@@ -194,6 +195,10 @@ const vendorSchema = new mongoose.Schema(
       },
     ],
     documentsUploaded: {
+      type: Boolean,
+      default: false,
+    },
+    documentVerified: {
       type: Boolean,
       default: false,
     },

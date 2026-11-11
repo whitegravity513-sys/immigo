@@ -5,11 +5,19 @@ import {
   Bell,
   User,
   Building2,
+  Lock,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 import UnifiedNotificationPopover from "../../common/UnifiedNotificationPopover.jsx";
+import { resolveNotificationLink } from "../../../utils/notificationLinks.js";
 
-export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendor Portal" }) {
+export function VendorNavbar({
+  mobileOpen,
+  setMobileOpen,
+  vendor,
+  title = "Vendor Portal",
+  isPortalLocked = false,
+}) {
   const navigate = useNavigate();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -63,16 +71,20 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
     setTimeout(refreshNotifications, 100);
   };
 
-  const handleNotificationClick = (notif) => {
+  const handleNotificationClick = (notif, resolvedLink) => {
     const notifId = notif.id || notif._id;
     crmVendorService.markNotificationRead(notifId);
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId || n._id === notifId ? { ...n, read: true } : n))
     );
     setShowNotifications(false);
-    if (notif.link) {
-      navigate(notif.link);
+    const target = resolvedLink || resolveNotificationLink(notif, { isVendor: true });
+    if (target) {
+      if (!isPortalLocked || target.startsWith("/vendor/documents") || target === "/vendor/dashboard") {
+        navigate(target);
+      }
     }
+    return false;
   };
 
   const handleDeleteOne = (notifId, e) => {
@@ -110,15 +122,36 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
             <span className="text-xs font-bold text-white max-w-[180px] truncate leading-tight">
               {vendorName}
             </span>
-            {vendor?.status === "Pending MOU Approval" || (vendor?.mouSigned && vendor?.status !== "Approved") ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                Pending MOU Approval
-              </span>
-            ) : vendor?.status === "Approved" ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-cyan-400/20 text-cyan-300 border border-cyan-400/40">
-                Approved
-              </span>
-            ) : null}
+            {(() => {
+              const isApprovedOrActive = Boolean(
+                vendor?.status === "Approved" ||
+                  vendor?.status === "Active" ||
+                  vendor?.mouStatus === "Approved"
+              );
+              const isPendingMouApproval = Boolean(
+                !isApprovedOrActive &&
+                  (vendor?.status === "Pending MOU Approval" ||
+                    vendor?.status === "MOU Under Review" ||
+                    vendor?.mouStatus === "Under Review" ||
+                    vendor?.onboardingStage === "MOU_UNDER_REVIEW" ||
+                    vendor?.mouSigned)
+              );
+              if (isPendingMouApproval) {
+                return (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                    Pending MOU Approval
+                  </span>
+                );
+              }
+              if (isApprovedOrActive) {
+                return (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-cyan-400/20 text-cyan-300 border border-cyan-400/40">
+                    {vendor?.status === "Active" ? "Active" : "Approved"}
+                  </span>
+                );
+              }
+              return null;
+            })()}
           </div>
           <span className="text-[10px] font-mono font-semibold text-cyan-300">
             ID: {vendorId}
@@ -155,18 +188,29 @@ export function VendorNavbar({ mobileOpen, setMobileOpen, vendor, title = "Vendo
             }}
             onDeleteOne={handleDeleteOne}
             onItemClick={handleNotificationClick}
-            viewAllLink="/vendor/candidates/selected"
+            roleContext={{ isVendor: true }}
+            viewAllLink={isPortalLocked ? "/vendor/dashboard" : "/vendor/selected"}
           />
         </div>
 
-        <Link
-          to="/vendor/profile"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/15 text-slate-100 transition-colors text-xs font-semibold cursor-pointer"
-          title="Vendor Profile"
-        >
-          <User size={15} className="text-cyan-300" />
-          <span className="hidden sm:inline">Profile</span>
-        </Link>
+        {isPortalLocked ? (
+          <span
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 text-slate-300 text-xs font-semibold opacity-60 cursor-not-allowed"
+            title="Upload compliance documents to unlock Profile"
+          >
+            <Lock size={14} className="text-amber-300" />
+            <span className="hidden sm:inline">Profile Locked</span>
+          </span>
+        ) : (
+          <Link
+            to="/vendor/profile"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/15 text-slate-100 transition-colors text-xs font-semibold cursor-pointer"
+            title="Vendor Profile"
+          >
+            <User size={15} className="text-cyan-300" />
+            <span className="hidden sm:inline">Profile</span>
+          </Link>
+        )}
       </div>
     </header>
   );

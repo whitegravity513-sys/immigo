@@ -44,7 +44,7 @@ export default function MilestoneHeaderCard({
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
               <input
                 type="number"
-                value={currentM.amount || currentM.paymentAmount || 15000}
+                value={currentM.amount ?? currentM.paymentAmount ?? 0}
                 onChange={(e) => {
                   const updated = [...milestonesList];
                   const val = Number(e.target.value);

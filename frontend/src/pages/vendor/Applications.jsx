@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -32,11 +32,7 @@ export default function Applications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All");
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
@@ -48,7 +44,25 @@ export default function Applications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   
   const projectList = Array.from(new Set(applications.map((a) => a.projectName).filter(Boolean)));

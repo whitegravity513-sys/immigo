@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,17 +11,13 @@ import {
   XCircle,
   Award,
   Plane,
-  Bell,
   LogOut,
   ArrowLeft,
   ChevronRight,
-  ChevronDown,
-  Building2,
   ShieldCheck,
   User,
   Plus,
   RefreshCw,
-  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import vendorHRService from "../../services/vendorHRService.js";
@@ -29,6 +25,9 @@ import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import ActiveMeetingAlertBanner from "../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 import { formatSalary } from "../../components/vendor-hr/shared/vendorHRUtils.jsx";
+import AdminMasterLayout from "../../components/admin/layout/AdminMasterLayout.jsx";
+import AssignHRSection from "../../components/admin/hr/AssignHRSection.jsx";
+import NotificationBell from "../../components/admin/NotificationBell.jsx";
 
 // Modular Section Components
 import VendorHROverviewSection from "../../components/vendor-hr/sections/VendorHROverviewSection.jsx";
@@ -52,21 +51,32 @@ import VendorHRReassignModal from "../../components/vendor-hr/modals/VendorHRRea
 import VendorHRMilestoneStepperModal from "../../components/vendor-hr/modals/VendorHRMilestoneStepperModal.jsx";
 
 export default function VendorHRDashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser, isSuperAdmin: authIsSuperAdmin, isAdmin: authIsAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Role detection
-  const isSuperAdmin = user?.role === "super_admin" || user?.role === "superadmin" || user?.isSuperAdmin;
-  const isAdmin = user?.role === "admin" || user?.role === "ADMIN" || isSuperAdmin;
-  const isVendorHR = user?.role === "HR" && user?.hrType === "VENDOR_HR";
+  const isSuperAdmin = Boolean(
+    authIsSuperAdmin ||
+      user?.isSuperAdmin ||
+      ["SUPER_ADMIN", "SUPERADMIN"].includes(String(user?.role || "").toUpperCase())
+  );
+  const isAdmin = Boolean(
+    authIsAdmin ||
+      isSuperAdmin ||
+      String(user?.role || "").toUpperCase() === "ADMIN"
+  );
+  const hideProjectNames = !isSuperAdmin && !isAdmin;
+  const userId = user?.id || user?._id || "";
 
-  const hrUserName = user?.name || user?.fullName || (isSuperAdmin ? "Super Admin" : isAdmin ? "Admin Officer" : "Vendor HR Officer");
-  const defaultVendorName = user?.organizationName || user?.companyName || user?.agencyName || "Global Staffing Solutions Pvt Ltd";
+  const hrUserName =
+    user?.name ||
+    user?.fullName ||
+    (isSuperAdmin ? "Super Admin" : isAdmin ? "Admin Officer" : "Vendor HR Officer");
 
-  // Menu navigation synced with query parameter ?view=...
   const initialView = searchParams.get("view") || "overview";
-  const [activeMenu, setActiveMenu] = useState(initialView);
+  const [activeMenu, setActiveMenu] = useState(
+    !isSuperAdmin && !isAdmin && initialView === "assignments" ? "overview" : initialView
+  );
 
   const handleSelectMenu = (menuId) => {
     setActiveMenu(menuId);
@@ -74,11 +84,17 @@ export default function VendorHRDashboardPage() {
   };
 
   useEffect(() => {
-    const qView = searchParams.get("view");
-    if (qView && qView !== activeMenu) {
-      setActiveMenu(qView);
+    const qView = searchParams.get("view") || "overview";
+    const resolvedView =
+      !isSuperAdmin && !isAdmin && qView === "assignments" ? "overview" : qView;
+    const t = setTimeout(() => {
+      setActiveMenu((prev) => (prev !== resolvedView ? resolvedView : prev));
+    }, 0);
+    if (!isSuperAdmin && !isAdmin && qView === "assignments") {
+      setSearchParams({ view: "overview" }, { replace: true });
     }
-  }, [searchParams]);
+    return () => clearTimeout(t);
+  }, [searchParams, isSuperAdmin, isAdmin, setSearchParams]);
 
   // Master State Data
   const [selectedProject, setSelectedProject] = useState("ALL");
@@ -98,12 +114,6 @@ export default function VendorHRDashboardPage() {
   const [milestoneSearchQuery, setMilestoneSearchQuery] = useState("");
   const [milestoneStageFilter, setMilestoneStageFilter] = useState("ALL");
 
-  // Notification state
-  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [notificationsList, setNotificationsList] = useState([]);
-  const notificationRef = useRef(null);
-
-  // Modals state
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showCandidateModal, setShowCandidateModal] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -150,7 +160,7 @@ export default function VendorHRDashboardPage() {
     round: "Technical Interview",
     scheduledDate: "",
     startTime: "10:00 AM",
-    interviewerName: `Vendor HR (${hrUserName})`,
+    interviewerName: "Vendor HR",
     interviewLink: "https://meet.google.com/new",
     notes: "",
   });
@@ -174,79 +184,136 @@ export default function VendorHRDashboardPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Main data loader
-  const loadData = async () => {
+  const defaultVendorName = useMemo(() => {
+    const apiVendors = Array.isArray(dashboardData?.vendors) ? dashboardData.vendors : [];
+    const apiNames = apiVendors.map((v) => v?.companyName || v?.name).filter(Boolean);
+    if (apiNames.length === 1) return apiNames[0];
+    if (apiNames.length > 1) return `${apiNames[0]} (+${apiNames.length - 1})`;
+    if (dashboardData?.vendor?.companyName) return dashboardData.vendor.companyName;
+    const userVendors = Array.isArray(user?.vendors) ? user.vendors : [];
+    const userNames = userVendors.map((v) => v?.companyName || v?.name).filter(Boolean);
+    if (userNames.length === 1) return userNames[0];
+    if (userNames.length > 1) return `${userNames[0]} (+${userNames.length - 1})`;
+    return user?.organizationName || user?.companyName || user?.agencyName || "";
+  }, [dashboardData, user]);
+
+  const userAssignedVendorsRef = useRef([]);
+  const loadDataRef = useRef(null);
+  const lastRefreshAtRef = useRef(0);
+
+  useEffect(() => {
+    userAssignedVendorsRef.current = Array.isArray(user?.assignedVendors)
+      ? user.assignedVendors.map(String)
+      : [];
+  }, [user?.assignedVendors]);
+
+  const loadData = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params = selectedProject && selectedProject !== "ALL" ? { projectId: selectedProject } : {};
-      const res = await vendorHRService.getDashboard(params);
+      const [res] = await Promise.all([
+        vendorHRService.getDashboard(params),
+        crmVendorService.getAvailableProjects?.().catch(() => []),
+      ]);
       const data = res?.data || res;
+      const nextApps = data?.applications || [];
       setDashboardData(data);
       setProjectsList(data?.projects || []);
-      setApplications(data?.applications || []);
+      setApplications(nextApps);
       setInterviews(data?.interviews || []);
       setJobs(data?.jobs || []);
       setActivities(data?.activities || []);
 
-      const crmNotifs = crmVendorService.getNotifications ? crmVendorService.getNotifications() : [];
-      setNotificationsList(crmNotifs);
+      setSelectedMilestoneApp((prev) => {
+        if (!prev) return null;
+        const prevId = String(prev.applicationId || prev.id || prev._id || "");
+        const updated = nextApps.find(
+          (a) => String(a.applicationId || a.id || a._id || "") === prevId
+        );
+        return updated || prev;
+      });
+      setSelectedMilestoneCandidate((prev) => {
+        if (!prev) return null;
+        const prevId = String(prev.applicationId || prev.id || prev._id || "");
+        const updated = nextApps.find(
+          (a) => String(a.applicationId || a.id || a._id || "") === prevId
+        );
+        return updated || prev;
+      });
+
+      if (!isSuperAdmin && !isAdmin && Array.isArray(data?.assignedVendors)) {
+        const current = userAssignedVendorsRef.current;
+        const next = data.assignedVendors.map(String);
+        if (JSON.stringify(current) !== JSON.stringify(next)) {
+          updateUser({
+            assignedVendors: next,
+            ...(Array.isArray(data?.vendors) ? { vendors: data.vendors } : {}),
+          });
+        }
+      }
+      lastRefreshAtRef.current = Date.now();
+      return { applications: nextApps, projects: data?.projects || [] };
     } catch (err) {
       console.warn("Using fallback vendor HR dataset:", err);
       try {
-        const crmApps = await crmVendorService.getApplications();
-        const crmJobs = await crmVendorService.getJobs();
-        const crmInterviews = await crmVendorService.getInterviews();
-        const crmNotifs = crmVendorService.getNotifications ? crmVendorService.getNotifications() : [];
+        const [crmApps, crmProjects] = await Promise.all([
+          crmVendorService.getApplications(),
+          crmVendorService.getAvailableProjects?.().catch(() => []),
+        ]);
         setApplications(crmApps || []);
-        setJobs(crmJobs || []);
-        setInterviews(crmInterviews || []);
-        setNotificationsList(crmNotifs || []);
-      } catch (fallbackErr) {
-        showToast("Error connecting to server. Please refresh.", "error");
+        if (Array.isArray(crmProjects) && crmProjects.length > 0) {
+          setProjectsList(crmProjects);
+        }
+        return { applications: crmApps || [], projects: crmProjects || [] };
+      } catch {
+        if (!silent) showToast("Error connecting to server. Please refresh.", "error");
+        return { applications: [], projects: [] };
       }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [selectedProject, isSuperAdmin, isAdmin, updateUser]);
 
   useEffect(() => {
-    loadData();
-  }, [user, selectedProject]);
+    loadDataRef.current = loadData;
+  }, [loadData]);
 
-  // Click outside to close notification flyout
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
-        setShowNotificationDropdown(false);
-      }
-    }
-    if (showNotificationDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+    if ((isSuperAdmin || isAdmin) && activeMenu === "assignments") return;
+    loadDataRef.current?.();
+  }, [userId, selectedProject, isSuperAdmin, isAdmin]);
+
+  useEffect(() => {
+    if ((isSuperAdmin || isAdmin) && activeMenu === "assignments") return;
+    const handleImmediateRefresh = () => {
+      loadDataRef.current?.({ silent: true });
     };
-  }, [showNotificationDropdown]);
-
-  const handleMarkAllNotifsRead = () => {
-    setNotificationsList((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
-    try {
-      crmVendorService.markAllNotificationsRead();
-    } catch { }
-  };
-
-  const handleMarkNotifRead = (id) => {
-    setNotificationsList((prev) =>
-      prev.map((n) => (n.id === id || n._id === id ? { ...n, read: true, isRead: true } : n))
-    );
-    try {
-      crmVendorService.markNotificationRead(id);
-    } catch { }
-  };
-
-  const unreadNotifCount = useMemo(() => {
-    return notificationsList.filter((n) => !n.read && !n.isRead).length;
-  }, [notificationsList]);
+    const handleFocusOrVisibility = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      if (Date.now() - lastRefreshAtRef.current < 3000) return;
+      loadDataRef.current?.({ silent: true });
+    };
+    window.addEventListener("immigo:vendor-hr-refresh", handleImmediateRefresh);
+    window.addEventListener("immigo:application-update", handleImmediateRefresh);
+    window.addEventListener("immigo:dashboard-update", handleImmediateRefresh);
+    window.addEventListener("storage", handleImmediateRefresh);
+    window.addEventListener("focus", handleFocusOrVisibility);
+    document.addEventListener("visibilitychange", handleFocusOrVisibility);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        loadDataRef.current?.({ silent: true });
+      }
+    }, 20000);
+    return () => {
+      window.removeEventListener("immigo:vendor-hr-refresh", handleImmediateRefresh);
+      window.removeEventListener("immigo:application-update", handleImmediateRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleImmediateRefresh);
+      window.removeEventListener("storage", handleImmediateRefresh);
+      window.removeEventListener("focus", handleFocusOrVisibility);
+      document.removeEventListener("visibilitychange", handleFocusOrVisibility);
+      clearInterval(interval);
+    };
+  }, [isSuperAdmin, isAdmin, activeMenu]);
 
   // Immediate Tag Navigation
   const navigateByTag = (stageOrTag, cand = null) => {
@@ -256,7 +323,7 @@ export default function VendorHRDashboardPage() {
       target = "shortlisted";
     } else if (s.includes("interview")) {
       target = "interviews";
-    } else if (s.includes("select")) {
+    } else if (s.includes("select") || s.includes("processing") || s.includes("completed")) {
       target = "milestones";
       if (cand) setSelectedMilestoneApp(cand);
     } else if (s.includes("visa") || s.includes("joined") || s.includes("deploy")) {
@@ -269,16 +336,19 @@ export default function VendorHRDashboardPage() {
     handleSelectMenu(target);
   };
 
-  // Handle Candidate Submission
   const handleCandidateSubmit = async (e) => {
     e.preventDefault();
     if (!submitForm.fullName || !submitForm.email || !submitForm.projectId) {
-      showToast("Please fill in candidate name, email, and target project.", "error");
+      showToast("Please fill in candidate name, email, and target selection.", "error");
       return;
     }
     try {
       setActionLoading(true);
-      const vendorId = user?.assignedVendors?.[0] || dashboardData?.vendor?.vendorId || "VND-5206C0";
+      const vendorId =
+        dashboardData?.assignedVendors?.[0] ||
+        user?.assignedVendors?.[0] ||
+        dashboardData?.vendor?.vendorId ||
+        "";
       const prj = projectsList.find((p) => p.projectId === submitForm.projectId);
       const jb = jobs.find((j) => j.jobId === submitForm.jobId);
 
@@ -287,16 +357,16 @@ export default function VendorHRDashboardPage() {
         email: submitForm.email.trim(),
         phone: submitForm.phone.trim(),
         projectId: submitForm.projectId,
-        projectName: prj?.projectName || "Overseas Deployment",
+        projectName: prj?.projectName || "Assigned Project",
         jobId: submitForm.jobId,
         jobTitle: jb?.title || "Technician",
         vendorId,
-        vendorName: dashboardData?.vendor?.companyName || user?.name || defaultVendorName,
+        vendorName: dashboardData?.vendor?.companyName || defaultVendorName || user?.name || "",
         skills: submitForm.skills ? submitForm.skills.split(",").map((s) => s.trim()) : [],
         notes: submitForm.notes,
       });
 
-      showToast("Candidate submitted to project successfully!");
+      showToast("Candidate submitted successfully!");
       setShowSubmitModal(false);
       setSubmitForm({
         fullName: "",
@@ -317,13 +387,20 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Open Candidate Detail / Update Modal
   const openCandidateModal = (cand) => {
     setSelectedCandidate(cand);
+    const rawStage = cand.recruitmentStage || cand.status || "Applied";
+    const normalizedStage =
+      rawStage === "Interview"
+        ? "Interview Scheduled"
+        : rawStage === "Visa Allotted"
+        ? "Visa Issued"
+        : rawStage;
+    const rawSal = cand.offerDetails?.salary || cand.salary || "";
     setCandidateUpdateForm({
-      stage: cand.recruitmentStage || cand.status || "Applied",
+      stage: normalizedStage,
       remarks: "",
-      salary: formatSalary(cand.offerDetails?.salary || cand.salary || ""),
+      salary: rawSal ? formatSalary(rawSal) : "",
       offerStatus: cand.offerDetails?.offerStatus || "Pending",
       joiningDate: cand.offerDetails?.joiningDate ? new Date(cand.offerDetails.joiningDate).toISOString().split("T")[0] : "",
       visaStatus: cand.visaDetails?.visaStatus || "Not Started",
@@ -369,13 +446,15 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Schedule Interview Submit
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
     try {
       setActionLoading(true);
       await vendorHRService.scheduleInterview({
-        applicationId: scheduleInterviewTarget?.applicationId || scheduleForm.applicationId,
+        applicationId:
+          scheduleInterviewTarget?.applicationId ||
+          scheduleInterviewTarget?.id ||
+          scheduleForm.applicationId,
         round: scheduleForm.round,
         scheduledDate: scheduleForm.scheduledDate,
         startTime: scheduleForm.startTime,
@@ -427,13 +506,21 @@ export default function VendorHRDashboardPage() {
         remarks: remarks || `Candidate marked as ${newStage} by Vendor HR screening`,
       });
       try {
-        await crmVendorService.updateApplicationStatus(appId, newStage, remarks);
+        const crmExtra =
+          newStage === "Rejected"
+            ? { rejectionReason: remarks || "Rejected during Vendor HR review" }
+            : { remark: remarks || `Candidate marked as ${newStage} by Vendor HR` };
+        await crmVendorService.updateApplicationStatus(appId, newStage, crmExtra);
       } catch (crmErr) {
         console.warn("crmVendorService status sync fallback:", crmErr?.message || crmErr);
       }
       showToast(`Candidate [${cand.candidateName}] updated to ${newStage}!`);
-      await loadData();
-      navigateByTag(newStage, cand);
+      const reloaded = await loadData({ silent: true });
+      const freshCand =
+        (reloaded?.applications || []).find(
+          (a) => String(a.applicationId || a.id || a._id || "") === String(appId)
+        ) || cand;
+      navigateByTag(newStage, freshCand);
     } catch (err) {
       showToast(err.response?.data?.message || err.message || "Failed to update candidate stage", "error");
     } finally {
@@ -441,7 +528,6 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Reassign Modal
   const openReassignModal = (cand) => {
     setReassignTargetCandidate(cand);
     const otherProj = projectsList.find((p) => p.projectId !== cand.projectId) || projectsList[0];
@@ -451,7 +537,9 @@ export default function VendorHRDashboardPage() {
       projectName: otherProj?.projectName || "",
       jobId: initialJob?.jobId || "",
       jobTitle: initialJob?.title || "",
-      notes: `Reassigned from rejected project [${cand.projectName || cand.projectId}]`,
+      notes: hideProjectNames
+        ? "Reassigned from rejected pipeline"
+        : `Reassigned from rejected project [${cand.projectName || cand.projectId}]`,
     });
     setShowReassignModal(true);
   };
@@ -459,7 +547,7 @@ export default function VendorHRDashboardPage() {
   const handleReassignSubmit = async (e) => {
     e.preventDefault();
     if (!reassignTargetCandidate || !reassignForm.projectId) {
-      showToast("Please select a target project for reassignment.", "error");
+      showToast("Please select a target allocation for reassignment.", "error");
       return;
     }
     try {
@@ -473,10 +561,14 @@ export default function VendorHRDashboardPage() {
         projectName: targetProj?.projectName || "Overseas Project",
         jobId: reassignForm.jobId,
         jobTitle: targetJob?.title || reassignForm.jobTitle || targetProj?.projectName,
-        notes: reassignForm.notes || "Candidate re-applied to new project vacancy",
+        notes: reassignForm.notes || "Candidate re-applied to new opening",
       });
 
-      showToast(`Candidate [${reassignTargetCandidate.candidateName}] reassigned to ${targetProj?.projectName || "new project"}!`);
+      showToast(
+        hideProjectNames
+          ? `Candidate [${reassignTargetCandidate.candidateName}] reassigned successfully!`
+          : `Candidate [${reassignTargetCandidate.candidateName}] reassigned to ${targetProj?.projectName || "new project"}!`
+      );
       setShowReassignModal(false);
       setReassignTargetCandidate(null);
       await loadData();
@@ -501,11 +593,13 @@ export default function VendorHRDashboardPage() {
         milestoneId,
         stageId,
         stageCompletionRemark.trim(),
-        "Vendor HR"
+        "Vendor HR",
+        selectedMilestoneCandidate
       );
 
       try {
         await vendorHRService.updateCandidateStage(candAppId, {
+          stage: selectedMilestoneCandidate?.recruitmentStage || selectedMilestoneCandidate?.status || "Selected",
           processMilestones: updatedApp.processMilestones,
           remarks: `Stage [${stageId}] completed by Vendor HR: ${stageCompletionRemark.trim()}`,
         });
@@ -517,7 +611,7 @@ export default function VendorHRDashboardPage() {
       setCompletingStageId(null);
       setStageCompletionRemark("");
       showToast("Stage marked as Completed! Real-time progress reflected.");
-      await loadData();
+      await loadData({ silent: true });
     } catch (err) {
       showToast(err.message || "Failed to complete milestone stage", "error");
     } finally {
@@ -529,12 +623,22 @@ export default function VendorHRDashboardPage() {
     try {
       setActionLoading(true);
       const candAppId = selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id;
-      await crmVendorService.approveMilestonePayment(candAppId, milestoneId, "Vendor HR", "Milestone payment verified by HR");
+      const approvedApp = await crmVendorService.approveMilestonePayment(
+        candAppId,
+        milestoneId,
+        "Vendor HR",
+        "Milestone payment verified by HR",
+        selectedMilestoneCandidate
+      );
       const allApps = await crmVendorService.getApplications();
-      const freshApp = allApps.find((a) => String(a.id) === String(candAppId) || String(a.applicationId) === String(candAppId)) || selectedMilestoneCandidate;
+      const freshApp =
+        allApps.find((a) => String(a.id) === String(candAppId) || String(a.applicationId) === String(candAppId)) ||
+        approvedApp ||
+        selectedMilestoneCandidate;
 
       try {
         await vendorHRService.updateCandidateStage(candAppId, {
+          stage: selectedMilestoneCandidate?.recruitmentStage || selectedMilestoneCandidate?.status || "Selected",
           processMilestones: freshApp.processMilestones,
           remarks: `Milestone [${milestoneId}] payment approved/verified by Vendor HR`,
         });
@@ -544,7 +648,7 @@ export default function VendorHRDashboardPage() {
 
       setSelectedMilestoneCandidate({ ...selectedMilestoneCandidate, ...freshApp });
       showToast("Vendor milestone payment verified! Stages unlocked.");
-      await loadData();
+      await loadData({ silent: true });
     } catch (err) {
       showToast(err.message || "Failed to verify milestone payment", "error");
     } finally {
@@ -553,14 +657,16 @@ export default function VendorHRDashboardPage() {
   };
 
   const handleTimelineUpdate = async () => {
-    await loadData();
+    await loadData({ silent: true });
     if (selectedMilestoneApp) {
-      const candId = selectedMilestoneApp.applicationId || selectedMilestoneApp.id;
+      const candId = String(selectedMilestoneApp.applicationId || selectedMilestoneApp.id || selectedMilestoneApp._id || "");
       const freshApps = await crmVendorService.getApplications();
       const fresh = freshApps.find(
-        (a) => String(a.id) === String(candId) || String(a.applicationId) === String(candId)
+        (a) => String(a.id || "") === candId || String(a.applicationId || "") === candId
       );
-      if (fresh) setSelectedMilestoneApp(fresh);
+      if (fresh) {
+        setSelectedMilestoneApp((prev) => (prev ? { ...prev, ...fresh } : fresh));
+      }
     }
   };
 
@@ -569,7 +675,7 @@ export default function VendorHRDashboardPage() {
     const shortlistedCount = applications.filter((a) => (a.recruitmentStage || a.status) === "Shortlisted").length;
     const interviewCount = interviews.length;
     const selectedCount = applications.filter((a) =>
-      ["Selected", "Offer Released", "Visa Processing", "Visa Issued", "Joined", "Deployed"].includes(a.recruitmentStage || a.status)
+      ["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed", "Completed"].includes(a.recruitmentStage || a.status)
     ).length;
     const visaCount = applications.filter((a) => {
       const st = a.recruitmentStage || a.status || "";
@@ -593,14 +699,32 @@ export default function VendorHRDashboardPage() {
     ];
   }, [applications, projectsList, jobs, interviews]);
 
+  if ((isSuperAdmin || isAdmin) && activeMenu === "assignments") {
+    return (
+      <AdminMasterLayout
+        title="Assign Projects & Vendors to HR"
+        subtitle="Select Vendor HR accounts to view and assign overseas projects with recruitment agencies."
+        breadcrumbs={[
+          {
+            label: isSuperAdmin ? "Super Admin" : "Admin",
+            path: isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard",
+          },
+          { label: "Assign to HR" },
+        ]}
+      >
+        <AssignHRSection />
+      </AdminMasterLayout>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-[#f8fafc] font-sans antialiased overflow-hidden text-slate-800">
       {/* Toast Alert */}
       {toast && (
         <div
           className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold transition-all animate-in fade-in slide-in-from-top-2 ${toast.type === "error"
-              ? "bg-rose-50 border-rose-300 text-rose-800"
-              : "bg-emerald-50 border-emerald-300 text-emerald-800"
+            ? "bg-rose-50 border-rose-300 text-rose-800"
+            : "bg-emerald-50 border-emerald-300 text-emerald-800"
             }`}
         >
           <span>{toast.message}</span>
@@ -652,8 +776,8 @@ export default function VendorHRDashboardPage() {
                     handleSelectMenu(item.id);
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${active
-                      ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
-                      : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
+                    : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
                     }`}
                 >
                   <Icon
@@ -665,8 +789,8 @@ export default function VendorHRDashboardPage() {
                     {item.badge ? (
                       <span
                         className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${active
-                            ? "bg-white text-blue-700"
-                            : "bg-blue-100 text-blue-800 border border-blue-200"
+                          ? "bg-white text-blue-700"
+                          : "bg-blue-100 text-blue-800 border border-blue-200"
                           }`}
                       >
                         {item.badge}
@@ -697,7 +821,6 @@ export default function VendorHRDashboardPage() {
 
       {/* 2. MAIN WORKSPACE */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Top Navbar */}
         <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
           <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
             <div className="flex items-center gap-2.5 truncate">
@@ -706,44 +829,27 @@ export default function VendorHRDashboardPage() {
               <span className="text-white font-bold text-sm sm:text-[14px] tracking-tight truncate drop-shadow-2xs">
                 {isSuperAdmin ? "Super Admin Operations" : isAdmin ? "Admin Operations" : "Vendor HR Dashboard"}
               </span>
-              <span className="text-blue-400 hidden sm:inline">•</span>
-              <span className="text-xs text-blue-200 hidden sm:inline capitalize">
-                {activeMenu === "overview" && "Executive Overview"}
-                {activeMenu === "projects" && (detailedProject ? `Projects / ${detailedProject.projectName}` : "Assigned Projects")}
-                {activeMenu === "jobs" && "Required Trade Jobs"}
-                {activeMenu === "candidates" && "All Candidates Directory & Screening"}
-                {activeMenu === "shortlisted" && "Shortlisted Candidates"}
-                {activeMenu === "interviews" && "Scheduled Interviews & Assessments"}
-                {(activeMenu === "selected" || activeMenu === "milestones") && (selectedMilestoneApp ? `Milestones / ${selectedMilestoneApp.candidateName}` : "Selected Candidates & Milestones")}
-                {activeMenu === "visa-allotted" && "Visa Allotted Candidates"}
-                {activeMenu === "on-hold" && "On Hold Candidate Roster"}
-                {activeMenu === "rejected" && "Rejected Candidates & Vendor Pool"}
-                {activeMenu === "profile" && "Agency Profile"}
-              </span>
+              {!hideProjectNames && (
+                <>
+                  <span className="text-blue-400 hidden sm:inline">•</span>
+                  <span className="text-xs text-blue-200 hidden sm:inline capitalize">
+                    {activeMenu === "overview" && "Executive Overview"}
+                    {activeMenu === "projects" && (detailedProject ? `Projects / ${detailedProject.projectName}` : "Assigned Projects")}
+                    {activeMenu === "jobs" && "Required Trade Jobs"}
+                    {activeMenu === "candidates" && "All Candidates Directory & Screening"}
+                    {activeMenu === "shortlisted" && "Shortlisted Candidates"}
+                    {activeMenu === "interviews" && "Scheduled Interviews & Assessments"}
+                    {(activeMenu === "selected" || activeMenu === "milestones") && (selectedMilestoneApp ? `Milestones / ${selectedMilestoneApp.candidateName}` : "Selected Candidates & Milestones")}
+                    {activeMenu === "visa-allotted" && "Visa Allotted Candidates"}
+                    {activeMenu === "on-hold" && "On Hold Candidate Roster"}
+                    {activeMenu === "rejected" && "Rejected Candidates & Vendor Pool"}
+                    {activeMenu === "profile" && "Agency Profile"}
+                  </span>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Project selector for Vendor HR */}
-              {!isSuperAdmin && !isAdmin && (
-                <div className="relative hidden md:flex items-center">
-                  <Building2 className="w-3.5 h-3.5 text-blue-300 absolute left-2.5 pointer-events-none" />
-                  <select
-                    value={selectedProject}
-                    onChange={(e) => setSelectedProject(e.target.value)}
-                    className="pl-7 pr-6 py-1.5 rounded-lg bg-blue-900/60 border border-blue-700/60 text-xs font-semibold text-blue-100 shadow-xs appearance-none hover:bg-blue-800/80 cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                  >
-                    <option value="ALL" className="bg-slate-900 text-white">All Projects ({projectsList.length})</option>
-                    {projectsList.map((p) => (
-                      <option key={p.projectId || p.id} value={p.projectId || p.id} className="bg-slate-900 text-white">
-                        {p.projectName} ({p.projectId})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-3 h-3 text-blue-300 absolute right-2 pointer-events-none" />
-                </div>
-              )}
-
-              {/* Agency badge for Vendor HR */}
               {!isSuperAdmin && !isAdmin && defaultVendorName && (
                 <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-800/60 border border-blue-600/40 text-xs font-bold text-cyan-300 shadow-xs truncate max-w-[200px]">
                   <ShieldCheck size={13} className="text-cyan-400 shrink-0" />
@@ -751,7 +857,6 @@ export default function VendorHRDashboardPage() {
                 </div>
               )}
 
-              {/* User Pill */}
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-900/80 border border-blue-700/60 text-xs font-semibold text-blue-200">
                 <User size={13} className="text-cyan-400 shrink-0" />
                 <span className="hidden sm:inline font-bold">{hrUserName}</span>
@@ -760,71 +865,7 @@ export default function VendorHRDashboardPage() {
                 </span>
               </div>
 
-              {/* Notification Bell */}
-              <div className="relative" ref={notificationRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowNotificationDropdown((prev) => !prev)}
-                  className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs"
-                  title="Notifications & Alerts"
-                >
-                  <Bell className="w-4 h-4" />
-                  {unreadNotifCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-extrabold flex items-center justify-center border-2 border-blue-950 animate-pulse">
-                      {unreadNotifCount}
-                    </span>
-                  )}
-                </button>
-
-                {showNotificationDropdown && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-2xl z-50 overflow-hidden text-slate-800 animate-in fade-in duration-150">
-                    <div className="p-3 bg-gradient-to-r from-blue-950 to-indigo-950 text-white flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Bell className="w-4 h-4 text-cyan-400" />
-                        <span className="font-bold text-xs">Notifications & Alerts</span>
-                        <span className="text-[10px] bg-blue-800 px-1.5 py-0.2 rounded-full font-bold">
-                          {notificationsList.length}
-                        </span>
-                      </div>
-                      {unreadNotifCount > 0 && (
-                        <button
-                          type="button"
-                          onClick={handleMarkAllNotifsRead}
-                          className="text-[11px] text-cyan-300 hover:underline cursor-pointer"
-                        >
-                          Mark all read
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 text-xs">
-                      {notificationsList.length === 0 ? (
-                        <div className="p-6 text-center text-slate-400">No active notifications</div>
-                      ) : (
-                        notificationsList.map((notif, idx) => (
-                          <div
-                            key={notif.id || idx}
-                            onClick={() => handleMarkNotifRead(notif.id)}
-                            className={`p-3 hover:bg-slate-50 transition cursor-pointer flex items-start space-x-2.5 ${!notif.read && !notif.isRead ? "bg-blue-50/40" : ""
-                              }`}
-                          >
-                            <div className="w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-slate-900 leading-tight text-xs">
-                                {notif.title || notif.message}
-                              </p>
-                              {notif.body && <p className="text-[11px] text-slate-500 mt-0.5">{notif.body}</p>}
-                              <span className="text-[10px] text-slate-400 mt-1 block">
-                                {notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Just now"}
-                              </span>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <NotificationBell className="relative p-2 rounded-xl bg-blue-900/60 hover:bg-blue-800/90 text-blue-200 hover:text-white transition-all flex items-center justify-center cursor-pointer border border-blue-700/60 shadow-xs" />
 
               <button
                 type="button"
@@ -845,18 +886,29 @@ export default function VendorHRDashboardPage() {
             <div className="flex items-center space-x-2 text-xs">
               <span className="font-bold text-slate-400 uppercase tracking-wider">Workspace</span>
               <span className="text-slate-300">/</span>
-              <span className="font-bold text-blue-700 uppercase tracking-wider">{activeMenu}</span>
+              <span className="font-bold text-blue-700 uppercase tracking-wider">
+                {activeMenu === "projects" ? "My Projects" : activeMenu}
+              </span>
               {defaultVendorName && (
                 <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                   {defaultVendorName}
                 </span>
+              )}
+              {selectedProject !== "ALL" && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedProject("ALL")}
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-pointer"
+                >
+                  Show All Assigned
+                </button>
               )}
             </div>
 
             <div className="flex items-center space-x-2">
               <button
                 type="button"
-                onClick={loadData}
+                onClick={() => loadData()}
                 disabled={loading}
                 className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition shadow-2xs cursor-pointer flex items-center space-x-1 text-xs font-semibold"
                 title="Refresh Workspace"
@@ -875,6 +927,7 @@ export default function VendorHRDashboardPage() {
               jobs={jobs}
               interviews={interviews}
               vendorName={defaultVendorName}
+              hideProjectNames={hideProjectNames}
               setActiveMenu={handleSelectMenu}
               setSelectedProject={setSelectedProject}
               setDetailedProject={setDetailedProject}
@@ -903,6 +956,7 @@ export default function VendorHRDashboardPage() {
             <VendorHRJobsSection
               jobs={jobs}
               applications={applications}
+              hideProjectNames={hideProjectNames}
               setShowSubmitModal={setShowSubmitModal}
               setSubmitForm={setSubmitForm}
               setCandidateSearch={setCandidateSearch}
@@ -914,6 +968,7 @@ export default function VendorHRDashboardPage() {
             <VendorHRCandidatesSection
               applications={applications}
               vendorName={defaultVendorName}
+              hideProjectNames={hideProjectNames}
               candidateSearch={candidateSearch}
               setCandidateSearch={setCandidateSearch}
               candidateStageFilter={candidateStageFilter}
@@ -933,6 +988,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "shortlisted" && (
             <VendorHRShortlistedSection
               applications={applications}
+              hideProjectNames={hideProjectNames}
               setScheduleInterviewTarget={setScheduleInterviewTarget}
               setScheduleForm={setScheduleForm}
               setShowScheduleModal={setShowScheduleModal}
@@ -945,6 +1001,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "interviews" && (
             <VendorHRInterviewsSection
               interviews={interviews}
+              hideProjectNames={hideProjectNames}
               setShowScheduleModal={setShowScheduleModal}
               handleQuickStage={handleQuickStage}
               setFeedbackInterviewTarget={setFeedbackInterviewTarget}
@@ -956,7 +1013,9 @@ export default function VendorHRDashboardPage() {
           {(activeMenu === "selected" || activeMenu === "milestones") && (
             <VendorHRMilestonesSection
               applications={applications}
+              projectsList={projectsList}
               vendorName={defaultVendorName}
+              hideProjectNames={hideProjectNames}
               selectedMilestoneApp={selectedMilestoneApp}
               setSelectedMilestoneApp={setSelectedMilestoneApp}
               milestoneSearchQuery={milestoneSearchQuery}
@@ -972,6 +1031,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "visa-allotted" && (
             <VendorHRVisaAllottedSection
               applications={applications}
+              hideProjectNames={hideProjectNames}
               openCandidateModal={openCandidateModal}
               navigateByTag={navigateByTag}
             />
@@ -980,6 +1040,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "on-hold" && (
             <VendorHROnHoldSection
               applications={applications}
+              hideProjectNames={hideProjectNames}
               handleQuickStage={handleQuickStage}
               openCandidateModal={openCandidateModal}
               navigateByTag={navigateByTag}
@@ -989,6 +1050,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "rejected" && (
             <VendorHRRejectedSection
               applications={applications}
+              hideProjectNames={hideProjectNames}
               openReassignModal={openReassignModal}
               openCandidateModal={openCandidateModal}
               navigateByTag={navigateByTag}
@@ -1034,9 +1096,9 @@ export default function VendorHRDashboardPage() {
         setSubmitForm={setSubmitForm}
         projectsList={projectsList}
         jobs={jobs}
+        hideProjectNames={hideProjectNames}
         actionLoading={actionLoading}
       />
-
 
       <VendorHRCandidateModal
         show={showCandidateModal}
@@ -1045,13 +1107,13 @@ export default function VendorHRDashboardPage() {
         onSubmit={handleCandidateUpdate}
         candidateUpdateForm={candidateUpdateForm}
         setCandidateUpdateForm={setCandidateUpdateForm}
+        hideProjectNames={hideProjectNames}
         actionLoading={actionLoading}
         openReassignModal={openReassignModal}
         setScheduleInterviewTarget={setScheduleInterviewTarget}
         setScheduleForm={setScheduleForm}
         setShowScheduleModal={setShowScheduleModal}
       />
-
 
       <VendorHRScheduleModal
         show={showScheduleModal}
@@ -1066,7 +1128,6 @@ export default function VendorHRDashboardPage() {
         actionLoading={actionLoading}
       />
 
-      {/* MODAL 4: RECORD FEEDBACK */}
       <VendorHRFeedbackModal
         show={showFeedbackModal}
         feedbackInterviewTarget={feedbackInterviewTarget}
@@ -1077,7 +1138,6 @@ export default function VendorHRDashboardPage() {
         actionLoading={actionLoading}
       />
 
-      {/* MODAL 5: REASSIGN REJECTED CANDIDATE */}
       <VendorHRReassignModal
         show={showReassignModal}
         reassignTargetCandidate={reassignTargetCandidate}
@@ -1087,10 +1147,10 @@ export default function VendorHRDashboardPage() {
         setReassignForm={setReassignForm}
         projectsList={projectsList}
         jobs={jobs}
+        hideProjectNames={hideProjectNames}
         actionLoading={actionLoading}
       />
 
-      {/* MODAL 6: MILESTONE STEPPER */}
       <VendorHRMilestoneStepperModal
         show={showMilestoneStepperModal}
         selectedMilestoneCandidate={selectedMilestoneCandidate}
@@ -1101,6 +1161,7 @@ export default function VendorHRDashboardPage() {
         setStageCompletionRemark={setStageCompletionRemark}
         handleCompleteMilestoneStage={handleCompleteMilestoneStage}
         handleApproveMilestonePayment={handleApproveMilestonePayment}
+        hideProjectNames={hideProjectNames}
         actionLoading={actionLoading}
         hrUserName={hrUserName}
       />

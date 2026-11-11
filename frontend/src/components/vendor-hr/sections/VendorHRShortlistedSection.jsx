@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   X,
   UserCheck,
   Calendar,
-  Clock,
   ArrowRight,
 } from "lucide-react";
 import { AVATARS } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRShortlistedSection({
   applications = [],
+  hideProjectNames = false,
   setScheduleInterviewTarget,
   setScheduleForm,
   setShowScheduleModal,
@@ -32,7 +32,8 @@ export default function VendorHRShortlistedSection({
       cand.candidateName?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
-      cand.projectName?.toLowerCase().includes(q)
+      cand.vendorName?.toLowerCase().includes(q) ||
+      (!hideProjectNames && cand.projectName?.toLowerCase().includes(q))
     );
   });
 
@@ -47,7 +48,7 @@ export default function VendorHRShortlistedSection({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Candidates approved by HR screening. Schedule technical rounds, hold, or reject before interview.
+            Candidates approved by HR screening. Schedule technical rounds or reject before interview.
           </p>
         </div>
 
@@ -90,7 +91,7 @@ export default function VendorHRShortlistedSection({
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>
-                <th className="py-3 px-4">Applied Trade & Project</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Applied Trade & Agency" : "Applied Trade & Project"}</th>
                 <th className="py-3 px-3 text-center">Stage</th>
                 <th className="py-3 px-4 text-center">Next Action</th>
                 <th className="py-3 px-4 text-right">Dossier</th>
@@ -117,7 +118,11 @@ export default function VendorHRShortlistedSection({
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="font-bold text-slate-800 truncate">{cand.jobTitle || "Trade Specialist"}</div>
-                    <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Dubai Project"}</div>
+                    <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">
+                      {hideProjectNames
+                        ? cand.vendorName || cand.destinationCountry || "Shortlisted Trade"
+                        : cand.projectName || cand.destinationCountry || "-"}
+                    </div>
                   </td>
                   <td className="py-3.5 px-3 text-center">
                     <button
@@ -134,10 +139,11 @@ export default function VendorHRShortlistedSection({
                       <button
                         type="button"
                         onClick={() => {
-                          setScheduleInterviewTarget(cand);
+                          const appId = cand.applicationId || cand.id || cand._id;
+                          setScheduleInterviewTarget({ ...cand, applicationId: appId });
                           setScheduleForm((prev) => ({
                             ...prev,
-                            applicationId: cand.applicationId,
+                            applicationId: appId,
                             round: "Technical Interview",
                           }));
                           setShowScheduleModal(true);
@@ -146,15 +152,6 @@ export default function VendorHRShortlistedSection({
                       >
                         <Calendar size={13} />
                         <span>Schedule Interview</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickStage(cand, "On Hold", "Placed on hold by Vendor HR")}
-                        className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs border border-amber-200 transition cursor-pointer"
-                        title="Put Candidate On Hold"
-                      >
-                        <Clock size={12} />
-                        <span>Hold</span>
                       </button>
                       <button
                         type="button"

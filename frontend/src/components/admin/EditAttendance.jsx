@@ -49,7 +49,7 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
 
   const handleSave = async () => {
     if (isHolidayBlocked) {
-      setError(`Official Holiday (${holidayOnDate?.title || "Holiday"}) — Aaj holiday hai, attendance mark nahi ho sakti.`);
+      setError(`Official Holiday (${holidayOnDate?.title || "Holiday"}) — Attendance cannot be marked on an official holiday.`);
       setDismissedHolidayDate('');
       return;
     }
@@ -103,7 +103,7 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
 
   const handleWaivePenalty = async () => {
     if (isHolidayBlocked) {
-      setError(`Official Holiday (${holidayOnDate?.title || "Holiday"}) — Aaj holiday hai, attendance mark nahi ho sakti.`);
+      setError(`Official Holiday (${holidayOnDate?.title || "Holiday"}) — Attendance cannot be marked on an official holiday.`);
       setDismissedHolidayDate('');
       return;
     }

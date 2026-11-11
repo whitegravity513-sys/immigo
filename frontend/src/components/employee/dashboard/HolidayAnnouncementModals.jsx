@@ -85,7 +85,7 @@ export default function HolidayAnnouncementModals({
                 <Calendar size={10} /> Official Holiday Declared
               </span>
               <h3 className="text-lg font-bold tracking-tight mt-1">
-                Aaj Holiday Hai!
+                Today is an Official Holiday
               </h3>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function HolidayAnnouncementModals({
           </div>
 
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs font-semibold leading-relaxed">
-            Aaj official holiday declare kiya gaya hai, isliye aaj attendance check-in aur break tracking band rahegi. Enjoy your holiday!
+            Today has been declared an official holiday, so attendance check-in and break tracking are disabled. Enjoy your holiday!
           </div>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">

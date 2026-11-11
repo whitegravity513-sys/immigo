@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,33 +14,40 @@ import {
   FileText,
   ShieldCheck,
   Check,
-  ExternalLink,
+  Receipt,
+  XCircle,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
 import CandidateActivityTimeline from "../../../components/common/candidate/CandidateActivityTimeline.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 export default function AdminCandidateMilestones() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const appId = searchParams.get("appId");
+  const { user, isSuperAdmin: authIsSuperAdmin, isVendorHR } = useAuth();
+  const actorLabel = isVendorHR ? "Vendor HR" : authIsSuperAdmin ? "Super Admin" : (user?.name || "Admin");
 
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const [totalAmount, setTotalAmount] = useState(40000);
   const [milestonesList, setMilestonesList] = useState([]);
   const [activeMilestoneIdx, setActiveMilestoneIdx] = useState(0);
+  const [milestonesCustomized, setMilestonesCustomized] = useState(false);
+  const [paymentBusy, setPaymentBusy] = useState(false);
+  const [rejectInputIdx, setRejectInputIdx] = useState(null);
+  const [rejectPaymentNote, setRejectPaymentNote] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, [appId]);
-
-  const loadData = async () => {
-    if (!appId) return;
+  const loadData = useCallback(async () => {
+    if (!appId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const apps = await crmVendorService.getApplications();
       const app = apps.find(
         (a) =>
@@ -56,22 +63,15 @@ export default function AdminCandidateMilestones() {
           : [];
 
         const rawMilestones =
-          app.processMilestones?.length > 0
+          !app.milestonesOverridden && projectMs.length > 0
+            ? projectMs
+            : app.processMilestones?.length > 0
             ? app.processMilestones
             : projectMs.length > 0
             ? projectMs
             : app.paymentPlan?.milestones?.length > 0
             ? app.paymentPlan.milestones
             : [];
-
-        const totalAmt =
-          app.paymentPlan?.totalAmount ||
-          rawMilestones.reduce(
-            (sum, m) => sum + (Number(m.amount || m.paymentAmount) || 0),
-            0
-          ) ||
-          40000;
-        setTotalAmount(totalAmt);
 
         if (rawMilestones.length > 0) {
           const formatted = rawMilestones.map((m, mIdx) => {
@@ -83,14 +83,25 @@ export default function AdminCandidateMilestones() {
                     { id: `s${mIdx}_1`, name: "Skill & Credentials Clearance", status: "Pending" },
                     { id: `s${mIdx}_2`, name: "Processing Step", status: "Pending" },
                   ];
+            const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
 
             return {
+              ...m,
               id: m.id || `m${mIdx}`,
               name: m.name || `Milestone ${mIdx + 1}`,
-              amount: Number(m.amount || m.paymentAmount || 10000),
-              status: isPaid ? "Paid" : m.status || (mIdx === 0 ? "Paid" : "Due"),
-              paymentStatus: isPaid ? "Approved" : m.paymentStatus || (mIdx === 0 ? "Approved" : "Payment Required"),
+              amount: mAmt,
+              paymentAmount: mAmt,
+              status: isPaid ? "Paid" : m.status || "Due",
+              paymentStatus: isPaid ? "Approved" : m.paymentStatus || "Payment Required",
+              paymentRef: m.paymentRef || "",
+              paymentDate: m.paymentDate || m.paidDate || null,
+              paymentRemark: m.paymentRemark || "",
+              approvedBy: m.approvedBy || null,
+              paymentMode: m.paymentMode || m.paymentMethod || "",
+              receiptNumber: m.receiptNumber || null,
+              clearanceDocuments: Array.isArray(m.clearanceDocuments) ? m.clearanceDocuments : [],
               stages: rawStages.map((s, sIdx) => ({
+                ...s,
                 id: s.id || `s${mIdx}_${sIdx}`,
                 name: s.name || `Step ${sIdx + 1}`,
                 status: s.status || "Pending",
@@ -103,6 +114,7 @@ export default function AdminCandidateMilestones() {
           });
 
           setMilestonesList(formatted);
+          setMilestonesCustomized(Boolean(app.milestonesOverridden));
 
           const firstIncompleteIdx = formatted.findIndex((m) => {
             const allStagesDone =
@@ -111,21 +123,7 @@ export default function AdminCandidateMilestones() {
           });
           setActiveMilestoneIdx(firstIncompleteIdx !== -1 ? firstIncompleteIdx : 0);
         } else {
-          const defaults = [
-            {
-              id: "m0",
-              name: "Candidate Selection & Documentation",
-              amount: 20000,
-              status: "Paid",
-              paymentStatus: "Approved",
-              stages: [
-                { id: "s0_1", name: "Candidate Selection", status: "In Progress", completedAt: null },
-                { id: "s0_2", name: "Document Verification", status: "Pending", completedAt: null },
-                { id: "s0_3", name: "Medical Check", status: "Pending", completedAt: null },
-              ],
-            },
-          ];
-          setMilestonesList(defaults);
+          setMilestonesList([]);
           setActiveMilestoneIdx(0);
         }
       }
@@ -134,14 +132,32 @@ export default function AdminCandidateMilestones() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [appId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   const handleStageStatusChange = (mIdx, sIdx, newStatus) => {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].status = newStatus;
     if (newStatus === "Completed") {
       updated[mIdx].stages[sIdx].completedAt = new Date().toISOString().split("T")[0];
-      updated[mIdx].stages[sIdx].completedBy = "Admin";
+      updated[mIdx].stages[sIdx].completedBy = actorLabel;
 
       if (sIdx < updated[mIdx].stages.length - 1) {
         const nextStage = updated[mIdx].stages[sIdx + 1];
@@ -178,12 +194,7 @@ export default function AdminCandidateMilestones() {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].name = newName;
     setMilestonesList(updated);
-  };
-
-  const handleStageRemarkChange = (mIdx, sIdx, newRemark) => {
-    const updated = [...milestonesList];
-    updated[mIdx].stages[sIdx].remark = newRemark;
-    setMilestonesList(updated);
+    setMilestonesCustomized(true);
   };
 
   const handleAddStage = (mIdx) => {
@@ -202,12 +213,26 @@ export default function AdminCandidateMilestones() {
       document: null,
     });
     setMilestonesList(updated);
+    setMilestonesCustomized(true);
   };
 
   const handleRemoveStage = (mIdx, sIdx) => {
     const updated = [...milestonesList];
     updated[mIdx].stages = updated[mIdx].stages.filter((_, i) => i !== sIdx);
     setMilestonesList(updated);
+    setMilestonesCustomized(true);
+  };
+
+  const handleMilestoneAmountChange = (mIdx, val) => {
+    const numVal = Math.max(0, Number(val) || 0);
+    const updated = [...milestonesList];
+    updated[mIdx] = {
+      ...updated[mIdx],
+      amount: numVal,
+      paymentAmount: numVal,
+    };
+    setMilestonesList(updated);
+    setMilestonesCustomized(true);
   };
 
   const handleFileUploadForStage = (mIdx, sIdx, e) => {
@@ -256,21 +281,50 @@ export default function AdminCandidateMilestones() {
     setMilestonesList(updated);
   };
 
-  const handleUnlockMilestone = (mIdx) => {
-    const updated = [...milestonesList];
-    updated[mIdx].status = "Paid";
-    updated[mIdx].paymentStatus = "Approved";
-    if (updated[mIdx].stages?.length > 0) {
-      updated[mIdx].stages = updated[mIdx].stages.map((stg, sIndex) => {
-        if (stg.status === "Completed") return stg;
-        return {
-          ...stg,
-          status: sIndex === 0 ? "In Progress" : "Pending",
-        };
-      });
+  const handleApproveCurrentPayment = async (mIdx) => {
+    const targetM = milestonesList[mIdx];
+    if (!application || !targetM) return;
+    setPaymentBusy(true);
+    try {
+      const targetAppId = application.id || application.applicationId || application._id || appId;
+      await crmVendorService.approveMilestonePayment(
+        targetAppId,
+        targetM.id,
+        actorLabel,
+        "Payment verified and approved",
+        { ...application, processMilestones: milestonesList }
+      );
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to approve payment");
+    } finally {
+      setPaymentBusy(false);
     }
-    setMilestonesList(updated);
-    setActiveMilestoneIdx(mIdx);
+  };
+
+  const handleRejectCurrentPayment = async (mIdx) => {
+    const targetM = milestonesList[mIdx];
+    if (!application || !targetM) return;
+    setPaymentBusy(true);
+    try {
+      const targetAppId = application.id || application.applicationId || application._id || appId;
+      await crmVendorService.rejectMilestonePayment(
+        targetAppId,
+        targetM.id,
+        rejectPaymentNote.trim() || "Payment receipt rejected by reviewer"
+      );
+      setRejectInputIdx(null);
+      setRejectPaymentNote("");
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to reject payment receipt");
+    } finally {
+      setPaymentBusy(false);
+    }
+  };
+
+  const handleUnlockMilestone = (mIdx) => {
+    handleApproveCurrentPayment(mIdx);
   };
 
   const handleSave = async () => {
@@ -278,7 +332,25 @@ export default function AdminCandidateMilestones() {
     setSaveLoading(true);
     try {
       const targetAppId = application.id || application.applicationId || application._id || appId;
-      await crmVendorService.overrideMilestones(targetAppId, totalAmount, milestonesList);
+      const computedTotal = milestonesList.reduce(
+        (sum, m) => sum + Number(m.amount ?? m.paymentAmount ?? 0),
+        0
+      );
+      const formattedMilestones = milestonesList.map((m) => {
+        const amt = Number(m.amount ?? m.paymentAmount ?? 0);
+        return {
+          ...m,
+          amount: amt,
+          paymentAmount: amt,
+        };
+      });
+      await crmVendorService.overrideMilestones(
+        targetAppId,
+        computedTotal,
+        formattedMilestones,
+        application,
+        { preserveProjectSync: !milestonesCustomized && !application.milestonesOverridden }
+      );
       setSaveSuccess(true);
       setTimeout(() => {
         navigate(-1);
@@ -315,7 +387,16 @@ export default function AdminCandidateMilestones() {
 
   const currentMilestone = milestonesList[activeMilestoneIdx] || milestonesList[0];
   const isCurrentPaid =
-    currentMilestone?.status === "Paid" || currentMilestone?.paymentStatus === "Approved";
+    currentMilestone?.status === "Paid" ||
+    currentMilestone?.status === "Completed" ||
+    currentMilestone?.paymentStatus === "Approved";
+  const currentAmt = Number(currentMilestone?.amount ?? currentMilestone?.paymentAmount ?? 0);
+  const isCurrentSubmitted =
+    currentMilestone?.paymentStatus === "Submitted" ||
+    currentMilestone?.paymentStatus === "Pending Verification" ||
+    currentMilestone?.status === "Submitted";
+  const isCurrentRejected = currentMilestone?.paymentStatus === "Rejected";
+  const canUpdateCurrentStages = isCurrentPaid || currentAmt === 0;
   const currentStages = currentMilestone?.stages || [];
   const currentStagesDoneCount = currentStages.filter((s) => s.status === "Completed").length;
 
@@ -401,7 +482,10 @@ export default function AdminCandidateMilestones() {
         </span>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {milestonesList.map((m, mIdx) => {
-            const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
+            const isPaid =
+              m.status === "Paid" ||
+              m.status === "Completed" ||
+              m.paymentStatus === "Approved";
             const stages = m.stages || [];
             const allDone = stages.length > 0 && stages.every((s) => s.status === "Completed");
             const isSelectedTab = mIdx === activeMilestoneIdx;
@@ -489,9 +573,17 @@ export default function AdminCandidateMilestones() {
                   Step {activeMilestoneIdx + 1} of {milestonesList.length}
                 </span>
                 <span className="text-[10px] text-slate-400">•</span>
-                <span className="text-[11px] font-bold text-slate-200">
-                  ₹{Number(currentMilestone.amount).toLocaleString()}
-                </span>
+                <label className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-200">
+                  <span>Fee: ₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={currentMilestone.amount ?? currentMilestone.paymentAmount ?? 0}
+                    onChange={(e) => handleMilestoneAmountChange(activeMilestoneIdx, e.target.value)}
+                    className="w-24 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-white text-[11px] font-bold focus:outline-none focus:border-blue-400"
+                  />
+                </label>
               </div>
               <h2 className="text-xs sm:text-sm font-bold text-white mt-0.5">
                 {currentMilestone.name}
@@ -524,27 +616,165 @@ export default function AdminCandidateMilestones() {
             </div>
           </div>
 
-          {/* Processing Steps List */}
+          <div className="p-3 sm:p-4 bg-slate-50/80 border-b border-slate-200 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <ShieldCheck size={14} className={isCurrentPaid ? "text-emerald-600" : isCurrentRejected ? "text-rose-600" : "text-amber-600"} />
+                  <span className="text-xs font-bold text-slate-900">
+                    1. Milestone Payment &amp; Receipt Verification
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                      isCurrentPaid
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : isCurrentSubmitted
+                        ? "bg-amber-50 text-amber-800 border-amber-300"
+                        : isCurrentRejected
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-slate-100 text-slate-700 border-slate-200"
+                    }`}
+                  >
+                    {isCurrentPaid
+                      ? "Paid & Approved"
+                      : isCurrentSubmitted
+                      ? "Vendor Paid — Pending Approval"
+                      : isCurrentRejected
+                      ? "Receipt Rejected"
+                      : "Payment Required"}
+                  </span>
+                </div>
+                {currentMilestone.paymentRef && (
+                  <p className="text-[11px] font-mono text-slate-600">
+                    Ref: {currentMilestone.paymentRef}
+                  </p>
+                )}
+                {(currentMilestone.paymentDate || currentMilestone.approvedBy) && (
+                  <p className="text-[10px] text-slate-500">
+                    {currentMilestone.paymentDate ? `Date: ${currentMilestone.paymentDate}` : ""}
+                    {currentMilestone.approvedBy ? ` • Verified by ${currentMilestone.approvedBy}` : ""}
+                  </p>
+                )}
+                {currentMilestone.paymentRemark && (
+                  <p className="text-[10px] text-slate-600 italic">
+                    Note: {currentMilestone.paymentRemark}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                {isCurrentPaid ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.open(
+                        `/invoice/${application.id || application.applicationId || appId}/${currentMilestone.id}`,
+                        "_blank"
+                      )
+                    }
+                    className="px-3 py-1.5 rounded-lg bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                  >
+                    <Receipt size={13} />
+                    <span>View Invoice / Receipt</span>
+                  </button>
+                ) : isCurrentSubmitted ? (
+                  <>
+                    <button
+                      type="button"
+                      disabled={paymentBusy}
+                      onClick={() => {
+                        setRejectInputIdx(activeMilestoneIdx);
+                        setRejectPaymentNote("");
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition disabled:opacity-50"
+                    >
+                      <XCircle size={13} />
+                      <span>Reject Receipt</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={paymentBusy}
+                      onClick={() => handleApproveCurrentPayment(activeMilestoneIdx)}
+                      className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                    >
+                      <CheckCircle2 size={13} />
+                      <span>{paymentBusy ? "Approving..." : "Approve Received Payment"}</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={paymentBusy}
+                    onClick={() => handleApproveCurrentPayment(activeMilestoneIdx)}
+                    className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                  >
+                    <Unlock size={13} />
+                    <span>{paymentBusy ? "Approving..." : "Approve / Mark Paid"}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {rejectInputIdx === activeMilestoneIdx && (
+              <div className="p-2.5 rounded-lg bg-white border border-rose-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <input
+                  type="text"
+                  value={rejectPaymentNote}
+                  onChange={(e) => setRejectPaymentNote(e.target.value)}
+                  placeholder="Reason for rejecting payment receipt..."
+                  className="flex-1 px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg outline-none focus:border-rose-500"
+                />
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setRejectInputIdx(null)}
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={paymentBusy}
+                    onClick={() => handleRejectCurrentPayment(activeMilestoneIdx)}
+                    className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer disabled:opacity-50"
+                  >
+                    Confirm Reject
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="p-3 sm:p-4 space-y-2.5">
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Layers size={14} className="text-slate-700" />
-                <span>Processing Steps ({currentStagesDoneCount}/{currentStages.length} Done)</span>
+                <span>2. Processing Steps ({currentStagesDoneCount}/{currentStages.length} Done)</span>
               </span>
               <button
                 type="button"
+                disabled={!canUpdateCurrentStages}
                 onClick={() => handleAddStage(activeMilestoneIdx)}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold border border-slate-300 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold border border-slate-300 transition cursor-pointer flex items-center gap-1 shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus size={12} />
                 <span>Add Step</span>
               </button>
             </div>
 
+            {!canUpdateCurrentStages && (
+              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                <Lock size={14} className="text-amber-600 shrink-0" />
+                <span>
+                  Processing steps are locked until payment for this milestone is approved above.
+                </span>
+              </div>
+            )}
+
             <div className="space-y-2">
               {currentStages.length === 0 ? (
                 <div className="p-4 bg-slate-50 rounded-lg border border-dashed border-slate-300 text-center text-xs text-slate-500 font-medium">
-                  No steps defined for this milestone. Click "+ Add Step" above.
+                  No steps defined for this milestone. Click &quot;+ Add Step&quot; above.
                 </div>
               ) : (
                 currentStages.map((stage, sIdx) => {
@@ -556,7 +786,9 @@ export default function AdminCandidateMilestones() {
                     <div
                       key={stage.id || sIdx}
                       className={`p-2.5 sm:p-3 rounded-lg border transition-all ${
-                        isDone
+                        !canUpdateCurrentStages
+                          ? "bg-slate-50/70 border-slate-200 opacity-75"
+                          : isDone
                           ? "bg-emerald-50/30 border-emerald-200"
                           : isInProgress
                           ? "bg-blue-50/30 border-blue-300 shadow-2xs"
@@ -564,7 +796,6 @@ export default function AdminCandidateMilestones() {
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                        {/* Step Number & Name Input */}
                         <div className="flex items-center gap-2.5 flex-1 min-w-0">
                           <span className="w-5 h-5 rounded-md bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                             {sIdx + 1}
@@ -581,7 +812,7 @@ export default function AdminCandidateMilestones() {
                             />
                             {stage.completedAt && isDone && (
                               <span className="text-[10px] text-emerald-700 font-medium block pl-1.5 mt-0.5">
-                                ✓ Completed on {stage.completedAt} by {stage.completedBy || "Admin"}
+                                ✓ Completed on {stage.completedAt} by {stage.completedBy || actorLabel}
                               </span>
                             )}
                             {stage.document && (
@@ -601,14 +832,13 @@ export default function AdminCandidateMilestones() {
                           </div>
                         </div>
 
-                        {/* Status Pills & Document Actions */}
                         <div className="flex items-center gap-2 flex-wrap self-end sm:self-center">
-                          {/* 3-State Pill Selector */}
                           <div className="flex items-center rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-xs">
                             <button
                               type="button"
+                              disabled={!canUpdateCurrentStages}
                               onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "Pending")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer ${
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isPending
                                   ? "bg-white text-slate-800 shadow-2xs border border-slate-200/80"
                                   : "text-slate-500 hover:text-slate-800"
@@ -618,8 +848,9 @@ export default function AdminCandidateMilestones() {
                             </button>
                             <button
                               type="button"
+                              disabled={!canUpdateCurrentStages}
                               onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "In Progress")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 ${
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isInProgress
                                   ? "bg-slate-900 text-white shadow-2xs"
                                   : "text-slate-500 hover:text-slate-800"
@@ -630,8 +861,9 @@ export default function AdminCandidateMilestones() {
                             </button>
                             <button
                               type="button"
+                              disabled={!canUpdateCurrentStages}
                               onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "Completed")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 ${
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isDone
                                   ? "bg-emerald-600 text-white shadow-2xs"
                                   : "text-slate-500 hover:text-slate-800"
@@ -642,21 +874,22 @@ export default function AdminCandidateMilestones() {
                             </button>
                           </div>
 
-                          {/* Upload Document Button */}
                           <label
-                            className="p-1 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 cursor-pointer transition shadow-2xs"
+                            className={`p-1 rounded-md border border-slate-200 bg-white text-slate-600 transition shadow-2xs ${
+                              canUpdateCurrentStages ? "hover:bg-slate-50 hover:text-slate-900 cursor-pointer" : "opacity-50 cursor-not-allowed"
+                            }`}
                             title="Attach proof or documentation"
                           >
                             <Upload size={12} />
                             <input
                               type="file"
                               accept="image/*,.pdf"
+                              disabled={!canUpdateCurrentStages}
                               className="hidden"
                               onChange={(e) => handleFileUploadForStage(activeMilestoneIdx, sIdx, e)}
                             />
                           </label>
 
-                          {/* Delete Step */}
                           <button
                             type="button"
                             onClick={() => handleRemoveStage(activeMilestoneIdx, sIdx)}

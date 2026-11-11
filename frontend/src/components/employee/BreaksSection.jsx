@@ -56,7 +56,7 @@ export default function BreaksSection({
         {isHolidayToday && (
           <div className="p-5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-2xl font-semibold text-center text-sm space-y-1">
             <div className="text-base font-bold text-indigo-950">Official Holiday Declared</div>
-            <p className="text-xs text-indigo-700">Aaj holiday hai — aaj break aur attendance tracking band hai.</p>
+            <p className="text-xs text-indigo-700">Today is an official holiday — break and attendance tracking are disabled.</p>
           </div>
         )}
 

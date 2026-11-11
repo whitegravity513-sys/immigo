@@ -1,48 +1,62 @@
-import React, { useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Sliders,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  Plus,
-  Trash2,
-  Building2,
-  User,
+  Lock,
   Search,
-  CreditCard,
-  IndianRupee,
   Layers,
   ChevronDown,
   ChevronUp,
   Receipt,
+  ShieldCheck,
+  XCircle,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 export default function AdminMilestonesList() {
+  const { user, isSuperAdmin, isVendorHR } = useAuth();
+  const actorLabel = isVendorHR ? "Vendor HR" : isSuperAdmin ? "Super Admin" : (user?.name || "Admin");
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedAppIds, setExpandedAppIds] = useState([]);
+  const [actionBusyKey, setActionBusyKey] = useState("");
 
-  const [showBulkModal, setShowBulkModal] = useState(false);
-  const [templateName, setTemplateName] = useState("Standard Recruitment 4-Milestone");
-  const [templateTotal, setTemplateTotal] = useState(40000);
-  const [bulkSuccessMsg, setBulkSuccessMsg] = useState("");
+  const resolveMilestones = (app) => {
+    const syncedMs = !app.milestonesOverridden
+      ? crmVendorService.syncAppMilestonesWithProject(app)
+      : [];
+    if (syncedMs.length > 0) return syncedMs;
+    if (app.processMilestones?.length > 0) return app.processMilestones;
+    return app.paymentPlan?.milestones || [];
+  };
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const data = await crmVendorService.getApplications();
+      const postSelectionStatuses = new Set([
+        "Selected",
+        "Completed",
+        "Processing",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Visa Allotted",
+        "Joined",
+        "Deployed",
+      ]);
       const selectedApps = (data || []).filter(
         (a) =>
-          (a.status === "Selected" || a.status === "Completed" || a.paymentPlan) &&
-          (a.paymentPlan || a.processMilestones)
+          (postSelectionStatuses.has(a.status) ||
+            postSelectionStatuses.has(a.recruitmentStage)) &&
+          resolveMilestones(a).length > 0
       );
       setApplications(selectedApps);
     } catch (err) {
@@ -50,25 +64,38 @@ export default function AdminMilestonesList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   let totalFeeToCollect = 0;
   let totalFeeReleased = 0;
 
   applications.forEach((app) => {
-    const milestones =
-      app.processMilestones?.length > 0
-        ? app.processMilestones
-        : app.paymentPlan?.milestones || [];
-    const total =
-      Number(app.paymentPlan?.totalAmount) ||
-      milestones.reduce((acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0), 0) ||
-      40000;
+    const milestones = resolveMilestones(app);
+    const msSum = milestones.reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0);
+    const total = msSum > 0 ? msSum : Number(app.paymentPlan?.totalAmount || 0);
     totalFeeToCollect += total;
 
     milestones.forEach((m) => {
-      if (m.status === "Paid" || m.paymentStatus === "Approved") {
-        totalFeeReleased += Number(m.paymentAmount || m.amount) || 0;
+      if (m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed") {
+        totalFeeReleased += Number(m.paymentAmount ?? m.amount ?? 0);
       }
     });
   });
@@ -76,19 +103,14 @@ export default function AdminMilestonesList() {
   const totalRemainingPending = Math.max(0, totalFeeToCollect - totalFeeReleased);
 
   const filteredApps = applications.filter((app) => {
-    const milestones =
-      app.processMilestones?.length > 0
-        ? app.processMilestones
-        : app.paymentPlan?.milestones || [];
-    const totalAmt =
-      Number(app.paymentPlan?.totalAmount) ||
-      milestones.reduce((acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0), 0) ||
-      40000;
+    const milestones = resolveMilestones(app);
+    const msSum = milestones.reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0);
+    const totalAmt = msSum > 0 ? msSum : Number(app.paymentPlan?.totalAmount || 0);
     const paidMilestones = milestones.filter(
-      (m) => m.status === "Paid" || m.paymentStatus === "Approved"
+      (m) => m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed"
     );
     const paidAmt = paidMilestones.reduce(
-      (acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0),
+      (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
       0
     );
     const isFullyPaid = milestones.length > 0 && paidMilestones.length === milestones.length;
@@ -118,49 +140,84 @@ export default function AdminMilestonesList() {
 
   const handleQuickStatusChange = async (appId, milestoneId, newStatus) => {
     try {
+      setActionBusyKey(`pay_${appId}_${milestoneId}`);
       await crmVendorService.quickUpdateMilestoneStatus(appId, milestoneId, newStatus);
       await loadData();
     } catch (err) {
       alert("Failed to update status: " + err.message);
+    } finally {
+      setActionBusyKey("");
     }
   };
 
-  const handleApplyBulkTemplate = async () => {
+  const handleApproveSubmittedPayment = async (app, milestoneId) => {
+    const resolvedAppId = app.id || app.applicationId || app._id;
     try {
-      const res = await crmVendorService.applyBulkTemplate({
-        totalAmount: Number(templateTotal),
-        templateName,
-      });
-      setShowBulkModal(false);
-      setBulkSuccessMsg(
-        `Successfully applied "${templateName}" (₹${Number(
-          templateTotal
-        ).toLocaleString()}) to ${res.updatedCount} selected candidate applications.`
+      setActionBusyKey(`app_${resolvedAppId}_${milestoneId}`);
+      await crmVendorService.approveMilestonePayment(
+        resolvedAppId,
+        milestoneId,
+        actorLabel,
+        "Payment verified and approved",
+        app
       );
-      setTimeout(() => setBulkSuccessMsg(""), 5000);
-      loadData();
+      await loadData();
     } catch (err) {
-      alert(err.message);
+      alert("Failed to approve payment: " + err.message);
+    } finally {
+      setActionBusyKey("");
+    }
+  };
+
+  const handleRejectSubmittedPayment = async (app, milestoneId) => {
+    const resolvedAppId = app.id || app.applicationId || app._id;
+    const reason = window.prompt("Reason for rejecting vendor payment receipt:", "Invalid payment reference");
+    if (reason === null) return;
+    try {
+      setActionBusyKey(`rej_${resolvedAppId}_${milestoneId}`);
+      await crmVendorService.rejectMilestonePayment(resolvedAppId, milestoneId, reason.trim() || "Rejected by reviewer");
+      await loadData();
+    } catch (err) {
+      alert("Failed to reject payment: " + err.message);
+    } finally {
+      setActionBusyKey("");
+    }
+  };
+
+  const handleInlineStageStatus = async (app, milestoneId, stageId, newStatus) => {
+    const resolvedAppId = app.id || app.applicationId || app._id;
+    try {
+      setActionBusyKey(`stg_${resolvedAppId}_${milestoneId}_${stageId}`);
+      await crmVendorService.updateStageStatus(
+        resolvedAppId,
+        milestoneId,
+        stageId,
+        newStatus,
+        `Stage marked ${newStatus} by ${actorLabel}`,
+        actorLabel,
+        app
+      );
+      await loadData();
+    } catch (err) {
+      alert(err.message || "Failed to update stage status");
+    } finally {
+      setActionBusyKey("");
     }
   };
 
   return (
     <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-2.5">
         <div>
           <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-            Milestone Payment Management
+            Candidate Milestone Payments
           </h1>
           <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
-            Track and manage recruitment milestone stages, fee disbursements, and payment settlements per candidate.
+            Manage milestone payments and processing stages for selected candidates.
           </p>
         </div>
-
-        
       </div>
 
-      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
         <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -199,31 +256,18 @@ export default function AdminMilestonesList() {
         </div>
       </div>
 
-      {bulkSuccessMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>{bulkSuccessMsg}</span>
-        </div>
-      )}
-
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {["All", "Due", "Partially Paid", "Fully Paid"].map((tab) => {
             const count = applications.filter((app) => {
-              const ms =
-                app.processMilestones?.length > 0
-                  ? app.processMilestones
-                  : app.paymentPlan?.milestones || [];
-              const tAmt =
-                Number(app.paymentPlan?.totalAmount) ||
-                ms.reduce((acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0), 0) ||
-                40000;
+              const ms = resolveMilestones(app);
+              const msSum = ms.reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0);
+              const tAmt = msSum > 0 ? msSum : Number(app.paymentPlan?.totalAmount || 0);
               const pMs = ms.filter(
-                (m) => m.status === "Paid" || m.paymentStatus === "Approved"
+                (m) => m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed"
               );
               const pAmt = pMs.reduce(
-                (acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0),
+                (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
                 0
               );
               const isFull = ms.length > 0 && pMs.length === ms.length;
@@ -301,22 +345,18 @@ export default function AdminMilestonesList() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredApps.map((app) => {
-                  const milestones =
-                    app.processMilestones?.length > 0
-                      ? app.processMilestones
-                      : app.paymentPlan?.milestones || [];
-                  const totalAmt =
-                    Number(app.paymentPlan?.totalAmount) ||
-                    milestones.reduce(
-                      (acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0),
-                      0
-                    ) ||
-                    40000;
+                  const resolvedAppId = app.id || app.applicationId || app._id;
+                  const milestones = resolveMilestones(app);
+                  const msSum = milestones.reduce(
+                    (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+                    0
+                  );
+                  const totalAmt = msSum > 0 ? msSum : Number(app.paymentPlan?.totalAmount || 0);
                   const paidMilestones = milestones.filter(
-                    (m) => m.status === "Paid" || m.paymentStatus === "Approved"
+                    (m) => m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed"
                   );
                   const paidAmt = paidMilestones.reduce(
-                    (acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0),
+                    (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
                     0
                   );
                   const balanceAmt = Math.max(0, totalAmt - paidAmt);
@@ -325,10 +365,16 @@ export default function AdminMilestonesList() {
                   const isFullyPaid =
                     milestones.length > 0 && paidMilestones.length === milestones.length;
                   const isPartiallyPaid = paidMilestones.length > 0 && !isFullyPaid;
-                  const isExpanded = expandedAppIds.includes(app.id);
+                  const hasSubmittedReceipt = milestones.some(
+                    (m) =>
+                      m.status === "Submitted" ||
+                      m.paymentStatus === "Submitted" ||
+                      m.paymentStatus === "Pending Verification"
+                  );
+                  const isExpanded = expandedAppIds.includes(resolvedAppId);
 
                   return (
-                    <React.Fragment key={app.id}>
+                    <Fragment key={resolvedAppId}>
                       <tr className="hover:bg-slate-50/70 transition">
                         {}
                         <td className="py-1.5 px-3 sm:px-6">
@@ -369,10 +415,10 @@ export default function AdminMilestonesList() {
                           <div className="flex flex-wrap items-center gap-1.5 max-w-md">
                             {milestones.map((m, mIdx) => {
                               const isPaid =
-                                m.status === "Paid" || m.paymentStatus === "Approved";
+                                m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed";
                               const isSub =
-                                m.status === "Submitted" || m.paymentStatus === "Submitted";
-                              const mAmt = Number(m.paymentAmount || m.amount || 0);
+                                m.status === "Submitted" || m.paymentStatus === "Submitted" || m.paymentStatus === "Pending Verification";
+                              const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
 
                               return (
                                 <span
@@ -420,6 +466,8 @@ export default function AdminMilestonesList() {
                             className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
                               isFullyPaid
                                 ? "bg-emerald-100 text-emerald-800"
+                                : hasSubmittedReceipt
+                                ? "bg-indigo-100 text-indigo-800"
                                 : isPartiallyPaid
                                 ? "bg-blue-100 text-blue-800"
                                 : "bg-amber-100 text-amber-800"
@@ -427,6 +475,8 @@ export default function AdminMilestonesList() {
                           >
                             {isFullyPaid
                               ? "Fully Paid"
+                              : hasSubmittedReceipt
+                              ? "Receipt Submitted"
                               : isPartiallyPaid
                               ? `Partially Paid (${paidMilestones.length}/${milestones.length})`
                               : "Payment Due"}
@@ -437,7 +487,7 @@ export default function AdminMilestonesList() {
                         <td className="py-1.5 px-3 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <Link
-                              to={`/admin/vendor/milestones-manage?appId=${app.id}`}
+                              to={`/admin/vendor/milestones-manage?appId=${resolvedAppId}`}
                               className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
                               title="Manage stages and milestones for candidate"
                             >
@@ -446,7 +496,7 @@ export default function AdminMilestonesList() {
                             </Link>
                             <button
                               type="button"
-                              onClick={() => toggleExpand(app.id)}
+                              onClick={() => toggleExpand(resolvedAppId)}
                               className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
                               title={isExpanded ? "Hide Details" : "View Breakdown"}
                             >
@@ -461,161 +511,220 @@ export default function AdminMilestonesList() {
                       {isExpanded && (
                         <tr className="bg-slate-50/80">
                           <td colSpan={5} className="p-4 sm:px-6">
-                            <div className="bg-white rounded-xl border border-slate-200 p-2.5 space-y-3">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                                  Itemized Milestones for {app.candidateName}
-                                </h4>
-                                <span className="text-xs font-bold text-slate-500">
-                                  Total: ₹{totalAmt.toLocaleString()} • Paid: ₹{paidAmt.toLocaleString()} • Due: ₹{balanceAmt.toLocaleString()}
-                                </span>
+                            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-5">
+                              <div className="space-y-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <ShieldCheck size={14} className="text-emerald-600" />
+                                    <span>1. Milestone Payments &amp; Receipt Approval — {app.candidateName}</span>
+                                  </h4>
+                                  <span className="text-xs font-bold text-slate-500">
+                                    Total: ₹{totalAmt.toLocaleString()} • Paid: ₹{paidAmt.toLocaleString()} • Due: ₹{balanceAmt.toLocaleString()}
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {milestones.map((m, mIdx) => {
+                                    const isPaid =
+                                      m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed";
+                                    const isSub =
+                                      m.status === "Submitted" || m.paymentStatus === "Submitted" || m.paymentStatus === "Pending Verification";
+                                    const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
+
+                                    return (
+                                      <div
+                                        key={m.id || mIdx}
+                                        className={`p-3 rounded-xl border ${
+                                          isPaid
+                                            ? "bg-emerald-50/40 border-emerald-200"
+                                            : isSub
+                                            ? "bg-amber-50/50 border-amber-300"
+                                            : "bg-slate-50 border-slate-200"
+                                        }`}
+                                      >
+                                        <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1.5 gap-1">
+                                          <span className="font-bold text-slate-700">Milestone {mIdx + 1}</span>
+                                          <span
+                                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                              isPaid
+                                                ? "bg-emerald-100 text-emerald-800"
+                                                : isSub
+                                                ? "bg-amber-100 text-amber-800"
+                                                : "bg-slate-200 text-slate-700"
+                                            }`}
+                                          >
+                                            {isPaid ? "Paid" : isSub ? "Pending Verification" : "Payment Due"}
+                                          </span>
+                                        </div>
+                                        <h5 className="font-bold text-slate-900 text-xs truncate">
+                                          {m.name}
+                                        </h5>
+                                        <div className="text-sm font-bold text-slate-900 mt-1">
+                                          ₹{mAmt.toLocaleString()}
+                                        </div>
+                                        {m.paymentRef && (
+                                          <p className="text-[10px] text-slate-600 font-mono mt-1 truncate bg-white px-1.5 py-0.5 rounded border border-slate-200" title={m.paymentRef}>
+                                            {m.paymentRef}
+                                          </p>
+                                        )}
+
+                                        <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5">
+                                          {isPaid ? (
+                                            <>
+                                              <button
+                                                type="button"
+                                                onClick={() => window.open(`/invoice/${resolvedAppId}/${m.id}`, "_blank")}
+                                                className="flex-1 py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs"
+                                              >
+                                                <Receipt size={11} />
+                                                <span>Invoice / Receipt</span>
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={Boolean(actionBusyKey)}
+                                                onClick={() => handleQuickStatusChange(resolvedAppId, m.id, "Pending")}
+                                                className="py-1 px-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-semibold cursor-pointer transition"
+                                              >
+                                                Reset
+                                              </button>
+                                            </>
+                                          ) : isSub ? (
+                                            <>
+                                              <button
+                                                type="button"
+                                                disabled={Boolean(actionBusyKey)}
+                                                onClick={() => handleApproveSubmittedPayment(app, m.id)}
+                                                className="flex-1 py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                                              >
+                                                <CheckCircle2 size={11} />
+                                                <span>Approve Payment</span>
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={Boolean(actionBusyKey)}
+                                                onClick={() => handleRejectSubmittedPayment(app, m.id)}
+                                                className="py-1 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition disabled:opacity-50"
+                                              >
+                                                <XCircle size={11} />
+                                                <span>Reject</span>
+                                              </button>
+                                            </>
+                                          ) : (
+                                            <button
+                                              type="button"
+                                              disabled={Boolean(actionBusyKey)}
+                                              onClick={() => handleQuickStatusChange(resolvedAppId, m.id, "Paid")}
+                                              className="w-full py-1 px-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                                            >
+                                              <CheckCircle2 size={11} />
+                                              <span>Approve / Mark Paid</span>
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                {milestones.map((m, mIdx) => {
-                                  const isPaid =
-                                    m.status === "Paid" || m.paymentStatus === "Approved";
-                                  const isSub =
-                                    m.status === "Submitted" || m.paymentStatus === "Submitted";
-                                  const mAmt = Number(m.paymentAmount || m.amount || 0);
+                              <div className="pt-4 border-t border-slate-200 space-y-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Layers size={14} className="text-indigo-600" />
+                                    <span>2. Processing Stages Update</span>
+                                  </h4>
+                                  <Link
+                                    to={`/admin/vendor/milestones-manage?appId=${resolvedAppId}`}
+                                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold inline-flex items-center gap-1 transition"
+                                  >
+                                    <Sliders size={11} />
+                                    <span>Open Full Stage Editor</span>
+                                  </Link>
+                                </div>
 
-                                  return (
-                                    <div
-                                      key={m.id || mIdx}
-                                      className={`p-3 rounded-xl border ${
-                                        isPaid
-                                          ? "bg-emerald-50/40 border-emerald-200"
-                                          : isSub
-                                          ? "bg-amber-50/40 border-amber-200"
-                                          : "bg-slate-50 border-slate-200"
-                                      }`}
-                                    >
-                                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1.5 gap-1">
-                                        <span className="font-bold text-slate-700">Milestone {mIdx + 1}</span>
-                                        <select
-                                          value={isPaid ? "Paid" : "Pending"}
-                                          onChange={(e) => handleQuickStatusChange(app.id, m.id, e.target.value)}
-                                          className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border cursor-pointer focus:outline-none transition ${
-                                            isPaid
-                                              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                                              : "bg-amber-100 text-amber-800 border-amber-300"
-                                          }`}
-                                          title="Quick Status Update (Pending or Paid)"
-                                        >
-                                          <option value="Pending">Pending</option>
-                                          <option value="Paid">Paid</option>
-                                        </select>
-                                      </div>
-                                      <h5 className="font-bold text-slate-900 text-xs truncate">
-                                        {m.name}
-                                      </h5>
-                                      <div className="text-sm font-bold text-slate-900 mt-1">
-                                        ₹{mAmt.toLocaleString()}
-                                      </div>
-                                      {m.paymentRef && (
-                                        <p className="text-[10px] text-slate-500 font-mono mt-1 truncate" title={m.paymentRef}>
-                                          {m.paymentRef}
-                                        </p>
-                                      )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                  {milestones.map((m, mIdx) => {
+                                    const isPaid =
+                                      m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed";
+                                    const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
+                                    const canUpdate = isPaid || mAmt === 0;
+                                    const stages = Array.isArray(m.stages) ? m.stages : [];
 
-                                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5">
-                                        {isPaid ? (
-                                          <button
-                                            type="button"
-                                            onClick={() => window.open(`/invoice/${app.id}/${m.id}`, '_blank')}
-                                            className="w-full py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs"
-                                          >
-                                            <Receipt size={11} />
-                                            <span>Invoice / Receipt</span>
-                                          </button>
+                                    return (
+                                      <div
+                                        key={m.id || mIdx}
+                                        className={`p-3 rounded-xl border ${
+                                          canUpdate ? "bg-slate-50/70 border-slate-200" : "bg-slate-100/70 border-slate-200 opacity-75"
+                                        } space-y-2`}
+                                      >
+                                        <div className="flex items-center justify-between gap-2 border-b border-slate-200/70 pb-1.5">
+                                          <span className="text-[11px] font-bold text-slate-800 truncate">
+                                            M{mIdx + 1}: {m.name}
+                                          </span>
+                                          {!canUpdate && (
+                                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded shrink-0">
+                                              <Lock size={10} />
+                                              <span>Locked</span>
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        {stages.length === 0 ? (
+                                          <p className="text-[10px] text-slate-400">No stages configured.</p>
                                         ) : (
-                                          <button
-                                            type="button"
-                                            onClick={() => handleQuickStatusChange(app.id, m.id, "Paid")}
-                                            className="w-full py-1 px-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition shadow-2xs"
-                                          >
-                                            <CheckCircle2 size={11} />
-                                            <span>Mark Paid</span>
-                                          </button>
+                                          <div className="space-y-1.5">
+                                            {stages.map((stg, sIdx) => {
+                                              const isDone = stg.status === "Completed";
+                                              const isBusy = actionBusyKey === `stg_${resolvedAppId}_${m.id}_${stg.id}`;
+                                              return (
+                                                <div
+                                                  key={stg.id || sIdx}
+                                                  className="flex items-center justify-between gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px]"
+                                                >
+                                                  <span className={`font-medium truncate ${isDone ? "text-emerald-800 font-bold" : "text-slate-700"}`}>
+                                                    {sIdx + 1}. {stg.name}
+                                                  </span>
+                                                  {canUpdate ? (
+                                                    <select
+                                                      disabled={Boolean(actionBusyKey)}
+                                                      value={stg.status || "Pending"}
+                                                      onChange={(e) => handleInlineStageStatus(app, m.id, stg.id, e.target.value)}
+                                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold border cursor-pointer outline-none ${
+                                                        isDone
+                                                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                          : stg.status === "In Progress"
+                                                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                                                          : "bg-slate-50 text-slate-600 border-slate-200"
+                                                      }`}
+                                                    >
+                                                      <option value="Pending">Pending</option>
+                                                      <option value="In Progress">In Progress</option>
+                                                      <option value="Completed">{isBusy ? "Saving..." : "Completed"}</option>
+                                                    </select>
+                                                  ) : (
+                                                    <span className="text-[10px] text-slate-400 font-semibold shrink-0">
+                                                      Locked
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
                                         )}
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
                             </div>
                           </td>
                         </tr>
                       )}
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {}
-      {showBulkModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-            <h3 className="text-base font-bold text-slate-900">Bulk Milestone Template</h3>
-            <p className="text-xs text-slate-500">
-              Apply a standard recruitment milestone model to all selected candidate applications.
-            </p>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Template Preset:
-                </label>
-                <select
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium"
-                >
-                  <option value="Standard Recruitment 4-Milestone">
-                    Standard Recruitment (4-Milestone: 25% each)
-                  </option>
-                  <option value="3-Phase Technical Deployment">
-                    3-Phase Deployment (30% / 40% / 30%)
-                  </option>
-                  <option value="Express Placement (2-Milestone)">
-                    Express Placement (2-Milestone: 50% / 50%)
-                  </option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  Default Agreed Placement Fee (₹):
-                </label>
-                <input
-                  type="number"
-                  value={templateTotal}
-                  onChange={(e) => setTemplateTotal(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowBulkModal(false)}
-                className="flex-1 py-2 px-3 rounded-xl border border-slate-300 text-slate-700 text-xs font-medium hover:bg-slate-50 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleApplyBulkTemplate}
-                className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs cursor-pointer"
-              >
-                Apply to All
-              </button>
-            </div>
           </div>
         </div>
       )}

@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   UserCheck,
   Search,
-  ArrowRight,
   Clock,
-  CheckCircle2,
-  Building2,
-  ExternalLink,
   Sliders,
-  Plus,
-  Trash2,
-  DollarSign,
-  Edit,
-  ChevronRight,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 
@@ -21,26 +12,54 @@ export default function AdminSelectedCandidates() {
   const [selectedApps, setSelectedApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [milestoneModalApp, setMilestoneModalApp] = useState(null);
-  const [totalAmount, setTotalAmount] = useState(40000);
-  const [milestonesList, setMilestonesList] = useState([]);
 
-  useEffect(() => {
-    loadSelected();
-  }, []);
-
-  const loadSelected = async () => {
+  const loadSelected = useCallback(async () => {
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const data = await crmVendorService.getApplications();
-      const filtered = (data || []).filter((a) => a.status === "Selected" || a.status === "Completed");
+      const postSelectionStatuses = new Set([
+        "Selected",
+        "Completed",
+        "Processing",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Visa Allotted",
+        "Joined",
+        "Deployed",
+      ]);
+      const filtered = (data || []).filter(
+        (a) =>
+          postSelectionStatuses.has(a.status) ||
+          postSelectionStatuses.has(a.recruitmentStage)
+      );
       setSelectedApps(filtered);
     } catch (err) {
       console.error("Failed to load selected candidates:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadSelected();
+    }, 0);
+    const handleRefresh = () => loadSelected();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadSelected]);
 
   const filtered = selectedApps.filter((app) => {
     if (!searchQuery.trim()) return true;
@@ -114,19 +133,25 @@ export default function AdminSelectedCandidates() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((app) => {
-                  const milestones = app.paymentPlan?.milestones || [
-                    { id: "M1", name: "Milestone 1 - Selection", status: "Paid", stages: [{ id: "s1", name: "Document Verification", status: "Completed" }, { id: "s2", name: "Client Selection", status: "Completed" }] },
-                    { id: "M2", name: "Milestone 2 - GAMCA Medical", status: "Due", stages: [{ id: "s3", name: "Medical Check", status: "Pending" }, { id: "s4", name: "GAMCA Clearance", status: "Pending" }] }
-                  ];
+                  const resolvedAppId = app.id || app.applicationId || app._id;
+                  const syncedMs = !app.milestonesOverridden
+                    ? crmVendorService.syncAppMilestonesWithProject(app)
+                    : [];
+                  const milestones =
+                    syncedMs.length > 0
+                      ? syncedMs
+                      : app.processMilestones?.length
+                      ? app.processMilestones
+                      : app.paymentPlan?.milestones || [];
 
                   let activeMilestone = null;
                   let activeStage = null;
                   let totalStagesCount = 0;
                   let completedStagesCount = 0;
 
-                  milestones.forEach(m => {
+                  milestones.forEach((m) => {
                     if (!m.stages) return;
-                    m.stages.forEach(s => {
+                    m.stages.forEach((s) => {
                       totalStagesCount++;
                       if (s.status === "Completed") completedStagesCount++;
                       else if (!activeStage) {
@@ -136,15 +161,30 @@ export default function AdminSelectedCandidates() {
                     });
                   });
 
-                  const stageName = activeStage ? activeStage.name : "All Completed";
+                  const stageName =
+                    totalStagesCount > 0
+                      ? activeStage
+                        ? activeStage.name
+                        : "All Completed"
+                      : "Pending Setup";
                   const displayIndex = activeStage ? completedStagesCount + 1 : totalStagesCount;
 
-                  const paidCount = milestones.filter((m) => m.status === "Paid").length;
-                  const totalCount = milestones.length || 4;
-                  const planTotal = app.paymentPlan?.totalAmount || 40000;
+                  const paidCount = milestones.filter(
+                    (m) =>
+                      m.status === "Paid" ||
+                      m.paymentStatus === "Approved" ||
+                      m.status === "Completed"
+                  ).length;
+                  const totalCount = milestones.length;
+                  const computedSum = milestones.reduce(
+                    (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+                    0
+                  );
+                  const planTotal =
+                    computedSum > 0 ? computedSum : Number(app.paymentPlan?.totalAmount || 0);
 
                   return (
-                    <tr key={app.id} className="hover:bg-slate-50/70 transition">
+                    <tr key={resolvedAppId} className="hover:bg-slate-50/70 transition">
                       <td className="py-1 px-2 sm:px-5 font-bold text-slate-900">
                         {app.candidateName}
                       </td>
@@ -157,7 +197,7 @@ export default function AdminSelectedCandidates() {
                       <td className="py-1 px-2">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
                           <Clock className="w-3.5 h-3.5 text-slate-500" />
-                          {stageName} ({displayIndex}/{totalStagesCount || 8})
+                          {stageName} ({displayIndex}/{totalStagesCount})
                         </span>
                         {activeMilestone && (
                           <div className="text-[9px] font-semibold text-slate-400 mt-1 uppercase">
@@ -176,7 +216,7 @@ export default function AdminSelectedCandidates() {
                       <td className="py-1 px-2 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
-                            to={`/admin/vendor/processing?appId=${app.id}`}
+                            to={`/admin/vendor/processing?appId=${resolvedAppId}`}
                             className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
                             title="Open full processing stepper & complete stages"
                           >
@@ -184,7 +224,7 @@ export default function AdminSelectedCandidates() {
                             <span>Processing Stepper</span>
                           </Link>
                           <Link
-                            to={`/admin/vendor/milestones-manage?appId=${app.id}`}
+                            to={`/admin/vendor/milestones-manage?appId=${resolvedAppId}`}
                             className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
                             title="Manage candidate processing stages & upload documents"
                           >

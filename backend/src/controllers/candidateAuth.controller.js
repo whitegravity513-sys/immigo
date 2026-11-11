@@ -677,7 +677,7 @@ export const getCandidateApplicationMilestones = asyncHandler(async (req, res) =
     success: true,
     application: app.toJSON(),
     processMilestones: app.processMilestones || [],
-    paymentPlan: app.paymentPlan || { totalAmount: 40000, currency: "INR", milestones: [] },
+    paymentPlan: app.paymentPlan || { totalAmount: 0, currency: "INR", milestones: [] },
     payments: app.payments || [],
   });
 });
@@ -811,6 +811,13 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
       actorId: candidate.candidateId,
       actorRole: "CANDIDATE",
       moduleScope: "CANDIDATE",
+      metadata: {
+        candidateId: candidate.candidateId,
+        applicationId: app.applicationId,
+        milestoneId: targetMilestoneId,
+        vendorId: app.vendorId || null,
+        link: `/admin/candidates/milestones-manage?appId=${app.applicationId}`,
+      },
     });
 
     await CrmNotification.create({

@@ -37,6 +37,8 @@ export class ProjectService {
       totalAmount,
       initialAmount,
       extendedAmount,
+      salary,
+      currency,
       status,
       startDate,
       deadline,
@@ -66,6 +68,8 @@ export class ProjectService {
       initialAmount: initAmt,
       extendedAmount: extAmt,
       totalAmount: totAmt,
+      salary: salary !== undefined && salary !== null ? String(salary).trim() : "",
+      currency: currency !== undefined && currency !== null ? String(currency).trim() : "",
       status: status || "Pending",
       startDate: startDate ? new Date(startDate) : null,
       deadline: deadline ? new Date(deadline) : null,
@@ -115,6 +119,8 @@ export class ProjectService {
       extendedAmount,
       totalAmount,
       budget,
+      salary,
+      currency,
       status,
       startDate,
       deadline,
@@ -144,6 +150,8 @@ export class ProjectService {
       project.budget = project.totalAmount;
     }
 
+    if (salary !== undefined) project.salary = salary !== null ? String(salary).trim() : "";
+    if (currency !== undefined) project.currency = currency !== null ? String(currency).trim() : "";
     if (status) project.status = status;
     if (startDate !== undefined) project.startDate = startDate ? new Date(startDate) : null;
     if (deadline !== undefined) project.deadline = deadline ? new Date(deadline) : null;

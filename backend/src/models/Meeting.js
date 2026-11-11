@@ -148,6 +148,16 @@ const meetingSchema = new mongoose.Schema(
       default: "",
     },
 
+    projectId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    projectName: {
+      type: String,
+      default: "",
+    },
+
     // Status: Scheduled, Completed, Cancelled, Rescheduled
     status: {
       type: String,

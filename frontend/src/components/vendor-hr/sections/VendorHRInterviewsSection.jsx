@@ -12,6 +12,7 @@ import { AVATARS } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRInterviewsSection({
   interviews = [],
+  hideProjectNames = false,
   setShowScheduleModal,
   handleQuickStage,
   setFeedbackInterviewTarget,
@@ -26,7 +27,7 @@ export default function VendorHRInterviewsSection({
     return (
       item.candidateName?.toLowerCase().includes(q) ||
       item.jobTitle?.toLowerCase().includes(q) ||
-      item.projectName?.toLowerCase().includes(q) ||
+      (!hideProjectNames && item.projectName?.toLowerCase().includes(q)) ||
       item.round?.toLowerCase().includes(q) ||
       item.interviewerName?.toLowerCase().includes(q)
     );
@@ -43,7 +44,7 @@ export default function VendorHRInterviewsSection({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Evaluate candidate technical capabilities, join online meetings, and finalize Selection or Rejection.
+            Evaluate candidate technical capabilities, join online meetings, and finalize Selection, Reject, or Hold.
           </p>
         </div>
 
@@ -94,7 +95,7 @@ export default function VendorHRInterviewsSection({
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate Info</th>
-                <th className="py-3 px-4">Trade & Project</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Trade & Agency" : "Trade & Project"}</th>
                 <th className="py-3 px-3 text-center">Round / Status</th>
                 <th className="py-3 px-4">Schedule & Interviewer</th>
                 <th className="py-3 px-3 text-center">Meeting</th>
@@ -103,7 +104,20 @@ export default function VendorHRInterviewsSection({
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredInterviews.map((item, idx) => {
-                const cand = item.candidateRef || item;
+                const cand =
+                  typeof item.candidateRef === "object" && item.candidateRef
+                    ? {
+                        ...item,
+                        ...item.candidateRef,
+                        applicationId:
+                          item.candidateRef.applicationId ||
+                          item.applicationId ||
+                          item.id,
+                      }
+                    : {
+                        ...item,
+                        applicationId: item.applicationId || item.id,
+                      };
                 return (
                   <tr key={item.interviewId || idx} className="hover:bg-slate-50/60 transition">
                     <td className="py-3.5 px-4">
@@ -123,7 +137,11 @@ export default function VendorHRInterviewsSection({
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-slate-800 truncate">{item.jobTitle || cand.jobTitle || "Trade Specialist"}</div>
-                      <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{item.projectName || cand.projectName || "Project"}</div>
+                      <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">
+                        {hideProjectNames
+                          ? item.vendorName || cand.vendorName || cand.destinationCountry || "Technical Evaluation"
+                          : item.projectName || cand.projectName || "-"}
+                      </div>
                     </td>
                     <td className="py-3.5 px-3 text-center">
                       <div className="space-y-1">
@@ -182,11 +200,20 @@ export default function VendorHRInterviewsSection({
                         <button
                           type="button"
                           onClick={() => handleQuickStage(cand, "Rejected", "Candidate did not clear technical round")}
-                          className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition cursor-pointer"
+                          className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition cursor-pointer inline-flex items-center gap-1"
                           title="Reject Candidate (Moves to Rejected Talent Pool for Reassignment)"
                         >
                           <X size={12} />
                           <span>Reject</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickStage(cand, "On Hold", "Candidate placed on hold after interview evaluation")}
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs border border-amber-200 transition cursor-pointer inline-flex items-center gap-1"
+                          title="Place Candidate On Hold after Interview"
+                        >
+                          <Clock size={12} />
+                          <span>Hold</span>
                         </button>
                         <button
                           type="button"

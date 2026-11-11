@@ -98,7 +98,7 @@ export default function CandidatePaymentPage() {
     setTimeout(() => setCopiedField(null), 2500);
   };
 
-  const amount = Number(milestone?.paymentAmount || milestone?.amount || 15000);
+  const amount = Number(milestone?.paymentAmount ?? milestone?.amount ?? 0);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {

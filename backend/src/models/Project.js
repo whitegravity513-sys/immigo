@@ -58,6 +58,16 @@ const projectSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    salary: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    currency: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     status: {
       type: String,
       default: "Pending",
@@ -81,6 +91,8 @@ const projectSchema = new mongoose.Schema(
         openings: { type: Number, default: 1 },
         filled: { type: Number, default: 0 },
         description: String,
+        salary: { type: String, default: "" },
+        currency: { type: String, default: "" },
       },
     ],
     totalHiringTarget: {

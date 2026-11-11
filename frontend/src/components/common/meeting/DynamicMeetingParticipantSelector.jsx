@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Sparkles,
   ChevronDown,
+  FolderKanban,
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
 
@@ -24,9 +25,9 @@ import meetingService from "../../../services/meetingService.js";
  */
 export default function DynamicMeetingParticipantSelector({
   meetingType = "CANDIDATE_INTERVIEW",
-  targetMode = "SPECIFIC", // 'ALL' | 'SPECIFIC'
+  targetMode = "SPECIFIC",
   onTargetModeChange,
-  selectedParticipants = [], // [{ id, name, email, role, code, companyName, designation }]
+  selectedParticipants = [],
   onAddParticipant,
   onRemoveParticipant,
   candidateData = {
@@ -39,6 +40,9 @@ export default function DynamicMeetingParticipantSelector({
     projectName: "",
   },
   onCandidateChange,
+  isVendorRestricted = false,
+  selectedProjectId = "",
+  onProjectChange,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -49,7 +53,6 @@ export default function DynamicMeetingParticipantSelector({
 
   const containerRef = useRef(null);
 
-  // Close dropdown when clicked outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -60,16 +63,23 @@ export default function DynamicMeetingParticipantSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch options when meetingType changes
   useEffect(() => {
+    if (isVendorRestricted && targetMode !== "SPECIFIC" && onTargetModeChange) {
+      onTargetModeChange("SPECIFIC");
+    }
     loadCategoryData();
-  }, [meetingType]);
+  }, [meetingType, isVendorRestricted]);
 
   const loadCategoryData = async () => {
     setLoading(true);
     setSearchQuery("");
     try {
-      if (meetingType === "EMPLOYEE") {
+      if (isVendorRestricted || meetingType === "INTERNAL_HR") {
+        const data = await meetingService.searchHRs();
+        const normalized = data || [];
+        setOptionsList(normalized);
+        setFilteredOptions(normalized);
+      } else if (meetingType === "EMPLOYEE") {
         const data = await meetingService.searchEmployees();
         setOptionsList(data || []);
         setFilteredOptions(data || []);
@@ -77,16 +87,11 @@ export default function DynamicMeetingParticipantSelector({
         const data = await meetingService.searchVendors();
         setOptionsList(data || []);
         setFilteredOptions(data || []);
-      } else if (meetingType === "INTERNAL_HR") {
-        const data = await meetingService.searchHRs();
-        setOptionsList(data || []);
-        setFilteredOptions(data || []);
       } else if (meetingType === "CANDIDATE_INTERVIEW") {
         const data = await meetingService.searchCandidates();
         setOptionsList(data || []);
         setFilteredOptions(data || []);
       } else {
-        // GENERAL
         const [emp, ven, hrs] = await Promise.all([
           meetingService.searchEmployees().catch(() => []),
           meetingService.searchVendors().catch(() => []),
@@ -126,7 +131,13 @@ export default function DynamicMeetingParticipantSelector({
         item.candidateId?.toLowerCase().includes(q) ||
         item.email?.toLowerCase().includes(q) ||
         item.designation?.toLowerCase().includes(q) ||
-        item.position?.toLowerCase().includes(q)
+        item.position?.toLowerCase().includes(q) ||
+        (Array.isArray(item.assignedProjects) &&
+          item.assignedProjects.some(
+            (p) =>
+              p.projectName?.toLowerCase().includes(q) ||
+              p.projectId?.toLowerCase().includes(q)
+          ))
       );
     });
     setFilteredOptions(filtered);
@@ -140,7 +151,7 @@ export default function DynamicMeetingParticipantSelector({
   };
 
   const handleSelectOption = (item) => {
-    if (meetingType === "CANDIDATE_INTERVIEW") {
+    if (!isVendorRestricted && meetingType === "CANDIDATE_INTERVIEW") {
       onCandidateChange({
         candidateId: item.candidateId || item.id || "",
         candidateName: item.name || item.candidateName || "",
@@ -165,7 +176,9 @@ export default function DynamicMeetingParticipantSelector({
         name: item.name || item.companyName,
         email: item.email || "",
         role:
-          meetingType === "VENDOR_DISCUSSION"
+          isVendorRestricted || meetingType === "INTERNAL_HR"
+            ? item.hrType || item.role || "HR"
+            : meetingType === "VENDOR_DISCUSSION"
             ? "VENDOR"
             : meetingType === "EMPLOYEE"
             ? "EMPLOYEE"
@@ -173,10 +186,211 @@ export default function DynamicMeetingParticipantSelector({
         code: item.employeeId || item.vendorId || "",
         companyName: item.companyName || "",
         designation: item.designation || item.hrType || "",
+        assignedProjects: Array.isArray(item.assignedProjects) ? item.assignedProjects : [],
       });
     }
     setSearchQuery("");
   };
+
+  if (isVendorRestricted || meetingType === "INTERNAL_HR") {
+    return (
+      <div
+        ref={containerRef}
+        className="p-3.5 rounded-xl bg-gradient-to-br from-indigo-50/70 to-purple-50/40 border border-indigo-200/90 space-y-3"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-indigo-950 font-bold text-xs flex items-center gap-1.5">
+            <Users className="w-4 h-4 text-indigo-600" />
+            <span>
+              {isVendorRestricted
+                ? "Assigned Vendor HR *"
+                : "HR Operations Team Invitees"}
+            </span>
+          </label>
+
+          {isVendorRestricted ? (
+            <span className="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200 text-[10px] font-bold">
+              Selected ({selectedParticipants.length})
+            </span>
+          ) : (
+            <div className="inline-flex rounded-lg bg-white/80 p-0.5 border border-indigo-200 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => onTargetModeChange("ALL")}
+                className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
+                  targetMode === "ALL"
+                    ? "bg-indigo-600 text-white shadow-2xs"
+                    : "text-indigo-800 hover:text-indigo-950"
+                }`}
+              >
+                All HRs
+              </button>
+              <button
+                type="button"
+                onClick={() => onTargetModeChange("SPECIFIC")}
+                className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
+                  targetMode === "SPECIFIC"
+                    ? "bg-indigo-600 text-white shadow-2xs"
+                    : "text-indigo-800 hover:text-indigo-950"
+                }`}
+              >
+                Select Specific ({selectedParticipants.length})
+              </button>
+            </div>
+          )}
+        </div>
+
+        {!isVendorRestricted && targetMode === "ALL" ? (
+          <div className="p-3 bg-white/90 rounded-xl border border-indigo-200 text-xs text-indigo-900 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span>
+              All Employee HR and Vendor HR team members will receive this meeting notification and dashboard banner.
+            </span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {selectedParticipants.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 p-2 bg-white/90 rounded-xl border border-indigo-200 max-h-24 overflow-y-auto custom-scrollbar">
+                {selectedParticipants.map((p) => (
+                  <span
+                    key={p.id || p.email}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-100/80 text-indigo-900 text-xs font-bold border border-indigo-300/80 shadow-2xs"
+                  >
+                    <div className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] flex items-center justify-center font-bold">
+                      {p.name?.slice(0, 1).toUpperCase()}
+                    </div>
+                    <span>{p.name}</span>
+                    {p.designation && (
+                      <span className="text-[10px] text-indigo-700 bg-indigo-200/60 px-1 py-0.2 rounded">
+                        {p.designation === "VENDOR_HR" ? "Vendor HR" : "Employee HR"}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveParticipant(p.id || p.email)}
+                      className="ml-0.5 hover:text-rose-600 text-indigo-600 cursor-pointer"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="relative">
+              <div className="relative flex items-center">
+                <Search className="w-3.5 h-3.5 text-indigo-400 absolute left-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={
+                    isVendorRestricted
+                      ? "Search Vendor HR by name, email or assigned project..."
+                      : "Type HR name or email..."
+                  }
+                  value={searchQuery}
+                  onFocus={() => setDropdownOpen(true)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 rounded-xl border border-indigo-200 bg-white text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange("")}
+                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              {dropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl z-50 divide-y divide-slate-100 custom-scrollbar">
+                  {loading ? (
+                    <div className="p-3 text-center text-xs text-slate-400">
+                      {isVendorRestricted ? "Loading assigned Vendor HRs..." : "Loading HR users..."}
+                    </div>
+                  ) : filteredOptions.length === 0 ? (
+                    <div className="p-3 text-center text-xs text-slate-500">
+                      {searchQuery
+                        ? `No ${isVendorRestricted ? "assigned Vendor HR" : "HR user"} found matching "${searchQuery}".`
+                        : isVendorRestricted
+                        ? "No Vendor HR is assigned to your agency yet."
+                        : "No HR members found."}
+                    </div>
+                  ) : (
+                    filteredOptions.map((h) => {
+                      const selected = isSelected(h);
+                      const isVHR = h.hrType === "VENDOR_HR";
+                      const projNames = (h.assignedProjects || [])
+                        .map((p) => p.projectName || p.projectId)
+                        .filter(Boolean);
+                      return (
+                        <div
+                          key={h.id || h._id}
+                          onClick={() => handleSelectOption(h)}
+                          className={`p-2.5 flex items-center justify-between cursor-pointer transition ${
+                            selected ? "bg-indigo-50/90 text-indigo-950 font-bold" : "hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-lg text-white font-bold flex items-center justify-center text-xs shrink-0 ${
+                                isVHR ? "bg-purple-600" : "bg-indigo-600"
+                              }`}
+                            >
+                              {h.name?.slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-900 text-xs truncate">
+                                {h.name}
+                              </div>
+                              <div className="text-[10px] text-slate-500 truncate flex items-center gap-1.5 flex-wrap">
+                                <span
+                                  className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                    isVHR
+                                      ? "bg-purple-100 text-purple-700"
+                                      : "bg-indigo-100 text-indigo-700"
+                                  }`}
+                                >
+                                  {isVHR ? "Vendor HR" : "Employee HR"}
+                                </span>
+                                <span>{h.email}</span>
+                              </div>
+                              {projNames.length > 0 && (
+                                <div className="text-[10px] text-indigo-700 font-semibold truncate mt-0.5 flex items-center gap-1">
+                                  <FolderKanban size={10} className="shrink-0" />
+                                  <span>Projects: {projNames.join(", ")}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                              selected
+                                ? "bg-indigo-600 text-white"
+                                : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                            }`}
+                          >
+                            {selected ? "Selected" : "+ Add"}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[10px] text-indigo-700/80 font-medium">
+              {isVendorRestricted
+                ? "You can only schedule meetings with Vendor HRs assigned to your agency by Admin."
+                : 'You can select 1 particular HR, 2-3 HR coordinators, or toggle "All HRs".'}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // 1. VENDOR DISCUSSION VIEW
   if (meetingType === "VENDOR_DISCUSSION") {
@@ -487,179 +701,6 @@ export default function DynamicMeetingParticipantSelector({
             </div>
             <p className="text-[10px] text-blue-700/80 font-medium">
               💡 You can select 1 particular employee, 2-3 team members, or toggle "All Employees".
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // 3. INTERNAL HR / VENDOR HR MEETING VIEW
-  if (meetingType === "INTERNAL_HR") {
-    return (
-      <div
-        ref={containerRef}
-        className="p-3.5 rounded-xl bg-gradient-to-br from-indigo-50/70 to-purple-50/40 border border-indigo-200/90 space-y-3"
-      >
-        <div className="flex items-center justify-between">
-          <label className="text-indigo-950 font-bold text-xs flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-indigo-600" />
-            <span>HR Operations Team Invitees</span>
-          </label>
-
-          {/* Toggle All vs Specific */}
-          <div className="inline-flex rounded-lg bg-white/80 p-0.5 border border-indigo-200 text-[11px] font-bold">
-            <button
-              type="button"
-              onClick={() => onTargetModeChange("ALL")}
-              className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
-                targetMode === "ALL"
-                  ? "bg-indigo-600 text-white shadow-2xs"
-                  : "text-indigo-800 hover:text-indigo-950"
-              }`}
-            >
-              All HRs
-            </button>
-            <button
-              type="button"
-              onClick={() => onTargetModeChange("SPECIFIC")}
-              className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
-                targetMode === "SPECIFIC"
-                  ? "bg-indigo-600 text-white shadow-2xs"
-                  : "text-indigo-800 hover:text-indigo-950"
-              }`}
-            >
-              Select Specific ({selectedParticipants.length})
-            </button>
-          </div>
-        </div>
-
-        {targetMode === "ALL" ? (
-          <div className="p-3 bg-white/90 rounded-xl border border-indigo-200 text-xs text-indigo-900 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
-            <span>
-              All Employee HR and Vendor HR team members will receive this meeting notification and dashboard banner.
-            </span>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {/* Multi-select Tags/Chips */}
-            {selectedParticipants.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 p-2 bg-white/90 rounded-xl border border-indigo-200 max-h-24 overflow-y-auto custom-scrollbar">
-                {selectedParticipants.map((p) => (
-                  <span
-                    key={p.id || p.email}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-100/80 text-indigo-900 text-xs font-bold border border-indigo-300/80 shadow-2xs"
-                  >
-                    <div className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] flex items-center justify-center font-bold">
-                      {p.name?.slice(0, 1).toUpperCase()}
-                    </div>
-                    <span>{p.name}</span>
-                    {p.designation && (
-                      <span className="text-[10px] text-indigo-700 bg-indigo-200/60 px-1 py-0.2 rounded">
-                        {p.designation === "VENDOR_HR" ? "Vendor HR" : "Employee HR"}
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onRemoveParticipant(p.id || p.email)}
-                      className="ml-0.5 hover:text-rose-600 text-indigo-600 cursor-pointer"
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Search Input */}
-            <div className="relative">
-              <div className="relative flex items-center">
-                <Search className="w-3.5 h-3.5 text-indigo-400 absolute left-3 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Type HR name or email (e.g. Priya Sharma)..."
-                  value={searchQuery}
-                  onFocus={() => setDropdownOpen(true)}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 rounded-xl border border-indigo-200 bg-white text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => handleSearchChange("")}
-                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    <X size={13} />
-                  </button>
-                )}
-              </div>
-
-              {/* Dropdown Options */}
-              {dropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl z-50 divide-y divide-slate-100 custom-scrollbar">
-                  {loading ? (
-                    <div className="p-3 text-center text-xs text-slate-400">Loading HR users...</div>
-                  ) : filteredOptions.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-slate-400">
-                      {searchQuery ? `No HR user found matching "${searchQuery}".` : "No HR members found."}
-                    </div>
-                  ) : (
-                    filteredOptions.map((h) => {
-                      const selected = isSelected(h);
-                      const isVHR = h.hrType === "VENDOR_HR";
-                      return (
-                        <div
-                          key={h.id || h._id}
-                          onClick={() => handleSelectOption(h)}
-                          className={`p-2.5 flex items-center justify-between cursor-pointer transition ${
-                            selected ? "bg-indigo-50/90 text-indigo-950 font-bold" : "hover:bg-slate-50"
-                          }`}
-                        >
-                          <div className="flex items-center space-x-2.5 min-w-0">
-                            <div
-                              className={`w-7 h-7 rounded-lg text-white font-bold flex items-center justify-center text-xs shrink-0 ${
-                                isVHR ? "bg-purple-600" : "bg-indigo-600"
-                              }`}
-                            >
-                              {h.name?.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="font-bold text-slate-900 text-xs truncate">
-                                {h.name}
-                              </div>
-                              <div className="text-[10px] text-slate-500 truncate flex items-center gap-1.5">
-                                <span
-                                  className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                                    isVHR
-                                      ? "bg-purple-100 text-purple-700"
-                                      : "bg-indigo-100 text-indigo-700"
-                                  }`}
-                                >
-                                  {isVHR ? "Vendor HR" : "Employee HR"}
-                                </span>
-                                <span>{h.email}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                              selected
-                                ? "bg-indigo-600 text-white"
-                                : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                            }`}
-                          >
-                            {selected ? "Selected" : "+ Add"}
-                          </span>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
-            </div>
-            <p className="text-[10px] text-indigo-700/80 font-medium">
-              💡 You can select 1 particular HR, 2-3 HR coordinators, or toggle "All HRs".
             </p>
           </div>
         )}

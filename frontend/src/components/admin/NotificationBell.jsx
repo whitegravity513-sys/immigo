@@ -6,6 +6,7 @@ import crmVendorService from "../../services/crmVendorService.js";
 import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
 import { isMeetingExpired } from "../../utils/formatters.js";
+import { resolveNotificationLink } from "../../utils/notificationLinks.js";
 
 const ADMIN_NOTIF_STORAGE_KEYS = new Set([
   "immigo_crm_admin_notifications_v3",
@@ -95,11 +96,13 @@ export default function NotificationBell({ className }) {
             isRead: !!n.read,
             read: !!n.read,
             type: n.type || "INFO",
-            link: n.link || "/admin/vendor/candidates",
+            link: n.link || n.metadata?.link || "",
             actorId: n.actorId || null,
             actorRole: n.actorRole || null,
             recipientRole: n.recipientRole || null,
+            targetUserId: n.targetUserId || null,
             vendorId: n.vendorId || null,
+            metadata: n.metadata || {},
           }));
         } catch {}
 
@@ -116,7 +119,9 @@ export default function NotificationBell({ className }) {
           actorId: n.actorId || null,
           actorRole: n.actorRole || null,
           recipientRole: n.recipientRole || null,
+          targetUserId: n.targetUserId || null,
           vendorId: n.vendorId || null,
+          metadata: n.metadata || {},
         }));
       }
 
@@ -136,7 +141,13 @@ export default function NotificationBell({ className }) {
             return false;
           }
         }
-        if (effectiveStaffRole === "VENDOR_HR" && assignedVendors.length > 0 && n.vendorId) {
+        if (
+          effectiveStaffRole === "VENDOR_HR" &&
+          assignedVendors.length > 0 &&
+          n.vendorId &&
+          String(n.targetUserId || "") !== currentUserId &&
+          String(n.metadata?.hrUserId || "") !== currentUserId
+        ) {
           if (!assignedVendors.includes(String(n.vendorId))) {
             return false;
           }
@@ -177,19 +188,10 @@ export default function NotificationBell({ className }) {
           n.read ||
           (lastAdminReadAllTsRef.current && itemTime <= lastAdminReadAllTsRef.current)
         );
-        const rawEmpId = n.employeeId || n.metadata?.employeeId || n.employeeCode || "";
-        let link = n.link || n.metadata?.link || "";
-        if (!link) {
-          if ((n.type === "DOCUMENT_UPLOAD" || n.type === "DOCUMENT_UPDATE") && rawEmpId) {
-            link = `${portalBase}/employee/${rawEmpId}?tab=documents`;
-          } else if (n.type === "LEAVE_APPLY") {
-            link = `${portalBase}/leaves`;
-          } else if (n.type === "EMPLOYEE_CREATED" && rawEmpId) {
-            link = `${portalBase}/employee/${rawEmpId}`;
-          } else if (n.type === "VENDOR_REGISTERED") {
-            link = "/admin/vendor/vendors?tab=registered";
-          }
-        }
+        const link = resolveNotificationLink(n, {
+          role: effectiveStaffRole,
+          portalBase,
+        });
         return { ...n, isRead, read: isRead, link };
       });
 
@@ -244,7 +246,7 @@ export default function NotificationBell({ className }) {
       document.removeEventListener("visibilitychange", handleFocusOrVisible);
       clearInterval(interval);
     };
-  }, [currentUserId, effectiveStaffRole]);
+  }, [currentUserId, effectiveStaffRole, assignedVendors.join(",")]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -390,6 +392,14 @@ export default function NotificationBell({ className }) {
         onMarkOneRead={handleMarkOneAsRead}
         onDeleteOne={handleDeleteOne}
         portalBase={portalBase}
+        roleContext={{ role: effectiveStaffRole, portalBase }}
+        viewAllLink={
+          effectiveStaffRole === "EMPLOYEE_HR"
+            ? portalBase
+            : effectiveStaffRole === "VENDOR_HR"
+            ? "/vendor-hr/dashboard"
+            : "/admin/vendor/vendors"
+        }
       />
     </div>
   );

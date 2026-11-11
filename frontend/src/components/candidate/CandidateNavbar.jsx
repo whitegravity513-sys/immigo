@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { Menu, Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
+import { extractCandidateTabFromLink } from "../../utils/notificationLinks.js";
 
 export default function CandidateNavbar({
   activeTabTitle = "Candidate Portal",
@@ -10,6 +11,10 @@ export default function CandidateNavbar({
   notifDropdownOpen = false,
   setNotifDropdownOpen = () => {},
   onMarkNotificationRead = () => {},
+  onMarkAllNotificationsRead,
+  onDeleteNotification,
+  onClearAllNotifications,
+  onSelectNotification,
   onOpenMobile = () => {},
 }) {
   const dropdownRef = useRef(null);
@@ -68,11 +73,23 @@ export default function CandidateNavbar({
             notifications={notifications}
             unreadCount={unreadNotifCount}
             onMarkOneRead={onMarkNotificationRead}
-            onMarkAllRead={() => {
-              notifications.forEach((n) => {
-                if (!n.read) onMarkNotificationRead(n.id || n._id);
-              });
+            onMarkAllRead={
+              onMarkAllNotificationsRead ||
+              (() => {
+                notifications.forEach((n) => {
+                  if (!n.read) onMarkNotificationRead(n.id || n._id);
+                });
+              })
+            }
+            onDeleteOne={onDeleteNotification}
+            onClearAll={onClearAllNotifications}
+            onItemClick={(item, resolvedLink) => {
+              const targetTab = extractCandidateTabFromLink(resolvedLink);
+              if (targetTab && onSelectNotification) {
+                onSelectNotification(targetTab);
+              }
             }}
+            roleContext={{ isCandidate: true }}
           />
         </div>
       </div>

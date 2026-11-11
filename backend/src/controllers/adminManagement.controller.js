@@ -227,7 +227,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
     title: "Staff Account Created",
     message: `${newUser.name} (${roleLabel}) was added to the portal.`,
     moduleScope: "GENERAL",
-    metadata: { staffId: newUser._id.toString(), email: newUser.email, role: assignedRole },
+    metadata: { staffId: newUser._id.toString(), email: newUser.email, role: assignedRole, link: "/admin/permissions" },
   });
 
   await logAudit({
@@ -425,7 +425,7 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     title: "Staff Account Updated",
     message: `Account details updated for ${targetUser.name} (${roleLabel}).`,
     moduleScope: "GENERAL",
-    metadata: { staffId: targetUser._id.toString(), email: targetUser.email, passwordChanged },
+    metadata: { staffId: targetUser._id.toString(), email: targetUser.email, passwordChanged, link: "/admin/permissions" },
   });
 
   await logAudit({

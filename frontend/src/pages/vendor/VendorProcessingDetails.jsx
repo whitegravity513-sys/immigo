@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Clock, CreditCard } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useLocation, Link } from "react-router-dom";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 
@@ -10,12 +10,62 @@ const APPLICATION_STORAGE_KEYS = new Set([
 
 export default function VendorProcessingDetails() {
   const { appId } = useParams();
-  const [vendor, setVendor] = useState(null);
-  const [currentApp, setCurrentApp] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const initialAppState = location.state?.application || null;
+
+  const [currentApp, setCurrentApp] = useState(initialAppState);
+  const [matchedProject, setMatchedProject] = useState(null);
+  const [loading, setLoading] = useState(!initialAppState);
+
+  const loadData = useCallback(
+    async (silent = false) => {
+      try {
+        if (silent !== true && !initialAppState) {
+          setLoading(true);
+        }
+        const curVendor = crmVendorService.getCurrentVendor();
+        const [projs, data] = await Promise.all([
+          crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []),
+          crmVendorService.getApplications(curVendor?.id),
+        ]);
+        const matchAppFn = (a) =>
+          [a?.id, a?.applicationId, a?._id].some(
+            (k) => k && String(k) === String(appId)
+          );
+        let app = data?.find(matchAppFn);
+        if (!app) {
+          const allApps = await crmVendorService.getApplications();
+          app = allApps?.find(matchAppFn);
+        }
+        const resolvedApp = app || (initialAppState && matchAppFn(initialAppState) ? initialAppState : initialAppState);
+        const foundProject = (projs || []).find(
+          (p) =>
+            (resolvedApp?.projectId &&
+              (String(p.id) === String(resolvedApp.projectId) ||
+                String(p._id) === String(resolvedApp.projectId) ||
+                String(p.projectId) === String(resolvedApp.projectId))) ||
+            (resolvedApp?.projectName &&
+              (p.name === resolvedApp.projectName ||
+                p.title === resolvedApp.projectName ||
+                p.projectName === resolvedApp.projectName))
+        );
+        setMatchedProject(foundProject || null);
+        setCurrentApp(resolvedApp || null);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (silent !== true) {
+          setLoading(false);
+        }
+      }
+    },
+    [appId, initialAppState]
+  );
 
   useEffect(() => {
-    loadData(false);
+    const initTimer = setTimeout(() => {
+      loadData(false);
+    }, 0);
     let debounceTimer = null;
     const handleUpdate = (e) => {
       if (e?.type === "storage" && (!e.key || !APPLICATION_STORAGE_KEYS.has(e.key))) {
@@ -27,38 +77,18 @@ export default function VendorProcessingDetails() {
       }, 60);
     };
     window.addEventListener("immigo:application-update", handleUpdate);
+    window.addEventListener("immigo:vendor-hr-refresh", handleUpdate);
     window.addEventListener("immigo:dashboard-update", handleUpdate);
     window.addEventListener("storage", handleUpdate);
     return () => {
+      clearTimeout(initTimer);
       if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, [appId]);
-
-  const loadData = async (silent = false) => {
-    try {
-      if (silent !== true) {
-        setLoading(true);
-      }
-      const curVendor = crmVendorService.getCurrentVendor();
-      setVendor(curVendor);
-      const data = await crmVendorService.getApplications(curVendor?.id);
-      let app = data?.find((a) => String(a.id) === String(appId));
-      if (!app) {
-        const allApps = await crmVendorService.getApplications();
-        app = allApps?.find((a) => String(a.id) === String(appId));
-      }
-      setCurrentApp(app);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      if (silent !== true) {
-        setLoading(false);
-      }
-    }
-  };
+  }, [loadData]);
 
   if (loading && !currentApp) {
     return (
@@ -70,20 +100,34 @@ export default function VendorProcessingDetails() {
 
   if (!currentApp) {
     return (
-      <div className="p-12 text-center text-slate-500">
-        Deployment record not found.
+      <div className="p-12 text-center space-y-3">
+        <p className="text-slate-600 font-medium">Deployment record not found.</p>
+        <Link
+          to="/vendor/processing"
+          className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 text-xs font-bold"
+        >
+          <ArrowLeft size={14} /> Back to Deployment Timeline
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
-      <Link
-        to="/vendor/selected"
-        className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 text-xs font-bold transition"
-      >
-        <ArrowLeft size={14} /> Back to Selected Candidates
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          to="/vendor/processing"
+          className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 text-xs font-bold transition"
+        >
+          <ArrowLeft size={14} /> Back to Deployment Timeline
+        </Link>
+        <Link
+          to="/vendor/selected"
+          className="text-xs font-semibold text-indigo-600 hover:underline"
+        >
+          Selected Candidates
+        </Link>
+      </div>
 
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5 text-xs space-y-2.5 mb-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -121,14 +165,17 @@ export default function VendorProcessingDetails() {
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-100 gap-2 mb-5">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Timeline & Milestones</h2>
-            <p className="text-[11px] text-slate-500 mt-0.5">Step-by-step mobilization process.</p>
+            <h2 className="text-base font-bold text-slate-900">Payment Milestones &amp; Processing Stages</h2>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Complete milestone payment first. Once Admin verifies receipt, processing stages update below.
+            </p>
           </div>
         </div>
 
-        <CandidateProcessTimeline 
-          application={currentApp} 
-          onUpdate={loadData} 
+        <CandidateProcessTimeline
+          application={currentApp}
+          project={matchedProject}
+          onUpdate={() => loadData(true)}
         />
       </div>
     </div>

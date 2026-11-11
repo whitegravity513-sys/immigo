@@ -17,7 +17,7 @@ export default function CandidatePaymentModal({
   if (!isOpen || !selectedMilestone) return null;
 
   const amt = Number(
-    selectedMilestone.paymentAmount || selectedMilestone.amount || 15000
+    selectedMilestone.paymentAmount ?? selectedMilestone.amount ?? 0
   );
 
   return (

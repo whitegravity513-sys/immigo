@@ -16,6 +16,14 @@ import * as XLSX from "xlsx";
 import crmVendorService from "../../services/crmVendorService.js";
 import DateInput from "../../components/common/DateInput.jsx";
 
+const readFileAsDataURL = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error(`Failed to read ${file?.name || "file"}.`));
+    reader.readAsDataURL(file);
+  });
+
 const INDIAN_STATES = [
   "Andhra Pradesh",
   "Arunachal Pradesh",
@@ -122,12 +130,15 @@ export function AddCandidate() {
 
   const handleMandatoryFileChange = (setter, fieldKey, file) => {
     if (!file) return;
-    if (file.type !== "application/pdf") {
-      setFieldErrors((prev) => ({ ...prev, [fieldKey]: "Only PDF files are allowed." }));
+    const allowedTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    const lowerName = String(file.name || "").toLowerCase();
+    const hasAllowedExt = /\.(pdf|png|jpe?g)$/.test(lowerName);
+    if (!allowedTypes.includes(file.type) && !hasAllowedExt) {
+      setFieldErrors((prev) => ({ ...prev, [fieldKey]: "Only PDF, JPG, or PNG files are allowed." }));
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setFieldErrors((prev) => ({ ...prev, [fieldKey]: "File must be under 2 MB." }));
+    if (file.size > 5 * 1024 * 1024) {
+      setFieldErrors((prev) => ({ ...prev, [fieldKey]: "File must be under 5 MB." }));
       return;
     }
     setter(file);
@@ -155,13 +166,32 @@ export function AddCandidate() {
     try {
       const documents = [];
       if (resumeFile) {
+        const fileUrl = await readFileAsDataURL(resumeFile);
         documents.push({
           name: "Resume / CV",
           fileName: resumeFile.name,
+          fileUrl,
+          mimeType: resumeFile.type || "application/pdf",
           size: `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB`,
           type: "Resume",
+          status: "Pending Review",
+          uploadedAt: new Date().toISOString().split("T")[0],
         });
       }
+
+      const matchedProj = formData.project
+        ? availableProjects.find(
+            (p) =>
+              (p.title || p.projectName || p.name || "").trim().toLowerCase() ===
+                formData.project.trim().toLowerCase() ||
+              String(p.id || p._id) === String(formData.project)
+          )
+        : null;
+
+      const resolvedVendorId = vendor?.id || vendor?.vendorId || vendor?._id || "VND-1001";
+      const resolvedProjName = matchedProj
+        ? matchedProj.projectName || matchedProj.title || matchedProj.name || formData.project
+        : formData.project || "Not Assigned";
 
       const candidateData = {
         fullName: formData.fullName.trim(),
@@ -174,20 +204,47 @@ export function AddCandidate() {
         gender: formData.gender || "Male",
         currentPosition: formData.currentPosition.trim(),
         trade: formData.currentPosition.trim(),
-        project: formData.project || "Not Assigned",
-        projectName: formData.project || "Not Assigned",
+        project: resolvedProjName,
+        projectName: resolvedProjName,
+        projectId: matchedProj ? String(matchedProj.id || matchedProj.projectId || matchedProj._id) : "",
+        clientId: matchedProj?.clientId || "",
+        clientName: matchedProj?.clientName || "",
         qualification: formData.qualification.trim(),
         experienceYears: formData.experienceYears ? Number(formData.experienceYears) : 0,
         skills: formData.skills ? formData.skills.split(",").map((s) => s.trim()).filter(Boolean) : [],
         state: formData.state.trim(),
         photo: candidatePhoto || "",
         documents,
-        vendorId: vendor?.id || "VND-1001",
+        vendorId: resolvedVendorId,
         vendorName: vendor?.companyName || "Vendor Partner",
-        status: "Available",
+        status: matchedProj ? "Submitted" : "Available",
       };
 
-      const created = await crmVendorService.createCandidate(vendor?.id, candidateData);
+      const created = await crmVendorService.createCandidate(resolvedVendorId, candidateData);
+      if (matchedProj) {
+        const matchedProjId = String(matchedProj.id || matchedProj.projectId || matchedProj._id || "");
+        await crmVendorService.submitBatchCandidates([
+          {
+            candidateId: String(created.id || created.candidateId || created._id),
+            candidateName: candidateData.fullName,
+            candidatePhone: "",
+            candidateEmail: "",
+            passportNumber: candidateData.passportNumber,
+            documents,
+            clientId: matchedProj.clientId || "",
+            clientName: matchedProj.clientName || "Direct Client",
+            projectId: matchedProjId,
+            projectName: resolvedProjName,
+            position: candidateData.currentPosition,
+            destinationCountry: matchedProj.country || "Overseas",
+            vendorId: resolvedVendorId,
+            vendorName: vendor?.companyName || "Partner Agency",
+            submittedAt: new Date().toISOString(),
+            status: "Under Review",
+            recruitmentStage: "Screening",
+          },
+        ]);
+      }
       navigate(`/vendor/candidates/${created.id}`);
     } catch (err) {
       setError(err.message || "Failed to save candidate details.");
@@ -268,6 +325,8 @@ export function AddCandidate() {
         }
 
         let importedCount = 0;
+        const resolvedVendorId = vendor?.id || vendor?.vendorId || vendor?._id || "VND-1001";
+        const batchSubmissions = [];
         for (const row of rows) {
           const name = row["Name"] || row["Candidate Name"] || row["Full Name"];
           if (!name) continue;
@@ -278,11 +337,22 @@ export function AddCandidate() {
           const dob = row["DOB"] || row["Date of Birth"] || "";
           const gender = row["Gender"] || "Male";
           const trade = row["Trade"] || row["Position"] || "";
-          const project = row["Project"] || "Not Assigned";
+          const rawProject = String(row["Project"] || "").trim();
           const qualification = row["Qualification"] || "";
           const experience = row["Experience"] || 0;
           const skill = row["Skill"] || row["Skills"] || "";
           const state = row["State"] || "";
+
+          const matchedProj = rawProject && rawProject.toLowerCase() !== "not assigned"
+            ? availableProjects.find(
+                (p) =>
+                  (p.title || p.projectName || p.name || "").trim().toLowerCase() === rawProject.toLowerCase() ||
+                  String(p.id || p._id) === rawProject
+              )
+            : null;
+          const projectLabel = matchedProj
+            ? matchedProj.projectName || matchedProj.title || matchedProj.name || rawProject
+            : rawProject || "Not Assigned";
 
           const candidateData = {
             fullName: String(name).trim(),
@@ -295,19 +365,45 @@ export function AddCandidate() {
             gender: String(gender).trim() || "Male",
             currentPosition: String(trade).trim(),
             trade: String(trade).trim(),
-            project: String(project).trim(),
-            projectName: String(project).trim(),
+            project: projectLabel,
+            projectName: projectLabel,
+            projectId: matchedProj ? String(matchedProj.id || matchedProj.projectId || matchedProj._id) : "",
+            clientId: matchedProj?.clientId || "",
+            clientName: matchedProj?.clientName || "",
             qualification: String(qualification).trim(),
             experienceYears: experience ? Number(experience) : 0,
             skills: skill ? String(skill).split(",").map((s) => s.trim()).filter(Boolean) : [],
             state: String(state).trim(),
-            vendorId: vendor?.id || "VND-1001",
+            vendorId: resolvedVendorId,
             vendorName: vendor?.companyName || "Vendor Partner",
-            status: "Available",
+            status: matchedProj ? "Submitted" : "Available",
           };
 
-          await crmVendorService.createCandidate(vendor?.id, candidateData);
+          const created = await crmVendorService.createCandidate(resolvedVendorId, candidateData);
+          if (matchedProj && created) {
+            batchSubmissions.push({
+              candidateId: String(created.id || created.candidateId || created._id),
+              candidateName: candidateData.fullName,
+              passportNumber: candidateData.passportNumber,
+              documents: [],
+              clientId: matchedProj.clientId || "",
+              clientName: matchedProj.clientName || "Direct Client",
+              projectId: String(matchedProj.id || matchedProj.projectId || matchedProj._id || ""),
+              projectName: projectLabel,
+              position: candidateData.currentPosition,
+              destinationCountry: matchedProj.country || "Overseas",
+              vendorId: resolvedVendorId,
+              vendorName: vendor?.companyName || "Partner Agency",
+              submittedAt: new Date().toISOString(),
+              status: "Under Review",
+              recruitmentStage: "Screening",
+            });
+          }
           importedCount++;
+        }
+
+        if (batchSubmissions.length > 0) {
+          await crmVendorService.submitBatchCandidates(batchSubmissions);
         }
 
         setExcelImportSuccess(`Successfully imported ${importedCount} candidates from Excel!`);
@@ -623,7 +719,7 @@ export function AddCandidate() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Resume / CV Document</h3>
-              <p className="text-xs text-slate-500">Optional PDF document (Max 2 MB)</p>
+              <p className="text-xs text-slate-500">Optional PDF, JPG, or PNG document (Max 5 MB)</p>
             </div>
             {resumeFile && (
               <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -653,12 +749,12 @@ export function AddCandidate() {
             <label className="block w-full py-3.5 text-center bg-slate-50 hover:bg-slate-100 border border-dashed border-slate-300 hover:border-blue-500 rounded-xl text-xs font-bold text-blue-600 cursor-pointer transition">
               <div className="flex items-center justify-center gap-2">
                 <UploadCloud size={16} className="text-blue-600" />
-                <span>Upload Candidate Resume (PDF)</span>
+                <span>Upload Candidate Resume (PDF / Image)</span>
               </div>
               <input
                 ref={resumeRef}
                 type="file"
-                accept="application/pdf"
+                accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
                 onChange={(e) => handleMandatoryFileChange(setResumeFile, "resume", e.target.files?.[0])}
                 className="hidden"
               />

@@ -113,9 +113,6 @@ export function AddPositionModal({
     if (!formData.quantity || isNaN(qty) || qty <= 0) {
       newErrors.quantity = "Quantity must be a positive integer greater than 0";
     }
-    if (formData.salary && (isNaN(Number(formData.salary)) || Number(formData.salary) < 0)) {
-      newErrors.salary = "Salary must be a valid positive number";
-    }
     if (Number(formData.minAge) > Number(formData.maxAge)) {
       newErrors.minAge = "Minimum age cannot exceed maximum age";
     }
@@ -131,7 +128,8 @@ export function AddPositionModal({
     onSave({
       ...formData,
       quantity: Number(formData.quantity),
-      salary: formData.salary ? Number(formData.salary) : 0,
+      salary: formData.salary ? String(formData.salary).trim() : "",
+      currency: formData.currency ? String(formData.currency).trim() : "",
       minAge: Number(formData.minAge) || 21,
       maxAge: Number(formData.maxAge) || 45,
       id: initialData?.id || undefined,
@@ -203,23 +201,23 @@ export function AddPositionModal({
 
                 <div className="flex gap-2">
                   <div className="w-1/3">
-                    <SelectField
+                    <InputField
                       label="Currency"
                       name="currency"
+                      type="text"
                       value={formData.currency}
                       onChange={handleChange}
-                      options={["AED", "SAR", "QAR", "OMR", "BHD", "KWD", "USD", "INR", "NPR"]}
+                      placeholder="e.g. AED, SAR"
                     />
                   </div>
                   <div className="w-2/3">
                     <InputField
                       label="Basic Salary (Monthly)"
                       name="salary"
-                      type="number"
-                      min="0"
+                      type="text"
                       value={formData.salary}
                       onChange={handleChange}
-                      placeholder="e.g. 1500"
+                      placeholder="e.g. 1500 - 2000"
                       error={errors.salary}
                     />
                   </div>

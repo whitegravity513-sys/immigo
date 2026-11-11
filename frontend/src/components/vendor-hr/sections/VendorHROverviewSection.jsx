@@ -14,12 +14,17 @@ export default function VendorHROverviewSection({
   projectsList = [],
   jobs = [],
   interviews = [],
-  vendorName = "Global Staffing Solutions Pvt Ltd",
+  vendorName = "",
+  hideProjectNames = false,
   setActiveMenu,
   setSelectedProject,
   setDetailedProject,
   openCandidateModal,
 }) {
+  const totalTargetHiring = projectsList.reduce((sum, p) => sum + (Number(p.targetHiring || p.targetManpower) || 0), 0);
+  const overallFulfillment =
+    totalTargetHiring > 0 ? Math.min(100, Math.round((applications.length / totalTargetHiring) * 100)) : 0;
+
   return (
     <div className="space-y-6">
       {/* 4 KPI Metric Cards Row */}
@@ -127,7 +132,39 @@ export default function VendorHROverviewSection({
             </div>
 
             <div className="space-y-2.5 pt-1">
-              {projectsList.length === 0 ? (
+              {hideProjectNames ? (
+                <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-100 space-y-3">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2.5 rounded-lg bg-white border border-slate-100">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Assigned</span>
+                      <span className="text-lg font-extrabold text-blue-700 font-mono">{projectsList.length}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white border border-slate-100">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Target</span>
+                      <span className="text-lg font-extrabold text-slate-800 font-mono">{totalTargetHiring}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white border border-slate-100">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Submitted</span>
+                      <span className="text-lg font-extrabold text-emerald-700 font-mono">{applications.length}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                      <span>Overall Quota Progress</span>
+                      <span className="font-mono font-bold text-blue-700">{overallFulfillment}%</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-white border border-blue-100 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                        style={{ width: `${overallFulfillment}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Open <strong>My Projects</strong> to inspect project briefs, client quotas, and submit candidates.
+                  </p>
+                </div>
+              ) : projectsList.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
                   No active projects currently assigned.
                 </div>
@@ -200,18 +237,21 @@ export default function VendorHROverviewSection({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span>Client: {projectsList[0]?.clientName || "Emirates Engineering & Contracting LLC"}</span>
+            <span>
+              {hideProjectNames
+                ? `${projectsList.length} project(s) available in My Projects`
+                : `Client: ${projectsList[0]?.clientName || "-"}`}
+            </span>
             <button
               type="button"
               onClick={() => setActiveMenu("projects")}
-              className="text-blue-600 hover:underline font-semibold"
+              className="text-blue-600 hover:underline font-semibold cursor-pointer"
             >
-              View All Projects →
+              Open My Projects →
             </button>
           </div>
         </div>
 
-        {/* Card 2: Required Jobs & Trades */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -221,7 +261,9 @@ export default function VendorHROverviewSection({
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">Required Jobs & Trades</h2>
-                  <p className="text-[11px] text-slate-400 font-medium">Open trade positions by project</p>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    {hideProjectNames ? "Open trade positions & roles" : "Open trade positions by project"}
+                  </p>
                 </div>
               </div>
               <button
@@ -255,11 +297,12 @@ export default function VendorHROverviewSection({
                         </span>
                       </div>
                       <div className="text-[11px] text-slate-500 truncate mt-0.5">
-                        {j.projectName || "Project"} • {formatSalary(j.salaryRange)}
+                        {!hideProjectNames && j.projectName ? `${j.projectName} • ` : ""}
+                        {formatSalary(j.salaryRange)}
                       </div>
                     </div>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200 shrink-0">
-                      {j.openings || 10} Openings
+                      {j.openings || 1} Openings
                     </span>
                   </div>
                 ))
@@ -268,7 +311,7 @@ export default function VendorHROverviewSection({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span>Active Requirements: {dashboardData?.kpis?.activeOpenings || 85}</span>
+            <span>Active Requirements: {dashboardData?.kpis?.activeOpenings ?? jobs.length ?? 0}</span>
             <button
               type="button"
               onClick={() => setActiveMenu("jobs")}
@@ -279,7 +322,6 @@ export default function VendorHROverviewSection({
           </div>
         </div>
 
-        {/* Card 3: Candidates Snapshot */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -289,7 +331,9 @@ export default function VendorHROverviewSection({
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">Candidates Snapshot</h2>
-                  <p className="text-[11px] text-slate-400 font-medium">Recent candidate roster from assigned projects</p>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    {hideProjectNames ? "Recent candidate roster" : "Recent candidate roster from assigned projects"}
+                  </p>
                 </div>
               </div>
               <button
@@ -324,7 +368,12 @@ export default function VendorHROverviewSection({
                           {cand.candidateName}
                         </div>
                         <div className="text-[11px] text-slate-500 truncate">
-                          {cand.jobTitle || "Technician"} • {cand.projectName || "Project"}
+                          {cand.jobTitle || "Technician"}
+                          {!hideProjectNames && cand.projectName
+                            ? ` • ${cand.projectName}`
+                            : cand.passportNumber
+                            ? ` • 🛂 ${cand.passportNumber}`
+                            : ""}
                         </div>
                       </div>
                     </div>
@@ -358,7 +407,7 @@ export default function VendorHROverviewSection({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span>Agency: {vendorName}</span>
+            <span>{vendorName ? `Agency: ${vendorName}` : "Assigned Agency Pipeline"}</span>
             <button
               type="button"
               onClick={() => setActiveMenu("candidates")}

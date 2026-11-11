@@ -22,6 +22,8 @@ export default function SubmitCandidate() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const preselectedCandidateId = searchParams.get("candidateId");
+  const preselectedProjectId = searchParams.get("project") || searchParams.get("projectId") || "";
+  const preselectedPosition = searchParams.get("position") || "";
 
   const [vendor, setVendor] = useState(null);
   const [clients, setClients] = useState([]);
@@ -34,8 +36,8 @@ export default function SubmitCandidate() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [currentStep, setCurrentStep] = useState(1);
 
-  const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [selectedPosition, setSelectedPosition] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState(preselectedProjectId);
+  const [selectedPosition, setSelectedPosition] = useState(preselectedPosition);
   const [selectedCandidateIds, setSelectedCandidateIds] = useState(
     preselectedCandidateId ? [preselectedCandidateId] : []
   );
@@ -108,7 +110,25 @@ export default function SubmitCandidate() {
       });
       setAvailableProjectsList(allFound);
 
-      const allCands = candRes || [];
+      if (preselectedProjectId) {
+        const preProj = allFound.find((p) => String(p.id) === String(preselectedProjectId));
+        if (preProj) {
+          setSelectedProjectId(String(preProj.id));
+          if (preselectedPosition) {
+            setSelectedPosition(preselectedPosition);
+          } else {
+            const reqs = preProj.manpowerRequirements || preProj.requirements || preProj.jobRequirements || preProj.jobPositions || [];
+            if (reqs.length > 0) {
+              setSelectedPosition(reqs[0].position || reqs[0].positionTitle || reqs[0].title || reqs[0].role || "");
+            }
+          }
+        }
+      }
+
+      const allCands = (candRes || []).map((c) => ({
+        ...c,
+        id: String(c.id || c.candidateId || c._id || ""),
+      }));
       const rawApps = appRes || [];
       const activeStages = [
         "Applied",
@@ -118,13 +138,23 @@ export default function SubmitCandidate() {
         "Interview",
         "Selected",
         "Offer Released",
+        "Offer Accepted",
         "Visa Processing",
+        "Visa Issued",
+        "Joined",
+        "Deployed",
+        "Processing",
+        "Submitted",
         "Under Review",
+        "L1 Interview",
+        "L2 Interview",
+        "L3 Interview",
+        "HR Interview",
       ];
 
       const busyMap = new Map();
       rawApps.forEach((app) => {
-        const cId = String(app.candidateId || app.candidate?.id || "");
+        const cId = String(app.candidateId || app.candidate?.id || app.candidate?._id || "");
         const stage = app.recruitmentStage || app.status || "";
         if (cId && activeStages.includes(stage)) {
           busyMap.set(cId, app);
@@ -149,7 +179,7 @@ export default function SubmitCandidate() {
             interviewDetails: activeApp.interviewDetails || null,
           });
         } else {
-          const candApps = rawApps.filter((a) => String(a.candidateId || a.candidate?.id) === cid);
+          const candApps = rawApps.filter((a) => String(a.candidateId || a.candidate?.id || a.candidate?._id) === cid);
           const wasRejected = candApps.some((a) => a.recruitmentStage === "Rejected" || a.status === "Rejected");
           const lastRejectedApp = candApps.find((a) => a.recruitmentStage === "Rejected" || a.status === "Rejected");
 
@@ -185,15 +215,21 @@ export default function SubmitCandidate() {
 
   const availableRequirements = useMemo(() => {
     if (!selectedProject) return [];
-    return selectedProject.requirements || selectedProject.jobRequirements || [];
+    return (
+      selectedProject.manpowerRequirements ||
+      selectedProject.requirements ||
+      selectedProject.jobRequirements ||
+      selectedProject.jobPositions ||
+      []
+    );
   }, [selectedProject]);
 
   const requiredHeadcount = useMemo(() => {
     if (!selectedPosition) return null;
     const req = availableRequirements.find(
-      (r) => (r.position || r.positionTitle)?.toLowerCase() === selectedPosition.toLowerCase()
+      (r) => (r.position || r.positionTitle || r.title || r.role)?.toLowerCase() === selectedPosition.toLowerCase()
     );
-    return req ? Number(req.quantity) || 0 : null;
+    return req ? Number(req.quantity ?? req.openings) || 0 : null;
   }, [availableRequirements, selectedPosition]);
 
   const selectedOrShortlisted = useMemo(() => {
@@ -238,10 +274,14 @@ export default function SubmitCandidate() {
   };
 
   const toggleAll = () => {
-    if (selectedCandidateIds.length === filteredCandidates.length && filteredCandidates.length > 0) {
+    const selectableIds = filteredCandidates
+      .filter((c) => c.category !== "in_progress")
+      .map((c) => String(c.id || c.candidateId || c._id || ""))
+      .filter(Boolean);
+    if (selectedCandidateIds.length === selectableIds.length && selectableIds.length > 0) {
       setSelectedCandidateIds([]);
     } else {
-      setSelectedCandidateIds(filteredCandidates.map((c) => c.id));
+      setSelectedCandidateIds(selectableIds);
     }
   };
 
@@ -264,9 +304,14 @@ export default function SubmitCandidate() {
     setSelectedProjectId(projId);
     const proj = allProjects.find((p) => String(p.id) === String(projId));
     if (proj) {
-      const reqs = proj.requirements || proj.jobRequirements || [];
+      const reqs =
+        proj.manpowerRequirements ||
+        proj.requirements ||
+        proj.jobRequirements ||
+        proj.jobPositions ||
+        [];
       if (reqs.length > 0) {
-        setSelectedPosition(reqs[0].position || reqs[0].positionTitle || "");
+        setSelectedPosition(reqs[0].position || reqs[0].positionTitle || reqs[0].title || reqs[0].role || "");
       } else {
         setSelectedPosition("");
       }
@@ -296,21 +341,24 @@ export default function SubmitCandidate() {
       const projectObj = selectedProject;
       const clientObj = clients.find((c) => String(c.id) === String(projectObj?.clientId)) || null;
 
+      const resolvedVendorId = vendor?.id || vendor?.vendorId || vendor?._id || "VND-1001";
       const submissions = selectedCandidateIds.map((cId) => {
-        const cand = candidates.find((c) => c.id === cId) || {};
+        const cand =
+          candidates.find((c) => String(c.id || c.candidateId || c._id || "") === String(cId)) || {};
         return {
-          candidateId: cId,
+          candidateId: String(cId),
           candidateName: cand.fullName,
-          candidatePhone: cand.phoneNumber,
+          candidatePhone: cand.phoneNumber || cand.phone || "",
           candidateEmail: cand.email,
           passportNumber: cand.passportNumber,
+          documents: Array.isArray(cand.documents) ? cand.documents : [],
           clientId: projectObj?.clientId || clientObj?.id,
           clientName: projectObj?.clientName || clientObj?.companyName || "Direct Client",
           projectId: selectedProjectId,
           projectName: projectObj?.projectName || projectObj?.name || "Overseas Project",
           position: selectedPosition,
           destinationCountry: projectObj?.country || "Overseas",
-          vendorId: vendor?.id || "VND-1001",
+          vendorId: resolvedVendorId,
           vendorName: vendor?.companyName || "Partner Agency",
           notes: vendorNotes,
           submittedAt: new Date().toISOString(),
@@ -420,6 +468,7 @@ export default function SubmitCandidate() {
           toggleSelection={toggleSelection}
           toggleAll={toggleAll}
           onDirectAssign={handleDirectAssignCandidate}
+          onProceedSelected={handleNextStep}
         />
       )}
 
@@ -442,8 +491,30 @@ export default function SubmitCandidate() {
           onSubmit={handleOpenConfirm}
           onRefreshProjects={async () => {
             try {
-              const projs = await crmVendorService.getAvailableProjects(vendor?.id);
-              setAvailableProjectsList(projs || []);
+              const curVId = vendor?.id || vendor?.vendorId || vendor?._id;
+              const [projs, clientRes] = await Promise.all([
+                crmVendorService.getAvailableProjects(curVId),
+                crmClientService.getClients({ limit: 100 }),
+              ]);
+              const refreshed = [];
+              const seen = new Set();
+              const addItem = (p, c) => {
+                if (!p) return;
+                const key = String(p.id || p.projectId || p._id || "");
+                if (!key || seen.has(key)) return;
+                seen.add(key);
+                refreshed.push({
+                  ...p,
+                  id: key,
+                  clientId: p.clientId || c?.id || c?._id,
+                  clientName: p.clientName || c?.companyName || c?.name || "Direct Client",
+                });
+              };
+              (projs || []).forEach((p) => addItem(p, null));
+              (clientRes?.clients || []).forEach((c) => {
+                if (Array.isArray(c.projects)) c.projects.forEach((p) => addItem(p, c));
+              });
+              setAvailableProjectsList(refreshed);
             } catch {}
           }}
         />

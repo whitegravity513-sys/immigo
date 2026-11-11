@@ -1,5 +1,8 @@
 import apiClient from "./apiClient.js";
 
+const isVendorSession = () =>
+  String(localStorage.getItem("role") || "").toUpperCase() === "VENDOR";
+
 export const meetingService = {
   getCalendarStats: async () => {
     try {
@@ -101,12 +104,14 @@ export const meetingService = {
   },
 
   searchEmployees: async (search = "") => {
+    if (isVendorSession()) return [];
     try {
       const res = await apiClient.get("/admin/meetings/employees", {
         params: { search },
       });
       return res.data?.employees || [];
     } catch (err) {
+      if (isVendorSession()) return [];
       try {
         const res = await apiClient.get("/admin/employee/list");
         const list = Array.isArray(res.data) ? res.data : res.data?.employees || [];
@@ -125,12 +130,14 @@ export const meetingService = {
   },
 
   searchVendors: async (search = "") => {
+    if (isVendorSession()) return [];
     try {
       const res = await apiClient.get("/admin/meetings/vendors", {
         params: { search },
       });
       return res.data?.vendors || [];
     } catch (err) {
+      if (isVendorSession()) return [];
       try {
         const res = await apiClient.get("/v1/vendors", {
           params: { search },
@@ -163,6 +170,16 @@ export const meetingService = {
       });
       return res.data?.hrs || [];
     } catch (err) {
+      if (isVendorSession()) {
+        try {
+          const res = await apiClient.get("/meetings/hrs", {
+            params: { search, hrType },
+          });
+          return res.data?.hrs || [];
+        } catch (e) {
+          return [];
+        }
+      }
       try {
         const res = await apiClient.get("/admin", {
           params: { role: "HR" },
@@ -189,6 +206,7 @@ export const meetingService = {
   },
 
   searchCandidates: async (search = "", vendorId = "") => {
+    if (isVendorSession()) return [];
     try {
       const res = await apiClient.get("/admin/meetings/candidates", {
         params: { search, vendorId },

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FileText,
   Printer,
@@ -7,15 +7,24 @@ import {
   CheckCircle2,
   AlertCircle,
   PenTool,
+  UploadCloud,
+  Clock,
+  Eye,
+  RefreshCw,
+  XCircle,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
+import { downloadUploadedDocument, printUploadedDocument } from "../../utils/printDocument.js";
 
 export default function MouFullPageView({
   vendor,
-  mode = "preview", 
+  mode = "preview",
+  viewerRole = "vendor",
   onBack,
   onSuccess,
   onApprove,
+  onRequestCorrection,
+  onReject,
 }) {
   const printRef = useRef(null);
 
@@ -133,6 +142,15 @@ export default function MouFullPageView({
   const [designation, setDesignation] = useState(secondPartyDesignation);
   const [signatureText, setSignatureText] = useState(secondPartyRep);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [signMethod, setSignMethod] = useState(
+    (vendor?.mouStatus === "Correction Required" || vendor?.status === "MOU Correction Required") &&
+      (vendor?.mouSignMethod === "upload" || vendor?.mouSignMethod === "DOWNLOAD_SIGN_UPLOAD")
+      ? "upload"
+      : "digital"
+  );
+  const [uploadedMouFile, setUploadedMouFile] = useState(null);
+  const [showUploadedPreview, setShowUploadedPreview] = useState(false);
+  const [uploadedBlobUrl, setUploadedBlobUrl] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -140,11 +158,110 @@ export default function MouFullPageView({
 
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const isSigned =
-    vendor?.mouSigned ||
-    vendor?.mouStatus === "Signed" ||
-    vendor?.mouStatus === "Approved" ||
-    vendor?.signedMou?.signedAt;
+  const isRejected = Boolean(
+    ["Rejected", "Registration Rejected", "MOU Rejected"].includes(vendor?.status) ||
+      vendor?.mouStatus === "Rejected"
+  );
+  const isCorrectionRequired = Boolean(
+    vendor?.mouStatus === "Correction Required" ||
+      vendor?.status === "MOU Correction Required"
+  );
+  const isMouApproved = Boolean(
+    !isRejected &&
+      (vendor?.status === "Approved" ||
+        vendor?.status === "Active" ||
+        vendor?.mouStatus === "Approved" ||
+        vendor?.onboardingStage === "COMPLETED" ||
+        vendor?.onboardingStage === "ACTIVE")
+  );
+  const isMouUnderReview = Boolean(
+    !isRejected &&
+      !isMouApproved &&
+      !isCorrectionRequired &&
+      (vendor?.mouStatus === "Under Review" ||
+        vendor?.status === "Pending MOU Approval" ||
+        vendor?.status === "MOU Under Review" ||
+        vendor?.onboardingStage === "MOU_UNDER_REVIEW" ||
+        vendor?.onboardingStage === "MOU_SIGNED" ||
+        Boolean(vendor?.mouSigned) ||
+        vendor?.mouStatus === "Signed" ||
+        Boolean(vendor?.signedMou?.signedAt))
+  );
+  const isMouIssued = Boolean(
+    !isRejected &&
+      !isMouApproved &&
+      !isMouUnderReview &&
+      (vendor?.mouStatus === "Sent" ||
+        vendor?.status === "MOU Pending" ||
+        isCorrectionRequired ||
+        vendor?.onboardingStage === "MOU_SENT")
+  );
+  const uploadedMouUrl = vendor?.signedMouDocUrl || vendor?.signedMou?.signedFileUrl || "";
+  const isUploadSubmission = Boolean(
+    vendor?.mouSignMethod === "upload" ||
+      vendor?.mouSignMethod === "DOWNLOAD_SIGN_UPLOAD" ||
+      (vendor?.mouSignMethod !== "digital" &&
+        vendor?.mouSignMethod !== "DIGITAL_ACKNOWLEDGEMENT" &&
+        uploadedMouUrl)
+  );
+
+  useEffect(() => {
+    if (
+      isCorrectionRequired &&
+      (vendor?.mouSignMethod === "upload" || vendor?.mouSignMethod === "DOWNLOAD_SIGN_UPLOAD")
+    ) {
+      setSignMethod("upload");
+    }
+  }, [isCorrectionRequired, vendor?.mouSignMethod]);
+
+  useEffect(() => {
+    if (!uploadedMouUrl || !uploadedMouUrl.startsWith("data:application/pdf")) {
+      setUploadedBlobUrl("");
+      return;
+    }
+    try {
+      const base64 = uploadedMouUrl.split(",")[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      setUploadedBlobUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } catch {
+      setUploadedBlobUrl("");
+    }
+  }, [uploadedMouUrl]);
+
+  const handleMouFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("Signed MOU file size must be 5 MB or less.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedMouFile({
+        name: file.name,
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        fileUrl: String(reader.result || ""),
+        mimeType: file.type,
+      });
+      setErrorMsg("");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDownloadUploadedMou = () => {
+    if (!uploadedMouUrl) return;
+    downloadUploadedDocument({
+      fileUrl: uploadedMouUrl,
+      fileName: `Signed_MOU_${secondPartyName.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+    });
+  };
 
   const handleDownloadMou = async () => {
     setIsDownloading(true);
@@ -198,14 +315,28 @@ export default function MouFullPageView({
         .join("\n");
 
       const iframe = document.createElement("iframe");
+      iframe.setAttribute("aria-hidden", "true");
       iframe.style.position = "fixed";
       iframe.style.right = "0";
       iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
+      iframe.style.width = "1px";
+      iframe.style.height = "1px";
       iframe.style.border = "0";
-      iframe.style.visibility = "hidden";
+      iframe.style.opacity = "0";
+      iframe.style.pointerEvents = "none";
+      iframe.style.zIndex = "-1";
       document.body.appendChild(iframe);
+
+      let cleaned = false;
+      const cleanupIframe = () => {
+        if (cleaned) return;
+        cleaned = true;
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+        document.title = originalTitle;
+      };
+      const fallbackTimer = setTimeout(cleanupIframe, 60000);
 
       const doc = iframe.contentDocument || iframe.contentWindow.document;
 
@@ -280,17 +411,21 @@ export default function MouFullPageView({
 
       setTimeout(() => {
         try {
-          iframe.contentWindow.focus();
-          iframe.contentWindow.print();
+          const win = iframe.contentWindow;
+          if (win) {
+            win.onafterprint = () => {
+              clearTimeout(fallbackTimer);
+              setTimeout(cleanupIframe, 800);
+            };
+            win.focus();
+            win.print();
+          } else {
+            throw new Error("Print window unavailable");
+          }
         } catch {
+          clearTimeout(fallbackTimer);
+          cleanupIframe();
           window.print();
-        } finally {
-          setTimeout(() => {
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-            document.title = originalTitle;
-          }, 2000);
         }
       }, 500);
     } catch {
@@ -307,6 +442,10 @@ export default function MouFullPageView({
       setErrorMsg("Please provide your full legal name as authorized signatory.");
       return;
     }
+    if (signMethod === "upload" && !uploadedMouFile?.fileUrl) {
+      setErrorMsg("Please upload your signed & stamped MOU copy (PDF, JPG, or PNG).");
+      return;
+    }
     if (!agreedToTerms) {
       setErrorMsg("Please acknowledge and accept the agreement terms.");
       return;
@@ -318,14 +457,20 @@ export default function MouFullPageView({
       await crmVendorService.signVendorMou({
         signatoryName: signatoryName.trim(),
         designation: designation.trim(),
-        signatureData: signatureText.trim() || signatoryName.trim(),
+        signatureData:
+          signMethod === "upload"
+            ? uploadedMouFile.name
+            : signatureText.trim() || signatoryName.trim(),
+        signedFileUrl: signMethod === "upload" ? uploadedMouFile.fileUrl : "",
+        signedFileName: signMethod === "upload" ? uploadedMouFile.name : "",
+        signMethod,
       });
-      setSuccessMsg("MOU signed and executed successfully! Your dashboard is now activated.");
+      setSuccessMsg("Signed MOU submitted successfully! Status is pending Admin verification & approval.");
       if (onSuccess) {
         setTimeout(() => onSuccess(), 1200);
       }
     } catch (err) {
-      setErrorMsg(err.message || "Failed to sign MOU.");
+      setErrorMsg(err.message || "Failed to submit MOU.");
     } finally {
       setLoading(false);
     }
@@ -407,17 +552,75 @@ export default function MouFullPageView({
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {onApprove && (
+          <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+            {isRejected ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 text-[11px] font-bold">
+                <XCircle size={13} />
+                Rejected
+              </span>
+            ) : isMouApproved ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                <CheckCircle2 size={13} />
+                Verified &amp; Approved
+              </span>
+            ) : isMouUnderReview ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold">
+                <Clock size={13} />
+                Pending Approval ({isUploadSubmission ? "Uploaded Copy" : "Digital Sign"})
+              </span>
+            ) : isCorrectionRequired ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-800 border border-orange-200 text-[11px] font-bold">
+                <RefreshCw size={13} />
+                Re-upload Requested
+              </span>
+            ) : isMouIssued ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200 text-[11px] font-bold">
+                <PenTool size={13} />
+                MOU Issued
+              </span>
+            ) : null}
+
+            {viewerRole === "admin" && isMouUnderReview && onApprove && (
               <button
                 onClick={onApprove}
                 type="button"
                 className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <CheckCircle2 size={14} />
-                <span className="hidden sm:inline">Approve</span>
+                <span>Approve</span>
               </button>
             )}
+
+            {viewerRole === "admin" && isMouUnderReview && isUploadSubmission && onRequestCorrection && (
+              <button
+                onClick={onRequestCorrection}
+                type="button"
+                className="px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw size={13} />
+                <span>Re-upload</span>
+              </button>
+            )}
+
+            {viewerRole === "admin" && isMouUnderReview && isUploadSubmission && onReject && (
+              <button
+                onClick={onReject}
+                type="button"
+                className="px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <XCircle size={13} />
+                <span>Reject</span>
+              </button>
+            )}
+            <button
+              onClick={handlePrint}
+              type="button"
+              className="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer"
+              title="Print MOU Document"
+            >
+              <Printer size={16} />
+              <span>Print MOU</span>
+            </button>
             <button
               onClick={handleDownloadMou}
               disabled={isDownloading}
@@ -440,6 +643,114 @@ export default function MouFullPageView({
           </div>
         </div>
       </div>
+
+      {(isMouUnderReview || isRejected || isCorrectionRequired || (isMouApproved && uploadedMouUrl)) && (
+        <div
+          className={`mou-print-hide print:hidden max-w-4xl mx-auto mt-3 p-4 rounded-xl bg-white border shadow-xs space-y-3 ${
+            isRejected
+              ? "border-rose-200"
+              : isCorrectionRequired
+              ? "border-orange-200"
+              : isMouApproved
+              ? "border-emerald-200"
+              : "border-amber-200"
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider ${
+                  isRejected
+                    ? "text-rose-700"
+                    : isCorrectionRequired
+                    ? "text-orange-700"
+                    : isMouApproved
+                    ? "text-emerald-700"
+                    : "text-amber-700"
+                }`}
+              >
+                {isRejected
+                  ? "MOU / Vendor Rejected"
+                  : isCorrectionRequired
+                  ? "Re-upload Requested by Admin"
+                  : isMouApproved
+                  ? "Executed MOU Record"
+                  : "Submitted MOU • Pending Approval"}
+              </span>
+              <h4 className="text-sm font-bold text-slate-900 mt-0.5">
+                {isRejected
+                  ? vendor?.rejectionReason || "Rejected by Admin"
+                  : isCorrectionRequired
+                  ? vendor?.adminRemarks || "Please re-upload a clear signed & stamped MOU copy."
+                  : isUploadSubmission
+                  ? "Vendor Uploaded Signed MOU Copy"
+                  : "Vendor Digitally Signed MOU Submission"}
+              </h4>
+              {!isRejected && !isCorrectionRequired && (
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Signatory: <b>{vendor?.signedMou?.signatoryName || secondPartyRep}</b> ({vendor?.signedMou?.designation || secondPartyDesignation})
+                </p>
+              )}
+            </div>
+            {uploadedMouUrl && (
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadedPreview((prev) => !prev)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye size={14} />
+                  <span>
+                    {showUploadedPreview
+                      ? "Hide Copy"
+                      : isCorrectionRequired
+                      ? "Preview Previous Copy"
+                      : "Preview Uploaded Copy"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    printUploadedDocument({
+                      fileUrl: uploadedMouUrl,
+                      fileName: `Signed_MOU_${secondPartyName.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+                    })
+                  }
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Print Signed Copy</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadUploadedMou}
+                  className="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download size={14} />
+                  <span>Download Signed Copy</span>
+                </button>
+              </div>
+            )}
+          </div>
+          {showUploadedPreview && uploadedMouUrl && (
+            <div className="pt-2 border-t border-slate-100">
+              {uploadedMouUrl.startsWith("data:image") ? (
+                <img
+                  src={uploadedMouUrl}
+                  alt="Signed MOU Copy"
+                  className="max-h-[70vh] mx-auto rounded-lg border border-slate-200 object-contain"
+                />
+              ) : (
+                <iframe
+                  src={uploadedBlobUrl || uploadedMouUrl}
+                  title="Signed MOU Copy"
+                  className="w-full h-[65vh] rounded-lg border border-slate-200"
+                />
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {}
       {errorMsg && (
@@ -1095,9 +1406,9 @@ export default function MouFullPageView({
                   </div>
 
                   <div className="border-l border-slate-900 pl-4 space-y-1">
-                    {isSigned ? (
+                    {isMouApproved ? (
                       <>
-                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52">
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
                           {vendor?.signedMou?.signatureData || signatoryName}
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1107,7 +1418,22 @@ export default function MouFullPageView({
                           {vendor?.signedMou?.designation || designation}
                         </p>
                         <p className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle2 size={11} /> Digitally Executed on {agreementDate}
+                          <CheckCircle2 size={11} /> Verified & Executed on {agreementDate}
+                        </p>
+                      </>
+                    ) : isMouUnderReview ? (
+                      <>
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
+                          {vendor?.signedMou?.signatureData || signatoryName}
+                        </div>
+                        <p className="font-bold text-slate-900">
+                          {vendor?.signedMou?.signatoryName || signatoryName}
+                        </p>
+                        <p className="text-slate-600 uppercase text-[10px]">
+                          {vendor?.signedMou?.designation || designation}
+                        </p>
+                        <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1">
+                          <Clock size={11} /> Submitted ({isUploadSubmission ? "Uploaded Copy" : "Digital Sign"}) &bull; Pending Admin Approval
                         </p>
                       </>
                     ) : (
@@ -1561,9 +1887,9 @@ export default function MouFullPageView({
                   </div>
 
                   <div className="border-l border-slate-900 pl-4 space-y-1">
-                    {isSigned ? (
+                    {isMouApproved ? (
                       <>
-                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52">
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
                           {vendor?.signedMou?.signatureData || signatoryName}
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1573,7 +1899,22 @@ export default function MouFullPageView({
                           {vendor?.signedMou?.designation || designation}
                         </p>
                         <p className="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle2 size={11} /> Digitally Executed on {agreementDate}
+                          <CheckCircle2 size={11} /> Verified & Executed on {agreementDate}
+                        </p>
+                      </>
+                    ) : isMouUnderReview ? (
+                      <>
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
+                          {vendor?.signedMou?.signatureData || signatoryName}
+                        </div>
+                        <p className="font-bold text-slate-900">
+                          {vendor?.signedMou?.signatoryName || signatoryName}
+                        </p>
+                        <p className="text-slate-600 uppercase text-[10px]">
+                          {vendor?.signedMou?.designation || designation}
+                        </p>
+                        <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1">
+                          <Clock size={11} /> Submitted ({isUploadSubmission ? "Uploaded Copy" : "Digital Sign"}) &bull; Pending Admin Approval
                         </p>
                       </>
                     ) : (
@@ -1598,20 +1939,56 @@ export default function MouFullPageView({
         </div>
       </div>
 
-      
-      {(mode === "sign" || (!isSigned && mode === "preview" && vendor?.role === "vendor")) && (
+      {viewerRole !== "admin" && !isRejected && !isMouApproved && !isMouUnderReview && !onApprove && (isMouIssued || mode === "sign") && (
         <form
           onSubmit={handleVendorSignSubmit}
           className="mou-print-hide print:hidden max-w-4xl mx-auto bg-white rounded-xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6 mb-12"
         >
-          <div className="border-b border-indigo-100 pb-4">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <PenTool className="w-5 h-5 text-indigo-600" />
-              <span>Digital Execution & Acceptance of Partnership MOU</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Please enter your legal signatory particulars to digitally execute this Memorandum of Understanding for <b>{secondPartyName}</b>.
-            </p>
+          {isCorrectionRequired && (
+            <div className="p-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-900 text-xs font-semibold flex items-start gap-2">
+              <AlertCircle size={15} className="text-orange-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">Re-upload / Correction Requested:</span>{" "}
+                <span>{vendor?.adminRemarks || "Please upload a clear signed & stamped MOU copy and re-submit."}</span>
+              </div>
+            </div>
+          )}
+          <div className="border-b border-indigo-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <PenTool className="w-5 h-5 text-indigo-600" />
+                <span>Execute & Submit Partnership MOU</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Choose to digitally sign online or download, sign/stamp and upload your signed copy for Admin verification.
+              </p>
+            </div>
+            <div className="inline-flex rounded-xl bg-slate-100 p-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSignMethod("digital")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  signMethod === "digital"
+                    ? "bg-white text-indigo-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <PenTool size={13} />
+                <span>Digitally Sign</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSignMethod("upload")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  signMethod === "upload"
+                    ? "bg-white text-indigo-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <UploadCloud size={13} />
+                <span>Download & Upload Signed</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1644,25 +2021,59 @@ export default function MouFullPageView({
             </div>
           </div>
 
-          
-          <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
-            <label className="text-xs font-bold text-indigo-950 block">Digital Signature Stamp Preview</label>
-            <div className="p-4 bg-white rounded-lg border border-indigo-200 text-center">
-              <p className="font-serif italic text-2xl text-indigo-900 font-bold tracking-wide">
-                {signatureText || signatoryName || "Your Signature"}
-              </p>
-              <p className="text-[10px] text-slate-400 font-mono mt-1">
-                Cryptographically tied to {vendor?.email || secondPartyName} &bull; {agreementDate}
-              </p>
+          {signMethod === "digital" ? (
+            <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
+              <label className="text-xs font-bold text-indigo-950 block">Digital Signature Stamp Preview</label>
+              <div className="p-4 bg-white rounded-lg border border-indigo-200 text-center">
+                <p className="font-serif italic text-2xl text-indigo-900 font-bold tracking-wide">
+                  {signatureText || signatoryName || "Your Signature"}
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono mt-1">
+                  Tied to {vendor?.email || secondPartyName} &bull; {agreementDate}
+                </p>
+              </div>
+              <input
+                type="text"
+                value={signatureText}
+                onChange={(e) => setSignatureText(e.target.value)}
+                placeholder="Type your signature text"
+                className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200"
+              />
             </div>
-            <input
-              type="text"
-              value={signatureText}
-              onChange={(e) => setSignatureText(e.target.value)}
-              placeholder="Type your signature text"
-              className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200"
-            />
-          </div>
+          ) : (
+            <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-indigo-100">
+                <span className="text-xs font-bold text-indigo-950">
+                  1. Download the official MOU, sign & stamp it, then upload the scanned copy below.
+                </span>
+                <button
+                  type="button"
+                  onClick={handleDownloadMou}
+                  className="px-3 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0 self-start sm:self-auto"
+                >
+                  <Download size={13} />
+                  <span>Download MOU PDF</span>
+                </button>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  2. Upload Signed MOU Copy (PDF, JPG, PNG up to 5MB) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={handleMouFileChange}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 cursor-pointer"
+                />
+                {uploadedMouFile && (
+                  <p className="text-xs text-emerald-700 font-bold mt-2 flex items-center gap-1.5">
+                    <CheckCircle2 size={14} />
+                    <span>{uploadedMouFile.name} ({uploadedMouFile.size}) ready for submission</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           <label className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer text-xs text-slate-700 font-medium">
             <input
@@ -1684,11 +2095,11 @@ export default function MouFullPageView({
               className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
             >
               {loading ? (
-                <span>Executing MOU...</span>
+                <span>Submitting MOU...</span>
               ) : (
                 <>
                   <CheckCircle2 size={16} />
-                  <span>Digitally Sign & Activate Portal</span>
+                  <span>Submit Signed MOU for Admin Approval</span>
                 </>
               )}
             </button>

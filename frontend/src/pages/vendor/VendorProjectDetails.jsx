@@ -30,6 +30,17 @@ export default function VendorProjectDetails() {
 
   useEffect(() => {
     loadProjectDetails();
+    const handleRefresh = () => loadProjectDetails();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
   }, [id]);
 
   const loadProjectDetails = async () => {
@@ -220,6 +231,7 @@ export default function VendorProjectDetails() {
                 <th className="py-2 px-3 text-[10px]">Age Criteria</th>
                 <th className="py-2 px-3 text-[10px]">Min Qualification</th>
                 <th className="py-2 px-3 text-[10px]">Experience</th>
+                <th className="py-2 px-3 text-[10px]">Salary</th>
                 <th className="py-2 px-3 text-[10px]">Last / Preferred Company</th>
                 <th className="py-2 px-3 text-[10px] text-right">Action</th>
               </tr>
@@ -254,6 +266,9 @@ export default function VendorProjectDetails() {
                     <td className="py-1.5 px-3 text-slate-700 font-medium">
                       {pos.experienceYears ? `${pos.experienceYears} Years` : "Any"}
                     </td>
+                    <td className="py-1.5 px-3 text-slate-800 font-semibold">
+                      {[pos.currency || project.currency, pos.salary || project.salary].filter(Boolean).join(" ") || "Negotiable"}
+                    </td>
                     <td className="py-1.5 px-3 text-slate-600 italic">
                       {pos.lastCompany || "-"}
                     </td>
@@ -271,7 +286,7 @@ export default function VendorProjectDetails() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="py-8 text-center text-slate-500 italic text-xs">
+                  <td colSpan="9" className="py-8 text-center text-slate-500 italic text-xs">
                     No individual trade positions recorded. General manpower accepted.
                   </td>
                 </tr>

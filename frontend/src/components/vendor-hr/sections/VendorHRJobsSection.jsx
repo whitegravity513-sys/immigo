@@ -12,6 +12,7 @@ import { formatSalary } from "../shared/vendorHRUtils.jsx";
 export default function VendorHRJobsSection({
   jobs = [],
   applications = [],
+  hideProjectNames = false,
   setShowSubmitModal,
   setSubmitForm,
   setCandidateSearch,
@@ -35,7 +36,8 @@ export default function VendorHRJobsSection({
       j.title?.toLowerCase().includes(q) ||
       j.jobId?.toLowerCase().includes(q) ||
       j.location?.toLowerCase().includes(q) ||
-      j.projectName?.toLowerCase().includes(q)
+      j.destinationCountry?.toLowerCase().includes(q) ||
+      (!hideProjectNames && j.projectName?.toLowerCase().includes(q))
     );
   });
 
@@ -133,7 +135,7 @@ export default function VendorHRJobsSection({
               <thead className="bg-slate-50/90 text-slate-600 font-bold uppercase text-[10.5px] border-b border-slate-200/80 tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3.5">Trade & Sector</th>
-                  <th className="py-2.5 px-3">Project & Location</th>
+                  <th className="py-2.5 px-3">{hideProjectNames ? "Location & Sector" : "Project & Location"}</th>
                   <th className="py-2.5 px-3">Experience</th>
                   <th className="py-2.5 px-3">Salary Package</th>
                   <th className="py-2.5 px-3 text-center">Slots / Sourced</th>
@@ -151,7 +153,7 @@ export default function VendorHRJobsSection({
                 ) : (
                   filteredJobs.map((job) => {
                     const jobCands = applications.filter((a) => a.jobId === job.jobId || a.jobTitle === job.title);
-                    const remaining = (job.openings || 10) - (job.filledPositions || 0);
+                    const remaining = Math.max(0, Number(job.openings || 0) - Number(job.filledPositions || 0));
 
                     return (
                       <tr key={job.jobId} className="hover:bg-blue-50/30 transition group">
@@ -164,26 +166,42 @@ export default function VendorHRJobsSection({
                               {job.jobId}
                             </span>
                             <span className="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-slate-100 text-slate-600 uppercase">
-                              {job.department || job.tradeCategory || "MEP"}
+                              {job.department || job.tradeCategory || "General"}
                             </span>
                           </div>
                         </td>
 
                         <td className="py-2.5 px-3">
-                          <div className="font-semibold text-slate-800 text-xs flex items-center gap-1">
-                            <Building2 size={12} className="text-slate-400 shrink-0" />
-                            <span className="truncate max-w-[170px]" title={job.projectName}>
-                              {job.projectName || "Overseas Deployment"}
-                            </span>
-                          </div>
-                          <div className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
-                            <MapPin size={10} className="text-slate-400 shrink-0" />
-                            <span>{job.location || "Dubai, UAE"}</span>
-                          </div>
+                          {hideProjectNames ? (
+                            <>
+                              <div className="font-semibold text-slate-800 text-xs flex items-center gap-1">
+                                <MapPin size={12} className="text-slate-400 shrink-0" />
+                                <span className="truncate max-w-[170px]">
+                                  {job.location || job.destinationCountry || "Overseas"}
+                                </span>
+                              </div>
+                              <div className="text-[10.5px] text-slate-500 font-medium mt-0.5">
+                                {job.department || job.tradeCategory || "Technical"}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="font-semibold text-slate-800 text-xs flex items-center gap-1">
+                                <Building2 size={12} className="text-slate-400 shrink-0" />
+                                <span className="truncate max-w-[170px]" title={job.projectName}>
+                                  {job.projectName || "Overseas Deployment"}
+                                </span>
+                              </div>
+                              <div className="text-[10.5px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                                <MapPin size={10} className="text-slate-400 shrink-0" />
+                                <span>{job.location || job.destinationCountry || "Overseas"}</span>
+                              </div>
+                            </>
+                          )}
                         </td>
 
                         <td className="py-2.5 px-3 font-semibold text-slate-700 whitespace-nowrap text-xs">
-                          {job.experienceLevel || "3-5 Yrs"}
+                          {job.experienceLevel || "As per trade"}
                         </td>
 
                         <td className="py-2.5 px-3 font-bold text-blue-700 whitespace-nowrap text-xs">
@@ -251,7 +269,7 @@ export default function VendorHRJobsSection({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 uppercase">
-                    {job.department || "MEP"}
+                    {job.department || job.tradeCategory || "General"}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     {job.status || "Open"}
@@ -259,12 +277,12 @@ export default function VendorHRJobsSection({
                 </div>
 
                 <h3 className="text-sm font-bold text-slate-900 leading-snug">{job.title}</h3>
-                <p className="text-xs text-slate-500">{job.location || "Dubai, UAE"}</p>
+                <p className="text-xs text-slate-500">{job.location || job.destinationCountry || "Overseas"}</p>
 
                 <div className="space-y-1 text-xs text-slate-600 font-medium pt-1">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Experience:</span>
-                    <span className="font-semibold text-slate-800">{job.experienceLevel || "3-5 Yrs"}</span>
+                    <span className="font-semibold text-slate-800">{job.experienceLevel || "As per trade"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Salary Package:</span>
@@ -272,7 +290,9 @@ export default function VendorHRJobsSection({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Remaining Openings:</span>
-                    <span className="font-bold text-emerald-700">{job.openings - (job.filledPositions || 0)} Slots</span>
+                    <span className="font-bold text-emerald-700">
+                      {Math.max(0, Number(job.openings || 0) - Number(job.filledPositions || 0))} Slots
+                    </span>
                   </div>
                 </div>
 

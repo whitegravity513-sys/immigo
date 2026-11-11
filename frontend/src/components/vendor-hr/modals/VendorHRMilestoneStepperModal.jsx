@@ -21,8 +21,9 @@ export default function VendorHRMilestoneStepperModal({
   setStageCompletionRemark,
   handleCompleteMilestoneStage,
   handleApproveMilestonePayment,
+  hideProjectNames = false,
   actionLoading = false,
-  hrUserName = "Priya Sharma",
+  hrUserName = "Vendor HR Officer",
 }) {
   if (!show || !selectedMilestoneCandidate) return null;
 
@@ -50,8 +51,12 @@ export default function VendorHRMilestoneStepperModal({
                     ? `🛂 ${selectedMilestoneCandidate.passportNumber}`
                     : `ID: ${selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id}`}
                 </span>
-                <span>•</span>
-                <span className="text-teal-300">{selectedMilestoneCandidate.projectName}</span>
+                {!hideProjectNames && selectedMilestoneCandidate.projectName && (
+                  <>
+                    <span>•</span>
+                    <span className="text-teal-300">{selectedMilestoneCandidate.projectName}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -102,8 +107,11 @@ export default function VendorHRMilestoneStepperModal({
 
               const isCompleted = milestone.status === "Completed" || isMilestoneStagesCompleted;
               const isLocked = !isPrevCompleted;
-              const isApproved = milestone.paymentStatus === "Approved" || milestone.status === "Paid";
-              const amt = Number(milestone.paymentAmount || milestone.amount || 0);
+              const isApproved =
+                milestone.paymentStatus === "Approved" ||
+                milestone.status === "Paid" ||
+                milestone.status === "Completed";
+              const amt = Number(milestone.paymentAmount ?? milestone.amount ?? 0);
               const requiresPayment = !isLocked && amt > 0 && !isApproved;
               const isUnlockedAndActive = !isLocked && !requiresPayment && !isCompleted;
 

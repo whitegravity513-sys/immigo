@@ -13,43 +13,66 @@ import {
 import crmVendorService from "../../../services/crmVendorService";
 
 export default function ConfigureMilestonesModal({ isOpen, onClose, application, onSaved }) {
-  if (!isOpen || !application) return null;
-
-  const [totalAmount, setTotalAmount] = useState(40000);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [milestones, setMilestones] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  
   useEffect(() => {
-    if (application) {
+    if (isOpen && application) {
+      const synced =
+        !application.milestonesOverridden && crmVendorService.syncAppMilestonesWithProject
+          ? crmVendorService.syncAppMilestonesWithProject(application)
+          : [];
       const rawMilestones =
-        application.paymentPlan?.milestones?.length > 0
-          ? application.paymentPlan.milestones
+        synced.length > 0
+          ? synced
           : application.processMilestones?.length > 0
           ? application.processMilestones
+          : application.paymentPlan?.milestones?.length > 0
+          ? application.paymentPlan.milestones
           : [];
 
       if (rawMilestones.length > 0) {
-        setTotalAmount(application.paymentPlan?.totalAmount || rawMilestones.reduce((sum, m) => sum + (Number(m.amount || m.paymentAmount) || 0), 0) || 40000);
+        const computedTotal = rawMilestones.reduce(
+          (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+          0
+        );
+        const resolvedTotal = Number(
+          computedTotal > 0 ? computedTotal : application.paymentPlan?.totalAmount ?? 0
+        );
+        setTotalAmount(resolvedTotal);
         setMilestones(
           rawMilestones.map((m, idx) => {
-            const pm = (application.processMilestones || []).find((p) => p.id === m.id || p.name === m.name);
-            const rawStages = (m.stages && m.stages.length > 0)
-              ? m.stages
-              : (pm?.stages && pm.stages.length > 0)
-              ? pm.stages
-              : [
-                  { id: `s${idx}_1`, name: "Skill & Document Clearance", status: "Locked" },
-                  { id: `s${idx}_2`, name: "Processing Step", status: "Locked" },
-                ];
+            const pm = (application.processMilestones || []).find(
+              (p) => p.id === m.id || p.name === m.name
+            );
+            const rawStages =
+              m.stages && m.stages.length > 0
+                ? m.stages
+                : pm?.stages && pm.stages.length > 0
+                ? pm.stages
+                : [
+                    { id: `s${idx}_1`, name: "Skill & Document Clearance", status: "Locked" },
+                    { id: `s${idx}_2`, name: "Processing Step", status: "Locked" },
+                  ];
+            const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+            const pct =
+              m.percentage !== undefined
+                ? Number(m.percentage) || 0
+                : resolvedTotal > 0
+                ? Math.round((amt / resolvedTotal) * 100)
+                : 0;
 
             return {
+              ...m,
               id: m.id || `m${idx}`,
               name: m.name || `Milestone ${idx + 1}`,
-              percentage: m.percentage || Math.round(((Number(m.amount || m.paymentAmount) || 10000) / (application.paymentPlan?.totalAmount || 40000)) * 100),
-              amount: Number(m.amount || m.paymentAmount || 10000),
-              status: m.status || (idx === 0 ? "Payment Required" : "Pending"),
+              percentage: pct,
+              amount: amt,
+              paymentAmount: amt,
+              status: m.status || (idx === 0 ? (amt > 0 ? "Payment Required" : "Active") : "Locked"),
               stages: rawStages.map((s, sIdx) => ({
+                ...s,
                 id: s.id || `s${idx}_${sIdx}`,
                 name: s.name || `Stage ${sIdx + 1}`,
                 status: s.status || "Locked",
@@ -58,21 +81,26 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           })
         );
       } else {
-        
-        applyPreset(3, 40000);
+        setTotalAmount(0);
+        setMilestones([]);
       }
     }
-  }, [application]);
+  }, [isOpen, application]);
+
+  if (!isOpen || !application) return null;
 
   const applyPreset = (count, baseTotal = totalAmount) => {
-    const total = baseTotal || 40000;
+    const total = Number(baseTotal) || 0;
     if (count === 2) {
+      const m0Amt = Math.round(total * 0.5);
+      const m1Amt = Math.max(0, total - m0Amt);
       setMilestones([
         {
           id: "m0",
           name: "Milestone 1: Selection & Offer Acceptance",
           percentage: 50,
-          amount: Math.round(total * 0.5),
+          amount: m0Amt,
+          paymentAmount: m0Amt,
           status: "Payment Required",
           stages: [
             { id: "s0_1", name: "Trade Skill Verification & Acceptance", status: "Locked" },
@@ -83,7 +111,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           id: "m1",
           name: "Milestone 2: Visa Stamping & Flight Deployment",
           percentage: 50,
-          amount: Math.round(total * 0.5),
+          amount: m1Amt,
+          paymentAmount: m1Amt,
           status: "Pending",
           stages: [
             { id: "s1_1", name: "Medical Check & GAMCA Fitness Clearance", status: "Locked" },
@@ -93,12 +122,16 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
         },
       ]);
     } else if (count === 3) {
+      const m0Amt = Math.round(total * 0.3);
+      const m1Amt = Math.round(total * 0.4);
+      const m2Amt = Math.max(0, total - m0Amt - m1Amt);
       setMilestones([
         {
           id: "m0",
           name: "Milestone 1: Selection & Document Clearance",
           percentage: 30,
-          amount: Math.round(total * 0.3),
+          amount: m0Amt,
+          paymentAmount: m0Amt,
           status: "Payment Required",
           stages: [
             { id: "s0_1", name: "Trade Skill Verification & Acceptance", status: "Locked" },
@@ -109,7 +142,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           id: "m1",
           name: "Milestone 2: Medical & Visa Processing",
           percentage: 40,
-          amount: Math.round(total * 0.4),
+          amount: m1Amt,
+          paymentAmount: m1Amt,
           status: "Pending",
           stages: [
             { id: "s1_1", name: "GAMCA / Medical Fitness Test Clearance", status: "Locked" },
@@ -120,7 +154,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           id: "m2",
           name: "Milestone 3: Emigration & Flight Deployment",
           percentage: 30,
-          amount: Math.round(total * 0.3),
+          amount: m2Amt,
+          paymentAmount: m2Amt,
           status: "Pending",
           stages: [
             { id: "s2_1", name: "Emigration (PCC / Protector) Clearance", status: "Locked" },
@@ -129,12 +164,17 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
         },
       ]);
     } else if (count === 4) {
+      const m0Amt = Math.round(total * 0.25);
+      const m1Amt = Math.round(total * 0.25);
+      const m2Amt = Math.round(total * 0.25);
+      const m3Amt = Math.max(0, total - m0Amt - m1Amt - m2Amt);
       setMilestones([
         {
           id: "m0",
           name: "Milestone 1: Selection & Acceptance",
           percentage: 25,
-          amount: Math.round(total * 0.25),
+          amount: m0Amt,
+          paymentAmount: m0Amt,
           status: "Payment Required",
           stages: [{ id: "s0_1", name: "Document Verification & Acceptance", status: "Locked" }],
         },
@@ -142,7 +182,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           id: "m1",
           name: "Milestone 2: Medical Fitness Clearance",
           percentage: 25,
-          amount: Math.round(total * 0.25),
+          amount: m1Amt,
+          paymentAmount: m1Amt,
           status: "Pending",
           stages: [{ id: "s1_1", name: "GAMCA Medical Test Clearance", status: "Locked" }],
         },
@@ -150,7 +191,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           id: "m2",
           name: "Milestone 3: Visa Approval & Stamping",
           percentage: 25,
-          amount: Math.round(total * 0.25),
+          amount: m2Amt,
+          paymentAmount: m2Amt,
           status: "Pending",
           stages: [{ id: "s2_1", name: "Visa Stamping & Work Permit Approval", status: "Locked" }],
         },
@@ -158,7 +200,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           id: "m3",
           name: "Milestone 4: Deployment & Flight Mobilization",
           percentage: 25,
-          amount: Math.round(total * 0.25),
+          amount: m3Amt,
+          paymentAmount: m3Amt,
           status: "Pending",
           stages: [{ id: "s3_1", name: "Flight Ticket & Arrival Induction", status: "Locked" }],
         },
@@ -170,10 +213,14 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
     const val = Number(newTotal) || 0;
     setTotalAmount(val);
     setMilestones((prev) =>
-      prev.map((m) => ({
-        ...m,
-        amount: Math.round((val * (m.percentage || 0)) / 100),
-      }))
+      prev.map((m) => {
+        const calcAmt = Math.round((val * (m.percentage || 0)) / 100);
+        return {
+          ...m,
+          amount: calcAmt,
+          paymentAmount: calcAmt,
+        };
+      })
     );
   };
 
@@ -183,9 +230,13 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
 
     if (field === "percentage") {
       const pct = Number(value) || 0;
-      updated[idx].amount = Math.round((totalAmount * pct) / 100);
+      const calcAmt = Math.round((totalAmount * pct) / 100);
+      updated[idx].amount = calcAmt;
+      updated[idx].paymentAmount = calcAmt;
     } else if (field === "amount") {
       const amt = Number(value) || 0;
+      updated[idx].amount = amt;
+      updated[idx].paymentAmount = amt;
       updated[idx].percentage = totalAmount > 0 ? Math.round((amt / totalAmount) * 100) : 0;
     }
 
@@ -201,6 +252,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
     const updated = [...milestones];
     const lastIdx = updated.length - 1;
     updated[lastIdx].amount = remainder;
+    updated[lastIdx].paymentAmount = remainder;
     updated[lastIdx].percentage = totalAmount > 0 ? Math.round((remainder / totalAmount) * 100) : 0;
     setMilestones(updated);
   };
@@ -216,6 +268,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
       name: `Milestone ${nextIdx}`,
       percentage: defaultPct,
       amount: defaultAmt,
+      paymentAmount: defaultAmt,
       status: "Pending",
       stages: [{ id: `s${Date.now()}_1`, name: "Process Step", status: "Locked" }],
     };
@@ -269,7 +322,13 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
     }
     setSaving(true);
     try {
-      await crmVendorService.overrideMilestones(application.id, finalTotal, milestones);
+      const appId = application.id || application.applicationId || application._id;
+      const formatted = milestones.map((m) => ({
+        ...m,
+        paymentAmount: Number(m.paymentAmount ?? m.amount ?? 0),
+        amount: Number(m.paymentAmount ?? m.amount ?? 0),
+      }));
+      await crmVendorService.overrideMilestones(appId, finalTotal, formatted, application);
       if (onSaved) onSaved();
       onClose();
     } catch (err) {
@@ -342,7 +401,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   value={totalAmount}
                   onChange={(e) => handleTotalAmountChange(e.target.value)}
                   className="w-32 font-bold text-slate-900 text-sm focus:outline-none"
-                  placeholder="40000"
+                  placeholder="0"
                 />
               </div>
             </div>

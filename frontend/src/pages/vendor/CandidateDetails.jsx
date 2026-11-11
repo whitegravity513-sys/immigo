@@ -1,33 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
-  Users,
   ArrowLeft,
   Briefcase,
   GraduationCap,
   MapPin,
-  Mail,
-  Phone,
-  Calendar,
   FileText,
   Download,
   Eye,
   Send,
   Building2,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ExternalLink,
   X,
   Camera,
   User,
-  ArrowRightLeft,
   RotateCcw,
+  Printer,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import refundService from "../../services/refundService.js";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 import CandidateActivityTimeline from "../../components/common/candidate/CandidateActivityTimeline.jsx";
+import DocumentViewerFullPage from "../../components/vendor/DocumentViewerFullPage.jsx";
+import { downloadUploadedDocument, printUploadedDocument } from "../../utils/printDocument.js";
 
 export function CandidateDetails() {
   const { id } = useParams();
@@ -35,27 +29,43 @@ export function CandidateDetails() {
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
   const [updatingPhoto, setUpdatingPhoto] = useState(false);
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [selectedRefundAppId, setSelectedRefundAppId] = useState("");
   const [refundForm, setRefundForm] = useState({ reason: "", documentPath: "" });
   const [refundSubmitting, setRefundSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadCandidate();
-  }, [id]);
-
-  const loadCandidate = async () => {
+  const loadCandidate = useCallback(async () => {
     setLoading(true);
     try {
       const data = await crmVendorService.getCandidateById(id);
+      await crmVendorService.getAvailableProjects(data?.vendorId).catch(() => []);
       setCandidate(data);
     } catch (err) {
       console.error("Failed to load candidate:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadCandidate();
+    }, 0);
+    const handleRefresh = () => loadCandidate();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadCandidate]);
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -73,7 +83,7 @@ export function CandidateDetails() {
         setUpdatingPhoto(true);
         const updated = await crmVendorService.updateCandidatePhoto(candidate.id, base64);
         setCandidate((prev) => ({ ...prev, photo: updated.photo }));
-      } catch (err) {
+      } catch {
         alert("Failed to update candidate photo.");
       } finally {
         setUpdatingPhoto(false);
@@ -159,6 +169,21 @@ export function CandidateDetails() {
       </div>
     );
   }
+
+  if (previewingDoc) {
+    return (
+      <DocumentViewerFullPage
+        doc={previewingDoc}
+        candidate={candidate}
+        onBack={() => setPreviewingDoc(null)}
+      />
+    );
+  }
+
+  const resumeDoc =
+    (candidate.documents || []).find((d) => /resume|cv/i.test(String(d?.type || d?.name || ""))) ||
+    (candidate.documents || [])[0] ||
+    null;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -253,7 +278,13 @@ export function CandidateDetails() {
           <div className="flex flex-col gap-2 shrink-0 self-stretch sm:self-auto border-t sm:border-t-0 sm:border-l sm:border-slate-100 sm:pl-6 pt-3 sm:pt-0">
             <button
               type="button"
-              onClick={() => setResumeModalOpen(true)}
+              onClick={() => {
+                if (resumeDoc?.fileUrl) {
+                  setPreviewingDoc(resumeDoc);
+                } else {
+                  setResumeModalOpen(true);
+                }
+              }}
               className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer"
             >
               <Eye size={14} />
@@ -261,10 +292,9 @@ export function CandidateDetails() {
             </button>
             <button
               type="button"
-              onClick={() => {
-                alert(`Downloading ${candidate.fullName}_Resume.pdf`);
-              }}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
+              disabled={!resumeDoc?.fileUrl}
+              onClick={() => downloadUploadedDocument(resumeDoc)}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
             >
               <Download size={14} />
               <span>Download CV</span>
@@ -351,32 +381,56 @@ export function CandidateDetails() {
         <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
           Attached Compliance Documents ({candidate.documents?.length || 0})
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {(candidate.documents || []).map((doc, idx) => (
-            <div
-              key={idx}
-              className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <FileText size={16} className="text-blue-600 shrink-0" />
-                <div className="truncate">
-                  <span className="font-bold text-slate-900 block truncate">{doc.name}</span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    {doc.fileName} • {doc.size}
-                  </span>
+        {!candidate.documents || candidate.documents.length === 0 ? (
+          <p className="text-xs text-slate-500 py-3">No documents uploaded for this candidate yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {candidate.documents.map((doc, idx) => (
+              <div
+                key={idx}
+                className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2 text-xs"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <FileText size={16} className="text-blue-600 shrink-0" />
+                  <div className="truncate">
+                    <span className="font-bold text-slate-900 block truncate">{doc.name}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {doc.fileName} • {doc.size || "—"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewingDoc(doc)}
+                    className="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg cursor-pointer"
+                    title="View document"
+                  >
+                    <Eye size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!doc.fileUrl}
+                    onClick={() => printUploadedDocument(doc)}
+                    className="p-1.5 text-slate-500 hover:text-slate-900 disabled:opacity-40 rounded-lg cursor-pointer"
+                    title="Print document"
+                  >
+                    <Printer size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!doc.fileUrl}
+                    onClick={() => downloadUploadedDocument(doc)}
+                    className="p-1.5 text-slate-500 hover:text-blue-600 disabled:opacity-40 rounded-lg cursor-pointer"
+                    title="Download document"
+                  >
+                    <Download size={15} />
+                  </button>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setResumeModalOpen(true)}
-                className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg cursor-pointer"
-                title="View document"
-              >
-                <Eye size={15} />
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {}
@@ -443,18 +497,50 @@ export function CandidateDetails() {
 
       {}
       {(() => {
+        const postSelectionStatuses = new Set([
+          "Selected",
+          "Completed",
+          "Processing",
+          "Offer Released",
+          "Offer Accepted",
+          "Visa Processing",
+          "Visa Issued",
+          "Visa Allotted",
+          "Joined",
+          "Deployed",
+        ]);
         const selectedAppWithPlan = candidate.applications?.find(
-          (a) => (a.status === "Selected" || a.status === "Completed") && a.paymentPlan
+          (a) =>
+            (postSelectionStatuses.has(a.status) ||
+              postSelectionStatuses.has(a.recruitmentStage)) &&
+            (a.processMilestones?.length || a.paymentPlan)
         );
 
         if (!selectedAppWithPlan) return null;
 
-        const plan = selectedAppWithPlan.paymentPlan;
-        const totalAmount = Number(plan.totalAmount || 40000);
-        const milestones = plan.milestones || [];
+        const plan = selectedAppWithPlan.paymentPlan || {};
+        const syncedMs = !selectedAppWithPlan.milestonesOverridden
+          ? crmVendorService.syncAppMilestonesWithProject(selectedAppWithPlan)
+          : [];
+        const milestones =
+          syncedMs.length > 0
+            ? syncedMs
+            : selectedAppWithPlan.processMilestones?.length
+            ? selectedAppWithPlan.processMilestones
+            : plan.milestones || [];
+        const msSum = milestones.reduce(
+          (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+          0
+        );
+        const totalAmount = msSum > 0 ? msSum : Number(plan.totalAmount || 0);
         const paidAmount = milestones
-          .filter((m) => m.status === "Paid")
-          .reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+          .filter(
+            (m) =>
+              m.status === "Paid" ||
+              m.paymentStatus === "Approved" ||
+              m.status === "Completed"
+          )
+          .reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0);
         const remainingAmount = Math.max(0, totalAmount - paidAmount);
         const progressPct = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
@@ -518,37 +604,45 @@ export function CandidateDetails() {
                 Milestone Disbursement Schedule:
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {milestones.map((m, idx) => (
-                  <div
-                    key={m.id || idx}
-                    className="p-3 rounded-xl border border-slate-200 bg-slate-50/40 space-y-1 text-xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 truncate max-w-[200px]">{m.name}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          m.status === "Paid"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : m.status === "Due"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-200 text-slate-600"
-                        }`}
-                      >
-                        {m.status}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] text-slate-500">
-                      <span>Fee Amount: <strong className="text-slate-800 font-bold">₹{Number(m.amount).toLocaleString()}</strong></span>
-                    </div>
-
-                    {m.paymentRef && (
-                      <div className="text-[10px] font-mono text-slate-400 border-t border-slate-200/60 pt-1 mt-1">
-                        Ref: {m.paymentRef} {m.paidDate ? `• Paid: ${m.paidDate}` : ""}
+                {milestones.map((m, idx) => {
+                  const mPaid =
+                    m.status === "Paid" ||
+                    m.paymentStatus === "Approved" ||
+                    m.status === "Completed";
+                  const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
+                  const displayStatus = mPaid ? "Paid" : m.paymentStatus || m.status || "Due";
+                  return (
+                    <div
+                      key={m.id || idx}
+                      className="p-3 rounded-xl border border-slate-200 bg-slate-50/40 space-y-1 text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 truncate max-w-[200px]">{m.name}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            mPaid
+                              ? "bg-emerald-100 text-emerald-800"
+                              : displayStatus === "Due" || displayStatus === "Payment Required"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-slate-200 text-slate-600"
+                          }`}
+                        >
+                          {displayStatus}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Fee Amount: <strong className="text-slate-800 font-bold">₹{mAmt.toLocaleString()}</strong></span>
+                      </div>
+
+                      {m.paymentRef && (
+                        <div className="text-[10px] font-mono text-slate-400 border-t border-slate-200/60 pt-1 mt-1">
+                          Ref: {m.paymentRef} {m.paidDate || m.paymentDate ? `• Paid: ${m.paidDate || m.paymentDate}` : ""}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -625,7 +719,7 @@ export function CandidateDetails() {
                   )}
 
                   {}
-                  {app.status === "Selected" || app.status === "Processing" || app.status === "Completed" ? (
+                  {["Selected", "Processing", "Completed", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed"].includes(app.status) ? (
                     <div className="mt-1.5 pt-3 border-t border-slate-100">
                       <CandidateProcessTimeline application={app} isAdmin={false} onUpdate={loadCandidate} />
                     </div>
@@ -864,11 +958,17 @@ export function CandidateDetails() {
 
               <div>
                 <h4 className="font-bold text-slate-900 uppercase font-sans text-xs mb-1">
-                  Compliance & Verified Documents
+                  Uploaded Compliance Documents
                 </h4>
-                <p>✓ International Passport (Valid)</p>
-                <p>✓ Trade Test Attestation Certificate</p>
-                <p>✓ Police Clearance & GAMCA Fitness</p>
+                {(candidate.documents || []).length === 0 ? (
+                  <p className="text-slate-400">No documents uploaded yet.</p>
+                ) : (
+                  (candidate.documents || []).map((doc, idx) => (
+                    <p key={idx}>
+                      • {doc.name || doc.fileName} ({doc.status || "Pending Review"})
+                    </p>
+                  ))
+                )}
               </div>
             </div>
 

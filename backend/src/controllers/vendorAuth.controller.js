@@ -25,6 +25,7 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     password,
     gstin,
     registrationNumber,
+    documents,
   } = req.body;
 
   if (!email || !password || !companyName || !contactPersonName || !phone || !pan) {
@@ -50,6 +51,23 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const vendorId = await generateNextVendorId();
 
+  const sanitizedDocs = Array.isArray(documents)
+    ? documents
+        .filter((d) => d && (d.fileUrl || d.fileName || d.name))
+        .map((d, idx) => ({
+          id: d.id || `doc_${Date.now()}_${idx}`,
+          name: String(d.name || d.fileName || "Document").trim(),
+          fileName: String(d.fileName || d.name || "document").trim(),
+          type: String(d.type || "Document").trim(),
+          fileUrl: String(d.fileUrl || ""),
+          mimeType: String(d.mimeType || ""),
+          size: String(d.size || ""),
+          status: d.status || "Pending",
+          remarks: String(d.remarks || ""),
+          uploadedAt: d.uploadedAt || new Date(),
+        }))
+    : [];
+
   const newVendor = await Vendor.create({
     vendorId,
     companyName: companyName.trim(),
@@ -63,6 +81,8 @@ export const vendorRegister = asyncHandler(async (req, res) => {
     gstin: gstin ? String(gstin).trim().toUpperCase() : "",
     registrationNumber: registrationNumber || `REG-${Date.now().toString().slice(-5)}`,
     password: hashedPassword,
+    documents: sanitizedDocs,
+    documentsUploaded: sanitizedDocs.length > 0,
     status: "Registration Pending",
     onboardingStage: "REGISTRATION_PENDING",
   });
@@ -166,6 +186,8 @@ export const vendorRegister = asyncHandler(async (req, res) => {
       companyName: newVendor.companyName,
       email: newVendor.email,
       status: newVendor.status,
+      documents: newVendor.documents || [],
+      documentsUploaded: Boolean(newVendor.documentsUploaded),
     },
   });
 });
@@ -287,6 +309,7 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
   if (Array.isArray(documents) && documents.length > 0) {
     vendor.documents = documents;
     vendor.documentsUploaded = true;
+    vendor.documentVerified = false;
   }
   if (bankDetails) {
     vendor.bankDetails = bankDetails;
@@ -308,7 +331,11 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
       actorId: vendor.vendorId,
       actorRole: "VENDOR",
       moduleScope: "VENDOR",
-      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: `/admin/vendor/vendors?vendorId=${vendor.vendorId}&view=docs`,
+      },
     });
   } catch (err) {
     console.error("Failed to create admin notification:", err.message);
@@ -341,6 +368,7 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     designation,
     signatureData,
     signedFileUrl,
+    signedFileName = "",
     signMethod = "digital",
   } = req.body;
 
@@ -349,16 +377,29 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Vendor not found");
   }
 
+  const normalizedMethod = signMethod === "upload" ? "upload" : "digital";
+  if (normalizedMethod === "upload" && !signedFileUrl) {
+    throw new ApiError(400, "Please upload your signed MOU copy before submitting.");
+  }
+  if (normalizedMethod === "digital" && !String(signatoryName || "").trim()) {
+    throw new ApiError(400, "Authorized signatory name is required for digital signing.");
+  }
+
   vendor.mouSigned = true;
-  vendor.mouStatus = "Approved";
-  vendor.status = "Approved";
-  vendor.onboardingStage = "COMPLETED";
-  vendor.mouSignMethod = signMethod;
+  vendor.mouStatus = "Under Review";
+  vendor.status = "Pending MOU Approval";
+  vendor.onboardingStage = "MOU_UNDER_REVIEW";
+  vendor.mouSignMethod = normalizedMethod;
   vendor.signedMouDocUrl = signedFileUrl || "";
+  vendor.adminRemarks = "";
+  vendor.rejectionReason = "";
   vendor.signedMou = {
     signatoryName: signatoryName || vendor.contactPersonName,
     designation: designation || "Authorized Signatory",
-    signatureData: signatureData || "Digitally Signed & Acknowledged",
+    signatureData:
+      normalizedMethod === "upload"
+        ? signedFileName || "Uploaded Signed MOU Copy"
+        : signatureData || signatoryName || "Digitally Signed & Acknowledged",
     signedFileUrl: signedFileUrl || "",
     signedAt: new Date(),
   };
@@ -369,15 +410,20 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     await NotificationService.createNotification({
       type: "DOCUMENT_UPDATE",
       title: `Signed MOU Submitted: ${vendor.companyName}`,
-      message: `${vendor.companyName} (${vendor.vendorId}) has submitted their signed MOU agreement (${signMethod.toUpperCase()} method). Admin review required.`,
+      message: `${vendor.companyName} (${vendor.vendorId}) submitted their signed MOU agreement (${normalizedMethod === "upload" ? "Uploaded Copy" : "Digital Sign"}). Please verify and approve.`,
       targetRole: "ADMIN",
-      targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
+      targetRoles: ["SUPER_ADMIN", "ADMIN"],
       targetType: "ALL",
       targetVendorId: vendor.vendorId,
       actorId: vendor.vendorId,
       actorRole: "VENDOR",
       moduleScope: "VENDOR",
-      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        signMethod: normalizedMethod,
+        link: `/admin/vendor/vendors?vendorId=${vendor.vendorId}&view=mou`,
+      },
     });
   } catch (err) {
     console.error("Failed to create admin notification:", err.message);
@@ -389,25 +435,75 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     userName: vendor.companyName,
     action: "VENDOR_MOU_SUBMITTED",
     title: `Signed MOU Submitted: ${vendor.companyName}`,
-    description: `${vendor.companyName} (${vendor.vendorId}) submitted executed MOU via ${signMethod} method. Final admin approval pending.`,
+    description: `${vendor.companyName} (${vendor.vendorId}) submitted executed MOU via ${normalizedMethod} method. Final admin approval pending.`,
     entityType: "Vendor",
     entityId: vendor.vendorId,
     entityName: vendor.companyName,
-    status: "MOU Under Review",
+    status: "Pending MOU Approval",
     visibility: "ADMIN",
   });
 
   return res.status(200).json({
-    message: "Signed MOU agreement submitted successfully for final Admin approval.",
+    message: "Signed MOU agreement submitted successfully. Status is pending Admin verification & approval.",
     vendor,
   });
 });
 
 export const updateVendorProfile = asyncHandler(async (req, res) => {
   const vendorId = req.user.id || req.user._id;
-  const vendor = await Vendor.findByIdAndUpdate(vendorId, req.body, { new: true, runValidators: true });
-  if (!vendor) {
+  const existing = await Vendor.findById(vendorId);
+  if (!existing) {
     throw new ApiError(404, "Vendor not found");
+  }
+
+  const updatePayload = { ...req.body };
+  delete updatePayload._id;
+  delete updatePayload.id;
+  delete updatePayload.vendorId;
+  delete updatePayload.__v;
+  delete updatePayload.password;
+  delete updatePayload.createdAt;
+  delete updatePayload.updatedAt;
+  const hasNewDocuments = Array.isArray(req.body?.documents);
+  if (hasNewDocuments) {
+    updatePayload.documentsUploaded = req.body.documents.length > 0;
+    if (
+      req.body.documents.length > 0 &&
+      ["Registration Approved", "Documents Pending", "Documents Correction Required"].includes(existing.status)
+    ) {
+      updatePayload.status = "Documents Under Review";
+      updatePayload.onboardingStage = "DOCS_SUBMITTED";
+      updatePayload.documentVerified = false;
+    }
+  }
+
+  const vendor = await Vendor.findByIdAndUpdate(vendorId, updatePayload, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (hasNewDocuments && req.body.documents.length > 0) {
+    try {
+      await NotificationService.createNotification({
+        type: "DOCUMENT_UPLOAD",
+        title: `Vendor Document Uploaded: ${vendor.companyName}`,
+        message: `${vendor.companyName} (${vendor.vendorId}) uploaded statutory document(s) for Admin review.`,
+        targetRole: "ADMIN",
+        targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
+        targetType: "ALL",
+        targetVendorId: vendor.vendorId,
+        actorId: vendor.vendorId,
+        actorRole: "VENDOR",
+        moduleScope: "VENDOR",
+        metadata: {
+          vendorId: vendor._id,
+          vendorCode: vendor.vendorId,
+          link: `/admin/vendor/vendors?vendorId=${vendor.vendorId}&view=docs`,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to create document upload notification:", err.message);
+    }
   }
 
   return res.status(200).json({

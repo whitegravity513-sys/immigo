@@ -50,6 +50,18 @@ export function ProjectInfoCard({ project, client, totalRequired }) {
         </div>
 
         <div>
+          <span className="text-gray-400 block text-[11px]">Salary & Currency</span>
+          <span className="font-semibold text-gray-900">
+            {[
+              project.currency || project.manpowerRequirements?.[0]?.currency,
+              project.salary || project.manpowerRequirements?.[0]?.salary,
+            ]
+              .filter(Boolean)
+              .join(" ") || "Negotiable"}
+          </span>
+        </div>
+
+        <div>
           <span className="text-gray-400 block text-[11px]">Required Headcount</span>
           <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 inline-block mt-0.5">
             {totalRequired} Persons

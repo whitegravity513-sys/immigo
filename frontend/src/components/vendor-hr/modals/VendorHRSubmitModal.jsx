@@ -8,6 +8,7 @@ export default function VendorHRSubmitModal({
   setSubmitForm,
   projectsList = [],
   jobs = [],
+  hideProjectNames = false,
   actionLoading = false,
 }) {
   if (!show) return null;
@@ -18,7 +19,9 @@ export default function VendorHRSubmitModal({
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">Submit New Candidate</h3>
-            <p className="text-xs text-slate-500">Add candidate to assigned project pipeline</p>
+            <p className="text-xs text-slate-500">
+              {hideProjectNames ? "Add candidate to assigned recruitment pipeline" : "Add candidate to assigned project pipeline"}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -66,17 +69,23 @@ export default function VendorHRSubmitModal({
           </div>
 
           <div>
-            <label className="block text-slate-700 font-bold mb-1">Target Project *</label>
+            <label className="block text-slate-700 font-bold mb-1">
+              {hideProjectNames ? "Target Requirement *" : "Target Project *"}
+            </label>
             <select
               required
               value={submitForm.projectId}
               onChange={(e) => setSubmitForm({ ...submitForm, projectId: e.target.value })}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-600 cursor-pointer"
             >
-              <option value="">Select an assigned project</option>
-              {projectsList.map((p) => (
+              <option value="">
+                {hideProjectNames ? "Select an assigned requirement" : "Select an assigned project"}
+              </option>
+              {projectsList.map((p, idx) => (
                 <option key={p.projectId} value={p.projectId}>
-                  {p.projectName} ({p.projectId})
+                  {hideProjectNames
+                    ? `Assigned Opening #${idx + 1}${p.destinationCountry || p.country ? ` (${p.destinationCountry || p.country})` : ""} [${p.projectId}]`
+                    : `${p.projectName} (${p.projectId})`}
                 </option>
               ))}
             </select>

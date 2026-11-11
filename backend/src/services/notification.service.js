@@ -173,6 +173,18 @@ const buildStaffVisibilityQuery = (options = {}) => {
           ],
         },
         { $or: vendorScope },
+        ...(userId
+          ? [
+              {
+                $or: [
+                  { targetType: { $ne: "SPECIFIC" } },
+                  { targetUserId: null },
+                  { targetUserId: { $exists: false } },
+                  { targetUserId: userId },
+                ],
+              },
+            ]
+          : []),
       ],
     };
   }
@@ -486,6 +498,8 @@ export class NotificationService {
         read: Boolean(n.read),
         targetRole: n.targetRole,
         targetRoles: n.targetRoles || [],
+        targetType: n.targetType || "ALL",
+        targetUserId: n.targetUserId || null,
         targetVendorId: n.targetVendorId || null,
         link: n.metadata?.link || "",
         actorId: n.actorId || null,

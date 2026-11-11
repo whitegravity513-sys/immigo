@@ -15,7 +15,11 @@ export function AdminRejectVendorModal({
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
         <h3 className="text-base font-bold text-slate-900">Confirm Rejection</h3>
         <p className="text-xs text-slate-500">
-          Please enter the reason for rejecting agency registration for{" "}
+          {selectedVendor.mouSigned ||
+          selectedVendor.mouStatus === "Under Review" ||
+          String(selectedVendor.status || "").includes("MOU")
+            ? "Please enter the reason for rejecting the submitted MOU for "
+            : "Please enter the reason for rejecting "}
           <strong>{selectedVendor.companyName}</strong>.
         </p>
 

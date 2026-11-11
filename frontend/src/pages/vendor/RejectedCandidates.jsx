@@ -1,44 +1,51 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   XCircle,
   Search,
   RotateCcw,
   Info,
-  Calendar,
   Building2,
-  ExternalLink,
-  ChevronRight,
-  ShieldAlert,
-  ArrowRight,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
 export default function RejectedCandidates() {
-  const [vendor, setVendor] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
-      setVendor(curVendor);
       const data = await crmVendorService.getApplications(curVendor?.id);
-      
-      const rejectedApps = (data || []).filter((a) => a.status === "Rejected");
+
+      const rejectedApps = (data || []).filter(
+        (a) => a.status === "Rejected" || a.recruitmentStage === "Rejected"
+      );
       setApplications(rejectedApps);
     } catch (err) {
       console.error("Failed to load rejected applications:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   const filtered = applications.filter((app) => {
     if (!searchQuery.trim()) return true;

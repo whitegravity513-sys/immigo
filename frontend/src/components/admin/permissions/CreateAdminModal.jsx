@@ -141,42 +141,44 @@ export default function CreateAdminModal({
                   <label className="block text-slate-800 font-bold mb-1 text-[11px]">
                     Assign Recruitment Agencies *
                   </label>
-                  <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar bg-white rounded-lg border border-slate-200 p-2">
+                  <div className="max-h-40 overflow-y-auto divide-y divide-slate-100 custom-scrollbar bg-white rounded-lg border border-slate-200">
                     {availableVendors.length === 0 ? (
-                      <div className="text-[11px] text-slate-400 italic">No vendors found.</div>
+                      <div className="text-[11px] text-slate-400 italic p-2.5">No vendors found.</div>
                     ) : (
                       availableVendors.map((vnd) => {
-                        const vId = vnd.vendorId || vnd.id;
+                        const vId = String(vnd.vendorId || vnd.id || vnd._id || "");
                         const isChecked = (formData.assignedVendors || []).includes(vId);
                         return (
                           <label
                             key={vId}
-                            className={`flex items-center gap-2 p-1.5 rounded-md hover:bg-slate-50 text-slate-800 cursor-pointer text-xs border ${
-                              isChecked ? "bg-cyan-50/50 border-cyan-300" : "border-transparent"
+                            className={`flex items-center justify-between gap-2.5 px-3 py-2 text-slate-800 cursor-pointer text-xs transition-colors ${
+                              isChecked ? "bg-cyan-50/70" : "hover:bg-slate-50"
                             }`}
                           >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(e) => {
-                                const curr = formData.assignedVendors || [];
-                                if (e.target.checked) {
-                                  setFormData({ ...formData, assignedVendors: [...curr, vId] });
-                                } else {
-                                  setFormData({
-                                    ...formData,
-                                    assignedVendors: curr.filter((id) => id !== vId),
-                                  });
-                                }
-                              }}
-                              className="rounded text-cyan-600"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <div className="font-bold text-slate-900 truncate">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const curr = formData.assignedVendors || [];
+                                  if (e.target.checked) {
+                                    setFormData({ ...formData, assignedVendors: [...curr, vId] });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      assignedVendors: curr.filter((id) => id !== vId),
+                                    });
+                                  }
+                                }}
+                                className="rounded text-cyan-600 shrink-0"
+                              />
+                              <span className="font-semibold text-slate-900 truncate">
                                 {vnd.companyName}
-                              </div>
-                              <span className="text-[9.5px] text-slate-500 font-mono">ID: {vId}</span>
+                              </span>
                             </div>
+                            <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                              {vId}
+                            </span>
                           </label>
                         );
                       })

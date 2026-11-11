@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Users, Lock, Eye, EyeOff, LogIn, ArrowRight, Zap } from "lucide-react";
 import { employeeLogin } from "../../services/authService.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -14,8 +15,10 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setIdentifier("");
-    setPassword("");
+    const t0 = setTimeout(() => {
+      setIdentifier("");
+      setPassword("");
+    }, 0);
     const t1 = setTimeout(() => {
       setIdentifier(prev => (prev && (prev.toUpperCase().includes("VESTA") || prev.toUpperCase().includes("VISTA")) ? "" : prev));
       setPassword(prev => (prev === "12345" ? "" : prev));
@@ -23,7 +26,7 @@ export default function EmployeeLoginForm({ onLoginSuccess, onForgotPassword }) 
     const t2 = setTimeout(() => {
       setIdentifier(prev => (prev && (prev.toUpperCase().includes("VESTA") || prev.toUpperCase().includes("VISTA")) ? "" : prev));
     }, 300);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   useEffect(() => {

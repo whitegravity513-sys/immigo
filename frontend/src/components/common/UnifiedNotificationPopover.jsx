@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { resolveNotificationLink } from "../../utils/notificationLinks.js";
 import {
   Bell,
   Trash2,
@@ -27,6 +28,8 @@ export default function UnifiedNotificationPopover({
   onItemClick,
   onViewAll,
   viewAllLink,
+  roleContext = null,
+  portalBase = "",
   className = "",
 }) {
   const navigate = useNavigate();
@@ -303,6 +306,10 @@ export default function UnifiedNotificationPopover({
                   const cat = getItemCategory(n);
                   const meta = getCategoryMeta(cat);
                   const timeAgo = formatTimeAgo(n.createdAt || n.timestamp);
+                  const resolvedLink = resolveNotificationLink(
+                    n,
+                    roleContext || (portalBase ? { portalBase } : {})
+                  );
 
                   return (
                     <div
@@ -377,33 +384,21 @@ export default function UnifiedNotificationPopover({
                               <span>Join Meeting</span>
                             </a>
                           )}
-                          {n.link ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (onItemClick) onItemClick(n);
-                                if (!isRead && onMarkOneRead) onMarkOneRead(notifId);
-                                onClose();
-                                navigate(n.link);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-0.5 cursor-pointer"
-                            >
-                              <span>{meta.actionText}</span>
-                              <ArrowRight size={11} />
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (onItemClick) onItemClick(n);
-                                if (!isRead && onMarkOneRead) onMarkOneRead(notifId);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-0.5 cursor-pointer"
-                            >
-                              <span>View details</span>
-                              <ArrowRight size={11} />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const clickResult = onItemClick ? onItemClick(n, resolvedLink) : undefined;
+                              if (!isRead && onMarkOneRead) onMarkOneRead(notifId);
+                              onClose();
+                              if (clickResult !== false && resolvedLink) {
+                                navigate(resolvedLink);
+                              }
+                            }}
+                            className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-0.5 cursor-pointer"
+                          >
+                            <span>{meta.actionText || "View details"}</span>
+                            <ArrowRight size={11} />
+                          </button>
 
                           {!isRead && onMarkOneRead && (
                             <>

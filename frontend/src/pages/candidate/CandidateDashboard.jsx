@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, AlertCircle, XCircle } from "lucide-react";
+import { extractCandidateTabFromLink } from "../../utils/notificationLinks.js";
 import AppFooter from "../../components/common/AppFooter.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import apiClient from "../../services/apiClient.js";
@@ -17,9 +18,35 @@ import CandidatePaymentModal from "../../components/candidate/CandidatePaymentMo
 
 export default function CandidateDashboard() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTabState] = useState(() => {
+    const initialTab = extractCandidateTabFromLink(window.location.search || "");
+    return initialTab || "overview";
+  });
+
+  useEffect(() => {
+    const urlTab = extractCandidateTabFromLink(`?${searchParams.toString()}`);
+    if (urlTab && urlTab !== activeTab) {
+      setActiveTabState(urlTab);
+    }
+  }, [searchParams]);
+
+  const setActiveTab = useCallback(
+    (nextTab) => {
+      setActiveTabState(nextTab);
+      const next = new URLSearchParams(searchParams);
+      if (nextTab && nextTab !== "overview") {
+        next.set("tab", nextTab);
+      } else {
+        next.delete("tab");
+      }
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [candidate, setCandidate] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -181,8 +208,20 @@ export default function CandidateDashboard() {
         const apps = appRes.data.applications;
         setApplications(apps);
 
+        const postSelectionStatuses = new Set([
+          "Selected",
+          "Completed",
+          "Processing",
+          "Offer Released",
+          "Offer Accepted",
+          "Visa Processing",
+          "Visa Issued",
+          "Visa Allotted",
+          "Joined",
+          "Deployed",
+        ]);
         const selectedApp = apps.find(
-          (a) => a.status === "Selected" || a.status === "Completed"
+          (a) => postSelectionStatuses.has(a.status)
         );
         if (selectedApp) {
           setSelectedAppForProcessing(selectedApp);
@@ -368,7 +407,7 @@ export default function CandidateDashboard() {
       selectedAppForProcessing.applicationId || selectedAppForProcessing.id;
     const milestoneId = selectedMilestoneToPay.id;
     const amount = Number(
-      selectedMilestoneToPay.paymentAmount || selectedMilestoneToPay.amount || 15000
+      selectedMilestoneToPay.paymentAmount ?? selectedMilestoneToPay.amount ?? 0
     );
 
     if (isOnline) {
@@ -509,8 +548,19 @@ export default function CandidateDashboard() {
     hasVerifiedDoc ||
     (isProfileComplete && hasUploadedDocs);
 
-  const selectedApps = (applications || []).filter(
-    (a) => a.status === "Selected" || a.status === "Completed"
+  const selectedApps = (applications || []).filter((a) =>
+    [
+      "Selected",
+      "Completed",
+      "Processing",
+      "Offer Released",
+      "Offer Accepted",
+      "Visa Processing",
+      "Visa Issued",
+      "Visa Allotted",
+      "Joined",
+      "Deployed",
+    ].includes(a.status)
   );
 
   const tabTitles = {
@@ -549,6 +599,7 @@ export default function CandidateDashboard() {
           onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
           onDeleteNotification={handleDeleteNotification}
           onClearAllNotifications={handleClearAllNotifications}
+          onSelectNotification={(tab) => setActiveTab(tab)}
           onOpenMobile={() => setMobileOpen(true)}
         />
 

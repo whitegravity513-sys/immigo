@@ -1,40 +1,42 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   UserCheck,
   Search,
   ArrowRight,
   CreditCard,
-  Clock,
-  CheckCircle2,
-  Calendar,
   Building2,
-  MapPin,
-  ExternalLink,
-  ChevronRight,
   TrendingUp,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
 export default function SelectedCandidates() {
-  const [vendor, setVendor] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
-      setVendor(curVendor);
+      await crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []);
       const data = await crmVendorService.getApplications(curVendor?.id);
-      
+      const postSelectionStatuses = new Set([
+        "Selected",
+        "Completed",
+        "Processing",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Visa Allotted",
+        "Joined",
+        "Deployed",
+      ]);
       const selectedApps = (data || []).filter(
-        (a) => a.status === "Selected" || a.status === "Completed"
+        (a) =>
+          postSelectionStatuses.has(a.status) ||
+          postSelectionStatuses.has(a.recruitmentStage)
       );
       setApplications(selectedApps);
     } catch (err) {
@@ -42,7 +44,25 @@ export default function SelectedCandidates() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   const filtered = applications.filter((app) => {
     if (!searchQuery.trim()) return true;
@@ -56,18 +76,32 @@ export default function SelectedCandidates() {
     );
   });
 
-  
+  const resolveAppMilestones = (app) => {
+    const syncedMs = !app.milestonesOverridden
+      ? crmVendorService.syncAppMilestonesWithProject(app)
+      : [];
+    if (syncedMs.length > 0) return syncedMs;
+    if (app.processMilestones?.length) return app.processMilestones;
+    return app.paymentPlan?.milestones || [];
+  };
+
   const totalSelected = applications.length;
   let totalCommittedEarnings = 0;
   let totalPaidEarnings = 0;
 
   applications.forEach((a) => {
-    if (a.paymentPlan?.milestones) {
-      a.paymentPlan.milestones.forEach((m) => {
-        totalCommittedEarnings += Number(m.amount) || 0;
-        if (m.status === "Paid") totalPaidEarnings += Number(m.amount) || 0;
-      });
-    }
+    const ms = resolveAppMilestones(a);
+    ms.forEach((m) => {
+      const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+      totalCommittedEarnings += amt;
+      if (
+        m.paymentStatus === "Approved" ||
+        m.status === "Paid" ||
+        m.status === "Completed"
+      ) {
+        totalPaidEarnings += amt;
+      }
+    });
   });
 
   return (
@@ -195,12 +229,15 @@ export default function SelectedCandidates() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map((app) => {
-                const milestones = (app.processMilestones?.length ? app.processMilestones : app.paymentPlan?.milestones) || [];
-                const paidMilestones = milestones.filter((m) => m.paymentStatus === "Approved" || m.status === "Paid").length;
+                const resolvedAppId = app.id || app.applicationId || app._id;
+                const milestones = resolveAppMilestones(app);
+                const paidMilestones = milestones.filter(
+                  (m) => m.paymentStatus === "Approved" || m.status === "Paid" || m.status === "Completed"
+                ).length;
                 const totalMilestones = milestones.length;
 
                 
-                const allMilestoneStages = (app.processMilestones || []).flatMap((m) => m.stages || []);
+                const allMilestoneStages = milestones.flatMap((m) => m.stages || []);
                 const completedMilestoneStages = allMilestoneStages.filter((s) => s.status === "Completed" || s.completed).length;
                 const totalMilestoneStages = allMilestoneStages.length;
 
@@ -254,7 +291,7 @@ export default function SelectedCandidates() {
                 }
 
                 return (
-                  <tr key={app.id} className="hover:bg-slate-50/60 transition-colors">
+                  <tr key={resolvedAppId} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-1 px-2">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-800 font-bold flex items-center justify-center text-sm border border-emerald-200 shrink-0">
@@ -327,7 +364,8 @@ export default function SelectedCandidates() {
                     </td>
                     <td className="py-1 px-2 text-right">
                       <Link
-                        to={`/vendor/processing/${app.id}`}
+                        to={`/vendor/processing/${resolvedAppId}`}
+                        state={{ application: app }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-2xs"
                       >
                         Timeline <ArrowRight className="w-3 h-3" />

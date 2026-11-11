@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -26,7 +26,6 @@ export function VendorManagementSidebar({
   mobileOpen = false,
   setMobileOpen = () => { },
   collapsed = false,
-  setCollapsed = () => { },
 }) {
   const { logout } = useAuth();
   const location = useLocation();
@@ -51,13 +50,10 @@ export function VendorManagementSidebar({
   const [candidatesMenuOpen, setCandidatesMenuOpen] = useState(true);
   const [processMenuOpen, setProcessMenuOpen] = useState(isProcessActive);
 
-  useEffect(() => {
-    if (isVendorsActive) setVendorsMenuOpen(true);
-    if (isCandidatesActive) setCandidatesMenuOpen(true);
-    if (isProcessActive) setProcessMenuOpen(true);
-  }, [currentPath, location.search, isVendorsActive, isCandidatesActive, isProcessActive]);
-
   const isActive = (path) => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab")?.toLowerCase() || "";
+
     if (path === "/admin/vendor/dashboard") {
       return (
         currentPath === "/admin/vendor" ||
@@ -68,13 +64,19 @@ export function VendorManagementSidebar({
     if (path === "/admin/vendor/candidates") {
       return (
         currentPath === "/admin/vendor/candidates" &&
-        (!location.search || location.search === "?tab=all")
+        (!tabParam || tabParam === "all")
       );
     }
     if (path === "/admin/vendor/candidates?tab=shortlisted") {
       return (
         currentPath === "/admin/vendor/candidates" &&
-        location.search === "?tab=shortlisted"
+        tabParam === "shortlisted"
+      );
+    }
+    if (path === "/admin/vendor/candidates?tab=on+hold") {
+      return (
+        currentPath === "/admin/vendor/candidates" &&
+        (tabParam === "on hold" || tabParam === "on-hold" || tabParam === "hold")
       );
     }
     if (path === "/admin/vendor/submissions") {
@@ -138,7 +140,8 @@ export function VendorManagementSidebar({
     { title: "Pending Review", icon: Send, path: "/admin/vendor/submissions" },
     { title: "Shortlisted", icon: Clock, path: "/admin/vendor/candidates?tab=shortlisted" },
     { title: "Selected", icon: UserCheck, path: "/admin/vendor/selected" },
-    { title: "Rejected / Hold", icon: XCircle, path: "/admin/vendor/rejected" },
+    { title: "On Hold", icon: Clock, path: "/admin/vendor/candidates?tab=on+hold" },
+    { title: "Rejected", icon: XCircle, path: "/admin/vendor/rejected" },
   ];
 
   const processSubItems = [

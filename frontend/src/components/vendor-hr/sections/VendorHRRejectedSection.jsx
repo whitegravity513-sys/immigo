@@ -10,6 +10,7 @@ import { AVATARS } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRRejectedSection({
   applications = [],
+  hideProjectNames = false,
   openReassignModal,
   openCandidateModal,
   navigateByTag,
@@ -28,7 +29,7 @@ export default function VendorHRRejectedSection({
       cand.candidateName?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
-      cand.projectName?.toLowerCase().includes(q)
+      (!hideProjectNames && cand.projectName?.toLowerCase().includes(q))
     );
   });
 
@@ -43,7 +44,9 @@ export default function VendorHRRejectedSection({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Candidates rejected in prior project evaluations. They remain in your vendor talent pool and can be re-applied to other open project requirements.
+            {hideProjectNames
+              ? "Candidates rejected in prior evaluations. They remain in your vendor talent pool and can be reassigned to other open requirements."
+              : "Candidates rejected in prior project evaluations. They remain in your vendor talent pool and can be re-applied to other open project requirements."}
           </p>
         </div>
 
@@ -86,7 +89,7 @@ export default function VendorHRRejectedSection({
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>
-                <th className="py-3 px-4">Previous Project & Trade</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Trade & Agency" : "Previous Project & Trade"}</th>
                 <th className="py-3 px-3 text-center">Status</th>
                 <th className="py-3 px-4 text-center">Talent Pool Action</th>
                 <th className="py-3 px-4 text-right">Dossier</th>
@@ -113,7 +116,13 @@ export default function VendorHRRejectedSection({
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="font-bold text-slate-800 truncate">{cand.jobTitle || "Trade Specialist"}</div>
-                    <div className="text-[11px] text-slate-500 font-medium truncate mt-0.5">{cand.projectName || "Previous Project"}</div>
+                    {!hideProjectNames ? (
+                      <div className="text-[11px] text-slate-500 font-medium truncate mt-0.5">{cand.projectName || "Previous Project"}</div>
+                    ) : (
+                      cand.vendorName && (
+                        <div className="text-[11px] text-indigo-700 font-medium truncate mt-0.5">{cand.vendorName}</div>
+                      )
+                    )}
                   </td>
                   <td className="py-3.5 px-3 text-center">
                     <button
@@ -130,10 +139,10 @@ export default function VendorHRRejectedSection({
                       type="button"
                       onClick={() => openReassignModal(cand)}
                       className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                      title="Submit this candidate to another open project quota"
+                      title={hideProjectNames ? "Reassign this candidate to another requirement" : "Submit this candidate to another open project quota"}
                     >
                       <RotateCcw size={12} />
-                      <span>Apply to Another Project</span>
+                      <span>{hideProjectNames ? "Reassign Candidate" : "Apply to Another Project"}</span>
                     </button>
                   </td>
                   <td className="py-3.5 px-4 text-right">

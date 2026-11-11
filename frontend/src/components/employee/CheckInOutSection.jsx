@@ -43,7 +43,7 @@ export default function CheckInOutSection({
           </div>
           <div>
             <span className="font-bold text-sm block text-indigo-900">Official Company Holiday: {todayHoliday?.title || "Holiday"}</span>
-            <span className="text-indigo-700 font-medium">Aaj holiday hai — aaj daily attendance check-in aur break tracking band rahegi. Enjoy your holiday!</span>
+            <span className="text-indigo-700 font-medium">Today is an official holiday — daily attendance check-in and break tracking are disabled. Enjoy your holiday!</span>
           </div>
         </div>
       )}
@@ -101,7 +101,7 @@ export default function CheckInOutSection({
                   <Calendar size={14} /> Official Company Holiday
                 </div>
                 <p className="text-xs text-indigo-900 font-semibold">
-                  Aaj holiday hai (&ldquo;{todayHoliday?.title || "Holiday"}&rdquo;) — aaj attendance mark nahi ho sakti.
+                  Today is an official holiday (&ldquo;{todayHoliday?.title || "Holiday"}&rdquo;) — attendance cannot be marked today.
                 </p>
                 <p className="text-[11px] text-indigo-600">
                   No absent penalty or salary deductions are applied on official holidays.

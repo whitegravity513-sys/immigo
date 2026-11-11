@@ -31,6 +31,7 @@ export default function CandidateSelectionTable({
   toggleSelection,
   toggleAll,
   onDirectAssign,
+  onProceedSelected,
 }) {
   return (
     <div className="bg-white rounded-lg border border-slate-300 shadow-xs overflow-hidden">
@@ -87,15 +88,27 @@ export default function CandidateSelectionTable({
             </button>
           </div>
 
-          <div className="relative flex-1 sm:max-w-xs">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by name, ID, trade, project..."
-              value={candidateSearch}
-              onChange={(e) => setCandidateSearch(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
-            />
+          <div className="flex items-center gap-2 flex-1 sm:justify-end">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by name, ID, trade, project..."
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition font-medium"
+              />
+            </div>
+            {categoryFilter !== "in_progress" && selectedCandidateIds.length > 0 && onProceedSelected && (
+              <button
+                type="button"
+                onClick={onProceedSelected}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition cursor-pointer whitespace-nowrap"
+              >
+                <Send size={12} />
+                <span>Proceed ({selectedCandidateIds.length})</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -174,11 +187,13 @@ export default function CandidateSelectionTable({
                 </td>
               </tr>
             ) : (
-              filteredCandidates.map((c) => (
+              filteredCandidates.map((c) => {
+                const cid = String(c.id || c.candidateId || c._id || "");
+                return (
                 <tr
-                  key={c.id}
+                  key={cid}
                   className={`hover:bg-slate-50/70 transition-colors ${
-                    selectedCandidateIds.includes(c.id) ? "bg-blue-50/40" : ""
+                    selectedCandidateIds.includes(cid) ? "bg-blue-50/40" : ""
                   }`}
                 >
                   <td className="py-2 px-3 text-center">
@@ -192,8 +207,8 @@ export default function CandidateSelectionTable({
                     ) : (
                       <input
                         type="checkbox"
-                        checked={selectedCandidateIds.includes(c.id)}
-                        onChange={() => toggleSelection(c.id)}
+                        checked={selectedCandidateIds.includes(cid)}
+                        onChange={() => toggleSelection(cid)}
                         className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                       />
                     )}
@@ -214,7 +229,7 @@ export default function CandidateSelectionTable({
                       <div>
                         <div className="font-bold text-slate-900 flex items-center gap-1.5">
                           <span>{c.fullName}</span>
-                          <span className="text-[10px] font-mono text-slate-400">({c.id})</span>
+                          <span className="text-[10px] font-mono text-slate-400">({cid})</span>
                         </div>
                         <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
                           <span>Pass: {c.passportNumber || "N/A"}</span>
@@ -297,7 +312,7 @@ export default function CandidateSelectionTable({
                           <span>Track</span>
                         </Link>
                         <Link
-                          to={`/vendor/candidates/${c.id}`}
+                          to={`/vendor/candidates/${cid}`}
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
                         >
                           <Eye size={13} />
@@ -306,7 +321,7 @@ export default function CandidateSelectionTable({
                     ) : (
                       <button
                         type="button"
-                        onClick={() => onDirectAssign(c.id)}
+                        onClick={() => onDirectAssign(cid)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
                       >
                         <Send size={11} />
@@ -315,7 +330,8 @@ export default function CandidateSelectionTable({
                     )}
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

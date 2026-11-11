@@ -73,9 +73,13 @@ export default function InvoiceReceiptPage() {
   const loadData = async () => {
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const apps = await crmVendorService.getApplications();
       let app = (apps || []).find(
-        (a) => String(a.id) === String(appId) || String(a.applicationId) === String(appId)
+        (a) =>
+          String(a.id) === String(appId) ||
+          String(a.applicationId) === String(appId) ||
+          String(a._id) === String(appId)
       );
 
       if (!app) {
@@ -89,18 +93,32 @@ export default function InvoiceReceiptPage() {
       }
 
       if (app) {
-        setApplication(app);
+        const syncedMs = !app.milestonesOverridden
+          ? crmVendorService.syncAppMilestonesWithProject(app)
+          : [];
+        const activeMilestones =
+          syncedMs.length > 0
+            ? syncedMs
+            : app.processMilestones?.length
+            ? app.processMilestones
+            : app.paymentPlan?.milestones || [];
+        const normalizedApp = {
+          ...app,
+          processMilestones: activeMilestones,
+        };
+        setApplication(normalizedApp);
         const m =
-          (app.processMilestones || []).find(
+          activeMilestones.find(
             (item) => String(item.id) === String(milestoneId)
           ) ||
-          app.paymentPlan?.milestones?.find(
+          (app.paymentPlan?.milestones || []).find(
             (item) => String(item.id) === String(milestoneId)
           ) ||
-          app.processMilestones?.[0] ||
+          activeMilestones[0] ||
           app.paymentPlan?.milestones?.[0] || {
-            name: "Milestone 1: Candidate Selection",
-            amount: 25000,
+            name: "Milestone Deployment Payment",
+            amount: 0,
+            paymentAmount: 0,
           };
         setMilestone(m);
 
@@ -150,13 +168,17 @@ export default function InvoiceReceiptPage() {
   const currentMilestone = milestone || {};
 
   
-  const totalPlanAmount =
-    Number(app.paymentPlan?.totalAmount) ||
-    (app.paymentPlan?.milestones || []).reduce((sum, m) => sum + (Number(m.amount) || 0), 0) ||
-    (app.processMilestones || []).reduce((sum, m) => sum + (Number(m.amount || m.paymentAmount) || 0), 0) ||
-    65000;
+  const msList =
+    app.processMilestones?.length > 0
+      ? app.processMilestones
+      : app.paymentPlan?.milestones || [];
+  const msTotal = msList.reduce(
+    (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
+  const totalPlanAmount = msTotal > 0 ? msTotal : Number(app.paymentPlan?.totalAmount || 0);
 
-  const paidAmount = Number(currentMilestone.paymentAmount || currentMilestone.amount || 25000);
+  const paidAmount = Number(currentMilestone.paymentAmount ?? currentMilestone.amount ?? 0);
   const dueAmount = Math.max(0, totalPlanAmount - paidAmount);
 
   
@@ -177,7 +199,7 @@ export default function InvoiceReceiptPage() {
     .split("/").join("-");
 
   const seq = (app.id || "001").replace(/[^0-9]/g, "").slice(-4).padStart(4, "0") || "0001";
-  const receiptNo = `IG/REC/2026-${seq}`;
+  const receiptNo = currentMilestone.receiptNumber || `IG/REC/2026-${seq}`;
 
   const vendorCompanyName =
     vendor?.companyName ||

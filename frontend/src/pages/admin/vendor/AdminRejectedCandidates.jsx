@@ -1,37 +1,48 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   XCircle,
   Search,
   RotateCcw,
   Info,
-  Building2,
-  ExternalLink,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
-import { crmClientService } from "../../../services/crmClientService";
 
 export default function AdminRejectedCandidates() {
   const [rejectedApps, setRejectedApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadRejected = async () => {
+  const loadRejected = useCallback(async () => {
     try {
       setLoading(true);
       const data = await crmVendorService.getApplications();
-      const filtered = (data || []).filter((a) => a.status === "Rejected");
+      const filtered = (data || []).filter(
+        (a) => a.status === "Rejected" || a.recruitmentStage === "Rejected"
+      );
       setRejectedApps(filtered);
     } catch (err) {
       console.error("Failed to load rejected applications:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadRejected();
-  }, []);
+    const timer = setTimeout(() => {
+      loadRejected();
+    }, 0);
+    const handleRefresh = () => loadRejected();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadRejected]);
 
   const filtered = rejectedApps.filter((app) => {
     if (!searchQuery.trim()) return true;

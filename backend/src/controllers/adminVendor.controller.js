@@ -69,7 +69,11 @@ export const approveRegistration = asyncHandler(async (req, res) => {
       message: `Your vendor registration has been approved. Please log in to complete your compliance document submission.`,
       moduleScope: "VENDOR",
       targetVendorId: vendor.vendorId,
-      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: "/vendor/documents?tab=company",
+      },
     });
   } catch (err) {
     console.error("Notification creation error:", err.message);
@@ -159,6 +163,7 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     });
   }
 
+  vendor.documentVerified = true;
   vendor.status = "MOU Pending";
   vendor.onboardingStage = "MOU_SENT";
   vendor.mouStatus = "Sent";
@@ -194,10 +199,14 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
       actor: req.user,
       type: "DOCUMENT_UPDATE",
       title: `Official MOU Generated for ${vendor.companyName}`,
-      message: `Your compliance documents have been verified by ImmiGo Admin! Official MOU agreement has been issued. Please review, choose your signature option, and submit.`,
+      message: `Your compliance documents have been verified by ImmiGo Admin! Official MOU agreement has been issued. Please download, upload a signed copy, or digitally sign and submit for approval.`,
       moduleScope: "VENDOR",
       targetVendorId: vendor.vendorId,
-      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: "/vendor/documents?openMou=1",
+      },
     });
   } catch (err) {
     console.error("Notification creation error:", err.message);
@@ -235,8 +244,16 @@ export const requestDocCorrection = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Vendor not found");
   }
 
+  vendor.documentVerified = false;
   vendor.status = "Documents Correction Required";
   vendor.adminRemarks = remarks || "Please re-upload clearer copies of your compliance documents.";
+  if (Array.isArray(vendor.documents)) {
+    vendor.documents.forEach((d) => {
+      if (d.status !== "Verified") {
+        d.status = "Correction Required";
+      }
+    });
+  }
   await vendor.save();
 
   try {
@@ -247,7 +264,11 @@ export const requestDocCorrection = asyncHandler(async (req, res) => {
       message: `Admin has requested document corrections. Remarks: ${vendor.adminRemarks}`,
       moduleScope: "VENDOR",
       targetVendorId: vendor.vendorId,
-      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: "/vendor/documents?tab=company",
+      },
     });
   } catch (err) {
     console.error("Notification error:", err.message);
@@ -284,12 +305,21 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
   }
 
   vendor.status = "Active";
+  vendor.documentVerified = true;
   vendor.activationDate = new Date();
   vendor.verifiedAt = new Date();
   vendor.rejectionReason = "";
   vendor.onboardingStage = "COMPLETED";
   vendor.mouSigned = true;
   vendor.mouStatus = "Approved";
+  vendor.adminRemarks = "";
+  if (Array.isArray(vendor.documents)) {
+    vendor.documents.forEach((d) => {
+      if (!d.status || d.status === "Pending" || d.status === "Submitted") {
+        d.status = "Verified";
+      }
+    });
+  }
   await vendor.save();
 
   try {
@@ -311,7 +341,11 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
       message: `Congratulations! Your vendor partner account has been fully activated by ImmiGo Admin. You now have full access to candidate deployment and projects.`,
       moduleScope: "VENDOR",
       targetVendorId: vendor.vendorId,
-      metadata: { vendorId: vendor._id, vendorCode: vendor.vendorId },
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: "/vendor/documents",
+      },
     });
   } catch (err) {
     console.error("Notification error:", err.message);
@@ -349,10 +383,34 @@ export const requestMouCorrection = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Vendor not found");
   }
 
+  vendor.mouSigned = false;
   vendor.status = "MOU Correction Required";
   vendor.mouStatus = "Correction Required";
-  vendor.adminRemarks = remarks || "Please re-sign or re-upload your MOU.";
+  vendor.onboardingStage = "MOU_SENT";
+  vendor.adminRemarks =
+    remarks ||
+    (vendor.mouSignMethod === "upload"
+      ? "Please re-upload a clear signed & stamped MOU copy."
+      : "Please re-submit your signed MOU.");
   await vendor.save();
+
+  try {
+    await NotificationService.notifyStaffAction({
+      actor: req.user,
+      type: "DOCUMENT_UPDATE",
+      title: `MOU Re-upload Requested: ${vendor.companyName}`,
+      message: `Admin requested a re-upload/correction of your submitted MOU. Remarks: ${vendor.adminRemarks}`,
+      moduleScope: "VENDOR",
+      targetVendorId: vendor.vendorId,
+      metadata: {
+        vendorId: vendor._id,
+        vendorCode: vendor.vendorId,
+        link: "/vendor/documents?openMou=1",
+      },
+    });
+  } catch (err) {
+    console.error("Notification error:", err.message);
+  }
 
   await ActivityService.log({
     userType: "ADMIN",
@@ -388,7 +446,21 @@ export const rejectVendor = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Vendor not found");
   }
 
+  const wasMouStage =
+    [
+      "MOU Pending",
+      "Pending MOU Approval",
+      "MOU Under Review",
+      "MOU Correction Required",
+    ].includes(vendor.status) ||
+    ["Sent", "Signed", "Under Review", "Correction Required"].includes(vendor.mouStatus) ||
+    Boolean(vendor.mouSigned);
+
   vendor.status = "Rejected";
+  if (wasMouStage) {
+    vendor.mouStatus = "Rejected";
+    vendor.mouSigned = false;
+  }
   vendor.rejectionReason = reason || "Application requirements not fulfilled.";
   await vendor.save();
 

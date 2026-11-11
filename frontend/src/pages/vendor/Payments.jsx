@@ -1,29 +1,21 @@
-import React, { useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   CreditCard,
   Search,
   CheckCircle2,
   Clock,
-  AlertCircle,
   TrendingUp,
   Download,
-  Building2,
-  Eye,
   ChevronDown,
   ChevronUp,
-  Filter,
-  IndianRupee,
-  Calendar,
   ArrowRight,
-  ShieldCheck,
   ChevronRight,
   Layers,
-  } from "lucide-react";
+} from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
 export default function Payments() {
-  const [vendor, setVendor] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,21 +25,31 @@ export default function Payments() {
   
   const [expandedAppIds, setExpandedAppIds] = useState(new Set());
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
-      setVendor(curVendor);
 
+      await crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []);
       const apps = await crmVendorService.getApplications(curVendor?.id);
 
-      
+      const postSelectionStatuses = new Set([
+        "Selected",
+        "Completed",
+        "Processing",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Visa Allotted",
+        "Joined",
+        "Deployed",
+      ]);
+
       const selectedApps = (apps || []).filter(
-        (a) => ["Selected", "Completed"].includes(a.status)
+        (a) =>
+          postSelectionStatuses.has(a.status) ||
+          postSelectionStatuses.has(a.recruitmentStage)
       );
       setApplications(selectedApps);
     } catch (err) {
@@ -55,7 +57,25 @@ export default function Payments() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   const toggleExpand = (appId) => {
     setExpandedAppIds((prev) => {
@@ -68,26 +88,33 @@ export default function Payments() {
 
   
   const candidateAccounts = applications.map((app) => {
-    const milestones = app.processMilestones || [];
+    const syncedMs = !app.milestonesOverridden
+      ? crmVendorService.syncAppMilestonesWithProject(app)
+      : [];
+    const milestones =
+      syncedMs.length > 0
+        ? syncedMs
+        : app.processMilestones?.length
+        ? app.processMilestones
+        : app.paymentPlan?.milestones || [];
     let totalFee = 0;
     let paidAmount = 0;
-    let dueAmount = 0;
     let paidCount = 0;
-    let dueCount = 0;
 
     const parsedMilestones = milestones.map((m, idx) => {
-      const amt = Number(m.paymentAmount || m.amount || 0);
-      const isPaid = m.paymentStatus === "Approved";
-      const isSubmitted = m.paymentStatus === "Submitted";
+      const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+      const isPaid =
+        m.paymentStatus === "Approved" ||
+        m.status === "Paid" ||
+        m.status === "Completed";
+      const isSubmitted =
+        m.paymentStatus === "Submitted" || m.paymentStatus === "Pending Verification";
       const isDue = !isPaid && !isSubmitted && amt > 0 && m.paymentStatus !== "Not Required";
 
       totalFee += amt;
       if (isPaid) {
         paidAmount += amt;
         paidCount += 1;
-      } else {
-        dueAmount += amt;
-        if (isDue) dueCount += 1;
       }
 
       let method = "Online Gateway";
@@ -101,11 +128,11 @@ export default function Payments() {
         name: m.name,
         amount: amt,
         percentage: m.percentage || 0,
-        status: m.paymentStatus || "Due",
+        status: m.paymentStatus || m.status || "Due",
         isPaid,
         isSubmitted,
         isDue,
-        paymentDate: m.paymentDate || (isPaid ? "08/10/2026" : null),
+        paymentDate: m.paymentDate || null,
         paymentRef: m.paymentRef,
         method,
       };
@@ -116,7 +143,8 @@ export default function Payments() {
     const isPending = paidAmount === 0;
 
     return {
-      appId: app.id,
+      appId: app.id || app.applicationId || app._id,
+      rawApp: app,
       candidateId: app.candidateId,
       candidateName: app.candidateName || "Candidate",
       position: app.position || "Technician",
@@ -148,9 +176,6 @@ export default function Payments() {
   const dueAccountsCount = candidateAccounts.filter((c) => c.dueAmount > 0).length;
 
   
-  const [showAll, setShowAll] = useState(false);
-
-  
   const filteredAccounts = candidateAccounts.filter((cand) => {
     if (activeTab === "Paid" && cand.paidAmount <= 0) return false;
     if (activeTab === "Due" && cand.dueAmount <= 0) return false;
@@ -168,11 +193,6 @@ export default function Payments() {
     return true;
   });
 
-  const displayedAccounts =
-    showAll || searchQuery.trim() || activeTab !== "All"
-      ? filteredAccounts
-      : filteredAccounts.slice(0, 5);
-
   return (
     <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
       {}
@@ -186,7 +206,7 @@ export default function Payments() {
             Payments Ledger by Candidate
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Ek candidate ka pura process aur milestone payments ek sath yahan dekhein.
+            View each candidate's deployment progress, milestone payment breakdown, balances, and receipts.
           </p>
         </div>
 
@@ -348,7 +368,7 @@ export default function Payments() {
                       : 0;
 
                   return (
-                    <React.Fragment key={cand.appId}>
+                    <Fragment key={cand.appId}>
                       <tr className="hover:bg-slate-50/70 transition group">
                         {}
                         <td className="py-1.5 px-3">
@@ -440,7 +460,7 @@ export default function Payments() {
                                   <Clock size={10} className="text-amber-500" />
                                 )}
                                 <span className="truncate max-w-[80px]">M{m.index}</span>
-                                <span>₹{(m.amount / 1000).toFixed(0)}k</span>
+                                <span>₹{Number(m.amount || 0).toLocaleString()}</span>
                               </span>
                             ))}
                             {cand.milestones.length > 3 && (
@@ -494,6 +514,7 @@ export default function Payments() {
 
                             <Link
                               to={`/vendor/processing/${cand.appId}`}
+                              state={{ application: cand.rawApp }}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer"
                             >
                               <span>Timeline & Pay</span>
@@ -568,6 +589,7 @@ export default function Payments() {
                                       ) : (
                                         <Link
                                           to={`/vendor/processing/${cand.appId}`}
+                                          state={{ application: cand.rawApp }}
                                           className="text-blue-600 font-bold hover:underline"
                                         >
                                           Pay Now →
@@ -581,7 +603,7 @@ export default function Payments() {
                           </td>
                         </tr>
                       )}
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })}
               </tbody>

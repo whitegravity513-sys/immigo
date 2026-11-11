@@ -7,6 +7,7 @@ import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFul
 import EditVendorModal from "../../../components/admin/modals/EditVendorModal.jsx";
 import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal.jsx";
 import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
+import { downloadUploadedDocument } from "../../../utils/printDocument.js";
 import {
   AdminRejectVendorModal,
   AdminAddVendorModal,
@@ -45,9 +46,17 @@ const DEFAULT_NEW_VENDOR = {
   monthlyCapacity: "50",
   password: "",
   tradeLicenseDocName: "",
+  tradeLicenseDocUrl: "",
+  tradeLicenseDocSize: "",
   recruitmentLicenseDocName: "",
+  recruitmentLicenseDocUrl: "",
+  recruitmentLicenseDocSize: "",
   gstDocName: "",
+  gstDocUrl: "",
+  gstDocSize: "",
   panDocName: "",
+  panDocUrl: "",
+  panDocSize: "",
 };
 
 const VENDOR_EXPORT_FIELDS = [
@@ -73,9 +82,13 @@ const VENDOR_EXPORT_FIELDS = [
 
 export default function AdminVendorsList() {
   const [vendors, setVendors] = useState([]);
-  const [candidates, setCandidates] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [availableProjects, setAvailableProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentMonthYear] = useState(() => {
+    const now = new Date();
+    return { month: now.getMonth(), year: now.getFullYear() };
+  });
 
   const [showAddVendorModal, setShowAddVendorModal] = useState(false);
   const [addVendorLoading, setAddVendorLoading] = useState(false);
@@ -124,18 +137,27 @@ export default function AdminVendorsList() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [previewCandidate, setPreviewCandidate] = useState(null);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [vData, cData, aData] = await Promise.all([
+      const [vData, aData, pData] = await Promise.all([
         crmVendorService.getVendors(),
-        crmVendorService.getCandidates(),
         crmVendorService.getApplications(),
+        crmVendorService.getAvailableProjects().catch(() => []),
       ]);
-      setVendors(vData || []);
-      setCandidates(cData || []);
+      const nextVendors = vData || [];
+      setVendors(nextVendors);
       setApplications(aData || []);
+      setAvailableProjects(pData || []);
+      setSelectedVendor((prev) => {
+        if (!prev) return prev;
+        const prevKey = prev.id || prev.vendorId || prev._id;
+        return (
+          nextVendors.find((v) => (v.id || v.vendorId || v._id) === prevKey) || prev
+        );
+      });
     } catch (err) {
       console.error("Failed to load vendor management data:", err);
     } finally {
@@ -159,11 +181,24 @@ export default function AdminVendorsList() {
     else if (!tabParam || tabParam === "all") setStatusFilter("All");
 
     const vendorParam = searchParams.get("vendorId");
+    const viewParam = searchParams.get("view");
     if (vendorParam && vendors.length > 0) {
-      const target = vendors.find((v) => v.id === vendorParam || v.vendorId === vendorParam);
+      const normalizedParam = String(vendorParam).trim().toLowerCase();
+      const target = vendors.find((v) =>
+        [v.id, v.vendorId, v._id].some((k) => k && String(k).trim().toLowerCase() === normalizedParam)
+      );
       if (target) {
         setSelectedVendor(target);
-        if (searchParams.get("view") === "docs") setShowDocsPage(true);
+        if (viewParam === "docs") {
+          setShowDocsPage(true);
+          setShowViewMouPage(false);
+        } else if (viewParam === "mou") {
+          setShowDocsPage(false);
+          setShowViewMouPage(true);
+        } else {
+          setShowDocsPage(false);
+          setShowViewMouPage(false);
+        }
       }
     }
   }, [searchParams, vendors]);
@@ -184,26 +219,41 @@ export default function AdminVendorsList() {
   const filteredVendors = useMemo(() => {
     return vendors.filter((v) => {
       if (statusFilter === "Registered") {
+        const isApproved =
+          v.status === "Approved" || v.status === "Active" || v.mouStatus === "Approved";
         const isReg =
           v.status !== "Suspended" &&
           v.status !== "Rejected" &&
           !v.status?.includes("Rejected") &&
-          v.status !== "Approved" &&
-          v.status !== "Active" &&
-          v.mouStatus !== "Approved" &&
-          !v.mouSigned;
+          !isApproved;
         if (!isReg) return false;
       } else if (statusFilter === "Pending Verification") {
         const hasDocs = v.documentsUploaded === true || (Array.isArray(v.documents) && v.documents.length > 0);
-        const isDocReview = ["Under Review", "Documents Under Review", "Pending Verification"].includes(v.status);
+        const isDocReview = [
+          "Documents Pending",
+          "Under Review",
+          "Documents Under Review",
+          "Pending Verification",
+          "Documents Correction Required",
+        ].includes(v.status);
         if (!hasDocs || !isDocReview) return false;
       } else if (statusFilter === "MOU Pending") {
-        if (v.status === "MOU Pending" || v.status === "Pending MOU Approval" || v.mouStatus === "Sent") return true;
-        const isMouPending = (!v.mouSigned || v.mouStatus !== "Approved") && v.status !== "Rejected" && v.status !== "Suspended";
-        if (!isMouPending) return false;
+        if (
+          v.status === "MOU Pending" ||
+          v.status === "Pending MOU Approval" ||
+          v.status === "MOU Under Review" ||
+          v.status === "MOU Correction Required" ||
+          v.mouStatus === "Sent" ||
+          v.mouStatus === "Under Review" ||
+          v.onboardingStage === "MOU_SENT" ||
+          v.onboardingStage === "MOU_UNDER_REVIEW"
+        ) {
+          return true;
+        }
+        return false;
       } else if (statusFilter === "Approved") {
         const isApproved =
-          (v.status === "Approved" || v.status === "Active" || v.mouStatus === "Approved" || v.mouSigned === true) &&
+          (v.status === "Approved" || v.status === "Active" || v.mouStatus === "Approved") &&
           v.status !== "Suspended" &&
           v.status !== "Rejected" &&
           !v.status?.includes("Rejected");
@@ -223,9 +273,12 @@ export default function AdminVendorsList() {
       if (specFilter !== "All" && !v.specialization?.includes(specFilter)) return false;
 
       if (dateFilter === "This Month") {
-        const regDate = new Date(v.registeredAt || Date.now());
-        const now = new Date();
-        if (regDate.getMonth() !== now.getMonth() || regDate.getFullYear() !== now.getFullYear()) {
+        if (!v.registeredAt && !v.createdAt) return false;
+        const regDate = new Date(v.registeredAt || v.createdAt);
+        if (
+          regDate.getMonth() !== currentMonthYear.month ||
+          regDate.getFullYear() !== currentMonthYear.year
+        ) {
           return false;
         }
       }
@@ -244,7 +297,7 @@ export default function AdminVendorsList() {
 
       return true;
     });
-  }, [vendors, statusFilter, stateFilter, cityFilter, specFilter, dateFilter, searchQuery]);
+  }, [vendors, statusFilter, stateFilter, cityFilter, specFilter, dateFilter, searchQuery, currentMonthYear]);
 
   const handleUpdateAppStatus = async (appId, newStatus, reason = "") => {
     try {
@@ -259,14 +312,21 @@ export default function AdminVendorsList() {
   };
 
   const handleConfirmReassignProject = async (appId, targetProjId, targetPosition) => {
-    const targetProj = AVAILABLE_PROJECTS.find((p) => p.id === targetProjId) || AVAILABLE_PROJECTS[0];
+    const targetProj =
+      availableProjects.find((p) => String(p.id) === String(targetProjId)) ||
+      availableProjects[0];
+    if (!targetProj) {
+      alert("No active overseas project available for reassignment.");
+      return;
+    }
     try {
       const updatedApp = await crmVendorService.updateApplicationProject(appId, {
         projectId: targetProj.id,
         projectName: targetProj.projectName,
+        clientId: targetProj.clientId,
         clientName: targetProj.clientName,
         country: targetProj.country,
-        tradePosition: targetPosition,
+        position: targetPosition,
       });
       loadData();
       if (selectedCandidate) {
@@ -323,25 +383,7 @@ export default function AdminVendorsList() {
   };
 
   const handleDownloadDoc = (doc) => {
-    if (doc?.fileUrl && doc.fileUrl.startsWith("data:")) {
-      const a = document.createElement("a");
-      a.href = doc.fileUrl;
-      a.download = doc.fileName || `${doc.name || "document"}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return;
-    }
-    const content = `OFFICIAL STATUTORY DOCUMENT\n==========================\nDocument: ${doc?.name || doc?.type}\nFile Name: ${doc?.fileName || "document.pdf"}\nAgency: ${selectedVendor?.companyName || "Vendor Agency"}\nUploaded: ${doc?.uploadedAt || new Date().toISOString().split("T")[0]}\nStatus: ${doc?.status || "Verified"}`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = doc?.fileName || `${doc?.name || "document"}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadUploadedDocument(doc);
   };
 
   const handleSaveVendor = async (updatedData) => {
@@ -410,7 +452,7 @@ export default function AdminVendorsList() {
     try {
       await crmVendorService.holdRegistration(vendorId, remarks);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId)) {
         setSelectedVendor((prev) => ({ ...prev, status: "Registration On Hold", adminRemarks: remarks }));
       }
       alert("Vendor registration placed on hold.");
@@ -419,34 +461,23 @@ export default function AdminVendorsList() {
     }
   };
 
-  const handleApprove = async (vendorId) => {
-    try {
-      await crmVendorService.approveVendor(vendorId);
-      loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
-        setSelectedVendor((prev) => ({ ...prev, status: "Active" }));
-      }
-      alert("Vendor activated successfully.");
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
   const handleApproveDocsAndSendMou = async (vendorId) => {
     try {
       const res = await crmVendorService.approveDocsAndSendMou(vendorId);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId || selectedVendor._id === vendorId)) {
         setSelectedVendor((prev) => ({
           ...prev,
           status: "MOU Pending",
           mouStatus: "Sent",
-          mouDocument: res.vendor?.mouDocument || prev.mouDocument,
+          onboardingStage: "MOU_SENT",
+          documentVerified: true,
+          mouDocument: res?.mouDocument || res?.vendor?.mouDocument || prev.mouDocument,
         }));
       }
-      alert("Compliance documents verified! MOU auto-populated and sent to vendor successfully.");
+      alert("Compliance documents verified! MOU has been assigned to the vendor successfully.");
     } catch (err) {
-      alert(err.message || "Failed to verify documents and send MOU");
+      alert(err.message || "Failed to verify documents and assign MOU");
     }
   };
 
@@ -456,7 +487,7 @@ export default function AdminVendorsList() {
     try {
       await crmVendorService.requestDocCorrection(vendorId, remarks);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId || selectedVendor._id === vendorId)) {
         setSelectedVendor((prev) => ({ ...prev, status: "Documents Correction Required", adminRemarks: remarks }));
       }
       alert("Document correction requested from vendor.");
@@ -469,32 +500,45 @@ export default function AdminVendorsList() {
     try {
       await crmVendorService.approveMouAndActivate(vendorId);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId || selectedVendor._id === vendorId)) {
         setSelectedVendor((prev) => ({
           ...prev,
           status: "Active",
           mouStatus: "Approved",
+          onboardingStage: "COMPLETED",
+          documentVerified: true,
           mouSigned: true,
         }));
       }
-      alert("MOU approved and vendor activated successfully! The operational dashboard has been unlocked.");
+      alert("MOU verified & approved! Vendor account activated and full portal unlocked.");
     } catch (err) {
       alert(err.message || "Failed to activate vendor");
     }
   };
 
   const handleRequestMouCorrection = async (vendorId) => {
-    const remarks = prompt("Please enter the reason/correction required for the submitted MOU:");
-    if (!remarks) return;
+    const remarks = prompt(
+      "Enter reason for requesting MOU re-upload:",
+      "Please re-upload a clear signed & stamped MOU copy."
+    );
+    if (remarks === null) return;
+    const cleanRemarks = remarks.trim() || "Please re-upload a clear signed & stamped MOU copy.";
     try {
-      await crmVendorService.requestMouCorrection(vendorId, remarks);
+      await crmVendorService.requestMouCorrection(vendorId, cleanRemarks);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
-        setSelectedVendor((prev) => ({ ...prev, status: "MOU Correction Required", adminRemarks: remarks }));
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId || selectedVendor._id === vendorId)) {
+        setSelectedVendor((prev) => ({
+          ...prev,
+          status: "MOU Correction Required",
+          mouStatus: "Correction Required",
+          mouSigned: false,
+          onboardingStage: "MOU_SENT",
+          adminRemarks: cleanRemarks,
+        }));
       }
-      alert("MOU correction requested from vendor.");
+      alert("MOU re-upload request sent to vendor.");
     } catch (err) {
-      alert(err.message || "Failed to request MOU correction");
+      alert(err.message || "Failed to request MOU re-upload");
     }
   };
 
@@ -502,10 +546,10 @@ export default function AdminVendorsList() {
     try {
       await crmVendorService.suspendVendor(vendorId);
       loadData();
-      if (selectedVendor && selectedVendor.id === vendorId) {
+      if (selectedVendor && (selectedVendor.id === vendorId || selectedVendor.vendorId === vendorId || selectedVendor._id === vendorId)) {
         setSelectedVendor((prev) => ({
           ...prev,
-          status: prev.status === "Suspended" ? "Approved" : "Suspended",
+          status: prev.status === "Suspended" ? "Active" : "Suspended",
         }));
       }
     } catch (err) {
@@ -519,14 +563,19 @@ export default function AdminVendorsList() {
       return;
     }
     try {
-      await crmVendorService.rejectVendor(selectedVendor.id, rejectionReason);
+      const vId = selectedVendor.id || selectedVendor.vendorId || selectedVendor._id;
+      const updated = await crmVendorService.rejectVendor(vId, rejectionReason);
       setShowRejectModal(false);
+      setShowViewMouPage(false);
       setRejectionReason("");
       loadData();
       if (selectedVendor) {
         setSelectedVendor((prev) => ({
           ...prev,
+          ...(updated || {}),
           status: "Rejected",
+          mouStatus: updated?.mouStatus || (prev.mouSigned || prev.mouStatus === "Under Review" ? "Rejected" : prev.mouStatus),
+          mouSigned: false,
           rejectionReason,
         }));
       }
@@ -549,44 +598,65 @@ export default function AdminVendorsList() {
     }
 
     if (newVendorForm.phone.trim()) {
-      const digitsOnly = newVendorForm.phone.replace(/[\s\-\(\)\+]/g, "");
+      const digitsOnly = newVendorForm.phone.replace(/[-\s()+]/g, "");
       if (!/^\d{10,15}$/.test(digitsOnly)) {
         alert("Please enter a valid 10 to 15 digit phone number.");
         return;
       }
     }
 
+    const todayStr = new Date().toISOString().split("T")[0];
+    const inferMime = (url = "") => {
+      const m = String(url).match(/^data:([^;]+)/i);
+      return m ? m[1] : "";
+    };
     const docList = [];
-    if (newVendorForm.tradeLicenseDocName?.trim()) {
+    if (newVendorForm.tradeLicenseDocUrl) {
       docList.push({
         name: "Trade License / Incorporation Certificate",
-        fileName: newVendorForm.tradeLicenseDocName.trim(),
-        size: "1.8 MB",
+        fileName: newVendorForm.tradeLicenseDocName,
+        fileUrl: newVendorForm.tradeLicenseDocUrl,
+        mimeType: inferMime(newVendorForm.tradeLicenseDocUrl),
+        size: newVendorForm.tradeLicenseDocSize || "—",
         type: "Registration",
+        status: "Pending",
+        uploadedAt: todayStr,
       });
     }
-    if (newVendorForm.recruitmentLicenseDocName?.trim()) {
+    if (newVendorForm.recruitmentLicenseDocUrl) {
       docList.push({
         name: "Recruitment License",
-        fileName: newVendorForm.recruitmentLicenseDocName.trim(),
-        size: "1.4 MB",
+        fileName: newVendorForm.recruitmentLicenseDocName,
+        fileUrl: newVendorForm.recruitmentLicenseDocUrl,
+        mimeType: inferMime(newVendorForm.recruitmentLicenseDocUrl),
+        size: newVendorForm.recruitmentLicenseDocSize || "—",
         type: "License",
+        status: "Pending",
+        uploadedAt: todayStr,
       });
     }
-    if (newVendorForm.gstDocName?.trim()) {
+    if (newVendorForm.gstDocUrl) {
       docList.push({
         name: "GST Certificate",
-        fileName: newVendorForm.gstDocName.trim(),
-        size: "950 KB",
+        fileName: newVendorForm.gstDocName,
+        fileUrl: newVendorForm.gstDocUrl,
+        mimeType: inferMime(newVendorForm.gstDocUrl),
+        size: newVendorForm.gstDocSize || "—",
         type: "Tax",
+        status: "Pending",
+        uploadedAt: todayStr,
       });
     }
-    if (newVendorForm.panDocName?.trim()) {
+    if (newVendorForm.panDocUrl) {
       docList.push({
         name: "PAN Card",
-        fileName: newVendorForm.panDocName.trim(),
-        size: "720 KB",
+        fileName: newVendorForm.panDocName,
+        fileUrl: newVendorForm.panDocUrl,
+        mimeType: inferMime(newVendorForm.panDocUrl),
+        size: newVendorForm.panDocSize || "—",
         type: "Tax",
+        status: "Pending",
+        uploadedAt: todayStr,
       });
     }
 
@@ -614,116 +684,286 @@ export default function AdminVendorsList() {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  if (selectedVendor && selectedCandidate) {
-    return (
-      <VendorCandidateDossierView
+  const clearVendorSelectionParams = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("vendorId");
+    next.delete("view");
+    setSearchParams(next, { replace: true });
+  };
+
+  const sharedModals = (
+    <>
+      <AdminRejectVendorModal
+        isOpen={showRejectModal && Boolean(selectedVendor)}
+        onClose={() => setShowRejectModal(false)}
         selectedVendor={selectedVendor}
-        selectedCandidate={selectedCandidate}
-        applications={applications}
-        availableProjects={AVAILABLE_PROJECTS}
-        onBackToVendor={() => setSelectedCandidate(null)}
-        onBackToAll={() => {
-          setSelectedCandidate(null);
-          setSelectedVendor(null);
-          setShowDocsPage(false);
-        }}
-        onUpdateAppStatus={handleUpdateAppStatus}
-        onConfirmReassignProject={handleConfirmReassignProject}
-        onAcceptCandDoc={handleAcceptCandDoc}
-        onConfirmRejectCandDoc={handleConfirmRejectCandDoc}
-        onAcceptAllCandDocs={handleAcceptAllCandDocs}
+        rejectionReason={rejectionReason}
+        setRejectionReason={setRejectionReason}
+        onConfirmReject={handleConfirmReject}
       />
-    );
-  }
+
+      <AdminAddVendorModal
+        isOpen={showAddVendorModal}
+        onClose={() => setShowAddVendorModal(false)}
+        newVendorForm={newVendorForm}
+        setNewVendorForm={setNewVendorForm}
+        handleAddVendorSubmit={handleAddVendorSubmit}
+        addVendorLoading={addVendorLoading}
+      />
+
+      <AdminDispatchedCredentialsModal
+        dispatchedVendor={dispatchedVendor}
+        onClose={() => setDispatchedVendor(null)}
+        copiedLink={copiedLink}
+        copyVendorLoginUrl={copyVendorLoginUrl}
+      />
+
+      <EditVendorModal
+        isOpen={Boolean(editingVendor)}
+        onClose={() => setEditingVendor(null)}
+        vendor={editingVendor}
+        onSave={handleSaveVendor}
+        saving={savingVendor}
+      />
+
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTargetVendor)}
+        onClose={() => setDeleteTargetVendor(null)}
+        onConfirm={handleDeleteVendor}
+        title="Delete Vendor Organization"
+        message="Are you sure you want to permanently remove this vendor partner? This action will delete the vendor account and revoke portal access."
+        itemName={
+          deleteTargetVendor
+            ? `${deleteTargetVendor.companyName} (${deleteTargetVendor.id || deleteTargetVendor.vendorId})`
+            : ""
+        }
+        loading={deletingVendor}
+        confirmText="Delete Vendor"
+      />
+
+      <VendorVerificationSuccessModal
+        modalState={verificationSuccessModal}
+        onClose={() => setVerificationSuccessModal({ open: false, vendorName: "", vendorId: "", email: "" })}
+        onVerifyDocuments={(vId) => {
+          setVerificationSuccessModal({ open: false, vendorName: "", vendorId: "", email: "" });
+          const vObj = vendors.find((v) => v.id === vId || v.vendorId === vId);
+          if (vObj) {
+            setSelectedVendor(vObj);
+            setShowDocsPage(true);
+          }
+        }}
+      />
+
+      <ExcelExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        title="Export Vendor Agencies"
+        subtitle="Select the fields you want to include in the exported vendor list."
+        availableFields={VENDOR_EXPORT_FIELDS}
+        data={vendors}
+        filenamePrefix="Vendors_Directory"
+        sheetName="Vendors"
+      />
+    </>
+  );
 
   if (previewingDoc) {
     return (
-      <DocumentViewerFullPage
-        doc={previewingDoc}
-        vendor={selectedVendor}
-        onBack={() => setPreviewingDoc(null)}
-      />
+      <>
+        <DocumentViewerFullPage
+          doc={previewingDoc}
+          vendor={selectedVendor}
+          candidate={previewCandidate}
+          onBack={() => {
+            setPreviewingDoc(null);
+            setPreviewCandidate(null);
+          }}
+        />
+        {sharedModals}
+      </>
+    );
+  }
+
+  if (selectedVendor && selectedCandidate) {
+    return (
+      <>
+        <VendorCandidateDossierView
+          selectedVendor={selectedVendor}
+          selectedCandidate={selectedCandidate}
+          applications={applications}
+          availableProjects={availableProjects}
+          onBackToVendor={() => setSelectedCandidate(null)}
+          onBackToAll={() => {
+            setSelectedCandidate(null);
+            setSelectedVendor(null);
+            setShowDocsPage(false);
+            clearVendorSelectionParams();
+          }}
+          onUpdateAppStatus={handleUpdateAppStatus}
+          onConfirmReassignProject={handleConfirmReassignProject}
+          onAcceptCandDoc={handleAcceptCandDoc}
+          onConfirmRejectCandDoc={handleConfirmRejectCandDoc}
+          onAcceptAllCandDocs={handleAcceptAllCandDocs}
+          onPreviewDoc={(doc) => {
+            setPreviewCandidate(selectedCandidate);
+            setPreviewingDoc(doc);
+          }}
+        />
+        {sharedModals}
+      </>
     );
   }
 
   if (selectedVendor && showDocsPage) {
     return (
-      <VendorDocumentsVaultView
-        selectedVendor={selectedVendor}
-        onBack={() => setShowDocsPage(false)}
-        onBackToAll={() => {
-          setSelectedVendor(null);
-          setShowDocsPage(false);
-        }}
-        onEditVendor={(v) => setEditingVendor(v)}
-        onDeleteVendor={(v) => setDeleteTargetVendor(v)}
-        onPreviewDoc={(doc) => setPreviewingDoc(doc)}
-        onDownloadDoc={handleDownloadDoc}
-        onApproveDocsAndSendMou={handleApproveDocsAndSendMou}
-      />
+      <>
+        <VendorDocumentsVaultView
+          selectedVendor={selectedVendor}
+          onBack={() => {
+            setShowDocsPage(false);
+            const next = new URLSearchParams(searchParams);
+            next.delete("view");
+            setSearchParams(next, { replace: true });
+          }}
+          onBackToAll={() => {
+            setSelectedVendor(null);
+            setShowDocsPage(false);
+            clearVendorSelectionParams();
+          }}
+          onEditVendor={(v) => setEditingVendor(v)}
+          onDeleteVendor={(v) => setDeleteTargetVendor(v)}
+          onPreviewDoc={(doc) => setPreviewingDoc(doc)}
+          onDownloadDoc={handleDownloadDoc}
+          onApproveDocsAndSendMou={handleApproveDocsAndSendMou}
+        />
+        {sharedModals}
+      </>
     );
   }
 
   if (selectedVendor && !showDocsPage) {
     if (showDraftMouPage) {
       return (
-        <MouFullPageView
-          mode="draft"
-          vendor={selectedVendor}
-          onBack={() => setShowDraftMouPage(false)}
-          onSuccess={(payload) => {
-            setSelectedVendor((prev) => ({
-              ...prev,
-              status: "MOU Pending",
-              mouStatus: "Sent",
-              mouDocument: {
-                ...(prev?.mouDocument || {}),
-                ...payload,
-              },
-            }));
-            setShowDraftMouPage(false);
-            loadData();
-          }}
-        />
+        <>
+          <MouFullPageView
+            mode="draft"
+            vendor={selectedVendor}
+            onBack={() => setShowDraftMouPage(false)}
+            onSuccess={(payload) => {
+              setSelectedVendor((prev) => ({
+                ...prev,
+                status: "MOU Pending",
+                mouStatus: "Sent",
+                mouDocument: {
+                  ...(prev?.mouDocument || {}),
+                  ...payload,
+                },
+              }));
+              setShowDraftMouPage(false);
+              loadData();
+            }}
+          />
+          {sharedModals}
+        </>
       );
     }
 
     if (showViewMouPage) {
+      const isSelectedRejected = Boolean(
+        ["Rejected", "Registration Rejected", "MOU Rejected"].includes(selectedVendor.status) ||
+          selectedVendor.mouStatus === "Rejected"
+      );
+      const isSelectedMouApproved = Boolean(
+        !isSelectedRejected &&
+          (selectedVendor.status === "Approved" ||
+            selectedVendor.status === "Active" ||
+            selectedVendor.mouStatus === "Approved" ||
+            selectedVendor.onboardingStage === "COMPLETED" ||
+            selectedVendor.onboardingStage === "ACTIVE")
+      );
+      const isSelectedMouUnderReview = Boolean(
+        !isSelectedRejected &&
+          !isSelectedMouApproved &&
+          selectedVendor.mouStatus !== "Correction Required" &&
+          selectedVendor.status !== "MOU Correction Required" &&
+          (selectedVendor.status === "Pending MOU Approval" ||
+            selectedVendor.status === "MOU Under Review" ||
+            selectedVendor.mouStatus === "Under Review" ||
+            selectedVendor.mouSigned ||
+            selectedVendor.mouStatus === "Signed" ||
+            selectedVendor.onboardingStage === "MOU_UNDER_REVIEW" ||
+            selectedVendor.onboardingStage === "MOU_SIGNED" ||
+            Boolean(selectedVendor.signedMou?.signedAt))
+      );
       return (
-        <MouFullPageView
-          mode="preview"
-          vendor={selectedVendor}
-          onBack={() => setShowViewMouPage(false)}
-          onApprove={() => {
-            handleApprove(selectedVendor.id);
-            setShowViewMouPage(false);
-          }}
-        />
+        <>
+          <MouFullPageView
+            mode="preview"
+            viewerRole="admin"
+            vendor={selectedVendor}
+            onBack={() => {
+              setShowViewMouPage(false);
+              const next = new URLSearchParams(searchParams);
+              next.delete("view");
+              setSearchParams(next, { replace: true });
+            }}
+            onApprove={
+              !isSelectedMouApproved && isSelectedMouUnderReview
+                ? async () => {
+                    await handleApproveMouAndActivate(
+                      selectedVendor.id || selectedVendor.vendorId || selectedVendor._id
+                    );
+                    setShowViewMouPage(false);
+                  }
+                : undefined
+            }
+            onRequestCorrection={
+              !isSelectedMouApproved && isSelectedMouUnderReview
+                ? async () => {
+                    await handleRequestMouCorrection(
+                      selectedVendor.id || selectedVendor.vendorId || selectedVendor._id
+                    );
+                    setShowViewMouPage(false);
+                  }
+                : undefined
+            }
+            onReject={
+              !isSelectedMouApproved && isSelectedMouUnderReview
+                ? () => setShowRejectModal(true)
+                : undefined
+            }
+          />
+          {sharedModals}
+        </>
       );
     }
 
     return (
-      <VendorDetailView
-        selectedVendor={selectedVendor}
-        onBack={() => {
-          setSelectedVendor(null);
-          setShowDocsPage(false);
-        }}
-        onEditVendor={(v) => setEditingVendor(v)}
-        onDeleteVendor={(v) => setDeleteTargetVendor(v)}
-        onShowDocsPage={() => setShowDocsPage(true)}
-        onToggleSuspend={handleToggleSuspend}
-        onApproveRegistration={handleApproveRegistration}
-        onHoldRegistration={handleHoldRegistration}
-        onOpenRejectModal={() => setShowRejectModal(true)}
-        onApproveDocsAndSendMou={handleApproveDocsAndSendMou}
-        onRequestDocCorrection={handleRequestDocCorrection}
-        onShowViewMouPage={() => setShowViewMouPage(true)}
-        onApproveMouAndActivate={handleApproveMouAndActivate}
-        onRequestMouCorrection={handleRequestMouCorrection}
-        onPreviewDoc={(doc) => setPreviewingDoc(doc)}
-        onDownloadDoc={handleDownloadDoc}
-      />
+      <>
+        <VendorDetailView
+          selectedVendor={selectedVendor}
+          onBack={() => {
+            setSelectedVendor(null);
+            setShowDocsPage(false);
+            clearVendorSelectionParams();
+          }}
+          onEditVendor={(v) => setEditingVendor(v)}
+          onDeleteVendor={(v) => setDeleteTargetVendor(v)}
+          onShowDocsPage={() => setShowDocsPage(true)}
+          onToggleSuspend={handleToggleSuspend}
+          onApproveRegistration={handleApproveRegistration}
+          onHoldRegistration={handleHoldRegistration}
+          onOpenRejectModal={() => setShowRejectModal(true)}
+          onApproveDocsAndSendMou={handleApproveDocsAndSendMou}
+          onRequestDocCorrection={handleRequestDocCorrection}
+          onShowViewMouPage={() => setShowViewMouPage(true)}
+          onApproveMouAndActivate={handleApproveMouAndActivate}
+          onRequestMouCorrection={handleRequestMouCorrection}
+          onPreviewDoc={(doc) => setPreviewingDoc(doc)}
+          onDownloadDoc={handleDownloadDoc}
+        />
+        {sharedModals}
+      </>
     );
   }
 
@@ -808,77 +1048,7 @@ export default function AdminVendorsList() {
         }}
       />
 
-      <AdminRejectVendorModal
-        isOpen={showRejectModal && Boolean(selectedVendor)}
-        onClose={() => setShowRejectModal(false)}
-        selectedVendor={selectedVendor}
-        rejectionReason={rejectionReason}
-        setRejectionReason={setRejectionReason}
-        onConfirmReject={handleConfirmReject}
-      />
-
-      <AdminAddVendorModal
-        isOpen={showAddVendorModal}
-        onClose={() => setShowAddVendorModal(false)}
-        newVendorForm={newVendorForm}
-        setNewVendorForm={setNewVendorForm}
-        handleAddVendorSubmit={handleAddVendorSubmit}
-        addVendorLoading={addVendorLoading}
-      />
-
-      <AdminDispatchedCredentialsModal
-        dispatchedVendor={dispatchedVendor}
-        onClose={() => setDispatchedVendor(null)}
-        copiedLink={copiedLink}
-        copyVendorLoginUrl={copyVendorLoginUrl}
-      />
-
-      <EditVendorModal
-        isOpen={Boolean(editingVendor)}
-        onClose={() => setEditingVendor(null)}
-        vendor={editingVendor}
-        onSave={handleSaveVendor}
-        saving={savingVendor}
-      />
-
-      <DeleteConfirmModal
-        isOpen={Boolean(deleteTargetVendor)}
-        onClose={() => setDeleteTargetVendor(null)}
-        onConfirm={handleDeleteVendor}
-        title="Delete Vendor Organization"
-        message="Are you sure you want to permanently remove this vendor partner? This action will delete the vendor account and revoke portal access."
-        itemName={
-          deleteTargetVendor
-            ? `${deleteTargetVendor.companyName} (${deleteTargetVendor.id || deleteTargetVendor.vendorId})`
-            : ""
-        }
-        loading={deletingVendor}
-        confirmText="Delete Vendor"
-      />
-
-      <VendorVerificationSuccessModal
-        modalState={verificationSuccessModal}
-        onClose={() => setVerificationSuccessModal({ open: false, vendorName: "", vendorId: "", email: "" })}
-        onVerifyDocuments={(vId) => {
-          setVerificationSuccessModal({ open: false, vendorName: "", vendorId: "", email: "" });
-          const vObj = vendors.find((v) => v.id === vId || v.vendorId === vId);
-          if (vObj) {
-            setSelectedVendor(vObj);
-            setShowDocsPage(true);
-          }
-        }}
-      />
-
-      <ExcelExportModal
-        isOpen={exportModalOpen}
-        onClose={() => setExportModalOpen(false)}
-        title="Export Vendor Agencies"
-        subtitle="Select the fields you want to include in the exported vendor list."
-        availableFields={VENDOR_EXPORT_FIELDS}
-        data={vendors}
-        filenamePrefix="Vendors_Directory"
-        sheetName="Vendors"
-      />
+      {sharedModals}
     </div>
   );
 }

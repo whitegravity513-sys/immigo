@@ -10,6 +10,7 @@ import { AVATARS } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRVisaAllottedSection({
   applications = [],
+  hideProjectNames = false,
   openCandidateModal,
   navigateByTag,
 }) {
@@ -35,7 +36,7 @@ export default function VendorHRVisaAllottedSection({
       cand.candidateName?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
-      cand.projectName?.toLowerCase().includes(q) ||
+      (!hideProjectNames && cand.projectName?.toLowerCase().includes(q)) ||
       cand.visaDetails?.visaNumber?.toLowerCase().includes(q) ||
       cand.visaNumber?.toLowerCase().includes(q)
     );
@@ -95,7 +96,7 @@ export default function VendorHRVisaAllottedSection({
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>
-                <th className="py-3 px-4">Trade & Project</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Trade & Agency" : "Trade & Project"}</th>
                 <th className="py-3 px-3 text-center">Stage Tag</th>
                 <th className="py-3 px-4">Visa Reference #</th>
                 <th className="py-3 px-4">Flight / Deployment</th>
@@ -123,7 +124,17 @@ export default function VendorHRVisaAllottedSection({
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="font-bold text-slate-800 truncate">{cand.jobTitle || "Specialist"}</div>
-                    <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Project"}</div>
+                    {!hideProjectNames ? (
+                      <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">
+                        {cand.projectName || "Project"}
+                      </div>
+                    ) : (
+                      cand.vendorName && (
+                        <div className="text-[11px] text-indigo-700 font-medium truncate mt-0.5">
+                          {cand.vendorName}
+                        </div>
+                      )
+                    )}
                   </td>
                   <td className="py-3.5 px-3 text-center">
                     <button
@@ -138,7 +149,7 @@ export default function VendorHRVisaAllottedSection({
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="font-mono font-bold text-slate-900 text-xs">
-                      {cand.visaDetails?.visaNumber || cand.visaNumber || "DXB-2026-98124"}
+                      {cand.visaDetails?.visaNumber || cand.visaNumber || "Pending Issuance"}
                     </div>
                     <div className="text-[10.5px] text-slate-400 mt-0.5">
                       Status: {cand.visaDetails?.visaStatus || "Visa Issued"}

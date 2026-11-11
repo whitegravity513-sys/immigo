@@ -20,6 +20,25 @@ export function AdminAddVendorModal({
 }) {
   if (!isOpen) return null;
 
+  const handleFileAttach = (e, nameKey, urlKey, sizeKey) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size must be 5 MB or less.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setNewVendorForm((prev) => ({
+        ...prev,
+        [nameKey]: file.name,
+        [urlKey]: String(reader.result || ""),
+        [sizeKey]: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative max-h-[90vh] overflow-y-auto font-sans">
@@ -391,35 +410,26 @@ export function AdminAddVendorModal({
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Trade License / Reg Cert Doc</span>
-                  <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PDF / Image</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
+                    readOnly
                     value={newVendorForm.tradeLicenseDocName}
-                    onChange={(e) =>
-                      setNewVendorForm({ ...newVendorForm, tradeLicenseDocName: e.target.value })
-                    }
-                    placeholder="Trade_License_Certificate.pdf"
-                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white font-mono"
+                    placeholder="Choose file to upload"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-slate-50 font-mono"
                   />
                   <label className="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 cursor-pointer flex items-center gap-1.5 shrink-0 transition text-xs shadow-2xs">
                     <UploadCloud size={16} />
                     <span>Upload</span>
                     <input
                       type="file"
-                      accept=".pdf"
+                      accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.type !== "application/pdf") {
-                            alert("Please upload a PDF file.");
-                            return;
-                          }
-                          setNewVendorForm((prev) => ({ ...prev, tradeLicenseDocName: file.name }));
-                        }
-                      }}
+                      onChange={(e) =>
+                        handleFileAttach(e, "tradeLicenseDocName", "tradeLicenseDocUrl", "tradeLicenseDocSize")
+                      }
                     />
                   </label>
                 </div>
@@ -428,35 +438,26 @@ export function AdminAddVendorModal({
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>Recruitment License Document</span>
-                  <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PDF / Image</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
+                    readOnly
                     value={newVendorForm.recruitmentLicenseDocName}
-                    onChange={(e) =>
-                      setNewVendorForm({ ...newVendorForm, recruitmentLicenseDocName: e.target.value })
-                    }
-                    placeholder="Recruitment_Agency_License.pdf"
-                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white font-mono"
+                    placeholder="Choose file to upload"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-slate-50 font-mono"
                   />
                   <label className="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 cursor-pointer flex items-center gap-1.5 shrink-0 transition text-xs shadow-2xs">
                     <UploadCloud size={16} />
                     <span>Upload</span>
                     <input
                       type="file"
-                      accept=".pdf"
+                      accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.type !== "application/pdf") {
-                            alert("Please upload a PDF file.");
-                            return;
-                          }
-                          setNewVendorForm((prev) => ({ ...prev, recruitmentLicenseDocName: file.name }));
-                        }
-                      }}
+                      onChange={(e) =>
+                        handleFileAttach(e, "recruitmentLicenseDocName", "recruitmentLicenseDocUrl", "recruitmentLicenseDocSize")
+                      }
                     />
                   </label>
                 </div>
@@ -467,35 +468,26 @@ export function AdminAddVendorModal({
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
                   <span>GST Certificate Document</span>
-                  <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PDF / Image</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
+                    readOnly
                     value={newVendorForm.gstDocName}
-                    onChange={(e) =>
-                      setNewVendorForm({ ...newVendorForm, gstDocName: e.target.value })
-                    }
-                    placeholder="GSTIN_Registration_Certificate.pdf"
-                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white font-mono"
+                    placeholder="Choose file to upload"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-slate-50 font-mono"
                   />
                   <label className="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 cursor-pointer flex items-center gap-1.5 shrink-0 transition text-xs shadow-2xs">
                     <UploadCloud size={16} />
                     <span>Upload</span>
                     <input
                       type="file"
-                      accept=".pdf"
+                      accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.type !== "application/pdf") {
-                            alert("Please upload a PDF file.");
-                            return;
-                          }
-                          setNewVendorForm((prev) => ({ ...prev, gstDocName: file.name }));
-                        }
-                      }}
+                      onChange={(e) =>
+                        handleFileAttach(e, "gstDocName", "gstDocUrl", "gstDocSize")
+                      }
                     />
                   </label>
                 </div>
@@ -503,37 +495,27 @@ export function AdminAddVendorModal({
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                  <span>PAN Card Copy Document <span className="text-rose-500">*</span></span>
-                  <span className="text-[10px] text-slate-400 font-normal">PDF Only</span>
+                  <span>PAN Card Copy Document</span>
+                  <span className="text-[10px] text-slate-400 font-normal">PDF / Image</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    required
+                    readOnly
                     value={newVendorForm.panDocName}
-                    onChange={(e) =>
-                      setNewVendorForm({ ...newVendorForm, panDocName: e.target.value })
-                    }
-                    placeholder="PAN_Card_Copy.pdf"
-                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white font-mono"
+                    placeholder="Choose file to upload"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-slate-50 font-mono"
                   />
                   <label className="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold border border-blue-200 cursor-pointer flex items-center gap-1.5 shrink-0 transition text-xs shadow-2xs">
                     <UploadCloud size={16} />
                     <span>Upload</span>
                     <input
                       type="file"
-                      accept=".pdf"
+                      accept=".pdf,.png,.jpg,.jpeg"
                       className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (file.type !== "application/pdf") {
-                            alert("Please upload a PDF file.");
-                            return;
-                          }
-                          setNewVendorForm((prev) => ({ ...prev, panDocName: file.name }));
-                        }
-                      }}
+                      onChange={(e) =>
+                        handleFileAttach(e, "panDocName", "panDocUrl", "panDocSize")
+                      }
                     />
                   </label>
                 </div>

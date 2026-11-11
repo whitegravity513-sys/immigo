@@ -1,56 +1,81 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Send,
   Search,
-  CheckCircle2,
-  XCircle,
   Clock,
-  Building2,
-  ArrowRight,
   ArrowLeft,
   Eye,
   FileText,
   Calendar,
-  MapPin,
   UserCheck,
-  MessageSquare,
-  Award,
   Download,
   Check,
-  X,
-  Sliders,
+  Printer,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 import DateInput from "../../../components/common/DateInput.jsx";
+import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
+import { downloadUploadedDocument, printUploadedDocument } from "../../../utils/printDocument.js";
 
 export default function AdminSubmissionsList() {
   const [submissions, setSubmissions] = useState([]);
+  const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [reviewSub, setReviewSub] = useState(null);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
   const [shortlistRemark, setShortlistRemark] = useState("");
   const [interviewDate, setInterviewDate] = useState("");
   const [interviewTime, setInterviewTime] = useState("10:00 AM");
   const [interviewLocation, setInterviewLocation] = useState("Client Office / Video Call");
   const [interviewRemarks, setInterviewRemarks] = useState("");
+  const [holdRemark, setHoldRemark] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [docStatuses, setDocStatuses] = useState({});
 
-  useEffect(() => {
-    loadSubmissions();
-  }, []);
-
-  const loadSubmissions = async () => {
+  const loadSubmissions = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await crmVendorService.getApplications();
+      const [data, cData] = await Promise.all([
+        crmVendorService.getApplications(),
+        crmVendorService.getCandidates().catch(() => []),
+        crmVendorService.getAvailableProjects().catch(() => []),
+      ]);
       setSubmissions((data || []).filter(sub => sub.status !== "Rejected"));
+      setCandidates(Array.isArray(cData) ? cData : []);
     } catch (err) {
       console.error("Failed to load candidate submissions:", err);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadSubmissions();
+    }, 0);
+    const handleRefresh = () => loadSubmissions();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadSubmissions]);
+
+  const getSubmissionDocs = (sub) => {
+    if (!sub) return [];
+    if (Array.isArray(sub.documents) && sub.documents.length > 0) {
+      return sub.documents;
+    }
+    const matched = candidates.find(
+      (c) => c.id === sub.candidateId || c.candidateId === sub.candidateId
+    );
+    return Array.isArray(matched?.documents) ? matched.documents : [];
   };
 
   const handleOpenReview = (sub) => {
@@ -60,15 +85,11 @@ export default function AdminSubmissionsList() {
     setInterviewTime(sub.interviewDetails?.time || "10:00 AM");
     setInterviewLocation(sub.interviewDetails?.location || "Client Office / Video Call");
     setInterviewRemarks(sub.interviewDetails?.remark || "");
+    setHoldRemark(sub.holdReason || sub.adminRemark || "");
     setRejectionReason(sub.rejectionReason || "");
 
     const docsState = {};
-    const docs = sub.documents || [
-      { id: "d1", name: "Passport Document", fileName: "Passport.pdf", status: "Pending" },
-      { id: "d2", name: "Trade Certificate", fileName: "TradeCert.pdf", status: "Pending" },
-      { id: "d3", name: "GAMCA Medical Certificate", fileName: "Medical.pdf", status: "Pending" },
-      { id: "d4", name: "Candidate CV", fileName: "Resume.pdf", status: "Verified" },
-    ];
+    const docs = getSubmissionDocs(sub);
     docs.forEach((d, idx) => {
       docsState[d.id || idx] = d.status || "Pending";
     });
@@ -93,7 +114,8 @@ export default function AdminSubmissionsList() {
   const handleShortlistSubmit = async () => {
     if (!reviewSub) return;
     try {
-      await crmVendorService.updateApplicationStatus(reviewSub.id, "Shortlisted", {
+      const targetId = reviewSub.id || reviewSub.applicationId || reviewSub._id;
+      await crmVendorService.updateApplicationStatus(targetId, "Shortlisted", {
         remark: shortlistRemark || "Candidate documents verified. Fit for client interview.",
       });
       loadSubmissions();
@@ -110,7 +132,8 @@ export default function AdminSubmissionsList() {
       return;
     }
     try {
-      await crmVendorService.updateApplicationStatus(reviewSub.id, "Interview Scheduled", {
+      const targetId = reviewSub.id || reviewSub.applicationId || reviewSub._id;
+      await crmVendorService.updateApplicationStatus(targetId, "Interview Scheduled", {
         interviewDate,
         interviewTime,
         interviewLocation,
@@ -126,7 +149,8 @@ export default function AdminSubmissionsList() {
   const handleSelectSubmit = async () => {
     if (!reviewSub) return;
     try {
-      await crmVendorService.updateApplicationStatus(reviewSub.id, "Selected", {
+      const targetId = reviewSub.id || reviewSub.applicationId || reviewSub._id;
+      await crmVendorService.updateApplicationStatus(targetId, "Selected", {
         remark: interviewRemarks || "Cleared interview and selected for deployment.",
       });
       loadSubmissions();
@@ -143,8 +167,24 @@ export default function AdminSubmissionsList() {
       return;
     }
     try {
-      await crmVendorService.updateApplicationStatus(reviewSub.id, "Rejected", {
+      const targetId = reviewSub.id || reviewSub.applicationId || reviewSub._id;
+      await crmVendorService.updateApplicationStatus(targetId, "Rejected", {
         rejectionReason,
+      });
+      loadSubmissions();
+      setReviewSub(null);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleHoldSubmit = async () => {
+    if (!reviewSub) return;
+    try {
+      const targetId = reviewSub.id || reviewSub.applicationId || reviewSub._id;
+      await crmVendorService.updateApplicationStatus(targetId, "On Hold", {
+        remark:
+          holdRemark.trim() || "Candidate placed on hold after evaluation.",
       });
       loadSubmissions();
       setReviewSub(null);
@@ -180,6 +220,8 @@ export default function AdminSubmissionsList() {
         return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Interview Scheduled</span>;
       case "Selected":
         return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Selected</span>;
+      case "On Hold":
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">On Hold</span>;
       case "Rejected":
         return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Rejected</span>;
       case "Processing":
@@ -192,6 +234,30 @@ export default function AdminSubmissionsList() {
   };
 
   const isFinalized = reviewSub && ["Selected", "Rejected", "Processing", "Completed"].includes(reviewSub.status);
+  const subStatus = reviewSub?.status || "";
+  const isOnHoldStatus = subStatus === "On Hold";
+  const isShortlistedStatus = subStatus === "Shortlisted";
+  const isInterviewStatus = subStatus === "Interview" || subStatus === "Interview Scheduled";
+  const reviewDocs = getSubmissionDocs(reviewSub);
+
+  if (previewingDoc) {
+    return (
+      <DocumentViewerFullPage
+        doc={previewingDoc}
+        candidate={
+          candidates.find((c) => c.id === reviewSub?.candidateId) ||
+          (reviewSub
+            ? {
+                fullName: reviewSub.candidateName,
+                id: reviewSub.candidateId,
+                currentPosition: reviewSub.position,
+              }
+            : null)
+        }
+        onBack={() => setPreviewingDoc(null)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
@@ -207,7 +273,7 @@ export default function AdminSubmissionsList() {
 
       {}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
-        {["All", "Submitted", "Shortlisted", "Interview Scheduled", "Selected", "Completed"].map((tab) => {
+        {["All", "Under Review", "Submitted", "Shortlisted", "Interview Scheduled", "On Hold", "Selected", "Completed"].map((tab) => {
           const count = submissions.filter((s) => (tab === "All" ? true : s.status === tab)).length;
           return (
             <button
@@ -314,7 +380,7 @@ export default function AdminSubmissionsList() {
           
           <div className="bg-white rounded-2xl w-full p-5 sm:p-6 shadow-2xs border border-slate-200 space-y-5">
             {}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-3.5">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3.5 gap-3 flex-wrap">
               <div>
                 <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block">
                   Application Review & Verification
@@ -326,182 +392,218 @@ export default function AdminSubmissionsList() {
                   Project: {reviewSub.projectName} ({reviewSub.clientName}) • Vendor: {reviewSub.vendorId}
                 </p>
               </div>
+              {getStatusBadge(reviewSub.status)}
             </div>
+
+            {reviewSub.status === "On Hold" && reviewSub.holdReason && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center gap-2">
+                <Clock size={14} className="text-amber-600 shrink-0" />
+                <span>
+                  <strong>On Hold Note:</strong> {reviewSub.holdReason}
+                </span>
+              </div>
+            )}
 
             {}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <FileText size={14} className="text-indigo-600" />
-                  Candidate Compliance Documents
+                  Candidate Uploaded Documents ({reviewDocs.length})
                 </h4>
-                <button
-                  type="button"
-                  onClick={handleVerifyAllDocs}
-                  className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 hover:bg-emerald-200/80 px-2.5 py-1 rounded-lg transition cursor-pointer"
-                >
-                  Verify All Docs
-                </button>
+                {reviewDocs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleVerifyAllDocs}
+                    className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 hover:bg-emerald-200/80 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                  >
+                    Verify All Docs
+                  </button>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  { id: "d1", name: "Passport Document", fileName: `${reviewSub.candidateName}_Passport.pdf` },
-                  { id: "d2", name: "Trade Skill Certificate", fileName: `${reviewSub.position}_Cert.pdf` },
-                  { id: "d3", name: "GAMCA Medical Certificate", fileName: "Medical_Clearance.pdf" },
-                  { id: "d4", name: "Candidate Resume / CV", fileName: `${reviewSub.candidateName}_CV.pdf` },
-                ].map((doc) => {
-                  const isVerified = docStatuses[doc.id] === "Verified";
-                  return (
-                    <div
-                      key={doc.id}
-                      className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between text-xs"
-                    >
-                      <div className="truncate mr-2">
-                        <span className="font-bold text-slate-800 block truncate">{doc.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{doc.fileName}</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleVerifyDoc(doc.id)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer shrink-0 ${
-                          isVerified
-                            ? "bg-emerald-600 text-white shadow-2xs"
-                            : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
-                        }`}
+              {reviewDocs.length === 0 ? (
+                <p className="text-xs text-slate-500 bg-white p-4 rounded-lg border border-dashed border-slate-200 text-center">
+                  No documents uploaded for this candidate.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {reviewDocs.map((doc, idx) => {
+                    const docKey = doc.id || idx;
+                    const isVerified = docStatuses[docKey] === "Verified";
+                    return (
+                      <div
+                        key={docKey}
+                        className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs"
                       >
-                        {isVerified ? (
-                          <>
-                            <Check size={12} />
-                            <span>Verified</span>
-                          </>
-                        ) : (
-                          <span>Verify</span>
-                        )}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+                        <div className="truncate min-w-0">
+                          <span className="font-bold text-slate-800 block truncate">
+                            {doc.name || doc.type || "Document"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono block truncate">
+                            {doc.fileName || "document"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewingDoc(doc)}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer"
+                            title="Preview Document"
+                          >
+                            <Eye size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!doc.fileUrl}
+                            onClick={() => printUploadedDocument(doc)}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 text-slate-700 cursor-pointer"
+                            title="Print Document"
+                          >
+                            <Printer size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!doc.fileUrl}
+                            onClick={() => downloadUploadedDocument(doc)}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 disabled:opacity-40 text-blue-700 cursor-pointer"
+                            title="Download Document"
+                          >
+                            <Download size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleVerifyDoc(docKey)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer shrink-0 ${
+                              isVerified
+                                ? "bg-emerald-600 text-white shadow-2xs"
+                                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300"
+                            }`}
+                          >
+                            {isVerified ? (
+                              <>
+                                <Check size={12} />
+                                <span>Verified</span>
+                              </>
+                            ) : (
+                              <span>Verify</span>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {}
             <div className="space-y-4 pt-1">
-              {}
-              <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <UserCheck size={14} className="text-purple-600" />
-                    1. Shortlist Candidate with Remarks
-                  </span>
-                  {reviewSub.status === "Shortlisted" && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
-                      Currently Shortlisted
+              {!isOnHoldStatus && !isShortlistedStatus && !isInterviewStatus && !isFinalized && (
+                <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <UserCheck size={14} className="text-purple-600" />
+                      1. Shortlist Candidate with Remarks
                     </span>
-                  )}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={shortlistRemark}
+                    onChange={(e) => setShortlistRemark(e.target.value)}
+                    placeholder="e.g. Documents verified. Candidate fit for client interview."
+                    className="w-full p-2.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleShortlistSubmit}
+                    className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                  >
+                    Shortlist Candidate
+                  </button>
                 </div>
+              )}
 
-                <input
-                  type="text"
-                  value={shortlistRemark}
-                  onChange={(e) => setShortlistRemark(e.target.value)}
-                  placeholder="e.g. Documents verified. Candidate fit for client interview."
-                  disabled={isFinalized}
-                  className="w-full p-2.5 rounded-lg border border-purple-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-
-                <button
-                  type="button"
-                  onClick={handleShortlistSubmit}
-                  disabled={isFinalized}
-                  className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Shortlist Candidate
-                </button>
-              </div>
-
-              {}
-              <div className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <Calendar size={14} className="text-indigo-600" />
-                    2. Schedule Interview
-                  </span>
-                  {reviewSub.status === "Interview Scheduled" && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
-                      Interview Scheduled
+              {!isOnHoldStatus && !isFinalized && (
+                <div className="p-3.5 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar size={14} className="text-indigo-600" />
+                      2. Schedule Interview
                     </span>
-                  )}
+                    {isInterviewStatus && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                        Interview Scheduled
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Interview Date</label>
+                      <DateInput
+                        value={interviewDate}
+                        onChange={(e) => setInterviewDate(e.target.value)}
+                        className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Interview Time</label>
+                      <input
+                        type="text"
+                        value={interviewTime}
+                        onChange={(e) => setInterviewTime(e.target.value)}
+                        placeholder="e.g. 10:30 AM"
+                        className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Venue / Location</label>
+                      <input
+                        type="text"
+                        value={interviewLocation}
+                        onChange={(e) => setInterviewLocation(e.target.value)}
+                        placeholder="e.g. Video Call / Client Office"
+                        className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={interviewRemarks}
+                    onChange={(e) => setInterviewRemarks(e.target.value)}
+                    placeholder="Interview instructions or remarks for candidate & vendor..."
+                    className="w-full p-2.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleScheduleInterviewSubmit}
+                    className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                  >
+                    Confirm Interview Schedule
+                  </button>
                 </div>
+              )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Interview Date</label>
-                    <DateInput
-                      value={interviewDate}
-                      onChange={(e) => setInterviewDate(e.target.value)}
-                      disabled={isFinalized}
-                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Interview Time</label>
-                    <input
-                      type="text"
-                      value={interviewTime}
-                      onChange={(e) => setInterviewTime(e.target.value)}
-                      placeholder="e.g. 10:30 AM"
-                      disabled={isFinalized}
-                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Venue / Location</label>
-                    <input
-                      type="text"
-                      value={interviewLocation}
-                      onChange={(e) => setInterviewLocation(e.target.value)}
-                      placeholder="e.g. Video Call / Client Office"
-                      disabled={isFinalized}
-                      className="w-full p-2 rounded-lg border border-indigo-200 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-
-                <input
-                  type="text"
-                  value={interviewRemarks}
-                  onChange={(e) => setInterviewRemarks(e.target.value)}
-                  placeholder="Interview instructions or remarks for candidate & vendor..."
-                  disabled={isFinalized}
-                  className="w-full p-2.5 rounded-lg border border-indigo-200 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-
-                <button
-                  type="button"
-                  onClick={handleScheduleInterviewSubmit}
-                  disabled={isFinalized}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Confirm Interview Schedule
-                </button>
-              </div>
-
-              {}
               <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
                 <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
-                  3. Final Outcome (After Interview)
+                  {isOnHoldStatus
+                    ? "On Hold — Final Outcome Decision"
+                    : "3. Final Outcome (After Interview)"}
                 </span>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {}
+                <div className={`grid grid-cols-1 ${isInterviewStatus ? "sm:grid-cols-3" : "sm:grid-cols-2"} gap-3`}>
                   <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/70 space-y-2">
                     <span className="font-bold text-emerald-900 text-xs block">
                       Select Candidate
                     </span>
                     <p className="text-[11px] text-emerald-700">
-                      Initializes candidate 8-stage processing timeline and generates project default milestone plan.
+                      Initializes candidate deployment timeline and generates project milestone payment plan.
                     </p>
                     <button
                       type="button"
@@ -509,11 +611,10 @@ export default function AdminSubmissionsList() {
                       disabled={isFinalized}
                       className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Mark as Selected 🎉
+                      Mark as Selected
                     </button>
                   </div>
 
-                  {}
                   <div className="p-3 rounded-xl border border-rose-200 bg-rose-50/70 space-y-2">
                     <span className="font-bold text-rose-900 text-xs block">
                       Reject Candidate
@@ -535,6 +636,30 @@ export default function AdminSubmissionsList() {
                       Mark as Rejected
                     </button>
                   </div>
+
+                  {isInterviewStatus && (
+                    <div className="p-3 rounded-xl border border-amber-200 bg-amber-50/70 space-y-2">
+                      <span className="font-bold text-amber-900 text-xs block">
+                        Put On Hold
+                      </span>
+                      <input
+                        type="text"
+                        value={holdRemark}
+                        onChange={(e) => setHoldRemark(e.target.value)}
+                        placeholder="Optional hold note..."
+                        disabled={isFinalized}
+                        className="w-full p-2 rounded-lg border border-amber-300 bg-white text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleHoldSubmit}
+                        disabled={isFinalized}
+                        className="w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Mark as On Hold
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,9 +1,14 @@
 import Job from "../../models/Job.js";
-import Project from "../../models/Project.js";
 import ProjectAssignment from "../../models/ProjectAssignment.js";
+import User from "../../models/User.js";
+import Vendor from "../../models/Vendor.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
+import { findProjectAcrossSources } from "../../utils/projectResolver.js";
+
+const isValidObjectId = (val) =>
+  typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
 
 export const createJob = asyncHandler(async (req, res) => {
   const {
@@ -25,28 +30,25 @@ export const createJob = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Job title and project ID are required.");
   }
 
-  const project = await Project.findOne({
-    $or: [{ projectId }, { _id: projectId.match(/^[0-9a-fA-F]{24}$/) ? projectId : null }],
-  });
-
-  if (!project) throw new ApiError(404, "Project not found.");
+  const resolvedProject = await findProjectAcrossSources(projectId);
+  if (!resolvedProject) throw new ApiError(404, "Project not found.");
 
   const jobId = `JOB-${Date.now().toString().slice(-6)}`;
 
   const job = await Job.create({
     jobId,
     title: title.trim(),
-    projectId: project.projectId || project._id.toString(),
-    projectRef: project._id,
-    projectName: project.title,
-    clientId: project.clientId?.toString() || "",
-    clientName: project.clientName || "",
+    projectId: resolvedProject.projectId,
+    ...(resolvedProject.projectRef ? { projectRef: resolvedProject.projectRef } : {}),
+    projectName: resolvedProject.projectName,
+    clientId: resolvedProject.clientId || "",
+    clientName: resolvedProject.clientName || "",
     openings: Number(openings) || 1,
     skills: Array.isArray(skills) ? skills : [skills],
     experience,
     salaryRange: salaryRange || { min: 0, max: 0, currency: "INR" },
     location: location || "",
-    country: country || "India",
+    country: country || resolvedProject.destinationCountry || "India",
     jobType,
     description,
     requirements: Array.isArray(requirements) ? requirements : [requirements],
@@ -63,18 +65,86 @@ export const getJobs = asyncHandler(async (req, res) => {
 
   const isVendorHR = req.user?.hrType === "VENDOR_HR";
   if (isVendorHR) {
-    const allowedVendors = Array.isArray(req.user?.assignedVendors) ? req.user.assignedVendors : [];
-    const activeAssignments = await ProjectAssignment.find({
-      assignmentType: "VENDOR_PROJECT",
-      vendorId: { $in: allowedVendors },
-      status: "Active",
-    }).lean();
+    const userIdStr = req.user?._id?.toString() || req.user?.id || "";
+    let allowedVendors = Array.isArray(req.user?.assignedVendors)
+      ? req.user.assignedVendors.map(String)
+      : [];
+    if (userIdStr) {
+      try {
+        const freshUser = await User.findById(userIdStr).select("assignedVendors").lean();
+        if (freshUser && Array.isArray(freshUser.assignedVendors)) {
+          allowedVendors = freshUser.assignedVendors.map(String);
+        }
+      } catch {}
+    }
 
-    const assignedProjectIds = activeAssignments.map((a) => a.projectId);
+    const hexIds = allowedVendors.filter(isValidObjectId);
+    const vendorDocs =
+      allowedVendors.length > 0
+        ? await Vendor.find({
+            $or: [
+              { vendorId: { $in: allowedVendors } },
+              { id: { $in: allowedVendors } },
+              ...(hexIds.length > 0 ? [{ _id: { $in: hexIds } }] : []),
+            ],
+          })
+            .select("vendorId _id")
+            .lean()
+        : [];
+    const expandedVendors = Array.from(
+      new Set([
+        ...allowedVendors,
+        ...vendorDocs.flatMap((v) => [v.vendorId, v._id?.toString()].filter(Boolean)),
+      ])
+    );
+
+    const [activeAssignments, hrHistory] = await Promise.all([
+      ProjectAssignment.find({
+        $or: [
+          ...(expandedVendors.length > 0 ? [{ vendorId: { $in: expandedVendors } }] : []),
+          ...(userIdStr ? [{ userId: userIdStr }] : []),
+        ],
+        status: "Active",
+      }).lean(),
+      userIdStr
+        ? ProjectAssignment.find({
+            assignmentType: "VENDOR_HR_PROJECT",
+            userId: userIdStr,
+            status: { $in: ["Active", "Removed"] },
+          }).lean()
+        : Promise.resolve([]),
+    ]);
+
+    const activeHRProjectIds = new Set(
+      hrHistory.filter((a) => a.status === "Active").map((a) => String(a.projectId))
+    );
+    const removedHRProjectIds = new Set(
+      hrHistory
+        .filter((a) => a.status === "Removed" && !activeHRProjectIds.has(String(a.projectId)))
+        .map((a) => String(a.projectId))
+    );
+
+    const assignedProjectIds = Array.from(
+      new Set(
+        activeAssignments
+          .filter(
+            (a) =>
+              activeHRProjectIds.has(String(a.projectId)) ||
+              !removedHRProjectIds.has(String(a.projectId))
+          )
+          .map((a) => String(a.projectId))
+      )
+    );
+
     filter.$or = [
-      { projectId: { $in: assignedProjectIds } },
-      { "assignedVendors.vendorId": { $in: allowedVendors } },
+      ...(assignedProjectIds.length > 0 ? [{ projectId: { $in: assignedProjectIds } }] : []),
+      ...(expandedVendors.length > 0
+        ? [{ "assignedVendors.vendorId": { $in: expandedVendors } }]
+        : []),
     ];
+    if (filter.$or.length === 0) {
+      filter._id = null;
+    }
   } else if (projectId) {
     filter.projectId = projectId;
   }

@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { X, Printer, Download, CheckCircle2, ShieldCheck, FileText } from "lucide-react";
+import { printHtmlElement, printUploadedDocument } from "../../utils/printDocument.js";
 
 export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, onSignClick }) {
   const printRef = useRef(null);
@@ -19,16 +20,33 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
       });
 
   const mouRefNumber = `MOU-VND-${vendor?.id || vendor?.vendorId || "001"}-2026`;
+  const uploadedMouUrl = vendor?.signedMouDocUrl || vendor?.signedMou?.signedFileUrl || "";
 
   const handlePrint = () => {
-    window.print();
+    printHtmlElement(printRef.current, mouRefNumber);
   };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+      <style>{`
+        @media print {
+          @page { size: A4 portrait; margin: 12mm 15mm; }
+          body * { visibility: hidden !important; }
+          .mou-modal-print-area,
+          .mou-modal-print-area * { visibility: visible !important; }
+          .mou-modal-print-area {
+            position: static !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+          }
+          .mou-modal-hide { display: none !important; }
+        }
+      `}</style>
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
         {}
-        <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between shrink-0">
+        <div className="mou-modal-hide px-6 py-4 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600/30 rounded-lg border border-blue-400/30">
               <FileText className="w-5 h-5 text-blue-400" />
@@ -44,6 +62,21 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
           </div>
 
           <div className="flex items-center gap-2">
+            {uploadedMouUrl && (
+              <button
+                onClick={() =>
+                  printUploadedDocument({
+                    fileUrl: uploadedMouUrl,
+                    fileName: `Signed_${mouRefNumber}`,
+                  })
+                }
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition cursor-pointer"
+              >
+                <Printer size={14} />
+                <span className="hidden sm:inline">Print Signed Copy</span>
+              </button>
+            )}
             <button
               onClick={handlePrint}
               type="button"
@@ -65,7 +98,7 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
         {}
         <div
           ref={printRef}
-          className="flex-1 overflow-y-auto p-6 sm:p-10 font-serif text-slate-800 text-sm leading-relaxed space-y-6 select-text bg-white"
+          className="mou-modal-print-area flex-1 overflow-y-auto p-6 sm:p-10 font-serif text-slate-800 text-sm leading-relaxed space-y-6 select-text bg-white"
         >
           {}
           <div className="text-center border-b-2 border-slate-900 pb-6 space-y-2">
@@ -187,83 +220,126 @@ export default function MouDocumentModal({ isOpen, onClose, vendor, signedData, 
               </div>
 
               {}
-              <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold uppercase text-slate-900">SECOND PARTY (Vendor Partner)</span>
-                  {vendor?.mouSigned || signedData?.signedAt ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                      <CheckCircle2 size={12} /> Digitally Executed
-                    </span>
+            {(() => {
+              const isMouApproved = Boolean(
+                vendor?.status === "Approved" ||
+                  vendor?.status === "Active" ||
+                  vendor?.mouStatus === "Approved"
+              );
+              const isMouUnderReview = Boolean(
+                !isMouApproved &&
+                  (vendor?.mouSigned ||
+                    signedData?.signedAt ||
+                    vendor?.status === "Pending MOU Approval" ||
+                    vendor?.status === "MOU Under Review" ||
+                    vendor?.mouStatus === "Under Review" ||
+                    vendor?.onboardingStage === "MOU_UNDER_REVIEW")
+              );
+              return (
+                <div className="p-4 rounded-xl border border-slate-300 bg-slate-50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase text-slate-900">SECOND PARTY (Vendor Partner)</span>
+                    {isMouApproved ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                        <CheckCircle2 size={12} /> Digitally Executed
+                      </span>
+                    ) : isMouUnderReview ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Submitted • Pending Admin Approval
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Pending Signature
+                      </span>
+                    )}
+                  </div>
+
+                  {isMouApproved || isMouUnderReview ? (
+                    <div className="font-serif italic text-lg text-indigo-900 font-bold border-b border-slate-300 pb-2">
+                      {signedData?.signatureData || vendor?.signedMou?.signatureData || vendor?.contactPersonName || "Signed Electronically"}
+                    </div>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                      Pending Signature
-                    </span>
+                    <div className="py-2 border-b border-dashed border-slate-300 text-slate-400 text-xs italic">
+                      [Awaiting Digital Signature or Signed Copy Upload]
+                    </div>
                   )}
-                </div>
 
-                {vendor?.mouSigned || signedData?.signedAt ? (
-                  <div className="font-serif italic text-lg text-indigo-900 font-bold border-b border-slate-300 pb-2">
-                    {signedData?.signatureData || vendor?.signedMou?.signatureData || vendor?.contactPersonName || "Signed Electronically"}
-                  </div>
-                ) : (
-                  <div className="py-2 border-b border-dashed border-slate-300 text-slate-400 text-xs italic">
-                    [Awaiting Digital Signature]
-                  </div>
-                )}
-
-                <div className="text-xs text-slate-600 space-y-0.5">
-                  <p>
-                    <b>Signatory:</b>{" "}
-                    {signedData?.signatoryName || vendor?.signedMou?.signatoryName || vendor?.contactPersonName || "Managing Director"}
-                  </p>
-                  <p>
-                    <b>Designation:</b>{" "}
-                    {signedData?.designation || vendor?.signedMou?.designation || "Authorized Representative"}
-                  </p>
-                  <p>
-                    <b>Agency:</b> {vendor?.companyName}
-                  </p>
-                  {(signedData?.signedAt || vendor?.signedMou?.signedAt) && (
-                    <p className="font-mono text-[10px] text-emerald-600">
-                      Executed: {new Date(signedData?.signedAt || vendor?.signedMou?.signedAt).toLocaleString("en-IN")}
+                  <div className="text-xs text-slate-600 space-y-0.5">
+                    <p>
+                      <b>Signatory:</b>{" "}
+                      {signedData?.signatoryName || vendor?.signedMou?.signatoryName || vendor?.contactPersonName || "Managing Director"}
                     </p>
-                  )}
+                    <p>
+                      <b>Designation:</b>{" "}
+                      {signedData?.designation || vendor?.signedMou?.designation || "Authorized Representative"}
+                    </p>
+                    <p>
+                      <b>Agency:</b> {vendor?.companyName}
+                    </p>
+                    {(signedData?.signedAt || vendor?.signedMou?.signedAt) && (
+                      <p className={`font-mono text-[10px] ${isMouApproved ? "text-emerald-600" : "text-amber-600"}`}>
+                        {isMouApproved ? "Verified & Executed:" : "Submitted for Review:"}{" "}
+                        {new Date(signedData?.signedAt || vendor?.signedMou?.signedAt).toLocaleString("en-IN")}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              );
+            })()}
             </div>
           </div>
         </div>
 
         {}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-          <p className="text-xs text-slate-500">
-            {vendor?.mouSigned
-              ? "✅ This MOU agreement has been executed and is legally binding."
-              : "⚠️ This agreement requires your digital signature before your vendor dashboard is activated."}
-          </p>
+        {(() => {
+          const isMouApproved = Boolean(
+            vendor?.status === "Approved" ||
+              vendor?.status === "Active" ||
+              vendor?.mouStatus === "Approved"
+          );
+          const isMouUnderReview = Boolean(
+            !isMouApproved &&
+              (vendor?.mouSigned ||
+                signedData?.signedAt ||
+                vendor?.status === "Pending MOU Approval" ||
+                vendor?.status === "MOU Under Review" ||
+                vendor?.mouStatus === "Under Review" ||
+                vendor?.onboardingStage === "MOU_UNDER_REVIEW")
+          );
+          return (
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+              <p className="text-xs text-slate-500">
+                {isMouApproved
+                  ? "✅ This MOU agreement has been verified and approved by ImmiGo Admin."
+                  : isMouUnderReview
+                  ? "⏳ Signed MOU submitted. Awaiting ImmiGo Admin verification and final approval."
+                  : "⚠️ This agreement requires your signature or signed copy upload before your vendor dashboard is activated."}
+              </p>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer"
-            >
-              Close
-            </button>
-            {!vendor?.mouSigned && onSignClick && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onSignClick();
-                }}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow transition cursor-pointer flex items-center gap-1.5"
-              >
-                <span>Proceed to Sign MOU</span>
-              </button>
-            )}
-          </div>
-        </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer"
+                >
+                  Close
+                </button>
+                {!isMouApproved && !isMouUnderReview && onSignClick && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onSignClick();
+                    }}
+                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Proceed to Sign MOU</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

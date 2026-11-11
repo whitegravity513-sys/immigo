@@ -426,7 +426,7 @@ export function Dashboard() {
                     No attendance records for today yet.
                   </p>
                 ) : (
-                  hrStats.todayAttendance.map((rec) => {
+                  hrStats.todayAttendance.map((rec, idx) => {
                     const empName =
                       rec.name ||
                       (typeof rec.employee?.name === "string"
@@ -444,7 +444,7 @@ export function Dashboard() {
 
                     return (
                       <div
-                        key={rec.id || rec._id || Math.random()}
+                        key={rec.id || rec._id || idx}
                         className="py-2 flex items-center justify-between gap-2 hover:bg-gray-50/60 rounded px-1 transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">

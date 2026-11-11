@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { Outlet } from "react-router-dom";
 import VendorSidebar from "./VendorSidebar.jsx";
 import VendorNavbar from "./VendorNavbar.jsx";
 import crmVendorService from "../../../services/crmVendorService.js";
 import AppFooter from "../../common/AppFooter.jsx";
 import { VendorOnboarding } from "./VendorOnboarding.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 const VENDOR_SYNC_STORAGE_KEYS = new Set([
   "immigo_crm_vendors_v3",
@@ -12,53 +13,102 @@ const VENDOR_SYNC_STORAGE_KEYS = new Set([
   "immigo_user",
 ]);
 
+const hasVendorUploadedDocuments = (vendor) =>
+  Boolean(
+    vendor?.documentsUploaded === true ||
+      (Array.isArray(vendor?.documents) && vendor.documents.length > 0) ||
+      [
+        "Documents Under Review",
+        "Under Review",
+        "Documents Verified",
+        "MOU Pending",
+        "MOU Under Review",
+        "Pending MOU Approval",
+        "MOU Correction Required",
+        "Active",
+        "Approved",
+      ].includes(vendor?.status) ||
+      vendor?.mouSigned === true ||
+      ["Sent", "Signed", "Approved"].includes(vendor?.mouStatus) ||
+      [
+        "DOCS_SUBMITTED",
+        "DOCS_UNDER_REVIEW",
+        "DOCS_VERIFIED",
+        "MOU_SENT",
+        "MOU_PENDING",
+        "MOU_SIGNED",
+        "MOU_UNDER_REVIEW",
+        "COMPLETED",
+        "ACTIVE",
+      ].includes(vendor?.onboardingStage)
+  );
+
 export function VendorLayout({ children, title = "Vendor Portal" }) {
+  const { updateUser } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [vendor, setVendor] = useState(() => crmVendorService.getCurrentVendor());
-  const location = useLocation();
+
+  const handleVendorUpdate = useCallback(
+    (nextVendorOrUpdater) => {
+      setVendor((prev) => {
+        const next =
+          typeof nextVendorOrUpdater === "function"
+            ? nextVendorOrUpdater(prev)
+            : nextVendorOrUpdater;
+        if (next) {
+          updateUser(next);
+        }
+        return next;
+      });
+    },
+    [updateUser]
+  );
 
   useEffect(() => {
     let isMounted = true;
+
+    const hasVendorChanged = (prev, next) =>
+      !prev ||
+      prev.status !== next.status ||
+      prev.mouStatus !== next.mouStatus ||
+      prev.mouSigned !== next.mouSigned ||
+      prev.mouSignMethod !== next.mouSignMethod ||
+      prev.signedMouDocUrl !== next.signedMouDocUrl ||
+      prev.onboardingStage !== next.onboardingStage ||
+      Boolean(prev.documentsUploaded) !== Boolean(next.documentsUploaded) ||
+      Boolean(prev.documentVerified) !== Boolean(next.documentVerified) ||
+      JSON.stringify(prev.documents || []) !== JSON.stringify(next.documents || []) ||
+      JSON.stringify(prev.signedMou || null) !== JSON.stringify(next.signedMou || null) ||
+      JSON.stringify(prev.mouDocument || null) !== JSON.stringify(next.mouDocument || null);
 
     const syncVendor = async () => {
       try {
         const fresh = await crmVendorService.getVendorMe();
         if (fresh && isMounted) {
           setVendor((prev) => {
-            if (
-              !prev ||
-              prev.status !== fresh.status ||
-              prev.mouStatus !== fresh.mouStatus ||
-              prev.mouSigned !== fresh.mouSigned ||
-              prev.onboardingStage !== fresh.onboardingStage ||
-              JSON.stringify(prev.mouDocument) !== JSON.stringify(fresh.mouDocument)
-            ) {
+            if (hasVendorChanged(prev, fresh)) {
+              updateUser(fresh);
               return fresh;
             }
             return prev;
           });
           return;
         }
-      } catch {
-        
-      }
+      } catch {}
 
       if (isMounted) {
         const local = crmVendorService.getCurrentVendor();
         if (local) {
-          setVendor((prev) => {
-            if (
-              !prev ||
-              prev.status !== local.status ||
-              prev.mouStatus !== local.mouStatus ||
-              prev.mouSigned !== local.mouSigned ||
-              prev.onboardingStage !== local.onboardingStage
-            ) {
-              return local;
-            }
-            return prev;
-          });
+          setVendor((prev) => (hasVendorChanged(prev, local) ? local : prev));
         }
+      }
+    };
+
+    const syncFromLocal = () => {
+      if (!isMounted) return;
+      const local = crmVendorService.getCurrentVendor();
+      if (local) {
+        setVendor((prev) => (hasVendorChanged(prev, local) ? local : prev));
       }
     };
 
@@ -75,28 +125,19 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
     };
     window.addEventListener("focus", syncVendor);
     window.addEventListener("storage", handleStorage);
+    window.addEventListener("immigo:vendor-update", syncFromLocal);
 
     return () => {
       isMounted = false;
       clearInterval(timer);
       window.removeEventListener("focus", syncVendor);
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("immigo:vendor-update", syncFromLocal);
     };
-  }, []);
+  }, [updateUser]);
 
-  const isFullyUnlocked = Boolean(
-    vendor?.status === "Active" ||
-    vendor?.status === "Approved" ||
-    vendor?.mouSigned === true ||
-    vendor?.mouStatus === "Approved" ||
-    vendor?.mouStatus === "Signed"
-  );
-
-  const isDashboardRoute =
-    location.pathname === "/vendor" ||
-    location.pathname === "/vendor/" ||
-    location.pathname === "/vendor/dashboard" ||
-    location.pathname.includes("/vendor/onboarding");
+  const hasUploadedDocuments = hasVendorUploadedDocuments(vendor);
+  const isPortalLocked = !hasUploadedDocuments;
 
   return (
     <div className="h-screen flex overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
@@ -104,6 +145,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
         vendor={vendor}
+        isPortalLocked={isPortalLocked}
       />
 
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-full overflow-hidden">
@@ -112,11 +154,12 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
           setMobileOpen={setMobileOpen}
           vendor={vendor}
           title={title}
+          isPortalLocked={isPortalLocked}
         />
 
         <main className="flex-1 p-2 sm:p-2.5 max-w-full w-full mx-auto overflow-y-auto overflow-x-hidden">
-          {!isFullyUnlocked && isDashboardRoute ? (
-            <VendorOnboarding vendor={vendor} onVendorUpdate={setVendor} />
+          {isPortalLocked ? (
+            <VendorOnboarding vendor={vendor} onVendorUpdate={handleVendorUpdate} />
           ) : (
             children || <Outlet />
           )}

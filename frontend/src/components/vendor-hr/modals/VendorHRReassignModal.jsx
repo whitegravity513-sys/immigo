@@ -10,6 +10,7 @@ export default function VendorHRReassignModal({
   setReassignForm,
   projectsList = [],
   jobs = [],
+  hideProjectNames = false,
   actionLoading = false,
 }) {
   if (!show || !reassignTargetCandidate) return null;
@@ -19,7 +20,9 @@ export default function VendorHRReassignModal({
       <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Reassign Candidate to Another Project</h3>
+            <h3 className="text-base font-bold text-slate-900">
+              {hideProjectNames ? "Reassign Candidate to New Opening" : "Reassign Candidate to Another Project"}
+            </h3>
             <p className="text-xs text-slate-500">
               Re-allocate {reassignTargetCandidate.candidateName} from vendor candidate pool
             </p>
@@ -44,17 +47,21 @@ export default function VendorHRReassignModal({
               {reassignTargetCandidate.passportNumber || reassignTargetCandidate.candidateId}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500 font-medium">Previous / Rejected Project:</span>
-            <span className="text-rose-700 font-semibold truncate max-w-[220px]">
-              {reassignTargetCandidate.projectName}
-            </span>
-          </div>
+          {!hideProjectNames && reassignTargetCandidate.projectName && (
+            <div className="flex justify-between">
+              <span className="text-slate-500 font-medium">Previous / Rejected Project:</span>
+              <span className="text-rose-700 font-semibold truncate max-w-[220px]">
+                {reassignTargetCandidate.projectName}
+              </span>
+            </div>
+          )}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3.5 text-xs font-medium">
           <div>
-            <label className="block text-slate-700 font-bold mb-1">Select New Target Project *</label>
+            <label className="block text-slate-700 font-bold mb-1">
+              {hideProjectNames ? "Select New Target Allocation *" : "Select New Target Project *"}
+            </label>
             <select
               required
               value={reassignForm.projectId}
@@ -72,10 +79,14 @@ export default function VendorHRReassignModal({
               }}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer font-bold"
             >
-              <option value="">Select an available active project</option>
-              {projectsList.map((p) => (
+              <option value="">
+                {hideProjectNames ? "Select an available active opening" : "Select an available active project"}
+              </option>
+              {projectsList.map((p, idx) => (
                 <option key={p.projectId} value={p.projectId}>
-                  {p.projectName} ({p.destinationCountry || "Overseas"})
+                  {hideProjectNames
+                    ? `Assigned Opening #${idx + 1} (${p.destinationCountry || p.country || "Overseas"}) [${p.projectId}]`
+                    : `${p.projectName} (${p.destinationCountry || "Overseas"})`}
                 </option>
               ))}
             </select>
@@ -113,7 +124,7 @@ export default function VendorHRReassignModal({
               rows="2"
               value={reassignForm.notes}
               onChange={(e) => setReassignForm({ ...reassignForm, notes: e.target.value })}
-              placeholder="e.g. Candidate trade skill verified; re-allocated to Dubai Metro project requirement"
+              placeholder="e.g. Candidate trade skill verified; re-allocated to open requirement"
               className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none"
             />
           </div>

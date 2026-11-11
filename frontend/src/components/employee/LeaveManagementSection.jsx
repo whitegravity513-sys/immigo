@@ -177,14 +177,14 @@ export default function LeaveManagementSection({
             {isPastSelected && (
               <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11px] font-bold flex items-center gap-1.5">
                 <AlertCircle size={13} className="shrink-0" />
-                <span>Past dates ke liye leave apply nahi kar sakte. Aaj ya future date select karein.</span>
+                <span>Leave cannot be applied for past dates. Please select today or a future date.</span>
               </div>
             )}
 
             {!isPastSelected && isInvalidRange && (
               <div className="p-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11px] font-bold flex items-center gap-1.5">
                 <AlertCircle size={13} className="shrink-0" />
-                <span>End date start date se pehle nahi ho sakti.</span>
+                <span>End date cannot be earlier than the start date.</span>
               </div>
             )}
 

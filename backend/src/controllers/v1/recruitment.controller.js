@@ -1,9 +1,86 @@
 import RecruitmentService from "../../services/recruitment.service.js";
 import CandidateApplication from "../../models/CandidateApplication.js";
+import CrmCandidateApplication from "../../models/CrmCandidateApplication.js";
+import ProjectAssignment from "../../models/ProjectAssignment.js";
 import Interview from "../../models/Interview.js";
+import User from "../../models/User.js";
+import Vendor from "../../models/Vendor.js";
+import { fetchAllMergedProjects } from "../../utils/projectResolver.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
+
+const isValidObjectId = (val) =>
+  typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
+
+const resolveVendorHRScope = async (reqUser) => {
+  const userIdStr = reqUser?._id?.toString() || reqUser?.id || "";
+  let allowed = Array.isArray(reqUser?.assignedVendors)
+    ? reqUser.assignedVendors.map(String)
+    : [];
+  if (userIdStr) {
+    try {
+      const freshUser = await User.findById(userIdStr).select("assignedVendors").lean();
+      if (freshUser && Array.isArray(freshUser.assignedVendors)) {
+        allowed = freshUser.assignedVendors.map(String);
+      }
+    } catch {}
+  }
+  const hexIds = allowed.filter(isValidObjectId);
+  const vendorDocs =
+    allowed.length > 0
+      ? await Vendor.find({
+          $or: [
+            { vendorId: { $in: allowed } },
+            { id: { $in: allowed } },
+            ...(hexIds.length > 0 ? [{ _id: { $in: hexIds } }] : []),
+          ],
+        })
+          .select("vendorId _id")
+          .lean()
+      : [];
+  const expandedVendors = Array.from(
+    new Set([
+      ...allowed,
+      ...vendorDocs.flatMap((v) => [v.vendorId, v._id?.toString()].filter(Boolean)),
+    ])
+  );
+
+  const expandedVendorSet = new Set(expandedVendors.map(String));
+  const [assignments, allProjects] = await Promise.all([
+    ProjectAssignment.find({
+      status: "Active",
+      $or: [
+        ...(expandedVendors.length > 0 ? [{ vendorId: { $in: expandedVendors } }] : []),
+        ...(userIdStr ? [{ userId: userIdStr }, { vendorHRUserId: userIdStr }] : []),
+      ],
+    }).lean(),
+    fetchAllMergedProjects(),
+  ]);
+
+  const projectIdsSet = new Set();
+  (assignments || []).forEach((a) => {
+    if (a.projectId) projectIdsSet.add(String(a.projectId));
+    if (a.projectRef) projectIdsSet.add(String(a.projectRef));
+  });
+  (allProjects || []).forEach((p) => {
+    const hasVendor = (p.assignedVendors || []).some((v) =>
+      expandedVendorSet.has(String(v.vendorId || v.id || v._id || v))
+    );
+    const hasHR = (p.assignedVendorHRs || []).some(
+      (h) => userIdStr && String(h.userId || h._id || "") === userIdStr
+    );
+    if (hasVendor || hasHR) {
+      (p.rawIdCandidates || [p.projectId]).filter(Boolean).forEach((cid) => projectIdsSet.add(String(cid)));
+    }
+  });
+
+  return {
+    userIdStr,
+    expandedVendors,
+    allowedProjectIds: Array.from(projectIdsSet),
+  };
+};
 
 export const submitCandidate = asyncHandler(async (req, res) => {
   const result = await RecruitmentService.submitCandidate({
@@ -14,6 +91,12 @@ export const submitCandidate = asyncHandler(async (req, res) => {
 });
 
 export const updateCandidateStage = asyncHandler(async (req, res) => {
+  const normalizedRole = String(req.userRole || req.user?.role || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  if (req.isVendor || ["VENDOR", "CANDIDATE", "EMPLOYEE"].includes(normalizedRole)) {
+    throw new ApiError(403, "Only Admin, Super Admin, or Vendor HR can update processing stages.");
+  }
   const { id } = req.params;
   const { stage, status, remarks, offerDetails, visaDetails, processMilestones, newDocument, documents } = req.body;
   const application = await RecruitmentService.updateCandidateStage({
@@ -69,42 +152,87 @@ export const reassignCandidateApplication = asyncHandler(async (req, res) => {
 
 export const getApplications = asyncHandler(async (req, res) => {
   const { projectId, vendorId, stage, status, search, page = 1, limit = 50 } = req.query;
-  const filter = {};
+  const baseFilter = {};
 
   const isVendorHR = req.user?.hrType === "VENDOR_HR";
   if (isVendorHR) {
-    const allowed = Array.isArray(req.user?.assignedVendors) ? req.user.assignedVendors : [];
-    filter.vendorId = { $in: allowed };
+    const scope = await resolveVendorHRScope(req.user);
+    if (
+      scope.expandedVendors.length === 0 &&
+      scope.allowedProjectIds.length === 0 &&
+      !scope.userIdStr
+    ) {
+      baseFilter._id = null;
+    } else {
+      baseFilter.$or = [
+        ...(scope.expandedVendors.length > 0
+          ? [{ vendorId: { $in: scope.expandedVendors } }]
+          : []),
+        ...(scope.allowedProjectIds.length > 0
+          ? [{ projectId: { $in: scope.allowedProjectIds } }]
+          : []),
+        ...(scope.userIdStr ? [{ vendorHrId: scope.userIdStr }] : []),
+      ];
+    }
   } else if (vendorId) {
-    filter.vendorId = vendorId;
+    baseFilter.vendorId = vendorId;
   }
 
-  if (projectId) filter.projectId = projectId;
-  if (stage && stage !== "ALL") filter.recruitmentStage = stage;
-  if (status && status !== "ALL") filter.status = status;
+  if (projectId) baseFilter.projectId = projectId;
+  if (status && status !== "ALL") baseFilter.status = status;
 
   if (search) {
     const s = String(search).trim();
-    filter.$or = [
+    const searchOr = [
       { candidateName: { $regex: s, $options: "i" } },
       { candidateEmail: { $regex: s, $options: "i" } },
       { candidatePhone: { $regex: s, $options: "i" } },
       { applicationId: { $regex: s, $options: "i" } },
     ];
+    if (baseFilter.$or) {
+      baseFilter.$and = [{ $or: baseFilter.$or }, { $or: searchOr }];
+      delete baseFilter.$or;
+    } else {
+      baseFilter.$or = searchOr;
+    }
   }
 
-  const applications = await CandidateApplication.find(filter)
-    .sort({ createdAt: -1 })
-    .skip((Number(page) - 1) * Number(limit))
-    .limit(Number(limit))
-    .lean();
+  const directFilter = { ...baseFilter };
+  if (stage && stage !== "ALL") directFilter.recruitmentStage = stage;
 
-  const total = await CandidateApplication.countDocuments(filter);
+  const crmFilter = { ...baseFilter };
+  if (stage && stage !== "ALL" && !crmFilter.status) crmFilter.status = stage;
+
+  const [directApps, crmApps] = await Promise.all([
+    CandidateApplication.find(directFilter).sort({ createdAt: -1 }).lean(),
+    CrmCandidateApplication.find(crmFilter).sort({ createdAt: -1 }).lean(),
+  ]);
+
+  const seen = new Map();
+  const pushRec = (rec) => {
+    const appId = String(rec.applicationId || rec._id || "");
+    const existing = seen.get(appId);
+    if (!existing) {
+      seen.set(appId, { ...rec, id: appId, applicationId: appId });
+    } else {
+      seen.set(appId, { ...existing, ...rec, id: appId, applicationId: appId });
+    }
+  };
+  (crmApps || []).forEach(pushRec);
+  (directApps || []).forEach(pushRec);
+
+  const allMerged = Array.from(seen.values()).sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+  );
+  const total = allMerged.length;
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  const applications = allMerged.slice((pageNum - 1) * limitNum, pageNum * limitNum);
 
   return ApiResponse.send(res, 200, "Applications fetched successfully", {
     total,
-    page: Number(page),
-    limit: Number(limit),
+    page: pageNum,
+    limit: limitNum,
     applications,
   });
 });
@@ -115,8 +243,19 @@ export const getInterviews = asyncHandler(async (req, res) => {
 
   const isVendorHR = req.user?.hrType === "VENDOR_HR";
   if (isVendorHR) {
-    const allowed = Array.isArray(req.user?.assignedVendors) ? req.user.assignedVendors : [];
-    filter.vendorId = { $in: allowed };
+    const scope = await resolveVendorHRScope(req.user);
+    if (scope.expandedVendors.length === 0 && scope.allowedProjectIds.length === 0) {
+      filter._id = null;
+    } else {
+      filter.$or = [
+        ...(scope.expandedVendors.length > 0
+          ? [{ vendorId: { $in: scope.expandedVendors } }]
+          : []),
+        ...(scope.allowedProjectIds.length > 0
+          ? [{ projectId: { $in: scope.allowedProjectIds } }]
+          : []),
+      ];
+    }
   } else if (vendorId) {
     filter.vendorId = vendorId;
   }

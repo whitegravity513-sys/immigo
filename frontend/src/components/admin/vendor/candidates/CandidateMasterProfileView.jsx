@@ -1,7 +1,6 @@
-import React from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Briefcase,
   Building2,
   Paperclip,
   CheckCircle2,
@@ -13,14 +12,16 @@ import {
   Users,
   AlertTriangle,
   Video,
-  Pause,
   UserCheck,
   ChevronRight,
   Sliders,
   Plus,
+  Printer,
 } from "lucide-react";
 import ConfigureMilestonesModal from "../ConfigureMilestonesModal.jsx";
 import DateInput from "../../../common/DateInput.jsx";
+import { printUploadedDocument } from "../../../../utils/printDocument.js";
+import crmVendorService from "../../../../services/crmVendorService.js";
 
 export default function CandidateMasterProfileView({
   selectedCandidate,
@@ -29,7 +30,6 @@ export default function CandidateMasterProfileView({
   vendorName,
   statusBadgeClass,
   submissionHistory = [],
-  onOpenAssignProject,
   onAcceptAllCandidateDocs,
   onPreviewDoc,
   onDownloadDoc,
@@ -131,13 +131,6 @@ export default function CandidateMasterProfileView({
             <span className="px-3 py-2 bg-blue-50 text-blue-800 text-xs font-bold rounded-xl border border-blue-200">
               {submissionHistory.length} Project Application{submissionHistory.length !== 1 ? "s" : ""}
             </span>
-            <button
-              onClick={() => onOpenAssignProject(selectedCandidate)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
-            >
-              <Briefcase size={14} />
-              <span>Assign Project</span>
-            </button>
           </div>
         </div>
 
@@ -337,8 +330,19 @@ export default function CandidateMasterProfileView({
                       </button>
                       <button
                         type="button"
+                        disabled={!doc.fileUrl}
+                        onClick={() => printUploadedDocument(doc)}
+                        className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 cursor-pointer flex items-center gap-1 transition"
+                        title="Print Document"
+                      >
+                        <Printer size={13} />
+                        <span>Print</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!doc.fileUrl}
                         onClick={() => onDownloadDoc(doc)}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer flex items-center gap-1 transition"
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold cursor-pointer flex items-center gap-1 transition"
                       >
                         <Download size={13} />
                         <span>Download</span>
@@ -443,15 +447,44 @@ export default function CandidateMasterProfileView({
         ) : (
           <div className="space-y-4 text-xs">
             {submissionHistory.map((sub) => {
-              const isSelected = sub.status === "Selected" || sub.status === "Completed";
-              const isInterview = sub.status === "Interview";
-              const isRejected = sub.status === "Rejected";
-              const isShortlisted = sub.status === "Shortlisted";
-              const isOnHold = sub.status === "On Hold";
+              const subId = sub.id || sub.applicationId || sub._id;
+              const postSelectionStatuses = [
+                "Selected",
+                "Processing",
+                "Offer Released",
+                "Offer Accepted",
+                "Visa Processing",
+                "Visa Issued",
+                "Visa Allotted",
+                "Joined",
+                "Deployed",
+                "Completed",
+              ];
+              const subStatus = String(sub.status || sub.recruitmentStage || "").trim();
+              const isSelected = postSelectionStatuses.includes(subStatus);
+              const isInterview =
+                subStatus === "Interview" ||
+                subStatus === "Interview Scheduled" ||
+                subStatus.toLowerCase().includes("interview");
+              const isRejected = subStatus === "Rejected";
+              const isShortlisted = subStatus === "Shortlisted";
+              const isOnHold = subStatus === "On Hold";
+              const resolvedSubMilestones = !sub.milestonesOverridden
+                ? crmVendorService.syncAppMilestonesWithProject(sub) ||
+                  sub.processMilestones ||
+                  sub.paymentPlan?.milestones ||
+                  []
+                : sub.processMilestones?.length > 0
+                ? sub.processMilestones
+                : sub.paymentPlan?.milestones || [];
+              const resolvedTotal = resolvedSubMilestones.reduce(
+                (sum, ms) => sum + Number(ms.paymentAmount ?? ms.amount ?? 0),
+                0
+              );
 
               return (
                 <div
-                  key={sub.id}
+                  key={subId}
                   className={`rounded-xl border transition overflow-hidden ${
                     isSelected
                       ? "bg-emerald-50/50 border-emerald-200"
@@ -469,7 +502,7 @@ export default function CandidateMasterProfileView({
                   <div className="p-5">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="flex-1">
-                        <span className="font-mono text-[10px] font-bold text-slate-400 block">{sub.id}</span>
+                        <span className="font-mono text-[10px] font-bold text-slate-400 block">{subId}</span>
                         <h4 className="font-bold text-slate-900 text-base mt-0.5">{sub.projectName}</h4>
                         <p className="text-xs text-slate-600 mt-1 font-semibold">
                           Client: <strong className="text-slate-900">{sub.clientName}</strong>
@@ -477,13 +510,20 @@ export default function CandidateMasterProfileView({
                           {sub.country ? ` (${sub.country})` : ""}
                         </p>
                         <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                          Submitted: {sub.submittedAt ? sub.submittedAt.split("T")[0] : "—"}
+                          Submitted: {sub.submittedAt ? String(sub.submittedAt).split("T")[0] : "—"}
                         </p>
 
                         {isRejected && sub.rejectionReason && (
                           <div className="mt-2.5 p-2.5 rounded-xl bg-rose-100/80 border border-rose-200 text-rose-900 font-semibold text-xs flex items-center gap-2">
                             <AlertTriangle size={15} className="text-rose-600 shrink-0" />
                             <span>Rejection Reason: {sub.rejectionReason}</span>
+                          </div>
+                        )}
+
+                        {isOnHold && sub.holdReason && (
+                          <div className="mt-2.5 p-2.5 rounded-xl bg-amber-100/80 border border-amber-200 text-amber-900 font-semibold text-xs flex items-center gap-2">
+                            <Clock size={15} className="text-amber-600 shrink-0" />
+                            <span>Hold Note: {sub.holdReason}</span>
                           </div>
                         )}
 
@@ -519,10 +559,10 @@ export default function CandidateMasterProfileView({
 
                       <span
                         className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-2xs self-start ${statusBadgeClass(
-                          sub.status
+                          subStatus
                         )}`}
                       >
-                        {sub.status}
+                        {subStatus || "Submitted"}
                       </span>
                     </div>
 
@@ -530,7 +570,7 @@ export default function CandidateMasterProfileView({
                     {!isSelected && !isRejected && (
                       <div className="mt-4 pt-4 border-t border-slate-200/60">
                         {/* Step 1: Initial State (Submitted / Applied / Under Review / Screening) -> Strictly Shortlist & Reject together */}
-                        {!isShortlisted && !isInterview && (
+                        {!isShortlisted && !isInterview && !isOnHold && (
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                               Screening Decision:
@@ -539,11 +579,11 @@ export default function CandidateMasterProfileView({
                               <button
                                 type="button"
                                 onClick={() => (onShortlist ? onShortlist(sub) : onHold(sub))}
-                                disabled={actionLoading === sub.id + "_shortlist"}
+                                disabled={actionLoading === subId + "_shortlist"}
                                 className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
                               >
                                 <CheckCircle2 size={13} />
-                                <span>{actionLoading === sub.id + "_shortlist" ? "Shortlisting..." : "Shortlist Candidate"}</span>
+                                <span>{actionLoading === subId + "_shortlist" ? "Shortlisting..." : "Shortlist Candidate"}</span>
                               </button>
                               <button
                                 type="button"
@@ -557,7 +597,34 @@ export default function CandidateMasterProfileView({
                           </div>
                         )}
 
-                        {/* Step 2: Shortlisted -> Only Schedule Interview */}
+                        {isOnHold && !isShortlisted && !isInterview && (
+                          <div className="space-y-1.5">
+                            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">
+                              On Hold — Final Outcome Decision:
+                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => onSelect(sub)}
+                                disabled={actionLoading === subId + "_select"}
+                                className="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                              >
+                                <UserCheck size={13} />
+                                <span>{actionLoading === subId + "_select" ? "Selecting..." : "Select Candidate"}</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onOpenRejectApp(sub)}
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                              >
+                                <XCircle size={13} />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Step 2: Shortlisted -> Schedule Interview, Hold, or Reject */}
                         {isShortlisted && !isInterview && (
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">
@@ -576,7 +643,7 @@ export default function CandidateMasterProfileView({
                           </div>
                         )}
 
-                        {/* Step 3: Interview Active -> Strictly Select or Reject */}
+                        {/* Step 3: Interview Active -> Select, Reject, or Hold */}
                         {isInterview && (
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">
@@ -586,11 +653,11 @@ export default function CandidateMasterProfileView({
                               <button
                                 type="button"
                                 onClick={() => onSelect(sub)}
-                                disabled={actionLoading === sub.id + "_select"}
+                                disabled={actionLoading === subId + "_select"}
                                 className="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
                               >
                                 <UserCheck size={13} />
-                                <span>{actionLoading === sub.id + "_select" ? "Selecting..." : "Select Candidate 🎉"}</span>
+                                <span>{actionLoading === subId + "_select" ? "Selecting..." : "Select Candidate 🎉"}</span>
                               </button>
                               <button
                                 type="button"
@@ -600,24 +667,18 @@ export default function CandidateMasterProfileView({
                                 <XCircle size={13} />
                                 <span>Reject</span>
                               </button>
+                              <button
+                                type="button"
+                                onClick={() => onHold && onHold(sub)}
+                                disabled={actionLoading === subId + "_hold"}
+                                className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
+                              >
+                                <Clock size={13} />
+                                <span>{actionLoading === subId + "_hold" ? "Holding..." : "Hold"}</span>
+                              </button>
                             </div>
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* Rejected Case -> Reassign to another project */}
-                    {isRejected && (
-                      <div className="mt-4 pt-4 border-t border-rose-200/60 flex items-center justify-between gap-3">
-                        <span className="text-[11px] text-slate-500 font-medium">Candidate returned to talent pool. Ready for re-submission.</span>
-                        <button
-                          type="button"
-                          onClick={() => onOpenAssignProject(selectedCandidate)}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
-                        >
-                          <Briefcase size={13} />
-                          <span>Assign to Another Project</span>
-                        </button>
                       </div>
                     )}
 
@@ -638,61 +699,30 @@ export default function CandidateMasterProfileView({
                             </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <a
-                              href={`/admin/vendor/processing?appId=${sub.id}`}
+                            <Link
+                              to={`/admin/vendor/processing?appId=${subId}`}
                               className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
                               title="Open Full 8-Stage Processing Stepper"
                             >
                               <Clock size={13} />
                               <span>Processing Stepper</span>
-                            </a>
-                            <a
-                              href={`/admin/vendor/milestones-manage?appId=${sub.id}`}
+                            </Link>
+                            <Link
+                              to={`/admin/vendor/milestones-manage?appId=${subId}`}
                               className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
                               title="Configure Milestones & Verify Documents"
                             >
                               <Sliders size={13} />
                               <span>Manage Milestones</span>
-                            </a>
+                            </Link>
                           </div>
                         </div>
 
-                        {sub.processing && sub.processing.stages && (
-                          <div>
-                            <p className="text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wider">
-                              Processing Timeline
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {sub.processing.stages.map((stg, i) => (
-                                <div
-                                  key={i}
-                                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                                    stg.status === "completed"
-                                      ? "bg-emerald-100 text-emerald-800"
-                                      : stg.status === "in_progress"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-slate-100 text-slate-500"
-                                  }`}
-                                >
-                                  {stg.status === "completed" ? (
-                                    <CheckCircle2 size={11} />
-                                  ) : stg.status === "in_progress" ? (
-                                    <ChevronRight size={11} />
-                                  ) : (
-                                    <Clock size={11} />
-                                  )}
-                                  <span>{stg.name}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {sub.paymentPlan && sub.paymentPlan.milestones?.length > 0 ? (
+                        {resolvedSubMilestones.length > 0 ? (
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                                Payment Milestones — Total: ₹{sub.paymentPlan.totalAmount?.toLocaleString("en-IN")}
+                                Payment Milestones — Total: ₹{resolvedTotal.toLocaleString("en-IN")}
                               </p>
                               <div className="flex items-center gap-1.5">
                                 <button
@@ -712,25 +742,51 @@ export default function CandidateMasterProfileView({
                               </div>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {(sub.paymentPlan.milestones || []).map((ms, mi) => (
-                                <button
-                                  key={mi}
-                                  type="button"
-                                  onClick={() => setConfigureMilestonesModal({ application: sub })}
-                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer hover:shadow-xs flex items-center gap-1.5 ${
-                                    ms.status === "Paid"
-                                      ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
-                                      : ms.status === "Due"
-                                      ? "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100"
-                                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                                  }`}
-                                >
-                                  <span>
-                                    {ms.name} — ₹{Number(ms.amount).toLocaleString("en-IN")} [{ms.status}]
-                                  </span>
-                                  <Sliders size={10} className="text-slate-400" />
-                                </button>
-                              ))}
+                              {resolvedSubMilestones.map((ms, mi) => {
+                                const isPaid =
+                                  ms.paymentStatus === "Approved" ||
+                                  ms.status === "Paid" ||
+                                  ms.status === "Completed";
+                                const isSub =
+                                  ms.paymentStatus === "Submitted" ||
+                                  ms.paymentStatus === "Pending Verification" ||
+                                  ms.status === "Submitted";
+                                const isDue =
+                                  !isPaid &&
+                                  !isSub &&
+                                  (ms.status === "Due" ||
+                                    ms.paymentStatus === "Due" ||
+                                    ms.paymentStatus === "Payment Required");
+                                const msName = ms.milestoneName || ms.name;
+                                const msAmount = Number(ms.paymentAmount ?? ms.amount ?? 0);
+                                const msStatusLabel = isPaid
+                                  ? "Paid"
+                                  : isSub
+                                  ? "Submitted"
+                                  : ms.paymentStatus || ms.status || "Pending";
+
+                                return (
+                                  <button
+                                    key={mi}
+                                    type="button"
+                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer hover:shadow-xs flex items-center gap-1.5 ${
+                                      isPaid
+                                        ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
+                                        : isSub
+                                        ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
+                                        : isDue
+                                        ? "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100"
+                                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                                    }`}
+                                  >
+                                    <span>
+                                      {msName} — ₹{msAmount.toLocaleString("en-IN")} [{msStatusLabel}]
+                                    </span>
+                                    <Sliders size={10} className="text-slate-400" />
+                                  </button>
+                                );
+                              })}
                             </div>
                           </div>
                         ) : (
@@ -751,6 +807,57 @@ export default function CandidateMasterProfileView({
                             </button>
                           </div>
                         )}
+
+                        {(() => {
+                          const displayStages =
+                            Array.isArray(sub.processing?.stages) && sub.processing.stages.length > 0
+                              ? sub.processing.stages
+                              : resolvedSubMilestones.flatMap((m) => m.stages || []);
+                          if (displayStages.length === 0) return null;
+                          return (
+                            <div className="pt-2 border-t border-slate-100">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                                  Processing Stages
+                                </p>
+                                <Link
+                                  to={`/admin/vendor/milestones-manage?appId=${subId}`}
+                                  className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 hover:underline"
+                                >
+                                  Update Stages →
+                                </Link>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {displayStages.map((stg, i) => {
+                                  const stgNorm = String(stg.status || "").toLowerCase();
+                                  const isStgCompleted = stgNorm === "completed";
+                                  const isStgInProgress = stgNorm === "in progress" || stgNorm === "in_progress";
+                                  return (
+                                    <div
+                                      key={stg.id || i}
+                                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
+                                        isStgCompleted
+                                          ? "bg-emerald-100 text-emerald-800"
+                                          : isStgInProgress
+                                          ? "bg-blue-100 text-blue-800"
+                                          : "bg-slate-100 text-slate-500"
+                                      }`}
+                                    >
+                                      {isStgCompleted ? (
+                                        <CheckCircle2 size={11} />
+                                      ) : isStgInProgress ? (
+                                        <ChevronRight size={11} />
+                                      ) : (
+                                        <Clock size={11} />
+                                      )}
+                                      <span>{stg.name}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 

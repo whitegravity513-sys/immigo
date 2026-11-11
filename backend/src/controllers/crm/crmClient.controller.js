@@ -26,8 +26,13 @@ export const getClients = asyncHandler(async (req, res) => {
 });
 
 export const saveClient = asyncHandler(async (req, res) => {
-  const clientData = req.body;
+  const clientData = { ...req.body };
   let clientId = clientData.id || clientData.clientId;
+  delete clientData._id;
+  delete clientData.__v;
+  delete clientData.id;
+  delete clientData.createdAt;
+  delete clientData.updatedAt;
   if (!clientId || String(clientId).startsWith("cli-")) {
     clientId = await generateNextClientId();
   }

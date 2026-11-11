@@ -103,6 +103,7 @@ export class VendorPaymentService {
           milestoneId: milestone.milestoneId,
           vendorId: vendor.vendorId || vendor._id.toString(),
           amount: parsedAmount,
+          link: "/admin/vendor/payments",
         },
       });
     } catch {

@@ -82,21 +82,45 @@ export default function VendorTable({
                   </td>
 
                   <td className="py-1.5 px-3 text-center">
-                    {v.mouSigned || v.mouStatus === "Approved" || v.mouStatus === "Signed" ? (
+                    {v.status === "Rejected" ||
+                    v.status === "Registration Rejected" ||
+                    v.status === "MOU Rejected" ||
+                    v.mouStatus === "Rejected" ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                        Rejected
+                      </span>
+                    ) : v.status === "Approved" ||
+                      v.status === "Active" ||
+                      v.mouStatus === "Approved" ||
+                      v.onboardingStage === "COMPLETED" ||
+                      v.onboardingStage === "ACTIVE" ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        Executed
+                        Verified &amp; Approved
                       </span>
-                    ) : v.mouStatus === "Sent" || v.status === "MOU Pending" ? (
+                    ) : v.mouStatus === "Correction Required" ||
+                      v.status === "MOU Correction Required" ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
+                        Re-upload Required
+                      </span>
+                    ) : v.status === "Pending MOU Approval" ||
+                      v.status === "MOU Under Review" ||
+                      v.mouStatus === "Under Review" ||
+                      v.mouSigned ||
+                      v.mouStatus === "Signed" ||
+                      v.onboardingStage === "MOU_UNDER_REVIEW" ||
+                      v.onboardingStage === "MOU_SIGNED" ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        Pending Approval
+                      </span>
+                    ) : v.mouStatus === "Sent" ||
+                      v.status === "MOU Pending" ||
+                      v.onboardingStage === "MOU_SENT" ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                        MOU Sent
-                      </span>
-                    ) : v.status === "Pending MOU Approval" ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                        Signed (Pending)
+                        MOU Assigned
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                        Pending
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                        Not Assigned
                       </span>
                     )}
                   </td>
@@ -154,7 +178,7 @@ export default function VendorTable({
                                 <Edit size={12} className="text-slate-400" />
                                 <span>Edit Vendor</span>
                               </button>
-                              {(v.status === "Approved" || v.status === "Suspended") && (
+                              {(v.status === "Approved" || v.status === "Active" || v.status === "Suspended") && (
                                 <button
                                   type="button"
                                   onClick={() => {

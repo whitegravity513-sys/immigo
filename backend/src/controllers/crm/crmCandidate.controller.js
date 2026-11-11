@@ -15,8 +15,13 @@ export const getCandidates = asyncHandler(async (req, res) => {
 });
 
 export const saveCandidate = asyncHandler(async (req, res) => {
-  const candData = req.body;
+  const candData = { ...req.body };
   const candidateId = candData.id || candData.candidateId || `CND-${Date.now().toString().slice(-5)}`;
+  delete candData._id;
+  delete candData.__v;
+  delete candData.id;
+  delete candData.createdAt;
+  delete candData.updatedAt;
 
   const query = [{ candidateId: String(candidateId) }, { id: String(candidateId) }];
   if (typeof candidateId === "string" && /^[0-9a-fA-F]{24}$/.test(candidateId)) {

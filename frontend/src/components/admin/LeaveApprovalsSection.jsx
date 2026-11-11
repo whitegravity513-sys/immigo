@@ -56,7 +56,7 @@ export default function LeaveApprovalsSection({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {(Array.isArray(leavesReport) ? leavesReport : []).map(leave => {
+            {(Array.isArray(leavesReport) ? leavesReport : []).map((leave, idx) => {
               if (!leave) return null;
               const days = leave.deductedDays ?? leave.totalDays ?? 1;
               const emp = typeof leave.employee === 'object' && leave.employee !== null ? leave.employee : null;
@@ -70,7 +70,7 @@ export default function LeaveApprovalsSection({
               const isSubmittingThis = submittingId === leave._id;
 
               return (
-                <tr key={leave._id || Math.random()} className="hover:bg-slate-50/30 transition-colors">
+                <tr key={leave._id || idx} className="hover:bg-slate-50/30 transition-colors">
                   <td className="px-2.5 sm:px-3 py-1.5 text-xs">
                     {empId ? (
                       <div className="min-w-0">

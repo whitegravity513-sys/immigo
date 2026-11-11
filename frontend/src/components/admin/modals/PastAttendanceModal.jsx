@@ -53,7 +53,7 @@ export default function PastAttendanceModal({
                     <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-100 block">
                       Official Holiday
                     </span>
-                    <h4 className="text-sm font-bold leading-tight">Aaj Holiday Hai!</h4>
+                    <h4 className="text-sm font-bold leading-tight">Today is an Official Holiday</h4>
                   </div>
                 </div>
                 <button
@@ -72,7 +72,7 @@ export default function PastAttendanceModal({
                   </div>
                 </div>
                 <p className="text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded-xl p-3 leading-relaxed">
-                  {targetDateStr} ko official holiday declare kiya gaya hai. Iss din ki attendance mark nahi ho sakti.
+                  {targetDateStr} has been declared an official holiday. Attendance cannot be marked for this date.
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -115,7 +115,7 @@ export default function PastAttendanceModal({
                   Official Holiday: {holidayOnDate?.title || "Holiday"}
                 </div>
                 <div className="text-[11px] text-indigo-800 font-medium mt-0.5">
-                  Aaj holiday hai ({targetDateStr}) — is date par attendance mark nahi ho sakti.
+                  Today ({targetDateStr}) is a declared official holiday — attendance cannot be marked for this date.
                 </div>
               </div>
             </div>

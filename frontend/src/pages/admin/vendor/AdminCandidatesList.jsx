@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -8,35 +8,41 @@ import CandidateDownloadModal from "../../../components/admin/vendor/candidates/
 import CandidateTabsBar from "../../../components/admin/vendor/candidates/CandidateTabsBar.jsx";
 import CandidateFilterBar from "../../../components/admin/vendor/candidates/CandidateFilterBar.jsx";
 import CandidateRosterTable from "../../../components/admin/vendor/candidates/CandidateRosterTable.jsx";
-import CandidateAssignProjectModal from "../../../components/admin/vendor/candidates/CandidateAssignProjectModal.jsx";
 import CandidateMasterProfileView from "../../../components/admin/vendor/candidates/CandidateMasterProfileView.jsx";
 
 export default function AdminCandidatesList() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [candidates, setCandidates] = useState([]);
   const [vendors, setVendors] = useState([]);
-  const [clients, setClients] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState(() => {
-    const tabParam = new URLSearchParams(window.location.search).get("tab");
-    if (tabParam) {
-      const cap = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
+  const [localTab, setLocalTab] = useState("All");
+  const urlTabParam = searchParams.get("tab");
+  const activeTab = useMemo(() => {
+    if (urlTabParam) {
+      const normalized = urlTabParam.trim().toLowerCase();
+      if (normalized === "on hold" || normalized === "on-hold" || normalized === "hold") {
+        return "On Hold";
+      }
+      const cap = normalized.charAt(0).toUpperCase() + normalized.slice(1);
       if (["All", "Shortlisted", "Interview", "Selected", "Rejected"].includes(cap)) return cap;
     }
-    return "All";
-  });
+    return localTab;
+  }, [urlTabParam, localTab]);
 
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam) {
-      const cap = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
-      if (["All", "Shortlisted", "Interview", "Selected", "Rejected"].includes(cap)) {
-        setActiveTab(cap);
+  const handleTabChange = (nextTab) => {
+    setLocalTab(nextTab);
+    if (searchParams.has("tab")) {
+      const next = new URLSearchParams(searchParams);
+      if (nextTab === "All") {
+        next.delete("tab");
+      } else {
+        next.set("tab", nextTab.toLowerCase());
       }
+      setSearchParams(next, { replace: true });
     }
-  }, [searchParams]);
+  };
 
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,25 +67,18 @@ export default function AdminCandidatesList() {
   const [configureMilestonesModal, setConfigureMilestonesModal] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
-  const [assignProjectModal, setAssignProjectModal] = useState(null);
-  const [assignForm, setAssignForm] = useState({ clientId: "", projectId: "", position: "" });
-  const [assignLoading, setAssignLoading] = useState(false);
-
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const [cData, vData, aData] = await Promise.all([
         crmVendorService.getCandidates(),
         crmVendorService.getVendors(),
         crmVendorService.getApplications(),
+        crmVendorService.getAvailableProjects().catch(() => []),
       ]);
       setCandidates(cData || []);
       setVendors(vData || []);
       setApplications(aData || []);
-
-      import("../../../services/crmClientService.js").then((mod) => {
-        mod.crmClientService.getClients().then((res) => setClients(res.clients || []));
-      });
     } catch (err) {
       console.error("Failed to load candidates roster data:", err);
     } finally {
@@ -88,30 +87,66 @@ export default function AdminCandidatesList() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    const timer = setTimeout(() => {
+      loadData({ silent: true });
+    }, 0);
+    const handleRefresh = () => loadData({ silent: true });
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
   }, [loadData]);
 
-  const handleViewCandidate = async (cand) => {
+  const handleViewCandidate = useCallback(async (cand) => {
+    const candKey = cand.id || cand.candidateId || cand._id;
     try {
-      const freshCand = (await crmVendorService.getCandidateById(cand.id)) || cand;
+      const freshCand = (await crmVendorService.getCandidateById(candKey)) || cand;
       setSelectedCandidate(freshCand);
-      const history = await crmVendorService.getCandidateSubmissionsHistory(cand.id);
+      const history = await crmVendorService.getCandidateSubmissionsHistory(candKey);
       setSubmissionHistory(history || []);
     } catch {
       setSelectedCandidate(cand);
       setSubmissionHistory([]);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const candidateParam = searchParams.get("candidateId");
+    if (!candidateParam || candidates.length === 0) return;
+    const normalized = String(candidateParam).trim().toLowerCase();
+    const currentId = selectedCandidate
+      ? [selectedCandidate.id, selectedCandidate.candidateId, selectedCandidate._id]
+          .filter(Boolean)
+          .map((x) => String(x).trim().toLowerCase())
+      : [];
+    if (currentId.includes(normalized)) return;
+    const target = candidates.find((c) =>
+      [c.id, c.candidateId, c._id].some((k) => k && String(k).trim().toLowerCase() === normalized)
+    );
+    if (!target) return;
+    const timer = setTimeout(() => {
+      handleViewCandidate(target);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [searchParams, candidates, handleViewCandidate, selectedCandidate]);
 
   const refreshCandidateView = async () => {
     if (!selectedCandidate) return;
+    const candKey = selectedCandidate.id || selectedCandidate.candidateId || selectedCandidate._id;
     try {
-      const fresh = await crmVendorService.getCandidateById(selectedCandidate.id);
+      const fresh = await crmVendorService.getCandidateById(candKey);
       if (fresh) setSelectedCandidate(fresh);
-      const history = await crmVendorService.getCandidateSubmissionsHistory(selectedCandidate.id);
+      const history = await crmVendorService.getCandidateSubmissionsHistory(candKey);
       setSubmissionHistory(history || []);
-    } catch {}
-    loadData();
+    } catch (err) {
+      console.warn("Refresh candidate profile failed:", err);
+    }
+    loadData({ silent: true });
   };
 
   const handleAcceptDocument = async (docIdx) => {
@@ -153,25 +188,36 @@ export default function AdminCandidatesList() {
   };
 
   const handleDownloadDoc = (doc) => {
-    if (doc.fileUrl && doc.fileUrl.startsWith("data:")) {
-      const a = document.createElement("a");
-      a.href = doc.fileUrl;
-      a.download = doc.fileName || `${doc.name || "document"}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    if (!doc?.fileUrl) {
+      alert("Original document file is not attached to this candidate record.");
       return;
     }
-    const content = `CANDIDATE DOCUMENT RECORD\n=========================\nCandidate: ${selectedCandidate?.fullName || "Candidate"}\nCandidate ID: ${selectedCandidate?.id || "N/A"}\nDocument: ${doc.name || doc.type}\nFile Name: ${doc.fileName || "document.pdf"}\nStatus: ${doc.status || "Verified"}\nVerification Date: ${doc.verifiedAt || new Date().toISOString().split("T")[0]}\n\nAuthenticated on ImmiGo Overseas Workforce Platform.`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
+    let href = doc.fileUrl;
+    let revokeUrl = null;
+    if (doc.fileUrl.startsWith("data:application/pdf")) {
+      try {
+        const base64 = doc.fileUrl.split(",")[1];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        href = URL.createObjectURL(blob);
+        revokeUrl = href;
+      } catch (err) {
+        console.warn("PDF blob conversion fallback:", err);
+      }
+    }
     const a = document.createElement("a");
-    a.href = url;
-    a.download = doc.fileName || `${doc.name || "document"}.txt`;
+    a.href = href;
+    a.download = doc.fileName || `${doc.name || "document"}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (revokeUrl) {
+      setTimeout(() => URL.revokeObjectURL(revokeUrl), 1000);
+    }
   };
 
   const handleAcceptAllCandidateDocs = async () => {
@@ -188,38 +234,11 @@ export default function AdminCandidatesList() {
     }
   };
 
-  const handleOpenAssignProject = (cand) => {
-    setAssignProjectModal({ candidate: cand });
-    setAssignForm({ clientId: "", projectId: "", position: "" });
-  };
-
-  const handleAssignProject = async () => {
-    if (!assignForm.projectId || !assignForm.position) {
-      alert("Please select a project and position.");
-      return;
-    }
-    setAssignLoading(true);
-    try {
-      await crmVendorService.submitCandidateToProject({
-        vendorId: assignProjectModal.candidate.vendorId,
-        candidateId: assignProjectModal.candidate.id,
-        clientId: assignForm.clientId,
-        projectId: assignForm.projectId,
-        position: assignForm.position,
-      });
-      setAssignProjectModal(null);
-      await refreshCandidateView();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setAssignLoading(false);
-    }
-  };
-
   const handleShortlist = async (app) => {
-    setActionLoading(app.id + "_shortlist");
+    const targetAppId = app.id || app.applicationId || app._id;
+    setActionLoading(targetAppId + "_shortlist");
     try {
-      await crmVendorService.updateApplicationStatus(app.id, "Shortlisted", {
+      await crmVendorService.updateApplicationStatus(targetAppId, "Shortlisted", {
         remark: "Candidate shortlisted after document verification.",
       });
       await refreshCandidateView();
@@ -231,9 +250,12 @@ export default function AdminCandidatesList() {
   };
 
   const handleHold = async (app) => {
-    setActionLoading(app.id + "_hold");
+    const targetAppId = app.id || app.applicationId || app._id;
+    setActionLoading(targetAppId + "_hold");
     try {
-      await crmVendorService.updateApplicationStatus(app.id, "On Hold");
+      await crmVendorService.updateApplicationStatus(targetAppId, "On Hold", {
+        remark: "Candidate placed on hold during evaluation.",
+      });
       await refreshCandidateView();
     } catch (err) {
       alert(err.message);
@@ -259,16 +281,20 @@ export default function AdminCandidatesList() {
     }
     setInterviewLoading(true);
     try {
-      await crmVendorService.updateApplicationStatus(
-        interviewModal.application.id,
-        "Interview",
-        "",
-        {
+      const targetAppId =
+        interviewModal.application.id ||
+        interviewModal.application.applicationId ||
+        interviewModal.application._id;
+      await crmVendorService.updateApplicationStatus(targetAppId, "Interview", {
+        interviewDetails: {
           meetingUrl: interviewForm.meetingUrl,
           dateTime: interviewForm.dateTime,
           notes: interviewForm.notes,
-        }
-      );
+        },
+        meetingUrl: interviewForm.meetingUrl,
+        dateTime: interviewForm.dateTime,
+        notes: interviewForm.notes,
+      });
       setInterviewModal(null);
       setInterviewForm({ meetingUrl: "", dateTime: "", notes: "" });
       await refreshCandidateView();
@@ -296,11 +322,13 @@ export default function AdminCandidatesList() {
     }
     setRejectLoading(true);
     try {
-      await crmVendorService.updateApplicationStatus(
-        rejectAppModal.application.id,
-        "Rejected",
-        rejectReason
-      );
+      const targetAppId =
+        rejectAppModal.application.id ||
+        rejectAppModal.application.applicationId ||
+        rejectAppModal.application._id;
+      await crmVendorService.updateApplicationStatus(targetAppId, "Rejected", {
+        rejectionReason: rejectReason.trim(),
+      });
       setRejectAppModal(null);
       setRejectReason("");
       await refreshCandidateView();
@@ -320,7 +348,8 @@ export default function AdminCandidatesList() {
 
     setActionLoading(candidateId + "_reuse");
     try {
-      await crmVendorService.updateApplicationStatus(rejectedApp.id, "Submitted", {
+      const targetAppId = rejectedApp.id || rejectedApp.applicationId || rejectedApp._id;
+      await crmVendorService.updateApplicationStatus(targetAppId, "Submitted", {
         rejectionReason: "",
         remark: "Candidate Reused",
       });
@@ -345,10 +374,22 @@ export default function AdminCandidatesList() {
     (candId) => {
       const candApps = applications.filter((a) => a.candidateId === candId);
       if (candApps.length === 0) return "Candidate Pool";
-      if (candApps.some((a) => a.status === "Selected")) return "Selected";
-      if (candApps.some((a) => a.status === "Interview")) return "Interview";
-      if (candApps.some((a) => a.status === "Shortlisted")) return "Shortlisted";
-      if (candApps.some((a) => a.status === "On Hold")) return "On Hold";
+      const postSelection = new Set([
+        "Selected",
+        "Processing",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Visa Allotted",
+        "Joined",
+        "Deployed",
+        "Completed",
+      ]);
+      if (candApps.some((a) => postSelection.has(a.status) || postSelection.has(a.recruitmentStage))) return "Selected";
+      if (candApps.some((a) => a.status === "Interview" || a.status === "Interview Scheduled" || a.recruitmentStage === "Interview" || a.recruitmentStage === "Interview Scheduled")) return "Interview";
+      if (candApps.some((a) => a.status === "Shortlisted" || a.recruitmentStage === "Shortlisted")) return "Shortlisted";
+      if (candApps.some((a) => a.status === "On Hold" || a.recruitmentStage === "On Hold")) return "On Hold";
       if (candApps.some((a) => a.status === "Under Review" || a.status === "Submitted")) return "Under Review";
       if (candApps.every((a) => a.status === "Rejected")) return "Rejected";
       return "Pending";
@@ -367,6 +408,10 @@ export default function AdminCandidatesList() {
   );
   const countSelected = useMemo(
     () => candidates.filter((c) => getCandidateOverallStatus(c.id) === "Selected").length,
+    [candidates, getCandidateOverallStatus]
+  );
+  const countOnHold = useMemo(
+    () => candidates.filter((c) => getCandidateOverallStatus(c.id) === "On Hold").length,
     [candidates, getCandidateOverallStatus]
   );
   const countRejected = useMemo(
@@ -411,6 +456,8 @@ export default function AdminCandidatesList() {
         if (overallStatus !== "Interview") return false;
       } else if (activeTab === "Shortlisted") {
         if (overallStatus !== "Shortlisted") return false;
+      } else if (activeTab === "On Hold") {
+        if (overallStatus !== "On Hold") return false;
       } else if (activeTab === "Rejected") {
         if (overallStatus !== "Rejected") return false;
       }
@@ -537,12 +584,18 @@ export default function AdminCandidatesList() {
     return (
       <CandidateMasterProfileView
         selectedCandidate={selectedCandidate}
-        onBack={() => setSelectedCandidate(null)}
+        onBack={() => {
+          setSelectedCandidate(null);
+          if (searchParams.has("candidateId")) {
+            const next = new URLSearchParams(searchParams);
+            next.delete("candidateId");
+            setSearchParams(next, { replace: true });
+          }
+        }}
         overallStatus={overallStatus}
         vendorName={vendorName}
         statusBadgeClass={statusBadgeClass}
         submissionHistory={submissionHistory}
-        onOpenAssignProject={handleOpenAssignProject}
         onAcceptAllCandidateDocs={handleAcceptAllCandidateDocs}
         onPreviewDoc={(doc) => setPreviewingDoc(doc)}
         onDownloadDoc={handleDownloadDoc}
@@ -603,8 +656,8 @@ export default function AdminCandidatesList() {
       <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-xs space-y-3">
         <CandidateTabsBar
           activeTab={activeTab}
-          onTabChange={setActiveTab}
-          counts={{ countAll, countShortlisted, countInterview, countSelected, countRejected }}
+          onTabChange={handleTabChange}
+          counts={{ countAll, countShortlisted, countInterview, countSelected, countOnHold, countRejected }}
         />
 
         <CandidateFilterBar
@@ -639,17 +692,6 @@ export default function AdminCandidatesList() {
         isOpen={downloadModalOpen}
         onClose={() => setDownloadModalOpen(false)}
         onDownload={handleDownloadExcel}
-      />
-
-      <CandidateAssignProjectModal
-        isOpen={Boolean(assignProjectModal)}
-        candidate={assignProjectModal?.candidate}
-        onClose={() => setAssignProjectModal(null)}
-        assignForm={assignForm}
-        setAssignForm={setAssignForm}
-        clients={clients}
-        onConfirm={handleAssignProject}
-        loading={assignLoading}
       />
     </div>
   );

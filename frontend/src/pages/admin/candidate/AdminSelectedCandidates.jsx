@@ -20,6 +20,7 @@ import {
   Plus,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
+import crmVendorService from "../../../services/crmVendorService.js";
 
 export default function AdminSelectedCandidates() {
   const [selectedApps, setSelectedApps] = useState([]);
@@ -27,7 +28,7 @@ export default function AdminSelectedCandidates() {
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentModalApp, setPaymentModalApp] = useState(null);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState("");
-  const [paymentAmount, setPaymentAmount] = useState(15000);
+  const [paymentAmount, setPaymentAmount] = useState(0);
   const [paymentMode, setPaymentMode] = useState("Bank Transfer");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [paymentRemarks, setPaymentRemarks] = useState("");
@@ -36,11 +37,23 @@ export default function AdminSelectedCandidates() {
 
   useEffect(() => {
     loadSelected();
+    const handleRefresh = () => loadSelected();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
   }, []);
 
   const loadSelected = async () => {
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const res = await apiClient.get("/admin/candidates/applications/list?status=Selected&limit=100");
       if (res.data?.applications) {
         setSelectedApps(res.data.applications);
@@ -54,11 +67,22 @@ export default function AdminSelectedCandidates() {
 
   const handleOpenPaymentModal = (app) => {
     setPaymentModalApp(app);
-    const milestones = app.processMilestones || app.paymentPlan?.milestones || [];
+    const syncedMs = !app.milestonesOverridden
+      ? crmVendorService.syncAppMilestonesWithProject(app)
+      : [];
+    const milestones =
+      syncedMs.length > 0
+        ? syncedMs
+        : app.processMilestones?.length
+        ? app.processMilestones
+        : app.paymentPlan?.milestones || [];
     const firstUnpaid = milestones.find((m) => m.status !== "Paid" && m.paymentStatus !== "Approved") || milestones[0];
     if (firstUnpaid) {
       setSelectedMilestoneId(firstUnpaid.id);
-      setPaymentAmount(firstUnpaid.amount || firstUnpaid.paymentAmount || 15000);
+      setPaymentAmount(Number(firstUnpaid.paymentAmount ?? firstUnpaid.amount ?? 0));
+    } else {
+      setSelectedMilestoneId("");
+      setPaymentAmount(0);
     }
     setReferenceNumber(`TXN-${Date.now().toString().slice(-6)}`);
     setPaymentRemarks("Milestone payment confirmed by Admin");
@@ -82,6 +106,9 @@ export default function AdminSelectedCandidates() {
           type: "success",
           message: `Payment of ₹${Number(paymentAmount).toLocaleString()} recorded! Receipt ${res.data.receiptNumber || ""} generated.`,
         });
+        window.dispatchEvent(new CustomEvent("immigo:application-update"));
+        window.dispatchEvent(new CustomEvent("immigo:vendor-hr-refresh"));
+        window.dispatchEvent(new CustomEvent("immigo:dashboard-update"));
         setPaymentModalApp(null);
         loadSelected();
       }
@@ -212,15 +239,15 @@ export default function AdminSelectedCandidates() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((app) => {
-                  const milestones = app.processMilestones?.length > 0
-                    ? app.processMilestones
-                    : app.paymentPlan?.milestones?.length > 0
-                    ? app.paymentPlan.milestones
-                    : [
-                        { id: "m0", name: "Milestone 1: Selection & Document Clearance", status: "Active", paymentStatus: "Payment Required", amount: 15000, stages: [{ id: "s1", name: "Trade Skill & Screening", status: "Completed" }, { id: "s2", name: "Client Offer Letter Signed", status: "In Progress" }] },
-                        { id: "m1", name: "Milestone 2: Medical & Visa Processing", status: "Locked", paymentStatus: "Locked", amount: 15000, stages: [{ id: "s3", name: "GAMCA Medical Fitness Clearance", status: "Pending" }] },
-                        { id: "m2", name: "Milestone 3: Flight Deployment", status: "Locked", paymentStatus: "Locked", amount: 10000, stages: [{ id: "s4", name: "Air Ticket Booking", status: "Pending" }] },
-                      ];
+                  const syncedMs = !app.milestonesOverridden
+                    ? crmVendorService.syncAppMilestonesWithProject(app)
+                    : [];
+                  const milestones =
+                    syncedMs.length > 0
+                      ? syncedMs
+                      : app.processMilestones?.length > 0
+                      ? app.processMilestones
+                      : app.paymentPlan?.milestones || [];
 
                   let activeMilestone = null;
                   let activeStage = null;
@@ -239,16 +266,25 @@ export default function AdminSelectedCandidates() {
                     });
                   });
 
-                  const stageName = activeStage ? activeStage.name : "All Stages Completed";
+                  const stageName =
+                    totalStagesCount > 0
+                      ? activeStage
+                        ? activeStage.name
+                        : "All Stages Completed"
+                      : "Pending Setup";
                   const displayIndex = activeStage ? completedStagesCount + 1 : totalStagesCount;
                   const paidMilestonesCount = milestones.filter(
-                    (m) => m.status === "Paid" || m.paymentStatus === "Approved"
+                    (m) => m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed"
                   ).length;
-                  const totalMilestonesCount = milestones.length || 3;
-                  const totalPlanAmount = app.paymentPlan?.totalAmount || milestones.reduce((sum, m) => sum + (Number(m.amount || m.paymentAmount) || 0), 0) || 40000;
+                  const totalMilestonesCount = milestones.length;
+                  const msSum = milestones.reduce(
+                    (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+                    0
+                  );
+                  const totalPlanAmount = msSum > 0 ? msSum : Number(app.paymentPlan?.totalAmount || 0);
                   const totalPaidAmount = milestones.reduce((sum, m) => {
-                    if (m.status === "Paid" || m.paymentStatus === "Approved") {
-                      return sum + (Number(m.amount || m.paymentAmount) || 0);
+                    if (m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed") {
+                      return sum + Number(m.paymentAmount ?? m.amount ?? 0);
                     }
                     return sum;
                   }, 0);
@@ -306,7 +342,7 @@ export default function AdminSelectedCandidates() {
                               <Clock size={11} className="text-[#163868]" />
                               <span className="truncate max-w-[140px]" title={stageName}>{stageName}</span>
                               <span className="text-blue-800/70 font-mono text-[10px]">
-                                ({displayIndex}/{totalStagesCount || 8})
+                                ({displayIndex}/{totalStagesCount})
                               </span>
                             </div>
                             <div className="w-full max-w-[150px] bg-slate-100 rounded-full h-1 overflow-hidden">
@@ -416,17 +452,30 @@ export default function AdminSelectedCandidates() {
                   onChange={(e) => {
                     const mId = e.target.value;
                     setSelectedMilestoneId(mId);
-                    const milestones = paymentModalApp.processMilestones || paymentModalApp.paymentPlan?.milestones || [];
+                    const syncedMs = !paymentModalApp.milestonesOverridden
+                      ? crmVendorService.syncAppMilestonesWithProject(paymentModalApp)
+                      : [];
+                    const milestones =
+                      syncedMs.length > 0
+                        ? syncedMs
+                        : paymentModalApp.processMilestones?.length
+                        ? paymentModalApp.processMilestones
+                        : paymentModalApp.paymentPlan?.milestones || [];
                     const found = milestones.find((m) => m.id === mId);
                     if (found) {
-                      setPaymentAmount(found.amount || found.paymentAmount || 15000);
+                      setPaymentAmount(Number(found.paymentAmount ?? found.amount ?? 0));
                     }
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-blue-600"
                 >
-                  {(paymentModalApp.processMilestones || paymentModalApp.paymentPlan?.milestones || []).map((m) => (
+                  {((!paymentModalApp.milestonesOverridden
+                    ? crmVendorService.syncAppMilestonesWithProject(paymentModalApp)
+                    : [])?.length > 0
+                    ? crmVendorService.syncAppMilestonesWithProject(paymentModalApp)
+                    : paymentModalApp.processMilestones || paymentModalApp.paymentPlan?.milestones || []
+                  ).map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.name} (₹{Number(m.amount || m.paymentAmount || 15000).toLocaleString()}) - {m.status || "Due"}
+                      {m.name} (₹{Number(m.paymentAmount ?? m.amount ?? 0).toLocaleString()}) - {m.status || "Due"}
                     </option>
                   ))}
                 </select>

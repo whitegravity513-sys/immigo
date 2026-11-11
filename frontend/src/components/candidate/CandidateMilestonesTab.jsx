@@ -74,114 +74,55 @@ export default function CandidateMilestonesTab({
     }
   }
 
-  const rawMs =
+  const existingMs =
     milestonesData?.processMilestones?.length > 0
       ? milestonesData.processMilestones
       : curApp.processMilestones?.length > 0
       ? curApp.processMilestones
-      : projectMilestones && projectMilestones.length > 0
+      : curApp.paymentPlan?.milestones || [];
+
+  const rawMs =
+    !curApp.milestonesOverridden && projectMilestones && projectMilestones.length > 0
       ? projectMilestones.map((pm, mIdx) => {
-          const amt = Number(pm.amount || pm.paymentAmount || 0);
+          const existingMatch = existingMs[mIdx] || {};
+          const amt = Number(pm.paymentAmount ?? pm.amount ?? 0);
+          const isPaid =
+            existingMatch.status === "Paid" ||
+            existingMatch.paymentStatus === "Approved" ||
+            existingMatch.status === "Completed";
+          const pmStages = Array.isArray(pm.stages) && pm.stages.length > 0
+            ? pm.stages
+            : existingMatch.stages?.length > 0
+            ? existingMatch.stages
+            : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }];
           return {
-            id: pm.id || `m${mIdx}`,
-            name: pm.name || `Milestone ${mIdx + 1}`,
+            ...existingMatch,
+            id: existingMatch.id || pm.id || `m${mIdx}`,
+            name: pm.name || existingMatch.name || `Milestone ${mIdx + 1}`,
             amount: amt,
             paymentAmount: amt,
-            status: mIdx === 0 ? "Active" : "Locked",
-            paymentStatus: mIdx === 0 && amt > 0 ? "Payment Required" : "Not Required",
-            stages: (Array.isArray(pm.stages) && pm.stages.length > 0
-              ? pm.stages
-              : [{ id: `s${mIdx}_1`, name: `${pm.name || `Milestone ${mIdx + 1}`} Verification` }]
-            ).map((stg, sIdx) => ({
-              id: stg.id || `s${mIdx}_${sIdx}`,
-              name: stg.name || `Stage ${sIdx + 1}`,
-              status: mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : "Locked",
-              completedAt: null,
-              remark: "",
-            })),
+            status:
+              existingMatch.status ||
+              (mIdx === 0 ? "Active" : amt > 0 ? "Locked" : "Pending"),
+            paymentStatus:
+              existingMatch.paymentStatus ||
+              (isPaid ? "Approved" : mIdx === 0 && amt > 0 ? "Payment Required" : amt > 0 ? "Locked" : "Not Required"),
+            stages: pmStages.map((stg, sIdx) => {
+              const prevStg = (existingMatch.stages || [])[sIdx] || {};
+              return {
+                id: prevStg.id || stg.id || `s${mIdx}_${sIdx}`,
+                name: stg.name || prevStg.name || `Stage ${sIdx + 1}`,
+                status:
+                  prevStg.status ||
+                  (mIdx === 0 && sIdx === 0 && amt === 0 ? "In Progress" : isPaid ? "Pending" : "Locked"),
+                completedAt: prevStg.completedAt || null,
+                remark: prevStg.remark || "",
+                document: prevStg.document || null,
+              };
+            }),
           };
         })
-      : [
-          {
-            id: "m0",
-            name: "Milestone 1: Selection & Document Clearance",
-            amount: 15000,
-            paymentAmount: 15000,
-            status: "Active",
-            paymentStatus: "Payment Required",
-            stages: [
-              {
-                id: "s0_1",
-                name: "Trade Skill & Technical Screening",
-                status: "Completed",
-                completedAt: new Date().toISOString(),
-                remark: "Candidate verified",
-              },
-              {
-                id: "s0_2",
-                name: "Client Offer Letter Signed & Verified",
-                status: "In Progress",
-                remark: "",
-              },
-              {
-                id: "s0_3",
-                name: "Document Attestation & Verification",
-                status: "Pending",
-                remark: "",
-              },
-            ],
-          },
-          {
-            id: "m1",
-            name: "Milestone 2: Medical & Visa Processing",
-            amount: 15000,
-            paymentAmount: 15000,
-            status: "Locked",
-            paymentStatus: "Locked",
-            stages: [
-              {
-                id: "s1_1",
-                name: "GAMCA Medical Fitness Clearance",
-                status: "Locked",
-                remark: "",
-              },
-              {
-                id: "s1_2",
-                name: "Visa Application & Work Permit Stamping",
-                status: "Locked",
-                remark: "",
-              },
-            ],
-          },
-          {
-            id: "m2",
-            name: "Milestone 3: Emigration Clearance & Flight Deployment",
-            amount: 10000,
-            paymentAmount: 10000,
-            status: "Locked",
-            paymentStatus: "Locked",
-            stages: [
-              {
-                id: "s2_1",
-                name: "Emigration Clearance (Poe/Protector)",
-                status: "Locked",
-                remark: "",
-              },
-              {
-                id: "s2_2",
-                name: "Air Ticket Booking & Travel Insurance",
-                status: "Locked",
-                remark: "",
-              },
-              {
-                id: "s2_3",
-                name: "Airport Mobilization & Deployment",
-                status: "Locked",
-                remark: "",
-              },
-            ],
-          },
-        ];
+      : existingMs;
 
   let totalStages = 0;
   let doneStages = 0;
@@ -193,10 +134,12 @@ export default function CandidateMilestonesTab({
   });
   const progressPct = totalStages > 0 ? Math.round((doneStages / totalStages) * 100) : 0;
 
+  const msSum = rawMs.reduce(
+    (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
   const totalMilestonesFee =
-    curApp.paymentPlan?.totalAmount ||
-    rawMs.reduce((acc, m) => acc + (Number(m.amount || m.paymentAmount) || 0), 0) ||
-    40000;
+    msSum > 0 ? msSum : Number(curApp.paymentPlan?.totalAmount || 0);
 
   const paidFee = rawMs.reduce((acc, m) => {
     if (m.status === "Paid" || m.paymentStatus === "Approved") {
@@ -305,7 +248,7 @@ export default function CandidateMilestonesTab({
           const isPaymentRequired =
             m.status === "Payment Required" || m.paymentStatus === "Payment Required";
           const isLocked = m.status === "Locked";
-          const amt = Number(m.amount || m.paymentAmount || 15000);
+          const amt = Number(m.paymentAmount ?? m.amount ?? 0);
 
           const candidateDocs = (m.clearanceDocuments || []).filter(
             (d) => !d.targetAudience || d.targetAudience === "both" || d.targetAudience === "candidate"

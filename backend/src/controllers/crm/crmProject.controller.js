@@ -1,10 +1,26 @@
 import CrmOverseasClient from "../../models/CrmOverseasClient.js";
 import Project from "../../models/Project.js";
+import CrmCandidateApplication from "../../models/CrmCandidateApplication.js";
+import CandidateApplication from "../../models/CandidateApplication.js";
 import CrmNotification from "../../models/CrmNotification.js";
 import NotificationService, { resolveActorInfo } from "../../services/notification.service.js";
 import ActivityService from "../../services/activity.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateNextClientId } from "../../utils/idGenerator.js";
+import { resolveProjectMilestonesData } from "../../utils/projectResolver.js";
+
+const POST_SELECTION_STATUSES = new Set([
+  "Selected",
+  "Processing",
+  "Completed",
+  "Offer Released",
+  "Offer Accepted",
+  "Visa Processing",
+  "Visa Issued",
+  "Visa Allotted",
+  "Joined",
+  "Deployed",
+]);
 
 export const getAvailableProjects = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).lean();
@@ -59,6 +75,8 @@ export const getAvailableProjects = asyncHandler(async (req, res) => {
                   position: dp.projectType || dp.industryName || dp.title || "General Trade Position",
                   positionTitle: dp.projectType || dp.industryName || dp.title || "General Trade Position",
                   quantity: dp.totalHeadcount || dp.manpower || 1,
+                  salary: dp.salary || "",
+                  currency: dp.currency || "",
                 },
               ],
         });
@@ -122,6 +140,93 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
   await doc.save();
 
   try {
+    const projIdCandidates = Array.from(
+      new Set(
+        [projId, project.id, project.projectId, project._id ? String(project._id) : ""]
+          .filter(Boolean)
+          .map(String)
+      )
+    );
+    const hexIdCandidates = projIdCandidates.filter((v) => /^[0-9a-fA-F]{24}$/.test(v));
+
+    const projectDocs = await Project.find({
+      $or: [
+        { projectId: { $in: projIdCandidates } },
+        ...(hexIdCandidates.length > 0 ? [{ _id: { $in: hexIdCandidates } }] : []),
+      ],
+    });
+    for (const pDoc of projectDocs) {
+      if (fullProject.projectName) pDoc.title = fullProject.projectName;
+      if (fullProject.salary !== undefined) pDoc.salary = String(fullProject.salary || "");
+      if (fullProject.currency !== undefined) pDoc.currency = String(fullProject.currency || "");
+      pDoc.recruitmentConfig = {
+        ...(pDoc.recruitmentConfig || {}),
+        paymentMilestones: Array.isArray(fullProject.paymentMilestones) ? fullProject.paymentMilestones : [],
+        totalMilestoneAmount: Number(
+          fullProject.totalMilestoneAmount ?? fullProject.totalAgreedAmount ?? 0
+        ),
+      };
+      pDoc.markModified("recruitmentConfig");
+      await pDoc.save();
+    }
+
+    const propagateToApps = async (Model) => {
+      const matchedApps = await Model.find({ projectId: { $in: projIdCandidates } });
+      for (const appDoc of matchedApps) {
+        let changed = false;
+        if (fullProject.salary !== undefined && appDoc.salary !== fullProject.salary) {
+          appDoc.salary = String(fullProject.salary || "");
+          changed = true;
+        }
+        if (fullProject.currency !== undefined && appDoc.currency !== fullProject.currency) {
+          appDoc.currency = String(fullProject.currency || "");
+          changed = true;
+        }
+        if (fullProject.projectName && appDoc.projectName !== fullProject.projectName) {
+          appDoc.projectName = fullProject.projectName;
+          changed = true;
+        }
+        if (fullProject.country && appDoc.country !== fullProject.country) {
+          appDoc.country = fullProject.country;
+          changed = true;
+        }
+
+        const isOverridden = Boolean(appDoc.get?.("milestonesOverridden") ?? appDoc.milestonesOverridden);
+        const effStatus = appDoc.status || "";
+        const effStage = appDoc.recruitmentStage || "";
+        const hasMilestones = Array.isArray(appDoc.processMilestones) && appDoc.processMilestones.length > 0;
+        if (
+          !isOverridden &&
+          (POST_SELECTION_STATUSES.has(effStatus) || POST_SELECTION_STATUSES.has(effStage) || hasMilestones)
+        ) {
+          const resolved = resolveProjectMilestonesData(fullProject, appDoc.processMilestones || [], false);
+          if (resolved.processMilestones.length > 0 || hasMilestones) {
+            appDoc.processMilestones = resolved.processMilestones;
+            appDoc.paymentPlan = {
+              ...(appDoc.paymentPlan?.toObject?.() || appDoc.paymentPlan || { currency: "INR" }),
+              totalAmount: resolved.totalAmount,
+              milestones: resolved.processMilestones,
+            };
+            appDoc.markModified("processMilestones");
+            appDoc.markModified("paymentPlan");
+            changed = true;
+          }
+        }
+        if (changed) {
+          await appDoc.save();
+        }
+      }
+    };
+
+    await Promise.all([
+      propagateToApps(CrmCandidateApplication),
+      propagateToApps(CandidateApplication),
+    ]);
+  } catch (syncErr) {
+    console.warn("Project update propagation warning:", syncErr?.message);
+  }
+
+  try {
     const actorMeta = resolveActorInfo(req.user);
     const isAll =
       (fullProject.vendorAssignmentType || fullProject.vendorVisibility) !== "Specific Vendor" &&
@@ -162,7 +267,7 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
       title: "Overseas Project Configured",
       message: `Project "${fullProject.projectName}" (${fullProject.country}) saved.`,
       moduleScope: "VENDOR",
-      metadata: { projectId: fullProject.id },
+      metadata: { projectId: fullProject.id, link: "/projects" },
     });
   } catch {}
 

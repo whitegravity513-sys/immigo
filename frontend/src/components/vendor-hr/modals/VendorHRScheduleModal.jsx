@@ -9,7 +9,7 @@ export default function VendorHRScheduleModal({
   scheduleInterviewTarget,
   setScheduleInterviewTarget,
   applications = [],
-  hrUserName = "Priya Sharma",
+  hrUserName = "Vendor HR Officer",
   actionLoading = false,
 }) {
   if (!show) return null;
@@ -35,9 +35,11 @@ export default function VendorHRScheduleModal({
             <label className="block text-slate-700 font-bold mb-1">Select Candidate *</label>
             <select
               required
-              value={scheduleInterviewTarget?.applicationId || scheduleForm.applicationId}
+              value={scheduleInterviewTarget?.applicationId || scheduleInterviewTarget?.id || scheduleForm.applicationId}
               onChange={(e) => {
-                const match = applications.find((a) => a.applicationId === e.target.value);
+                const match = applications.find(
+                  (a) => String(a.applicationId || a.id || a._id) === String(e.target.value)
+                );
                 if (setScheduleInterviewTarget) setScheduleInterviewTarget(match);
                 setScheduleForm({ ...scheduleForm, applicationId: e.target.value });
               }}
@@ -45,12 +47,15 @@ export default function VendorHRScheduleModal({
             >
               <option value="">Choose a candidate for interview</option>
               {applications
-                .filter((a) => !["Selected", "Rejected", "Joined", "Deployed"].includes(a.recruitmentStage))
-                .map((a) => (
-                  <option key={a.applicationId} value={a.applicationId}>
-                    {a.candidateName} — {a.jobTitle} [{a.recruitmentStage || "Shortlisted"}]
-                  </option>
-                ))}
+                .filter((a) => !["Selected", "Rejected", "Joined", "Deployed"].includes(a.recruitmentStage || a.status))
+                .map((a) => {
+                  const appKey = a.applicationId || a.id || a._id;
+                  return (
+                    <option key={appKey} value={appKey}>
+                      {a.candidateName} — {a.jobTitle || a.position} [{a.recruitmentStage || a.status || "Shortlisted"}]
+                    </option>
+                  );
+                })}
             </select>
           </div>
 
@@ -89,9 +94,8 @@ export default function VendorHRScheduleModal({
             </div>
           </div>
 
-          {/* Interviewer restricted strictly to Vendor HR or Admin / Super Admin */}
           <div>
-            <label className="block text-slate-700 font-bold mb-1">Interviewer (Vendor HR ya Admin / Super Admin)</label>
+            <label className="block text-slate-700 font-bold mb-1">Interviewer (Vendor HR or Admin / Super Admin)</label>
             <select
               value={scheduleForm.interviewerName}
               onChange={(e) => setScheduleForm({ ...scheduleForm, interviewerName: e.target.value })}

@@ -3,8 +3,8 @@ import { Check } from "lucide-react";
 
 export default function SubmissionStepsNav({ currentStep, setCurrentStep }) {
   const steps = [
-    { num: 1, label: "Select Project & Trade" },
-    { num: 2, label: "Select Candidates" },
+    { num: 1, label: "Select Candidates" },
+    { num: 2, label: "Select Project & Trade" },
     { num: 3, label: "Review & Submit" },
   ];
 

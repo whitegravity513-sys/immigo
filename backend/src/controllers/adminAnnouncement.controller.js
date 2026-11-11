@@ -37,6 +37,7 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
         announcementId: announcement._id,
         category: announcement.category,
         date: announcement.date,
+        link: "/employee/dashboard",
       },
     });
     await NotificationService.notifyStaffAction({
@@ -49,6 +50,7 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
         announcementId: announcement._id,
         category: announcement.category,
         date: announcement.date,
+        link: "/admin/dashboard/announcements",
       },
     });
   } catch (e) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   UserCheck,
@@ -10,7 +10,14 @@ import {
   FileText,
   Clock,
   Download,
+  Eye,
+  Printer,
 } from "lucide-react";
+import {
+  downloadUploadedDocument,
+  openUploadedDocument,
+  printUploadedDocument,
+} from "../../../../utils/printDocument.js";
 
 export default function VendorCandidateDossierView({
   selectedVendor,
@@ -24,6 +31,7 @@ export default function VendorCandidateDossierView({
   onAcceptCandDoc,
   onConfirmRejectCandDoc,
   onAcceptAllCandDocs,
+  onPreviewDoc,
 }) {
   const [rejectCandDocModal, setRejectCandDocModal] = useState(null);
   const [candDocRemarks, setCandDocRemarks] = useState("");
@@ -32,14 +40,14 @@ export default function VendorCandidateDossierView({
   const [appRejectReason, setAppRejectReason] = useState("");
 
   const [showReassignProjModal, setShowReassignProjModal] = useState(null);
-  const [reassignProjId, setReassignProjId] = useState("PRJ-101");
+  const [reassignProjId, setReassignProjId] = useState("");
   const [reassignPosition, setReassignPosition] = useState("");
 
   const candDocs = selectedCandidate?.documents || [];
   const currentApp =
     applications.find((a) => a.candidateId === selectedCandidate?.id) ||
     selectedCandidate?.candApp;
-  const appId = currentApp?.id;
+  const appId = currentApp?.id || currentApp?.applicationId || currentApp?._id;
   const appStatus = currentApp?.status || "Submitted";
 
   const handleConfirmRejectCandDocAction = async () => {
@@ -157,11 +165,13 @@ export default function VendorCandidateDossierView({
                     ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                     : appStatus === "Shortlisted"
                     ? "bg-blue-100 text-blue-800 border border-blue-300"
-                    : appStatus === "Interview"
+                    : appStatus === "Interview" || appStatus === "Interview Scheduled"
                     ? "bg-purple-100 text-purple-800 border border-purple-300"
+                    : appStatus === "On Hold"
+                    ? "bg-amber-100 text-amber-800 border border-amber-300"
                     : appStatus === "Rejected"
                     ? "bg-rose-100 text-rose-800 border border-rose-300"
-                    : "bg-amber-100 text-amber-800 border border-amber-300"
+                    : "bg-slate-100 text-slate-800 border border-slate-300"
                 }`}
               >
                 {appStatus}
@@ -170,25 +180,28 @@ export default function VendorCandidateDossierView({
 
             {appId && (
               <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => onUpdateAppStatus(appId, "Shortlisted")}
-                  disabled={appStatus === "Shortlisted"}
-                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <UserCheck size={14} />
-                  <span>Shortlist</span>
-                </button>
+                {["Submitted", "Applied", "Screening", "Under Review"].includes(appStatus) && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateAppStatus(appId, "Shortlisted")}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <UserCheck size={14} />
+                    <span>Shortlist</span>
+                  </button>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => onUpdateAppStatus(appId, "Interview")}
-                  disabled={appStatus === "Interview"}
-                  className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Briefcase size={14} />
-                  <span>Interview</span>
-                </button>
+                {appStatus !== "On Hold" && !["Selected", "Processing", "Completed", "Rejected"].includes(appStatus) && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateAppStatus(appId, "Interview")}
+                    disabled={appStatus === "Interview" || appStatus === "Interview Scheduled"}
+                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <Briefcase size={14} />
+                    <span>Interview</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -213,6 +226,17 @@ export default function VendorCandidateDossierView({
                   <span>Reject</span>
                 </button>
 
+                {(appStatus === "Interview" || appStatus === "Interview Scheduled") && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateAppStatus(appId, "On Hold")}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <Clock size={14} />
+                    <span>Hold</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -221,7 +245,7 @@ export default function VendorCandidateDossierView({
                       candName: selectedCandidate.fullName,
                       currentProjName: currentApp?.projectName,
                     });
-                    setReassignProjId("PRJ-101");
+                    setReassignProjId(String(currentApp?.projectId || availableProjects[0]?.id || ""));
                     setReassignPosition(selectedCandidate.currentPosition || "");
                   }}
                   className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
@@ -326,7 +350,7 @@ export default function VendorCandidateDossierView({
             <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto">
               <FileText size={24} />
             </div>
-            <h4 className="font-bold text-slate-800 text-sm">No Statutory Documents Uploaded</h4>
+            <h4 className="font-bold text-slate-800 text-sm">No Candidate Documents Uploaded</h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
               The sourcing vendor has not submitted any documents for this candidate yet.
             </p>
@@ -357,7 +381,7 @@ export default function VendorCandidateDossierView({
                       <div>
                         <span className="font-bold text-slate-900 block text-xs">{doc.name}</span>
                         <span className="text-[10px] text-slate-400 font-mono block">
-                          {doc.fileName} • {doc.size || "1.2 MB"}
+                          {doc.fileName} • {doc.size || "—"}
                         </span>
                       </div>
                     </div>
@@ -386,15 +410,35 @@ export default function VendorCandidateDossierView({
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => alert(`Downloading candidate document: ${doc.fileName}`)}
-                      className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 cursor-pointer flex items-center gap-1"
-                    >
-                      <Download size={12} />
-                      <span>Download</span>
-                    </button>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-[11px] gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => (onPreviewDoc ? onPreviewDoc(doc) : openUploadedDocument(doc))}
+                        className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 cursor-pointer flex items-center gap-1"
+                      >
+                        <Eye size={12} />
+                        <span>Preview</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!doc.fileUrl}
+                        onClick={() => printUploadedDocument(doc)}
+                        className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 cursor-pointer flex items-center gap-1"
+                      >
+                        <Printer size={12} />
+                        <span>Print</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!doc.fileUrl}
+                        onClick={() => downloadUploadedDocument(doc)}
+                        className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 disabled:opacity-40 cursor-pointer flex items-center gap-1"
+                      >
+                        <Download size={12} />
+                        <span>Download</span>
+                      </button>
+                    </div>
 
                     <div className="flex items-center gap-1.5">
                       {!isVerified && (
@@ -527,11 +571,15 @@ export default function VendorCandidateDossierView({
                   onChange={(e) => setReassignProjId(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none font-semibold"
                 >
-                  {availableProjects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.projectName} ({p.clientName} • {p.country})
-                    </option>
-                  ))}
+                  {availableProjects.length === 0 ? (
+                    <option value="">No active projects available</option>
+                  ) : (
+                    availableProjects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.projectName} ({p.clientName} • {p.country})
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
@@ -557,8 +605,9 @@ export default function VendorCandidateDossierView({
               </button>
               <button
                 type="button"
+                disabled={!reassignProjId}
                 onClick={handleConfirmReassignProjectAction}
-                className="py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer"
+                className="py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs cursor-pointer"
               >
                 Save Project Assignment
               </button>

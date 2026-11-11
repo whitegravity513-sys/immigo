@@ -14,7 +14,9 @@ import { AVATARS } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRMilestonesSection({
   applications = [],
-  vendorName = "Global Staffing Solutions Pvt Ltd",
+  projectsList = [],
+  vendorName = "",
+  hideProjectNames = false,
   selectedMilestoneApp,
   setSelectedMilestoneApp,
   milestoneSearchQuery = "",
@@ -25,9 +27,44 @@ export default function VendorHRMilestonesSection({
   openCandidateModal,
   navigateByTag,
 }) {
+  const resolveMatchedProject = (cand) => {
+    if (!cand || !Array.isArray(projectsList) || projectsList.length === 0) return null;
+    const pId = String(cand.projectId || "").trim();
+    const pName = String(cand.projectName || "").trim().toLowerCase();
+    return (
+      projectsList.find(
+        (p) =>
+          (pId && [p.projectId, p.id, p._id].filter(Boolean).map(String).includes(pId)) ||
+          (pName && String(p.projectName || "").trim().toLowerCase() === pName)
+      ) || null
+    );
+  };
+
+  const resolveCandMilestones = (cand) => {
+    const matchedProj = resolveMatchedProject(cand);
+    if (!cand?.milestonesOverridden && crmVendorService.syncAppMilestonesWithProject) {
+      const synced = crmVendorService.syncAppMilestonesWithProject(
+        cand,
+        matchedProj ? [matchedProj] : projectsList
+      );
+      if (Array.isArray(synced) && synced.length > 0) return synced;
+    }
+    return Array.isArray(cand?.processMilestones) ? cand.processMilestones : [];
+  };
   const postSelectionCandidates = applications.filter((cand) => {
     const stage = cand.recruitmentStage || cand.status || "";
-    return ["Selected", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Joined", "Deployed"].includes(stage);
+    return [
+      "Selected",
+      "Processing",
+      "Offer Released",
+      "Offer Accepted",
+      "Visa Processing",
+      "Visa Issued",
+      "Visa Allotted",
+      "Joined",
+      "Deployed",
+      "Completed",
+    ].includes(stage);
   });
 
   const filteredMilestoneCandidates = postSelectionCandidates.filter((cand) => {
@@ -42,7 +79,7 @@ export default function VendorHRMilestonesSection({
       cand.candidateName?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
-      cand.projectName?.toLowerCase().includes(q) ||
+      (!hideProjectNames && cand.projectName?.toLowerCase().includes(q)) ||
       cand.vendorName?.toLowerCase().includes(q)
     );
   });
@@ -82,10 +119,14 @@ export default function VendorHRMilestonesSection({
                   <span>
                     Passport: <strong className="text-slate-800">{selectedMilestoneApp.passportNumber ? `🛂 ${selectedMilestoneApp.passportNumber}` : "Verified"}</strong>
                   </span>
-                  <span>•</span>
-                  <span>
-                    Project: <strong className="text-blue-700">{selectedMilestoneApp.projectName}</strong>
-                  </span>
+                  {!hideProjectNames && selectedMilestoneApp.projectName && (
+                    <>
+                      <span>•</span>
+                      <span>
+                        Project: <strong className="text-blue-700">{selectedMilestoneApp.projectName}</strong>
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -108,6 +149,7 @@ export default function VendorHRMilestonesSection({
 
             <CandidateProcessTimeline
               application={selectedMilestoneApp}
+              project={resolveMatchedProject(selectedMilestoneApp)}
               isAdmin={true}
               onUpdate={handleTimelineUpdate}
             />
@@ -141,7 +183,7 @@ export default function VendorHRMilestonesSection({
             <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">In Active Processing</span>
               <div className="text-xl font-bold text-blue-600 mt-1">
-                {postSelectionCandidates.filter((c) => c.recruitmentStage !== "Joined" && c.recruitmentStage !== "Deployed").length}
+                {postSelectionCandidates.filter((c) => c.recruitmentStage !== "Joined" && c.recruitmentStage !== "Deployed" && c.recruitmentStage !== "Completed").length}
               </div>
               <span className="text-[10.5px] text-blue-700 font-semibold mt-0.5 block">Milestones active</span>
             </div>
@@ -149,8 +191,8 @@ export default function VendorHRMilestonesSection({
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Awaiting Payment</span>
               <div className="text-xl font-bold text-amber-600 mt-1">
                 {postSelectionCandidates.filter((cand) => {
-                  const milestones = Array.isArray(cand.processMilestones) && cand.processMilestones.length > 0 ? cand.processMilestones : [];
-                  return milestones.some((m) => Number(m.paymentAmount) > 0 && m.paymentStatus !== "Approved");
+                  const milestones = resolveCandMilestones(cand);
+                  return milestones.some((m) => Number(m.paymentAmount ?? m.amount ?? 0) > 0 && m.paymentStatus !== "Approved");
                 }).length}
               </div>
               <span className="text-[10.5px] text-amber-700 font-semibold mt-0.5 block">Payment gate active</span>
@@ -158,7 +200,7 @@ export default function VendorHRMilestonesSection({
             <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Mobilized / Joined</span>
               <div className="text-xl font-bold text-emerald-600 mt-1">
-                {postSelectionCandidates.filter((c) => c.recruitmentStage === "Joined" || c.recruitmentStage === "Deployed").length}
+                {postSelectionCandidates.filter((c) => c.recruitmentStage === "Joined" || c.recruitmentStage === "Deployed" || c.recruitmentStage === "Completed").length}
               </div>
               <span className="text-[10.5px] text-emerald-700 font-semibold mt-0.5 block">Deployment completed</span>
             </div>
@@ -172,7 +214,11 @@ export default function VendorHRMilestonesSection({
                 type="text"
                 value={milestoneSearchQuery}
                 onChange={(e) => setMilestoneSearchQuery(e.target.value)}
-                placeholder="Search selected candidate by name, passport, trade, project or vendor..."
+                placeholder={
+                  hideProjectNames
+                    ? "Search selected candidate by name, passport, trade or vendor..."
+                    : "Search selected candidate by name, passport, trade, project or vendor..."
+                }
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-teal-600"
               />
             </div>
@@ -186,10 +232,14 @@ export default function VendorHRMilestonesSection({
               >
                 <option value="ALL">All Selected Candidates ({postSelectionCandidates.length})</option>
                 <option value="Selected">1. Selected</option>
-                <option value="Offer Released">2. Offer Released</option>
-                <option value="Visa Processing">3. Visa Processing</option>
-                <option value="Visa Issued">4. Visa Issued</option>
-                <option value="Joined">5. Joined / Deployed</option>
+                <option value="Processing">2. Processing</option>
+                <option value="Offer Released">3. Offer Released</option>
+                <option value="Offer Accepted">4. Offer Accepted</option>
+                <option value="Visa Processing">5. Visa Processing</option>
+                <option value="Visa Issued">6. Visa Issued</option>
+                <option value="Visa Allotted">7. Visa Allotted</option>
+                <option value="Joined">8. Joined / Deployed</option>
+                <option value="Completed">9. Completed</option>
               </select>
             </div>
           </div>
@@ -201,7 +251,7 @@ export default function VendorHRMilestonesSection({
                 <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
                   <tr>
                     <th className="py-3 px-4">Selected Candidate & Passport</th>
-                    <th className="py-3 px-4">Trade & Project</th>
+                    <th className="py-3 px-4">{hideProjectNames ? "Trade & Agency" : "Trade & Project"}</th>
                     <th className="py-3 px-3">Stage</th>
                     <th className="py-3 px-4">Active Milestone & Progress</th>
                     <th className="py-3 px-4">Payment Gate</th>
@@ -219,12 +269,11 @@ export default function VendorHRMilestonesSection({
                     </tr>
                   ) : (
                     filteredMilestoneCandidates.map((cand, idx) => {
-                      const milestones =
-                        Array.isArray(cand.processMilestones) && cand.processMilestones.length > 0
-                          ? cand.processMilestones
-                          : crmVendorService.syncAppMilestonesWithProject
-                          ? crmVendorService.syncAppMilestonesWithProject(cand)
-                          : [];
+                      const milestones = resolveCandMilestones(cand);
+                      const totalFeeAmount = milestones.reduce(
+                        (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+                        0
+                      );
 
                       // Calculate Active Milestone
                       let activeM = null;
@@ -252,8 +301,11 @@ export default function VendorHRMilestonesSection({
                         activeMIdx === 0 ||
                         prevM?.status === "Completed" ||
                         (Array.isArray(prevM?.stages) && prevM.stages.length > 0 && prevM.stages.every((s) => s.status === "Completed"));
-                      const isMApproved = activeM?.paymentStatus === "Approved" || activeM?.status === "Paid";
-                      const mAmt = Number(activeM?.paymentAmount || activeM?.amount || 0);
+                      const isMApproved =
+                        activeM?.paymentStatus === "Approved" ||
+                        activeM?.status === "Paid" ||
+                        activeM?.status === "Completed";
+                      const mAmt = Number(activeM?.paymentAmount ?? activeM?.amount ?? 0);
                       const mRequiresPayment = isPrevDone && mAmt > 0 && !isMApproved;
                       const isMLocked = !isPrevDone;
 
@@ -291,13 +343,17 @@ export default function VendorHRMilestonesSection({
                             <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
                               {cand.jobTitle || "Specialist Technician"}
                             </div>
-                            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                              <Building2 size={11} className="text-slate-400 shrink-0" />
-                              <span className="truncate max-w-[180px]">{cand.projectName}</span>
-                            </div>
-                            <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
-                              Vendor: {cand.vendorName || vendorName}
-                            </div>
+                            {!hideProjectNames && cand.projectName && (
+                              <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <Building2 size={11} className="text-slate-400 shrink-0" />
+                                <span className="truncate max-w-[180px]">{cand.projectName}</span>
+                              </div>
+                            )}
+                            {(cand.vendorName || vendorName) && (
+                              <div className="text-[10px] text-indigo-700 font-semibold mt-0.5">
+                                Vendor: {cand.vendorName || vendorName}
+                              </div>
+                            )}
                           </td>
 
                           {/* Col 3: Stage Badge */}
@@ -347,6 +403,11 @@ export default function VendorHRMilestonesSection({
 
                           {/* Col 5: Payment Gate Status */}
                           <td className="py-3 px-4">
+                            {totalFeeAmount > 0 && (
+                              <div className="text-[10.5px] font-bold text-slate-700 mb-1">
+                                Total Fee: ₹{totalFeeAmount.toLocaleString()}
+                              </div>
+                            )}
                             {isMLocked ? (
                               <div className="space-y-0.5">
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
@@ -369,7 +430,7 @@ export default function VendorHRMilestonesSection({
                               <div className="space-y-0.5">
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
                                   <Unlock size={10} className="text-emerald-600" />
-                                  <span>Payment Approved</span>
+                                  <span>{mAmt > 0 ? "Payment Approved" : "No Payment Required"}</span>
                                 </span>
                                 <div className="text-[9.5px] text-emerald-700 font-semibold">
                                   Stages unlocked for HR processing

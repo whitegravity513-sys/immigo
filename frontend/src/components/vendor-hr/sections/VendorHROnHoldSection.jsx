@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   X,
   Clock,
-  Check,
+  Award,
   ArrowRight,
 } from "lucide-react";
 import { AVATARS } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHROnHoldSection({
   applications = [],
+  hideProjectNames = false,
   handleQuickStage,
   openCandidateModal,
   navigateByTag,
@@ -28,7 +29,7 @@ export default function VendorHROnHoldSection({
       cand.candidateName?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
-      cand.projectName?.toLowerCase().includes(q)
+      (!hideProjectNames && cand.projectName?.toLowerCase().includes(q))
     );
   });
 
@@ -43,7 +44,7 @@ export default function VendorHROnHoldSection({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Candidates pending client feedback or quota review. You can re-shortlist or reject them at any time.
+            Candidates placed on hold after interview. Select or reject once final decision is ready.
           </p>
         </div>
 
@@ -86,7 +87,7 @@ export default function VendorHROnHoldSection({
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>
-                <th className="py-3 px-4">Trade & Project</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Trade & Agency" : "Trade & Project"}</th>
                 <th className="py-3 px-3 text-center">Status</th>
                 <th className="py-3 px-4 text-center">Action</th>
                 <th className="py-3 px-4 text-right">Dossier</th>
@@ -113,7 +114,13 @@ export default function VendorHROnHoldSection({
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="font-bold text-slate-800 truncate">{cand.jobTitle || "Trade Specialist"}</div>
-                    <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Project"}</div>
+                    {!hideProjectNames ? (
+                      <div className="text-[11px] text-blue-700 font-medium truncate mt-0.5">{cand.projectName || "Project"}</div>
+                    ) : (
+                      cand.vendorName && (
+                        <div className="text-[11px] text-indigo-700 font-medium truncate mt-0.5">{cand.vendorName}</div>
+                      )
+                    )}
                   </td>
                   <td className="py-3.5 px-3 text-center">
                     <button
@@ -126,19 +133,19 @@ export default function VendorHROnHoldSection({
                     </button>
                   </td>
                   <td className="py-3.5 px-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
                       <button
                         type="button"
-                        onClick={() => handleQuickStage(cand, "Shortlisted", "Shortlisted from on-hold review")}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                        onClick={() => handleQuickStage(cand, "Selected", "Candidate selected from on-hold review")}
+                        className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                       >
-                        <Check size={12} />
-                        <span>Shortlist Candidate</span>
+                        <Award size={12} />
+                        <span>Select Candidate</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => handleQuickStage(cand, "Rejected", "Rejected from on-hold")}
-                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition cursor-pointer inline-flex items-center gap-1"
                       >
                         <X size={12} />
                         <span>Reject</span>

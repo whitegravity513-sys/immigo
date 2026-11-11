@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightLeft, User, Building2, Clock, CheckCircle2, AlertCircle, ExternalLink, ArrowRight } from "lucide-react";
 import refundService from "../../services/refundService.js";
@@ -8,11 +8,7 @@ export default function VendorRefunds() {
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
-  useEffect(() => {
-    loadRefunds();
-  }, []);
-
-  const loadRefunds = async () => {
+  const loadRefunds = useCallback(async () => {
     try {
       setLoading(true);
       const allRefunds = await refundService.getAllRefunds();
@@ -22,7 +18,14 @@ export default function VendorRefunds() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadRefunds();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [loadRefunds]);
 
   const displayedRefunds = showAll ? refunds : refunds.slice(0, 5);
 
@@ -124,14 +127,14 @@ export default function VendorRefunds() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {displayedRefunds.map((r) => {
+                {displayedRefunds.map((r, idx) => {
                   const status = r.refundStatus || "Refund Pending";
                   const isPending = status.toLowerCase().includes("pending");
                   const isSuccess = status.toLowerCase().includes("refunded") || status.toLowerCase().includes("approved");
                   const amount = Number(r.refundAmount || r.amount || 0);
 
                   return (
-                    <tr key={r.id || Math.random()} className="hover:bg-slate-50/60 transition-colors">
+                    <tr key={r.id || idx} className="hover:bg-slate-50/60 transition-colors">
                       {}
                       <td className="py-1.5 px-2.5">
                         <div>

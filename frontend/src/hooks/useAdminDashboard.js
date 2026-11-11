@@ -371,7 +371,7 @@ const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     );
     if (holidayOnDate) {
       setErrorMsg(
-        `Official Holiday (${holidayOnDate.title || "Holiday"}) — Aaj holiday hai, is date par attendance mark nahi ho sakti.`
+        `Official Holiday (${holidayOnDate.title || "Holiday"}) — Attendance cannot be marked on an official holiday.`
       );
       return;
     }

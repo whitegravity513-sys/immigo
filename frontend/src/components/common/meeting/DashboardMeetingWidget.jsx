@@ -25,8 +25,16 @@ export default function DashboardMeetingWidget({
   role = "ADMIN",
   assignedVendors = [],
 }) {
-  const { isVendor, isHR } = useAuth();
-  const fullCalendarLink = isVendor ? "/vendor/meetings" : isHR ? "/hr/meetings" : "/admin/meetings";
+  const { user, role: authRole, isVendor, isHR } = useAuth();
+  const isVendorUser = Boolean(
+    isVendor || String(role || authRole || "").toUpperCase() === "VENDOR"
+  );
+  const isVendorHRUser = Boolean(
+    !isVendorUser &&
+      (user?.hrType === "VENDOR_HR" ||
+        String(role || authRole || "").toUpperCase() === "VENDOR_HR")
+  );
+  const fullCalendarLink = isVendorUser ? "/vendor/meetings" : isHR ? "/hr/meetings" : "/admin/meetings";
 
   const todayStr = new Date().toISOString().split("T")[0];
   const tomorrowStr = new Date(Date.now() + 24 * 60 * 60 * 1000)
@@ -38,13 +46,12 @@ export default function DashboardMeetingWidget({
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ todayMeetingsCount: 0, upcomingMeetingsCount: 0 });
 
-  // Schedule modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     title: "",
-    meetingType: "CANDIDATE_INTERVIEW",
+    meetingType: isVendorUser ? "INTERNAL_HR" : "CANDIDATE_INTERVIEW",
     platform: "Google Meet",
     date: todayStr,
     startTime: "11:00",
@@ -55,6 +62,8 @@ export default function DashboardMeetingWidget({
     candidateId: "",
     vendorId: "",
     vendorName: "",
+    projectId: "",
+    projectName: "",
     description: "",
   });
 
@@ -70,49 +79,98 @@ export default function DashboardMeetingWidget({
     projectName: "",
   });
 
+  useEffect(() => {
+    if (isVendorUser) {
+      setTargetMode("SPECIFIC");
+      setFormData((prev) =>
+        prev.meetingType === "INTERNAL_HR" ? prev : { ...prev, meetingType: "INTERNAL_HR" }
+      );
+    }
+  }, [isVendorUser]);
+
   const handleMeetingTypeChange = (newType) => {
+    if (isVendorUser && newType !== "INTERNAL_HR") return;
     setSelectedParticipants([]);
     setTargetMode("SPECIFIC");
     const defaultTitles = {
       CANDIDATE_INTERVIEW: "Candidate Interview Round",
       VENDOR_DISCUSSION: "Vendor Agency Coordination Sync",
-      INTERNAL_HR: "HR Operations & Recruitment Review",
+      INTERNAL_HR: isVendorUser
+        ? "Vendor HR Project Coordination Sync"
+        : "HR Operations & Recruitment Review",
       EMPLOYEE: "Employee One-on-One Discussion",
       GENERAL: "Company Operations Sync",
     };
     setFormData((prev) => ({
       ...prev,
       meetingType: newType,
+      projectId: "",
+      projectName: "",
       title: defaultTitles[newType] || prev.title,
     }));
+  };
+
+  const syncSharedProjectFromParticipants = (participants, currentProjectId) => {
+    const allProjs = [];
+    const seen = new Set();
+    participants.forEach((item) => {
+      (item.assignedProjects || []).forEach((proj) => {
+        const pid = String(proj.projectId || "");
+        if (pid && !seen.has(pid)) {
+          seen.add(pid);
+          allProjs.push(proj);
+        }
+      });
+    });
+    if (allProjs.length === 0) {
+      return { projectId: "", projectName: "" };
+    }
+    const existing = allProjs.find((p) => String(p.projectId) === String(currentProjectId));
+    const chosen = existing || allProjs[0];
+    return {
+      projectId: String(chosen.projectId || ""),
+      projectName: chosen.projectName || "",
+    };
   };
 
   const handleAddParticipant = (p) => {
     setSelectedParticipants((prev) => {
       const next = [...prev, p];
-      if (
-        next.length === 1 &&
-        (!formData.title ||
-          formData.title.includes("Discussion") ||
-          formData.title.includes("Sync") ||
-          formData.title.includes("Round"))
-      ) {
+      setFormData((f) => {
+        const projUpdate = isVendorUser
+          ? syncSharedProjectFromParticipants(next, f.projectId)
+          : {};
+        const shouldSetTitle =
+          next.length === 1 &&
+          (!f.title ||
+            f.title.includes("Discussion") ||
+            f.title.includes("Sync") ||
+            f.title.includes("Round"));
+        return {
+          ...f,
+          ...projUpdate,
+          ...(shouldSetTitle ? { title: `Discussion with ${p.name || p.companyName}` } : {}),
+        };
+      });
+      return next;
+    });
+  };
+
+  const handleRemoveParticipant = (id) => {
+    setSelectedParticipants((prev) => {
+      const next = prev.filter((p) => (p.id || p.code || p.name) !== id);
+      if (isVendorUser) {
         setFormData((f) => ({
           ...f,
-          title: `Discussion with ${p.name || p.companyName}`,
+          ...syncSharedProjectFromParticipants(next, f.projectId),
         }));
       }
       return next;
     });
   };
 
-  const handleRemoveParticipant = (id) => {
-    setSelectedParticipants((prev) =>
-      prev.filter((p) => (p.id || p.code || p.name) !== id)
-    );
-  };
-
   const handleCandidateChange = (cand) => {
+    if (isVendorUser) return;
     setCandidateData(cand);
     if (cand.candidateName) {
       setFormData((f) => ({
@@ -166,57 +224,89 @@ export default function DashboardMeetingWidget({
       setSubmitting(true);
       setFormError("");
 
-      const targetEmployees = selectedParticipants
-        .filter((p) => p.role === "EMPLOYEE" || formData.meetingType === "EMPLOYEE")
-        .map((p) => p.id || p._id);
-
-      const targetVendors = selectedParticipants
-        .filter((p) => p.role === "VENDOR" || formData.meetingType === "VENDOR_DISCUSSION")
-        .map((p) => p.code || p.id || p.vendorId);
+      const effectiveMeetingType = isVendorUser ? "INTERNAL_HR" : formData.meetingType;
+      const effectiveTargetMode = isVendorUser ? "SPECIFIC" : targetMode;
 
       const targetHRs = selectedParticipants
-        .filter((p) => p.role?.includes("HR") || formData.meetingType === "INTERNAL_HR")
-        .map((p) => p.id || p._id);
+        .filter((p) => p.role?.includes("HR") || effectiveMeetingType === "INTERNAL_HR")
+        .map((p) => p.id || p._id)
+        .filter(Boolean);
+
+      if (isVendorUser && targetHRs.length === 0) {
+        setFormError("Please select an assigned Vendor HR to schedule this meeting.");
+        setSubmitting(false);
+        return;
+      }
+
+      const targetEmployees = isVendorUser
+        ? []
+        : selectedParticipants
+            .filter((p) => p.role === "EMPLOYEE" || effectiveMeetingType === "EMPLOYEE")
+            .map((p) => p.id || p._id);
+
+      const vendorSelfId = user?.vendorId || user?.id || user?._id || assignedVendors[0] || "";
+      const targetVendors = isVendorUser
+        ? [vendorSelfId].filter(Boolean)
+        : selectedParticipants
+            .filter((p) => p.role === "VENDOR" || effectiveMeetingType === "VENDOR_DISCUSSION")
+            .map((p) => p.code || p.id || p.vendorId);
 
       const attendees = selectedParticipants.map((p) => ({
         id: p.id || p._id || p.code || "",
         name: p.name || p.companyName,
         email: p.email || "",
-        role: p.role || formData.meetingType,
+        role: isVendorUser ? "VENDOR_HR" : p.role || effectiveMeetingType,
         code: p.code || "",
         companyName: p.companyName || "",
-        designation: p.designation || "",
+        designation: p.designation || (isVendorUser ? "VENDOR_HR" : ""),
       }));
+
+      const hrNames = selectedParticipants
+        .filter((p) => p.role?.includes("HR") || effectiveMeetingType === "INTERNAL_HR")
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(", ");
+
+      const projectSync = isVendorUser
+        ? syncSharedProjectFromParticipants(selectedParticipants, formData.projectId)
+        : { projectId: formData.projectId || "", projectName: formData.projectName || "" };
 
       const payload = {
         title: formData.title.trim(),
         description: formData.description?.trim() || "",
-        meetingType: formData.meetingType,
+        meetingType: effectiveMeetingType,
         date: formData.date,
         startTime: formData.startTime,
         endTime: formData.endTime,
         meetingLink: formData.meetingLink.trim(),
         platform: formData.platform || "Google Meet",
-        targetType: targetMode,
+        targetType: effectiveTargetMode,
         targetEmployees,
         targetVendors,
         targetHRs,
+        hrId: targetHRs[0] || "",
+        hrName: hrNames,
+        projectId: projectSync.projectId || "",
+        projectName: projectSync.projectName || "",
         attendees,
-        candidateId: candidateData.candidateId || formData.candidateId || "",
-        candidateName: candidateData.candidateName || formData.candidateName || "",
-        candidateEmail: candidateData.candidateEmail || formData.candidateEmail || "",
-        vendorId:
-          candidateData.vendorId ||
-          formData.vendorId ||
-          (targetVendors.length === 1 ? targetVendors[0] : assignedVendors[0] || ""),
-        vendorName: candidateData.vendorName || formData.vendorName || "",
+        candidateId: isVendorUser ? "" : candidateData.candidateId || formData.candidateId || "",
+        candidateName: isVendorUser ? "" : candidateData.candidateName || formData.candidateName || "",
+        candidateEmail: isVendorUser ? "" : candidateData.candidateEmail || formData.candidateEmail || "",
+        vendorId: isVendorUser
+          ? vendorSelfId
+          : candidateData.vendorId ||
+            formData.vendorId ||
+            (targetVendors.length === 1 ? targetVendors[0] : assignedVendors[0] || ""),
+        vendorName: isVendorUser
+          ? user?.companyName || formData.vendorName || ""
+          : candidateData.vendorName || formData.vendorName || "",
       };
 
       await meetingService.createMeeting(payload);
       setIsModalOpen(false);
       setFormData({
         title: "",
-        meetingType: "CANDIDATE_INTERVIEW",
+        meetingType: isVendorUser ? "INTERNAL_HR" : "CANDIDATE_INTERVIEW",
         platform: "Google Meet",
         date: todayStr,
         startTime: "11:00",
@@ -227,6 +317,8 @@ export default function DashboardMeetingWidget({
         candidateId: "",
         vendorId: "",
         vendorName: "",
+        projectId: "",
+        projectName: "",
         description: "",
       });
       setSelectedParticipants([]);
@@ -395,9 +487,15 @@ export default function DashboardMeetingWidget({
                       <div className="flex items-center justify-between gap-1 text-[11px]">
                         <span className="text-slate-500 font-medium">Meeting With:</span>
                         <span className="font-bold text-blue-700 truncate max-w-[150px]">
-                          {m.candidateName || m.vendorName || m.targetType || "Attendee"}
+                          {m.candidateName || m.hrName || m.vendorName || m.targetType || "Attendee"}
                         </span>
                       </div>
+                      {m.projectName && !isVendorHRUser && (
+                        <div className="flex items-center justify-between gap-1 text-[10px] text-slate-500">
+                          <span>Project:</span>
+                          <span className="font-semibold text-indigo-700 truncate max-w-[150px]">{m.projectName}</span>
+                        </div>
+                      )}
                       {m.candidateName && m.vendorName && (
                         <div className="flex items-center justify-between gap-1 text-[10px] text-slate-500">
                           <span>Vendor:</span>
@@ -471,7 +569,7 @@ export default function DashboardMeetingWidget({
       {/* Quick Schedule Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-5 shadow-2xl space-y-3">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                 <Calendar size={15} className="text-blue-600" />
@@ -498,7 +596,11 @@ export default function DashboardMeetingWidget({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Technical Interview / Partnership Sync"
+                  placeholder={
+                    isVendorUser
+                      ? "e.g. Project Coordination Sync with Vendor HR"
+                      : "e.g. Technical Interview / Partnership Sync"
+                  }
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs"
@@ -508,17 +610,27 @@ export default function DashboardMeetingWidget({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Meeting Type</label>
-                  <select
-                    value={formData.meetingType}
-                    onChange={(e) => handleMeetingTypeChange(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
-                  >
-                    <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
-                    <option value="VENDOR_DISCUSSION">Vendor Discussion</option>
-                    <option value="INTERNAL_HR">Internal HR Meeting</option>
-                    <option value="EMPLOYEE">Employee Discussion</option>
-                    <option value="GENERAL">General Conference</option>
-                  </select>
+                  {isVendorUser ? (
+                    <select
+                      disabled
+                      value="INTERNAL_HR"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-700 font-semibold text-xs cursor-not-allowed"
+                    >
+                      <option value="INTERNAL_HR">Assigned Vendor HR</option>
+                    </select>
+                  ) : (
+                    <select
+                      value={formData.meetingType}
+                      onChange={(e) => handleMeetingTypeChange(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs"
+                    >
+                      <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
+                      <option value="VENDOR_DISCUSSION">Vendor Discussion</option>
+                      <option value="INTERNAL_HR">Internal HR Meeting</option>
+                      <option value="EMPLOYEE">Employee Discussion</option>
+                      <option value="GENERAL">General Conference</option>
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Platform</label>
@@ -536,16 +648,20 @@ export default function DashboardMeetingWidget({
                 </div>
               </div>
 
-              {/* Dynamic Adaptive Participant Selector */}
               <DynamicMeetingParticipantSelector
-                meetingType={formData.meetingType}
-                targetMode={targetMode}
+                meetingType={isVendorUser ? "INTERNAL_HR" : formData.meetingType}
+                targetMode={isVendorUser ? "SPECIFIC" : targetMode}
                 onTargetModeChange={setTargetMode}
                 selectedParticipants={selectedParticipants}
                 onAddParticipant={handleAddParticipant}
                 onRemoveParticipant={handleRemoveParticipant}
                 candidateData={candidateData}
                 onCandidateChange={handleCandidateChange}
+                isVendorRestricted={isVendorUser}
+                selectedProjectId={formData.projectId}
+                onProjectChange={(pid, pname) =>
+                  setFormData((prev) => ({ ...prev, projectId: pid, projectName: pname }))
+                }
               />
 
               <div className="grid grid-cols-3 gap-2">

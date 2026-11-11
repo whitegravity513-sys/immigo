@@ -13,10 +13,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
 
   const approvedCount = vendors.filter(
     (v) =>
-      (v.status === "Approved" ||
-        v.status === "Active" ||
-        v.mouStatus === "Approved" ||
-        v.mouSigned === true) &&
+      (v.status === "Approved" || v.status === "Active" || v.mouStatus === "Approved") &&
       v.status !== "Suspended" &&
       v.status !== "Rejected" &&
       !v.status?.includes("Rejected")
@@ -29,8 +26,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
       !v.status?.includes("Rejected") &&
       v.status !== "Approved" &&
       v.status !== "Active" &&
-      v.mouStatus !== "Approved" &&
-      !v.mouSigned
+      v.mouStatus !== "Approved"
   ).length;
 
   return (

@@ -49,25 +49,25 @@ export default function VendorOverviewTab({ vendor }) {
           <div>
             <span className="text-slate-400">Bank Name</span>
             <p className="font-semibold text-white mt-0.5">
-              {vendor.bankDetails?.bankName || "HDFC Bank Ltd"}
+              {vendor.bankDetails?.bankName || "N/A"}
             </p>
           </div>
           <div>
             <span className="text-slate-400">Account Number</span>
             <p className="font-mono text-white mt-0.5">
-              {vendor.bankDetails?.accountNumber || "•••• •••• •••• 9281"}
+              {vendor.bankDetails?.accountNumber || "N/A"}
             </p>
           </div>
           <div>
             <span className="text-slate-400">IFSC Code</span>
             <p className="font-mono text-white mt-0.5">
-              {vendor.bankDetails?.ifscCode || "HDFC0001234"}
+              {vendor.bankDetails?.ifscCode || vendor.bankDetails?.ifsc || "N/A"}
             </p>
           </div>
           <div>
             <span className="text-slate-400">Account Holder</span>
             <p className="text-white mt-0.5">
-              {vendor.bankDetails?.accountHolderName || vendor.companyName}
+              {vendor.bankDetails?.accountHolderName || vendor.bankDetails?.accountName || "N/A"}
             </p>
           </div>
         </div>

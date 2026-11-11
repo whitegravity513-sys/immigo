@@ -52,6 +52,126 @@ const STANDARD_BENEFITS = [
   "Other",
 ];
 
+const buildInitialFormData = (data, preClientId) => {
+  const rawStartDate = data?.startDate
+    ? String(data.startDate).includes("T")
+      ? String(data.startDate).split("T")[0]
+      : String(data.startDate)
+    : new Date().toISOString().split("T")[0];
+
+  const existingMilestones =
+    Array.isArray(data?.paymentMilestones) && data.paymentMilestones.length > 0
+      ? data.paymentMilestones
+      : Array.isArray(data?.paymentMilestoneConfig?.milestones) &&
+        data.paymentMilestoneConfig.milestones.length > 0
+      ? data.paymentMilestoneConfig.milestones
+      : Array.isArray(data?.recruitmentConfig?.paymentMilestones) &&
+        data.recruitmentConfig.paymentMilestones.length > 0
+      ? data.recruitmentConfig.paymentMilestones
+      : null;
+
+  const normalizedMilestones = existingMilestones
+    ? existingMilestones.map((m, idx) => {
+        const amt = m?.paymentAmount ?? m?.amount ?? "";
+        return {
+          ...m,
+          id: m?.id || `m${Date.now()}-${idx + 1}`,
+          name: m?.name || `Milestone ${idx + 1}`,
+          paymentAmount: amt === 0 ? "0" : amt,
+          amount: amt === 0 ? "0" : amt,
+          stages:
+            Array.isArray(m?.stages) && m.stages.length > 0
+              ? m.stages
+              : [{ id: `s${Date.now()}-${idx + 1}-1`, name: "Candidate Selection" }],
+        };
+      })
+    : [
+        {
+          id: `m${Date.now()}-1`,
+          name: "Candidate Selection & Documentation",
+          paymentAmount: "",
+          amount: "",
+          stages: [
+            { id: `s${Date.now()}-1`, name: "Candidate Selection" },
+            { id: `s${Date.now()}-2`, name: "Document Verification" },
+            { id: `s${Date.now()}-3`, name: "Medical Check" },
+          ],
+        },
+      ];
+
+  const rawReqs = Array.isArray(data?.manpowerRequirements) ? data.manpowerRequirements : [];
+  const computedHeadcount =
+    data?.totalHeadcount ??
+    (rawReqs.length > 0 ? rawReqs.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0) : 0);
+
+  const computedMilestonesSum = normalizedMilestones.reduce(
+    (sum, m) => sum + (Number(m.paymentAmount ?? m.amount) || 0),
+    0
+  );
+  const resolvedTotalFee =
+    data?.totalMilestoneAmount ??
+    data?.totalAgreedAmount ??
+    data?.paymentMilestoneConfig?.totalFeePerCandidate ??
+    (computedMilestonesSum > 0 ? computedMilestonesSum : "");
+
+  const rawAssignedVendors =
+    Array.isArray(data?.assignedVendorIds) && data.assignedVendorIds.length > 0
+      ? data.assignedVendorIds
+      : Array.isArray(data?.assignedVendors)
+      ? data.assignedVendors
+          .map((v) => (typeof v === "object" ? v.vendorId || v.id || v._id : v))
+          .filter(Boolean)
+      : [];
+
+  const isSpecific =
+    data?.vendorVisibility === "specific" ||
+    data?.vendorAssignmentType === "Specific Vendor";
+
+  return {
+    clientId: data?.clientId || preClientId || "",
+    projectName: data?.projectName || data?.title || data?.name || "",
+    projectType: data?.projectType || "Construction",
+    country: data?.country || data?.destinationCountry || "UAE",
+    location: data?.location || "",
+    salary: data?.salary ?? rawReqs[0]?.salary ?? "",
+    currency: data?.currency ?? rawReqs[0]?.currency ?? "",
+    startDate: rawStartDate,
+    duration: data?.duration || "24 Months",
+    status: data?.status || "Active",
+    description: data?.description || "",
+    benefits: Array.isArray(data?.benefits)
+      ? data.benefits
+      : [
+          "Accommodation",
+          "Transportation",
+          "Medical Insurance",
+          "Visa",
+          "Work Permit",
+          "Overtime",
+        ],
+    otherBenefits: data?.otherBenefits || "",
+    additionalRequirements: {
+      requiredDocuments:
+        data?.additionalRequirements?.requiredDocuments ||
+        "Valid Passport, Trade Test Certificate, Police Clearance",
+      specialSkills: data?.additionalRequirements?.specialSkills || "",
+      languageRequirements:
+        data?.additionalRequirements?.languageRequirements || "English / Hindi",
+      medicalRequirements:
+        data?.additionalRequirements?.medicalRequirements || "GAMCA Medical Fit Certificate",
+      otherInstructions: data?.additionalRequirements?.otherInstructions || "",
+    },
+    totalHeadcount: computedHeadcount,
+    workforceNotes: data?.workforceNotes || "",
+    documents: Array.isArray(data?.documents) ? data.documents : [],
+    manpowerRequirements: rawReqs,
+    vendorVisibility: isSpecific ? "specific" : "all",
+    assignedVendorIds: rawAssignedVendors,
+    totalMilestoneAmount: resolvedTotalFee,
+    paymentMilestones: normalizedMilestones,
+  };
+};
+
 export function ProjectForm({
   initialData = null,
   isEdit = false,
@@ -74,71 +194,15 @@ export function ProjectForm({
   const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
   const [pendingInlinePosition, setPendingInlinePosition] = useState(null);
 
-  const [formData, setFormData] = useState({
-    clientId: preSelectedClientId || "",
-    projectName: "",
-    projectType: "Construction",
-    country: "UAE",
-    location: "",
-    startDate: new Date().toISOString().split("T")[0],
-    duration: "24 Months",
-    status: "Active",
-    description: "",
-    benefits: [
-      "Accommodation",
-      "Transportation",
-      "Medical Insurance",
-      "Visa",
-      "Work Permit",
-      "Overtime",
-    ],
-    otherBenefits: "",
-    additionalRequirements: {
-      requiredDocuments: "Valid Passport, Trade Test Certificate, Police Clearance",
-      specialSkills: "",
-      languageRequirements: "English / Hindi",
-      medicalRequirements: "GAMCA Medical Fit Certificate",
-      otherInstructions: "",
-    },
-    totalHeadcount:
-      initialData?.totalHeadcount ||
-      (initialData?.manpowerRequirements?.reduce(
-        (sum, p) => sum + (Number(p.quantity) || 0),
-        0
-      )) || 0,
-    workforceNotes: initialData?.workforceNotes || "",
-    documents: initialData?.documents || [],
-    manpowerRequirements: initialData?.manpowerRequirements || [],
-
-    
-    vendorVisibility: (initialData?.vendorAssignmentType === "Specific Vendor") ? "specific" : "all",
-    assignedVendorIds: initialData?.assignedVendors || [],
-
-    
-    totalMilestoneAmount:
-      initialData?.totalMilestoneAmount ||
-      initialData?.totalAgreedAmount ||
-      (initialData?.paymentMilestones?.reduce(
-        (sum, m) => sum + (Number(m.paymentAmount || m.amount) || 0),
-        0
-      )) ||
-      "",
-    paymentMilestones: initialData?.paymentMilestones || [
-      {
-        id: `m${Date.now()}-1`,
-        name: "Candidate Selection & Documentation",
-        paymentAmount: "",
-        amount: "",
-        stages: [
-          { id: `s${Date.now()}-1`, name: "Candidate Selection" },
-          { id: `s${Date.now()}-2`, name: "Document Verification" },
-          { id: `s${Date.now()}-3`, name: "Medical Check" },
-        ]
-      }
-    ]
-  });
+  const [formData, setFormData] = useState(() => buildInitialFormData(initialData, preSelectedClientId));
 
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(buildInitialFormData(initialData, preSelectedClientId));
+    }
+  }, [initialData, preSelectedClientId]);
 
   
   useEffect(() => {
@@ -227,6 +291,8 @@ export function ProjectForm({
   };
 
   const getResolvedRequirementsAndHeadcount = () => {
+    const projectSalary = formData.salary !== undefined && formData.salary !== null ? String(formData.salary).trim() : "";
+    const projectCurrency = formData.currency !== undefined && formData.currency !== null ? String(formData.currency).trim() : "";
     let list = [...(formData.manpowerRequirements || [])];
     if (list.length === 0) {
       const pendingQty = Number(pendingInlinePosition?.quantity) || 0;
@@ -240,6 +306,8 @@ export function ProjectForm({
             maxAge: pendingInlinePosition?.maxAge || "",
             qualification: pendingInlinePosition?.qualification || "Any",
             experienceYears: pendingInlinePosition?.experienceYears || "",
+            salary: pendingInlinePosition?.salary?.trim() || projectSalary,
+            currency: pendingInlinePosition?.currency?.trim() || projectCurrency,
             lastCompany: pendingInlinePosition?.lastCompany || "",
           },
         ];
@@ -250,9 +318,21 @@ export function ProjectForm({
             id: `pos-${Date.now()}`,
             position: formData.projectName?.trim() || "General Trade Position",
             quantity: parsedCount > 0 ? parsedCount : 1,
+            salary: projectSalary,
+            currency: projectCurrency,
           },
         ];
       }
+    } else {
+      list = list.map((item) => ({
+        ...item,
+        salary: item.salary !== undefined && item.salary !== null && String(item.salary).trim() !== ""
+          ? String(item.salary).trim()
+          : projectSalary,
+        currency: item.currency !== undefined && item.currency !== null && String(item.currency).trim() !== ""
+          ? String(item.currency).trim()
+          : projectCurrency,
+      }));
     }
     const headcount = list.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0) || 1;
     return { list, headcount };
@@ -290,8 +370,8 @@ export function ProjectForm({
     const resolvedClientId = formData.clientId || selectedClient?.id || selectedClient?.clientId || `IMCL-${currentYear}-0001`;
     const resolvedClientName = selectedClient?.companyName || formData.clientName?.trim() || "Direct Overseas Client";
 
-    const resolvedMilestones = (formData.paymentMilestones || []).map((m, idx) => {
-      const amtStr = String(m.paymentAmount || m.amount || "");
+    let resolvedMilestones = (formData.paymentMilestones || []).map((m, idx) => {
+      const amtStr = String(m.paymentAmount ?? m.amount ?? "");
       const amtNum = Number(amtStr) || 0;
       return {
         ...m,
@@ -308,20 +388,46 @@ export function ProjectForm({
       };
     });
 
+    const rawTotalInput = Number(formData.totalMilestoneAmount) || 0;
+    const rawSumMilestones = resolvedMilestones.reduce(
+      (sum, m) => sum + (Number(m.amount) || 0),
+      0
+    );
+    if (rawTotalInput > 0 && rawSumMilestones === 0 && resolvedMilestones.length > 0) {
+      const base = Math.floor(rawTotalInput / resolvedMilestones.length);
+      const remainder = rawTotalInput - base * resolvedMilestones.length;
+      resolvedMilestones = resolvedMilestones.map((m, idx) => {
+        const share = idx === 0 ? base + remainder : base;
+        return {
+          ...m,
+          paymentAmount: String(share),
+          amount: share,
+        };
+      });
+    }
+
     const sumMilestones = resolvedMilestones.reduce(
       (sum, m) => sum + (Number(m.amount) || 0),
       0
     );
-    const resolvedTotalMilestoneAmount = Number(formData.totalMilestoneAmount) || sumMilestones || 0;
+    const resolvedTotalMilestoneAmount =
+      sumMilestones > 0 ? sumMilestones : rawTotalInput;
 
     const payload = {
       ...formData,
+      salary: formData.salary !== undefined && formData.salary !== null ? String(formData.salary).trim() : "",
+      currency: formData.currency !== undefined && formData.currency !== null ? String(formData.currency).trim() : "",
       clientId: resolvedClientId,
       clientName: resolvedClientName,
       manpowerRequirements: list,
       totalHeadcount: headcount,
       totalManpower: headcount,
       paymentMilestones: resolvedMilestones,
+      paymentMilestoneConfig: {
+        partsCount: resolvedMilestones.length,
+        totalFeePerCandidate: resolvedTotalMilestoneAmount,
+        milestones: resolvedMilestones,
+      },
       totalMilestoneAmount: resolvedTotalMilestoneAmount,
       totalAgreedAmount: resolvedTotalMilestoneAmount,
       status: asDraft ? "Draft" : formData.status || "Active",
@@ -381,7 +487,7 @@ export function ProjectForm({
             className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-2xs transition-colors cursor-pointer w-full sm:w-auto"
           >
             <Save size={15} />
-            <span>{loading ? "Saving Project..." : "Create Project"}</span>
+            <span>{loading ? "Saving Project..." : isEdit ? "Update Project" : "Create Project"}</span>
           </button>
         </div>
       </div>
@@ -561,6 +667,24 @@ export function ProjectForm({
               />
             </div>
 
+            <InputField
+              label="Salary"
+              name="salary"
+              type="text"
+              value={formData.salary || ""}
+              onChange={handleFieldChange}
+              placeholder="e.g. 1500 - 2000 or Negotiable"
+            />
+
+            <InputField
+              label="Currency"
+              name="currency"
+              type="text"
+              value={formData.currency || ""}
+              onChange={handleFieldChange}
+              placeholder="e.g. AED, SAR, USD, INR"
+            />
+
             <TextareaField
               label="Project Scope & Work Description"
               name="description"
@@ -705,7 +829,17 @@ export function ProjectForm({
               milestones={formData.paymentMilestones}
               totalAmount={formData.totalMilestoneAmount}
               onTotalChange={(val) => setFormData(prev => ({ ...prev, totalMilestoneAmount: val }))}
-              onChange={(milestones) => setFormData(prev => ({ ...prev, paymentMilestones: milestones }))}
+              onChange={(milestones) => {
+                const nextSum = (milestones || []).reduce(
+                  (acc, m) => acc + (Number(m?.paymentAmount ?? m?.amount) || 0),
+                  0
+                );
+                setFormData(prev => ({
+                  ...prev,
+                  paymentMilestones: milestones,
+                  ...(nextSum > 0 ? { totalMilestoneAmount: nextSum } : {}),
+                }));
+              }}
             />
           </div>
         </FormSection>
@@ -892,7 +1026,7 @@ export function ProjectForm({
               className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-2xs transition-colors cursor-pointer flex-1 sm:flex-initial"
             >
               <Save size={16} />
-              <span>{loading ? "Saving..." : "Create Project"}</span>
+              <span>{loading ? "Saving..." : isEdit ? "Update Project" : "Create Project"}</span>
             </button>
           </div>
         </div>

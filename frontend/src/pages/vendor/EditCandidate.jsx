@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -78,11 +78,7 @@ export default function EditCandidate() {
   const [documents, setDocuments] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  useEffect(() => {
-    loadCandidateData();
-  }, [id]);
-
-  const loadCandidateData = async () => {
+  const loadCandidateData = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -120,7 +116,14 @@ export default function EditCandidate() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadCandidateData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadCandidateData]);
 
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
@@ -152,23 +155,38 @@ export default function EditCandidate() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "application/pdf") {
-      alert("Only PDF documents are allowed.");
+    const allowedTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
+    const lowerName = String(file.name || "").toLowerCase();
+    const hasAllowedExt = /\.(pdf|png|jpe?g)$/.test(lowerName);
+    if (!allowedTypes.includes(file.type) && !hasAllowedExt) {
+      alert("Only PDF, JPG, or PNG documents are allowed.");
+      e.target.value = "";
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       alert("Document must be under 5 MB.");
+      e.target.value = "";
       return;
     }
 
-    const newDoc = {
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      fileName: file.name,
-      size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-      type: "Additional Document",
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const newDoc = {
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        fileName: file.name,
+        fileUrl: String(reader.result || ""),
+        mimeType: file.type || "application/pdf",
+        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        type: "Additional Document",
+        status: "Pending Review",
+        uploadedAt: new Date().toISOString().split("T")[0],
+      };
+      setDocuments((prev) => [...prev, newDoc]);
     };
-
-    setDocuments((prev) => [...prev, newDoc]);
+    reader.onerror = () => {
+      alert(`Failed to read ${file.name}.`);
+    };
+    reader.readAsDataURL(file);
     e.target.value = "";
   };
 
@@ -528,14 +546,14 @@ export default function EditCandidate() {
               <h3 className="text-sm font-bold text-slate-900">
                 Candidate Documents ({documents.length})
               </h3>
-              <p className="text-xs text-slate-500">PDF documents (Max 5 MB each)</p>
+              <p className="text-xs text-slate-500">PDF, JPG, or PNG documents (Max 5 MB each)</p>
             </div>
             <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold cursor-pointer transition">
               <UploadCloud size={14} />
-              <span>+ Add PDF Document</span>
+              <span>+ Add Document</span>
               <input
                 type="file"
-                accept="application/pdf"
+                accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
                 onChange={handleDocumentAdd}
                 className="hidden"
               />

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import AdminMasterLayout from "../../../components/admin/layout/AdminMasterLayout.jsx";
 import permissionService from "../../../services/permissionService.js";
 import crmVendorService from "../../../services/crmVendorService.js";
+import adminVendorV1Service from "../../../services/adminVendorV1Service.js";
 import { usePermissions } from "../../../context/PermissionContext.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal.jsx";
@@ -74,8 +75,37 @@ export function PermissionManagementPage() {
 
   const loadVendors = async () => {
     try {
-      const vList = await crmVendorService.getVendors();
-      setAvailableVendors(vList || []);
+      const [v1Res, legacyRes] = await Promise.allSettled([
+        adminVendorV1Service.getVendors({ limit: 500 }),
+        crmVendorService.getVendors(),
+      ]);
+
+      const v1List =
+        v1Res.status === "fulfilled"
+          ? Array.isArray(v1Res.value?.vendors)
+            ? v1Res.value.vendors
+            : Array.isArray(v1Res.value)
+            ? v1Res.value
+            : []
+          : [];
+      const legacyList =
+        legacyRes.status === "fulfilled" && Array.isArray(legacyRes.value) ? legacyRes.value : [];
+
+      const byId = new Map();
+      [...v1List, ...legacyList].forEach((v) => {
+        const key = String(v?.vendorId || v?.id || v?._id || "").trim();
+        if (!key) return;
+        const existing = byId.get(key) || {};
+        byId.set(key, {
+          ...existing,
+          ...v,
+          vendorId: v.vendorId || existing.vendorId || key,
+          id: key,
+          companyName: v.companyName || v.name || existing.companyName || `Agency ${key}`,
+        });
+      });
+
+      setAvailableVendors(Array.from(byId.values()));
     } catch {
       setAvailableVendors([]);
     }

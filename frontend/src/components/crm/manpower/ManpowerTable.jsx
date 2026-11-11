@@ -33,6 +33,8 @@ export function ManpowerTable({
     qualification: "",
     otherQualification: "",
     experienceYears: "",
+    salary: "",
+    currency: "",
     lastCompany: "",
   });
 
@@ -66,6 +68,8 @@ export function ManpowerTable({
         ? inlineForm.otherQualification.trim() || "Other"
         : inlineForm.qualification || "",
       experienceYears: inlineForm.experienceYears || "",
+      salary: inlineForm.salary?.trim() || "",
+      currency: inlineForm.currency?.trim() || "",
       lastCompany: inlineForm.lastCompany || "",
     };
 
@@ -81,6 +85,8 @@ export function ManpowerTable({
       qualification: "",
       otherQualification: "",
       experienceYears: "",
+      salary: "",
+      currency: "",
       lastCompany: "",
     };
     setInlineForm(reset);
@@ -194,7 +200,7 @@ export function ManpowerTable({
 
           {}
           <div className="flex flex-col sm:flex-row items-end gap-3 mt-3">
-            <div className="w-full sm:w-48">
+            <div className="w-full sm:w-40">
               <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Min. Experience (Yrs)</label>
               <input
                 type="number"
@@ -204,6 +210,28 @@ export function ManpowerTable({
                 value={inlineForm.experienceYears}
                 onChange={handleInlineChange}
                 placeholder="e.g. 3"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="w-full sm:w-44">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Salary</label>
+              <input
+                type="text"
+                name="salary"
+                value={inlineForm.salary}
+                onChange={handleInlineChange}
+                placeholder="e.g. 1500 - 2000"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="w-full sm:w-32">
+              <label className="block text-[11px] font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Currency</label>
+              <input
+                type="text"
+                name="currency"
+                value={inlineForm.currency}
+                onChange={handleInlineChange}
+                placeholder="e.g. AED"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
@@ -261,6 +289,7 @@ export function ManpowerTable({
                   <th className="py-2 px-3 text-[10px] text-center">Age Range</th>
                   <th className="py-2 px-3 text-[10px]">Min. Qualification</th>
                   <th className="py-2 px-3 text-[10px] text-center">Exp. (Yrs)</th>
+                  <th className="py-2 px-3 text-[10px]">Salary</th>
 
                   {!readOnly && <th className="py-2 px-3 text-[10px] text-center">Remove</th>}
                 </tr>
@@ -294,8 +323,10 @@ export function ManpowerTable({
                     <td className="py-1.5 px-3 text-center text-gray-600 font-medium">
                       {pos.experienceYears ? `${pos.experienceYears} yr${Number(pos.experienceYears) !== 1 ? 's' : ''}` : <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="py-1.5 px-3 text-gray-600 font-medium max-w-[140px] truncate">
-                      {pos.lastCompany || <span className="text-gray-300">—</span>}
+                    <td className="py-1.5 px-3 text-gray-700 font-semibold max-w-[160px] truncate">
+                      {pos.salary || pos.currency
+                        ? [pos.currency, pos.salary].filter(Boolean).join(" ")
+                        : <span className="text-gray-300">—</span>}
                     </td>
 
                     {!readOnly && (

@@ -40,32 +40,30 @@ export default function MilestoneTabsNav({
           const isDone = m.status === "Completed";
           const isPaid = m.status === "Paid" || m.paymentStatus === "Approved" || isDone;
           const isLocked = m.status === "Locked";
-          const amt = Number(m.amount || m.paymentAmount || 15000);
+          const amt = Number(m.paymentAmount ?? m.amount ?? 0);
 
           return (
             <button
               key={m.id || idx}
               onClick={() => setActiveMilestoneIdx(idx)}
-              className={`p-2.5 rounded-lg border text-left transition-all duration-150 cursor-pointer ${
-                isSelected
-                  ? "border-[#163868] bg-blue-50/60 shadow-2xs ring-1 ring-[#163868]/20"
-                  : "border-slate-200 bg-white hover:bg-slate-50"
-              }`}
+              className={`p-2.5 rounded-lg border text-left transition-all duration-150 cursor-pointer ${isSelected
+                ? "border-[#163868] bg-blue-50/60 shadow-2xs ring-1 ring-[#163868]/20"
+                : "border-slate-200 bg-white hover:bg-slate-50"
+                }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                   Phase {idx + 1}
                 </span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-md text-[9px] font-bold ${
-                    isDone
-                      ? "bg-blue-100 text-[#163868] border border-blue-200"
-                      : isPaid
+                  className={`px-1.5 py-0.2 rounded-md text-[9px] font-bold ${isDone
+                    ? "bg-blue-100 text-[#163868] border border-blue-200"
+                    : isPaid
                       ? "bg-blue-50 text-[#163868] border border-blue-200"
                       : isLocked
-                      ? "bg-slate-100 text-slate-600"
-                      : "bg-[#163868] text-white"
-                  }`}
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-[#163868] text-white"
+                    }`}
                 >
                   {isDone ? "✓ Completed" : isPaid ? "Paid & Verified" : isLocked ? "Locked" : "In Progress"}
                 </span>

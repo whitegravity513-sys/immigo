@@ -25,18 +25,32 @@ export function Sparkline({ color = "#6366F1", id = "spark" }) {
 }
 
 export function formatSalary(salary) {
-  if (!salary) return "Standard Package";
-  if (typeof salary === "string") return salary;
-  if (typeof salary === "number") return salary.toLocaleString() + " AED";
+  if (!salary) return "Not Specified";
+  if (typeof salary === "string") return salary.trim() || "Not Specified";
+  if (typeof salary === "number") return salary.toLocaleString();
   if (typeof salary === "object") {
-    const { min, max, currency } = salary;
-    const curr = currency || "AED";
-    if (min && max) {
-      return `${Number(min).toLocaleString()} - ${Number(max).toLocaleString()} ${curr}`;
+    if (salary.text && String(salary.text).trim()) {
+      return String(salary.text).trim();
     }
-    if (min) return `From ${Number(min).toLocaleString()} ${curr}`;
-    if (max) return `Up to ${Number(max).toLocaleString()} ${curr}`;
-    return `Competitive (${curr})`;
+    if (salary.salary !== undefined && salary.salary !== null && String(salary.salary).trim()) {
+      return [salary.salary, salary.currency].filter(Boolean).join(" ").trim();
+    }
+    const { min, max, currency } = salary;
+    const curr = currency ? String(currency).trim() : "";
+    if (min !== undefined && min !== "" && max !== undefined && max !== "") {
+      const minVal = !isNaN(Number(min)) ? Number(min).toLocaleString() : String(min);
+      const maxVal = !isNaN(Number(max)) ? Number(max).toLocaleString() : String(max);
+      return [curr ? `${minVal} - ${maxVal} ${curr}` : `${minVal} - ${maxVal}`].join("");
+    }
+    if (min !== undefined && min !== "") {
+      const minVal = !isNaN(Number(min)) ? Number(min).toLocaleString() : String(min);
+      return curr ? `From ${minVal} ${curr}` : `From ${minVal}`;
+    }
+    if (max !== undefined && max !== "") {
+      const maxVal = !isNaN(Number(max)) ? Number(max).toLocaleString() : String(max);
+      return curr ? `Up to ${maxVal} ${curr}` : `Up to ${maxVal}`;
+    }
+    return curr ? `Competitive (${curr})` : "Not Specified";
   }
   return String(salary);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
   Search,
@@ -12,23 +12,23 @@ import {
   Building2,
   User,
   Paperclip,
+  Printer,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
+import { downloadUploadedDocument, printUploadedDocument } from "../../../utils/printDocument.js";
 
 export default function AdminDocumentsList() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [previewingDoc, setPreviewingDoc] = useState(null);
 
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  useEffect(() => {
-    loadDocs();
-  }, []);
-
-  const loadDocs = async () => {
+  const loadDocs = useCallback(async () => {
     try {
       setLoading(true);
       const data = await crmVendorService.getAllDocuments();
@@ -38,6 +38,17 @@ export default function AdminDocumentsList() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadDocs();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [loadDocs]);
+
+  const handleDownloadDoc = (doc) => {
+    downloadUploadedDocument(doc);
   };
 
   const handleVerify = (docId) => {
@@ -52,20 +63,30 @@ export default function AdminDocumentsList() {
     );
   };
 
-  const typeOptions = [
-    "All",
-    "License",
-    "Registration",
-    "Tax",
-    "Resume",
-    "Passport",
-    "Identity Proof",
-    "Education",
-    "Experience",
-    "Medical",
-    "Visa",
-    "Agreement",
-  ];
+  const typeOptions = Array.from(
+    new Set([
+      "All",
+      "Incorporation",
+      "Tax ID",
+      "PAN Card",
+      "Bank Proof",
+      "Statutory License",
+      "Tax Registration",
+      "Bank Attestation",
+      "License",
+      "Registration",
+      "Tax",
+      "Resume",
+      "Passport",
+      "Identity Proof",
+      "Education",
+      "Experience",
+      "Medical",
+      "Visa",
+      "Agreement",
+      ...documents.map((d) => d.type).filter(Boolean),
+    ])
+  );
 
   const filteredDocs = documents.filter((d) => {
     if (activeTab === "Vendor Statutory" && d.entityType !== "Vendor Agency") return false;
@@ -88,6 +109,18 @@ export default function AdminDocumentsList() {
 
   const vendorDocsCount = documents.filter((d) => d.entityType === "Vendor Agency").length;
   const candDocsCount = documents.filter((d) => d.entityType === "Candidate Person").length;
+
+  if (previewingDoc) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <DocumentViewerFullPage
+          doc={previewingDoc}
+          vendor={{ companyName: previewingDoc.vendorName, vendorId: previewingDoc.vendorId }}
+          onBack={() => setPreviewingDoc(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
@@ -276,7 +309,8 @@ export default function AdminDocumentsList() {
                     <td className="py-1.5 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => alert(`Previewing file: ${doc.fileName}`)}
+                          type="button"
+                          onClick={() => setPreviewingDoc(doc)}
                           className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
                           title="Preview Document"
                         >
@@ -285,8 +319,21 @@ export default function AdminDocumentsList() {
                         </button>
 
                         <button
-                          onClick={() => alert(`Downloading ${doc.fileName}...`)}
-                          className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                          type="button"
+                          onClick={() => printUploadedDocument(doc)}
+                          disabled={!doc.fileUrl}
+                          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-slate-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
+                          title="Print Document"
+                        >
+                          <Printer size={13} />
+                          <span>Print</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadDoc(doc)}
+                          disabled={!doc.fileUrl}
+                          className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold text-xs shadow-2xs transition flex items-center gap-1 cursor-pointer"
                           title="Download Document"
                         >
                           <Download size={13} />

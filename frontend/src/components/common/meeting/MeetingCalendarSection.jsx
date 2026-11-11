@@ -35,7 +35,16 @@ export default function MeetingCalendarSection({
   filterCandidateId = null,
   compact = false,
 }) {
-  const { user } = useAuth();
+  const { user, isVendor, role: authRole } = useAuth();
+  const isVendorUser = Boolean(
+    isVendor || String(role || authRole || "").toUpperCase() === "VENDOR"
+  );
+  const isVendorHRUser = Boolean(
+    !isVendorUser &&
+      (user?.hrType === "VENDOR_HR" ||
+        String(role || authRole || "").toUpperCase() === "VENDOR_HR")
+  );
+  const vendorSelfId = user?.vendorId || user?.id || user?._id || assignedVendors[0] || "";
   const [stats, setStats] = useState({
     todayMeetingsCount: 0,
     upcomingMeetingsCount: 0,
@@ -48,7 +57,7 @@ export default function MeetingCalendarSection({
 
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("day"); // Default: 'day' | 'week' | 'list' | 'month'
+  const [viewMode, setViewMode] = useState("day");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDateStr, setSelectedDateStr] = useState(
     new Date().toISOString().split("T")[0]
@@ -56,20 +65,18 @@ export default function MeetingCalendarSection({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Modals
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedMeetingDetail, setSelectedMeetingDetail] = useState(null);
   const [meetingToReschedule, setMeetingToReschedule] = useState(null);
   const [meetingToCancel, setMeetingToCancel] = useState(null);
   const [meetingToRecordOutcome, setMeetingToRecordOutcome] = useState(null);
 
-  // Form states
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState(null);
 
   const [scheduleForm, setScheduleForm] = useState({
     title: "",
-    meetingType: "CANDIDATE_INTERVIEW",
+    meetingType: isVendorUser ? "INTERNAL_HR" : "CANDIDATE_INTERVIEW",
     date: new Date().toISOString().split("T")[0],
     startTime: "10:00",
     endTime: "11:00",
@@ -78,8 +85,10 @@ export default function MeetingCalendarSection({
     candidateId: filterCandidateId || "",
     candidateName: "",
     candidateEmail: "",
-    vendorId: assignedVendors.length === 1 ? assignedVendors[0] : "",
-    vendorName: "",
+    vendorId: isVendorUser ? vendorSelfId : assignedVendors.length === 1 ? assignedVendors[0] : "",
+    vendorName: isVendorUser ? user?.companyName || "" : "",
+    projectId: "",
+    projectName: "",
     description: "",
   });
 
@@ -95,19 +104,56 @@ export default function MeetingCalendarSection({
     projectName: "",
   });
 
+  useEffect(() => {
+    if (isVendorUser) {
+      setTargetMode("SPECIFIC");
+      setScheduleForm((prev) =>
+        prev.meetingType === "INTERNAL_HR" ? prev : { ...prev, meetingType: "INTERNAL_HR" }
+      );
+    }
+  }, [isVendorUser]);
+
+  const syncSharedProjectFromParticipants = (participants, currentProjectId) => {
+    const allProjs = [];
+    const seen = new Set();
+    participants.forEach((item) => {
+      (item.assignedProjects || []).forEach((proj) => {
+        const pid = String(proj.projectId || "");
+        if (pid && !seen.has(pid)) {
+          seen.add(pid);
+          allProjs.push(proj);
+        }
+      });
+    });
+    if (allProjs.length === 0) {
+      return { projectId: "", projectName: "" };
+    }
+    const existing = allProjs.find((p) => String(p.projectId) === String(currentProjectId));
+    const chosen = existing || allProjs[0];
+    return {
+      projectId: String(chosen.projectId || ""),
+      projectName: chosen.projectName || "",
+    };
+  };
+
   const handleMeetingTypeChange = (newType) => {
+    if (isVendorUser && newType !== "INTERNAL_HR") return;
     setSelectedParticipants([]);
     setTargetMode("SPECIFIC");
     const defaultTitles = {
       CANDIDATE_INTERVIEW: "Candidate Interview Round",
       VENDOR_DISCUSSION: "Vendor Agency Coordination Sync",
-      INTERNAL_HR: "HR Operations & Recruitment Review",
+      INTERNAL_HR: isVendorUser
+        ? "Vendor HR Project Coordination Sync"
+        : "HR Operations & Recruitment Review",
       EMPLOYEE: "Employee One-on-One Discussion",
       GENERAL: "Company Operations Sync",
     };
     setScheduleForm((prev) => ({
       ...prev,
       meetingType: newType,
+      projectId: "",
+      projectName: "",
       title: defaultTitles[newType] || prev.title,
     }));
   };
@@ -115,29 +161,41 @@ export default function MeetingCalendarSection({
   const handleAddParticipant = (p) => {
     setSelectedParticipants((prev) => {
       const next = [...prev, p];
-      if (
-        next.length === 1 &&
-        (!scheduleForm.title ||
-          scheduleForm.title.includes("Discussion") ||
-          scheduleForm.title.includes("Sync") ||
-          scheduleForm.title.includes("Round"))
-      ) {
+      setScheduleForm((f) => {
+        const projUpdate = isVendorUser
+          ? syncSharedProjectFromParticipants(next, f.projectId)
+          : {};
+        const shouldSetTitle =
+          next.length === 1 &&
+          (!f.title ||
+            f.title.includes("Discussion") ||
+            f.title.includes("Sync") ||
+            f.title.includes("Round"));
+        return {
+          ...f,
+          ...projUpdate,
+          ...(shouldSetTitle ? { title: `Discussion with ${p.name || p.companyName}` } : {}),
+        };
+      });
+      return next;
+    });
+  };
+
+  const handleRemoveParticipant = (id) => {
+    setSelectedParticipants((prev) => {
+      const next = prev.filter((p) => (p.id || p.code || p.name) !== id);
+      if (isVendorUser) {
         setScheduleForm((f) => ({
           ...f,
-          title: `Discussion with ${p.name || p.companyName}`,
+          ...syncSharedProjectFromParticipants(next, f.projectId),
         }));
       }
       return next;
     });
   };
 
-  const handleRemoveParticipant = (id) => {
-    setSelectedParticipants((prev) =>
-      prev.filter((p) => (p.id || p.code || p.name) !== id)
-    );
-  };
-
   const handleCandidateChange = (cand) => {
+    if (isVendorUser) return;
     setCandidateData(cand);
     if (cand.candidateName) {
       setScheduleForm((f) => ({
@@ -262,7 +320,6 @@ export default function MeetingCalendarSection({
     return days;
   }, [currentDate]);
 
-  // Filtered Meetings for view
   const filteredMeetings = useMemo(() => {
     return meetings.filter((m) => {
       if (searchQuery.trim()) {
@@ -270,20 +327,20 @@ export default function MeetingCalendarSection({
         const matches =
           m.title?.toLowerCase().includes(q) ||
           m.candidateName?.toLowerCase().includes(q) ||
+          m.hrName?.toLowerCase().includes(q) ||
+          (!isVendorHRUser && m.projectName?.toLowerCase().includes(q)) ||
           m.vendorName?.toLowerCase().includes(q) ||
           m.createdByName?.toLowerCase().includes(q);
         if (!matches) return false;
       }
       return true;
     });
-  }, [meetings, searchQuery]);
+  }, [meetings, searchQuery, isVendorHRUser]);
 
-  // Selected date meetings
   const selectedDateMeetings = useMemo(() => {
     return filteredMeetings.filter((m) => m.date === selectedDateStr);
   }, [filteredMeetings, selectedDateStr]);
 
-  // Week days for week view
   const weekDays = useMemo(() => {
     const curr = new Date(selectedDateStr || new Date());
     const first = curr.getDate() - curr.getDay();
@@ -300,56 +357,86 @@ export default function MeetingCalendarSection({
     return days;
   }, [selectedDateStr]);
 
-  // Actions
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
     try {
       setSubmitting(true);
 
-      const targetEmployees = selectedParticipants
-        .filter((p) => p.role === "EMPLOYEE" || scheduleForm.meetingType === "EMPLOYEE")
-        .map((p) => p.id || p._id);
-
-      const targetVendors = selectedParticipants
-        .filter((p) => p.role === "VENDOR" || scheduleForm.meetingType === "VENDOR_DISCUSSION")
-        .map((p) => p.code || p.id || p.vendorId);
+      const effectiveMeetingType = isVendorUser ? "INTERNAL_HR" : scheduleForm.meetingType;
+      const effectiveTargetMode = isVendorUser ? "SPECIFIC" : targetMode;
 
       const targetHRs = selectedParticipants
-        .filter((p) => p.role?.includes("HR") || scheduleForm.meetingType === "INTERNAL_HR")
-        .map((p) => p.id || p._id);
+        .filter((p) => p.role?.includes("HR") || effectiveMeetingType === "INTERNAL_HR")
+        .map((p) => p.id || p._id)
+        .filter(Boolean);
+
+      if (isVendorUser && targetHRs.length === 0) {
+        showToast("Please select an assigned Vendor HR before scheduling.", "error");
+        setSubmitting(false);
+        return;
+      }
+
+      const targetEmployees = isVendorUser
+        ? []
+        : selectedParticipants
+            .filter((p) => p.role === "EMPLOYEE" || effectiveMeetingType === "EMPLOYEE")
+            .map((p) => p.id || p._id);
+
+      const targetVendors = isVendorUser
+        ? [vendorSelfId].filter(Boolean)
+        : selectedParticipants
+            .filter((p) => p.role === "VENDOR" || effectiveMeetingType === "VENDOR_DISCUSSION")
+            .map((p) => p.code || p.id || p.vendorId);
 
       const attendees = selectedParticipants.map((p) => ({
         id: p.id || p._id || p.code || "",
         name: p.name || p.companyName,
         email: p.email || "",
-        role: p.role || scheduleForm.meetingType,
+        role: isVendorUser ? "VENDOR_HR" : p.role || effectiveMeetingType,
         code: p.code || "",
         companyName: p.companyName || "",
-        designation: p.designation || "",
+        designation: p.designation || (isVendorUser ? "VENDOR_HR" : ""),
       }));
+
+      const hrNames = selectedParticipants
+        .filter((p) => p.role?.includes("HR") || effectiveMeetingType === "INTERNAL_HR")
+        .map((p) => p.name)
+        .filter(Boolean)
+        .join(", ");
+
+      const projectSync = isVendorUser
+        ? syncSharedProjectFromParticipants(selectedParticipants, scheduleForm.projectId)
+        : { projectId: scheduleForm.projectId || "", projectName: scheduleForm.projectName || "" };
 
       const payload = {
         title: scheduleForm.title.trim(),
         description: scheduleForm.description.trim(),
-        meetingType: scheduleForm.meetingType,
+        meetingType: effectiveMeetingType,
         date: scheduleForm.date,
         startTime: scheduleForm.startTime,
         endTime: scheduleForm.endTime,
         meetingLink: scheduleForm.meetingLink.trim(),
         platform: scheduleForm.platform,
-        targetType: targetMode,
+        targetType: effectiveTargetMode,
         targetEmployees,
         targetVendors,
         targetHRs,
+        hrId: targetHRs[0] || "",
+        hrName: hrNames,
+        projectId: projectSync.projectId || "",
+        projectName: projectSync.projectName || "",
         attendees,
-        candidateId: candidateData.candidateId || scheduleForm.candidateId || "",
-        candidateName: candidateData.candidateName || scheduleForm.candidateName || "",
-        candidateEmail: candidateData.candidateEmail || scheduleForm.candidateEmail || "",
-        vendorId:
-          candidateData.vendorId ||
-          scheduleForm.vendorId ||
-          (targetVendors.length === 1 ? targetVendors[0] : ""),
-        vendorName: candidateData.vendorName || scheduleForm.vendorName || "",
+        candidateId: isVendorUser ? "" : candidateData.candidateId || scheduleForm.candidateId || "",
+        candidateName: isVendorUser ? "" : candidateData.candidateName || scheduleForm.candidateName || "",
+        candidateEmail: isVendorUser ? "" : candidateData.candidateEmail || scheduleForm.candidateEmail || "",
+        vendorId: isVendorUser
+          ? vendorSelfId
+          : candidateData.vendorId ||
+            scheduleForm.vendorId ||
+            (targetVendors.length === 1 ? targetVendors[0] : ""),
+        vendorName: isVendorUser
+          ? user?.companyName || scheduleForm.vendorName || ""
+          : candidateData.vendorName || scheduleForm.vendorName || "",
       };
 
       await meetingService.createMeeting(payload);
@@ -357,7 +444,7 @@ export default function MeetingCalendarSection({
       setShowScheduleModal(false);
       setScheduleForm({
         title: "",
-        meetingType: "CANDIDATE_INTERVIEW",
+        meetingType: isVendorUser ? "INTERNAL_HR" : "CANDIDATE_INTERVIEW",
         date: new Date().toISOString().split("T")[0],
         startTime: "10:00",
         endTime: "11:00",
@@ -366,8 +453,10 @@ export default function MeetingCalendarSection({
         candidateId: "",
         candidateName: "",
         candidateEmail: "",
-        vendorId: "",
-        vendorName: "",
+        vendorId: isVendorUser ? vendorSelfId : "",
+        vendorName: isVendorUser ? user?.companyName || "" : "",
+        projectId: "",
+        projectName: "",
         description: "",
       });
       setSelectedParticipants([]);
@@ -684,6 +773,7 @@ export default function MeetingCalendarSection({
                   <MeetingCard
                     key={m._id || m.id}
                     meeting={m}
+                    hideProjectNames={isVendorHRUser}
                     onViewDetails={setSelectedMeetingDetail}
                     onReschedule={setMeetingToReschedule}
                     onCancel={setMeetingToCancel}
@@ -729,6 +819,7 @@ export default function MeetingCalendarSection({
                         key={m._id || m.id}
                         meeting={m}
                         compact={true}
+                        hideProjectNames={isVendorHRUser}
                         onViewDetails={setSelectedMeetingDetail}
                         onReschedule={setMeetingToReschedule}
                         onCancel={setMeetingToCancel}
@@ -758,6 +849,7 @@ export default function MeetingCalendarSection({
                   <MeetingCard
                     key={m._id || m.id}
                     meeting={m}
+                    hideProjectNames={isVendorHRUser}
                     onViewDetails={setSelectedMeetingDetail}
                     onReschedule={setMeetingToReschedule}
                     onCancel={setMeetingToCancel}
@@ -869,6 +961,7 @@ export default function MeetingCalendarSection({
                     <MeetingCard
                       key={m._id || m.id}
                       meeting={m}
+                      hideProjectNames={isVendorHRUser}
                       onViewDetails={setSelectedMeetingDetail}
                       onReschedule={setMeetingToReschedule}
                       onCancel={setMeetingToCancel}
@@ -894,6 +987,7 @@ export default function MeetingCalendarSection({
                   <MeetingCard
                     key={m._id || m.id}
                     meeting={m}
+                    hideProjectNames={isVendorHRUser}
                     onViewDetails={setSelectedMeetingDetail}
                     onReschedule={setMeetingToReschedule}
                     onCancel={setMeetingToCancel}
@@ -913,7 +1007,9 @@ export default function MeetingCalendarSection({
             <div className="flex items-center justify-between border-b pb-2.5">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                 <Video size={16} className="text-blue-600" />
-                <span>Schedule New Meeting / Interview</span>
+                <span>
+                  {isVendorUser ? "Schedule Meeting with Vendor HR" : "Schedule New Meeting / Interview"}
+                </span>
               </h3>
               <button
                 onClick={() => setShowScheduleModal(false)}
@@ -929,7 +1025,11 @@ export default function MeetingCalendarSection({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Technical Interview Round 1"
+                  placeholder={
+                    isVendorUser
+                      ? "e.g. Project Coordination Sync with Vendor HR"
+                      : "e.g. Technical Interview Round 1"
+                  }
                   value={scheduleForm.title}
                   onChange={(e) => setScheduleForm({ ...scheduleForm, title: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-blue-600 focus:outline-none"
@@ -939,17 +1039,27 @@ export default function MeetingCalendarSection({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Meeting Type</label>
-                  <select
-                    value={scheduleForm.meetingType}
-                    onChange={(e) => handleMeetingTypeChange(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
-                  >
-                    <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
-                    <option value="VENDOR_DISCUSSION">Vendor Discussion</option>
-                    <option value="INTERNAL_HR">Internal HR Meeting</option>
-                    <option value="EMPLOYEE">Employee Discussion</option>
-                    <option value="GENERAL">General Conference</option>
-                  </select>
+                  {isVendorUser ? (
+                    <select
+                      disabled
+                      value="INTERNAL_HR"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 text-slate-700 font-semibold cursor-not-allowed"
+                    >
+                      <option value="INTERNAL_HR">Assigned Vendor HR</option>
+                    </select>
+                  ) : (
+                    <select
+                      value={scheduleForm.meetingType}
+                      onChange={(e) => handleMeetingTypeChange(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
+                    >
+                      <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
+                      <option value="VENDOR_DISCUSSION">Vendor Discussion</option>
+                      <option value="INTERNAL_HR">Internal HR Meeting</option>
+                      <option value="EMPLOYEE">Employee Discussion</option>
+                      <option value="GENERAL">General Conference</option>
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Platform</label>
@@ -967,16 +1077,20 @@ export default function MeetingCalendarSection({
                 </div>
               </div>
 
-              {/* Dynamic Adaptive Participant Selector directly under Meeting Type */}
               <DynamicMeetingParticipantSelector
-                meetingType={scheduleForm.meetingType}
-                targetMode={targetMode}
+                meetingType={isVendorUser ? "INTERNAL_HR" : scheduleForm.meetingType}
+                targetMode={isVendorUser ? "SPECIFIC" : targetMode}
                 onTargetModeChange={setTargetMode}
                 selectedParticipants={selectedParticipants}
                 onAddParticipant={handleAddParticipant}
                 onRemoveParticipant={handleRemoveParticipant}
                 candidateData={candidateData}
                 onCandidateChange={handleCandidateChange}
+                isVendorRestricted={isVendorUser}
+                selectedProjectId={scheduleForm.projectId}
+                onProjectChange={(pid, pname) =>
+                  setScheduleForm((prev) => ({ ...prev, projectId: pid, projectName: pname }))
+                }
               />
 
               <div className="grid grid-cols-3 gap-2">
@@ -1108,6 +1222,18 @@ export default function MeetingCalendarSection({
                     <span className="font-bold text-indigo-700">
                       {selectedMeetingDetail.candidateName} ({selectedMeetingDetail.candidateId || "ID"})
                     </span>
+                  </div>
+                )}
+                {selectedMeetingDetail.hrName && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-semibold">Vendor HR / HR:</span>
+                    <span className="font-bold text-indigo-700">{selectedMeetingDetail.hrName}</span>
+                  </div>
+                )}
+                {selectedMeetingDetail.projectName && !isVendorHRUser && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-semibold">Project:</span>
+                    <span className="font-bold text-slate-800">{selectedMeetingDetail.projectName}</span>
                   </div>
                 )}
                 {selectedMeetingDetail.vendorName && (
@@ -1388,6 +1514,7 @@ export default function MeetingCalendarSection({
 function MeetingCard({
   meeting,
   compact = false,
+  hideProjectNames = false,
   onViewDetails,
   onReschedule,
   onCancel,
@@ -1453,9 +1580,15 @@ function MeetingCard({
           <div className="flex items-center justify-between gap-1 text-[11px]">
             <span className="text-slate-500 font-medium">Meeting With:</span>
             <span className="font-bold text-blue-700 truncate max-w-[150px]">
-              {meeting.candidateName || meeting.vendorName || meeting.targetType || "Attendee"}
+              {meeting.candidateName || meeting.hrName || meeting.vendorName || meeting.targetType || "Attendee"}
             </span>
           </div>
+          {meeting.projectName && !hideProjectNames && (
+            <div className="flex items-center justify-between gap-1 text-[10px] text-slate-500">
+              <span>Project:</span>
+              <span className="font-semibold text-indigo-700 truncate max-w-[150px]">{meeting.projectName}</span>
+            </div>
+          )}
           {meeting.candidateName && meeting.vendorName && (
             <div className="flex items-center justify-between gap-1 text-[10px] text-slate-500">
               <span>Vendor:</span>

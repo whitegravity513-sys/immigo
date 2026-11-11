@@ -23,7 +23,7 @@ export default function VendorHRProjectsSection({
   projectsList = [],
   applications = [],
   jobs = [],
-  vendorName = "Global Staffing Solutions Pvt Ltd",
+  vendorName = "",
   detailedProject,
   setDetailedProject,
   setActiveMenu,
@@ -93,7 +93,12 @@ export default function VendorHRProjectsSection({
                   <span className="flex items-center gap-1">
                     <ShieldCheck size={13} className="text-indigo-500" />
                     <span>
-                      Assigned Agency: <strong className="text-indigo-700">{vendorName}</strong>
+                      Assigned Agency:{" "}
+                      <strong className="text-indigo-700">
+                        {Array.isArray(detailedProject.assignedVendors) && detailedProject.assignedVendors.length > 0
+                          ? detailedProject.assignedVendors.join(", ")
+                          : vendorName || "Assigned Agency"}
+                      </strong>
                     </span>
                   </span>
                 </div>
@@ -134,9 +139,12 @@ export default function VendorHRProjectsSection({
 
           {/* 4 KPI Metric Cards */}
           {(() => {
-            const projectCands = applications.filter((a) => a.projectId === detailedProject.projectId);
+            const detailedIds = [detailedProject.projectId, detailedProject.id, detailedProject._id]
+              .filter(Boolean)
+              .map(String);
+            const projectCands = applications.filter((a) => detailedIds.includes(String(a.projectId || "")));
             const selectedCount = projectCands.filter((a) =>
-              ["Selected", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Joined", "Deployed"].includes(a.recruitmentStage)
+              ["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed", "Completed"].includes(a.recruitmentStage || a.status)
             ).length;
             const target = detailedProject.targetHiring || 50;
             const percent = Math.min(100, Math.round((projectCands.length / target) * 100));
@@ -237,7 +245,11 @@ export default function VendorHRProjectsSection({
                         <span className="text-slate-400 font-medium block">Assigned Manpower Agency</span>
                         <span className="font-bold text-slate-800 flex items-center gap-1.5 mt-0.5">
                           <ShieldCheck size={13} className="text-emerald-600" />
-                          <span>{vendorName}</span>
+                          <span>
+                            {Array.isArray(detailedProject.assignedVendors) && detailedProject.assignedVendors.length > 0
+                              ? detailedProject.assignedVendors.join(", ")
+                              : vendorName || "Assigned Agency"}
+                          </span>
                         </span>
                       </div>
 
@@ -390,7 +402,7 @@ export default function VendorHRProjectsSection({
                                 {cand.jobTitle || "Technician"}
                               </td>
                               <td className="py-2.5 px-3 font-mono text-slate-600">
-                                {cand.passportNumber || "P" + (idx + 1) * 8765432}
+                                {cand.passportNumber || cand.candidateId || "-"}
                               </td>
                               <td className="py-2.5 px-3">
                                 <button
@@ -522,9 +534,10 @@ export default function VendorHRProjectsSection({
                       </tr>
                     ) : (
                       filteredProjects.map((prj) => {
-                        const projectCands = applications.filter((a) => a.projectId === prj.projectId);
+                        const prjIds = [prj.projectId, prj.id, prj._id].filter(Boolean).map(String);
+                        const projectCands = applications.filter((a) => prjIds.includes(String(a.projectId || "")));
                         const selectedCount = projectCands.filter((a) =>
-                          ["Selected", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Joined", "Deployed"].includes(a.recruitmentStage)
+                          ["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed", "Completed"].includes(a.recruitmentStage || a.status)
                         ).length;
                         const target = prj.targetHiring || 50;
                         const percent = Math.min(100, Math.round((projectCands.length / target) * 100));
@@ -542,6 +555,16 @@ export default function VendorHRProjectsSection({
                               <div className="font-mono text-slate-400 text-[10px]">
                                 {prj.projectId}
                               </div>
+                              {((Array.isArray(prj.assignedVendors) && prj.assignedVendors.length > 0) || vendorName) && (
+                                <div className="text-[10.5px] font-semibold text-indigo-700 mt-0.5 flex items-center gap-1">
+                                  <ShieldCheck size={11} className="text-indigo-500 shrink-0" />
+                                  <span className="truncate max-w-[190px]">
+                                    {Array.isArray(prj.assignedVendors) && prj.assignedVendors.length > 0
+                                      ? prj.assignedVendors.join(", ")
+                                      : vendorName}
+                                  </span>
+                                </div>
+                              )}
                             </td>
                             <td className="py-3.5 px-4">
                               <div className="font-semibold text-slate-800 flex items-center gap-1">
@@ -612,9 +635,10 @@ export default function VendorHRProjectsSection({
             /* CARD GRID VIEW */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredProjects.map((prj) => {
-                const projectCands = applications.filter((a) => a.projectId === prj.projectId);
+                const prjIds = [prj.projectId, prj.id, prj._id].filter(Boolean).map(String);
+                const projectCands = applications.filter((a) => prjIds.includes(String(a.projectId || "")));
                 const selectedCount = projectCands.filter((a) =>
-                  ["Selected", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Joined", "Deployed"].includes(a.recruitmentStage)
+                  ["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed", "Completed"].includes(a.recruitmentStage || a.status)
                 ).length;
                 const target = prj.targetHiring || 50;
                 const percent = Math.min(100, Math.round((projectCands.length / target) * 100));
@@ -649,6 +673,16 @@ export default function VendorHRProjectsSection({
                           <Globe size={13} className="text-slate-400 shrink-0" />
                           <span>{prj.destinationCountry}</span>
                         </div>
+                        {((Array.isArray(prj.assignedVendors) && prj.assignedVendors.length > 0) || vendorName) && (
+                          <div className="flex items-center gap-1.5 text-indigo-700 font-semibold truncate">
+                            <ShieldCheck size={13} className="text-indigo-500 shrink-0" />
+                            <span className="truncate">
+                              {Array.isArray(prj.assignedVendors) && prj.assignedVendors.length > 0
+                                ? prj.assignedVendors.join(", ")
+                                : vendorName}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 pt-3 text-center">

@@ -1,5 +1,4 @@
-import React from "react";
-import { Users, UserCheck, Video, CheckCircle2, XCircle } from "lucide-react";
+import { Users, UserCheck, Video, CheckCircle2, Clock, XCircle } from "lucide-react";
 
 export default function CandidateTabsBar({ activeTab, onTabChange, counts = {} }) {
   const tabs = [
@@ -7,6 +6,7 @@ export default function CandidateTabsBar({ activeTab, onTabChange, counts = {} }
     { id: "Shortlisted", label: "Shortlisted", count: counts.countShortlisted || 0, icon: UserCheck },
     { id: "Interview", label: "Interview", count: counts.countInterview || 0, icon: Video },
     { id: "Selected", label: "Selected", count: counts.countSelected || 0, icon: CheckCircle2 },
+    { id: "On Hold", label: "On Hold", count: counts.countOnHold || 0, icon: Clock },
     { id: "Rejected", label: "Rejected", count: counts.countRejected || 0, icon: XCircle },
   ];
 

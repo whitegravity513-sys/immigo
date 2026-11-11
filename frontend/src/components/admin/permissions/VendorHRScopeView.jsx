@@ -101,45 +101,42 @@ export default function VendorHRScopeView({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+          <ul className="divide-y divide-slate-100 border-t border-slate-100">
             {selectedAdminData.assignedVendors.map((vId) => {
               const vendorObj = availableVendors.find(
-                (v) => (v.vendorId || v.id) === vId
+                (v) => (v.vendorId || v.id || v._id) === vId
               );
               return (
-                <div
+                <li
                   key={vId}
-                  className="p-3 rounded-xl border border-cyan-200 bg-cyan-50/40 space-y-1.5"
+                  className="py-2.5 px-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/70 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h4 className="font-bold text-xs text-slate-900 truncate">
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-xs text-slate-900">
                         {vendorObj?.companyName || `Vendor ${vId}`}
-                      </h4>
-                      <span className="text-[10px] font-mono text-cyan-800 bg-cyan-100 px-1.5 py-0.2 rounded font-semibold">
+                      </span>
+                      <span className="text-[10.5px] font-mono text-cyan-700 font-semibold">
                         ID: {vId}
                       </span>
                     </div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">
-                      {vendorObj?.status || "Active Agency"}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
+                      {vendorObj?.contactPersonName && (
+                        <span>
+                          Contact: <strong className="text-slate-700">{vendorObj.contactPersonName}</strong>
+                        </span>
+                      )}
+                      {vendorObj?.email && <span>Email: {vendorObj.email}</span>}
+                      {vendorObj?.phone && <span>Phone: {vendorObj.phone}</span>}
+                    </div>
                   </div>
-
-                  <div className="text-[10.5px] text-slate-600 space-y-0.5 pt-1 border-t border-cyan-100">
-                    {vendorObj?.contactPersonName && (
-                      <div>Contact: <strong>{vendorObj.contactPersonName}</strong></div>
-                    )}
-                    {vendorObj?.email && (
-                      <div className="text-slate-500 truncate">Email: {vendorObj.email}</div>
-                    )}
-                    {vendorObj?.phone && (
-                      <div className="text-slate-500">Phone: {vendorObj.phone}</div>
-                    )}
-                  </div>
-                </div>
+                  <span className="self-start sm:self-center shrink-0 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 uppercase tracking-wide">
+                    {vendorObj?.status || "Active Agency"}
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </div>
 

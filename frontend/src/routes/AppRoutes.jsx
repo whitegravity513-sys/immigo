@@ -7,7 +7,6 @@ import LoadingFallback from "../components/common/LoadingFallback.jsx";
 import appConfig from "../config/appConfig.js";
 
 
-const UnifiedLogin = lazy(() => import("../pages/UnifiedLogin.jsx"));
 const AdminLoginPage = lazy(() => import("../pages/admin/AdminLoginPage.jsx"));
 const EmployeeLoginPage = lazy(() => import("../pages/employee/EmployeeLoginPage.jsx"));
 
@@ -56,6 +55,7 @@ const VendorCandidateDetails = lazy(() => import("../pages/vendor/CandidateDetai
 const VendorSubmitCandidate = lazy(() => import("../pages/vendor/SubmitCandidate.jsx"));
 const VendorApplications = lazy(() => import("../pages/vendor/Applications.jsx"));
 const VendorSelectedCandidates = lazy(() => import("../pages/vendor/SelectedCandidates.jsx"));
+const VendorOnHoldCandidates = lazy(() => import("../pages/vendor/OnHoldCandidates.jsx"));
 const VendorRejectedCandidates = lazy(() => import("../pages/vendor/RejectedCandidates.jsx"));
 const VendorProcessingTimeline = lazy(() => import("../pages/vendor/ProcessingTimeline.jsx"));
 const VendorProcessingDetails = lazy(() => import("../pages/vendor/VendorProcessingDetails.jsx"));
@@ -86,7 +86,6 @@ const AdminMilestonesList = lazy(() => import("../pages/admin/vendor/AdminMilest
 const AdminDocumentsList = lazy(() => import("../pages/admin/vendor/AdminDocumentsList.jsx"));
 const AdminRefundsList = lazy(() => import("../pages/admin/vendor/AdminRefundsList.jsx"));
 const AdminVendorDetailsPage = lazy(() => import("../pages/admin/vendor/AdminVendorDetailsPage.jsx"));
-const AdminMasterLayout = lazy(() => import("../components/admin/layout/AdminMasterLayout.jsx"));
 const InvoiceReceiptPage = lazy(() => import("../pages/common/InvoiceReceiptPage.jsx"));
 
 const LandingPage = lazy(() => import("../pages/public/LandingPage.jsx"));
@@ -924,6 +923,7 @@ export default function AppRoutes() {
           <Route path="candidates/edit/:id" element={<VendorEditCandidate />} />
           <Route path="applications" element={<VendorApplications />} />
           <Route path="selected" element={<VendorSelectedCandidates />} />
+          <Route path="on-hold" element={<VendorOnHoldCandidates />} />
           <Route path="rejected" element={<VendorRejectedCandidates />} />
           <Route path="processing" element={<VendorProcessingTimeline />} />
           <Route path="processing/:appId" element={<VendorProcessingDetails />} />

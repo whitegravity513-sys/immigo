@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
@@ -8,27 +8,61 @@ export default function PaymentHistory() {
   const { appId } = useParams();
   const [vendor, setVendor] = useState(null);
   const [app, setApp] = useState(null);
+  const [matchedProject, setMatchedProject] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [appId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
       setVendor(curVendor);
 
-      const allApps = await crmVendorService.getApplications(curVendor?.id);
-      const targetApp = allApps?.find((a) => String(a.id) === String(appId));
+      const [projs, allApps] = await Promise.all([
+        crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []),
+        crmVendorService.getApplications(curVendor?.id),
+      ]);
+      const targetApp = allApps?.find(
+        (a) =>
+          String(a.id) === String(appId) ||
+          String(a.applicationId) === String(appId) ||
+          String(a._id) === String(appId)
+      );
+      const foundProj = (projs || []).find(
+        (p) =>
+          (targetApp?.projectId &&
+            (String(p.id) === String(targetApp.projectId) ||
+              String(p._id) === String(targetApp.projectId))) ||
+          (targetApp?.projectName &&
+            (p.name === targetApp.projectName ||
+              p.title === targetApp.projectName ||
+              p.projectName === targetApp.projectName))
+      );
+      setMatchedProject(foundProj || null);
       setApp(targetApp);
     } catch (err) {
       console.error("Failed to load payment history:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [appId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   if (loading) {
     return (
@@ -46,10 +80,27 @@ export default function PaymentHistory() {
     );
   }
 
-  const milestones = (app.processMilestones?.length ? app.processMilestones : app.paymentPlan?.milestones) || [];
-  const paidMilestones = milestones.filter((m) => m.paymentStatus === "Approved" || m.status === "Paid");
-  const paidAmount = paidMilestones.reduce((acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0), 0);
-  const total = Number(app.paymentPlan?.totalAmount || milestones.reduce((acc, m) => acc + (Number(m.paymentAmount || m.amount) || 0), 0) || 40000);
+  const syncedMs = !app.milestonesOverridden
+    ? crmVendorService.syncAppMilestonesWithProject(app, matchedProject ? [matchedProject] : null)
+    : [];
+  const milestones =
+    syncedMs.length > 0
+      ? syncedMs
+      : app.processMilestones?.length
+      ? app.processMilestones
+      : app.paymentPlan?.milestones || [];
+  const paidMilestones = milestones.filter(
+    (m) => m.paymentStatus === "Approved" || m.status === "Paid" || m.status === "Completed"
+  );
+  const paidAmount = paidMilestones.reduce(
+    (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
+  const msSum = milestones.reduce(
+    (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
+  const total = msSum > 0 ? msSum : Number(app.paymentPlan?.totalAmount || 0);
   const remaining = Math.max(0, total - paidAmount);
 
   return (
@@ -101,12 +152,13 @@ export default function PaymentHistory() {
               Recruitment Stages & Milestone Payments
             </h4>
             <p className="text-xs text-slate-500">
-              Complete stages, submit offline payment proof or pay directly online via Razorpay.
+              Track processing stages, submit offline payment proof or pay directly online via Razorpay.
             </p>
           </div>
 
           <CandidateProcessTimeline
             application={app}
+            project={matchedProject}
             isAdmin={false}
             onUpdate={loadData}
           />

@@ -75,6 +75,8 @@ export default function VendorStatusBadge({ status }) {
         </span>
       );
     case "Rejected":
+    case "MOU Rejected":
+    case "Registration Rejected":
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
           <XCircle className="w-3.5 h-3.5 text-rose-600" />

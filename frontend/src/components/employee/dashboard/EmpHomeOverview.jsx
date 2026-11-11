@@ -137,7 +137,7 @@ export default function EmpHomeOverview({
         const stored = JSON.parse(localStorage.getItem("user") || "{}");
         localStorage.setItem("user", JSON.stringify({ ...stored, profileImage: newImg }));
         window.dispatchEvent(new Event("user-updated"));
-      } catch {}
+      } catch { }
     } catch (err) {
       console.error("Failed to update profile photo", err);
     } finally {
@@ -301,9 +301,8 @@ export default function EmpHomeOverview({
               </div>
 
               <span
-                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${statusColor} ${
-                  status === "Active" || status === "On Break" ? "animate-pulse" : ""
-                }`}
+                className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${statusColor} ${status === "Active" || status === "On Break" ? "animate-pulse" : ""
+                  }`}
                 title={status}
               />
             </div>
@@ -524,7 +523,7 @@ export default function EmpHomeOverview({
                       <Calendar size={11} className="text-indigo-700" /> Official Holiday: {activeHoliday?.title || "Holiday"}
                     </div>
                     <p className="text-[11px] font-bold text-indigo-900">
-                      Aaj holiday hai — aaj attendance check-in aur break mark nahi hogi.
+                      Today is an official holiday — attendance check-in and break tracking are disabled.
                     </p>
                   </div>
                 ) : (statusRecord?.isInactive || statusRecord?.employeeStatus === "inactive" || user?.status === "inactive") ? (

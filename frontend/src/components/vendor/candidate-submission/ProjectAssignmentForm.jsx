@@ -48,7 +48,9 @@ export function ProjectAssignmentForm({
           </span>
           <div className="flex flex-wrap gap-1.5">
             {selectedCandidateIds.map((cid) => {
-              const c = candidates.find((cand) => cand.id === cid);
+              const c = candidates.find(
+                (cand) => String(cand.id || cand.candidateId || cand._id || "") === String(cid)
+              );
               return (
                 <span
                   key={cid}
@@ -109,11 +111,15 @@ export function ProjectAssignmentForm({
                 required
               >
                 <option value="">-- Select Project Position --</option>
-                {availableRequirements.map((req, idx) => (
-                  <option key={req.id || idx} value={req.position || req.positionTitle}>
-                    {req.position || req.positionTitle} ({req.quantity} required)
-                  </option>
-                ))}
+                {availableRequirements.map((req, idx) => {
+                  const posTitle = req.position || req.positionTitle || req.title || req.role || "General";
+                  const qty = req.quantity ?? req.openings ?? 0;
+                  return (
+                    <option key={req.id || req._id || idx} value={posTitle}>
+                      {posTitle} ({qty} required)
+                    </option>
+                  );
+                })}
               </select>
             ) : (
               <input
@@ -138,7 +144,7 @@ export function ProjectAssignmentForm({
               <div>
                 <span className="text-slate-500 block text-[10px] uppercase font-bold">Positions Required</span>
                 <span className="font-bold text-slate-900">
-                  {requiredHeadcount || selectedProject.totalManpowerRequired || "Flexible"}
+                  {requiredHeadcount || selectedProject.totalHeadcount || selectedProject.totalManpowerRequired || "Flexible"}
                 </span>
               </div>
               <div>
@@ -205,7 +211,9 @@ export function ConfirmSubmissionModal({
 
         <div className="max-h-36 overflow-y-auto space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs">
           {selectedCandidateIds.map((cid) => {
-            const c = candidates.find((cand) => cand.id === cid);
+            const c = candidates.find(
+              (cand) => String(cand.id || cand.candidateId || cand._id || "") === String(cid)
+            );
             return (
               <div key={cid} className="flex items-center justify-between font-medium text-slate-800">
                 <span>{c?.fullName || cid}</span>

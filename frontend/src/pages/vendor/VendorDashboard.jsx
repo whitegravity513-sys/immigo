@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Users, Send, CheckCircle2, GitCommit, Award } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import MouFullPageView from "../../components/vendor/MouFullPageView.jsx";
@@ -17,12 +17,35 @@ const VENDOR_PORTAL_STORAGE_KEYS = new Set([
 
 export function VendorDashboard() {
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showMouPage, setShowMouPage] = useState(false);
-  const vendor = crmVendorService.getCurrentVendor();
+  const [vendor, setVendor] = useState(() => crmVendorService.getCurrentVendor());
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const [data, projs] = await Promise.all([
+        crmVendorService.getVendorDashboardStats(vendor?.id),
+        crmVendorService.getAvailableProjects(vendor?.id),
+      ]);
+      setStats({
+        ...data,
+        availableProjects: Array.isArray(projs) && projs.length > 0 ? projs : data?.availableProjects || [],
+      });
+    } catch (err) {
+      console.error("Failed to load vendor dashboard:", err);
+    }
+  }, [vendor?.id]);
 
   useEffect(() => {
-    loadDashboardData(false);
+    const syncVendorState = () => {
+      const cur = crmVendorService.getCurrentVendor();
+      if (cur) setVendor(cur);
+    };
+    window.addEventListener("immigo:vendor-update", syncVendorState);
+    return () => window.removeEventListener("immigo:vendor-update", syncVendorState);
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
 
     let debounceTimer = null;
     const handleUpdate = (e) => {
@@ -31,7 +54,7 @@ export function VendorDashboard() {
       }
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        loadDashboardData(true);
+        loadDashboardData();
       }, 100);
     };
 
@@ -47,29 +70,7 @@ export function VendorDashboard() {
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, [vendor?.id]);
-
-  const loadDashboardData = async (silent = false) => {
-    if (silent !== true) {
-      setLoading(true);
-    }
-    try {
-      const [data, projs] = await Promise.all([
-        crmVendorService.getVendorDashboardStats(vendor?.id),
-        crmVendorService.getAvailableProjects(vendor?.id),
-      ]);
-      setStats({
-        ...data,
-        availableProjects: Array.isArray(projs) && projs.length > 0 ? projs : data?.availableProjects || [],
-      });
-    } catch (err) {
-      console.error("Failed to load vendor dashboard:", err);
-    } finally {
-      if (silent !== true) {
-        setLoading(false);
-      }
-    }
-  };
+  }, [loadDashboardData]);
 
   const CARDS = [
     {
@@ -114,13 +115,62 @@ export function VendorDashboard() {
     },
   ];
 
-  if (showMouPage) {
+  const isRejected = Boolean(
+    ["Rejected", "Registration Rejected", "MOU Rejected"].includes(vendor?.status) ||
+      vendor?.mouStatus === "Rejected"
+  );
+  const isCorrectionRequired = Boolean(
+    vendor?.mouStatus === "Correction Required" ||
+      vendor?.status === "MOU Correction Required"
+  );
+  const isMouApproved = Boolean(
+    !isRejected &&
+      (vendor?.status === "Approved" ||
+        vendor?.status === "Active" ||
+        vendor?.mouStatus === "Approved" ||
+        vendor?.onboardingStage === "COMPLETED" ||
+        vendor?.onboardingStage === "ACTIVE")
+  );
+  const isMouUnderReview = Boolean(
+    !isRejected &&
+      !isMouApproved &&
+      !isCorrectionRequired &&
+      (vendor?.mouSigned ||
+        vendor?.mouStatus === "Signed" ||
+        vendor?.mouStatus === "Under Review" ||
+        vendor?.status === "Pending MOU Approval" ||
+        vendor?.status === "MOU Under Review" ||
+        vendor?.onboardingStage === "MOU_UNDER_REVIEW" ||
+        vendor?.onboardingStage === "MOU_SIGNED" ||
+        Boolean(vendor?.signedMou?.signedAt))
+  );
+  const isMouPendingSignature = Boolean(
+    !isRejected &&
+      !isMouApproved &&
+      !isMouUnderReview &&
+      (vendor?.mouStatus === "Sent" ||
+        isCorrectionRequired ||
+        vendor?.status === "MOU Pending" ||
+        vendor?.onboardingStage === "MOU_SENT")
+  );
+  const isMouAssigned =
+    isMouPendingSignature ||
+    isMouUnderReview ||
+    isMouApproved ||
+    Boolean(isRejected && (vendor?.mouStatus === "Rejected" || vendor?.signedMou?.signedAt || vendor?.mouDocument?.sentAt));
+
+  if (showMouPage && isMouAssigned) {
     return (
       <div className="space-y-3 sm:space-y-3.5 w-full max-w-full overflow-hidden text-slate-800">
         <MouFullPageView
-          mode="preview"
+          mode={isMouPendingSignature ? "sign" : "preview"}
           vendor={vendor}
           onBack={() => setShowMouPage(false)}
+          onSuccess={async () => {
+            setShowMouPage(false);
+            const fresh = await crmVendorService.getVendorMe();
+            if (fresh) setVendor(fresh);
+          }}
         />
       </div>
     );
@@ -132,7 +182,9 @@ export function VendorDashboard() {
     <div className="space-y-3 sm:space-y-3.5 w-full max-w-full overflow-hidden text-slate-800">
       <VendorWelcomeBanner
         vendor={vendor}
-        onOpenMou={() => setShowMouPage(true)}
+        onOpenMou={() => {
+          if (isMouAssigned) setShowMouPage(true);
+        }}
       />
 
       <VendorMetricCards cards={CARDS} />

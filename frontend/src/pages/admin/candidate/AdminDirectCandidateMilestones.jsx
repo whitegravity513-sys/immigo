@@ -29,12 +29,13 @@ export default function AdminDirectCandidateMilestones() {
   const [application, setApplication] = useState(null);
   const [activeMilestoneIdx, setActiveMilestoneIdx] = useState(0);
   const [milestonesList, setMilestonesList] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(45000);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [milestonesCustomized, setMilestonesCustomized] = useState(false);
   const [notification, setNotification] = useState(null);
 
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
-    amount: 15000,
+    amount: 0,
     paymentMethod: "Online",
     paymentRef: "",
     remarks: "",
@@ -46,28 +47,48 @@ export default function AdminDirectCandidateMilestones() {
 
   useEffect(() => {
     loadApplicationData();
+    const handleRefresh = () => loadApplicationData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
   }, [id]);
 
   const loadApplicationData = async () => {
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const apps = await crmVendorService.getApplications();
       const app = apps.find(
-        (a) => String(a.id) === String(id) || String(a.applicationId) === String(id)
+        (a) =>
+          String(a.id) === String(id) ||
+          String(a.applicationId) === String(id) ||
+          String(a._id) === String(id)
       );
 
       if (app) {
         setApplication(app);
+        const syncedMs = !app.milestonesOverridden
+          ? crmVendorService.syncAppMilestonesWithProject(app)
+          : [];
         const milestones =
-          Array.isArray(app.processMilestones) && app.processMilestones.length > 0
+          syncedMs.length > 0
+            ? syncedMs
+            : Array.isArray(app.processMilestones) && app.processMilestones.length > 0
             ? app.processMilestones
-            : crmVendorService.syncAppMilestonesWithProject
-            ? crmVendorService.syncAppMilestonesWithProject(app)
-            : [];
+            : app.paymentPlan?.milestones || [];
 
         setMilestonesList(milestones);
-        const sum = milestones.reduce((acc, m) => acc + (Number(m.amount) || 15000), 0);
-        setTotalAmount(sum || 45000);
+        setMilestonesCustomized(Boolean(app.milestonesOverridden));
+        const sum = milestones.reduce(
+          (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+          0
+        );
+        setTotalAmount(sum > 0 ? sum : Number(app.paymentPlan?.totalAmount || 0));
       }
     } catch {
       setNotification({ type: "error", message: "Failed to load candidate application" });
@@ -76,11 +97,33 @@ export default function AdminDirectCandidateMilestones() {
     }
   };
 
-  const autoSyncMilestones = async (newList, customTotal) => {
+  const autoSyncMilestones = async (newList, customTotal, options = {}) => {
     if (!application) return;
     try {
       const candId = application.applicationId || application.id;
-      await crmVendorService.updateCandidateMilestones(candId, newList, customTotal ?? totalAmount);
+      const isCustomized = options.customized !== undefined ? Boolean(options.customized) : true;
+      const nextCustomized = milestonesCustomized || isCustomized;
+      if (isCustomized && !milestonesCustomized) {
+        setMilestonesCustomized(true);
+      }
+      const computedSum = (newList || []).reduce(
+        (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+        0
+      );
+      const nextTotal =
+        customTotal !== undefined && customTotal !== null && !Number.isNaN(Number(customTotal))
+          ? Number(customTotal)
+          : computedSum;
+      if (customTotal === undefined) {
+        setTotalAmount(nextTotal);
+      }
+      await crmVendorService.updateCandidateMilestones(
+        candId,
+        newList,
+        nextTotal,
+        application,
+        { preserveProjectSync: !nextCustomized && !application.milestonesOverridden }
+      );
     } catch (err) {
       console.warn("Milestone auto-sync:", err?.message);
     }
@@ -90,7 +133,13 @@ export default function AdminDirectCandidateMilestones() {
     try {
       setSaveLoading(true);
       const candId = application.applicationId || application.id;
-      await crmVendorService.updateCandidateMilestones(candId, milestonesList, totalAmount);
+      await crmVendorService.updateCandidateMilestones(
+        candId,
+        milestonesList,
+        totalAmount,
+        application,
+        { preserveProjectSync: !milestonesCustomized && !application.milestonesOverridden }
+      );
       setSaveSuccess(true);
       setNotification({ type: "success", message: "Candidate milestone workflow updated successfully!" });
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -104,7 +153,7 @@ export default function AdminDirectCandidateMilestones() {
   const handleOpenRecordPayment = (idx) => {
     const m = milestonesList[idx];
     setPaymentForm({
-      amount: m?.amount || 15000,
+      amount: Number(m?.paymentAmount ?? m?.amount ?? 0),
       paymentMethod: "Bank Transfer",
       paymentRef: `TXN-${Date.now().toString().slice(-6)}`,
       remarks: "Direct milestone payment recorded by Administrator",
@@ -124,7 +173,8 @@ export default function AdminDirectCandidateMilestones() {
         paymentForm.paymentMethod,
         paymentForm.paymentRef,
         paymentForm.remarks,
-        user?.name || "Admin"
+        user?.name || "Admin",
+        application
       );
 
       const updated = [...milestonesList];
@@ -146,7 +196,7 @@ export default function AdminDirectCandidateMilestones() {
         type: "success",
         message: `Payment of ₹${Number(paymentForm.amount).toLocaleString()} recorded! Milestone unlocked.`,
       });
-      autoSyncMilestones(updated);
+      autoSyncMilestones(updated, totalAmount, { customized: false });
     } catch (err) {
       setNotification({ type: "error", message: err.message || "Payment recording failed" });
     }
@@ -160,7 +210,7 @@ export default function AdminDirectCandidateMilestones() {
       paymentStatus: "Approved",
     };
     setMilestonesList(updated);
-    autoSyncMilestones(updated);
+    autoSyncMilestones(updated, totalAmount, { customized: false });
     setNotification({ type: "success", message: `${updated[idx].name} unlocked directly!` });
   };
 
@@ -183,7 +233,7 @@ export default function AdminDirectCandidateMilestones() {
     }
 
     setMilestonesList(updated);
-    autoSyncMilestones(updated);
+    autoSyncMilestones(updated, totalAmount, { customized: false });
     setNotification({
       type: "success",
       message: `${updated[idx].name} marked complete! Advanced to next deployment phase.`,
@@ -215,6 +265,7 @@ export default function AdminDirectCandidateMilestones() {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].name = val;
     setMilestonesList(updated);
+    setMilestonesCustomized(true);
   };
 
   const handleStageStatusChange = (mIdx, sIdx, val) => {
@@ -224,7 +275,7 @@ export default function AdminDirectCandidateMilestones() {
       updated[mIdx].stages[sIdx].completedAt = new Date().toISOString();
     }
     setMilestonesList(updated);
-    autoSyncMilestones(updated);
+    autoSyncMilestones(updated, totalAmount, { customized: false });
   };
 
   const handleStageRemarkChange = (mIdx, sIdx, val) => {
@@ -246,7 +297,7 @@ export default function AdminDirectCandidateMilestones() {
       uploadedAt: new Date().toISOString(),
     };
     setMilestonesList(updated);
-    autoSyncMilestones(updated);
+    autoSyncMilestones(updated, totalAmount, { customized: false });
     setNotification({ type: "success", message: `Proof file attached: ${file.name}` });
   };
 
@@ -254,7 +305,7 @@ export default function AdminDirectCandidateMilestones() {
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].document = null;
     setMilestonesList(updated);
-    autoSyncMilestones(updated);
+    autoSyncMilestones(updated, totalAmount, { customized: false });
   };
 
   const handleUploadClearanceDocument = (e) => {
@@ -281,7 +332,7 @@ export default function AdminDirectCandidateMilestones() {
       updated[activeMilestoneIdx].clearanceDocuments = [...currDocs, newDoc];
 
       setMilestonesList(updated);
-      autoSyncMilestones(updated);
+      autoSyncMilestones(updated, totalAmount, { customized: false });
       setDocTitle("");
       setNotification({ type: "success", message: `Clearance document uploaded: ${title}` });
     } catch {
@@ -296,7 +347,7 @@ export default function AdminDirectCandidateMilestones() {
     const currDocs = updated[activeMilestoneIdx].clearanceDocuments || [];
     updated[activeMilestoneIdx].clearanceDocuments = currDocs.filter((d) => d.id !== docId);
     setMilestonesList(updated);
-    autoSyncMilestones(updated);
+    autoSyncMilestones(updated, totalAmount, { customized: false });
     setNotification({ type: "success", message: "Clearance document removed." });
   };
 

@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   CreditCard,
   Search,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  TrendingUp,
-  Download,
-  Building2,
   Eye,
-  FileText,
-  DollarSign,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 
@@ -20,16 +12,36 @@ export default function AdminPaymentsList() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const resolveMilestones = (app) => {
+    const syncedMs = !app.milestonesOverridden
+      ? crmVendorService.syncAppMilestonesWithProject(app)
+      : [];
+    if (syncedMs.length > 0) return syncedMs;
+    if (app.processMilestones?.length > 0) return app.processMilestones;
+    return app.paymentPlan?.milestones || [];
+  };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      await crmVendorService.getAvailableProjects().catch(() => []);
       const data = await crmVendorService.getApplications();
+      const postSelectionStatuses = new Set([
+        "Selected",
+        "Completed",
+        "Processing",
+        "Offer Released",
+        "Offer Accepted",
+        "Visa Processing",
+        "Visa Issued",
+        "Visa Allotted",
+        "Joined",
+        "Deployed",
+      ]);
       const filtered = (data || []).filter(
-        (a) => (a.status === "Selected" || a.status === "Completed") && a.processMilestones
+        (a) =>
+          (postSelectionStatuses.has(a.status) || postSelectionStatuses.has(a.recruitmentStage)) &&
+          resolveMilestones(a).length > 0
       );
       setApplications(filtered);
     } catch (err) {
@@ -37,20 +49,37 @@ export default function AdminPaymentsList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadData();
+    }, 0);
+    const handleRefresh = () => loadData();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadData]);
 
   let totalPaymentOverall = 0;
   let totalPaidOverall = 0;
 
   applications.forEach((app) => {
-    const milestones = app.processMilestones || [];
-    let total = 0;
-    milestones.forEach(m => total += (Number(m.paymentAmount) || 0));
-    totalPaymentOverall += total;
-    
+    const milestones = resolveMilestones(app);
     milestones.forEach((m) => {
-      const amt = Number(m.paymentAmount) || 0;
-      if (m.paymentStatus === "Approved") totalPaidOverall += amt;
+      const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+      totalPaymentOverall += amt;
+      if (m.paymentStatus === "Approved" || m.status === "Paid" || m.status === "Completed") {
+        totalPaidOverall += amt;
+      }
     });
   });
 
@@ -146,9 +175,15 @@ export default function AdminPaymentsList() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredApps.map((app) => {
-                  const milestones = app.processMilestones || [];
-                  const total = milestones.reduce((acc, m) => acc + (Number(m.paymentAmount) || 0), 0);
-                  const paid = milestones.filter((m) => m.paymentStatus === "Approved").reduce((acc, m) => acc + (Number(m.paymentAmount) || 0), 0);
+                  const resolvedAppId = app.id || app.applicationId || app._id;
+                  const milestones = resolveMilestones(app);
+                  const total = milestones.reduce(
+                    (acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0),
+                    0
+                  );
+                  const paid = milestones
+                    .filter((m) => m.paymentStatus === "Approved" || m.status === "Paid" || m.status === "Completed")
+                    .reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0);
                   const remaining = Math.max(0, total - paid);
 
                   let statusLabel = "Unpaid";
@@ -162,7 +197,7 @@ export default function AdminPaymentsList() {
                   }
 
                   return (
-                    <tr key={app.id} className="hover:bg-slate-50/70 transition">
+                    <tr key={resolvedAppId} className="hover:bg-slate-50/70 transition">
                       <td className="py-1.5 px-3 sm:px-6 font-bold text-slate-900">{app.candidateName}</td>
                       <td className="py-1.5 px-3 font-semibold text-slate-700">{app.vendorId}</td>
                       <td className="py-1.5 px-3 font-bold text-slate-900">{app.projectName}</td>
@@ -176,7 +211,7 @@ export default function AdminPaymentsList() {
                       </td>
                       <td className="py-1.5 px-3 text-right">
                         <Link
-                          to={`/admin/vendor/payments/${app.id}`}
+                          to={`/admin/vendor/payments/${resolvedAppId}`}
                           className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs transition inline-flex items-center gap-1 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />

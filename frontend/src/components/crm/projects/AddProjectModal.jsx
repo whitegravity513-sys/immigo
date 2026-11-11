@@ -48,7 +48,7 @@ const STANDARD_BENEFITS = [
 
 const generatePresetMilestones = (parts, totalFee) => {
   const partsNum = Number(parts) || 4;
-  const fee = Number(totalFee) || 40000;
+  const fee = Number(totalFee) || 0;
 
   if (partsNum === 1) {
     return [
@@ -79,7 +79,6 @@ const generatePresetMilestones = (parts, totalFee) => {
       { id: "M5", name: "Milestone 5 - On-Site Deployment", percentage: 20, amount: fee - portion * 4 },
     ];
   } else {
-    
     const q = Math.round(fee / 4);
     return [
       { id: "M1", name: "Milestone 1 - Selection / Offer Letter", percentage: 25, amount: q },
@@ -104,6 +103,8 @@ export function AddProjectModal({
     projectType: "Construction",
     country: client?.country || clientCountry || "UAE",
     location: "",
+    salary: "",
+    currency: "",
     startDate: new Date().toISOString().split("T")[0],
     duration: "24 Months",
     description: "",
@@ -128,8 +129,8 @@ export function AddProjectModal({
     documents: [],
     paymentMilestoneConfig: {
       partsCount: 4,
-      totalFeePerCandidate: 40000,
-      milestones: generatePresetMilestones(4, 40000),
+      totalFeePerCandidate: 0,
+      milestones: generatePresetMilestones(4, 0),
     },
     vendorVisibility: "all",
     assignedVendorIds: [],
@@ -152,18 +153,64 @@ export function AddProjectModal({
   useEffect(() => {
     if (isOpen) {
       if (projectToEdit) {
+        const existingMs =
+          Array.isArray(projectToEdit.paymentMilestoneConfig?.milestones) &&
+          projectToEdit.paymentMilestoneConfig.milestones.length > 0
+            ? projectToEdit.paymentMilestoneConfig.milestones
+            : Array.isArray(projectToEdit.paymentMilestones) &&
+              projectToEdit.paymentMilestones.length > 0
+            ? projectToEdit.paymentMilestones
+            : Array.isArray(projectToEdit.recruitmentConfig?.paymentMilestones) &&
+              projectToEdit.recruitmentConfig.paymentMilestones.length > 0
+            ? projectToEdit.recruitmentConfig.paymentMilestones
+            : null;
+        const resolvedFee = Number(
+          projectToEdit.paymentMilestoneConfig?.totalFeePerCandidate ??
+            projectToEdit.totalMilestoneAmount ??
+            projectToEdit.totalAgreedAmount ??
+            (existingMs
+              ? existingMs.reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0)
+              : 0)
+        );
+        const normalizedExisting = existingMs
+          ? existingMs.map((m, idx) => {
+              const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+              return {
+                ...m,
+                id: m.id || `M${idx + 1}`,
+                name: m.name || `Milestone ${idx + 1}`,
+                amount: amt,
+                paymentAmount: String(amt),
+                percentage:
+                  m.percentage !== undefined
+                    ? m.percentage
+                    : resolvedFee > 0
+                    ? Math.round((amt / resolvedFee) * 100)
+                    : 0,
+              };
+            })
+          : generatePresetMilestones(4, resolvedFee);
+
         setFormData({
           ...projectToEdit,
           positionTitle:
             projectToEdit.positionTitle ||
             projectToEdit.primaryPosition ||
             projectToEdit.manpowerRequirements?.[0]?.position ||
-            "Electrician",
+            "",
           country: projectToEdit.country || client?.country || clientCountry || "UAE",
-          paymentMilestoneConfig: projectToEdit.paymentMilestoneConfig || {
-            partsCount: 4,
-            totalFeePerCandidate: 40000,
-            milestones: generatePresetMilestones(4, 40000),
+          salary:
+            projectToEdit.salary ??
+            projectToEdit.manpowerRequirements?.[0]?.salary ??
+            "",
+          currency:
+            projectToEdit.currency ??
+            projectToEdit.manpowerRequirements?.[0]?.currency ??
+            "",
+          paymentMilestoneConfig: {
+            partsCount: normalizedExisting.length || 4,
+            totalFeePerCandidate: resolvedFee,
+            milestones: normalizedExisting,
           },
         });
       } else {
@@ -173,6 +220,8 @@ export function AddProjectModal({
           projectType: "Construction",
           country: client?.country || clientCountry || "UAE",
           location: "",
+          salary: "",
+          currency: "",
           startDate: new Date().toISOString().split("T")[0],
           duration: "24 Months",
           description: "",
@@ -197,8 +246,8 @@ export function AddProjectModal({
           documents: [],
           paymentMilestoneConfig: {
             partsCount: 4,
-            totalFeePerCandidate: 40000,
-            milestones: generatePresetMilestones(4, 40000),
+            totalFeePerCandidate: 0,
+            milestones: generatePresetMilestones(4, 0),
           },
           vendorVisibility: "all",
           assignedVendorIds: [],
@@ -245,38 +294,91 @@ export function AddProjectModal({
     const headcountNum = Number(formData.totalHeadcount) || 1;
     const pos = formData.positionTitle?.trim() || formData.workforceNotes?.trim() || "Required Trade Position";
 
-    const formattedMilestones = (formData.paymentMilestoneConfig?.milestones || []).map((m, idx) => ({
-      id: m.id || `m${Date.now()}-${idx + 1}`,
-      name: (m.name || `Milestone ${idx + 1}`).trim(),
-      paymentAmount: String(m.amount || 0),
-      amount: Number(m.amount) || 0,
-      percentage: Number(m.percentage) || 0,
-      stages: [{ id: `s${Date.now()}-${idx + 1}-1`, name: "Candidate Selection" }],
-    }));
+    let formattedMilestones = (formData.paymentMilestoneConfig?.milestones || []).map((m, idx) => {
+      const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+      return {
+        ...m,
+        id: m.id || `m${Date.now()}-${idx + 1}`,
+        name: (m.name || `Milestone ${idx + 1}`).trim(),
+        paymentAmount: String(amt),
+        amount: amt,
+        percentage: Number(m.percentage) || 0,
+        stages:
+          Array.isArray(m.stages) && m.stages.length > 0
+            ? m.stages
+            : [{ id: `s${Date.now()}-${idx + 1}-1`, name: "Candidate Selection" }],
+      };
+    });
+
+    const rawConfiguredFee = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
+    const rawMilestonesSum = formattedMilestones.reduce((acc, m) => acc + m.amount, 0);
+    if (rawConfiguredFee > 0 && rawMilestonesSum === 0 && formattedMilestones.length > 0) {
+      const base = Math.floor(rawConfiguredFee / formattedMilestones.length);
+      const rem = rawConfiguredFee - base * formattedMilestones.length;
+      formattedMilestones = formattedMilestones.map((m, idx) => {
+        const share = idx === 0 ? base + rem : base;
+        return {
+          ...m,
+          paymentAmount: String(share),
+          amount: share,
+          percentage: Math.round((share / rawConfiguredFee) * 100),
+        };
+      });
+    }
 
     const milestonesSum = formattedMilestones.reduce((acc, m) => acc + m.amount, 0);
-    const resolvedTotal = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || milestonesSum || 0;
+    const resolvedTotal =
+      milestonesSum > 0 ? milestonesSum : rawConfiguredFee;
+
+    const salaryText = formData.salary !== undefined && formData.salary !== null ? String(formData.salary).trim() : "";
+    const currencyText = formData.currency !== undefined && formData.currency !== null ? String(formData.currency).trim() : "";
+    const existingReqs = Array.isArray(formData.manpowerRequirements) ? formData.manpowerRequirements : [];
+    const updatedReqs =
+      existingReqs.length > 1
+        ? existingReqs.map((r, idx) =>
+            idx === 0
+              ? {
+                  ...r,
+                  id: r.id || `mpr-${Date.now()}`,
+                  position: pos,
+                  quantity: headcountNum,
+                  salary: salaryText,
+                  currency: currencyText,
+                }
+              : r
+          )
+        : [
+            {
+              id: existingReqs[0]?.id || `mpr-${Date.now()}`,
+              position: pos,
+              quantity: headcountNum,
+              salary: salaryText,
+              currency: currencyText,
+            },
+          ];
 
     onSave({
       ...formData,
       primaryPosition: pos,
       positionTitle: pos,
+      salary: salaryText,
+      currency: currencyText,
       totalHeadcount: headcountNum,
       totalManpower: headcountNum,
       paymentMilestones: formattedMilestones,
+      paymentMilestoneConfig: {
+        ...(formData.paymentMilestoneConfig || {}),
+        partsCount: formattedMilestones.length,
+        totalFeePerCandidate: resolvedTotal,
+        milestones: formattedMilestones,
+      },
       totalMilestoneAmount: resolvedTotal,
       totalAgreedAmount: resolvedTotal,
       vendorAssignmentType: formData.vendorVisibility === "specific" ? "Specific Vendor" : "All Vendors",
       vendorVisibility: formData.vendorVisibility || "all",
       assignedVendors: formData.assignedVendorIds || [],
       assignedVendorIds: formData.assignedVendorIds || [],
-      manpowerRequirements: [
-        {
-          id: formData.manpowerRequirements?.[0]?.id || `mpr-${Date.now()}`,
-          position: pos,
-          quantity: headcountNum,
-        },
-      ],
+      manpowerRequirements: updatedReqs,
     });
     onClose();
   };
@@ -432,6 +534,26 @@ export function AddProjectModal({
                       value={formData.duration}
                       onChange={handleChange}
                       placeholder="e.g. 24 Months"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 col-span-1 sm:col-span-2">
+                    <InputField
+                      label="Salary"
+                      name="salary"
+                      type="text"
+                      value={formData.salary || ""}
+                      onChange={handleChange}
+                      placeholder="e.g. 1500 - 2000 or Negotiable"
+                    />
+
+                    <InputField
+                      label="Currency"
+                      name="currency"
+                      type="text"
+                      value={formData.currency || ""}
+                      onChange={handleChange}
+                      placeholder="e.g. AED, SAR, USD, INR"
                     />
                   </div>
 
@@ -689,7 +811,7 @@ export function AddProjectModal({
                         value={formData.paymentMilestoneConfig?.partsCount || 4}
                         onChange={(e) => {
                           const count = Number(e.target.value) || 4;
-                          const fee = formData.paymentMilestoneConfig?.totalFeePerCandidate || 40000;
+                          const fee = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
                           setFormData((prev) => ({
                             ...prev,
                             paymentMilestoneConfig: {
@@ -750,6 +872,7 @@ export function AddProjectModal({
                               return {
                                 ...m,
                                 amount: share,
+                                paymentAmount: String(share),
                                 percentage: Math.round((share / total) * 100),
                               };
                             });
@@ -803,6 +926,7 @@ export function AddProjectModal({
                                 name: `Milestone ${newIdx}`,
                                 percentage: 0,
                                 amount: 0,
+                                paymentAmount: "0",
                               },
                             ],
                           },
@@ -865,15 +989,20 @@ export function AddProjectModal({
                                     const val = Number(e.target.value) || 0;
                                     setFormData((prev) => {
                                       const copy = [...(prev.paymentMilestoneConfig?.milestones || [])];
-                                      copy[idx] = { ...copy[idx], amount: val };
+                                      copy[idx] = { ...copy[idx], amount: val, paymentAmount: String(val) };
                                       const tot = Number(prev.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
                                       if (tot > 0) {
                                         copy[idx].percentage = Math.round((val / tot) * 100);
                                       }
+                                      const nextSum = copy.reduce(
+                                        (acc, m) => acc + (Number(m.paymentAmount ?? m.amount ?? 0) || 0),
+                                        0
+                                      );
                                       return {
                                         ...prev,
                                         paymentMilestoneConfig: {
                                           ...prev.paymentMilestoneConfig,
+                                          ...(nextSum > 0 ? { totalFeePerCandidate: nextSum } : {}),
                                           milestones: copy,
                                         },
                                       };
