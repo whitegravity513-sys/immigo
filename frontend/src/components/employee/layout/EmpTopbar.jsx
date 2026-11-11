@@ -1,30 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Menu,
-  Search,
   Calendar as CalendarIcon,
   LogOut,
   User,
-  ExternalLink,
   ChevronDown,
-  ShieldCheck,
 } from "lucide-react";
 import EmployeeNotificationBell from "../EmployeeNotificationBell.jsx";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 
 export default function EmpTopbar({
-  view,
   setView,
   onLogout,
   user,
   token,
-  status = "Checked Out",
-  statusColor = "bg-slate-400",
   setSidebarOpen,
   onNewNotification,
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -36,33 +29,6 @@ export default function EmpTopbar({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const todayStr = new Date().toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  const viewTitles = {
-    home: { title: "Employee Workspace", subtitle: "Overview & Daily Operations" },
-    tracker: { title: "Live Work Tracker", subtitle: "Real-time activity & monthly overview" },
-    calendar: { title: "Attendance Calendar", subtitle: "Monthly shifts, leaves & holidays" },
-    checkinout: { title: "Check In / Check Out", subtitle: "Record your daily work shift attendance" },
-    breaks: { title: "Breaks & Rest Intervals", subtitle: "Meal and refreshment timers" },
-    leaves: { title: "Leave Management", subtitle: "Apply for leaves and review request history" },
-    "apply-leave": { title: "Leave Management", subtitle: "Apply for leaves and review request history" },
-    "leave-history": { title: "Leave Management", subtitle: "Apply for leaves and review request history" },
-    meetings: { title: "Meetings & Calls", subtitle: "Scheduled client and team sessions" },
-    announcements: { title: "Notice Board", subtitle: "Official corporate announcements & updates" },
-    expenses: { title: "Expenses & Claims", subtitle: "Track reimbursements & receipts" },
-    "profile-docs": { title: "Profile & Documents", subtitle: "Your employee ID, contracts & KYC" },
-  };
-
-  const currentMeta = viewTitles[view] || {
-    title: "Employee Dashboard",
-    subtitle: "immiGo Workforce Management",
-  };
 
   return (
     <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4 shadow-md">

@@ -1,4 +1,3 @@
-import React from "react";
 import { Eye } from "lucide-react";
 import DateInput, { MonthYearSelector } from "../../../common/DateInput.jsx";
 
@@ -124,7 +123,7 @@ export function EmployeeAttendanceTab({
             const isWeekendOff = isSunday || isOffSaturday;
 
             let cardBg = "bg-white hover:bg-slate-50/50";
-            let statusPill = null;
+            let statusPill;
             let checkInFmt = null;
             let checkOutFmt = null;
 

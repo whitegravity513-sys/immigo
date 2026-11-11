@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Users,
   AlertCircle,
@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { crmClientService } from "../../services/crmClientService.js";
-import { initialClients } from "../../data/mockClients.js";
 
 import SubmissionStepsNav from "../../components/vendor/candidate-submission/SubmissionStepsNav.jsx";
 import CandidatePoolFilterCards from "../../components/vendor/candidate-submission/CandidatePoolFilterCards.jsx";
@@ -20,7 +19,6 @@ import {
 
 export default function SubmitCandidate() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const preselectedCandidateId = searchParams.get("candidateId");
   const preselectedProjectId = searchParams.get("project") || searchParams.get("projectId") || "";
   const preselectedPosition = searchParams.get("position") || "";
@@ -49,11 +47,7 @@ export default function SubmitCandidate() {
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
@@ -75,10 +69,7 @@ export default function SubmitCandidate() {
             "[]";
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) clientList = parsed;
-        } catch {}
-      }
-      if (!clientList.length && Array.isArray(initialClients) && initialClients.length > 0) {
-        clientList = initialClients;
+        } catch { }
       }
       setClients(clientList);
       setApplications(appRes || []);
@@ -204,7 +195,17 @@ export default function SubmitCandidate() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [preselectedProjectId, preselectedPosition, preselectedCandidateId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadData();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadData]);
 
   const allProjects = useMemo(() => availableProjectsList, [availableProjectsList]);
 
@@ -242,7 +243,7 @@ export default function SubmitCandidate() {
   }, [applications, selectedProjectId]);
 
   const filteredCandidates = useMemo(() => {
-    let list = [];
+    let list;
     if (categoryFilter === "in_progress") {
       list = [...busyCandidates];
     } else {
@@ -410,10 +411,8 @@ export default function SubmitCandidate() {
 
   return (
     <div className="space-y-4 max-w-6xl w-full mx-auto font-sans antialiased text-slate-800 pb-10 text-xs">
-      {/* Step Indicator */}
       <SubmissionStepsNav currentStep={currentStep} setCurrentStep={setCurrentStep} />
 
-      {/* Header Banner */}
       <div className="bg-white rounded-lg border border-slate-300 shadow-xs p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -515,7 +514,7 @@ export default function SubmitCandidate() {
                 if (Array.isArray(c.projects)) c.projects.forEach((p) => addItem(p, c));
               });
               setAvailableProjectsList(refreshed);
-            } catch {}
+            } catch { }
           }}
         />
       )}

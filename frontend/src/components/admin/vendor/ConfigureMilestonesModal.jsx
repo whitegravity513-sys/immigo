@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   X,
   Sliders,
@@ -9,85 +9,103 @@ import {
   IndianRupee,
   Layers,
   Info,
+  AlertTriangle,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import { isAppRefundLocked, getAppRefundStatus } from "../../../services/refundService";
+
+const buildMilestonesState = (application) => {
+  if (!application) return { totalAmount: 0, milestones: [] };
+  const synced =
+    !application.milestonesOverridden && crmVendorService.syncAppMilestonesWithProject
+      ? crmVendorService.syncAppMilestonesWithProject(application)
+      : [];
+  const rawMilestones =
+    synced.length > 0
+      ? synced
+      : application.processMilestones?.length > 0
+      ? application.processMilestones
+      : application.paymentPlan?.milestones?.length > 0
+      ? application.paymentPlan.milestones
+      : [];
+
+  if (rawMilestones.length === 0) {
+    return { totalAmount: 0, milestones: [] };
+  }
+
+  const computedTotal = rawMilestones.reduce(
+    (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
+    0
+  );
+  const resolvedTotal = Number(
+    computedTotal > 0 ? computedTotal : application.paymentPlan?.totalAmount ?? 0
+  );
+
+  const builtMilestones = rawMilestones.map((m, idx) => {
+    const pm = (application.processMilestones || []).find(
+      (p) => p.id === m.id || p.name === m.name
+    );
+    const rawStages =
+      m.stages && m.stages.length > 0
+        ? m.stages
+        : pm?.stages && pm.stages.length > 0
+        ? pm.stages
+        : [
+            { id: `s${idx}_1`, name: "Skill & Document Clearance", status: "Locked" },
+            { id: `s${idx}_2`, name: "Processing Step", status: "Locked" },
+          ];
+    const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+    const pct =
+      m.percentage !== undefined
+        ? Number(m.percentage) || 0
+        : resolvedTotal > 0
+        ? Math.round((amt / resolvedTotal) * 100)
+        : 0;
+
+    return {
+      ...m,
+      id: m.id || `m${idx}`,
+      name: m.name || `Milestone ${idx + 1}`,
+      percentage: pct,
+      amount: amt,
+      paymentAmount: amt,
+      status: m.status || (idx === 0 ? (amt > 0 ? "Payment Required" : "Active") : "Locked"),
+      stages: rawStages.map((s, sIdx) => ({
+        ...s,
+        id: s.id || `s${idx}_${sIdx}`,
+        name: s.name || `Stage ${sIdx + 1}`,
+        status: s.status || "Locked",
+      })),
+    };
+  });
+
+  return { totalAmount: resolvedTotal, milestones: builtMilestones };
+};
 
 export default function ConfigureMilestonesModal({ isOpen, onClose, application, onSaved }) {
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [milestones, setMilestones] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(() =>
+    isOpen && application ? buildMilestonesState(application).totalAmount : 0
+  );
+  const [milestones, setMilestones] = useState(() =>
+    isOpen && application ? buildMilestonesState(application).milestones : []
+  );
   const [saving, setSaving] = useState(false);
+  const [prevSyncApp, setPrevSyncApp] = useState(() => (isOpen ? application : null));
 
-  useEffect(() => {
+  const currentSyncApp = isOpen ? application : null;
+  if (currentSyncApp !== prevSyncApp) {
+    setPrevSyncApp(currentSyncApp);
     if (isOpen && application) {
-      const synced =
-        !application.milestonesOverridden && crmVendorService.syncAppMilestonesWithProject
-          ? crmVendorService.syncAppMilestonesWithProject(application)
-          : [];
-      const rawMilestones =
-        synced.length > 0
-          ? synced
-          : application.processMilestones?.length > 0
-          ? application.processMilestones
-          : application.paymentPlan?.milestones?.length > 0
-          ? application.paymentPlan.milestones
-          : [];
-
-      if (rawMilestones.length > 0) {
-        const computedTotal = rawMilestones.reduce(
-          (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
-          0
-        );
-        const resolvedTotal = Number(
-          computedTotal > 0 ? computedTotal : application.paymentPlan?.totalAmount ?? 0
-        );
-        setTotalAmount(resolvedTotal);
-        setMilestones(
-          rawMilestones.map((m, idx) => {
-            const pm = (application.processMilestones || []).find(
-              (p) => p.id === m.id || p.name === m.name
-            );
-            const rawStages =
-              m.stages && m.stages.length > 0
-                ? m.stages
-                : pm?.stages && pm.stages.length > 0
-                ? pm.stages
-                : [
-                    { id: `s${idx}_1`, name: "Skill & Document Clearance", status: "Locked" },
-                    { id: `s${idx}_2`, name: "Processing Step", status: "Locked" },
-                  ];
-            const amt = Number(m.paymentAmount ?? m.amount ?? 0);
-            const pct =
-              m.percentage !== undefined
-                ? Number(m.percentage) || 0
-                : resolvedTotal > 0
-                ? Math.round((amt / resolvedTotal) * 100)
-                : 0;
-
-            return {
-              ...m,
-              id: m.id || `m${idx}`,
-              name: m.name || `Milestone ${idx + 1}`,
-              percentage: pct,
-              amount: amt,
-              paymentAmount: amt,
-              status: m.status || (idx === 0 ? (amt > 0 ? "Payment Required" : "Active") : "Locked"),
-              stages: rawStages.map((s, sIdx) => ({
-                ...s,
-                id: s.id || `s${idx}_${sIdx}`,
-                name: s.name || `Stage ${sIdx + 1}`,
-                status: s.status || "Locked",
-              })),
-            };
-          })
-        );
-      } else {
-        setTotalAmount(0);
-        setMilestones([]);
-      }
+      const next = buildMilestonesState(application);
+      setTotalAmount(next.totalAmount);
+      setMilestones(next.milestones);
     }
-  }, [isOpen, application]);
+  }
 
   if (!isOpen || !application) return null;
+
+  const refundLocked = isAppRefundLocked(application);
+  const refundStatus = getAppRefundStatus(application);
 
   const applyPreset = (count, baseTotal = totalAmount) => {
     const total = Number(baseTotal) || 0;
@@ -306,6 +324,10 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
   };
 
   const handleSave = async () => {
+    if (refundLocked) {
+      alert(`Processing is frozen due to an active refund claim (${refundStatus || "Pending Admin Approval"}).`);
+      return;
+    }
     if (milestones.length === 0) {
       alert("Please configure at least 1 milestone.");
       return;
@@ -339,13 +361,11 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
   };
 
   const totalCalculated = milestones.reduce((sum, m) => sum + Number(m.amount || 0), 0);
-  const totalPercentage = milestones.reduce((sum, m) => sum + Number(m.percentage || 0), 0);
   const diffAmount = totalAmount - totalCalculated;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
       <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col font-sans max-h-[90vh]">
-        {}
         <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-300">
@@ -369,9 +389,20 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </button>
         </div>
 
-        {}
         <div className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
-          {}
+          {refundLocked && (
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex items-start gap-2.5">
+              <AlertTriangle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <div className="font-bold text-rose-950">
+                  Processing Frozen — Refund Claim ({refundStatus || "Pending Admin Approval"})
+                </div>
+                <p className="text-[11px] text-rose-800">
+                  Milestone configuration and payment progression are paused until Admin responds to the refund claim.
+                </p>
+              </div>
+            </div>
+          )}
           <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Candidate / Trade</span>
@@ -385,7 +416,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             </div>
           </div>
 
-          {}
           <div className="bg-blue-50/60 rounded-2xl p-4 border border-blue-200 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -406,7 +436,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               </div>
             </div>
 
-            {}
             <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-blue-200/60">
               <span className="text-[10px] font-bold text-blue-900">Divide Into:</span>
               <button
@@ -432,7 +461,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               </button>
             </div>
 
-            {}
             <div className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold ${
               diffAmount === 0 
                 ? "bg-emerald-50 border-emerald-200 text-emerald-800"
@@ -466,7 +494,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             </div>
           </div>
 
-          {}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-900 uppercase text-[11px] tracking-wider">
@@ -540,7 +567,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   </div>
                 </div>
 
-                {}
                 <div className="mt-2 pt-2.5 border-t border-slate-100 bg-slate-50/70 -mx-4 -mb-4 p-3.5 rounded-b-2xl space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
@@ -560,7 +586,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                     </button>
                   </div>
 
-                  {}
                   <div className="space-y-1.5">
                     {(!m.stages || m.stages.length === 0) ? (
                       <div className="p-2 bg-white rounded-xl border border-dashed border-slate-200 text-center text-[10px] text-slate-400">
@@ -599,7 +624,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             ))}
           </div>
 
-          {}
           <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-2xl flex items-start gap-2.5 text-indigo-950">
             <Info size={16} className="text-indigo-600 shrink-0 mt-0.5" />
             <div className="space-y-0.5 text-[11px]">
@@ -617,7 +641,6 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </div>
         </div>
 
-        {}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
           <div className="text-xs">
             <span className="text-slate-500 font-medium">Total Configured: </span>
@@ -634,8 +657,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
             <button
               type="button"
               onClick={handleSave}
-              disabled={saving}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+              disabled={saving || refundLocked}
+              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <CheckCircle2 size={14} />
               <span>{saving ? "Saving..." : "Confirm & Save Milestones"}</span>

@@ -1,31 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import {
   Users,
   Plus,
   Search,
-  Filter,
   Eye,
   Send,
-  FileText,
   MapPin,
   Briefcase,
-  GraduationCap,
-  Calendar,
   Download,
   Trash2,
-  Tag,
   RotateCcw,
   Clock,
   UserCheck,
   CheckCircle2,
-  Video
+  Video,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import * as XLSX from "xlsx";
 
 export function Candidates() {
-  const navigate = useNavigate();
   const vendor = crmVendorService.getCurrentVendor();
 
   const [candidates, setCandidates] = useState([]);
@@ -33,10 +27,10 @@ export function Candidates() {
   const [search, setSearch] = useState("");
   const [positionFilter, setPositionFilter] = useState("All");
   const [countryFilter, setCountryFilter] = useState("All");
-  const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedTag] = useState("All");
   const [statusTab, setStatusTab] = useState("Available"); 
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     setLoading(true);
     try {
       const [candData, appData] = await Promise.all([
@@ -108,11 +102,17 @@ export function Candidates() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, positionFilter, countryFilter, selectedTag, statusTab, vendor?.id]);
 
   useEffect(() => {
-    fetchCandidates();
-  }, [search, positionFilter, countryFilter, selectedTag, statusTab, vendor?.id]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchCandidates();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCandidates]);
 
   const handleDelete = async (candidateId, name) => {
     if (window.confirm(`Are you sure you want to remove "${name}" from your pool?`)) {
@@ -175,77 +175,6 @@ export function Candidates() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Candidates Roster");
     const filename = `Candidates_${new Date().toISOString().split("T")[0]}.xlsx`;
     XLSX.writeFile(workbook, filename);
-  };
-
-  const handleExcelImport = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const bstr = evt.target.result;
-        const workbook = XLSX.read(bstr, { type: "binary", cellDates: true });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-        if (!rows.length) {
-          alert("The uploaded spreadsheet is empty.");
-          return;
-        }
-
-        let importedCount = 0;
-        for (const row of rows) {
-          const name = row["Name"] || row["Candidate Name"] || row["Full Name"];
-          if (!name) continue;
-
-          const passportNo = row["Passport No."] || row["Passport Number"] || row["Passport"] || "";
-          const dateOfIssue = row["Date of issue"] || row["Issue Date"] || "";
-          const dateOfExpiry = row["Date of Expiry"] || row["Expiry Date"] || "";
-          const dob = row["DOB"] || row["Date of Birth"] || "";
-          const gender = row["Gender"] || "Male";
-          const trade = row["Trade"] || row["Position"] || "";
-          const project = row["Project"] || "Not Assigned";
-          const qualification = row["Qualification"] || "";
-          const experience = row["Experience"] || 0;
-          const skill = row["Skill"] || row["Skills"] || "";
-          const state = row["State"] || "";
-
-          const candidateData = {
-            fullName: String(name).trim(),
-            passportNumber: String(passportNo).trim().toUpperCase(),
-            passportIssueDate: String(dateOfIssue).trim(),
-            dateOfIssue: String(dateOfIssue).trim(),
-            passportExpiryDate: String(dateOfExpiry).trim(),
-            passportExpiry: String(dateOfExpiry).trim(),
-            dob: String(dob).trim(),
-            gender: String(gender).trim() || "Male",
-            currentPosition: String(trade).trim(),
-            trade: String(trade).trim(),
-            project: String(project).trim(),
-            projectName: String(project).trim(),
-            qualification: String(qualification).trim(),
-            experienceYears: experience ? Number(experience) : 0,
-            skills: skill ? String(skill).split(",").map((s) => s.trim()).filter(Boolean) : [],
-            state: String(state).trim(),
-            vendorId: vendor?.id || "VND-1001",
-            vendorName: vendor?.companyName || "Vendor Partner",
-            status: "Available",
-          };
-
-          await crmVendorService.createCandidate(vendor?.id, candidateData);
-          importedCount++;
-        }
-
-        alert(`Successfully imported ${importedCount} candidates from Excel!`);
-        fetchCandidates();
-      } catch (err) {
-        alert(`Failed to import Excel: ${err.message}`);
-      }
-    };
-    reader.readAsBinaryString(file);
-    e.target.value = "";
   };
 
   return (

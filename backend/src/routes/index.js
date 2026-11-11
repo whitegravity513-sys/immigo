@@ -14,11 +14,12 @@ import hrRoutes from "./hr.routes.js";
 import candidateActivityRoutes from "./candidateActivity.routes.js";
 import meetingRoutes from "./admin/meeting.routes.js";
 import v1Router from "./v1/index.js";
-import { authLimiter } from "../middleware/rateLimit.middleware.js";
+import realtimeRoutes from "./realtime.routes.js";
 
 const apiRouter = express.Router();
 
 apiRouter.use("/v1", v1Router);
+apiRouter.use("/events", realtimeRoutes);
 apiRouter.use(adminManagementRoutes);
 apiRouter.use(candidateActivityRoutes);
 apiRouter.use(meetingRoutes);

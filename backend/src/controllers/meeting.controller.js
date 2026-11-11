@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Meeting from "../models/Meeting.js";
 import Employee from "../models/Employee.js";
 import User from "../models/User.js";
+import Admin from "../models/Admin.js";
 import Vendor from "../models/Vendor.js";
 import CandidateApplication from "../models/CandidateApplication.js";
 import ProjectAssignment from "../models/ProjectAssignment.js";
@@ -12,6 +13,39 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ROLES } from "../constants/roles.js";
 import { fetchAllMergedProjects } from "../utils/projectResolver.js";
+import { emitRealtimeEvent } from "../services/realtime.service.js";
+
+const emitMeetingSync = (meeting) => {
+  const targetVendors = Array.isArray(meeting?.targetVendors) ? meeting.targetVendors.filter(Boolean) : [];
+  const resolvedVendorId =
+    targetVendors.length > 1
+      ? null
+      : meeting?.vendorId
+      ? String(meeting.vendorId)
+      : targetVendors.length === 1
+      ? String(targetVendors[0])
+      : null;
+
+  const roles = ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "HR", "EMPLOYEE"];
+  const candidateId = meeting?.candidateId ? String(meeting.candidateId) : null;
+  if (candidateId) {
+    roles.push("CANDIDATE");
+  }
+
+  emitRealtimeEvent({
+    events: [
+      "immigo:meeting-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles,
+    vendorId: resolvedVendorId,
+    candidateId,
+  });
+};
 
 const isHexObjectId = (val) =>
   typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
@@ -361,6 +395,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
     targetEmployees = [],
     targetVendors = [],
     targetHRs = [],
+    targetAdmins = [],
     attendees = [],
     candidateId = "",
     candidateName = "",
@@ -537,6 +572,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
     resolvedTargetEmployees.length > 0 ||
     (Array.isArray(targetVendors) && targetVendors.length > 0) ||
     (Array.isArray(targetHRs) && targetHRs.length > 0) ||
+    (Array.isArray(targetAdmins) && targetAdmins.length > 0) ||
     targetType === "SPECIFIC";
 
   const effectiveTargetType = isVendor ? "SPECIFIC" : hasSpecificTargets ? "SPECIFIC" : targetType;
@@ -546,6 +582,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
   let finalTargetEmployees = resolvedTargetEmployees;
   let finalTargetVendors = Array.isArray(targetVendors) ? targetVendors : [];
   let finalTargetHRs = Array.isArray(targetHRs) ? targetHRs : [];
+  let finalTargetAdmins = Array.isArray(targetAdmins) ? targetAdmins.map(String).filter(Boolean) : [];
   let finalAttendees = processedAttendees;
   let finalCandidateId = candidateId;
   let finalCandidateName = candidateName;
@@ -627,6 +664,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
     targetEmployees: finalTargetEmployees,
     targetVendors: finalTargetVendors,
     targetHRs: finalTargetHRs,
+    targetAdmins: finalTargetAdmins,
     attendees: finalAttendees,
     candidateId: finalCandidateId,
     candidateName: finalCandidateName,
@@ -706,7 +744,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
             actorId: actorMeta.actorId,
             actorRole: actorMeta.actorRole,
             moduleScope: "MEETING",
-            metadata: { ...meetingMetadata, link: "/hr/meetings" },
+            metadata: { ...meetingMetadata, link: "/vendor-hr/dashboard?view=meetings" },
           });
         }
       } else {
@@ -746,7 +784,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
               actorId: actorMeta.actorId,
               actorRole: actorMeta.actorRole,
               moduleScope: "MEETING",
-              metadata: { ...meetingMetadata, link: "/hr/meetings" },
+              metadata: { ...meetingMetadata, link: "/vendor-hr/dashboard?view=meetings" },
             });
           }
         }
@@ -758,6 +796,10 @@ export const createMeeting = asyncHandler(async (req, res) => {
         const allHRs = await User.find({ role: "HR", isActive: { $ne: false } }).select("_id hrType");
         for (const hr of allHRs) {
           const resolvedHrType = hr.hrType || "EMPLOYEE_HR";
+          const hrLink =
+            resolvedHrType === "VENDOR_HR"
+              ? "/vendor-hr/dashboard?view=meetings"
+              : "/hr/meetings";
           await NotificationService.createNotification({
             type: "MEETING",
             title: `📅 HR Operations Sync: ${meeting.title}`,
@@ -769,7 +811,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
             actorId: actorMeta.actorId,
             actorRole: actorMeta.actorRole,
             moduleScope: "MEETING",
-            metadata: { ...meetingMetadata, link: "/hr/meetings" },
+            metadata: { ...meetingMetadata, link: hrLink },
           });
         }
       } else {
@@ -796,6 +838,10 @@ export const createMeeting = asyncHandler(async (req, res) => {
         for (const hrUserId of targetHRList) {
           const hrIdStr = String(hrUserId);
           const resolvedHrType = hrTypeMap.get(hrIdStr) || (isVendor ? "VENDOR_HR" : "VENDOR_HR");
+          const hrLink =
+            resolvedHrType === "VENDOR_HR"
+              ? "/vendor-hr/dashboard?view=meetings"
+              : "/hr/meetings";
           await NotificationService.createNotification({
             type: "MEETING",
             title: isVendor
@@ -812,7 +858,76 @@ export const createMeeting = asyncHandler(async (req, res) => {
             actorId: actorMeta.actorId,
             actorRole: actorMeta.actorRole,
             moduleScope: "MEETING",
-            metadata: { ...meetingMetadata, link: "/hr/meetings" },
+            metadata: { ...meetingMetadata, link: hrLink },
+          });
+        }
+      }
+    }
+
+    else if (meetingType === "ADMIN_DISCUSSION") {
+      const adminAttendees = finalAttendees.filter(
+        (a) => a.role === "ADMIN" || a.role === "SUPER_ADMIN"
+      );
+      if (effectiveTargetType === "ALL" && finalTargetAdmins.length === 0 && adminAttendees.length === 0) {
+        await Promise.allSettled([
+          NotificationService.createNotification({
+            type: "MEETING",
+            title: `📅 Admin Discussion: ${meeting.title}`,
+            message: `${organizerName} scheduled "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+            targetRole: "ADMIN",
+            targetRoles: ["ADMIN"],
+            targetType: "ALL",
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
+            metadata: { ...meetingMetadata, link: "/admin/meetings" },
+          }),
+          NotificationService.createNotification({
+            type: "MEETING",
+            title: `📅 Admin Discussion: ${meeting.title}`,
+            message: `${organizerName} scheduled "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+            targetRole: "SUPER_ADMIN",
+            targetRoles: ["SUPER_ADMIN"],
+            targetType: "ALL",
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
+            metadata: { ...meetingMetadata, link: "/admin/meetings" },
+          }),
+        ]);
+      } else {
+        const requestedAdminIds = Array.from(
+          new Set([
+            ...finalTargetAdmins,
+            ...adminAttendees.map((a) => String(a.id || a._id || "")).filter(Boolean),
+          ])
+        );
+        const attendeeRoleMap = new Map(
+          adminAttendees.map((a) => [String(a.id || a._id || ""), String(a.role || "ADMIN").toUpperCase()])
+        );
+        const hexAdminIds = requestedAdminIds.filter(isHexObjectId);
+        const userAdmins = hexAdminIds.length > 0
+          ? await User.find({ _id: { $in: hexAdminIds } }).select("_id role").lean()
+          : [];
+        const userRoleMap = new Map(
+          userAdmins.map((u) => [u._id.toString(), String(u.role || "ADMIN").toUpperCase()])
+        );
+
+        for (const adminIdStr of requestedAdminIds) {
+          const resolvedAdminRole =
+            userRoleMap.get(adminIdStr) || attendeeRoleMap.get(adminIdStr) || "ADMIN";
+          await NotificationService.createNotification({
+            type: "MEETING",
+            title: `📅 Meeting Invitation: ${meeting.title}`,
+            message: `${organizerName} scheduled "${meeting.title}" with you on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click to join.`,
+            targetRole: resolvedAdminRole,
+            targetRoles: [resolvedAdminRole],
+            targetType: "SPECIFIC",
+            targetUserId: adminIdStr,
+            actorId: actorMeta.actorId,
+            actorRole: actorMeta.actorRole,
+            moduleScope: "MEETING",
+            metadata: { ...meetingMetadata, link: "/admin/meetings" },
           });
         }
       }
@@ -880,7 +995,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
             actorId: actorMeta.actorId,
             actorRole: actorMeta.actorRole,
             moduleScope: "MEETING",
-            metadata: { ...meetingMetadata, link: "/hr/meetings" },
+            metadata: { ...meetingMetadata, link: "/vendor-hr/dashboard?view=meetings" },
           });
         }
       }
@@ -919,14 +1034,16 @@ export const createMeeting = asyncHandler(async (req, res) => {
       }
     }
 
-    await NotificationService.notifyStaffAction({
-      actor: actorSource,
-      type: "MEETING",
-      title: `📅 Meeting Scheduled: ${meeting.title}`,
-      message: `Meeting "${meeting.title}" scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
-      moduleScope: "MEETING",
-      metadata: { ...meetingMetadata, link: "/admin/meetings" },
-    });
+    if (meetingType !== "ADMIN_DISCUSSION") {
+      await NotificationService.notifyStaffAction({
+        actor: actorSource,
+        type: "MEETING",
+        title: `📅 Meeting Scheduled: ${meeting.title}`,
+        message: `Meeting "${meeting.title}" scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
+        moduleScope: "MEETING",
+        metadata: { ...meetingMetadata, link: "/admin/meetings" },
+      });
+    }
 
     if (isVendor) {
       await NotificationService.createNotification({
@@ -946,6 +1063,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
   } catch (err) {
     console.error("Failed to dispatch meeting notification:", err.message);
   }
+
+  emitMeetingSync(meeting);
 
   return res.status(201).json({
     success: true,
@@ -992,6 +1111,7 @@ export const getAdminMeetings = asyncHandler(async (req, res) => {
       { targetVendors: { $in: assigned } },
       { hrId: req.userId },
       { targetHRs: req.userId },
+      { targetAdmins: req.userId },
       { createdBy: req.userId },
       { "attendees.id": req.userId },
       { "attendees.email": req.user?.email },
@@ -1084,6 +1204,7 @@ export const getMeetingCalendarStats = asyncHandler(async (req, res) => {
       { targetVendors: { $in: assigned } },
       { hrId: req.userId },
       { targetHRs: req.userId },
+      { targetAdmins: req.userId },
       { createdBy: req.userId },
       { "attendees.id": req.userId },
       { "attendees.email": req.user?.email },
@@ -1210,6 +1331,8 @@ export const updateMeeting = asyncHandler(async (req, res) => {
     });
   }
 
+  emitMeetingSync(meeting);
+
   return res.status(200).json({
     success: true,
     message: "Meeting updated successfully",
@@ -1311,6 +1434,10 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     const hrTypeMap = new Map(hrDocs.map((h) => [h._id.toString(), h.hrType || "EMPLOYEE_HR"]));
     for (const hId of targetHRIds) {
       const resolvedHrType = hrTypeMap.get(hId) || "VENDOR_HR";
+      const hrLink =
+        resolvedHrType === "VENDOR_HR"
+          ? "/vendor-hr/dashboard?view=meetings"
+          : "/hr/meetings";
       await NotificationService.createNotification({
         type: "MEETING_RESCHEDULED",
         title: `🔄 Meeting Rescheduled: ${meeting.title}`,
@@ -1329,7 +1456,55 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
           date: meeting.date,
           startTime: meeting.startTime,
           endTime: meeting.endTime,
-          link: "/hr/meetings",
+          link: hrLink,
+        },
+      });
+    }
+    const reschedVendors = Array.from(
+      new Set([...(meeting.targetVendors || []), ...(meeting.vendorId ? [meeting.vendorId] : [])].map(String).filter(Boolean))
+    );
+    for (const vRef of reschedVendors) {
+      await NotificationService.createNotification({
+        type: "MEETING_RESCHEDULED",
+        title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+        message,
+        targetRole: "VENDOR",
+        targetRoles: ["VENDOR"],
+        targetType: "SPECIFIC",
+        targetVendorId: vRef,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
+        moduleScope: "MEETING",
+        metadata: {
+          meetingId: meeting._id.toString(),
+          meetingLink: meeting.meetingLink,
+          date: meeting.date,
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
+          link: "/vendor/meetings",
+        },
+      });
+    }
+    const reschedAdmins = Array.from(new Set((meeting.targetAdmins || []).map(String).filter(Boolean)));
+    for (const admId of reschedAdmins) {
+      await NotificationService.createNotification({
+        type: "MEETING_RESCHEDULED",
+        title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+        message,
+        targetRole: "ADMIN",
+        targetRoles: ["ADMIN", "SUPER_ADMIN"],
+        targetType: "SPECIFIC",
+        targetUserId: admId,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
+        moduleScope: "MEETING",
+        metadata: {
+          meetingId: meeting._id.toString(),
+          meetingLink: meeting.meetingLink,
+          date: meeting.date,
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
+          link: "/admin/meetings",
         },
       });
     }
@@ -1371,6 +1546,8 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
   } catch (err) {
     console.error("Failed to notify of reschedule:", err.message);
   }
+
+  emitMeetingSync(meeting);
 
   return res.status(200).json({
     success: true,
@@ -1448,6 +1625,10 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
     const hrTypeMap = new Map(hrDocs.map((h) => [h._id.toString(), h.hrType || "EMPLOYEE_HR"]));
     for (const hId of targetHRIds) {
       const resolvedHrType = hrTypeMap.get(hId) || "VENDOR_HR";
+      const hrLink =
+        resolvedHrType === "VENDOR_HR"
+          ? "/vendor-hr/dashboard?view=meetings"
+          : "/hr/meetings";
       await NotificationService.createNotification({
         type: "MEETING_CANCELLED",
         title: `❌ Meeting Cancelled: ${meeting.title}`,
@@ -1460,7 +1641,41 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
         actorId: actorMeta.actorId,
         actorRole: actorMeta.actorRole,
         moduleScope: "MEETING",
-        metadata: { meetingId: meeting._id.toString(), link: "/hr/meetings" },
+        metadata: { meetingId: meeting._id.toString(), link: hrLink },
+      });
+    }
+    const cancelVendors = Array.from(
+      new Set([...(meeting.targetVendors || []), ...(meeting.vendorId ? [meeting.vendorId] : [])].map(String).filter(Boolean))
+    );
+    for (const vRef of cancelVendors) {
+      await NotificationService.createNotification({
+        type: "MEETING_CANCELLED",
+        title: `❌ Meeting Cancelled: ${meeting.title}`,
+        message: cancelMsg,
+        targetRole: "VENDOR",
+        targetRoles: ["VENDOR"],
+        targetType: "SPECIFIC",
+        targetVendorId: vRef,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
+        moduleScope: "MEETING",
+        metadata: { meetingId: meeting._id.toString(), link: "/vendor/meetings" },
+      });
+    }
+    const cancelAdmins = Array.from(new Set((meeting.targetAdmins || []).map(String).filter(Boolean)));
+    for (const admId of cancelAdmins) {
+      await NotificationService.createNotification({
+        type: "MEETING_CANCELLED",
+        title: `❌ Meeting Cancelled: ${meeting.title}`,
+        message: cancelMsg,
+        targetRole: "ADMIN",
+        targetRoles: ["ADMIN", "SUPER_ADMIN"],
+        targetType: "SPECIFIC",
+        targetUserId: admId,
+        actorId: actorMeta.actorId,
+        actorRole: actorMeta.actorRole,
+        moduleScope: "MEETING",
+        metadata: { meetingId: meeting._id.toString(), link: "/admin/meetings" },
       });
     }
     await NotificationService.notifyStaffAction({
@@ -1486,7 +1701,9 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
         metadata: { meetingId: meeting._id.toString(), link: "/admin/meetings" },
       });
     }
-  } catch (err) {}
+  } catch {}
+
+  emitMeetingSync(meeting);
 
   return res.status(200).json({
     success: true,
@@ -1501,6 +1718,7 @@ export const deleteMeeting = asyncHandler(async (req, res) => {
   if (!meeting) {
     throw new ApiError(404, "Meeting not found");
   }
+  emitMeetingSync(meeting);
   return res.status(200).json({
     success: true,
     message: "Meeting record deleted permanently.",
@@ -1546,15 +1764,49 @@ export const getMeetingVendors = asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, vendors: [] });
   }
   const { search = "" } = req.query;
+  const role = req.userRole || req.user?.role || "";
+  const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
+  const hrType = req.hrType || req.user?.hrType || "";
+  const isRestrictedVendorHR =
+    role === ROLES.HR && hrType === "VENDOR_HR" && !isSuperAdmin && role !== ROLES.ADMIN;
+
   const filter = { status: { $ne: "Rejected" } };
+  if (isRestrictedVendorHR) {
+    const userDoc = req.userId
+      ? await User.findById(req.userId).select("assignedVendors").lean()
+      : null;
+    const assigned = Array.from(
+      new Set([
+        ...(Array.isArray(req.assignedVendors) ? req.assignedVendors : []),
+        ...(Array.isArray(userDoc?.assignedVendors) ? userDoc.assignedVendors : []),
+      ].map((v) => String(v || "").trim()).filter(Boolean))
+    );
+    if (assigned.length === 0) {
+      return res.status(200).json({ success: true, vendors: [] });
+    }
+    const hexIds = assigned.filter(isHexObjectId);
+    filter.$and = [
+      {
+        $or: [
+          { vendorId: { $in: assigned } },
+          ...(hexIds.length > 0 ? [{ _id: { $in: hexIds } }] : []),
+        ],
+      },
+    ];
+  }
   if (search) {
     const q = String(search).trim();
-    filter.$or = [
+    const searchOr = [
       { companyName: { $regex: q, $options: "i" } },
       { vendorId: { $regex: q, $options: "i" } },
       { contactPerson: { $regex: q, $options: "i" } },
       { email: { $regex: q, $options: "i" } },
     ];
+    if (filter.$and) {
+      filter.$and.push({ $or: searchOr });
+    } else {
+      filter.$or = searchOr;
+    }
   }
   const vendors = await Vendor.find(filter)
     .select("_id vendorId companyName contactPerson email phone mobile status")
@@ -1574,6 +1826,75 @@ export const getMeetingVendors = asyncHandler(async (req, res) => {
       phone: v.phone || v.mobile || "",
       status: v.status || "Active",
     })),
+  });
+});
+
+export const getMeetingAdmins = asyncHandler(async (req, res) => {
+  if (req.isVendor || req.userRole === ROLES.VENDOR) {
+    return res.status(200).json({ success: true, admins: [] });
+  }
+  const { search = "" } = req.query;
+  const userFilter = {
+    role: { $in: [ROLES.SUPER_ADMIN, ROLES.ADMIN] },
+    isActive: { $ne: false },
+  };
+  const adminFilter = {};
+  if (search) {
+    const q = String(search).trim();
+    userFilter.$or = [
+      { name: { $regex: q, $options: "i" } },
+      { email: { $regex: q, $options: "i" } },
+      { role: { $regex: q, $options: "i" } },
+    ];
+    adminFilter.$or = [{ email: { $regex: q, $options: "i" } }];
+  }
+
+  const [staffUsers, legacyAdmins] = await Promise.all([
+    User.find(userFilter).select("_id name email role department phone").limit(50).lean(),
+    Admin.find(adminFilter).select("_id email").limit(20).lean(),
+  ]);
+
+  const mergedByEmail = new Map();
+  (staffUsers || []).forEach((u) => {
+    const emailKey = String(u.email || u._id.toString()).toLowerCase().trim();
+    const roleVal = u.role === ROLES.SUPER_ADMIN ? "SUPER_ADMIN" : "ADMIN";
+    mergedByEmail.set(emailKey, {
+      id: u._id.toString(),
+      _id: u._id.toString(),
+      name: u.name || (u.email ? u.email.split("@")[0] : "Administrator"),
+      email: u.email || "",
+      role: roleVal,
+      roleLabel: roleVal === "SUPER_ADMIN" ? "Super Admin" : "Admin",
+      department: u.department || "Administration",
+      phone: u.phone || "",
+    });
+  });
+
+  (legacyAdmins || []).forEach((a) => {
+    const emailKey = String(a.email || a._id.toString()).toLowerCase().trim();
+    if (!mergedByEmail.has(emailKey)) {
+      mergedByEmail.set(emailKey, {
+        id: a._id.toString(),
+        _id: a._id.toString(),
+        name: a.email ? a.email.split("@")[0] : "Administrator",
+        email: a.email || "",
+        role: "ADMIN",
+        roleLabel: "Admin",
+        department: "Administration",
+        phone: "",
+      });
+    }
+  });
+
+  const admins = Array.from(mergedByEmail.values()).sort((x, y) => {
+    if (x.role === "SUPER_ADMIN" && y.role !== "SUPER_ADMIN") return -1;
+    if (x.role !== "SUPER_ADMIN" && y.role === "SUPER_ADMIN") return 1;
+    return String(x.name || "").localeCompare(String(y.name || ""));
+  });
+
+  return res.status(200).json({
+    success: true,
+    admins,
   });
 });
 
@@ -1726,6 +2047,11 @@ export const sendBroadcastNotification = asyncHandler(async (req, res) => {
     message,
     targetRole,
     targetType: "ALL",
+  });
+
+  emitRealtimeEvent({
+    events: ["immigo:notification-update", "immigo:dashboard-update", "immigo:admin-notification", "immigo:vendor-notification"],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "HR", "EMPLOYEE"],
   });
 
   return res.status(201).json({

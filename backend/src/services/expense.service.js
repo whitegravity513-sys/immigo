@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import ExpenseCategory from "../models/ExpenseCategory.js";
 import Expense from "../models/Expense.js";
-import Employee from "../models/Employee.js";
 import Client from "../models/Client.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import { ApiError } from "../utils/apiError.js";

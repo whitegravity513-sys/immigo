@@ -19,12 +19,29 @@ import { ApiError } from "./utils/apiError.js";
 const app = express();
 app.set("trust proxy", 1);
 
-app.use("/uploads", cors(corsOptions), express.static(path.join(process.cwd(), "uploads")));
+app.use(
+  "/uploads",
+  cors(corsOptions),
+  express.static(path.join(process.cwd(), "uploads"), {
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "default-src 'none'; sandbox");
+    },
+  })
+);
 
-app.use(compression({
-  threshold: 1024,
-  level: 6,
-}));
+app.use(
+  compression({
+    threshold: 1024,
+    level: 6,
+    filter: (req, res) => {
+      if (req.path.includes("/events/stream") || req.headers.accept === "text/event-stream") {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+  })
+);
 
 app.use(
   helmet({

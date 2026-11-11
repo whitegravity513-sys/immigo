@@ -3,8 +3,6 @@ import {
   Building2,
   FolderKanban,
   CreditCard,
-  BarChart3,
-  CheckSquare,
   Shield,
 } from "lucide-react";
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AdminMasterSidebar from "./AdminMasterSidebar.jsx";
 import AdminMasterNavbar from "./AdminMasterNavbar.jsx";
 import AppFooter from "../../common/AppFooter.jsx";
@@ -14,7 +14,6 @@ export function AdminMasterLayout({
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
-      {}
       <AdminMasterSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
@@ -22,9 +21,7 @@ export function AdminMasterLayout({
         setCollapsed={setCollapsed}
       />
 
-      {}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {}
         <AdminMasterNavbar
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
@@ -35,12 +32,10 @@ export function AdminMasterLayout({
           breadcrumbs={breadcrumbs}
         />
 
-        {}
         <main className="flex-1 p-2.5 sm:p-3.5 w-full overflow-y-auto max-w-full overflow-x-hidden">
           {children}
         </main>
 
-        {}
         <AppFooter role="admin" />
       </div>
     </div>

@@ -1,19 +1,54 @@
 import env from "./env.js";
 
+const parseOriginUrl = (rawOrigin) => {
+  try {
+    return new URL(String(rawOrigin || "").trim());
+  } catch {
+    return null;
+  }
+};
+
+const isVestaHost = (hostname = "") =>
+  hostname === "vesta.in" || hostname.endsWith(".vesta.in");
+
+export const isAllowedCorsOrigin = (origin) => {
+  if (!origin) return true;
+  const cleanOrigin = String(origin).trim().replace(/\/+$/, "");
+  if (env.ALLOWED_ORIGINS.includes(cleanOrigin)) return true;
+
+  const parsed = parseOriginUrl(cleanOrigin);
+  if (!parsed) return false;
+
+  const { protocol, hostname } = parsed;
+  if (protocol !== "http:" && protocol !== "https:") return false;
+
+  if ((hostname === "localhost" || hostname === "127.0.0.1") && !env.isProduction) {
+    return true;
+  }
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return true;
+  }
+
+  if (isVestaHost(hostname) && (protocol === "https:" || !env.isProduction)) {
+    return true;
+  }
+
+  if (
+    protocol === "https:" &&
+    (hostname.endsWith(".vercel.app") || hostname.endsWith(".onrender.com"))
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 export const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      env.ALLOWED_ORIGINS.includes(origin) ||
-      origin.startsWith("http://localhost:") ||
-      origin.startsWith("http://127.0.0.1:") ||
-      origin.endsWith(".vesta.in") ||
-      origin.includes("vercel.app") ||
-      origin.includes("onrender.com")
-    ) {
+    if (isAllowedCorsOrigin(origin)) {
       return callback(null, true);
     }
-    return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -33,20 +68,23 @@ export const corsOptions = {
   maxAge: 86400,
 };
 
+const isRequestVestaOrigin = (req) => {
+  if (isVestaHost(req?.hostname)) return true;
+  const parsed = parseOriginUrl(req?.headers?.origin);
+  return Boolean(parsed && isVestaHost(parsed.hostname));
+};
+
 export const getCookieOptions = (req) => {
-  const isProd =
-    env.isProduction ||
-    req?.hostname?.endsWith("vesta.in") ||
-    (req?.headers?.origin && req.headers.origin.includes("vesta.in"));
+  const isProd = env.isProduction || isRequestVestaOrigin(req);
 
   const options = {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000, 
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   };
 
-  if (isProd && req?.hostname?.endsWith("vesta.in")) {
+  if (isProd && isVestaHost(req?.hostname)) {
     options.domain = ".vesta.in";
   }
 
@@ -54,10 +92,7 @@ export const getCookieOptions = (req) => {
 };
 
 export const getClearCookieOptions = (req) => {
-  const isProd =
-    env.isProduction ||
-    req?.hostname?.endsWith("vesta.in") ||
-    (req?.headers?.origin && req.headers.origin.includes("vesta.in"));
+  const isProd = env.isProduction || isRequestVestaOrigin(req);
 
   const options = {
     httpOnly: true,
@@ -65,7 +100,7 @@ export const getClearCookieOptions = (req) => {
     sameSite: isProd ? "none" : "lax",
   };
 
-  if (isProd && req?.hostname?.endsWith("vesta.in")) {
+  if (isProd && isVestaHost(req?.hostname)) {
     options.domain = ".vesta.in";
   }
 

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Plus,
   MapPin,
@@ -16,7 +16,6 @@ import crmClientService, {
 } from "../../../../services/crmClientService.js";
 
 export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
-  const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteTargetProject, setDeleteTargetProject] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);

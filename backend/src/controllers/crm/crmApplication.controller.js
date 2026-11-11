@@ -1,6 +1,3 @@
-import jwt from "jsonwebtoken";
-import env from "../../config/env.js";
-import { extractToken } from "../../middleware/auth.middleware.js";
 import CrmCandidateApplication from "../../models/CrmCandidateApplication.js";
 import CandidateApplication from "../../models/CandidateApplication.js";
 import Candidate from "../../models/Candidate.js";
@@ -9,48 +6,43 @@ import CrmNotification from "../../models/CrmNotification.js";
 import NotificationService, { resolveActorInfo } from "../../services/notification.service.js";
 import ActivityService from "../../services/activity.service.js";
 import { recordCandidateActivity } from "../../services/candidateActivity.service.js";
+import { verifyAndFetchRazorpayPayment } from "../../services/razorpayVerification.service.js";
+import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { generateNextCandidateApplicationId } from "../../utils/idGenerator.js";
 import {
   findProjectAcrossSources,
   fetchAllMergedProjects,
   resolveProjectMilestonesData,
   normalizeMilestoneStages,
 } from "../../utils/projectResolver.js";
+import {
+  isRefundReassignEligible,
+  checkApplicationRefundLock,
+  markApplicationRefundsReassigned,
+} from "../../utils/refundLock.js";
 
-const resolveOptionalRequestActor = (req) => {
-  if (req.user) return req.user;
-  const token = extractToken(req);
-  if (!token) return null;
+const getVendorAllowedSet = (req) =>
+  new Set([req.vendorId, req.userId].filter(Boolean).map((v) => String(v).trim()));
 
-  let decoded = null;
-  try {
-    decoded = jwt.verify(token, env.JWT_SECRET);
-  } catch {
-    try {
-      decoded = jwt.verify(
-        token,
-        process.env.JWT_ACCESS_SECRET || "default_access_secret_change_in_production"
-      );
-    } catch {
-      return null;
-    }
-  }
+const isVendorOwner = (req, targetVendorId) => {
+  if (!req.isVendor) return true;
+  if (!targetVendorId) return false;
+  return getVendorAllowedSet(req).has(String(targetVendorId).trim());
+};
 
-  if (!decoded || typeof decoded !== "object") return null;
-  if (!decoded.id && (decoded.sub || decoded._id)) {
-    decoded.id = decoded.sub || decoded._id;
-  }
-  req.user = decoded;
-  req.userRole = req.userRole || decoded.role;
-  req.userId = req.userId || decoded.id;
-  const roleNorm = String(decoded.role || "").toUpperCase().replace(/[\s_-]/g, "");
-  if (
-    roleNorm === "VENDOR" ||
-    (decoded.vendorId && !decoded.hrType && !decoded.isSuperAdmin && !["ADMIN", "SUPERADMIN", "HR", "VENDORHR", "EMPLOYEEHR"].includes(roleNorm))
-  ) {
-    req.isVendor = true;
-  }
-  return decoded;
+const isProjectVisibleToVendor = (project, allowedVendorIds) => {
+  if (!project) return false;
+  const visType = project.vendorAssignmentType || project.vendorVisibility || "";
+  if (visType !== "Specific Vendor" && visType !== "specific") return true;
+  const assigned = project.assignedVendors || project.assignedVendorIds || [];
+  return (
+    Array.isArray(assigned) &&
+    assigned.some((v) => {
+      const vid = typeof v === "object" ? v.vendorId || v.id || v._id : v;
+      return vid && allowedVendorIds.has(String(vid).trim());
+    })
+  );
 };
 
 const normalizeStageValue = (val) => {
@@ -78,7 +70,12 @@ const POST_SELECTION_STATUSES = new Set([
 export const getApplications = asyncHandler(async (req, res) => {
   const { vendorId, projectId } = req.query;
   const filter = {};
-  if (vendorId) filter.vendorId = String(vendorId);
+  if (req.isVendor) {
+    const allowedVendorIds = Array.from(getVendorAllowedSet(req));
+    filter.vendorId = allowedVendorIds.length > 1 ? { $in: allowedVendorIds } : allowedVendorIds[0] || "";
+  } else if (vendorId) {
+    filter.vendorId = String(vendorId);
+  }
   if (projectId) filter.projectId = String(projectId);
 
   const [crmApps, directApps, mergedProjects] = await Promise.all([
@@ -175,9 +172,21 @@ export const getApplications = asyncHandler(async (req, res) => {
       }
     }
 
+    const cleanEmail = (val) =>
+      val && !String(val).toLowerCase().includes("@candidate.local") ? String(val).trim() : "";
+
     return {
       ...a,
       id: a.applicationId || a.id || a._id?.toString(),
+      candidateEmail: cleanEmail(a.candidateEmail || a.candidateData?.email),
+      ...(a.candidateData
+        ? {
+            candidateData: {
+              ...a.candidateData,
+              email: cleanEmail(a.candidateData.email || a.candidateEmail),
+            },
+          }
+        : {}),
       status: effectiveStatus,
       recruitmentStage: a.recruitmentStage || effectiveStatus,
       projectName: matchedProj?.projectName || a.projectName || "",
@@ -208,23 +217,131 @@ const isRestrictedStageActor = (req) => {
   );
 };
 
-const validateRestrictedApplicationMutation = (app, nextUpdate) => {
+const PROTECTED_RESTRICTED_APP_FIELDS = [
+  "refundStatus",
+  "refundDetails",
+  "adminRemark",
+  "adminRemarks",
+  "rejectionReason",
+  "rejectionDate",
+  "holdReason",
+  "holdDate",
+  "didNotJoinReason",
+  "milestonesOverridden",
+  "payments",
+  "interview",
+  "interviewDetails",
+  "processing",
+  "visaDocument",
+];
+
+const resolveAuthoritativeAppMilestones = async (app) => {
+  if (Array.isArray(app?.processMilestones) && app.processMilestones.length > 0) {
+    return normalizeMilestoneStages(app.processMilestones);
+  }
+  let matchedProj = app?.projectId ? await findProjectAcrossSources(app.projectId) : null;
+  if (!matchedProj && app?.projectName) {
+    const merged = await fetchAllMergedProjects().catch(() => []);
+    const targetName = String(app.projectName).trim().toLowerCase();
+    matchedProj =
+      merged.find((p) => String(p.projectName || "").trim().toLowerCase() === targetName) || null;
+  }
+  if (!matchedProj) return [];
+  const resolved = resolveProjectMilestonesData(matchedProj, [], Boolean(app?.milestonesOverridden));
+  return Array.isArray(resolved?.processMilestones) ? resolved.processMilestones : [];
+};
+
+const validateRestrictedApplicationMutation = async (app, nextUpdate, req, lockState = null) => {
   if (!app) {
-    if (nextUpdate.status || Array.isArray(nextUpdate.processMilestones)) {
+    if (
+      nextUpdate.status ||
+      nextUpdate.recruitmentStage ||
+      Array.isArray(nextUpdate.processMilestones) ||
+      nextUpdate.paymentPlan ||
+      PROTECTED_RESTRICTED_APP_FIELDS.some((k) => nextUpdate[k] !== undefined)
+    ) {
       return "Only Admin, Super Admin, or Vendor HR can update processing stages.";
     }
     return null;
   }
 
+  const eligibleForPoolReassign =
+    app.status === "Rejected" ||
+    app.status === "On Hold" ||
+    isRefundReassignEligible(app) ||
+    isRefundReassignEligible(lockState?.refund);
+
   const isPoolReassign =
-    (app.status === "Rejected" || app.status === "On Hold") &&
-    nextUpdate.status === "Submitted" &&
-    nextUpdate.projectId &&
+    eligibleForPoolReassign &&
+    (nextUpdate.status === "Submitted" || nextUpdate.status === "Applied") &&
+    Boolean(nextUpdate.projectId) &&
     String(nextUpdate.projectId) !== String(app.projectId || "") &&
     (!Array.isArray(nextUpdate.processMilestones) || nextUpdate.processMilestones.length === 0);
 
   if (isPoolReassign) {
+    if (nextUpdate.candidateId && String(nextUpdate.candidateId) !== String(app.candidateId || "")) {
+      return "Immutable application identity fields cannot be modified.";
+    }
+    let targetProj = await findProjectAcrossSources(nextUpdate.projectId);
+    if (!targetProj && nextUpdate.projectName) {
+      const merged = await fetchAllMergedProjects().catch(() => []);
+      const targetName = String(nextUpdate.projectName).trim().toLowerCase();
+      targetProj =
+        merged.find((p) => String(p.projectName || "").trim().toLowerCase() === targetName) || null;
+    }
+    if (req.isVendor && targetProj && !isProjectVisibleToVendor(targetProj, getVendorAllowedSet(req))) {
+      return "Forbidden: Target project is not assigned to your vendor account.";
+    }
+
+    const sanitizedReassign = {
+      projectId: String(targetProj?.projectId || nextUpdate.projectId),
+      projectName: targetProj?.projectName || nextUpdate.projectName || app.projectName,
+      clientId: targetProj?.clientId ?? app.clientId ?? "",
+      clientName: targetProj?.clientName ?? app.clientName ?? "",
+      position: nextUpdate.position || app.position || "",
+      jobTitle: nextUpdate.jobTitle || nextUpdate.position || app.jobTitle || app.position || "",
+      requirementCode: nextUpdate.requirementCode || app.requirementCode || "",
+      status: "Submitted",
+      recruitmentStage: "Screening",
+      rejectionReason: "",
+      rejectionDate: null,
+      holdReason: "",
+      holdDate: null,
+      didNotJoinReason: "",
+      refundStatus: "",
+      refundDetails: null,
+      processMilestones: [],
+      paymentPlan: { totalAmount: 0, currency: "INR", milestones: [] },
+      milestonesOverridden: false,
+      processing: null,
+      visaDocument: null,
+    };
+    Object.keys(nextUpdate).forEach((k) => delete nextUpdate[k]);
+    Object.assign(nextUpdate, sanitizedReassign);
     return null;
+  }
+
+  if (
+    (nextUpdate.candidateId !== undefined &&
+      String(nextUpdate.candidateId || "") !== String(app.candidateId || "")) ||
+    (nextUpdate.vendorId !== undefined &&
+      String(nextUpdate.vendorId || "") !== String(app.vendorId || "")) ||
+    (nextUpdate.clientId !== undefined &&
+      String(nextUpdate.clientId || "") !== String(app.clientId || "")) ||
+    (nextUpdate.selectionDate !== undefined &&
+      JSON.stringify(nextUpdate.selectionDate ?? null) !== JSON.stringify(app.selectionDate ?? null))
+  ) {
+    return "Immutable application identity fields cannot be modified.";
+  }
+
+  for (const field of PROTECTED_RESTRICTED_APP_FIELDS) {
+    if (nextUpdate[field] !== undefined) {
+      const prevVal = field === "adminRemarks" ? app.adminRemarks ?? app.adminRemark ?? "" : app[field] ?? null;
+      if (JSON.stringify(nextUpdate[field] ?? null) !== JSON.stringify(prevVal)) {
+        return "Only Admin, Super Admin, or Vendor HR can modify protected application, refund, interview, or stage fields.";
+      }
+      delete nextUpdate[field];
+    }
   }
 
   if (
@@ -242,49 +359,76 @@ const validateRestrictedApplicationMutation = (app, nextUpdate) => {
     return "Only Admin, Super Admin, or Vendor HR can update processing stages.";
   }
 
-  if (
-    nextUpdate.processing !== undefined &&
-    JSON.stringify(nextUpdate.processing) !== JSON.stringify(app.processing || null)
-  ) {
-    return "Only Admin, Super Admin, or Vendor HR can update processing stages.";
-  }
-
-  if (
-    nextUpdate.visaDocument !== undefined &&
-    JSON.stringify(nextUpdate.visaDocument) !== JSON.stringify(app.visaDocument || null)
-  ) {
-    return "Only Admin, Super Admin, or Vendor HR can update visa documents.";
-  }
+  const rv = req.body?.razorpayVerification;
+  const verifiedMilestoneIds = new Set();
 
   if (Array.isArray(nextUpdate.processMilestones)) {
-    const existingMilestones = Array.isArray(app.processMilestones) ? app.processMilestones : [];
+    const existingMilestones = await resolveAuthoritativeAppMilestones(app);
+    if (
+      existingMilestones.length === 0 ||
+      nextUpdate.processMilestones.length !== existingMilestones.length
+    ) {
+      return "Milestone structure cannot be created or altered by your role.";
+    }
+
     for (let mIdx = 0; mIdx < nextUpdate.processMilestones.length; mIdx += 1) {
       const m = nextUpdate.processMilestones[mIdx];
-      const exM =
-        existingMilestones.find((em) => String(em?.id || "") === String(m?.id || "")) ||
-        existingMilestones[mIdx];
-
-      const isRazorpayOnlinePay =
-        String(m?.paymentRef || "").includes("[Razorpay]") &&
-        m?.paymentMode === "Razorpay Online" &&
-        m?.paymentStatus === "Approved";
-
+      const exM = existingMilestones.find((em) => String(em?.id || "") === String(m?.id || ""));
       if (!exM) {
-        if (m?.paymentStatus === "Rejected" || (m?.paymentStatus === "Approved" && !isRazorpayOnlinePay)) {
-          return "Only Admin, Super Admin, or Vendor HR can approve or reject milestone payments.";
-        }
-        const stages = Array.isArray(m?.stages) ? m.stages : [];
-        if (stages.some((s) => s?.status === "Completed" || s?.visaDocumentUrl)) {
-          return "Only Admin, Super Admin, or Vendor HR can update processing stages.";
-        }
-        continue;
+        return "Unknown or unauthorized milestone ID.";
       }
 
-      if (m?.paymentStatus === "Approved" && exM.paymentStatus !== "Approved" && !isRazorpayOnlinePay) {
-        return "Only Admin, Super Admin, or Vendor HR can approve milestone payments.";
+      const expectedFee = Number(exM.paymentAmount ?? exM.amount ?? 0);
+      const incomingFee = Number(m?.paymentAmount ?? m?.amount ?? 0);
+      if (incomingFee !== expectedFee) {
+        return "Milestone payment amount cannot be modified.";
+      }
+      if (String(m?.name || "").trim() !== String(exM.name || "").trim()) {
+        return "Milestone title cannot be modified.";
       }
 
-      if (m?.paymentStatus === "Rejected" && exM.paymentStatus !== "Rejected") {
+      const nextPayStatus = String(m?.paymentStatus || "").trim();
+      const prevPayStatus = String(exM.paymentStatus || "").trim();
+
+      if (nextPayStatus === "Paid" && prevPayStatus !== "Paid") {
+        return "Only Admin, Super Admin, or Vendor HR can mark milestone payments as paid.";
+      }
+
+      if (prevPayStatus === "Approved" && nextPayStatus !== "Approved") {
+        return "Approved milestone payments cannot be downgraded.";
+      }
+
+      const wantsOnlineApproval = nextPayStatus === "Approved" && prevPayStatus !== "Approved";
+      if (wantsOnlineApproval) {
+        if (
+          !rv ||
+          String(rv.milestoneId || "") !== String(m?.id || "") ||
+          !rv.razorpay_order_id ||
+          !rv.razorpay_payment_id ||
+          !rv.razorpay_signature
+        ) {
+          return "Only Admin, Super Admin, or Vendor HR can approve milestone payments unless verified by Razorpay.";
+        }
+
+        await verifyAndFetchRazorpayPayment({
+          orderId: rv.razorpay_order_id,
+          paymentId: rv.razorpay_payment_id,
+          signature: rv.razorpay_signature,
+          expectedAmountInr: expectedFee,
+          applicationId: app.applicationId || app.id || req.params.id,
+          milestoneId: m.id,
+          actorId: req.vendorId || req.userId || "",
+          actorRole: req.userRole || "VENDOR",
+          consume: true,
+        });
+
+        m.paymentMode = "Razorpay Online";
+        m.approvedBy = "Razorpay Gateway (Verified)";
+        m.paymentRef = `[Razorpay] TXN: ${String(rv.razorpay_payment_id).trim()} | Date: ${new Date().toISOString().split("T")[0]} | Remark: Paid Online via Razorpay`;
+        verifiedMilestoneIds.add(String(m.id));
+      }
+
+      if (nextPayStatus === "Rejected" && prevPayStatus !== "Rejected") {
         return "Only Admin, Super Admin, or Vendor HR can reject milestone payments.";
       }
 
@@ -297,17 +441,22 @@ const validateRestrictedApplicationMutation = (app, nextUpdate) => {
 
       const nextStages = Array.isArray(m?.stages) ? m.stages : [];
       const prevStages = Array.isArray(exM.stages) ? exM.stages : [];
+      if (nextStages.length !== prevStages.length) {
+        return "Processing stage structure cannot be modified.";
+      }
+
       for (let sIdx = 0; sIdx < nextStages.length; sIdx += 1) {
         const s = nextStages[sIdx];
-        const exS =
-          prevStages.find((ps) => String(ps?.id || "") === String(s?.id || "")) ||
-          prevStages[sIdx];
-        const prevSStatus = exS?.status || "Pending";
+        const exS = prevStages.find((ps) => String(ps?.id || "") === String(s?.id || ""));
+        if (!exS) {
+          return "Unknown or unauthorized processing stage ID.";
+        }
+        const prevSStatus = exS.status || "Pending";
         const nextSStatus = s?.status || "Pending";
 
         if (nextSStatus !== prevSStatus) {
           const allowedUnlock =
-            isRazorpayOnlinePay &&
+            verifiedMilestoneIds.has(String(m?.id || "")) &&
             prevSStatus === "Locked" &&
             (nextSStatus === "Pending" || nextSStatus === "In Progress");
           if (!allowedUnlock) {
@@ -316,24 +465,86 @@ const validateRestrictedApplicationMutation = (app, nextUpdate) => {
         }
 
         if (
-          (s?.completedAt || null) !== (exS?.completedAt || null) ||
-          (s?.completedBy || null) !== (exS?.completedBy || null) ||
-          (s?.visaDocumentUrl || null) !== (exS?.visaDocumentUrl || null) ||
-          (s?.visaFileName || null) !== (exS?.visaFileName || null)
+          (s?.completedAt || null) !== (exS.completedAt || null) ||
+          (s?.completedBy || null) !== (exS.completedBy || null) ||
+          (s?.visaDocumentUrl || null) !== (exS.visaDocumentUrl || null) ||
+          (s?.visaFileName || null) !== (exS.visaFileName || null) ||
+          (s?.remark || "") !== (exS.remark || "") ||
+          JSON.stringify(s?.document || null) !== JSON.stringify(exS.document || null)
         ) {
           return "Only Admin, Super Admin, or Vendor HR can update processing stages.";
         }
       }
     }
+  } else {
+    delete nextUpdate.paymentPlan;
   }
 
   return null;
 };
 
 export const submitApplication = asyncHandler(async (req, res) => {
-  resolveOptionalRequestActor(req);
-  const appData = req.body;
-  const appId = appData.id || appData.applicationId || `app-${Date.now().toString().slice(-6)}`;
+  const appData = { ...(req.body || {}) };
+  delete appData._id;
+  delete appData.__v;
+  if (req.isVendor) {
+    appData.vendorId = req.vendorId || req.userId;
+    if (!appData.vendorName && req.vendorName) {
+      appData.vendorName = req.vendorName;
+    }
+  }
+  if (isRestrictedStageActor(req)) {
+    const allowedInitial = new Set(["Submitted", "Applied", "Under Review", "Screening"]);
+    const requestedStatus = String(appData.status || "Submitted").trim();
+    appData.status = allowedInitial.has(requestedStatus) ? requestedStatus : "Submitted";
+    appData.recruitmentStage =
+      appData.status === "Under Review" || appData.status === "Screening"
+        ? "Screening"
+        : appData.status;
+    delete appData.processMilestones;
+    delete appData.paymentPlan;
+    delete appData.processing;
+    delete appData.visaDocument;
+    delete appData.refundStatus;
+    delete appData.refundDetails;
+    delete appData.adminRemark;
+    delete appData.adminRemarks;
+    delete appData.rejectionReason;
+    delete appData.rejectionDate;
+    delete appData.holdReason;
+    delete appData.holdDate;
+    delete appData.didNotJoinReason;
+    delete appData.milestonesOverridden;
+    delete appData.payments;
+    delete appData.interview;
+    delete appData.interviewDetails;
+    delete appData.selectionDate;
+  }
+  const missingFields = [];
+  if (!String(appData.candidateId || "").trim()) missingFields.push("candidateId");
+  if (!String(appData.candidateName || "").trim()) missingFields.push("candidateName");
+  if (!String(appData.vendorId || "").trim()) missingFields.push("vendorId");
+  if (!String(appData.projectId || "").trim()) missingFields.push("projectId");
+  if (!String(appData.projectName || "").trim()) missingFields.push("projectName");
+  if (missingFields.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: `Missing required application fields: ${missingFields.join(", ")}`,
+    });
+  }
+  if (req.isVendor && appData.projectId) {
+    const matchedProj = await findProjectAcrossSources(appData.projectId);
+    if (matchedProj && !isProjectVisibleToVendor(matchedProj, getVendorAllowedSet(req))) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: This project is not assigned to your vendor account.",
+      });
+    }
+  }
+  const appId =
+    appData.id ||
+    appData.applicationId ||
+    (await generateNextCandidateApplicationId());
 
   const created = await CrmCandidateApplication.create({
     ...appData,
@@ -350,6 +561,11 @@ export const submitApplication = asyncHandler(async (req, res) => {
       if (candDoc?._id) candObjectId = candDoc._id;
     }
 
+    const rawCandidateEmail = appData.candidateEmail || appData.candidateData?.email || "";
+    const cleanCandidateEmail = String(rawCandidateEmail).toLowerCase().includes("@candidate.local")
+      ? ""
+      : rawCandidateEmail;
+
     await CandidateApplication.findOneAndUpdate(
       { applicationId: appId },
       {
@@ -358,10 +574,7 @@ export const submitApplication = asyncHandler(async (req, res) => {
           candidateId: String(appData.candidateId || appId),
           candidateObjectId: candObjectId,
           candidateName: appData.candidateName || "Candidate",
-          candidateEmail:
-            appData.candidateEmail ||
-            appData.candidateData?.email ||
-            `${appData.candidateId || appId}@candidate.local`,
+          candidateEmail: cleanCandidateEmail,
           candidatePhone: appData.candidatePhone || appData.candidateData?.phone || "",
           projectId: String(appData.projectId || ""),
           projectName: appData.projectName || "Overseas Project",
@@ -422,6 +635,19 @@ export const submitApplication = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitRealtimeEvent({
+    events: [
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    vendorId: created.vendorId || null,
+    detail: { applicationId: appId },
+  });
+
   return res.status(201).json({
     success: true,
     application: { ...created.toObject(), id: created.applicationId || created._id.toString() },
@@ -429,9 +655,8 @@ export const submitApplication = asyncHandler(async (req, res) => {
 });
 
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
-  resolveOptionalRequestActor(req);
   const { id } = req.params;
-  const updateData = req.body;
+  const updateData = req.body && typeof req.body === "object" ? req.body : {};
 
   const queryConditions = [
     { applicationId: id },
@@ -450,9 +675,18 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     });
   }
 
+  if (app && req.isVendor && !isVendorOwner(req, app.vendorId)) {
+    return res.status(403).json({
+      success: false,
+      message: "Forbidden: You are not authorized to modify another vendor's application.",
+    });
+  }
+
   const prevStatus = app ? app.status : "Applied";
   const prevStage = app?.candidateData?.stage || "";
   const prevMilestone = app?.currentMilestone || "";
+  const prevProjectId = app?.projectId || "";
+  const prevProjectName = app?.projectName || "";
 
   const nextUpdate = { ...updateData };
   delete nextUpdate._id;
@@ -461,9 +695,74 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   delete nextUpdate._primarySource;
   delete nextUpdate.createdAt;
   delete nextUpdate.updatedAt;
+  delete nextUpdate.razorpayVerification;
+  if (req.isVendor && nextUpdate.vendorId && !isVendorOwner(req, nextUpdate.vendorId)) {
+    delete nextUpdate.vendorId;
+  }
+
+  const isReassignTransition = Boolean(
+    app &&
+      nextUpdate.projectId &&
+      (String(nextUpdate.projectId) !== String(app.projectId || "") ||
+        (nextUpdate.position && String(nextUpdate.position) !== String(app.position || ""))) &&
+      (nextUpdate.status === "Submitted" || nextUpdate.status === "Applied") &&
+      (!Array.isArray(nextUpdate.processMilestones) || nextUpdate.processMilestones.length === 0)
+  );
+
+  let lockState = null;
+  if (app) {
+    lockState = await checkApplicationRefundLock(app);
+    if (isReassignTransition) {
+      if (
+        lockState.refundStatus === "Pending Admin Approval" ||
+        String(app.refundStatus || "").trim() === "Pending Admin Approval"
+      ) {
+        return res.status(409).json({
+          success: false,
+          message: "Cannot reassign candidate while a refund claim is awaiting Admin approval.",
+        });
+      }
+      if (!isRestrictedStageActor(req)) {
+        nextUpdate.refundStatus = "";
+        nextUpdate.refundDetails = null;
+        nextUpdate.didNotJoinReason = "";
+        nextUpdate.rejectionReason = "";
+        nextUpdate.rejectionDate = null;
+        nextUpdate.processMilestones = [];
+        nextUpdate.paymentPlan = { totalAmount: 0, currency: "INR", milestones: [] };
+        nextUpdate.milestonesOverridden = false;
+        nextUpdate.recruitmentStage = normalizeStageValue(nextUpdate.status || "Submitted");
+      }
+    } else if (lockState.locked) {
+      const milestonesMutated =
+        Array.isArray(nextUpdate.processMilestones) &&
+        JSON.stringify(normalizeMilestoneStages(nextUpdate.processMilestones)) !==
+          JSON.stringify(normalizeMilestoneStages(app.processMilestones || []));
+      const statusChangedAwayFromDidNotJoin =
+        nextUpdate.status !== undefined &&
+        normalizeStageValue(nextUpdate.status) !== normalizeStageValue(app.status || "Submitted") &&
+        nextUpdate.status !== "Did Not Join";
+      const stageChanged =
+        nextUpdate.recruitmentStage !== undefined &&
+        normalizeStageValue(nextUpdate.recruitmentStage) !==
+          normalizeStageValue(app.recruitmentStage || app.status || "Applied");
+      const processingChanged =
+        (nextUpdate.processing !== undefined &&
+          JSON.stringify(nextUpdate.processing) !== JSON.stringify(app.processing || null)) ||
+        (nextUpdate.visaDocument !== undefined &&
+          JSON.stringify(nextUpdate.visaDocument) !== JSON.stringify(app.visaDocument || null));
+
+      if (milestonesMutated || statusChangedAwayFromDidNotJoin || stageChanged || processingChanged) {
+        return res.status(409).json({
+          success: false,
+          message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}). Resolve or reject the refund before updating payment or processing.`,
+        });
+      }
+    }
+  }
 
   if (isRestrictedStageActor(req)) {
-    const forbiddenReason = validateRestrictedApplicationMutation(app, nextUpdate);
+    const forbiddenReason = await validateRestrictedApplicationMutation(app, nextUpdate, req, lockState);
     if (forbiddenReason) {
       return res.status(403).json({
         success: false,
@@ -511,6 +810,18 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
       ...(id && id.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: id }] : []),
     ];
     const seedDirect = await CandidateApplication.findOne({ $or: mirrorSeedQuery }).lean();
+    if (!seedDirect && isRestrictedStageActor(req)) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found.",
+      });
+    }
+    if (seedDirect && req.isVendor && !isVendorOwner(req, seedDirect.vendorId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are not authorized to modify another vendor's application.",
+      });
+    }
     const fallbackFields = seedDirect
       ? {
           candidateId: nextUpdate.candidateId || seedDirect.candidateId,
@@ -524,6 +835,19 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
           position: nextUpdate.position || seedDirect.position || seedDirect.jobTitle || "",
         }
       : {};
+    if (
+      !seedDirect &&
+      (!nextUpdate.candidateId ||
+        !nextUpdate.candidateName ||
+        !nextUpdate.vendorId ||
+        !nextUpdate.projectId ||
+        !nextUpdate.projectName)
+    ) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found.",
+      });
+    }
     app = await CrmCandidateApplication.create({
       ...fallbackFields,
       ...nextUpdate,
@@ -533,6 +857,20 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   } else {
     Object.assign(app, nextUpdate);
     await app.save();
+  }
+
+  if (isReassignTransition) {
+    try {
+      await markApplicationRefundsReassigned({
+        applicationId: app.applicationId || id,
+        candidateId: app.candidateId,
+        oldProjectId: prevProjectId,
+        oldProjectName: prevProjectName,
+        targetProjectId: app.projectId,
+        targetProjectName: app.projectName,
+        targetPosition: app.position,
+      });
+    } catch {}
   }
 
   try {
@@ -575,6 +913,15 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
       if (nextUpdate.rejectionReason !== undefined) {
         directApp.rejectionReason = nextUpdate.rejectionReason;
       }
+      if (nextUpdate.didNotJoinReason !== undefined) {
+        directApp.didNotJoinReason = nextUpdate.didNotJoinReason;
+      }
+      if (nextUpdate.refundStatus !== undefined) {
+        directApp.refundStatus = nextUpdate.refundStatus;
+      }
+      if (nextUpdate.refundDetails !== undefined) {
+        directApp.refundDetails = nextUpdate.refundDetails;
+      }
       if (nextUpdate.adminRemark !== undefined) {
         directApp.adminRemarks = nextUpdate.adminRemark;
       }
@@ -594,6 +941,12 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
       }
       if (nextUpdate.projectId) directApp.projectId = String(nextUpdate.projectId);
       if (nextUpdate.projectName) directApp.projectName = nextUpdate.projectName;
+      if (nextUpdate.clientId !== undefined) directApp.clientId = String(nextUpdate.clientId || "");
+      if (nextUpdate.clientName !== undefined) directApp.clientName = nextUpdate.clientName || "";
+      if (nextUpdate.position !== undefined) {
+        directApp.position = nextUpdate.position;
+        directApp.jobTitle = nextUpdate.position;
+      }
       if (interviewPatch) directApp.interview = interviewPatch;
       await directApp.save();
     } else if (app.candidateId && app.projectId) {
@@ -602,7 +955,9 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
         candidateId: String(app.candidateId),
         candidateName: app.candidateName || "Candidate",
         candidateEmail:
-          app.candidateData?.email || `${app.candidateId}@candidate.local`,
+          app.candidateData?.email && !String(app.candidateData.email).includes("@candidate.local")
+            ? app.candidateData.email
+            : "",
         candidatePhone: app.candidateData?.phone || "",
         projectId: String(app.projectId),
         projectName: app.projectName || "Overseas Project",
@@ -787,6 +1142,21 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
       console.error("Failed to create vendor notification:", notifErr.message);
     }
   }
+
+  emitRealtimeEvent({
+    events: [
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    vendorId: app.vendorId || null,
+    candidateId: app.candidateId || null,
+    detail: { applicationId: app.applicationId || id, status: app.status },
+  });
 
   return res.status(200).json({
     success: true,

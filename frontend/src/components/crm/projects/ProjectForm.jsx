@@ -1,18 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import {
   FolderKanban,
   Building2,
-  MapPin,
   Users,
   Gift,
   FileText,
-  FileCheck,
   Save,
-  AlertCircle,
-  CheckCircle2,
   ArrowLeft,
-  Calendar,
   Globe,
   CreditCard,
 } from "lucide-react";
@@ -20,11 +15,9 @@ import FormSection from "../ui/FormSection.jsx";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
 import TextareaField from "../ui/TextareaField.jsx";
-import CountrySelectField from "../ui/CountrySelectField.jsx";
 import ManpowerTable from "../manpower/ManpowerTable.jsx";
 import ProjectMilestoneBuilder from "./ProjectMilestoneBuilder.jsx";
-import DocumentsList from "../documents/DocumentsList.jsx";
-import { useCrmToast } from "../layout/CrmLayout.jsx";
+import { useCrmToast } from "../layout/crmToastContext.js";
 import crmClientService from "../../../services/crmClientService.js";
 import { crmVendorService } from "../../../services/crmVendorService.js";
 
@@ -198,37 +191,39 @@ export function ProjectForm({
 
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+  const [prevPreClientId, setPrevPreClientId] = useState(preSelectedClientId);
+  if (initialData !== prevInitialData || preSelectedClientId !== prevPreClientId) {
+    setPrevInitialData(initialData);
+    setPrevPreClientId(preSelectedClientId);
     if (initialData) {
       setFormData(buildInitialFormData(initialData, preSelectedClientId));
     }
-  }, [initialData, preSelectedClientId]);
+  }
 
-  
   useEffect(() => {
-    const total = formData.manpowerRequirements.reduce(
-      (sum, p) => sum + (Number(p.quantity) || 0),
-      0
-    );
-    setFormData((prev) => ({ ...prev, totalHeadcount: total }));
-  }, [formData.manpowerRequirements]);
-
-  
-  useEffect(() => {
-    crmVendorService.getVendors({ status: "Approved" }).then((vendors) => {
-      setAllVendors(vendors || []);
-    }).catch(() => { });
+    let cancelled = false;
+    crmVendorService
+      .getVendors({ status: "Approved" })
+      .then((vendors) => {
+        if (!cancelled) setAllVendors(vendors || []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  
   useEffect(() => {
+    let cancelled = false;
     const fetchClients = async () => {
       try {
         const res = await crmClientService.getClients({ limit: 100 });
+        if (cancelled) return;
         const list = res.clients || [];
         setClients(list);
 
-        const targetClientId = formData.clientId || preSelectedClientId;
+        const targetClientId = initialData?.clientId || preSelectedClientId;
         if (targetClientId) {
           const found = list.find((c) => String(c.id) === String(targetClientId));
           if (found) {
@@ -243,12 +238,17 @@ export function ProjectForm({
       } catch (err) {
         console.error("Failed to load clients:", err);
       } finally {
-        setLoadingClients(false);
+        if (!cancelled) setLoadingClients(false);
       }
     };
 
-    fetchClients();
-  }, [preSelectedClientId]);
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchClients();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialData?.clientId, preSelectedClientId]);
 
   
   const handleClientChange = (e) => {
@@ -439,8 +439,6 @@ export function ProjectForm({
 
     onSubmit(payload, resolvedClientId, asDraft);
   };
-
-  const totalHeadcount = Number(formData.totalHeadcount) || 0;
 
   return (
     <div className="space-y-6">
@@ -709,7 +707,15 @@ export function ProjectForm({
             <ManpowerTable
               positions={formData.manpowerRequirements}
               onChange={(updatedPositions) => {
-                setFormData(prev => ({ ...prev, manpowerRequirements: updatedPositions }));
+                const total = (updatedPositions || []).reduce(
+                  (sum, p) => sum + (Number(p.quantity) || 0),
+                  0
+                );
+                setFormData(prev => ({
+                  ...prev,
+                  manpowerRequirements: updatedPositions,
+                  totalHeadcount: total,
+                }));
               }}
               onPendingChange={setPendingInlinePosition}
             />

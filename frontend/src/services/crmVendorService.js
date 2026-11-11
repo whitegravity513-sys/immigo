@@ -2,17 +2,16 @@
 
 import crmClientService from "./crmClientService.js";
 import { apiClient } from "./apiClient.js";
-import { initialClients } from "../data/mockClients.js";
+import { isAppRefundLocked, getAppRefundStatus } from "./refundService.js";
 
 const VENDORS_STORAGE_KEY = "immigo_crm_vendors_v3";
 const CANDIDATES_STORAGE_KEY = "immigo_crm_candidates_v3";
 const APPLICATIONS_STORAGE_KEY = "immigo_crm_applications_v3";
+const REFUNDS_STORAGE_KEY = "immigo_crm_refunds_v3";
 const PROJECTS_CACHE_KEY = "immigo_crm_projects_cache_v1";
-const MILESTONE_TEMPLATES_KEY = "immigo_crm_milestone_templates_v3";
 const VENDOR_NOTIFICATIONS_KEY = "immigo_crm_vendor_notifications_v3";
 const ADMIN_NOTIFICATIONS_KEY = "immigo_crm_admin_notifications_v3";
 
-const delay = (ms = 50) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
 const INITIAL_VENDORS = [];
@@ -56,6 +55,16 @@ const loadData = (key, fallback = []) => {
   } catch (e) {
     console.error(`Error loading key ${key}:`, e);
     return fallback;
+  }
+};
+
+const ensureNotRefundLocked = (app) => {
+  const cachedRefunds = loadData(REFUNDS_STORAGE_KEY, []);
+  if (isAppRefundLocked(app, cachedRefunds)) {
+    const rStatus = getAppRefundStatus(app, cachedRefunds) || "Active";
+    throw new Error(
+      `Payment and stage processing are frozen while refund claim is "${rStatus}". Awaiting Administrator resolution.`
+    );
   }
 };
 
@@ -413,7 +422,6 @@ export const crmVendorService = {
   },
 
   changeVendorPassword: async (vendorId, oldPassword, newPassword) => {
-    await delay(100);
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     const idx = vendors.findIndex((v) => v.id === vendorId);
     if (idx === -1) throw new Error("Vendor not found");
@@ -428,7 +436,6 @@ export const crmVendorService = {
   },
 
   updateVendorDocuments: async (vendorId, status = true) => {
-    await delay(100);
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     const idx = vendors.findIndex(v => v.id === vendorId);
     if (idx === -1) throw new Error("Vendor not found");
@@ -439,7 +446,6 @@ export const crmVendorService = {
   },
 
   updateCandidatePhoto: async (candidateId, photoBase64) => {
-    await delay(60);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     const idx = candidates.findIndex((c) => c.id === candidateId);
     if (idx === -1) throw new Error("Candidate not found.");
@@ -553,7 +559,7 @@ export const crmVendorService = {
       });
 
       return updated;
-    } catch (err) {
+    } catch {
       
       return crmVendorService.signOrVerifyMOU(vendorId, "Sent");
     }
@@ -630,7 +636,6 @@ export const crmVendorService = {
       } catch {}
       return updated;
     } catch {
-      await delay(80);
       const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
       const idx = vendors.findIndex((v) => v.id === vendorId);
       if (idx === -1) throw new Error("Vendor not found");
@@ -797,7 +802,6 @@ export const crmVendorService = {
   },
 
   signOrVerifyMOU: async (vendorId, status = "Approved") => {
-    await delay(80);
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     const idx = vendors.findIndex((v) => v.id === vendorId);
     if (idx === -1) throw new Error("Vendor not found");
@@ -1004,12 +1008,23 @@ export const crmVendorService = {
   },
 
   createCandidate: async (vendorId, candidateData) => {
-    await delay(100);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
+
+    const rx = /^IMMI-CA-(\d+)$/i;
+    let maxCandNum = 0;
+    (candidates || []).forEach((c) => {
+      const m = String(c?.candidateId || c?.id || "").trim().match(rx);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (!Number.isNaN(n) && n > maxCandNum) maxCandNum = n;
+      }
+    });
+    const nextCandId = `IMMI-CA-${String(maxCandNum + 1).padStart(3, "0")}`;
 
     const newCandidate = {
       ...candidateData,
-      id: `CND-${Math.floor(500 + Math.random() * 5000)}`,
+      id: candidateData.candidateId || candidateData.id || nextCandId,
+      candidateId: candidateData.candidateId || candidateData.id || nextCandId,
       vendorId: vendorId || "VND-1001",
       createdAt: new Date().toISOString(),
       skills: Array.isArray(candidateData.skills)
@@ -1025,7 +1040,18 @@ export const crmVendorService = {
     saveData(CANDIDATES_STORAGE_KEY, candidates);
 
     try {
-      await apiClient.post("/crm-sync/candidates", newCandidate);
+      const res = await apiClient.post("/crm-sync/candidates", newCandidate);
+      if (res.data?.candidate) {
+        const synced = {
+          ...newCandidate,
+          ...res.data.candidate,
+          id: res.data.candidate.candidateId || res.data.candidate.id || newCandidate.id,
+          candidateId: res.data.candidate.candidateId || res.data.candidate.id || newCandidate.id,
+        };
+        candidates[0] = synced;
+        saveData(CANDIDATES_STORAGE_KEY, candidates);
+        Object.assign(newCandidate, synced);
+      }
     } catch {}
 
     crmVendorService.addAdminNotification({
@@ -1039,7 +1065,6 @@ export const crmVendorService = {
   },
 
   updateCandidate: async (candidateId, updatedData) => {
-    await delay(80);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     const idx = candidates.findIndex((c) => c.id === candidateId);
     if (idx === -1) throw new Error("Candidate not found");
@@ -1056,7 +1081,6 @@ export const crmVendorService = {
   },
 
   deleteCandidate: async (candidateId) => {
-    await delay(80);
     let candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     candidates = candidates.filter((c) => c.id !== candidateId);
     saveData(CANDIDATES_STORAGE_KEY, candidates);
@@ -1064,7 +1088,6 @@ export const crmVendorService = {
   },
 
   verifyCandidateDocument: async (candidateId, docIndex, status, remarks = "") => {
-    await delay(60);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     const idx = candidates.findIndex((c) => c.id === candidateId);
     if (idx === -1) throw new Error("Candidate not found");
@@ -1096,7 +1119,6 @@ export const crmVendorService = {
   },
 
   verifyAllCandidateDocuments: async (candidateId, status, remarks = "") => {
-    await delay(80);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     const idx = candidates.findIndex((c) => c.id === candidateId);
     if (idx === -1) throw new Error("Candidate not found");
@@ -1122,7 +1144,6 @@ export const crmVendorService = {
   },
 
   addCandidateDocument: async (candidateId, docData) => {
-    await delay(60);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     const idx = candidates.findIndex((c) => String(c.id) === String(candidateId));
     if (idx === -1) {
@@ -1712,7 +1733,6 @@ export const crmVendorService = {
     requirementCode = "REQ-001",
     position,
   }) => {
-    await delay(120);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
 
@@ -1821,7 +1841,6 @@ export const crmVendorService = {
     if (!Array.isArray(submissions) || submissions.length === 0) {
       throw new Error("Please select at least one candidate to submit.");
     }
-    await delay(100);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     if (!Array.isArray(candidates) || candidates.length === 0) {
@@ -1939,7 +1958,6 @@ export const crmVendorService = {
   },
 
   updateApplicationStatus: async (applicationId, status, rejectionReason = "", interviewDetails = null) => {
-    await delay(100);
     let apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1) {
@@ -1950,6 +1968,9 @@ export const crmVendorService = {
       } catch {}
     }
     if (idx === -1) throw new Error("Application not found");
+    if (status !== "Did Not Join") {
+      ensureNotRefundLocked(apps[idx]);
+    }
 
     let finalRejectionReason = "";
     let finalInterviewDetails = interviewDetails;
@@ -2107,10 +2128,10 @@ export const crmVendorService = {
   },
 
   addApplicationMilestone: async (applicationId, { name, percentage = 0, amount = 0, dueDate = "" }) => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     if (!apps[idx].paymentPlan) {
       apps[idx].paymentPlan = { totalAmount: 0, currency: "INR", milestones: [] };
@@ -2139,10 +2160,10 @@ export const crmVendorService = {
   },
 
   updateApplicationProject: async (applicationId, { clientId, clientName, projectId, projectName, requirementCode, position, country }) => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     apps[idx] = {
       ...apps[idx],
@@ -2190,7 +2211,6 @@ export const crmVendorService = {
     updatedBy = "Admin",
     fallbackApp = null
   ) => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1 && fallbackApp) {
@@ -2202,6 +2222,7 @@ export const crmVendorService = {
       idx = 0;
     }
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     if (
       (!Array.isArray(apps[idx].processMilestones) || apps[idx].processMilestones.length === 0) &&
@@ -2344,8 +2365,13 @@ export const crmVendorService = {
     return apps[idx];
   },
 
-  submitMilestonePayment: async (applicationId, milestoneId, paymentRef = "", fallbackApp = null) => {
-    await delay(80);
+  submitMilestonePayment: async (
+    applicationId,
+    milestoneId,
+    paymentRef = "",
+    fallbackApp = null,
+    razorpayVerification = null
+  ) => {
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1 && fallbackApp) {
@@ -2357,6 +2383,7 @@ export const crmVendorService = {
       idx = 0;
     }
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     if (
       (!Array.isArray(apps[idx].processMilestones) || apps[idx].processMilestones.length === 0) &&
@@ -2374,52 +2401,83 @@ export const crmVendorService = {
     );
     if (mIdx === -1) throw new Error("Milestone not found");
 
-    const isRazorpay = String(paymentRef || "").includes("[Razorpay]");
+    const isVerifiedOnline = Boolean(
+      razorpayVerification?.razorpay_order_id &&
+        razorpayVerification?.razorpay_payment_id &&
+        razorpayVerification?.razorpay_signature
+    );
     const payDate = new Date().toISOString().split("T")[0];
     const receiptNum = `INV-${apps[idx].id}-${milestoneId}`;
 
-    apps[idx].processMilestones[mIdx].paymentRef = paymentRef;
+    const nextMilestones = apps[idx].processMilestones.map((m, i) =>
+      i === mIdx ? { ...m, paymentRef } : { ...m }
+    );
 
-    if (isRazorpay) {
-      apps[idx].processMilestones[mIdx].paymentStatus = "Approved";
-      apps[idx].processMilestones[mIdx].paymentDate = payDate;
-      apps[idx].processMilestones[mIdx].approvedBy = "Razorpay Auto-Verify";
-      apps[idx].processMilestones[mIdx].paymentMode = "Razorpay Online";
-      apps[idx].processMilestones[mIdx].receiptNumber = receiptNum;
-      apps[idx].processMilestones[mIdx].paymentRemark = "Paid Online via Razorpay";
-      apps[idx].processMilestones[mIdx].status = "Active";
-      apps[idx].processMilestones = crmVendorService.normalizeStageActivation(
-        apps[idx].processMilestones
-      );
+    if (isVerifiedOnline) {
+      nextMilestones[mIdx].paymentStatus = "Approved";
+      nextMilestones[mIdx].paymentDate = payDate;
+      nextMilestones[mIdx].approvedBy = "Razorpay Gateway (Verified)";
+      nextMilestones[mIdx].paymentMode = "Razorpay Online";
+      nextMilestones[mIdx].receiptNumber = receiptNum;
+      nextMilestones[mIdx].paymentRemark = "Paid Online via Razorpay";
+      nextMilestones[mIdx].status = "Active";
     } else {
-      apps[idx].processMilestones[mIdx].paymentStatus = "Submitted";
+      nextMilestones[mIdx].paymentStatus = "Submitted";
     }
 
-    const totalAmt = apps[idx].processMilestones.reduce(
+    const finalMilestones = isVerifiedOnline
+      ? crmVendorService.normalizeStageActivation(nextMilestones)
+      : nextMilestones;
+
+    const totalAmt = finalMilestones.reduce(
       (sum, m) => sum + Number(m.paymentAmount ?? m.amount ?? 0),
       0
     );
-    apps[idx].paymentPlan = {
+    const nextPaymentPlan = {
       ...(apps[idx].paymentPlan || { currency: "INR" }),
       totalAmount: totalAmt,
-      milestones: apps[idx].processMilestones,
+      milestones: finalMilestones,
     };
 
+    const payload = {
+      processMilestones: finalMilestones,
+      paymentPlan: nextPaymentPlan,
+    };
+    if (isVerifiedOnline) {
+      payload.razorpayVerification = {
+        milestoneId,
+        razorpay_order_id: razorpayVerification.razorpay_order_id,
+        razorpay_payment_id: razorpayVerification.razorpay_payment_id,
+        razorpay_signature: razorpayVerification.razorpay_signature,
+      };
+    }
+
     try {
-      const res = await apiClient.put(`/crm-sync/applications/${apps[idx].applicationId || applicationId}`, {
-        processMilestones: apps[idx].processMilestones,
-        paymentPlan: apps[idx].paymentPlan,
-      });
+      const res = await apiClient.put(
+        `/crm-sync/applications/${apps[idx].applicationId || applicationId}`,
+        payload
+      );
       if (res.data?.success && res.data.application) {
         apps[idx] = { ...apps[idx], ...res.data.application };
+      } else {
+        apps[idx].processMilestones = finalMilestones;
+        apps[idx].paymentPlan = nextPaymentPlan;
       }
-    } catch {}
+    } catch (apiErr) {
+      if (apiErr?.response?.status >= 400) {
+        throw new Error(apiErr.response?.data?.message || apiErr.message || "Payment update rejected.", {
+          cause: apiErr,
+        });
+      }
+      apps[idx].processMilestones = finalMilestones;
+      apps[idx].paymentPlan = nextPaymentPlan;
+    }
 
     saveData(APPLICATIONS_STORAGE_KEY, apps);
 
     crmVendorService.addAdminNotification({
-      title: isRazorpay ? "Milestone Payment Paid Online" : "Milestone Payment Submitted",
-      message: `Payment ${isRazorpay ? "completed via Razorpay" : "submitted"} for candidate ${apps[idx].candidateName} on project ${apps[idx].projectName}.`,
+      title: isVerifiedOnline ? "Milestone Payment Paid Online" : "Milestone Payment Submitted",
+      message: `Payment ${isVerifiedOnline ? "completed via Razorpay" : "submitted"} for candidate ${apps[idx].candidateName} on project ${apps[idx].projectName}.`,
       type: "info",
       vendorId: apps[idx].vendorId,
       link: "/admin/vendor/payments",
@@ -2431,7 +2489,6 @@ export const crmVendorService = {
   },
 
   approveMilestonePayment: async (applicationId, milestoneId, approvedBy = "Admin", remark = "", fallbackApp = null) => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1 && fallbackApp) {
@@ -2443,6 +2500,7 @@ export const crmVendorService = {
       idx = 0;
     }
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     if (
       (!Array.isArray(apps[idx].processMilestones) || apps[idx].processMilestones.length === 0) &&
@@ -2505,10 +2563,10 @@ export const crmVendorService = {
   },
 
   rejectMilestonePayment: async (applicationId, milestoneId, remark = "") => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     const mIdx = (apps[idx].processMilestones || []).findIndex(
       (m) => String(m.id) === String(milestoneId)
@@ -2531,10 +2589,10 @@ export const crmVendorService = {
   },
 
   quickUpdateMilestoneStatus: async (applicationId, milestoneId, newStatus) => {
-    await delay(60);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     const isPaid = newStatus === "Paid";
 
@@ -2603,10 +2661,10 @@ export const crmVendorService = {
   },
 
   uploadStageVisa: async (applicationId, milestoneId, stageId, visaUrl, fileName = "Visa_Document.pdf") => {
-    await delay(60);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     const idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     if (apps[idx].processMilestones) {
       apps[idx].processMilestones = apps[idx].processMilestones.map((m) => {
@@ -2655,7 +2713,6 @@ export const crmVendorService = {
   },
 
   overrideMilestones: async (applicationId, totalAmount, milestones, fallbackApp = null, options = {}) => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1 && fallbackApp) {
@@ -2667,6 +2724,7 @@ export const crmVendorService = {
       idx = 0;
     }
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     const mapped = milestones.map((m, mIdx) => {
       const isPaid = m.status === "Paid" || m.paymentStatus === "Approved";
@@ -2824,7 +2882,6 @@ export const crmVendorService = {
     recordedBy = "Admin",
     fallbackApp = null
   ) => {
-    await delay(80);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     let idx = crmVendorService.findAppIndex(apps, applicationId);
     if (idx === -1 && fallbackApp) {
@@ -2836,6 +2893,7 @@ export const crmVendorService = {
       idx = 0;
     }
     if (idx === -1) throw new Error("Application not found");
+    ensureNotRefundLocked(apps[idx]);
 
     if (
       (!Array.isArray(apps[idx].processMilestones) || apps[idx].processMilestones.length === 0) &&
@@ -2926,15 +2984,29 @@ export const crmVendorService = {
   
   
   getVendorDashboardStats: async (vendorId) => {
-    await delay(50);
     try {
-      const res = await apiClient.get(`/crm-sync/applications${vendorId ? `?vendorId=${vendorId}` : ""}`);
-      if (res.data?.success && Array.isArray(res.data.applications)) {
+      const [appRes, refRes] = await Promise.allSettled([
+        apiClient.get(`/crm-sync/applications${vendorId ? `?vendorId=${vendorId}` : ""}`),
+        apiClient.get(`/crm-sync/refunds${vendorId ? `?vendorId=${encodeURIComponent(vendorId)}` : ""}`),
+      ]);
+      if (appRes.status === "fulfilled" && appRes.value?.data?.success && Array.isArray(appRes.value.data.applications)) {
         const local = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
         const map = new Map();
         local.forEach((a) => map.set(a.id, a));
-        res.data.applications.forEach((a) => map.set(a.id, { ...(map.get(a.id) || {}), ...a }));
+        appRes.value.data.applications.forEach((a) => map.set(a.id, { ...(map.get(a.id) || {}), ...a }));
         saveData(APPLICATIONS_STORAGE_KEY, Array.from(map.values()), { silent: true });
+      }
+      if (refRes.status === "fulfilled" && refRes.value?.data?.success && Array.isArray(refRes.value.data.refunds)) {
+        const serverRefunds = refRes.value.data.refunds;
+        if (!vendorId) {
+          saveData(REFUNDS_STORAGE_KEY, serverRefunds, { silent: true });
+        } else {
+          const localRefunds = loadData(REFUNDS_STORAGE_KEY, []);
+          const otherVendorCached = localRefunds.filter(
+            (lr) => lr.vendorId && String(lr.vendorId) !== String(vendorId)
+          );
+          saveData(REFUNDS_STORAGE_KEY, [...serverRefunds, ...otherVendorCached], { silent: true });
+        }
       }
     } catch {}
 
@@ -2945,22 +3017,25 @@ export const crmVendorService = {
       (a) => !vendorId || a.vendorId === vendorId
     );
 
+    const cachedRefunds = loadData(REFUNDS_STORAGE_KEY, []);
     const totalCandidates = candidates.length;
     const submitted = apps.length;
-    const underReview = apps.filter((a) => a.status === "Under Review" || a.status === "Shortlisted").length;
-    const selected = apps.filter((a) => a.status === "Selected").length;
+    const underReview = apps.filter((a) => !isAppRefundLocked(a, cachedRefunds) && (a.status === "Under Review" || a.status === "Shortlisted")).length;
+    const selected = apps.filter((a) => !isAppRefundLocked(a, cachedRefunds) && a.status === "Selected").length;
     const rejected = apps.filter((a) => a.status === "Rejected").length;
     const inProcessing = apps.filter(
       (a) =>
+        !isAppRefundLocked(a, cachedRefunds) &&
         (a.status === "Selected" || a.status === "Processing") &&
         ((a.processMilestones && a.processMilestones.length > 0 && !a.processMilestones.every((m) => m.status === "Completed")) ||
           (a.processing && a.processing.currentStageIndex < 7))
     ).length;
     const completed = apps.filter(
       (a) =>
-        a.status === "Completed" ||
-        (a.processMilestones && a.processMilestones.length > 0 && a.processMilestones.every((m) => m.status === "Completed")) ||
-        a.processing?.currentStageIndex === 7
+        !isAppRefundLocked(a, cachedRefunds) &&
+        (a.status === "Completed" ||
+          (a.processMilestones && a.processMilestones.length > 0 && a.processMilestones.every((m) => m.status === "Completed")) ||
+          a.processing?.currentStageIndex === 7)
     ).length;
 
     let totalPayment = 0;
@@ -3327,7 +3402,12 @@ export const crmVendorService = {
   
   
   getAdminVendorOverviewStats: async () => {
-    await delay(30);
+    try {
+      const refRes = await apiClient.get("/crm-sync/refunds");
+      if (refRes.data?.success && Array.isArray(refRes.data.refunds)) {
+        saveData(REFUNDS_STORAGE_KEY, refRes.data.refunds, { silent: true });
+      }
+    } catch {}
     const vendors = loadData(VENDORS_STORAGE_KEY, INITIAL_VENDORS);
     const candidates = loadData(CANDIDATES_STORAGE_KEY, INITIAL_CANDIDATES);
     const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
@@ -3337,11 +3417,12 @@ export const crmVendorService = {
     const approvedVendors = vendors.filter((v) => v.status === "Approved").length;
     const suspendedVendors = vendors.filter((v) => v.status === "Suspended").length;
 
+    const cachedRefunds = loadData(REFUNDS_STORAGE_KEY, []);
     const totalCandidates = candidates.length;
-    const pendingCandidates = apps.filter((a) => a.status === "Submitted" || a.status === "Under Review").length;
-    const selectedCandidates = apps.filter((a) => a.status === "Selected").length;
-    const inProcessing = apps.filter((a) => a.status === "Selected" && a.processing?.currentStageIndex < 7).length;
-    const deployedCandidates = apps.filter((a) => a.status === "Completed" || a.status === "Deployed" || a.status === "Joined").length;
+    const pendingCandidates = apps.filter((a) => !isAppRefundLocked(a, cachedRefunds) && (a.status === "Submitted" || a.status === "Under Review")).length;
+    const selectedCandidates = apps.filter((a) => !isAppRefundLocked(a, cachedRefunds) && a.status === "Selected").length;
+    const inProcessing = apps.filter((a) => !isAppRefundLocked(a, cachedRefunds) && a.status === "Selected" && a.processing?.currentStageIndex < 7).length;
+    const deployedCandidates = apps.filter((a) => !isAppRefundLocked(a, cachedRefunds) && (a.status === "Completed" || a.status === "Deployed" || a.status === "Joined")).length;
 
     const notifs = loadData(ADMIN_NOTIFICATIONS_KEY, INITIAL_ADMIN_NOTIFICATIONS);
     
@@ -3399,7 +3480,6 @@ export const crmVendorService = {
 
   
   getCandidateSubmissionsHistory: async (candidateId) => {
-    await delay(30);
     let apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
     if (!Array.isArray(apps) || apps.length === 0) {
       try {
@@ -3522,26 +3602,86 @@ export const crmVendorService = {
   },
 
   reassignApplicationToProject: async (applicationId, projectId, projectName, position, requirementCode) => {
-    await delay(100);
-    const apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
-    const idx = crmVendorService.findAppIndex(apps, applicationId);
+    let apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
+    let idx = crmVendorService.findAppIndex(apps, applicationId);
+    if (idx === -1) {
+      try {
+        await crmVendorService.getApplications();
+        apps = loadData(APPLICATIONS_STORAGE_KEY, INITIAL_APPLICATIONS);
+        idx = crmVendorService.findAppIndex(apps, applicationId);
+      } catch {}
+    }
     if (idx === -1) throw new Error("Application not found");
 
+    const cachedRefunds = loadData(REFUNDS_STORAGE_KEY, []);
+    const currentRefundStatus = getAppRefundStatus(apps[idx], cachedRefunds);
+    if (currentRefundStatus === "Pending Admin Approval") {
+      throw new Error("Cannot reassign candidate while a refund claim is awaiting Admin approval.");
+    }
+
+    const resolvedAppId = apps[idx].applicationId || apps[idx].id || applicationId;
     apps[idx].projectId = projectId;
     apps[idx].projectName = projectName;
     apps[idx].position = position;
+    apps[idx].jobTitle = position;
     apps[idx].requirementCode = requirementCode || "REQ-0000";
     apps[idx].status = "Submitted";
     apps[idx].recruitmentStage = "Screening";
     apps[idx].rejectionReason = "";
     apps[idx].rejectionDate = null;
+    apps[idx].holdReason = "";
+    apps[idx].holdDate = null;
+    apps[idx].didNotJoinReason = "";
+    apps[idx].refundStatus = "";
+    apps[idx].refundDetails = null;
     apps[idx].processMilestones = [];
     apps[idx].paymentPlan = { totalAmount: 0, currency: "INR", milestones: [] };
     apps[idx].milestonesOverridden = false;
+    apps[idx].processing = null;
 
-    apiClient
-      .put(`/crm-sync/applications/${apps[idx].applicationId || applicationId}`, apps[idx])
-      .catch(() => {});
+    const payloadToSync = { ...apps[idx] };
+    delete payloadToSync._id;
+    delete payloadToSync.__v;
+    delete payloadToSync._primarySource;
+    delete payloadToSync.createdAt;
+    delete payloadToSync.updatedAt;
+
+    try {
+      const res = await apiClient.put(`/crm-sync/applications/${encodeURIComponent(resolvedAppId)}`, payloadToSync);
+      if (res.data?.success && res.data.application) {
+        apps[idx] = { ...apps[idx], ...res.data.application };
+      }
+    } catch (apiErr) {
+      if (apiErr?.response?.status >= 400) {
+        throw new Error(
+          apiErr.response?.data?.message || "Failed to reassign candidate application on server.",
+          { cause: apiErr }
+        );
+      }
+    }
+
+    const updatedRefunds = (cachedRefunds || []).map((r) => {
+      if (!r || r.reassigned) return r;
+      if (
+        String(r.applicationId || "") === String(resolvedAppId) ||
+        String(r.applicationId || "") === String(applicationId)
+      ) {
+        return {
+          ...r,
+          reassigned: true,
+          reassignedProjectId: projectId,
+          reassignedProjectName: projectName,
+          reassignedPosition: position,
+          reassignedAt: new Date().toISOString(),
+        };
+      }
+      return r;
+    });
+    localStorage.setItem(REFUNDS_STORAGE_KEY, JSON.stringify(updatedRefunds));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("immigo:refund-update", { detail: updatedRefunds }));
+    }
+
     saveData(APPLICATIONS_STORAGE_KEY, apps);
     emitAppRefreshEvents(apps);
     return apps[idx];

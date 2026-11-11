@@ -1,5 +1,3 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Menu,
   PanelLeftClose,
@@ -7,7 +5,7 @@ import {
   ChevronRight,
   Shield,
 } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 import NotificationBell from "../NotificationBell.jsx";
 import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
@@ -17,10 +15,7 @@ export function AdminMasterNavbar({
   collapsed,
   setCollapsed,
   title = "Admin Dashboard",
-  subtitle = "Overview of your organization's activities and operations.",
-  breadcrumbs,
 }) {
-  const navigate = useNavigate();
   const { user, isSuperAdmin } = useAuth();
 
   const adminName =
@@ -32,7 +27,6 @@ export function AdminMasterNavbar({
     <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
-        {/* Left Side: Collapse/Expand trigger + Branding + Active Module Title */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             type="button"
@@ -64,7 +58,6 @@ export function AdminMasterNavbar({
           </div>
         </div>
 
-        {/* Right Side: Role Badge + Notification */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-800/60 border border-blue-600/40 text-xs font-bold text-cyan-300 uppercase tracking-wider shadow-xs">
             <Shield size={13} className="text-cyan-400" />

@@ -1,4 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Download } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
@@ -80,6 +85,17 @@ const VENDOR_EXPORT_FIELDS = [
   { key: "createdAt", label: "Registration Date", category: "System", defaultSelected: true, extractor: (v) => (v.createdAt ? new Date(v.createdAt).toLocaleDateString("en-GB") : "—") },
 ];
 
+const resolveVendorStatusFromTab = (tabParam) => {
+  if (tabParam === "registered") return "Registered";
+  if (tabParam === "pending") return "Pending Verification";
+  if (tabParam === "mou") return "MOU Pending";
+  if (tabParam === "approved") return "Approved";
+  if (tabParam === "suspended") return "Suspended";
+  if (tabParam === "rejected") return "Rejected";
+  if (tabParam === "suspended-rejected") return "Suspended & Rejected";
+  return "All";
+};
+
 export default function AdminVendorsList() {
   const [vendors, setVendors] = useState([]);
   const [applications, setApplications] = useState([]);
@@ -111,15 +127,9 @@ export default function AdminVendorsList() {
   const [newVendorForm, setNewVendorForm] = useState(DEFAULT_NEW_VENDOR);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [statusFilter, setStatusFilter] = useState(() => {
-    const tabParam = new URLSearchParams(window.location.search).get("tab");
-    if (tabParam === "registered") return "Registered";
-    if (tabParam === "pending") return "Pending Verification";
-    if (tabParam === "mou") return "MOU Pending";
-    if (tabParam === "approved") return "Approved";
-    if (tabParam === "suspended-rejected") return "Suspended & Rejected";
-    return "All";
-  });
+  const [statusFilter, setStatusFilter] = useState(() =>
+    resolveVendorStatusFromTab(new URLSearchParams(window.location.search).get("tab"))
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [stateFilter, setStateFilter] = useState("All");
@@ -166,42 +176,52 @@ export default function AdminVendorsList() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadData();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loadData]);
 
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam === "registered") setStatusFilter("Registered");
-    else if (tabParam === "pending") setStatusFilter("Pending Verification");
-    else if (tabParam === "mou") setStatusFilter("MOU Pending");
-    else if (tabParam === "approved") setStatusFilter("Approved");
-    else if (tabParam === "suspended") setStatusFilter("Suspended");
-    else if (tabParam === "rejected") setStatusFilter("Rejected");
-    else if (tabParam === "suspended-rejected") setStatusFilter("Suspended & Rejected");
-    else if (!tabParam || tabParam === "all") setStatusFilter("All");
+  const tabParam = searchParams.get("tab");
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    setStatusFilter(resolveVendorStatusFromTab(tabParam));
+  }
 
-    const vendorParam = searchParams.get("vendorId");
-    const viewParam = searchParams.get("view");
-    if (vendorParam && vendors.length > 0) {
-      const normalizedParam = String(vendorParam).trim().toLowerCase();
-      const target = vendors.find((v) =>
-        [v.id, v.vendorId, v._id].some((k) => k && String(k).trim().toLowerCase() === normalizedParam)
-      );
-      if (target) {
-        setSelectedVendor(target);
-        if (viewParam === "docs") {
-          setShowDocsPage(true);
-          setShowViewMouPage(false);
-        } else if (viewParam === "mou") {
-          setShowDocsPage(false);
-          setShowViewMouPage(true);
-        } else {
-          setShowDocsPage(false);
-          setShowViewMouPage(false);
-        }
+  const vendorParam = searchParams.get("vendorId");
+  const viewParam = searchParams.get("view");
+  const matchedVendorByParam =
+    vendorParam && vendors.length > 0
+      ? vendors.find((v) =>
+          [v.id, v.vendorId, v._id].some(
+            (k) => k && String(k).trim().toLowerCase() === String(vendorParam).trim().toLowerCase()
+          )
+        ) || null
+      : null;
+  const vendorSyncKey = matchedVendorByParam
+    ? `${matchedVendorByParam.id || matchedVendorByParam.vendorId || matchedVendorByParam._id}|${viewParam || ""}`
+    : "";
+  const [prevVendorSyncKey, setPrevVendorSyncKey] = useState("");
+  if (vendorSyncKey !== prevVendorSyncKey) {
+    setPrevVendorSyncKey(vendorSyncKey);
+    if (matchedVendorByParam) {
+      setSelectedVendor(matchedVendorByParam);
+      if (viewParam === "docs") {
+        setShowDocsPage(true);
+        setShowViewMouPage(false);
+      } else if (viewParam === "mou") {
+        setShowDocsPage(false);
+        setShowViewMouPage(true);
+      } else {
+        setShowDocsPage(false);
+        setShowViewMouPage(false);
       }
     }
-  }, [searchParams, vendors]);
+  }
 
   const availableStates = useMemo(
     () => Array.from(new Set(vendors.map((v) => v.state).filter(Boolean))),

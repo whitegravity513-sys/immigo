@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   X,
   Download,
   FileSpreadsheet,
   CheckSquare,
   Square,
-  Filter,
   Search,
   Check,
   AlertCircle,
@@ -27,17 +26,22 @@ export default function ExcelExportModal({
   const [selectedKeys, setSelectedKeys] = useState([]);
   const [fieldSearch, setFieldSearch] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [prevOpenState, setPrevOpenState] = useState(false);
+  const [prevFields, setPrevFields] = useState(availableFields);
 
-  // Initialize selected fields with defaultSelected or all fields
-  useEffect(() => {
-    if (isOpen && availableFields.length > 0) {
+  if ((isOpen && !prevOpenState) || (isOpen && availableFields !== prevFields)) {
+    setPrevOpenState(true);
+    setPrevFields(availableFields);
+    if (availableFields.length > 0) {
       const defaultSelected = availableFields
         .filter((f) => f.defaultSelected !== false)
         .map((f) => f.key);
       setSelectedKeys(defaultSelected.length > 0 ? defaultSelected : availableFields.map((f) => f.key));
       setFieldSearch("");
     }
-  }, [isOpen, availableFields]);
+  } else if (!isOpen && prevOpenState) {
+    setPrevOpenState(false);
+  }
 
   const filteredFields = useMemo(() => {
     if (!fieldSearch.trim()) return availableFields;
@@ -80,7 +84,6 @@ export default function ExcelExportModal({
 
     setExporting(true);
     try {
-      // Build selected field map
       const selectedFieldDefs = availableFields.filter((f) =>
         selectedKeys.includes(f.key)
       );
@@ -109,7 +112,6 @@ export default function ExcelExportModal({
 
       const worksheet = XLSX.utils.json_to_sheet(rows);
 
-      // Auto-fit column widths
       const colWidths = Object.keys(rows[0] || {}).map((key) => {
         const maxLen = Math.max(
           key.length,
@@ -155,7 +157,6 @@ export default function ExcelExportModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shadow-2xs">
@@ -176,9 +177,7 @@ export default function ExcelExportModal({
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-5 overflow-y-auto space-y-4 flex-1">
-          {/* Optional Parent Filters (e.g. Status filter, Date range) */}
           {additionalFiltersNode && (
             <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
@@ -188,7 +187,6 @@ export default function ExcelExportModal({
             </div>
           )}
 
-          {/* Field Selection Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-800">
@@ -220,7 +218,6 @@ export default function ExcelExportModal({
             </div>
           </div>
 
-          {/* Field Search */}
           {availableFields.length > 8 && (
             <div className="relative">
               <Search
@@ -237,7 +234,6 @@ export default function ExcelExportModal({
             </div>
           )}
 
-          {/* Grid of Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">
             {filteredFields.map((field) => {
               const isSelected = selectedKeys.includes(field.key);
@@ -288,7 +284,6 @@ export default function ExcelExportModal({
             </div>
           )}
 
-          {/* Export Records Notice */}
           <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
             <span>
               Total records to be exported:{" "}
@@ -298,7 +293,6 @@ export default function ExcelExportModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <button
             type="button"

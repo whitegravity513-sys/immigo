@@ -1,21 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-  UserPlus,
   Search,
   CheckCircle2,
   XCircle,
-  Eye,
   MessageSquare,
   RefreshCw,
-  Mail,
-  Phone,
-  Calendar,
   AlertCircle,
   X,
-  Check,
-  FileText,
-  ShieldAlert,
   Trash2,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
@@ -29,7 +21,6 @@ export default function AdminNewRegistrations() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [remarksModalOpen, setRemarksModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -37,7 +28,7 @@ export default function AdminNewRegistrations() {
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiClient.get(
@@ -50,7 +41,6 @@ export default function AdminNewRegistrations() {
           const match = res.data.candidates.find((c) => c.candidateId === highlightedId);
           if (match) {
             setSelectedCandidate(match);
-            setDetailsModalOpen(true);
           }
         }
       }
@@ -59,11 +49,17 @@ export default function AdminNewRegistrations() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, highlightedId]);
 
   useEffect(() => {
-    fetchRegistrations();
-  }, [search]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchRegistrations();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchRegistrations]);
 
   const handleApprove = async (cand) => {
     setActionLoading(true);
@@ -74,7 +70,6 @@ export default function AdminNewRegistrations() {
           type: "success",
           message: `Candidate ${cand.fullName} (${cand.candidateId}) approved successfully! Approval email sent to ${cand.email}.`,
         });
-        setDetailsModalOpen(false);
         fetchRegistrations();
       }
     } catch (err) {
@@ -104,7 +99,6 @@ export default function AdminNewRegistrations() {
           message: `Registration for ${selectedCandidate.fullName} rejected. Rejection notification sent.`,
         });
         setRejectModalOpen(false);
-        setDetailsModalOpen(false);
         setRejectionReason("");
         fetchRegistrations();
       }
@@ -133,7 +127,7 @@ export default function AdminNewRegistrations() {
         setRemarksModalOpen(false);
         fetchRegistrations();
       }
-    } catch (err) {
+    } catch {
       setNotification({
         type: "error",
         message: "Failed to update remarks.",

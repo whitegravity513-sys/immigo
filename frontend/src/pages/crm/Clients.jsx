@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -63,7 +63,6 @@ export function Clients() {
   const navigate = useNavigate();
   const { showToast } = useCrmToast();
 
-  
   const [addProjectTargetClient, setAddProjectTargetClient] = useState(null);
 
   const [clients, setClients] = useState([]);
@@ -71,25 +70,21 @@ export function Clients() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  
   const searchQuery = searchParams.get("search") || "";
   const countryFilter = searchParams.get("country") || "All";
   const statusFilter = searchParams.get("status") || "All";
   const currentPage = Number(searchParams.get("page")) || 1;
   const pageSize = 10;
 
-  
   const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteClientTarget, setDeleteClientTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchClients();
-  }, [searchQuery, countryFilter, statusFilter, currentPage]);
+  const fetchClientsRef = useRef(null);
 
-  const fetchClients = async () => {
-    setLoading(true);
+  const fetchClients = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const res = await crmClientService.getClients({
         search: searchQuery,
@@ -103,11 +98,41 @@ export function Clients() {
       setTotalPages(res.totalPages);
     } catch (err) {
       console.error("Error fetching clients:", err);
-      showToast("Failed to load clients list", "error");
+      if (!silent) showToast("Failed to load clients list", "error");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [searchQuery, countryFilter, statusFilter, currentPage, showToast]);
+
+  useEffect(() => {
+    fetchClientsRef.current = fetchClients;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchClients();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchClients]);
+
+  useEffect(() => {
+    let timer = null;
+    const handleLiveUpdate = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        fetchClientsRef.current?.({ silent: true });
+      }, 200);
+    };
+    const events = ["immigo:project-update", "immigo:dashboard-update", "immigo:vendor-hr-refresh"];
+    events.forEach((evt) => window.addEventListener(evt, handleLiveUpdate));
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach((evt) => window.removeEventListener(evt, handleLiveUpdate));
+    };
+  }, []);
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
@@ -299,7 +324,6 @@ export function Clients() {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-6">
@@ -344,7 +368,6 @@ export function Clients() {
                       key={client.id}
                       className="hover:bg-blue-50/30 transition-colors duration-100"
                     >
-                      {}
                       <td className="py-1.5 px-3">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[10px] flex items-center justify-center shrink-0">
@@ -365,7 +388,6 @@ export function Clients() {
                         </div>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         {primaryContact ? (
                           <div className="min-w-0">
@@ -381,7 +403,6 @@ export function Clients() {
                         )}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200 text-gray-700 font-medium text-[11px]">
                           <MapPin size={11} className="text-blue-500" />
@@ -389,37 +410,31 @@ export function Clients() {
                         </span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-center font-bold text-gray-700">
                         <span className="inline-flex items-center justify-center min-w-6 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
                           {client.projects?.length || 0}
                         </span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-center">
                         <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
                           {manpowerCount.toLocaleString()}
                         </span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <StatusBadge status={client.status} size="sm" />
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-gray-500 font-medium">
                         {formatDate(client.createdAt)}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-center">
                         <div className="relative inline-flex items-center justify-center">
-                          <button type="button" onClick={() => setOpenMenuId(isMenuOpen ? null : client.id)} className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                              isMenuOpen
-                                ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
-                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                          <button type="button" onClick={() => setOpenMenuId(isMenuOpen ? null : client.id)} className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer ${isMenuOpen
+                            ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
+                            : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
                             }`}
                             title="Actions"
                           >
@@ -433,11 +448,10 @@ export function Clients() {
                                 onClick={() => setOpenMenuId(null)}
                               />
                               <div
-                                className={`absolute right-0 ${
-                                  isNearBottom
-                                    ? "bottom-full mb-1.5"
-                                    : "top-full mt-1.5"
-                                } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
+                                className={`absolute right-0 ${isNearBottom
+                                  ? "bottom-full mb-1.5"
+                                  : "top-full mt-1.5"
+                                  } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
                               >
                                 <div className="py-1">
                                   <Link
@@ -494,7 +508,6 @@ export function Clients() {
           </div>
         )}
 
-        {}
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -504,7 +517,6 @@ export function Clients() {
         />
       </div>
 
-      {}
       <ConfirmDialog
         isOpen={deleteClientTarget !== null}
         onClose={() => setDeleteClientTarget(null)}

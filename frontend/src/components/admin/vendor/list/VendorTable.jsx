@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Building2, MoreVertical, Eye, Edit, Ban, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import VendorStatusBadge from "./VendorStatusBadge.jsx";
 

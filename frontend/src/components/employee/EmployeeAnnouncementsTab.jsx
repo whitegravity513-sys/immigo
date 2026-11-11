@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Megaphone,
   Bell,
   Calendar,
-  AlertCircle,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -41,7 +40,6 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
 
   return (
     <div className="w-full min-h-[calc(100vh-125px)] flex flex-col space-y-3 text-left">
-      {/* Header bar */}
       <div className="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/80 flex items-center justify-center shrink-0">
@@ -60,7 +58,6 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
           </div>
         </div>
 
-        {/* Filter pills */}
         {categories.length > 1 && (
           <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar py-0.5">
             {categories.map((cat) => (
@@ -81,7 +78,6 @@ export default function EmployeeAnnouncementsTab({ announcements = [], fmtDate }
         )}
       </div>
 
-      {/* Announcements List Container */}
       <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs flex-1 flex flex-col overflow-hidden">
         {filteredAnnouncements.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">

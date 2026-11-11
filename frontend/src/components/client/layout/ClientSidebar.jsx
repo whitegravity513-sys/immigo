@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,22 +5,21 @@ import {
   Plus,
   ArrowLeft,
   X,
-  Shield,
   LogOut,
   Receipt,
   CreditCard,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 export function ClientSidebar({
   mobileOpen = false,
-  setMobileOpen = () => {},
+  setMobileOpen = () => { },
   collapsed = false,
-  setCollapsed = () => {},
+
 }) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const currentPath = location.pathname;
   const searchParams = new URLSearchParams(location.search);
   const currentView = searchParams.get("view") || "";
@@ -52,10 +50,10 @@ export function ClientSidebar({
     return currentPath === path;
   };
 
-  const adminName =
-    (typeof user?.name === "string" ? user.name : user?.name?.first) ||
-    user?.email?.split("@")[0] ||
-    "Client Lead";
+
+
+
+
 
   return (
     <>
@@ -68,15 +66,12 @@ export function ClientSidebar({
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none ${
-          collapsed ? "w-[72px]" : "w-[240px]"
-        } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 transition-all duration-300 ease-in-out border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none ${collapsed ? "w-[72px]" : "w-[240px]"
+          } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {}
         <div
-          className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
-            collapsed ? "justify-center" : "justify-between"
-          }`}
+          className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${collapsed ? "justify-center" : "justify-between"
+            }`}
         >
           <Link
             to="/client/dashboard"
@@ -100,16 +95,13 @@ export function ClientSidebar({
           )}
         </div>
 
-        {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
-          {}
           <div className="mb-2.5">
             <Link
               to="/admin/dashboard"
               onClick={() => setMobileOpen(false)}
-              className={`w-full flex items-center gap-2 px-2.5 py-2 text-[11px] font-bold text-blue-800 bg-white/90 hover:bg-white hover:text-blue-900 border border-blue-200/80 rounded-xl transition-colors shadow-2xs ${
-                collapsed ? "justify-center" : ""
-              }`}
+              className={`w-full flex items-center gap-2 px-2.5 py-2 text-[11px] font-bold text-blue-800 bg-white/90 hover:bg-white hover:text-blue-900 border border-blue-200/80 rounded-xl transition-colors shadow-2xs ${collapsed ? "justify-center" : ""
+                }`}
               title="Return to Main Admin Dashboard"
             >
               <ArrowLeft size={13} className="shrink-0 text-blue-600" />
@@ -137,11 +129,10 @@ export function ClientSidebar({
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                  active
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${active
                     ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
                     : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
-                }`}
+                  }`}
                 title={collapsed ? item.label : undefined}
               >
                 <Icon size={16} className={`shrink-0 ${active ? "text-white" : "text-slate-500"}`} />
@@ -156,14 +147,12 @@ export function ClientSidebar({
           })}
         </div>
 
-        {}
         <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
           <button
             type="button"
             onClick={logout}
-            className={`flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group ${
-              collapsed ? "w-8 h-8 px-0" : "w-full px-3"
-            }`}
+            className={`flex items-center justify-center gap-2 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-xs transition-all duration-150 cursor-pointer active:scale-95 group ${collapsed ? "w-8 h-8 px-0" : "w-full px-3"
+              }`}
             title="Sign Out"
           >
             <LogOut size={13} className="shrink-0 transition-transform group-hover:-translate-x-0.5" />

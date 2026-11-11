@@ -11,6 +11,30 @@ import {
   resolveProjectMilestonesData,
   normalizeMilestoneStages,
 } from "../utils/projectResolver.js";
+import { checkApplicationRefundLock } from "../utils/refundLock.js";
+import { emitRealtimeEvent } from "../services/realtime.service.js";
+
+const emitCandidateSync = (appOrCandidate) => {
+  emitRealtimeEvent({
+    events: [
+      "immigo:candidate-update",
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    vendorId:
+      appOrCandidate?.vendorId &&
+      appOrCandidate.vendorId !== "DIRECT" &&
+      appOrCandidate.vendorId !== "undefined"
+        ? String(appOrCandidate.vendorId)
+        : null,
+    candidateId: appOrCandidate?.candidateId ? String(appOrCandidate.candidateId) : null,
+  });
+};
 import {
   sendCandidateApprovalEmail,
   sendCandidateRejectionEmail,
@@ -202,6 +226,8 @@ export const approveCandidateRegistration = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitCandidateSync(candidate);
+
   return res.status(200).json({
     success: true,
     message: `Candidate ${candidate.fullName} (${candidate.candidateId}) approved successfully. Login access activated.`,
@@ -251,6 +277,8 @@ export const rejectCandidateRegistration = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitCandidateSync(candidate);
+
   return res.status(200).json({
     success: true,
     message: `Candidate registration has been rejected. Notification sent.`,
@@ -272,6 +300,8 @@ export const updateCandidateInternalRemarks = asyncHandler(async (req, res) => {
 
   candidate.internalRemarks = internalRemarks || "";
   await candidate.save();
+
+  emitCandidateSync(candidate);
 
   return res.status(200).json({
     success: true,
@@ -302,8 +332,6 @@ export const verifyCandidateDocument = asyncHandler(async (req, res) => {
 
   const docs = candidate.documents || [];
   const anyRejected = docs.some((d) => d.status === "Re-upload Required" || d.status === "Rejected");
-  const anyPending = docs.some((d) => d.status === "Pending Verification");
-  const hasVerified = docs.some((d) => d.status === "Verified");
 
   if (anyRejected) {
     candidate.documentStatus = "Re-upload Required";
@@ -332,6 +360,8 @@ export const verifyCandidateDocument = asyncHandler(async (req, res) => {
       performedByRole: "admin",
     });
   } catch {}
+
+  emitCandidateSync(candidate);
 
   return res.status(200).json({
     success: true,
@@ -381,6 +411,8 @@ export const rejectCandidateDocument = asyncHandler(async (req, res) => {
       performedByRole: "admin",
     });
   } catch {}
+
+  emitCandidateSync(candidate);
 
   return res.status(200).json({
     success: true,
@@ -523,6 +555,14 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Application not found." });
   }
 
+  const lockState = await checkApplicationRefundLock(app);
+  if (lockState.locked) {
+    return res.status(409).json({
+      success: false,
+      message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}). Resolve or reject the refund claim first.`,
+    });
+  }
+
   const validStatuses = [
     "Applied",
     "Shortlisted",
@@ -629,6 +669,8 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitCandidateSync(app);
+
   return res.status(200).json({
     success: true,
     message: `Application updated to ${app.status}.`,
@@ -650,6 +692,14 @@ export const scheduleCandidateInterview = asyncHandler(async (req, res) => {
   const app = await CandidateApplication.findOne(query);
   if (!app) {
     return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const lockState = await checkApplicationRefundLock(app);
+  if (lockState.locked) {
+    return res.status(409).json({
+      success: false,
+      message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}).`,
+    });
   }
 
   const isReschedule = app.status === "Interview Scheduled" || app.status === "Interview Rescheduled";
@@ -695,6 +745,8 @@ export const scheduleCandidateInterview = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitCandidateSync(app);
+
   return res.status(200).json({
     success: true,
     message: `Interview has been scheduled and details sent to ${app.candidateEmail}.`,
@@ -717,7 +769,10 @@ export const getApplicationMilestones = asyncHandler(async (req, res) => {
       applicationId: crmApp.applicationId || crmApp._id.toString(),
       candidateId: String(crmApp.candidateId || ""),
       candidateName: crmApp.candidateName || "Candidate",
-      candidateEmail: crmApp.candidateData?.email || `${crmApp.candidateId}@candidate.local`,
+      candidateEmail:
+        crmApp.candidateData?.email && !String(crmApp.candidateData.email).includes("@candidate.local")
+          ? crmApp.candidateData.email
+          : "",
       candidatePhone: crmApp.candidateData?.phone || "",
       projectId: String(crmApp.projectId || ""),
       projectName: crmApp.projectName || "Overseas Project",
@@ -766,6 +821,14 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
   const app = await CandidateApplication.findOne(query);
   if (!app) {
     return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const lockState = await checkApplicationRefundLock(app);
+  if (lockState.locked) {
+    return res.status(409).json({
+      success: false,
+      message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}).`,
+    });
   }
 
   const rawFormatted = (milestones || []).map((m, mIdx) => {
@@ -888,6 +951,8 @@ export const updateApplicationMilestones = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitCandidateSync(app);
+
   return res.status(200).json({
     success: true,
     message: "Milestones and processing stages successfully updated.",
@@ -905,6 +970,14 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
   const app = await CandidateApplication.findOne(query);
   if (!app) {
     return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const lockState = await checkApplicationRefundLock(app);
+  if (lockState.locked) {
+    return res.status(409).json({
+      success: false,
+      message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}). Processing stages are frozen.`,
+    });
   }
 
   const milestones = [...(app.processMilestones || [])];
@@ -1030,6 +1103,8 @@ export const updateStageStatus = asyncHandler(async (req, res) => {
     console.warn("Notification error during stage update:", notifErr);
   }
 
+  emitCandidateSync(app);
+
   return res.status(200).json({
     success: true,
     message: "Stage updated successfully.",
@@ -1047,6 +1122,14 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
   const app = await CandidateApplication.findOne(query);
   if (!app) {
     return res.status(404).json({ success: false, message: "Application not found." });
+  }
+
+  const lockState = await checkApplicationRefundLock(app);
+  if (lockState.locked) {
+    return res.status(409).json({
+      success: false,
+      message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}). Processing stages are frozen.`,
+    });
   }
 
   const milestones = [...(app.processMilestones || [])];
@@ -1175,6 +1258,8 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
     console.warn("Notification error during payment recording:", notifErr);
   }
 
+  emitCandidateSync(app);
+
   return res.status(200).json({
     success: true,
     message: "Payment successfully recorded and receipt generated.",
@@ -1213,6 +1298,8 @@ export const deleteCandidate = asyncHandler(async (req, res) => {
   }
 
   await Candidate.deleteOne({ _id: candidate._id });
+
+  emitCandidateSync(candidate);
 
   return res.status(200).json({
     success: true,

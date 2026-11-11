@@ -1,31 +1,29 @@
-import React, { useState, useEffect, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import {
   Calendar,
   Clock,
   Video,
-  Users,
   CheckCircle2,
   XCircle,
   AlertCircle,
   ExternalLink,
   Plus,
   Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   CalendarDays,
-  Edit3,
   RefreshCw,
   Award,
-  CheckSquare,
   X,
-  Building2,
-  User,
-  FileText,
-  Radio,
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 import DynamicMeetingParticipantSelector from "./DynamicMeetingParticipantSelector.jsx";
 import DateInput, { MonthYearSelector } from "../DateInput.jsx";
 
@@ -33,7 +31,6 @@ export default function MeetingCalendarSection({
   role = "ADMIN",
   assignedVendors = [],
   filterCandidateId = null,
-  compact = false,
 }) {
   const { user, isVendor, role: authRole } = useAuth();
   const isVendorUser = Boolean(
@@ -41,8 +38,8 @@ export default function MeetingCalendarSection({
   );
   const isVendorHRUser = Boolean(
     !isVendorUser &&
-      (user?.hrType === "VENDOR_HR" ||
-        String(role || authRole || "").toUpperCase() === "VENDOR_HR")
+    (user?.hrType === "VENDOR_HR" ||
+      String(role || authRole || "").toUpperCase() === "VENDOR_HR")
   );
   const vendorSelfId = user?.vendorId || user?.id || user?._id || assignedVendors[0] || "";
   const [stats, setStats] = useState({
@@ -56,7 +53,7 @@ export default function MeetingCalendarSection({
   });
 
   const [meetings, setMeetings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("day");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDateStr, setSelectedDateStr] = useState(
@@ -76,7 +73,11 @@ export default function MeetingCalendarSection({
 
   const [scheduleForm, setScheduleForm] = useState({
     title: "",
-    meetingType: isVendorUser ? "INTERNAL_HR" : "CANDIDATE_INTERVIEW",
+    meetingType: isVendorUser
+      ? "INTERNAL_HR"
+      : isVendorHRUser
+        ? "ADMIN_DISCUSSION"
+        : "CANDIDATE_INTERVIEW",
     date: new Date().toISOString().split("T")[0],
     startTime: "10:00",
     endTime: "11:00",
@@ -85,7 +86,7 @@ export default function MeetingCalendarSection({
     candidateId: filterCandidateId || "",
     candidateName: "",
     candidateEmail: "",
-    vendorId: isVendorUser ? vendorSelfId : assignedVendors.length === 1 ? assignedVendors[0] : "",
+    vendorId: isVendorUser ? vendorSelfId : "",
     vendorName: isVendorUser ? user?.companyName || "" : "",
     projectId: "",
     projectName: "",
@@ -98,7 +99,7 @@ export default function MeetingCalendarSection({
     candidateId: filterCandidateId || "",
     candidateName: "",
     candidateEmail: "",
-    vendorId: assignedVendors.length === 1 ? assignedVendors[0] : "",
+    vendorId: "",
     vendorName: "",
     jobTitle: "",
     projectName: "",
@@ -106,12 +107,25 @@ export default function MeetingCalendarSection({
 
   useEffect(() => {
     if (isVendorUser) {
-      setTargetMode("SPECIFIC");
-      setScheduleForm((prev) =>
-        prev.meetingType === "INTERNAL_HR" ? prev : { ...prev, meetingType: "INTERNAL_HR" }
-      );
+      const t = setTimeout(() => {
+        setTargetMode("SPECIFIC");
+        setScheduleForm((prev) =>
+          prev.meetingType === "INTERNAL_HR" ? prev : { ...prev, meetingType: "INTERNAL_HR" }
+        );
+      }, 0);
+      return () => clearTimeout(t);
     }
-  }, [isVendorUser]);
+    if (isVendorHRUser) {
+      const t = setTimeout(() => {
+        setScheduleForm((prev) =>
+          prev.meetingType === "CANDIDATE_INTERVIEW"
+            ? { ...prev, meetingType: "ADMIN_DISCUSSION" }
+            : prev
+        );
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [isVendorUser, isVendorHRUser]);
 
   const syncSharedProjectFromParticipants = (participants, currentProjectId) => {
     const allProjs = [];
@@ -142,6 +156,7 @@ export default function MeetingCalendarSection({
     setTargetMode("SPECIFIC");
     const defaultTitles = {
       CANDIDATE_INTERVIEW: "Candidate Interview Round",
+      ADMIN_DISCUSSION: "Admin & Operations Review Sync",
       VENDOR_DISCUSSION: "Vendor Agency Coordination Sync",
       INTERNAL_HR: isVendorUser
         ? "Vendor HR Project Coordination Sync"
@@ -152,6 +167,11 @@ export default function MeetingCalendarSection({
     setScheduleForm((prev) => ({
       ...prev,
       meetingType: newType,
+      vendorId: isVendorUser ? prev.vendorId : "",
+      vendorName: isVendorUser ? prev.vendorName : "",
+      candidateId: "",
+      candidateName: "",
+      candidateEmail: "",
       projectId: "",
       projectName: "",
       title: defaultTitles[newType] || prev.title,
@@ -205,9 +225,8 @@ export default function MeetingCalendarSection({
         candidateEmail: cand.candidateEmail || "",
         vendorId: cand.vendorId || "",
         vendorName: cand.vendorName || "",
-        title: `Interview: ${cand.candidateName}${
-          cand.jobTitle ? ` - ${cand.jobTitle}` : ""
-        }`,
+        title: `Interview: ${cand.candidateName}${cand.jobTitle ? ` - ${cand.jobTitle}` : ""
+          }`,
       }));
     }
   };
@@ -228,20 +247,21 @@ export default function MeetingCalendarSection({
     outcomeRemarks: "",
   });
 
-  useEffect(() => {
-    loadData();
-  }, [currentDate.getMonth(), currentDate.getFullYear(), statusFilter]);
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+
+  const loadDataRef = useRef(null);
 
   const showToast = (msg, type = "success") => {
     setNotice({ msg, type });
     setTimeout(() => setNotice(null), 4000);
   };
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const year = currentDate.getFullYear();
-      const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+      const year = currentYear;
+      const month = String(currentMonth + 1).padStart(2, "0");
 
       const [statsData, meetingsData] = await Promise.all([
         meetingService.getCalendarStats().catch(() => ({ stats: {} })),
@@ -259,19 +279,38 @@ export default function MeetingCalendarSection({
       const list = Array.isArray(meetingsData)
         ? meetingsData
         : Array.isArray(meetingsData?.meetings)
-        ? meetingsData.meetings
-        : Array.isArray(meetingsData?.data)
-        ? meetingsData.data
-        : [];
+          ? meetingsData.meetings
+          : Array.isArray(meetingsData?.data)
+            ? meetingsData.data
+            : [];
       setMeetings(list);
     } catch (err) {
       console.error("Failed to load meetings:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentMonth, currentYear, statusFilter, filterCandidateId]);
 
-  // Month Calendar Grid Calculation
+  useEffect(() => {
+    loadDataRef.current = loadData;
+  }, [loadData]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadDataRef.current?.();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [currentMonth, currentYear, statusFilter, filterCandidateId]);
+
+  useEffect(() => {
+    const handleMeetingUpdate = (e) => {
+      if (e?.detail?.source === "calendar") return;
+      loadDataRef.current?.();
+    };
+    window.addEventListener("immigo:meeting-update", handleMeetingUpdate);
+    return () => window.removeEventListener("immigo:meeting-update", handleMeetingUpdate);
+  }, []);
+
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -282,7 +321,6 @@ export default function MeetingCalendarSection({
 
     const days = [];
 
-    // Previous month filler days
     for (let i = firstDay - 1; i >= 0; i--) {
       const d = daysInPrevMonth - i;
       const prevDate = new Date(year, month - 1, d);
@@ -293,10 +331,7 @@ export default function MeetingCalendarSection({
       });
     }
 
-    // Current month days
     for (let d = 1; d <= daysInMonth; d++) {
-      const thisDate = new Date(year, month, d);
-      // Format as YYYY-MM-DD
       const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       days.push({
         dayNumber: d,
@@ -305,7 +340,6 @@ export default function MeetingCalendarSection({
       });
     }
 
-    // Next month filler days to complete grid
     const remaining = (7 - (days.length % 7)) % 7;
     for (let d = 1; d <= remaining; d++) {
       const nextDate = new Date(year, month + 1, d);
@@ -379,14 +413,64 @@ export default function MeetingCalendarSection({
       const targetEmployees = isVendorUser
         ? []
         : selectedParticipants
-            .filter((p) => p.role === "EMPLOYEE" || effectiveMeetingType === "EMPLOYEE")
-            .map((p) => p.id || p._id);
+          .filter((p) => p.role === "EMPLOYEE" || effectiveMeetingType === "EMPLOYEE")
+          .map((p) => p.id || p._id);
+
+      const targetAdmins = isVendorUser
+        ? []
+        : selectedParticipants
+          .filter(
+            (p) =>
+              p.role === "ADMIN" ||
+              p.role === "SUPER_ADMIN" ||
+              effectiveMeetingType === "ADMIN_DISCUSSION"
+          )
+          .map((p) => p.id || p._id)
+          .filter(Boolean);
+
+      if (
+        !isVendorUser &&
+        effectiveMeetingType === "ADMIN_DISCUSSION" &&
+        effectiveTargetMode === "SPECIFIC" &&
+        targetAdmins.length === 0
+      ) {
+        showToast("Please select at least one Admin or Super Admin, or choose All Admins.", "error");
+        setSubmitting(false);
+        return;
+      }
 
       const targetVendors = isVendorUser
         ? [vendorSelfId].filter(Boolean)
         : selectedParticipants
-            .filter((p) => p.role === "VENDOR" || effectiveMeetingType === "VENDOR_DISCUSSION")
-            .map((p) => p.code || p.id || p.vendorId);
+          .filter((p) => p.role === "VENDOR" || effectiveMeetingType === "VENDOR_DISCUSSION")
+          .map((p) => p.code || p.id || p.vendorId);
+
+      if (
+        !isVendorUser &&
+        effectiveMeetingType === "VENDOR_DISCUSSION" &&
+        effectiveTargetMode === "SPECIFIC" &&
+        targetVendors.length === 0
+      ) {
+        showToast("Please select at least one Vendor Agency, or choose All Vendors.", "error");
+        setSubmitting(false);
+        return;
+      }
+
+      if (
+        !isVendorUser &&
+        effectiveMeetingType === "INTERNAL_HR" &&
+        effectiveTargetMode === "SPECIFIC" &&
+        targetHRs.length === 0
+      ) {
+        showToast("Please select at least one HR member, or choose All HRs.", "error");
+        setSubmitting(false);
+        return;
+      }
+
+      const singleVendorParticipant =
+        effectiveMeetingType === "VENDOR_DISCUSSION" && selectedParticipants.length === 1
+          ? selectedParticipants[0]
+          : null;
 
       const attendees = selectedParticipants.map((p) => ({
         id: p.id || p._id || p.code || "",
@@ -421,6 +505,7 @@ export default function MeetingCalendarSection({
         targetEmployees,
         targetVendors,
         targetHRs,
+        targetAdmins,
         hrId: targetHRs[0] || "",
         hrName: hrNames,
         projectId: projectSync.projectId || "",
@@ -431,12 +516,20 @@ export default function MeetingCalendarSection({
         candidateEmail: isVendorUser ? "" : candidateData.candidateEmail || scheduleForm.candidateEmail || "",
         vendorId: isVendorUser
           ? vendorSelfId
-          : candidateData.vendorId ||
-            scheduleForm.vendorId ||
-            (targetVendors.length === 1 ? targetVendors[0] : ""),
+          : effectiveMeetingType === "CANDIDATE_INTERVIEW"
+            ? candidateData.vendorId || scheduleForm.vendorId || ""
+            : effectiveMeetingType === "VENDOR_DISCUSSION"
+              ? targetVendors.length === 1
+                ? targetVendors[0]
+                : ""
+              : "",
         vendorName: isVendorUser
           ? user?.companyName || scheduleForm.vendorName || ""
-          : candidateData.vendorName || scheduleForm.vendorName || "",
+          : effectiveMeetingType === "CANDIDATE_INTERVIEW"
+            ? candidateData.vendorName || scheduleForm.vendorName || ""
+            : singleVendorParticipant
+              ? singleVendorParticipant.companyName || singleVendorParticipant.name || ""
+              : "",
       };
 
       await meetingService.createMeeting(payload);
@@ -444,7 +537,11 @@ export default function MeetingCalendarSection({
       setShowScheduleModal(false);
       setScheduleForm({
         title: "",
-        meetingType: isVendorUser ? "INTERNAL_HR" : "CANDIDATE_INTERVIEW",
+        meetingType: isVendorUser
+          ? "INTERNAL_HR"
+          : isVendorHRUser
+            ? "ADMIN_DISCUSSION"
+            : "CANDIDATE_INTERVIEW",
         date: new Date().toISOString().split("T")[0],
         startTime: "10:00",
         endTime: "11:00",
@@ -471,7 +568,7 @@ export default function MeetingCalendarSection({
         projectName: "",
       });
       loadData();
-      window.dispatchEvent(new CustomEvent("immigo:meeting-update"));
+      window.dispatchEvent(new CustomEvent("immigo:meeting-update", { detail: { source: "calendar" } }));
     } catch (err) {
       showToast(err?.response?.data?.message || "Failed to schedule meeting", "error");
     } finally {
@@ -488,6 +585,7 @@ export default function MeetingCalendarSection({
       showToast("Meeting rescheduled successfully.");
       setMeetingToReschedule(null);
       loadData();
+      window.dispatchEvent(new CustomEvent("immigo:meeting-update", { detail: { source: "calendar" } }));
     } catch (err) {
       showToast(err?.response?.data?.message || "Failed to reschedule", "error");
     } finally {
@@ -505,6 +603,7 @@ export default function MeetingCalendarSection({
       setMeetingToCancel(null);
       setCancelReason("");
       loadData();
+      window.dispatchEvent(new CustomEvent("immigo:meeting-update", { detail: { source: "calendar" } }));
     } catch (err) {
       showToast(err?.response?.data?.message || "Failed to cancel meeting", "error");
     } finally {
@@ -521,6 +620,7 @@ export default function MeetingCalendarSection({
       showToast("Meeting attendance and outcome recorded.");
       setMeetingToRecordOutcome(null);
       loadData();
+      window.dispatchEvent(new CustomEvent("immigo:meeting-update", { detail: { source: "calendar" } }));
     } catch (err) {
       showToast(err?.response?.data?.message || "Failed to save outcome", "error");
     } finally {
@@ -532,21 +632,18 @@ export default function MeetingCalendarSection({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all duration-200">
-      {/* Toast Notice */}
       {notice && (
         <div
-          className={`px-4 py-2.5 text-xs font-bold text-center border-b flex items-center justify-center gap-2 ${
-            notice.type === "error"
-              ? "bg-rose-50 border-rose-200 text-rose-700"
-              : "bg-emerald-50 border-emerald-200 text-emerald-700"
-          }`}
+          className={`px-4 py-2.5 text-xs font-bold text-center border-b flex items-center justify-center gap-2 ${notice.type === "error"
+            ? "bg-rose-50 border-rose-200 text-rose-700"
+            : "bg-emerald-50 border-emerald-200 text-emerald-700"
+            }`}
         >
           {notice.type === "error" ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
           <span>{notice.msg}</span>
         </div>
       )}
 
-      {/* Header with Title, View Toggles & Schedule Button */}
       <div className="px-4 py-2.5 sm:px-5 sm:py-3 border-b border-slate-200 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-cyan-300 shadow-inner shrink-0">
@@ -568,15 +665,13 @@ export default function MeetingCalendarSection({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* View Mode Buttons: Day first, Month last */}
           <div className="flex items-center bg-white/10 p-0.5 rounded-lg border border-white/15 text-xs font-semibold">
             {["day", "week", "list", "month"].map((v) => (
               <button
                 key={v}
                 onClick={() => setViewMode(v)}
-                className={`px-2.5 py-1 rounded-md capitalize transition-all cursor-pointer ${
-                  viewMode === v ? "bg-white text-slate-900 font-bold shadow-xs" : "text-blue-100 hover:text-white"
-                }`}
+                className={`px-2.5 py-1 rounded-md capitalize transition-all cursor-pointer ${viewMode === v ? "bg-white text-slate-900 font-bold shadow-xs" : "text-blue-100 hover:text-white"
+                  }`}
               >
                 {v}
               </button>
@@ -593,7 +688,6 @@ export default function MeetingCalendarSection({
         </div>
       </div>
 
-      {/* Sleek Compact KPI Stats Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 p-2 px-4 bg-slate-50/70 border-b border-slate-200 text-xs">
         <div className="px-2.5 py-1 bg-white rounded-lg border border-slate-200/90 shadow-2xs flex items-center justify-between sm:flex-col sm:items-start">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Today's</span>
@@ -633,9 +727,7 @@ export default function MeetingCalendarSection({
         </div>
       </div>
 
-      {/* Main Calendar / View Container */}
       <div className="p-3 sm:p-4">
-        {/* Navigation Toolbar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 mb-3">
           <div className="flex items-center gap-1.5 flex-wrap">
             {viewMode === "month" ? (
@@ -669,15 +761,15 @@ export default function MeetingCalendarSection({
                 <span className="font-extrabold text-xs sm:text-sm text-slate-900 min-w-[130px] text-center">
                   {viewMode === "day"
                     ? currentDate.toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
                     : currentDate.toLocaleDateString("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      month: "long",
+                      year: "numeric",
+                    })}
                 </span>
                 <button
                   onClick={() => {
@@ -742,7 +834,6 @@ export default function MeetingCalendarSection({
           </div>
         </div>
 
-        {/* 1. DAY VIEW (DEFAULT) */}
         {viewMode === "day" && (
           <div className="space-y-2.5">
             {selectedDateMeetings.length === 0 ? (
@@ -785,7 +876,6 @@ export default function MeetingCalendarSection({
           </div>
         )}
 
-        {/* 2. WEEK VIEW */}
         {viewMode === "week" && (
           <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
             {weekDays.map((wDay) => {
@@ -795,9 +885,8 @@ export default function MeetingCalendarSection({
               return (
                 <div
                   key={wDay.dateStr}
-                  className={`p-2.5 rounded-xl border ${
-                    isToday ? "border-blue-400 bg-blue-50/20" : "border-slate-200 bg-white"
-                  }`}
+                  className={`p-2.5 rounded-xl border ${isToday ? "border-blue-400 bg-blue-50/20" : "border-slate-200 bg-white"
+                    }`}
                 >
                   <div className="flex items-center justify-between border-b pb-2 mb-2">
                     <div>
@@ -836,7 +925,6 @@ export default function MeetingCalendarSection({
           </div>
         )}
 
-        {/* 3. LIST VIEW */}
         {viewMode === "list" && (
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -861,7 +949,6 @@ export default function MeetingCalendarSection({
           </div>
         )}
 
-        {/* 4. MONTH VIEW (LAST) */}
         {viewMode === "month" && (
           <div className="space-y-4">
             <div className="grid grid-cols-7 gap-1 border border-slate-200 rounded-xl overflow-hidden bg-slate-100">
@@ -883,23 +970,20 @@ export default function MeetingCalendarSection({
                   <div
                     key={idx}
                     onClick={() => setSelectedDateStr(day.dateStr)}
-                    className={`min-h-[46px] sm:min-h-[58px] p-1.5 bg-white transition-all cursor-pointer flex flex-col justify-between ${
-                      !day.isCurrentMonth ? "opacity-35 bg-slate-50/50" : ""
-                    } ${
-                      isSelected
+                    className={`min-h-[46px] sm:min-h-[58px] p-1.5 bg-white transition-all cursor-pointer flex flex-col justify-between ${!day.isCurrentMonth ? "opacity-35 bg-slate-50/50" : ""
+                      } ${isSelected
                         ? "ring-2 ring-blue-600 ring-inset bg-blue-50/30"
                         : "hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${
-                          isToday
-                            ? "bg-blue-600 text-white"
-                            : isSelected
+                        className={`text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center ${isToday
+                          ? "bg-blue-600 text-white"
+                          : isSelected
                             ? "bg-blue-100 text-blue-900"
                             : "text-slate-700"
-                        }`}
+                          }`}
                       >
                         {day.dayNumber}
                       </span>
@@ -914,15 +998,14 @@ export default function MeetingCalendarSection({
                       {dayMeetings.slice(0, 2).map((m) => (
                         <div
                           key={m._id || m.id}
-                          className={`text-[9.5px] font-semibold px-1 py-0.5 rounded truncate border ${
-                            m.status === "COMPLETED"
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                              : m.status === "CANCELLED"
+                          className={`text-[9.5px] font-semibold px-1 py-0.5 rounded truncate border ${m.status === "COMPLETED"
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                            : m.status === "CANCELLED"
                               ? "bg-rose-50 text-rose-700 border-rose-200"
                               : m.status === "RESCHEDULED"
-                              ? "bg-amber-50 text-amber-800 border-amber-200"
-                              : "bg-blue-50 text-blue-800 border-blue-200"
-                          }`}
+                                ? "bg-amber-50 text-amber-800 border-amber-200"
+                                : "bg-blue-50 text-blue-800 border-blue-200"
+                            }`}
                           title={`${m.startTime} - ${m.title}`}
                         >
                           {m.startTime} {m.title}
@@ -939,7 +1022,6 @@ export default function MeetingCalendarSection({
               })}
             </div>
 
-            {/* Selected Date Meetings Section */}
             <div className="mt-4 pt-4 border-t border-slate-200">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
@@ -974,7 +1056,6 @@ export default function MeetingCalendarSection({
           </div>
         )}
 
-        {/* 4. LIST VIEW */}
         {viewMode === "list" && (
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1000,7 +1081,6 @@ export default function MeetingCalendarSection({
         )}
       </div>
 
-      {/* MODAL 1: SCHEDULE NEW MEETING */}
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-lg w-full shadow-2xl space-y-3 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
@@ -1053,11 +1133,13 @@ export default function MeetingCalendarSection({
                       onChange={(e) => handleMeetingTypeChange(e.target.value)}
                       className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white"
                     >
+                      {isVendorHRUser && <option value="ADMIN_DISCUSSION">Admin / Super Admin</option>}
                       <option value="CANDIDATE_INTERVIEW">Candidate Interview</option>
                       <option value="VENDOR_DISCUSSION">Vendor Discussion</option>
                       <option value="INTERNAL_HR">Internal HR Meeting</option>
-                      <option value="EMPLOYEE">Employee Discussion</option>
-                      <option value="GENERAL">General Conference</option>
+                      {!isVendorHRUser && <option value="ADMIN_DISCUSSION">Admin / Super Admin</option>}
+                      {!isVendorHRUser && <option value="EMPLOYEE">Employee Discussion</option>}
+                      {!isVendorHRUser && <option value="GENERAL">General Conference</option>}
                     </select>
                   )}
                 </div>
@@ -1169,7 +1251,6 @@ export default function MeetingCalendarSection({
         </div>
       )}
 
-      {/* MODAL 2: MEETING DETAILS */}
       {selectedMeetingDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-md w-full shadow-2xl space-y-3">
@@ -1236,12 +1317,29 @@ export default function MeetingCalendarSection({
                     <span className="font-bold text-slate-800">{selectedMeetingDetail.projectName}</span>
                   </div>
                 )}
-                {selectedMeetingDetail.vendorName && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-semibold">Vendor Partner:</span>
-                    <span className="font-bold text-slate-800">{selectedMeetingDetail.vendorName}</span>
+                {selectedMeetingDetail.vendorName &&
+                  selectedMeetingDetail.meetingType !== "ADMIN_DISCUSSION" && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-semibold">Vendor Partner:</span>
+                      <span className="font-bold text-slate-800">{selectedMeetingDetail.vendorName}</span>
+                    </div>
+                  )}
+                {(Array.isArray(selectedMeetingDetail.attendees) &&
+                  selectedMeetingDetail.attendees.length > 0) ||
+                  selectedMeetingDetail.meetingType === "ADMIN_DISCUSSION" ? (
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-slate-500 font-semibold shrink-0">Invited Attendees:</span>
+                    <span className="font-bold text-indigo-700 text-right">
+                      {Array.isArray(selectedMeetingDetail.attendees) &&
+                        selectedMeetingDetail.attendees.length > 0
+                        ? selectedMeetingDetail.attendees
+                          .map((a) => a.name || a.companyName)
+                          .filter(Boolean)
+                          .join(", ")
+                        : "All Admins / Super Admins"}
+                    </span>
                   </div>
-                )}
+                ) : null}
                 {selectedMeetingDetail.outcome && (
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500 font-semibold">Outcome:</span>
@@ -1273,7 +1371,6 @@ export default function MeetingCalendarSection({
         </div>
       )}
 
-      {/* MODAL 3: RESCHEDULE */}
       {meetingToReschedule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
@@ -1371,7 +1468,6 @@ export default function MeetingCalendarSection({
         </div>
       )}
 
-      {/* MODAL 4: CANCEL */}
       {meetingToCancel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
@@ -1428,7 +1524,6 @@ export default function MeetingCalendarSection({
         </div>
       )}
 
-      {/* MODAL 5: RECORD OUTCOME & ATTENDANCE */}
       {meetingToRecordOutcome && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
@@ -1510,10 +1605,8 @@ export default function MeetingCalendarSection({
   );
 }
 
-// MEETING CARD COMPONENT (Section 10 specification)
 function MeetingCard({
   meeting,
-  compact = false,
   hideProjectNames = false,
   onViewDetails,
   onReschedule,
@@ -1525,27 +1618,24 @@ function MeetingCard({
 
   return (
     <div
-      className={`p-3.5 rounded-xl border transition-all duration-200 flex flex-col justify-between group ${
-        isCancelled
-          ? "bg-rose-50/40 border-rose-200"
-          : isCompleted
+      className={`p-3.5 rounded-xl border transition-all duration-200 flex flex-col justify-between group ${isCancelled
+        ? "bg-rose-50/40 border-rose-200"
+        : isCompleted
           ? "bg-emerald-50/30 border-emerald-200"
           : "bg-white border-slate-200 hover:border-blue-300 hover:shadow-sm"
-      }`}
+        }`}
     >
       <div>
-        {/* Top Badges */}
         <div className="flex items-center justify-between gap-1.5 mb-2">
           <span
-            className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
-              isCompleted
-                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                : isCancelled
+            className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${isCompleted
+              ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+              : isCancelled
                 ? "bg-rose-100 text-rose-800 border-rose-200"
                 : meeting.status === "RESCHEDULED"
-                ? "bg-amber-100 text-amber-800 border-amber-200"
-                : "bg-blue-100 text-blue-800 border-blue-200"
-            }`}
+                  ? "bg-amber-100 text-amber-800 border-amber-200"
+                  : "bg-blue-100 text-blue-800 border-blue-200"
+              }`}
           >
             {meeting.status}
           </span>
@@ -1555,12 +1645,10 @@ function MeetingCard({
           </span>
         </div>
 
-        {/* Meeting Title */}
         <h4 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
           {meeting.title}
         </h4>
 
-        {/* Date and Time */}
         <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-600 font-semibold">
           <Clock size={13} className="text-blue-600 shrink-0" />
           <span>
@@ -1569,7 +1657,6 @@ function MeetingCard({
           </span>
         </div>
 
-        {/* Participants: kis kis ke beech meeting hai */}
         <div className="mt-2 p-2 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1 text-xs">
           <div className="flex items-center justify-between gap-1 text-[11px]">
             <span className="text-slate-500 font-medium">Host / By:</span>
@@ -1580,7 +1667,22 @@ function MeetingCard({
           <div className="flex items-center justify-between gap-1 text-[11px]">
             <span className="text-slate-500 font-medium">Meeting With:</span>
             <span className="font-bold text-blue-700 truncate max-w-[150px]">
-              {meeting.candidateName || meeting.hrName || meeting.vendorName || meeting.targetType || "Attendee"}
+              {meeting.candidateName ||
+                meeting.hrName ||
+                (meeting.vendorName && meeting.meetingType !== "ADMIN_DISCUSSION"
+                  ? meeting.vendorName
+                  : "") ||
+                (Array.isArray(meeting.attendees) && meeting.attendees.length > 0
+                  ? meeting.attendees.map((a) => a.name || a.companyName).filter(Boolean).join(", ")
+                  : meeting.meetingType === "ADMIN_DISCUSSION"
+                    ? "All Admins / Super Admins"
+                    : meeting.meetingType === "VENDOR_DISCUSSION" && meeting.targetType === "ALL"
+                      ? "All Vendor Agencies"
+                      : meeting.meetingType === "INTERNAL_HR" && meeting.targetType === "ALL"
+                        ? "All HR Coordinators"
+                        : meeting.targetType === "ALL"
+                          ? "All Members"
+                          : "Invited Participants")}
             </span>
           </div>
           {meeting.projectName && !hideProjectNames && (
@@ -1597,7 +1699,6 @@ function MeetingCard({
           )}
         </div>
 
-        {/* Attendance & Outcome Badges if recorded */}
         {(meeting.outcome || meeting.attendance) && (
           <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
             {meeting.attendance && (
@@ -1614,7 +1715,6 @@ function MeetingCard({
         )}
       </div>
 
-      {/* Buttons Strip */}
       <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5">
         {!isCancelled && meeting.meetingLink && (
           <a

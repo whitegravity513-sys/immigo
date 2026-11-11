@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import env from "../config/env.js";
+import { getJwtVerificationSecrets } from "../config/env.js";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
 import Vendor from "../models/Vendor.js";
@@ -10,7 +10,7 @@ import PermissionService from "../services/permission.service.js";
 import { extractToken } from "./auth.middleware.js";
 
 const userAuthCache = new Map();
-const USER_CACHE_TTL_MS = 30 * 1000; // 30 seconds
+const USER_CACHE_TTL_MS = 30 * 1000;
 
 export const invalidateUserAuthCache = (userId) => {
   if (userId) {
@@ -30,23 +30,21 @@ export const authenticateRBAC = async (req, res, next) => {
   }
 
   let decoded = null;
-  try {
-    decoded = jwt.verify(token, env.JWT_SECRET);
-  } catch {
+  for (const secret of getJwtVerificationSecrets()) {
     try {
-      decoded = jwt.verify(
-        token,
-        process.env.JWT_ACCESS_SECRET || "default_access_secret_change_in_production"
-      );
-    } catch {
-      return res.status(401).json({
-        success: false,
-        message: "Your session token has expired or is invalid. Please sign in again.",
-      });
-    }
+      decoded = jwt.verify(token, secret);
+      break;
+    } catch {}
   }
 
-  const userId = decoded.id || decoded.sub || decoded._id;
+  if (!decoded) {
+    return res.status(401).json({
+      success: false,
+      message: "Your session token has expired or is invalid. Please sign in again.",
+    });
+  }
+
+  const userId = String(decoded.id || decoded.sub || decoded._id || "").trim();
   if (!userId) {
     return res.status(401).json({
       success: false,
@@ -74,7 +72,7 @@ export const authenticateRBAC = async (req, res, next) => {
           name: adminDoc.email.split("@")[0] || "Admin",
           email: adminDoc.email.toLowerCase(),
           passwordHash: adminDoc.password,
-          role: ROLES.ADMIN,
+          role: adminDoc.role || decoded.role || ROLES.ADMIN,
           isActive: true,
           isEmailVerified: true,
         });
@@ -239,7 +237,6 @@ export const requireVendorAccess = (paramName = "vendorId") => {
 
     const targetVendor = req.params[paramName] || req.query[paramName] || req.body[paramName];
 
-    // If Vendor role: can only access their own vendorId
     if (req.userRole === ROLES.VENDOR || req.isVendor) {
       if (!targetVendor || String(targetVendor) === String(req.vendorId)) {
         return next();
@@ -250,7 +247,6 @@ export const requireVendorAccess = (paramName = "vendorId") => {
       });
     }
 
-    // If Vendor HR: must be assigned to this vendor
     if (req.userRole === ROLES.HR || req.userRole === ROLES.VENDOR_HR || req.hrType === "VENDOR_HR") {
       if (!targetVendor) return next();
       const assigned = req.assignedVendors || [];
@@ -271,6 +267,25 @@ export const requireVendorAccess = (paramName = "vendorId") => {
       message: "Forbidden: Access restricted.",
     });
   };
+};
+
+export const blockEmployeeHR = (req, res, next) => {
+  const roleNorm = String(req.userRole || req.user?.role || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  const hrTypeNorm = String(req.hrType || req.user?.hrType || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  if (
+    !req.isSuperAdmin &&
+    (roleNorm === "EMPLOYEEHR" || (roleNorm === "HR" && hrTypeNorm !== "VENDORHR"))
+  ) {
+    return res.status(403).json({
+      success: false,
+      message: "Forbidden: Employee HR cannot access Vendor CRM or recruitment resources.",
+    });
+  }
+  return next();
 };
 
 export const logAudit = async ({
@@ -312,5 +327,6 @@ export default {
   requirePermission,
   requireSuperAdmin,
   requireRoles,
+  blockEmployeeHR,
   logAudit,
 };

@@ -1,4 +1,3 @@
-import React from "react";
 
 export function LoadingSkeleton({ type = "table", count = 5 }) {
   if (type === "stats") {

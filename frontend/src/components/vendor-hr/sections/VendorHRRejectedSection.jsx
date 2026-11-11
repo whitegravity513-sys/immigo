@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   X,
@@ -6,10 +6,12 @@ import {
   RotateCcw,
   ArrowRight,
 } from "lucide-react";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { getCandidateInitials, getEffectiveStage } from "../shared/vendorHRUtils.jsx";
+import { isAppRefundLocked } from "../../../services/refundService.js";
 
 export default function VendorHRRejectedSection({
   applications = [],
+  refunds = [],
   hideProjectNames = false,
   openReassignModal,
   openCandidateModal,
@@ -18,8 +20,8 @@ export default function VendorHRRejectedSection({
   const [rejectedSearch, setRejectedSearch] = useState("");
 
   const rejectedCandidates = applications.filter((c) => {
-    const stage = c.recruitmentStage || c.status || "";
-    return stage === "Rejected";
+    if (isAppRefundLocked(c, refunds)) return false;
+    return getEffectiveStage(c) === "Rejected";
   });
 
   const filteredRejected = rejectedCandidates.filter((cand) => {
@@ -100,16 +102,14 @@ export default function VendorHRRejectedSection({
                 <tr key={cand.applicationId || cand.id || idx} className="hover:bg-slate-50/60 transition">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={AVATARS[idx % AVATARS.length]}
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
-                      />
+                      <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center justify-center font-bold text-[11px] shrink-0">
+                        {getCandidateInitials(cand.candidateName)}
+                      </div>
                       <div className="min-w-0">
                         <h4 className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</h4>
                         <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-mono">
-                          <span>{cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.applicationId?.slice(0, 8)}`}</span>
-                          {cand.candidatePhone && <span>• 📞 {cand.candidatePhone}</span>}
+                          <span>{cand.passportNumber ? `Passport: ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}</span>
+                          {cand.candidatePhone && <span>• {cand.candidatePhone}</span>}
                         </div>
                       </div>
                     </div>
@@ -139,7 +139,7 @@ export default function VendorHRRejectedSection({
                       type="button"
                       onClick={() => openReassignModal(cand)}
                       className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                      title={hideProjectNames ? "Reassign this candidate to another requirement" : "Submit this candidate to another open project quota"}
+                      title={hideProjectNames ? "Reassign this candidate to another requirement" : "Submit this candidate to another open project requirement"}
                     >
                       <RotateCcw size={12} />
                       <span>{hideProjectNames ? "Reassign Candidate" : "Apply to Another Project"}</span>

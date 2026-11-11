@@ -4,7 +4,6 @@ import { ApiResponse } from "../../utils/apiResponse.js";
 
 export const getHRActivities = asyncHandler(async (req, res) => {
   const {
-    projectId,
     vendorId,
     hrUserId,
     candidateId,

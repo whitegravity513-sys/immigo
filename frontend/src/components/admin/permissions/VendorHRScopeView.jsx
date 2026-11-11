@@ -1,4 +1,3 @@
-import React from "react";
 import { ShieldCheck, Briefcase, AlertTriangle, Edit2, Trash2, CheckCircle2, UserCheck, Layers, Calendar, Lock } from "lucide-react";
 
 export default function VendorHRScopeView({
@@ -15,6 +14,11 @@ export default function VendorHRScopeView({
             <h2 className="text-base font-bold text-slate-900 tracking-tight">
               {selectedAdminData.name}
             </h2>
+            {selectedAdminData.hrId && (
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-900 text-white">
+                {selectedAdminData.hrId}
+              </span>
+            )}
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-cyan-100 text-cyan-900 border border-cyan-200">
               Vendor HR
             </span>

@@ -1,8 +1,13 @@
 import ClientPaymentService from "../services/clientPayment.service.js";
+import { emitRealtimeEvent } from "../services/realtime.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const recordPayment = asyncHandler(async (req, res) => {
   const payment = await ClientPaymentService.recordPayment(req.body, req.user || {});
+  emitRealtimeEvent({
+    events: ["immigo:project-update", "immigo:dashboard-update"],
+    roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+  });
   return res.status(201).json({
     success: true,
     message: "Payment recorded successfully in ledger!",
@@ -31,6 +36,10 @@ export const reversePayment = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { reason } = req.body;
   const payment = await ClientPaymentService.reversePayment(id, reason, req.user || {});
+  emitRealtimeEvent({
+    events: ["immigo:project-update", "immigo:dashboard-update"],
+    roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+  });
   return res.status(200).json({
     success: true,
     message: "Payment reversed successfully with audit trail.",
@@ -41,6 +50,10 @@ export const reversePayment = asyncHandler(async (req, res) => {
 export const updatePayment = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const payment = await ClientPaymentService.updatePayment(id, req.body, req.user || {});
+  emitRealtimeEvent({
+    events: ["immigo:project-update", "immigo:dashboard-update"],
+    roles: ["SUPER_ADMIN", "ADMIN", "HR"],
+  });
   return res.status(200).json({
     success: true,
     message: "Payment updated successfully with audit trail.",

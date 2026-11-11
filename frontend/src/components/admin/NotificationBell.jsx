@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import { apiClient } from "../../services/apiClient.js";
 import crmVendorService from "../../services/crmVendorService.js";
 import { Bell } from "lucide-react";
@@ -29,7 +29,9 @@ export default function NotificationBell({ className }) {
   const currentUserId = String(user?.id || user?._id || "");
   const rawRole = String(user?.role || "").toUpperCase();
   const hrType = String(user?.hrType || "").toUpperCase();
-  const assignedVendors = Array.isArray(user?.assignedVendors) ? user.assignedVendors.map(String) : [];
+  const assignedVendorsKey = Array.isArray(user?.assignedVendors)
+    ? user.assignedVendors.map(String).join(",")
+    : "";
 
   const effectiveStaffRole = isSuperAdmin || user?.isSuperAdmin || rawRole === "SUPER_ADMIN"
     ? "SUPER_ADMIN"
@@ -40,35 +42,40 @@ export default function NotificationBell({ className }) {
     : rawRole || "ADMIN";
 
   const portalBase =
-    rawRole === "HR" || location.pathname.startsWith("/hr")
+    effectiveStaffRole === "VENDOR_HR" || location.pathname.startsWith("/vendor-hr")
+      ? "/vendor-hr/dashboard"
+      : rawRole === "HR" || location.pathname.startsWith("/hr")
       ? "/hr/dashboard"
       : "/admin/dashboard";
 
-  const getDeletedAdminIds = () => {
+  const deletedStorageKey = `immigo_deleted_admin_notifications_v1_${effectiveStaffRole}`;
+  const clearedTsStorageKey = `immigo_admin_notifs_cleared_ts_${effectiveStaffRole}`;
+
+  const getDeletedAdminIds = useCallback(() => {
     try {
-      const stored = localStorage.getItem("immigo_deleted_admin_notifications_v1");
+      const stored = localStorage.getItem(deletedStorageKey);
       return new Set(stored ? JSON.parse(stored) : []);
     } catch {
       return new Set();
     }
-  };
+  }, [deletedStorageKey]);
 
-  const getClearedTs = () => {
+  const getClearedTs = useCallback(() => {
     try {
-      return parseInt(localStorage.getItem("immigo_admin_notifs_cleared_ts") || "0", 10) || 0;
+      return parseInt(localStorage.getItem(clearedTsStorageKey) || "0", 10) || 0;
     } catch {
       return 0;
     }
-  };
+  }, [clearedTsStorageKey]);
 
-  const buildCrmQueryString = () => {
+  const buildCrmQueryString = useCallback(() => {
     const params = new URLSearchParams({ role: effectiveStaffRole });
     if (currentUserId) params.set("userId", currentUserId);
-    if (assignedVendors.length > 0) params.set("assignedVendors", assignedVendors.join(","));
+    if (assignedVendorsKey) params.set("assignedVendors", assignedVendorsKey);
     return params.toString();
-  };
+  }, [effectiveStaffRole, currentUserId, assignedVendorsKey]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     lastFetchAtRef.current = Date.now();
@@ -80,7 +87,9 @@ export default function NotificationBell({ className }) {
       try {
         const res = await apiClient.get("/admin/notifications?limit=50");
         backendNotifs = res.data?.notifications || [];
-      } catch {}
+      } catch (e) {
+        console.warn("Admin notifications fetch fallback:", e?.message || e);
+      }
 
       let crmNotifs = [];
       let localAdminNotifs = [];
@@ -104,7 +113,9 @@ export default function NotificationBell({ className }) {
             vendorId: n.vendorId || null,
             metadata: n.metadata || {},
           }));
-        } catch {}
+        } catch (e) {
+          console.warn("CRM notifications fetch fallback:", e?.message || e);
+        }
 
         localAdminNotifs = (crmVendorService.getAdminNotifications({ sync: false }) || []).map((n) => ({
           _id: n.id,
@@ -125,6 +136,7 @@ export default function NotificationBell({ className }) {
         }));
       }
 
+      const assignedVendorList = assignedVendorsKey ? assignedVendorsKey.split(",") : [];
       const all = [...crmNotifs, ...localAdminNotifs, ...backendNotifs];
       const seen = new Set();
       const merged = all.filter((n) => {
@@ -140,15 +152,18 @@ export default function NotificationBell({ className }) {
           if (n.actorRole === "SUPER_ADMIN") {
             return false;
           }
+          if (n.recipientRole === "ADMIN" && n.metadata?.splitForSuperAdmin) {
+            return false;
+          }
         }
         if (
           effectiveStaffRole === "VENDOR_HR" &&
-          assignedVendors.length > 0 &&
+          assignedVendorList.length > 0 &&
           n.vendorId &&
           String(n.targetUserId || "") !== currentUserId &&
           String(n.metadata?.hrUserId || "") !== currentUserId
         ) {
-          if (!assignedVendors.includes(String(n.vendorId))) {
+          if (!assignedVendorList.includes(String(n.vendorId))) {
             return false;
           }
         }
@@ -160,12 +175,19 @@ export default function NotificationBell({ className }) {
           }
         }
 
-        const key = String(n._id || n.id || `${n.title}-${n.createdAt}`);
+        const key = String(n.metadata?.notificationId || n.notificationId || n._id || n.id || `${n.title}-${n.createdAt}`);
         const id1 = String(n._id || "");
         const id2 = String(n.id || "");
+        const notifRefId = String(n.metadata?.notificationId || n.notificationId || "");
         const titleKey = `${n.title || ""}-${n.createdAt || ""}`;
 
-        if (deletedIds.has(key) || (id1 && deletedIds.has(id1)) || (id2 && deletedIds.has(id2)) || deletedIds.has(titleKey)) {
+        if (
+          deletedIds.has(key) ||
+          (id1 && deletedIds.has(id1)) ||
+          (id2 && deletedIds.has(id2)) ||
+          (notifRefId && deletedIds.has(notifRefId)) ||
+          deletedIds.has(titleKey)
+        ) {
           return false;
         }
 
@@ -176,6 +198,9 @@ export default function NotificationBell({ className }) {
 
         if (seen.has(key)) return false;
         seen.add(key);
+        if (id1) seen.add(id1);
+        if (id2) seen.add(id2);
+        if (notifRefId) seen.add(notifRefId);
         return true;
       });
 
@@ -210,13 +235,21 @@ export default function NotificationBell({ className }) {
     } finally {
       isFetchingRef.current = false;
     }
-  };
+  }, [currentUserId, effectiveStaffRole, assignedVendorsKey, buildCrmQueryString, portalBase, getDeletedAdminIds, getClearedTs]);
 
   useEffect(() => {
     lastNotifSigRef.current = "";
-    fetchNotifications();
+    const initTimer = setTimeout(() => {
+      fetchNotifications();
+    }, 0);
     const handleImmediateWakeup = (e) => {
-      if (e?.type === "storage" && (!e.key || !ADMIN_NOTIF_STORAGE_KEYS.has(e.key))) {
+      if (
+        e?.type === "storage" &&
+        e.key &&
+        !ADMIN_NOTIF_STORAGE_KEYS.has(e.key) &&
+        e.key !== deletedStorageKey &&
+        e.key !== clearedTsStorageKey
+      ) {
         return;
       }
       fetchNotifications();
@@ -231,6 +264,8 @@ export default function NotificationBell({ className }) {
       fetchNotifications();
     };
     window.addEventListener("immigo:admin-notification", handleImmediateWakeup);
+    window.addEventListener("immigo:refund-update", handleImmediateWakeup);
+    window.addEventListener("immigo:meeting-update", handleImmediateWakeup);
     window.addEventListener("storage", handleImmediateWakeup);
     window.addEventListener("focus", handleFocusOrVisible);
     document.addEventListener("visibilitychange", handleFocusOrVisible);
@@ -240,13 +275,16 @@ export default function NotificationBell({ className }) {
       }
     }, 25000);
     return () => {
+      clearTimeout(initTimer);
       window.removeEventListener("immigo:admin-notification", handleImmediateWakeup);
+      window.removeEventListener("immigo:refund-update", handleImmediateWakeup);
+      window.removeEventListener("immigo:meeting-update", handleImmediateWakeup);
       window.removeEventListener("storage", handleImmediateWakeup);
       window.removeEventListener("focus", handleFocusOrVisible);
       document.removeEventListener("visibilitychange", handleFocusOrVisible);
       clearInterval(interval);
     };
-  }, [currentUserId, effectiveStaffRole, assignedVendors.join(",")]);
+  }, [fetchNotifications, deletedStorageKey, clearedTsStorageKey]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -322,8 +360,10 @@ export default function NotificationBell({ className }) {
     });
 
     try {
-      localStorage.setItem("immigo_deleted_admin_notifications_v1", JSON.stringify(Array.from(deletedIds)));
-    } catch {}
+      localStorage.setItem(deletedStorageKey, JSON.stringify(Array.from(deletedIds)));
+    } catch (err) {
+      console.warn("Failed to persist deleted notification IDs:", err?.message || err);
+    }
 
     try {
       crmVendorService.deleteAdminNotification(sId);
@@ -331,7 +371,9 @@ export default function NotificationBell({ className }) {
         if (targetItem.id) crmVendorService.deleteAdminNotification(String(targetItem.id));
         if (targetItem._id) crmVendorService.deleteAdminNotification(String(targetItem._id));
       }
-    } catch {}
+    } catch (err) {
+      console.warn("Notification local sync skipped:", err?.message || err);
+    }
 
     try {
       await Promise.allSettled([
@@ -346,8 +388,10 @@ export default function NotificationBell({ className }) {
   const handleClearAll = async () => {
     lastNotifSigRef.current = "";
     try {
-      localStorage.setItem("immigo_admin_notifs_cleared_ts", Date.now().toString());
-    } catch {}
+      localStorage.setItem(clearedTsStorageKey, Date.now().toString());
+    } catch (err) {
+      console.warn("Notification local sync skipped:", err?.message || err);
+    }
 
     setNotifications([]);
     setUnreadCount(0);

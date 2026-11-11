@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   BarChart3,
   Users,
@@ -20,11 +20,7 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
   const [isOpen, setIsOpen] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchReport();
-  }, [hrId, vendorId]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -45,7 +41,17 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
     } finally {
       setLoading(false);
     }
-  };
+  }, [hrId, vendorId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchReport();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchReport]);
 
   const completionRate =
     report?.totalMeetingsScheduled > 0
@@ -107,7 +113,6 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
             </div>
           ) : (
             <>
-              {/* Top 4 KPI Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
                   <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
@@ -163,9 +168,7 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                 </div>
               </div>
 
-              {/* Status Distribution & Meeting Outcomes */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Candidate Status Distribution */}
                 <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3">
                   <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                     <TrendingUp size={14} className="text-blue-600" />
@@ -192,7 +195,6 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                   )}
                 </div>
 
-                {/* Meeting Outcomes Breakdown */}
                 <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3">
                   <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                     <CheckCircle size={14} className="text-emerald-600" />
@@ -221,7 +223,6 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                 </div>
               </div>
 
-              {/* Vendor Performance by HR */}
               <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3">
                 <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                   <Building2 size={14} className="text-cyan-600" />
@@ -275,7 +276,6 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                 </div>
               </div>
 
-              {/* Per-HR Staff Breakdown (Super Admin / Admin view) */}
               {isSuperAdmin && (
                 <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-3">
                   <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">

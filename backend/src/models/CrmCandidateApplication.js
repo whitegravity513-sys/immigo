@@ -4,7 +4,6 @@ const crmCandidateApplicationSchema = new mongoose.Schema(
   {
     applicationId: {
       type: String,
-      sparse: true,
       trim: true,
     },
     candidateId: {
@@ -47,6 +46,34 @@ const crmCandidateApplicationSchema = new mongoose.Schema(
       type: String,
       default: "Submitted",
     },
+    recruitmentStage: {
+      type: String,
+      default: "Submitted",
+    },
+    refundStatus: {
+      type: String,
+      default: "",
+    },
+    refundDetails: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    didNotJoinReason: {
+      type: String,
+      default: "",
+    },
+    milestonesOverridden: {
+      type: Boolean,
+      default: false,
+    },
+    processMilestones: {
+      type: Array,
+      default: [],
+    },
+    paymentPlan: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({ totalAmount: 0, currency: "INR", milestones: [] }),
+    },
     candidateData: {
       type: Object,
       default: {},
@@ -66,9 +93,12 @@ const crmCandidateApplicationSchema = new mongoose.Schema(
   }
 );
 
+crmCandidateApplicationSchema.index({ applicationId: 1 }, { sparse: true });
+crmCandidateApplicationSchema.index({ candidateId: 1, projectId: 1 });
 crmCandidateApplicationSchema.index({ vendorId: 1 });
 crmCandidateApplicationSchema.index({ projectId: 1 });
 crmCandidateApplicationSchema.index({ status: 1 });
+crmCandidateApplicationSchema.index({ createdAt: -1 });
 
 const CrmCandidateApplication = mongoose.model(
   "CrmCandidateApplication",

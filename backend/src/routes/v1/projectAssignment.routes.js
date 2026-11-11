@@ -9,20 +9,20 @@ import {
   removeAssignmentById,
   getProjectAssignments,
 } from "../../controllers/v1/projectAssignment.controller.js";
-import { authenticateRBAC } from "../../middleware/rbac.middleware.js";
+import { authenticateRBAC, requireRoles, blockEmployeeHR } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.use(authenticateRBAC);
+router.use(authenticateRBAC, blockEmployeeHR);
 
-router.post("/vendor", assignVendorToProject);
-router.post("/vendor-multi-projects", assignVendorToMultipleProjects);
-router.post("/project-multi-vendors", assignMultipleVendorsToOneProject);
-router.post("/remove-vendor", removeVendorFromProject);
-router.post("/vendor-hr", assignVendorHRToProject);
-router.post("/batch-hr", batchAssignHRToProjectsAndVendors);
-router.post("/remove", removeAssignmentById);
-router.delete("/:id", removeAssignmentById);
-router.get("/", getProjectAssignments);
+router.post("/vendor", requireRoles("SUPER_ADMIN", "ADMIN"), assignVendorToProject);
+router.post("/vendor-multi-projects", requireRoles("SUPER_ADMIN", "ADMIN"), assignVendorToMultipleProjects);
+router.post("/project-multi-vendors", requireRoles("SUPER_ADMIN", "ADMIN"), assignMultipleVendorsToOneProject);
+router.post("/remove-vendor", requireRoles("SUPER_ADMIN", "ADMIN"), removeVendorFromProject);
+router.post("/vendor-hr", requireRoles("SUPER_ADMIN", "ADMIN"), assignVendorHRToProject);
+router.post("/batch-hr", requireRoles("SUPER_ADMIN", "ADMIN"), batchAssignHRToProjectsAndVendors);
+router.post("/remove", requireRoles("SUPER_ADMIN", "ADMIN"), removeAssignmentById);
+router.delete("/:id", requireRoles("SUPER_ADMIN", "ADMIN"), removeAssignmentById);
+router.get("/", requireRoles("SUPER_ADMIN", "ADMIN", "HR", "VENDOR_HR"), getProjectAssignments);
 
 export default router;

@@ -1,4 +1,3 @@
-import React from "react";
 import { IndianRupee, CreditCard, TrendingUp, Clock, AlertCircle } from "lucide-react";
 
 export default function ClientPaymentStatsCards({ stats = {} }) {

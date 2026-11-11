@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Activity, Clock, CheckCircle2, FileText, Calendar, RefreshCw } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Activity,
+  RefreshCw,
+} from "lucide-react";
 import activityService from "../../../services/activityService.js";
 
-export default function EmployeeRecentActivitySection({ user }) {
+export default function EmployeeRecentActivitySection() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadMyActivities();
-  }, []);
-
-  const loadMyActivities = async () => {
+  const loadMyActivities = useCallback(async () => {
     setLoading(true);
     try {
       const res = await activityService.getEmployeeActivities({ limit: 10 });
@@ -20,7 +19,17 @@ export default function EmployeeRecentActivitySection({ user }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadMyActivities();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadMyActivities]);
 
   const formatDate = (iso) => {
     if (!iso) return "—";

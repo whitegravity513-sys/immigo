@@ -18,7 +18,7 @@ import {
 import crmVendorService from "../../../services/crmVendorService.js";
 import MouFullPageView from "../MouFullPageView.jsx";
 import DocumentViewerFullPage from "../DocumentViewerFullPage.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 import { downloadUploadedDocument, printUploadedDocument } from "../../../utils/printDocument.js";
 
 const readFileAsDataURL = (file) =>
@@ -113,19 +113,16 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     return () => clearTimeout(timer);
   }, [vendor, docsSignature]);
 
-  
   const [incorpFile, setIncorpFile] = useState(null);
   const [gstFile, setGstFile] = useState(null);
   const [panFile, setPanFile] = useState(null);
   const [chequeFile, setChequeFile] = useState(null);
 
-  
   const [accountName, setAccountName] = useState(vendor?.contactPersonName || vendor?.companyName || "");
   const [accountNumber, setAccountNumber] = useState(vendor?.bankDetails?.accountNumber || "");
   const [bankName, setBankName] = useState(vendor?.bankDetails?.bankName || "");
   const [ifsc, setIfsc] = useState(vendor?.bankDetails?.ifsc || "");
 
-  
   const [signatoryName, setSignatoryName] = useState(vendor?.contactPersonName || "");
   const [designation, setDesignation] = useState("Managing Director");
   const [signatureText, setSignatureText] = useState(vendor?.contactPersonName || "");
@@ -338,7 +335,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
     }
   };
 
-  
   const handleMouSignSubmit = async (e) => {
     e.preventDefault();
     if (!signatoryName.trim()) {
@@ -421,7 +417,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 animate-fadeIn">
-      {}
       <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -440,7 +435,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
           </p>
         </div>
 
-        {}
         <div className="shrink-0 flex items-center gap-3">
           {vendorRejected ? (
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
@@ -498,7 +492,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stepsList.map((s) => (
@@ -534,7 +527,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       </div>
 
-      {}
       {error && (
         <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2">
           <AlertCircle size={16} className="text-rose-600 shrink-0" />
@@ -548,9 +540,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       )}
 
-      {}
-      {}
-      {}
       {!vendorRejected && currentStep === 1 && (
         <form onSubmit={handleDocsSubmit} className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
@@ -604,7 +593,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 Certificate of Incorporation / Trade License <span className="text-rose-500">*</span>
@@ -622,7 +610,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               )}
             </div>
 
-            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 GSTIN / Tax Registration Certificate
@@ -640,7 +627,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               )}
             </div>
 
-            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 Company PAN Card / Director ID <span className="text-rose-500">*</span>
@@ -658,7 +644,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               )}
             </div>
 
-            {}
             <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
               <label className="text-xs font-bold text-slate-800 block">
                 Cancelled Cheque / Bank Proof <span className="text-rose-500">*</span>
@@ -677,7 +662,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             </div>
           </div>
 
-          {}
           <div className="pt-4 border-t border-slate-100 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
               Agency Bank Settlement Account Details
@@ -726,7 +710,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             </div>
           </div>
 
-          {}
           <div className="pt-4 flex items-center justify-end">
             <button
               type="submit"
@@ -749,9 +732,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </form>
       )}
 
-      {}
-      {}
-      {}
       {!vendorRejected && currentStep === 2 && (
         <div className="bg-white rounded-xl border border-slate-200/90 p-8 shadow-xs text-center space-y-6">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto border border-blue-200">
@@ -843,9 +823,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
         </div>
       )}
 
-      {}
-      {}
-      {}
       {!vendorRejected && currentStep === 3 && (
         <div className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
           <div
@@ -895,7 +872,6 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
             </button>
           </div>
 
-          {}
           <form onSubmit={handleMouSignSubmit} className="space-y-5 border-t border-slate-100 pt-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>

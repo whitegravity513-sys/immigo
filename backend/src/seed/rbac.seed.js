@@ -2,8 +2,6 @@ import "dotenv/config";
 import { connectDB } from "../config/db.js";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
-import Role from "../models/Role.js";
-import Permission from "../models/Permission.js";
 import AuditLog from "../models/AuditLog.js";
 import { ROLES } from "../constants/roles.js";
 import PermissionService from "../services/permission.service.js";

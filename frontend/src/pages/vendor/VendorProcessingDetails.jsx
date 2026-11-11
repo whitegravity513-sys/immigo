@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import refundService from "../../services/refundService";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 
 const APPLICATION_STORAGE_KEYS = new Set([
   "immigo_crm_applications_v3",
+  "immigo_crm_refunds_v3",
 ]);
 
 export default function VendorProcessingDetails() {
@@ -15,6 +17,7 @@ export default function VendorProcessingDetails() {
 
   const [currentApp, setCurrentApp] = useState(initialAppState);
   const [matchedProject, setMatchedProject] = useState(null);
+  const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(!initialAppState);
 
   const loadData = useCallback(
@@ -24,10 +27,12 @@ export default function VendorProcessingDetails() {
           setLoading(true);
         }
         const curVendor = crmVendorService.getCurrentVendor();
-        const [projs, data] = await Promise.all([
+        const [projs, data, rData] = await Promise.all([
           crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []),
           crmVendorService.getApplications(curVendor?.id),
+          refundService.getAllRefunds(curVendor?.id).catch(() => []),
         ]);
+        setRefunds(rData || []);
         const matchAppFn = (a) =>
           [a?.id, a?.applicationId, a?._id].some(
             (k) => k && String(k) === String(appId)
@@ -77,6 +82,7 @@ export default function VendorProcessingDetails() {
       }, 60);
     };
     window.addEventListener("immigo:application-update", handleUpdate);
+    window.addEventListener("immigo:refund-update", handleUpdate);
     window.addEventListener("immigo:vendor-hr-refresh", handleUpdate);
     window.addEventListener("immigo:dashboard-update", handleUpdate);
     window.addEventListener("storage", handleUpdate);
@@ -84,6 +90,7 @@ export default function VendorProcessingDetails() {
       clearTimeout(initTimer);
       if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
+      window.removeEventListener("immigo:refund-update", handleUpdate);
       window.removeEventListener("immigo:vendor-hr-refresh", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
@@ -175,6 +182,7 @@ export default function VendorProcessingDetails() {
         <CandidateProcessTimeline
           application={currentApp}
           project={matchedProject}
+          refunds={refunds}
           onUpdate={() => loadData(true)}
         />
       </div>

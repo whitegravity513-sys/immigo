@@ -1,4 +1,3 @@
-import React from "react";
 import { CreditCard, CheckCircle2, X } from "lucide-react";
 
 export default function CandidatePaymentModal({

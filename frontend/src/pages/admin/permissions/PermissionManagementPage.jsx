@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import AdminMasterLayout from "../../../components/admin/layout/AdminMasterLayout.jsx";
 import permissionService from "../../../services/permissionService.js";
 import crmVendorService from "../../../services/crmVendorService.js";
 import adminVendorV1Service from "../../../services/adminVendorV1Service.js";
-import { usePermissions } from "../../../context/PermissionContext.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { usePermissions } from "../../../context/usePermissions.js";
+import { useAuth } from "../../../context/useAuth.js";
 import DeleteConfirmModal from "../../../components/common/DeleteConfirmModal.jsx";
 import { MANAGEMENT_GROUPS } from "../../../constants/permissionGroups.js";
 
@@ -68,12 +68,12 @@ export function PermissionManagementPage() {
     isActive: true,
   });
 
-  useEffect(() => {
-    loadAdmins();
-    loadVendors();
+  const showFeedback = useCallback((msg, type = "success") => {
+    setFeedbackMsg({ text: msg, type });
+    setTimeout(() => setFeedbackMsg(null), 5000);
   }, []);
 
-  const loadVendors = async () => {
+  const loadVendors = useCallback(async () => {
     try {
       const [v1Res, legacyRes] = await Promise.allSettled([
         adminVendorV1Service.getVendors({ limit: 500 }),
@@ -109,19 +109,22 @@ export function PermissionManagementPage() {
     } catch {
       setAvailableVendors([]);
     }
-  };
+  }, []);
 
-  const loadAdmins = async () => {
+  const loadAdmins = useCallback(async () => {
     try {
       setLoading(true);
       const res = await permissionService.getAdmins();
       if (res && res.success) {
         const list = res.admins || res.data || [];
         setAdminsList(list);
-        if (list.length > 0 && !selectedAdminId) {
-          const defaultSelect =
-            list.find((a) => !a.isSuperAdmin && a.role !== "SUPER_ADMIN") || list[0];
-          setSelectedAdminId(defaultSelect.id || defaultSelect._id);
+        if (list.length > 0) {
+          setSelectedAdminId((prev) => {
+            if (prev) return prev;
+            const defaultSelect =
+              list.find((a) => !a.isSuperAdmin && a.role !== "SUPER_ADMIN") || list[0];
+            return defaultSelect.id || defaultSelect._id;
+          });
         }
       }
     } catch (err) {
@@ -129,37 +132,47 @@ export function PermissionManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showFeedback]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        loadAdmins();
+        loadVendors();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadAdmins, loadVendors]);
 
   const selectedAdminData = useMemo(() => {
     if (!selectedAdminId) return null;
     return adminsList.find((a) => (a.id || a._id) === selectedAdminId) || null;
   }, [adminsList, selectedAdminId]);
 
-  useEffect(() => {
-    if (!selectedAdminData) return;
-    const isVendor =
-      selectedAdminData.role === "VENDOR_HR" ||
-      (selectedAdminData.role === "HR" && selectedAdminData.hrType === "VENDOR_HR");
-    if (isVendor) {
-      setInitialPermissions([]);
-      setEffectivePermissions([]);
-      return;
+  const [prevSelectedAdminData, setPrevSelectedAdminData] = useState(null);
+  if (selectedAdminData !== prevSelectedAdminData) {
+    setPrevSelectedAdminData(selectedAdminData);
+    if (selectedAdminData) {
+      const isVendor =
+        selectedAdminData.role === "VENDOR_HR" ||
+        (selectedAdminData.role === "HR" && selectedAdminData.hrType === "VENDOR_HR");
+      if (isVendor) {
+        setInitialPermissions([]);
+        setEffectivePermissions([]);
+      } else {
+        const existingPerms = Array.isArray(selectedAdminData.assignedPermissions)
+          ? selectedAdminData.assignedPermissions
+          : Array.isArray(selectedAdminData.permissions)
+          ? selectedAdminData.permissions
+          : [];
+        setInitialPermissions([...existingPerms]);
+        setEffectivePermissions([...existingPerms]);
+      }
     }
-
-    const existingPerms = Array.isArray(selectedAdminData.assignedPermissions)
-      ? selectedAdminData.assignedPermissions
-      : Array.isArray(selectedAdminData.permissions)
-      ? selectedAdminData.permissions
-      : [];
-    setInitialPermissions([...existingPerms]);
-    setEffectivePermissions([...existingPerms]);
-  }, [selectedAdminData]);
-
-  const showFeedback = (msg, type = "success") => {
-    setFeedbackMsg({ text: msg, type });
-    setTimeout(() => setFeedbackMsg(null), 5000);
-  };
+  }
 
   const isSelectedVendorHR = useMemo(() => {
     if (!selectedAdminData) return false;

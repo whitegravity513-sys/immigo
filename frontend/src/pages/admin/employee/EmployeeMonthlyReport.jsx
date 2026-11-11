@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   Download,
   TrendingUp,
-  Clock
 } from "lucide-react";
 import { useEmployeeMonthlyReport } from "../../../hooks/useEmployeeMonthlyReport";
 import ExcelExportModal from "../../../components/common/ExcelExportModal.jsx";
@@ -49,7 +48,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
     setSearchTerm,
     filteredEmployees,
     fetchMonthlyReport,
-    downloadReport,
     formatTime,
     formatDate
   } = useEmployeeMonthlyReport(token);
@@ -63,12 +61,6 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
     setUseDateRange(true);
     setCustomStartDate(jDate);
     setCustomEndDate(new Date());
-  };
-
-  const handleResetToMonth = () => {
-    setUseDateRange(false);
-    setCustomStartDate(null);
-    setCustomEndDate(null);
   };
 
   return (
@@ -106,7 +98,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 placeholder="Search by name or ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-slate-200 rounded-md bg-white text-black text-xs placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"     
+                className="w-full px-2.5 py-1.5 border border-slate-200 rounded-md bg-white text-black text-xs placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               {searchTerm && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-800 text-black rounded-lg shadow-lg max-h-48 overflow-y-auto z-10">

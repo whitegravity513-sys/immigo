@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Zap } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from "lucide-react";
 import { adminLogin } from "../../services/authService.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import AuthErrorMessage from "./AuthErrorMessage.jsx";
 import RememberForgotRow from "./RememberForgotRow.jsx";
 
@@ -16,15 +16,17 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword, prefi
 
   const adminInputRef = useRef(null);
   const adminPassRef = useRef(null);
+  const [prevPrefill, setPrevPrefill] = useState(prefill);
 
-  useEffect(() => {
+  if (prefill !== prevPrefill) {
+    setPrevPrefill(prefill);
     if (prefill?.email !== undefined) {
       setIdentifier(prefill.email);
     }
     if (prefill?.password !== undefined) {
       setPassword(prefill.password);
     }
-  }, [prefill]);
+  }
 
   useEffect(() => {
     if (!error) return;
@@ -32,86 +34,25 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword, prefi
     return () => clearTimeout(timer);
   }, [error]);
 
-  const handleAdminDemoLogin = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const data = await adminLogin("admin@immigo.com", "admin123");
-      const token = data?.accessToken || data?.token;
-      if (token) {
-        const resolvedRole = "ADMIN";
-        const adminData = { ...(data.admin || {}), role: resolvedRole };
-        if (data.admin?.permissions) {
-          localStorage.setItem("user_permissions", JSON.stringify(data.admin.permissions));
-        }
-        login(token, adminData, resolvedRole);
-        if (onLoginSuccess) {
-          onLoginSuccess(token, adminData, resolvedRole);
-        }
-      } else {
-        setError("Admin authentication failed. Please verify credentials.");
-      }
-    } catch (err) {
-      setError(err?.response?.data?.message || "Admin demo login failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSuperAdminDemoLogin = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const data = await adminLogin("admin@vista.com", "12345");
-      const token = data?.accessToken || data?.token;
-      if (token) {
-        const resolvedRole = "SUPER_ADMIN";
-        const adminData = { ...(data.admin || {}), role: resolvedRole };
-        if (data.admin?.permissions) {
-          localStorage.setItem("user_permissions", JSON.stringify(data.admin.permissions));
-        }
-        login(token, adminData, resolvedRole);
-        if (onLoginSuccess) {
-          onLoginSuccess(token, adminData, resolvedRole);
-        }
-      } else {
-        setError("Super Admin authentication failed. Please verify credentials.");
-      }
-    } catch (err) {
-      setError(err?.response?.data?.message || "Super Admin demo login failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const cleanId = identifier.trim();
-      const adminEmail =
-        cleanId.toLowerCase() === "admin" || cleanId.toLowerCase() === "superadmin"
-          ? "admin@vista.com"
-          : cleanId;
-
+      const adminEmail = identifier.trim().toLowerCase();
       const data = await adminLogin(adminEmail, password);
       const token = data?.accessToken || data?.token;
 
       if (token) {
-        const emailLower = adminEmail.toLowerCase();
+        const rawRole = String(data.admin?.role || "")
+          .toUpperCase()
+          .replace(/[\s_-]/g, "");
         let resolvedRole = "ADMIN";
-        if (
-          emailLower.includes("super") ||
-          emailLower === "admin@vista.com" ||
-          (data.admin?.role || "").toUpperCase().includes("SUPER")
-        ) {
+        if (data.admin?.isSuperAdmin || rawRole === "SUPERADMIN") {
           resolvedRole = "SUPER_ADMIN";
-        } else if (emailLower.includes("hr")) {
+        } else if (rawRole === "HR") {
           resolvedRole = "HR";
-        } else {
-          resolvedRole = "ADMIN";
         }
         const adminData = { ...(data.admin || {}), role: resolvedRole };
         if (data.admin?.permissions) {
@@ -139,7 +80,6 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword, prefi
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
-      {/* Hidden dummy inputs to trap browser autofill */}
       <input type="text" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
       <input type="password" style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex="-1" autoComplete="off" />
 
@@ -153,25 +93,17 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword, prefi
           <Mail size={16} className="absolute left-3.5 top-3 text-slate-400 pointer-events-none" />
           <input
             ref={adminInputRef}
-            type="text"
+            type="email"
             required
             autoFocus
             value={identifier}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val.toUpperCase().includes("VESTA")) {
-                setIdentifier("");
-                if (adminInputRef.current) adminInputRef.current.value = "";
-                return;
-              }
-              setIdentifier(val);
-            }}
+            onChange={(e) => setIdentifier(e.target.value)}
             name="admin_system_email"
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="none"
             spellCheck="false"
-            placeholder="admin@immigo.com or 'admin'"
+            placeholder="Enter official email address"
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1877f2] focus:ring-2 focus:ring-blue-500/10 transition-all font-medium"
           />
         </div>
@@ -226,30 +158,6 @@ export default function AdminLoginForm({ onLoginSuccess, onForgotPassword, prefi
           </>
         )}
       </button>
-
-      <div className="grid grid-cols-2 gap-2 pt-1">
-        <button
-          type="button"
-          onClick={handleAdminDemoLogin}
-          disabled={loading}
-          className="py-2 px-2.5 rounded-xl border border-dashed border-blue-300 hover:border-blue-600 bg-blue-50/70 hover:bg-blue-100/80 text-blue-800 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-60 truncate"
-          title="Login as System Admin (admin@immigo.com)"
-        >
-          <Zap size={13} className="text-blue-600 fill-blue-600 shrink-0" />
-          <span className="truncate">Demo Admin</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={handleSuperAdminDemoLogin}
-          disabled={loading}
-          className="py-2 px-2.5 rounded-xl border border-dashed border-indigo-300 hover:border-indigo-600 bg-indigo-50/70 hover:bg-indigo-100/80 text-indigo-900 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-60 truncate"
-          title="Login as Super Admin (admin@vista.com)"
-        >
-          <Zap size={13} className="text-amber-500 fill-amber-500 shrink-0" />
-          <span className="truncate">Demo Super Admin</span>
-        </button>
-      </div>
     </form>
   );
 }

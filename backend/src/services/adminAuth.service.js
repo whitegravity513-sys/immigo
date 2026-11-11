@@ -7,6 +7,8 @@ import Session from "../models/Session.js";
 import env from "../config/env.js";
 import { ROLES } from "../constants/roles.js";
 import PermissionService from "./permission.service.js";
+import { verifyOtp as verifyOtpCode } from "./otp.service.js";
+import { OTP_PURPOSES } from "../models/Otp.js";
 import { ApiError } from "../utils/apiError.js";
 
 export class AdminAuthService {
@@ -15,23 +17,11 @@ export class AdminAuthService {
       throw new ApiError(400, "Email and password are required");
     }
 
-    let cleanEmail = String(email).trim().toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
     const cleanPassword = String(password).trim();
-
-    const superAdminConfigEmail = (env.SUPER_ADMIN_EMAIL || env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
-
-    if (cleanEmail === "admin" || cleanEmail === "superadmin" || cleanEmail === "admin@company.com") {
-      cleanEmail = superAdminConfigEmail;
-    }
-
-    const isConvenientDevPass =
-      cleanPassword === "12345" ||
-      cleanPassword === "admin" ||
-      cleanPassword === "admin123" ||
-      cleanPassword === "Admin@123" ||
-      cleanPassword === "SuperAdmin@Secure2026!" ||
-      cleanPassword === "Abhi@123" ||
-      cleanPassword === "SuperAdmin@2026!";
+    const superAdminConfigEmail = (env.SUPER_ADMIN_EMAIL || env.SUPERADMIN_EMAIL || "")
+      .trim()
+      .toLowerCase();
 
     const [userDoc, adminDoc] = await Promise.all([
       User.findOne({ email: cleanEmail }).select("+passwordHash"),
@@ -42,65 +32,73 @@ export class AdminAuthService {
     let admin = adminDoc;
 
     if (!user && !admin) {
-      const hashedPassword = await bcrypt.hash(cleanPassword, 10);
-      const isSuper = cleanEmail === superAdminConfigEmail || cleanEmail === "admin@vista.com" || cleanEmail.includes("super");
-      const isHr = cleanEmail.includes("hr");
-      user = await User.create({
-        name: isSuper ? "Super Administrator" : isHr ? "HR Manager" : "Administrator",
-        email: cleanEmail,
-        passwordHash: hashedPassword,
-        role: isSuper ? ROLES.SUPER_ADMIN : isHr ? ROLES.HR : ROLES.ADMIN,
-        isActive: true,
-        isEmailVerified: true,
-      });
-      admin = await Admin.create({
-        email: cleanEmail,
-        password: hashedPassword,
-      });
+      if (
+        superAdminConfigEmail &&
+        cleanEmail === superAdminConfigEmail &&
+        env.SUPERADMIN_PASSWORD &&
+        cleanPassword === String(env.SUPERADMIN_PASSWORD).trim()
+      ) {
+        const hashedPassword = await bcrypt.hash(cleanPassword, 10);
+        user = await User.create({
+          name: env.SUPERADMIN_NAME || "Super Administrator",
+          email: cleanEmail,
+          passwordHash: hashedPassword,
+          role: ROLES.SUPER_ADMIN,
+          isActive: true,
+          isEmailVerified: true,
+        });
+        admin = await Admin.create({
+          email: cleanEmail,
+          password: hashedPassword,
+        });
+      } else {
+        throw new ApiError(401, "Invalid credentials");
+      }
     } else if (user) {
+      if (["EMPLOYEE", "VENDOR", "CANDIDATE"].includes(String(user.role || "").toUpperCase())) {
+        throw new ApiError(403, "Use the dedicated portal login for your role.");
+      }
       if (user.isActive === false) {
         throw new ApiError(403, "Your account has been deactivated. Please contact your administrator.");
       }
 
-      const isMatch = isConvenientDevPass || (await bcrypt.compare(cleanPassword, user.passwordHash));
+      const isMatch = user.passwordHash
+        ? await bcrypt.compare(cleanPassword, user.passwordHash)
+        : false;
       if (!isMatch) {
         throw new ApiError(401, "Invalid credentials");
       }
 
-      const isSuper =
-        cleanEmail === superAdminConfigEmail ||
-        cleanEmail === "admin@vista.com" ||
-        cleanEmail.includes("super");
-      const isHr = cleanEmail.includes("hr");
-
-      if (isSuper) {
+      if (superAdminConfigEmail && cleanEmail === superAdminConfigEmail) {
         user.role = ROLES.SUPER_ADMIN;
-      } else if (!user.role || user.role === ROLES.USER) {
-        user.role = isHr ? ROLES.HR : ROLES.ADMIN;
       }
 
       user.lastLoginAt = new Date();
       await user.save();
 
-      if (!admin) {
+      if (!admin && [ROLES.SUPER_ADMIN, ROLES.ADMIN].includes(user.role)) {
         admin = await Admin.create({
           email: user.email,
           password: user.passwordHash,
         });
+      } else if (admin && [ROLES.SUPER_ADMIN, ROLES.ADMIN].includes(user.role) && admin.password !== user.passwordHash) {
+        admin.password = user.passwordHash;
+        await admin.save();
       }
     } else if (admin) {
-      const isMatch = isConvenientDevPass || (await bcrypt.compare(cleanPassword, admin.password));
+      const isMatch = admin.password
+        ? await bcrypt.compare(cleanPassword, admin.password)
+        : false;
       if (!isMatch) {
         throw new ApiError(401, "Invalid credentials");
       }
 
-      const isSuper = admin.email === superAdminConfigEmail || admin.email.includes("super");
-      const isHr = admin.email.includes("hr");
+      const isSuper = Boolean(superAdminConfigEmail && admin.email === superAdminConfigEmail);
       user = await User.create({
-        name: isSuper ? "Super Administrator" : isHr ? "HR Manager" : "Administrator",
+        name: isSuper ? env.SUPERADMIN_NAME || "Super Administrator" : "Administrator",
         email: admin.email,
         passwordHash: admin.password,
-        role: isSuper ? ROLES.SUPER_ADMIN : isHr ? ROLES.HR : ROLES.ADMIN,
+        role: isSuper ? ROLES.SUPER_ADMIN : ROLES.ADMIN,
         isActive: true,
         isEmailVerified: true,
       });
@@ -166,8 +164,18 @@ export class AdminAuthService {
     }
 
     const cleanEmail = String(email).trim().toLowerCase();
+    const superAdminConfigEmail = (env.SUPER_ADMIN_EMAIL || env.SUPERADMIN_EMAIL || "")
+      .trim()
+      .toLowerCase();
+
+    await verifyOtpCode({
+      email: cleanEmail,
+      otp: String(otp).trim(),
+      purpose: OTP_PURPOSES.LOGIN_2FA,
+    });
+
     let user = await User.findOne({ email: cleanEmail });
-    let admin = await Admin.findOne({ email: cleanEmail });
+    const admin = await Admin.findOne({ email: cleanEmail });
 
     if (!user && !admin) {
       throw new ApiError(404, "Admin not found");
@@ -178,11 +186,12 @@ export class AdminAuthService {
     }
 
     if (!user && admin) {
+      const isSuper = Boolean(superAdminConfigEmail && admin.email === superAdminConfigEmail);
       user = await User.create({
-        name: "Administrator",
+        name: isSuper ? env.SUPERADMIN_NAME || "Super Administrator" : "Administrator",
         email: admin.email,
         passwordHash: admin.password,
-        role: ROLES.ADMIN,
+        role: isSuper ? ROLES.SUPER_ADMIN : ROLES.ADMIN,
         isActive: true,
         isEmailVerified: true,
       });
@@ -288,22 +297,33 @@ export class AdminAuthService {
       .digest("hex");
 
     const session = await Session.findOne({ token: refreshTokenHash });
-    if (!session) {
-      throw new ApiError(401, "Invalid refresh token");
+    if (!session || (session.expiresAt && session.expiresAt < new Date())) {
+      if (session) await Session.deleteOne({ _id: session._id });
+      throw new ApiError(401, "Invalid or expired refresh token");
     }
 
     const user = await User.findById(decoded.id);
-    const resolved = user
-      ? await PermissionService.resolveUserPermissions(user)
-      : { isSuperAdmin: false, permissions: [] };
+    if (!user) {
+      await Session.deleteOne({ _id: session._id });
+      throw new ApiError(401, "Account not found");
+    }
+    if (user.isActive === false) {
+      await Session.deleteOne({ _id: session._id });
+      throw new ApiError(403, "Your account has been deactivated.");
+    }
 
-    const role = user ? user.role : "ADMIN";
+    const resolved = await PermissionService.resolveUserPermissions(user);
+    const role = user.role || ROLES.ADMIN;
 
     const accessToken = jwt.sign(
       {
         id: decoded.id,
         _id: decoded.id,
+        sub: decoded.id,
         role,
+        hrType: user.hrType || "",
+        assignedVendors: user.assignedVendors || [],
+        email: user.email,
         isSuperAdmin: resolved.isSuperAdmin,
       },
       env.JWT_SECRET,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Briefcase,
   RefreshCw,
@@ -9,15 +9,10 @@ import {
   Check,
   Building2,
   MapPin,
-  Users,
-  Calendar,
   Clock,
-  ShieldCheck,
   Award,
-  FileText,
   Search,
   X,
-  AlertCircle,
   CheckCircle2,
   Gift,
 } from "lucide-react";
@@ -63,7 +58,6 @@ export default function CandidateJobsTab({
 
   return (
     <div className="space-y-3">
-      {/* Top Header Card */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-2xs">
         <div>
           <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">
@@ -75,7 +69,6 @@ export default function CandidateJobsTab({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Search Bar */}
           <div className="relative w-48 sm:w-60">
             <Search
               size={13}
@@ -105,7 +98,6 @@ export default function CandidateJobsTab({
         </div>
       </div>
 
-      {/* Projects List View */}
       {filteredProjects.length === 0 ? (
         <div className="py-10 px-4 text-center bg-white rounded-xl border border-slate-200 space-y-2">
           <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
@@ -160,7 +152,6 @@ export default function CandidateJobsTab({
                       className="hover:bg-blue-50/40 transition-colors group cursor-pointer"
                       onClick={() => setSelectedProject(proj)}
                     >
-                      {/* Project & Employer */}
                       <td className="py-3 px-3.5">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-blue-100/70 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
@@ -177,7 +168,6 @@ export default function CandidateJobsTab({
                         </div>
                       </td>
 
-                      {/* Country */}
                       <td className="py-3 px-3 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
                           <MapPin size={11} className="text-slate-400" />
@@ -187,21 +177,18 @@ export default function CandidateJobsTab({
                         </span>
                       </td>
 
-                      {/* Position */}
                       <td className="py-3 px-3">
                         <span className="font-semibold text-slate-800">
                           {proj.position || "General Trade Specialist"}
                         </span>
                       </td>
 
-                      {/* Vacancies */}
                       <td className="py-3 px-3 text-center whitespace-nowrap">
                         <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 text-[11px]">
                           {proj.vacancies || proj.totalHeadcount || "Open"}
                         </span>
                       </td>
 
-                      {/* Application Status */}
                       <td className="py-3 px-3 text-center whitespace-nowrap">
                         {isSelected ? (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
@@ -220,7 +207,6 @@ export default function CandidateJobsTab({
                         )}
                       </td>
 
-                      {/* Actions */}
                       <td
                         className="py-3 px-3.5 text-right whitespace-nowrap"
                         onClick={(e) => e.stopPropagation()}
@@ -279,10 +265,8 @@ export default function CandidateJobsTab({
         </div>
       )}
 
-      {/* Project Details Slide-over Drawer Panel */}
       {selectedProject && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop */}
           <div
             onClick={() => setSelectedProject(null)}
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
@@ -290,7 +274,6 @@ export default function CandidateJobsTab({
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 z-10">
             <div className="w-screen max-w-lg bg-white shadow-2xl border-l border-slate-200 flex flex-col justify-between animate-in slide-in-from-right duration-300">
-              {/* Drawer Header */}
               <div className="p-4 sm:p-5 bg-gradient-to-r from-[#0f2744] to-[#163660] text-white flex items-center justify-between shrink-0">
                 <div className="min-w-0 pr-3">
                   <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white inline-block mb-1">
@@ -315,9 +298,7 @@ export default function CandidateJobsTab({
                 </button>
               </div>
 
-              {/* Drawer Content */}
               <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-xs">
-                {/* Key Overview Cards */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
                     <span className="text-[10px] font-semibold text-slate-400 block">
@@ -361,7 +342,6 @@ export default function CandidateJobsTab({
                   </div>
                 </div>
 
-                {/* Scope & Description */}
                 {selectedProject.description && (
                   <div className="space-y-1">
                     <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
@@ -373,7 +353,6 @@ export default function CandidateJobsTab({
                   </div>
                 )}
 
-                {/* Manpower Positions List if available */}
                 {Array.isArray(selectedProject.manpowerRequirements) &&
                   selectedProject.manpowerRequirements.length > 0 && (
                     <div className="space-y-1.5">
@@ -400,7 +379,6 @@ export default function CandidateJobsTab({
                     </div>
                   )}
 
-                {/* Benefits & Allowances */}
                 {Array.isArray(selectedProject.benefits) &&
                   selectedProject.benefits.length > 0 && (
                     <div className="space-y-1.5">
@@ -421,7 +399,6 @@ export default function CandidateJobsTab({
                     </div>
                   )}
 
-                {/* Additional Requirements Checklist */}
                 {selectedProject.additionalRequirements && (
                   <div className="space-y-2">
                     <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
@@ -468,7 +445,6 @@ export default function CandidateJobsTab({
                   </div>
                 )}
 
-                {/* Milestones & Processing Pipeline Section */}
                 <div className="space-y-2 pt-2 border-t border-slate-100">
                   <h4 className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                     <Award size={14} className="text-indigo-600" />
@@ -510,7 +486,6 @@ export default function CandidateJobsTab({
                 </div>
               </div>
 
-              {/* Drawer Footer */}
               <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5 shrink-0">
                 <button
                   type="button"

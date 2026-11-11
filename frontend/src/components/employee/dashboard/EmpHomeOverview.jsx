@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Clock,
   Calendar,
@@ -16,7 +16,7 @@ import {
   Camera,
 } from "lucide-react";
 import { apiClient } from "../../../services/apiClient.js";
-import { compressImage } from "../EmployeeProfileDocsTab.jsx";
+import { compressImage } from "../../../utils/fileHelpers.js";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 import DailyWorkLogSection from "./DailyWorkLogSection.jsx";
 import EmployeeRecentActivitySection from "./EmployeeRecentActivitySection.jsx";
@@ -53,8 +53,10 @@ export default function EmpHomeOverview({
     timeZone: "Asia/Kolkata",
   }).format(new Date());
 
-  const activeHoliday =
-    todayHoliday || (isHolidayToday ? { title: "Company Holiday", date: todayDateStr } : null);
+  const activeHoliday = useMemo(
+    () => todayHoliday || (isHolidayToday ? { title: "Company Holiday", date: todayDateStr } : null),
+    [todayHoliday, isHolidayToday, todayDateStr]
+  );
 
   const upcomingHolidays = useMemo(() => {
     const list = Array.isArray(holidays) ? holidays : [];
@@ -116,11 +118,14 @@ export default function EmpHomeOverview({
       : "Day 1";
 
   const [photoUploading, setPhotoUploading] = useState(false);
-  const [currentAvatar, setCurrentAvatar] = useState(() => user?.profileImage || statusRecord?.profileImage || "");
+  const propAvatar = user?.profileImage || statusRecord?.profileImage || "";
+  const [prevPropAvatar, setPrevPropAvatar] = useState(propAvatar);
+  const [currentAvatar, setCurrentAvatar] = useState(propAvatar);
 
-  useEffect(() => {
-    setCurrentAvatar(user?.profileImage || statusRecord?.profileImage || "");
-  }, [user?.profileImage, statusRecord?.profileImage]);
+  if (propAvatar !== prevPropAvatar) {
+    setPrevPropAvatar(propAvatar);
+    setCurrentAvatar(propAvatar);
+  }
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];

@@ -24,7 +24,8 @@ const candidateApplicationSchema = new mongoose.Schema(
     },
     candidateEmail: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
     },
     candidatePhone: {
       type: String,
@@ -115,6 +116,7 @@ const candidateApplicationSchema = new mongoose.Schema(
         "Deployed",
         "Rejected",
         "On Hold",
+        "Did Not Join",
       ],
       default: "Applied",
       index: true,
@@ -168,6 +170,7 @@ const candidateApplicationSchema = new mongoose.Schema(
         "No Show",
         "Not Responding",
         "Offer Declined",
+        "Did Not Join",
       ],
       default: "Applied",
       index: true,
@@ -188,6 +191,18 @@ const candidateApplicationSchema = new mongoose.Schema(
     rejectionReason: {
       type: String,
       default: "",
+    },
+    didNotJoinReason: {
+      type: String,
+      default: "",
+    },
+    refundStatus: {
+      type: String,
+      default: "",
+    },
+    refundDetails: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
     },
     adminRemarks: {
       type: String,

@@ -1,4 +1,3 @@
-import React from "react";
 import AppFooter from "../../common/AppFooter.jsx";
 
 export const AdminFooter = ({ navigate, role = "admin" }) => {

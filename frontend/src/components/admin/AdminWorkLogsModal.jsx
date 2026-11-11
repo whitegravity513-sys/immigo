@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "../../services/apiClient.js";
 import {
   FileText,
@@ -6,12 +6,8 @@ import {
   Search,
   Filter,
   X,
-  Clock,
   CheckCircle2,
-  Users,
   Loader2,
-  ChevronRight,
-  ExternalLink,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import DateInput from "../common/DateInput.jsx";
@@ -26,12 +22,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [departments, setDepartments] = useState(["All"]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    fetchLogs();
-  }, [isOpen, selectedDate, selectedDept]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiClient.get("/admin/worklogs", {
@@ -53,7 +44,18 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate, selectedDept]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchLogs();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, fetchLogs]);
 
   if (!isOpen) return null;
 

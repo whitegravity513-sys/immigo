@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { Receipt, X, ExternalLink, RotateCcw, FileCheck } from "lucide-react";
 

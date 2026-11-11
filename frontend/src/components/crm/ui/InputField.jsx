@@ -1,4 +1,3 @@
-import React from "react";
 import DateInput from "../../common/DateInput.jsx";
 
 export function InputField({

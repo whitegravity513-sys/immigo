@@ -1,4 +1,3 @@
-import React from "react";
 import { Search, Users, Eye } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 

@@ -2,16 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
   Search,
-  Filter,
   Download,
   Eye,
   CheckCircle2,
   XCircle,
   Clock,
-  ShieldCheck,
   Building2,
   User,
-  Paperclip,
   Printer,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
@@ -124,7 +121,6 @@ export default function AdminDocumentsList() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Central Document Verification Repository</h1>
@@ -140,9 +136,7 @@ export default function AdminDocumentsList() {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-xs space-y-3">
-        {}
         <div className="flex items-center gap-2 border-b border-slate-100 pb-3 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("All")}
@@ -189,7 +183,6 @@ export default function AdminDocumentsList() {
           </button>
         </div>
 
-        {}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div className="relative sm:col-span-2">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -232,7 +225,6 @@ export default function AdminDocumentsList() {
         </div>
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

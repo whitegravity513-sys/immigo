@@ -1,4 +1,3 @@
-import React from "react";
 import { Users, UserCheck, Calendar, AlertCircle } from "lucide-react";
 
 export function WorkforceMetricCards({

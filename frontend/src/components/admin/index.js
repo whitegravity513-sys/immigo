@@ -1,14 +1,10 @@
-export { default as LiveAttendanceSection } from "./LiveAttendanceSection.jsx";
 export { default as EmployeesDirectorySection } from "./EmployeesDirectorySection.jsx";
 export { default as LeaveApprovalsSection } from "./LeaveApprovalsSection.jsx";
 export { default as AttendanceSummarySection } from "./AttendanceSummarySection.jsx";
-export { default as HolidaysSection } from "./HolidaysSection.jsx";
 export { default as EmployeeDetailSection } from "./EmployeeDetailSection.jsx";
 export { default as ExpensesSection } from "./ExpensesSection.jsx";
 export { default as AnnouncementsSection } from "./AnnouncementsSection.jsx";
 export { default as NotificationBell } from "./NotificationBell.jsx";
-export { default as ProfessionalInvoiceModal } from "./ProfessionalInvoiceModal.jsx";
-export { default as RegisterEmployeeModal } from "./RegisterEmployeeModal.jsx";
 export { default as RegisterEmployeeSection } from "./RegisterEmployeeSection.jsx";
 export { default as EditEmployeeSection } from "./EditEmployeeSection.jsx";
 export { default as EditAttendance } from "./EditAttendance.jsx";

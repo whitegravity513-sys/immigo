@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -28,7 +28,7 @@ import employeeService from "../../services/employeeService.js";
 import apiClient from "../../services/apiClient.js";
 import activityService from "../../services/activityService.js";
 import appConfig from "../../config/appConfig.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 
 const MAIN_DASHBOARD_STORAGE_KEYS = new Set([
   "immigo_crm_vendors_v3",
@@ -40,7 +40,6 @@ const MAIN_DASHBOARD_STORAGE_KEYS = new Set([
 
 export function MainAdminDashboard() {
   const { isSuperAdmin } = useAuth();
-  const [loading, setLoading] = useState(true);
 
   const [stats, setStats] = useState({
     totalEmployees: 0,
@@ -73,7 +72,6 @@ export function MainAdminDashboard() {
   });
 
   const [projectsList, setProjectsList] = useState([]);
-  const [recentClients, setRecentClients] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [activityFilter, setActivityFilter] = useState("ALL");
@@ -81,41 +79,7 @@ export function MainAdminDashboard() {
   const [activityTotalPages, setActivityTotalPages] = useState(1);
   const [activityTotal, setActivityTotal] = useState(0);
 
-  useEffect(() => {
-    loadDashboardData();
-
-    let debounceTimer = null;
-    const handleUpdate = (e) => {
-      if (e?.type === "storage" && (!e.key || !MAIN_DASHBOARD_STORAGE_KEYS.has(e.key))) {
-        return;
-      }
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        loadDashboardData();
-      }, 120);
-    };
-
-    window.addEventListener("immigo:application-update", handleUpdate);
-    window.addEventListener("immigo:candidate-update", handleUpdate);
-    window.addEventListener("immigo:dashboard-update", handleUpdate);
-    window.addEventListener("immigo:vendor-update", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
-
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      window.removeEventListener("immigo:application-update", handleUpdate);
-      window.removeEventListener("immigo:candidate-update", handleUpdate);
-      window.removeEventListener("immigo:dashboard-update", handleUpdate);
-      window.removeEventListener("immigo:vendor-update", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
-  }, []);
-
-  useEffect(() => {
-    loadActivities();
-  }, [activityFilter, activityPage]);
-
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     setLoadingActivities(true);
     try {
       const res = await activityService.getAdminActivities({
@@ -133,9 +97,9 @@ export function MainAdminDashboard() {
     } finally {
       setLoadingActivities(false);
     }
-  };
+  }, [activityFilter, activityPage]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       const [clientsRes, empRes, attRes, leavesRes, vendorRes, candRes, payRes] = await Promise.allSettled([
         crmClientService.getClients({ limit: 1000 }),
@@ -154,7 +118,6 @@ export function MainAdminDashboard() {
         clientList = Array.isArray(clientsRes.value)
           ? clientsRes.value
           : clientsRes.value?.clients || [];
-        setRecentClients(clientList.slice(0, 5));
 
         clientList.forEach((c) => {
           (c.projects || []).forEach((p) => {
@@ -256,10 +219,52 @@ export function MainAdminDashboard() {
       });
     } catch (err) {
       console.error("Dashboard data load error:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadDashboardData();
+    });
+
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !MAIN_DASHBOARD_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (!cancelled) loadDashboardData();
+      }, 120);
+    };
+
+    window.addEventListener("immigo:application-update", handleUpdate);
+    window.addEventListener("immigo:candidate-update", handleUpdate);
+    window.addEventListener("immigo:dashboard-update", handleUpdate);
+    window.addEventListener("immigo:vendor-update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener("immigo:application-update", handleUpdate);
+      window.removeEventListener("immigo:candidate-update", handleUpdate);
+      window.removeEventListener("immigo:dashboard-update", handleUpdate);
+      window.removeEventListener("immigo:vendor-update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [loadDashboardData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadActivities();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadActivities]);
 
   
   const summaryCards = [

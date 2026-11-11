@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Globe,
@@ -9,7 +9,6 @@ import {
   Star,
   MapPin,
   Smile,
-  Calendar,
   Lock,
   Mail,
   ArrowRight,
@@ -17,10 +16,8 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  CheckCircle2,
-  X,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
@@ -42,8 +39,10 @@ export function VendorLogin() {
   const passwordInputRef = useRef(null);
 
   useEffect(() => {
-    setEmailOrId("");
-    setPassword("");
+    const initTimer = setTimeout(() => {
+      setEmailOrId("");
+      setPassword("");
+    }, 0);
     const clearBrowserAutofill = () => {
       if (emailInputRef.current) {
         const v = String(emailInputRef.current.value || "").trim();
@@ -64,19 +63,13 @@ export function VendorLogin() {
     const interval = setInterval(clearBrowserAutofill, 50);
     const stopTimer = setTimeout(() => clearInterval(interval), 2500);
     return () => {
+      clearTimeout(initTimer);
       clearInterval(interval);
       clearTimeout(stopTimer);
     };
   }, []);
 
   const [showForgotModal, setShowForgotModal] = useState(false);
-
-  
-    const handleQuickFill = () => {
-    setEmailOrId("vendor@immigo.com");
-    setPassword("12345");
-    setError("");
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -204,7 +197,7 @@ export function VendorLogin() {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-3.5">
+                <form onSubmit={handleSubmit} className="space-y-3.5" autoComplete="off">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       Registered Email Address
@@ -212,16 +205,37 @@ export function VendorLogin() {
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
-                    ref={passwordInputRef}
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    name="vendor_portal_key"
-                    autoComplete="new-password"
-                    placeholder="Enter your password"
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
-                  />
+                        type="email"
+                        required
+                        value={emailOrId}
+                        onChange={(e) => setEmailOrId(e.target.value)}
+                        name="vendor_mobile_email"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck="false"
+                        placeholder="Enter registered agency email"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        name="vendor_mobile_password"
+                        autoComplete="new-password"
+                        placeholder="Enter your password"
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white font-medium transition"
+                      />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -353,7 +367,6 @@ export function VendorLogin() {
               </div>
             </div>
 
-            {/* Candidate Portal Box - Positioned on the side outside the form */}
             <div className="mt-4 p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-xl">
               <div>
                 <span className="text-[11px] font-semibold text-slate-500 block">
@@ -390,8 +403,6 @@ export function VendorLogin() {
                 Sign in to manage candidates and manpower submissions.
               </p>
             </div>
-
-
 
             {error && (
               <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2 animate-shake">
@@ -512,7 +523,6 @@ export function VendorLogin() {
         </div>
       </main>
 
-      {/* Navy Blue Footer */}
       <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
         <span className="mx-2 text-cyan-400">&bull;</span>

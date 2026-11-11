@@ -6,10 +6,12 @@ import {
   Award,
   ArrowRight,
 } from "lucide-react";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { getCandidateInitials, getEffectiveStage } from "../shared/vendorHRUtils.jsx";
+import { isAppRefundLocked } from "../../../services/refundService.js";
 
 export default function VendorHROnHoldSection({
   applications = [],
+  refunds = [],
   hideProjectNames = false,
   handleQuickStage,
   openCandidateModal,
@@ -18,8 +20,8 @@ export default function VendorHROnHoldSection({
   const [onHoldSearch, setOnHoldSearch] = useState("");
 
   const onHoldCandidates = applications.filter((c) => {
-    const stage = c.recruitmentStage || c.status || "";
-    return stage === "On Hold";
+    if (isAppRefundLocked(c, refunds)) return false;
+    return getEffectiveStage(c) === "On Hold";
   });
 
   const filteredOnHold = onHoldCandidates.filter((cand) => {
@@ -98,16 +100,14 @@ export default function VendorHROnHoldSection({
                 <tr key={cand.applicationId || cand.id || idx} className="hover:bg-slate-50/60 transition">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={AVATARS[idx % AVATARS.length]}
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
-                      />
+                      <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-800 border border-amber-200 flex items-center justify-center font-bold text-[11px] shrink-0">
+                        {getCandidateInitials(cand.candidateName)}
+                      </div>
                       <div className="min-w-0">
                         <h4 className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</h4>
                         <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-mono">
-                          <span>{cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.applicationId?.slice(0, 8)}`}</span>
-                          {cand.candidatePhone && <span>• 📞 {cand.candidatePhone}</span>}
+                          <span>{cand.passportNumber ? `Passport: ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}</span>
+                          {cand.candidatePhone && <span>• {cand.candidatePhone}</span>}
                         </div>
                       </div>
                     </div>

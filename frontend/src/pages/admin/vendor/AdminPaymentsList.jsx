@@ -6,6 +6,7 @@ import {
   Eye,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import refundService, { isAppRefundLocked } from "../../../services/refundService";
 
 export default function AdminPaymentsList() {
   const [applications, setApplications] = useState([]);
@@ -25,7 +26,10 @@ export default function AdminPaymentsList() {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
-      const data = await crmVendorService.getApplications();
+      const [data, allRefunds] = await Promise.all([
+        crmVendorService.getApplications(),
+        refundService.getAllRefunds().catch(() => []),
+      ]);
       const postSelectionStatuses = new Set([
         "Selected",
         "Completed",
@@ -41,6 +45,7 @@ export default function AdminPaymentsList() {
       const filtered = (data || []).filter(
         (a) =>
           (postSelectionStatuses.has(a.status) || postSelectionStatuses.has(a.recruitmentStage)) &&
+          !isAppRefundLocked(a, allRefunds) &&
           resolveMilestones(a).length > 0
       );
       setApplications(filtered);
@@ -58,12 +63,14 @@ export default function AdminPaymentsList() {
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(t);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -98,7 +105,6 @@ export default function AdminPaymentsList() {
 
   return (
     <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
-      {}
       <div className="border-b border-slate-200/80 pb-2.5">
         <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Selected Candidates Payment Accounts</h1>
         <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
@@ -106,7 +112,6 @@ export default function AdminPaymentsList() {
         </p>
       </div>
 
-      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
         <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -133,7 +138,6 @@ export default function AdminPaymentsList() {
         </div>
       </div>
 
-      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -145,7 +149,6 @@ export default function AdminPaymentsList() {
         />
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>

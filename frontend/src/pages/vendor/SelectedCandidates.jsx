@@ -7,8 +7,11 @@ import {
   CreditCard,
   Building2,
   TrendingUp,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import refundService, { isAppRefundLocked } from "../../services/refundService";
 
 export default function SelectedCandidates() {
   const [applications, setApplications] = useState([]);
@@ -20,7 +23,10 @@ export default function SelectedCandidates() {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
       await crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []);
-      const data = await crmVendorService.getApplications(curVendor?.id);
+      const [data, allRefunds] = await Promise.all([
+        crmVendorService.getApplications(curVendor?.id),
+        refundService.getAllRefunds(curVendor?.id).catch(() => []),
+      ]);
       const postSelectionStatuses = new Set([
         "Selected",
         "Completed",
@@ -35,8 +41,9 @@ export default function SelectedCandidates() {
       ]);
       const selectedApps = (data || []).filter(
         (a) =>
-          postSelectionStatuses.has(a.status) ||
-          postSelectionStatuses.has(a.recruitmentStage)
+          (postSelectionStatuses.has(a.status) ||
+            postSelectionStatuses.has(a.recruitmentStage)) &&
+          !isAppRefundLocked(a, allRefunds)
       );
       setApplications(selectedApps);
     } catch (err) {
@@ -53,12 +60,14 @@ export default function SelectedCandidates() {
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -106,7 +115,6 @@ export default function SelectedCandidates() {
 
   return (
     <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">
@@ -130,7 +138,6 @@ export default function SelectedCandidates() {
         </Link>
       </div>
 
-      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/80 shadow-2xs">
           <div className="flex items-center justify-between">
@@ -180,7 +187,6 @@ export default function SelectedCandidates() {
         </div>
       </div>
 
-      {}
       <div className="relative">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -192,7 +198,6 @@ export default function SelectedCandidates() {
         />
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -236,12 +241,10 @@ export default function SelectedCandidates() {
                 ).length;
                 const totalMilestones = milestones.length;
 
-                
                 const allMilestoneStages = milestones.flatMap((m) => m.stages || []);
                 const completedMilestoneStages = allMilestoneStages.filter((s) => s.status === "Completed" || s.completed).length;
                 const totalMilestoneStages = allMilestoneStages.length;
 
-                
                 const procStages = app.processing?.stages || [];
                 const completedProcStages = procStages.filter((s) => s.status === "Completed" || s.completed).length;
 
@@ -329,27 +332,70 @@ export default function SelectedCandidates() {
                       {app.position}
                     </td>
                     <td className="py-1 px-2">
-                      <div className="flex flex-col gap-1.5 w-32">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span
-                            className={`truncate ${
-                              isCompleted ? "text-emerald-800 font-bold" : "font-semibold text-emerald-700"
-                            }`}
-                          >
-                            {stageLabel}
-                          </span>
-                          <span className={isCompleted ? "text-emerald-700 font-bold" : "text-slate-400"}>
-                            {completedStagesCount}/{totalStages}
-                          </span>
+                      <div className="space-y-1.5">
+                        <div className="flex flex-col gap-1 w-36">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span
+                              className={`truncate ${
+                                isCompleted ? "text-emerald-800 font-bold" : "font-semibold text-emerald-700"
+                              }`}
+                            >
+                              {stageLabel}
+                            </span>
+                            <span className={isCompleted ? "text-emerald-700 font-bold" : "text-slate-400"}>
+                              {completedStagesCount}/{totalStages}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className={`h-1.5 rounded-full transition-all duration-300 ${
+                                isCompleted ? "bg-emerald-600" : "bg-emerald-500"
+                              }`}
+                              style={{ width: `${(completedStagesCount / totalStages) * 100}%` }}
+                            ></div>
+                          </div>
                         </div>
-                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              isCompleted ? "bg-emerald-600" : "bg-emerald-500"
-                            }`}
-                            style={{ width: `${(completedStagesCount / totalStages) * 100}%` }}
-                          ></div>
-                        </div>
+                        {milestones.length > 0 && (
+                          <div className="flex items-center gap-1 flex-nowrap whitespace-nowrap">
+                            {milestones.slice(0, 3).map((m, mIdx) => {
+                              const isMPaid =
+                                m.paymentStatus === "Approved" ||
+                                m.status === "Paid" ||
+                                m.status === "Completed";
+                              const isMSub =
+                                m.paymentStatus === "Submitted" ||
+                                m.paymentStatus === "Pending Verification" ||
+                                m.status === "Submitted";
+                              const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
+                              return (
+                                <span
+                                  key={m.id || mIdx}
+                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap ${
+                                    isMPaid
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                      : isMSub
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : "bg-slate-100 text-slate-600 border border-slate-200"
+                                  }`}
+                                  title={`${m.name}: ₹${mAmt.toLocaleString()}`}
+                                >
+                                  {isMPaid ? (
+                                    <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                                  ) : (
+                                    <Clock size={10} className="text-amber-500 shrink-0" />
+                                  )}
+                                  <span>M{mIdx + 1}</span>
+                                  <span>₹{mAmt.toLocaleString()}</span>
+                                </span>
+                              );
+                            })}
+                            {milestones.length > 3 && (
+                              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200">
+                                +{milestones.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="py-1 px-2">

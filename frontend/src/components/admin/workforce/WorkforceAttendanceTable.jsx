@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Calendar,
   Search,
-  Mail,
-  User,
   Edit3,
   Eye,
   ArrowRight,

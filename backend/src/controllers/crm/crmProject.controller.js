@@ -5,8 +5,9 @@ import CandidateApplication from "../../models/CandidateApplication.js";
 import CrmNotification from "../../models/CrmNotification.js";
 import NotificationService, { resolveActorInfo } from "../../services/notification.service.js";
 import ActivityService from "../../services/activity.service.js";
+import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { generateNextClientId } from "../../utils/idGenerator.js";
+import { generateNextClientId, generateNextProjectId } from "../../utils/idGenerator.js";
 import { resolveProjectMilestonesData } from "../../utils/projectResolver.js";
 
 const POST_SELECTION_STATUSES = new Set([
@@ -22,36 +23,70 @@ const POST_SELECTION_STATUSES = new Set([
   "Deployed",
 ]);
 
+const getVendorAllowedSet = (req) =>
+  new Set([req.vendorId, req.userId].filter(Boolean).map((v) => String(v).trim()));
+
+const isProjectVisibleToVendor = (project, allowedVendorIds) => {
+  if (!project) return false;
+  const visType = project.vendorAssignmentType || project.vendorVisibility || "";
+  if (visType !== "Specific Vendor" && visType !== "specific") return true;
+  const assigned = project.assignedVendors || project.assignedVendorIds || [];
+  return (
+    Array.isArray(assigned) &&
+    assigned.some((v) => {
+      const vid = typeof v === "object" ? v?.vendorId || v?.id || v?._id : v;
+      return vid && allowedVendorIds.has(String(vid).trim());
+    })
+  );
+};
+
+const stripSensitiveProjectFieldsForVendor = (proj, isVendor) => {
+  if (!isVendor || !proj || typeof proj !== "object") return proj;
+  const clone = { ...proj };
+  delete clone.assignedVendors;
+  delete clone.assignedVendorIds;
+  delete clone.assignedVendorHRs;
+  return clone;
+};
+
 export const getAvailableProjects = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).lean();
   const directProjects = await Project.find({}).populate("clientId").lean().catch(() => []);
+  const allowedVendorIds = req.isVendor ? getVendorAllowedSet(req) : null;
 
   const list = [];
   const seenIds = new Set();
 
   (clients || []).forEach((c) => {
     (c.projects || []).forEach((p) => {
+      if (allowedVendorIds && !isProjectVisibleToVendor(p, allowedVendorIds)) return;
       const status = (p.status || "Active").toLowerCase();
       if (status !== "inactive" && status !== "closed" && status !== "cancelled") {
         const pId = String(p.id || p.projectId || p._id?.toString() || "");
         if (pId && !seenIds.has(pId)) {
           seenIds.add(pId);
-          list.push({
-            ...p,
-            id: pId,
-            projectName: p.projectName || p.name || p.title || "Overseas Project",
-            clientId: c.clientId || c._id.toString(),
-            clientName: c.companyName || c.name || p.clientName || "Overseas Client",
-            country: p.country || c.country || "Overseas",
-            status: p.status || "Active",
-            manpowerRequirements: p.manpowerRequirements || [],
-          });
+          list.push(
+            stripSensitiveProjectFieldsForVendor(
+              {
+                ...p,
+                id: pId,
+                projectName: p.projectName || p.name || p.title || "Overseas Project",
+                clientId: c.clientId || c._id.toString(),
+                clientName: c.companyName || c.name || p.clientName || "Overseas Client",
+                country: p.country || c.country || "Overseas",
+                status: p.status || "Active",
+                manpowerRequirements: p.manpowerRequirements || [],
+              },
+              req.isVendor
+            )
+          );
         }
       }
     });
   });
 
   (directProjects || []).forEach((dp) => {
+    if (allowedVendorIds && !isProjectVisibleToVendor(dp, allowedVendorIds)) return;
     const pId = String(dp.projectId || dp.id || dp._id?.toString() || "");
     if (pId && !seenIds.has(pId)) {
       const status = (dp.status || "Pending").toLowerCase();
@@ -59,27 +94,33 @@ export const getAvailableProjects = asyncHandler(async (req, res) => {
         seenIds.add(pId);
         const cName = dp.clientId?.companyName || dp.clientId?.name || dp.clientName || "Direct Overseas Client";
         const cId = dp.clientId?.clientId || dp.clientId?._id?.toString() || dp.clientId || "cli-admin";
-        list.push({
-          ...dp,
-          id: pId,
-          projectName: dp.title || dp.projectName || "Overseas Project",
-          clientName: cName,
-          clientId: String(cId),
-          country: dp.country || dp.clientId?.country || "Overseas",
-          status: dp.status || "Active",
-          manpowerRequirements: Array.isArray(dp.manpowerRequirements) && dp.manpowerRequirements.length > 0
-            ? dp.manpowerRequirements
-            : [
-                {
-                  id: `mpr-${pId}-1`,
-                  position: dp.projectType || dp.industryName || dp.title || "General Trade Position",
-                  positionTitle: dp.projectType || dp.industryName || dp.title || "General Trade Position",
-                  quantity: dp.totalHeadcount || dp.manpower || 1,
-                  salary: dp.salary || "",
-                  currency: dp.currency || "",
-                },
-              ],
-        });
+        list.push(
+          stripSensitiveProjectFieldsForVendor(
+            {
+              ...dp,
+              id: pId,
+              projectName: dp.title || dp.projectName || "Overseas Project",
+              clientName: cName,
+              clientId: String(cId),
+              country: dp.country || dp.clientId?.country || "Overseas",
+              status: dp.status || "Active",
+              manpowerRequirements:
+                Array.isArray(dp.manpowerRequirements) && dp.manpowerRequirements.length > 0
+                  ? dp.manpowerRequirements
+                  : [
+                      {
+                        id: `mpr-${pId}-1`,
+                        position: dp.projectType || dp.industryName || dp.title || "General Trade Position",
+                        positionTitle: dp.projectType || dp.industryName || dp.title || "General Trade Position",
+                        quantity: dp.totalHeadcount || dp.manpower || 1,
+                        salary: dp.salary || "",
+                        currency: dp.currency || "",
+                      },
+                    ],
+            },
+            req.isVendor
+          )
+        );
       }
     }
   });
@@ -114,10 +155,20 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
   }
 
   const existingProjects = Array.isArray(doc.projects) ? [...doc.projects] : [];
-  const projId = project.id || project.projectId || `prj-${Date.now().toString().slice(-6)}`;
+  const rawProjId = String(project.id || project.projectId || "").trim();
+  const matchesExisting =
+    rawProjId &&
+    existingProjects.some(
+      (p) => String(p.id || p.projectId || p._id) === rawProjId
+    );
+  const projId =
+    matchesExisting || (rawProjId && !/^prj-/i.test(rawProjId))
+      ? rawProjId
+      : await generateNextProjectId();
   const fullProject = {
     ...project,
     id: projId,
+    projectId: projId,
     clientId: doc.clientId || String(clientId),
     clientName: doc.companyName || project.clientName || "Overseas Client",
     country: project.country || doc.country || "Overseas",
@@ -271,6 +322,19 @@ export const addOrUpdateProject = asyncHandler(async (req, res) => {
     });
   } catch {}
 
+  emitRealtimeEvent({
+    events: [
+      "immigo:project-update",
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    detail: { projectId: fullProject.id },
+  });
+
   return res.status(200).json({ success: true, project: fullProject });
 });
 
@@ -315,6 +379,17 @@ export const deleteProject = asyncHandler(async (req, res) => {
       performedByRole: "admin",
     });
   } catch {}
+
+  emitRealtimeEvent({
+    events: [
+      "immigo:project-update",
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    detail: { projectId: targetProjectId, deleted: true },
+  });
 
   return res.status(200).json({
     success: true,

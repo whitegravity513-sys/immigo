@@ -201,32 +201,12 @@ export const vendorLogin = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email/Vendor ID and password are required.");
   }
 
-  let vendor = await Vendor.findOne({
+  const vendor = await Vendor.findOne({
     $or: [{ email: identifier }, { vendorId: identifier.toUpperCase() }],
   });
 
   if (!vendor) {
-    if (
-      (cleanPassword === "12345" || cleanPassword === "admin") &&
-      (identifier === "vendor@vista.com" || identifier === "vendor@immigo.com" || identifier === "vnd-1001" || identifier === "vnd-001")
-    ) {
-      const hashedPassword = await bcrypt.hash("12345", 10);
-      vendor = await Vendor.create({
-        vendorId: "VND-1001",
-        companyName: "Global Staffing Solutions Pvt Ltd",
-        contactPersonName: "Rohan Verma",
-        email: "vendor@vista.com",
-        phone: "9876543210",
-        pan: "ABCDE1234F",
-        password: hashedPassword,
-        status: "Active",
-        onboardingStage: "COMPLETED",
-        mouSigned: true,
-        mouStatus: "Approved",
-      });
-    } else {
-      throw new ApiError(401, "Invalid Vendor ID/Email or Password.");
-    }
+    throw new ApiError(401, "Invalid Vendor ID/Email or Password.");
   }
 
   if (vendor.status === "Registration Pending" || vendor.status === "Pending") {
@@ -254,12 +234,7 @@ export const vendorLogin = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Your vendor account has been temporarily Suspended. Please contact ImmiGo Admin.");
   }
 
-  let isMatch = await bcrypt.compare(cleanPassword, vendor.password);
-  if (!isMatch && (cleanPassword === "12345" || cleanPassword === "admin") && (vendor.email === "vendor@immigo.com" || vendor.email === "vendor@vista.com" || vendor.vendorId === "VND-1001")) {
-    isMatch = true;
-    vendor.password = await bcrypt.hash("12345", 10);
-    await vendor.save().catch(() => {});
-  }
+  const isMatch = vendor.password ? await bcrypt.compare(cleanPassword, vendor.password) : false;
 
   if (!isMatch) {
     throw new ApiError(401, "Invalid Vendor ID/Email or Password.");

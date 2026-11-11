@@ -37,7 +37,10 @@ export default function ForgotPasswordOtpModal({
   const [infoMsg, setInfoMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
-  useEffect(() => {
+  const openKey = isOpen ? `${isOpen}:${initialEmail}` : "closed";
+  const [prevOpenKey, setPrevOpenKey] = useState(openKey);
+  if (openKey !== prevOpenKey) {
+    setPrevOpenKey(openKey);
     if (isOpen) {
       setStep(1);
       setEmail(initialEmail || "");
@@ -48,7 +51,7 @@ export default function ForgotPasswordOtpModal({
       setInfoMsg("");
       setCooldown(0);
     }
-  }, [isOpen, initialEmail]);
+  }
 
   useEffect(() => {
     let timer;
@@ -125,11 +128,10 @@ export default function ForgotPasswordOtpModal({
 
     setLoading(true);
     try {
-      let res;
       if (isVendor) {
-        res = await vendorResetPassword(email, cleanOtp, newPassword);
+        await vendorResetPassword(email, cleanOtp, newPassword);
       } else {
-        res = await adminResetPassword(email, cleanOtp, newPassword);
+        await adminResetPassword(email, cleanOtp, newPassword);
       }
 
       setStep(3);
@@ -205,7 +207,7 @@ export default function ForgotPasswordOtpModal({
                     autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={isVendor ? "e.g. vendor@company.com or IMM-VND-00001" : isSuperAdmin ? "admin@vista.com" : "e.g. admin@immigo.com"}
+                    placeholder={isVendor ? "e.g. vendor@company.com or IMMI-VE-001" : isSuperAdmin ? "admin@vista.com" : "e.g. admin@immigo.com"}
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition font-medium"
                   />
                 </div>
@@ -229,7 +231,6 @@ export default function ForgotPasswordOtpModal({
           </div>
         )}
 
-        {}
         {step === 2 && (
           <div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
@@ -355,7 +356,6 @@ export default function ForgotPasswordOtpModal({
           </div>
         )}
 
-        {}
         {step === 3 && (
           <div className="text-center py-4 space-y-4">
             <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">

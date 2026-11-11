@@ -17,11 +17,17 @@ import {
   Sliders,
   Plus,
   Printer,
+  RotateCcw,
 } from "lucide-react";
 import ConfigureMilestonesModal from "../ConfigureMilestonesModal.jsx";
 import DateInput from "../../../common/DateInput.jsx";
 import { printUploadedDocument } from "../../../../utils/printDocument.js";
 import crmVendorService from "../../../../services/crmVendorService.js";
+import {
+  isAppRefundLocked,
+  getAppRefundStatus,
+  REASSIGN_ELIGIBLE_REFUND_STATUSES,
+} from "../../../../services/refundService.js";
 
 export default function CandidateMasterProfileView({
   selectedCandidate,
@@ -30,6 +36,7 @@ export default function CandidateMasterProfileView({
   vendorName,
   statusBadgeClass,
   submissionHistory = [],
+  refunds = [],
   onAcceptAllCandidateDocs,
   onPreviewDoc,
   onDownloadDoc,
@@ -469,6 +476,9 @@ export default function CandidateMasterProfileView({
               const isRejected = subStatus === "Rejected";
               const isShortlisted = subStatus === "Shortlisted";
               const isOnHold = subStatus === "On Hold";
+              const subRefundStatus = getAppRefundStatus(sub, refunds);
+              const subRefundLocked = isAppRefundLocked(sub, refunds);
+              const canReassignSub = REASSIGN_ELIGIBLE_REFUND_STATUSES.has(subRefundStatus);
               const resolvedSubMilestones = !sub.milestonesOverridden
                 ? crmVendorService.syncAppMilestonesWithProject(sub) ||
                   sub.processMilestones ||
@@ -566,10 +576,43 @@ export default function CandidateMasterProfileView({
                       </span>
                     </div>
 
-                    {/* Pre-Selection Strict 3-Step Decision Flow */}
-                    {!isSelected && !isRejected && (
+                    {subRefundLocked && (
+                      <div className="mt-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-2.5">
+                          <AlertTriangle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                          <div className="text-xs space-y-0.5">
+                            <div className="font-bold text-rose-950">
+                              Payment &amp; Processing Frozen — Refund Claim ({subRefundStatus || "Pending Admin Approval"})
+                            </div>
+                            <p className="text-[11px] text-rose-800">
+                              {subRefundStatus === "Pending Admin Approval"
+                                ? "All milestone payments, receipts, stage progression, and selection actions are paused until Admin reviews and responds to this refund request."
+                                : "Admin has processed this refund claim. Processing on this project remains closed; reassign this candidate to another project if applicable."}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                          <Link
+                            to="/admin/vendor/refunds"
+                            className="px-3 py-1.5 rounded-lg bg-white border border-rose-300 hover:bg-rose-100 text-rose-800 font-bold text-[11px] transition"
+                          >
+                            Review in Refunds
+                          </Link>
+                          {canReassignSub && (
+                            <Link
+                              to={`/admin/vendor/reassign?appId=${subId}`}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1"
+                            >
+                              <RotateCcw size={11} />
+                              <span>Reassign Candidate</span>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {!subRefundLocked && !isSelected && !isRejected && (
                       <div className="mt-4 pt-4 border-t border-slate-200/60">
-                        {/* Step 1: Initial State (Submitted / Applied / Under Review / Screening) -> Strictly Shortlist & Reject together */}
                         {!isShortlisted && !isInterview && !isOnHold && (
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
@@ -624,7 +667,6 @@ export default function CandidateMasterProfileView({
                           </div>
                         )}
 
-                        {/* Step 2: Shortlisted -> Schedule Interview, Hold, or Reject */}
                         {isShortlisted && !isInterview && (
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">
@@ -643,7 +685,6 @@ export default function CandidateMasterProfileView({
                           </div>
                         )}
 
-                        {/* Step 3: Interview Active -> Select, Reject, or Hold */}
                         {isInterview && (
                           <div className="space-y-1.5">
                             <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">
@@ -698,24 +739,26 @@ export default function CandidateMasterProfileView({
                               Milestone payments & sub-stages processing can be monitored and updated directly below or via dedicated steppers.
                             </p>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Link
-                              to={`/admin/vendor/processing?appId=${subId}`}
-                              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
-                              title="Open Full 8-Stage Processing Stepper"
-                            >
-                              <Clock size={13} />
-                              <span>Processing Stepper</span>
-                            </Link>
-                            <Link
-                              to={`/admin/vendor/milestones-manage?appId=${subId}`}
-                              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
-                              title="Configure Milestones & Verify Documents"
-                            >
-                              <Sliders size={13} />
-                              <span>Manage Milestones</span>
-                            </Link>
-                          </div>
+                          {!subRefundLocked && (
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Link
+                                to={`/admin/vendor/processing?appId=${subId}`}
+                                className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
+                                title="Open Full 8-Stage Processing Stepper"
+                              >
+                                <Clock size={13} />
+                                <span>Processing Stepper</span>
+                              </Link>
+                              <Link
+                                to={`/admin/vendor/milestones-manage?appId=${subId}`}
+                                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
+                                title="Configure Milestones & Verify Documents"
+                              >
+                                <Sliders size={13} />
+                                <span>Manage Milestones</span>
+                              </Link>
+                            </div>
+                          )}
                         </div>
 
                         {resolvedSubMilestones.length > 0 ? (
@@ -724,22 +767,24 @@ export default function CandidateMasterProfileView({
                               <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                 Payment Milestones — Total: ₹{resolvedTotal.toLocaleString("en-IN")}
                               </p>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() => setConfigureMilestonesModal({ application: sub })}
-                                  className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition border border-indigo-200 shadow-2xs"
-                                >
-                                  <Sliders size={11} />
-                                  <span>Configure Plan</span>
-                                </button>
-                                <button
-                                  onClick={() => setConfigureMilestonesModal({ application: sub })}
-                                  className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition shadow-2xs"
-                                >
-                                  <Plus size={11} />
-                                  <span>Add Milestone</span>
-                                </button>
-                              </div>
+                              {!subRefundLocked && (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                    className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition border border-indigo-200 shadow-2xs"
+                                  >
+                                    <Sliders size={11} />
+                                    <span>Configure Plan</span>
+                                  </button>
+                                  <button
+                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
+                                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                                  >
+                                    <Plus size={11} />
+                                    <span>Add Milestone</span>
+                                  </button>
+                                </div>
+                              )}
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {resolvedSubMilestones.map((ms, mi) => {
@@ -769,8 +814,15 @@ export default function CandidateMasterProfileView({
                                   <button
                                     key={mi}
                                     type="button"
-                                    onClick={() => setConfigureMilestonesModal({ application: sub })}
-                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer hover:shadow-xs flex items-center gap-1.5 ${
+                                    disabled={subRefundLocked}
+                                    onClick={() => {
+                                      if (!subRefundLocked) {
+                                        setConfigureMilestonesModal({ application: sub });
+                                      }
+                                    }}
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${
+                                      subRefundLocked ? "opacity-75 cursor-not-allowed" : "cursor-pointer hover:shadow-xs"
+                                    } ${
                                       isPaid
                                         ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
                                         : isSub
@@ -789,7 +841,7 @@ export default function CandidateMasterProfileView({
                               })}
                             </div>
                           </div>
-                        ) : (
+                        ) : !subRefundLocked ? (
                           <div className="flex items-center justify-between p-3 bg-blue-50/70 rounded-xl border border-blue-200">
                             <div>
                               <p className="text-xs font-bold text-blue-900">Payment Milestones & Processing Stages</p>
@@ -806,7 +858,7 @@ export default function CandidateMasterProfileView({
                               <span>Configure Milestones & Stages</span>
                             </button>
                           </div>
-                        )}
+                        ) : null}
 
                         {(() => {
                           const displayStages =
@@ -820,12 +872,14 @@ export default function CandidateMasterProfileView({
                                 <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                   Processing Stages
                                 </p>
-                                <Link
-                                  to={`/admin/vendor/milestones-manage?appId=${subId}`}
-                                  className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 hover:underline"
-                                >
-                                  Update Stages →
-                                </Link>
+                                {!subRefundLocked && (
+                                  <Link
+                                    to={`/admin/vendor/milestones-manage?appId=${subId}`}
+                                    className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 hover:underline"
+                                  >
+                                    Update Stages →
+                                  </Link>
+                                )}
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 {displayStages.map((stg, i) => {

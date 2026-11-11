@@ -1,4 +1,3 @@
-import React from "react";
 import { Plus, Upload, Trash2, FileText, Eye, X } from "lucide-react";
 
 export default function MilestoneStagesChecklist({

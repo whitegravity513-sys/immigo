@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Calendar,
   CheckCircle2,
@@ -21,7 +21,6 @@ export default function CandidateApplicationsTab({
   applications = [],
   onSelectAppForProcessing = () => {},
 }) {
-  // Store expanded application IDs (default expand first or clicked)
   const [expandedAppIds, setExpandedAppIds] = useState(() => {
     if (applications.length > 0) {
       return [applications[0].applicationId || applications[0].id];
@@ -97,7 +96,6 @@ export default function CandidateApplicationsTab({
                     : "border-slate-200 hover:border-blue-300"
                 }`}
               >
-                {/* Clickable Header Card */}
                 <div
                   onClick={() => toggleExpand(appId)}
                   className="p-3 sm:p-3.5 cursor-pointer hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 select-none"
@@ -151,10 +149,8 @@ export default function CandidateApplicationsTab({
                   </div>
                 </div>
 
-                {/* Expanded Status Details Panel */}
                 {isExpanded && (
                   <div className="border-t border-slate-100 p-3.5 sm:p-4 bg-slate-50/50 space-y-3.5">
-                    {/* Status Highlights & Explanation */}
                     {status === "Applied" && (
                       <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl space-y-1 text-xs">
                         <div className="flex items-center gap-1.5 font-bold text-blue-900">
@@ -322,7 +318,6 @@ export default function CandidateApplicationsTab({
                           </div>
                         </div>
 
-                        {/* Exact Rejection Reason Box */}
                         <div className="bg-white/90 p-2.5 rounded-lg border border-rose-200 text-[11px] space-y-1">
                           <span className="text-[10px] uppercase font-bold text-rose-700 block tracking-wider">
                             Reason for Outcome:
@@ -345,7 +340,6 @@ export default function CandidateApplicationsTab({
                       </div>
                     )}
 
-                    {/* Timeline History if available */}
                     {Array.isArray(app.statusHistory) && app.statusHistory.length > 0 && (
                       <div className="pt-2 border-t border-slate-200/80 space-y-1.5">
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">

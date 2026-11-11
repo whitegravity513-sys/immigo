@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FolderKanban,
@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import StatCard from "../../components/crm/ui/StatCard.jsx";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService from "../../services/crmClientService.js";
 import ProjectsFilterBar from "../../components/crm/projects/ProjectsFilterBar.jsx";
 import ProjectsTableView from "../../components/crm/projects/ProjectsTableView.jsx";
@@ -18,27 +18,30 @@ export function Projects() {
   const [searchParams] = useSearchParams();
   const { showToast } = useCrmToast();
 
-  const urlStatus = searchParams.get("status") || "All";
+  const urlStatus = searchParams.get("status");
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState(urlStatus);
+  const [statusFilter, setStatusFilter] = useState(urlStatus || "All");
   const [countryFilter, setCountryFilter] = useState("All");
   const [clientFilter, setClientFilter] = useState("All");
 
   const [deleteTargetProject, setDeleteTargetProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(false);
 
-  useEffect(() => {
-    const s = searchParams.get("status");
-    if (s && s !== statusFilter) {
-      setStatusFilter(s);
+  const [prevUrlStatus, setPrevUrlStatus] = useState(urlStatus);
+  if (urlStatus !== prevUrlStatus) {
+    setPrevUrlStatus(urlStatus);
+    if (urlStatus && urlStatus !== statusFilter) {
+      setStatusFilter(urlStatus);
     }
-  }, [searchParams]);
+  }
 
-  const fetchProjects = async () => {
-    setLoading(true);
+  const fetchProjectsRef = useRef(null);
+
+  const fetchProjects = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const res = await crmClientService.getAllProjects({
         search,
@@ -52,15 +55,46 @@ export function Projects() {
       setClients(clientRes.clients || []);
     } catch (err) {
       console.error("Error fetching projects:", err);
-      showToast("Failed to load projects", "error");
+      if (!silent) showToast("Failed to load projects", "error");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [search, statusFilter, countryFilter, clientFilter, showToast]);
 
   useEffect(() => {
-    fetchProjects();
-  }, [search, statusFilter, countryFilter, clientFilter]);
+    fetchProjectsRef.current = fetchProjects;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchProjects();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    let timer = null;
+    const handleLiveUpdate = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        fetchProjectsRef.current?.({ silent: true });
+      }, 200);
+    };
+    const events = [
+      "immigo:project-update",
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+    ];
+    events.forEach((evt) => window.addEventListener(evt, handleLiveUpdate));
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach((evt) => window.removeEventListener(evt, handleLiveUpdate));
+    };
+  }, []);
 
   const handleToggleStatus = async (e, clientId, projectId) => {
     if (e) {

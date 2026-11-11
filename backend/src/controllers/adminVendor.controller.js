@@ -7,6 +7,23 @@ import {
 } from "../services/email.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { generateNextMouId } from "../utils/idGenerator.js";
+import { emitRealtimeEvent } from "../services/realtime.service.js";
+
+const emitVendorSync = (vendor) => {
+  emitRealtimeEvent({
+    events: [
+      "immigo:vendor-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    vendorId: vendor?.vendorId ? String(vendor.vendorId) : vendor ? String(vendor) : null,
+  });
+};
 
 
 
@@ -93,6 +110,8 @@ export const approveRegistration = asyncHandler(async (req, res) => {
     visibility: "ADMIN",
   });
 
+  emitVendorSync(vendor);
+
   return res.status(200).json({
     message: `Vendor ${vendor.companyName} (${vendor.vendorId}) registration verified successfully. Welcome portal notification has been dispatched.`,
     vendor,
@@ -128,6 +147,8 @@ export const holdRegistration = asyncHandler(async (req, res) => {
     status: "Registration On Hold",
     visibility: "ADMIN",
   });
+
+  emitVendorSync(vendor);
 
   return res.status(200).json({
     message: "Vendor registration placed on hold",
@@ -168,7 +189,14 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   vendor.onboardingStage = "MOU_SENT";
   vendor.mouStatus = "Sent";
 
+  const existingMouNumber = String(vendor.mouDocument?.mouNumber || vendor.mouDocument?.refNumber || "").trim();
+  const mouNumber = existingMouNumber && !/^MOU-/i.test(existingMouNumber)
+    ? existingMouNumber
+    : await generateNextMouId();
+
   vendor.mouDocument = {
+    mouNumber,
+    refNumber: mouNumber,
     title: "Memorandum of Understanding (MOU) for Recruitment Services",
     sentAt: agreementDate ? new Date(agreementDate) : new Date(),
     agreementDate: agreementDate || new Date().toISOString().split("T")[0],
@@ -225,6 +253,8 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
     status: "MOU Pending",
     visibility: "ADMIN",
   });
+
+  emitVendorSync(vendor);
 
   return res.status(200).json({
     message: "Compliance documents verified and customized MOU generated & sent successfully",
@@ -287,6 +317,8 @@ export const requestDocCorrection = asyncHandler(async (req, res) => {
     status: "Documents Correction Required",
     visibility: "ADMIN",
   });
+
+  emitVendorSync(vendor);
 
   return res.status(200).json({
     message: "Document correction request sent to vendor",
@@ -365,6 +397,8 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
     visibility: "ADMIN",
   });
 
+  emitVendorSync(vendor);
+
   return res.status(200).json({
     message: "Vendor MOU approved and account fully activated!",
     vendor,
@@ -425,6 +459,8 @@ export const requestMouCorrection = asyncHandler(async (req, res) => {
     status: "MOU Correction Required",
     visibility: "ADMIN",
   });
+
+  emitVendorSync(vendor);
 
   return res.status(200).json({
     message: "MOU correction request sent to vendor",
@@ -492,6 +528,8 @@ export const rejectVendor = asyncHandler(async (req, res) => {
     visibility: "ADMIN",
   });
 
+  emitVendorSync(vendor);
+
   return res.status(200).json({
     message: "Vendor rejected",
     vendor,
@@ -538,6 +576,8 @@ export const toggleSuspendVendor = asyncHandler(async (req, res) => {
     status: vendor.status,
     visibility: "ADMIN",
   });
+
+  emitVendorSync(vendor);
 
   return res.status(200).json({
     message: `Vendor status updated to ${vendor.status}`,
@@ -588,6 +628,7 @@ export const updateVendor = asyncHandler(async (req, res) => {
   });
 
   await vendor.save();
+  emitVendorSync(vendor);
 
   return res.status(200).json({
     message: "Vendor details updated successfully",
@@ -603,6 +644,7 @@ export const deleteVendor = asyncHandler(async (req, res) => {
   }
 
   const vendor = await Vendor.findOneAndDelete({ $or: query });
+  emitVendorSync(vendor || id);
 
   return res.status(200).json({
     success: true,

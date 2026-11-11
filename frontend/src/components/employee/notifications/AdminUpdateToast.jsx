@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Bell, CheckCircle2, AlertCircle, Info, X, ChevronRight } from "lucide-react";
+import { useEffect } from "react";
+import { Bell, X, ChevronRight } from "lucide-react";
 
 export default function AdminUpdateToast({ notification, onClose, onView }) {
   useEffect(() => {

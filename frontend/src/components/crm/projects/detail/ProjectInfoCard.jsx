@@ -1,4 +1,3 @@
-import React from "react";
 import { Building2 } from "lucide-react";
 
 export function ProjectInfoCard({ project, client, totalRequired }) {

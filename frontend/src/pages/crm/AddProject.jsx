@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProjectForm from "../../components/crm/projects/ProjectForm.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService from "../../services/crmClientService.js";
 
 export function AddProject() {
@@ -9,10 +9,10 @@ export function AddProject() {
   const { showToast } = useCrmToast();
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (projectData, clientId, asDraft) => {
+  const handleSubmit = async (projectData, clientId) => {
     setSaving(true);
     try {
-      const created = await crmClientService.addProject(clientId, projectData);
+      await crmClientService.addProject(clientId, projectData);
       showToast("Project requirement created successfully.", "success");
       navigate("/client/projects");
     } catch (err) {

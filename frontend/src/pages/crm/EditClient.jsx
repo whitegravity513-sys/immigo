@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ClientForm from "../../components/crm/clients/ClientForm.jsx";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService from "../../services/crmClientService.js";
 
 export function EditClient() {
@@ -14,11 +14,7 @@ export function EditClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadClient();
-  }, [clientId]);
-
-  const loadClient = async () => {
+  const loadClient = useCallback(async () => {
     setLoading(true);
     try {
       const data = await crmClientService.getClientById(clientId);
@@ -34,9 +30,19 @@ export function EditClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientId, navigate, showToast]);
 
-  const handleUpdate = async (formData, asDraft) => {
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadClient();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadClient]);
+
+  const handleUpdate = async (formData) => {
     setSaving(true);
     try {
       await crmClientService.updateClient(clientId, formData);

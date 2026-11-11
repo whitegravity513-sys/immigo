@@ -1,16 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
-  Users,
   Clock,
-  CheckCircle2,
-  XCircle,
   CreditCard,
-  AlertTriangle,
   ArrowRight,
-  TrendingUp,
-  Sliders,
   Send,
   UserCheck,
 } from "lucide-react";
@@ -21,6 +15,7 @@ const VENDOR_DASHBOARD_STORAGE_KEYS = new Set([
   "immigo_crm_vendors_v3",
   "immigo_crm_candidates_v3",
   "immigo_crm_applications_v3",
+  "immigo_crm_refunds_v3",
   "immigo_crm_admin_notifications_v3",
 ]);
 
@@ -28,37 +23,7 @@ export default function AdminVendorDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadStats(false);
-
-    let debounceTimer = null;
-    const handleUpdate = (e) => {
-      if (e?.type === "storage" && (!e.key || !VENDOR_DASHBOARD_STORAGE_KEYS.has(e.key))) {
-        return;
-      }
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        loadStats(true);
-      }, 60);
-    };
-
-    window.addEventListener("immigo:application-update", handleUpdate);
-    window.addEventListener("immigo:candidate-update", handleUpdate);
-    window.addEventListener("immigo:dashboard-update", handleUpdate);
-    window.addEventListener("immigo:vendor-update", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
-
-    return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      window.removeEventListener("immigo:application-update", handleUpdate);
-      window.removeEventListener("immigo:candidate-update", handleUpdate);
-      window.removeEventListener("immigo:dashboard-update", handleUpdate);
-      window.removeEventListener("immigo:vendor-update", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
-  }, []);
-
-  const loadStats = async (silent = false) => {
+  const loadStats = useCallback(async (silent = false) => {
     try {
       if (silent !== true) {
         setLoading(true);
@@ -72,7 +37,43 @@ export default function AdminVendorDashboard() {
         setLoading(false);
       }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadStats(false);
+    });
+
+    let debounceTimer = null;
+    const handleUpdate = (e) => {
+      if (e?.type === "storage" && (!e.key || !VENDOR_DASHBOARD_STORAGE_KEYS.has(e.key))) {
+        return;
+      }
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (!cancelled) loadStats(true);
+      }, 60);
+    };
+
+    window.addEventListener("immigo:application-update", handleUpdate);
+    window.addEventListener("immigo:candidate-update", handleUpdate);
+    window.addEventListener("immigo:refund-update", handleUpdate);
+    window.addEventListener("immigo:dashboard-update", handleUpdate);
+    window.addEventListener("immigo:vendor-update", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      window.removeEventListener("immigo:application-update", handleUpdate);
+      window.removeEventListener("immigo:candidate-update", handleUpdate);
+      window.removeEventListener("immigo:refund-update", handleUpdate);
+      window.removeEventListener("immigo:dashboard-update", handleUpdate);
+      window.removeEventListener("immigo:vendor-update", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [loadStats]);
 
   if (loading && !stats) {
     return (
@@ -85,7 +86,6 @@ export default function AdminVendorDashboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Vendor Management</h1>
         <p className="text-xs text-slate-500 mt-0.5">
@@ -93,12 +93,9 @@ export default function AdminVendorDashboard() {
         </p>
       </div>
 
-      {/* Active Meeting Banner (until completed) */}
       <ActiveMeetingAlertBanner />
 
-      {}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
-        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Vendors</span>
           <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.totalVendors}</div>
@@ -109,28 +106,24 @@ export default function AdminVendorDashboard() {
           </div>
         </div>
 
-        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Candidates</span>
           <div className="text-xl font-bold text-indigo-600 mt-0.5">{stats.totalCandidates}</div>
           <span className="text-[10px] text-slate-500 mt-0.5 block">In candidate pool</span>
         </div>
 
-        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Review</span>
           <div className="text-xl font-bold text-amber-600 mt-0.5">{stats.pendingCandidates}</div>
           <span className="text-[10px] text-amber-700 block">Submissions awaiting review</span>
         </div>
 
-        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selected / Processing</span>
           <div className="text-xl font-bold text-emerald-600 mt-0.5">{stats.selectedCandidates}</div>
           <span className="text-[10px] text-slate-500 block truncate">{stats.inProcessing} in 8-stage pipeline</span>
         </div>
 
-        {}
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pending Payments</span>
           <div className="text-xl font-bold text-slate-900 mt-0.5">₹{(stats.pendingPayments || 0).toLocaleString()}</div>
@@ -138,7 +131,6 @@ export default function AdminVendorDashboard() {
         </div>
       </div>
 
-      {}
       <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-5">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3.5">
           <div>

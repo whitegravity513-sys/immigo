@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
-  FileText,
   Printer,
   Download,
   ArrowLeft,
@@ -28,7 +27,6 @@ export default function MouFullPageView({
 }) {
   const printRef = useRef(null);
 
-  
   const firstPartyName = "IMMIGO EDUCARE LLP";
   const firstPartyLLPIN = "ACP - 1662";
   const firstPartyAddress =
@@ -36,7 +34,6 @@ export default function MouFullPageView({
   const firstPartyRep = "MR. HIMANSHU SINGH";
   const firstPartyDesignation = "MANAGING PARTNER";
 
-  
   const secondPartyName = (
     vendor?.companyName ||
     vendor?.agencyName ||
@@ -95,7 +92,6 @@ export default function MouFullPageView({
       : "MANAGING DIRECTOR")
   ).toUpperCase();
 
-  
   const getFormattedDate = () => {
     if (vendor?.mouDocument?.agreementDate) {
       return vendor.mouDocument.agreementDate;
@@ -135,9 +131,6 @@ export default function MouFullPageView({
   const validityYears = vendor?.mouDocument?.validityYears || "one (1) year";
   const processingCharge = "₹ 20,000.00 (INR TWENTY THOUSAND ONLY)";
 
-  const mouRefNumber = `MOU-VND-${vendor?.vendorId || vendor?.id || "5456"}-${new Date().getFullYear()}`;
-
-  
   const [signatoryName, setSignatoryName] = useState(secondPartyRep);
   const [designation, setDesignation] = useState(secondPartyDesignation);
   const [signatureText, setSignatureText] = useState(secondPartyRep);
@@ -150,7 +143,6 @@ export default function MouFullPageView({
   );
   const [uploadedMouFile, setUploadedMouFile] = useState(null);
   const [showUploadedPreview, setShowUploadedPreview] = useState(false);
-  const [uploadedBlobUrl, setUploadedBlobUrl] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -205,19 +197,21 @@ export default function MouFullPageView({
         uploadedMouUrl)
   );
 
-  useEffect(() => {
+  const correctionSyncKey = `${isCorrectionRequired}:${vendor?.mouSignMethod || ""}`;
+  const [prevCorrectionSyncKey, setPrevCorrectionSyncKey] = useState(correctionSyncKey);
+  if (correctionSyncKey !== prevCorrectionSyncKey) {
+    setPrevCorrectionSyncKey(correctionSyncKey);
     if (
       isCorrectionRequired &&
       (vendor?.mouSignMethod === "upload" || vendor?.mouSignMethod === "DOWNLOAD_SIGN_UPLOAD")
     ) {
       setSignMethod("upload");
     }
-  }, [isCorrectionRequired, vendor?.mouSignMethod]);
+  }
 
-  useEffect(() => {
+  const uploadedBlobUrl = useMemo(() => {
     if (!uploadedMouUrl || !uploadedMouUrl.startsWith("data:application/pdf")) {
-      setUploadedBlobUrl("");
-      return;
+      return "";
     }
     try {
       const base64 = uploadedMouUrl.split(",")[1];
@@ -227,13 +221,17 @@ export default function MouFullPageView({
         bytes[i] = binary.charCodeAt(i);
       }
       const blob = new Blob([bytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      setUploadedBlobUrl(url);
-      return () => URL.revokeObjectURL(url);
+      return URL.createObjectURL(blob);
     } catch {
-      setUploadedBlobUrl("");
+      return "";
     }
   }, [uploadedMouUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (uploadedBlobUrl) URL.revokeObjectURL(uploadedBlobUrl);
+    };
+  }, [uploadedBlobUrl]);
 
   const handleMouFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -309,7 +307,6 @@ export default function MouFullPageView({
         return;
       }
 
-      
       const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
         .map((el) => el.outerHTML)
         .join("\n");
@@ -478,7 +475,6 @@ export default function MouFullPageView({
 
   return (
     <div className="w-full font-sans text-slate-900 bg-slate-100 min-h-screen">
-      {}
       <style>{`
         @media print {
           @page {
@@ -527,7 +523,6 @@ export default function MouFullPageView({
         }
       `}</style>
 
-      {}
       <div className="mou-print-hide print:hidden bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-8 py-2.5">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div>
@@ -752,7 +747,6 @@ export default function MouFullPageView({
         </div>
       )}
 
-      {}
       {errorMsg && (
         <div className="mou-print-hide print:hidden max-w-4xl mx-auto mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
           <AlertCircle size={15} className="shrink-0 text-rose-600" />
@@ -766,11 +760,7 @@ export default function MouFullPageView({
         </div>
       )}
 
-      {}
-      {}
-      {}
       <div ref={printRef} className="mou-page-container pt-4 pb-12">
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <div className="text-center space-y-4">
@@ -825,7 +815,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">1</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <ol start={6} className="list-decimal pl-5 space-y-2.5">
@@ -880,7 +869,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">2</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -929,7 +917,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">3</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p className="pl-4">
@@ -959,7 +946,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">4</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -987,7 +973,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">5</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1014,7 +999,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">6</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1050,7 +1034,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">7</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1095,7 +1078,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">8</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1126,7 +1108,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">9</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1170,7 +1151,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">10</div>
         </div>
 
-        {}
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1209,7 +1189,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">11</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1248,7 +1227,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">12</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1280,7 +1258,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">13</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1313,7 +1290,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">14</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1349,7 +1325,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">15</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
@@ -1375,7 +1350,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">16</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-6">
             <p>
@@ -1457,7 +1431,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">17</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <div className="text-center space-y-1">
@@ -1545,7 +1518,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">18</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <p className="text-xs">
@@ -1600,7 +1572,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">19</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <div className="text-center space-y-1">
@@ -1683,7 +1654,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">20</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <div className="text-center space-y-1">
@@ -1854,7 +1824,6 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">21</div>
         </div>
 
-        
         <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-6">
             <div>

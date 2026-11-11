@@ -14,11 +14,12 @@ import {
   markCandidateNotificationAsRead,
 } from "../controllers/candidateAuth.controller.js";
 import { verifyToken, verifyCandidate } from "../middleware/auth.middleware.js";
+import { authLimiter } from "../middleware/rateLimit.middleware.js";
 
 const router = express.Router();
 
-router.post("/register", registerCandidate);
-router.post("/login", loginCandidate);
+router.post("/register", authLimiter, registerCandidate);
+router.post("/login", authLimiter, loginCandidate);
 router.get("/projects", getPublicAvailableProjects);
 
 router.get("/me", verifyToken, getCandidateProfile);

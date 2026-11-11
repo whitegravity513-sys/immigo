@@ -16,8 +16,10 @@ import {
   Check,
   Receipt,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
+import refundService, { isAppRefundLocked, getAppRefundStatus } from "../../../services/refundService.js";
 import CandidateActivityTimeline from "../../../components/common/candidate/CandidateActivityTimeline.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
 
@@ -29,6 +31,7 @@ export default function AdminCandidateMilestones() {
   const actorLabel = isVendorHR ? "Vendor HR" : authIsSuperAdmin ? "Super Admin" : (user?.name || "Admin");
 
   const [application, setApplication] = useState(null);
+  const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -48,7 +51,11 @@ export default function AdminCandidateMilestones() {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
-      const apps = await crmVendorService.getApplications();
+      const [apps, rData] = await Promise.all([
+        crmVendorService.getApplications(),
+        refundService.getAllRefunds().catch(() => []),
+      ]);
+      setRefunds(rData || []);
       const app = apps.find(
         (a) =>
           String(a.id) === String(appId) ||
@@ -66,12 +73,12 @@ export default function AdminCandidateMilestones() {
           !app.milestonesOverridden && projectMs.length > 0
             ? projectMs
             : app.processMilestones?.length > 0
-            ? app.processMilestones
-            : projectMs.length > 0
-            ? projectMs
-            : app.paymentPlan?.milestones?.length > 0
-            ? app.paymentPlan.milestones
-            : [];
+              ? app.processMilestones
+              : projectMs.length > 0
+                ? projectMs
+                : app.paymentPlan?.milestones?.length > 0
+                  ? app.paymentPlan.milestones
+                  : [];
 
         if (rawMilestones.length > 0) {
           const formatted = rawMilestones.map((m, mIdx) => {
@@ -80,9 +87,9 @@ export default function AdminCandidateMilestones() {
               m.stages?.length > 0
                 ? m.stages
                 : [
-                    { id: `s${mIdx}_1`, name: "Skill & Credentials Clearance", status: "Pending" },
-                    { id: `s${mIdx}_2`, name: "Processing Step", status: "Pending" },
-                  ];
+                  { id: `s${mIdx}_1`, name: "Skill & Credentials Clearance", status: "Pending" },
+                  { id: `s${mIdx}_2`, name: "Processing Step", status: "Pending" },
+                ];
             const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
 
             return {
@@ -140,12 +147,14 @@ export default function AdminCandidateMilestones() {
     }, 0);
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
@@ -153,6 +162,10 @@ export default function AdminCandidateMilestones() {
   }, [loadData]);
 
   const handleStageStatusChange = (mIdx, sIdx, newStatus) => {
+    if (isAppRefundLocked(application, refunds)) {
+      alert(`Processing is frozen due to an active refund claim (${getAppRefundStatus(application, refunds) || "Pending Admin Approval"}).`);
+      return;
+    }
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].status = newStatus;
     if (newStatus === "Completed") {
@@ -191,6 +204,7 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleStageNameChange = (mIdx, sIdx, newName) => {
+    if (isAppRefundLocked(application, refunds)) return;
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].name = newName;
     setMilestonesList(updated);
@@ -198,6 +212,7 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleAddStage = (mIdx) => {
+    if (isAppRefundLocked(application, refunds)) return;
     const updated = [...milestonesList];
     if (!Array.isArray(updated[mIdx].stages)) {
       updated[mIdx].stages = [];
@@ -217,6 +232,7 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleRemoveStage = (mIdx, sIdx) => {
+    if (isAppRefundLocked(application, refunds)) return;
     const updated = [...milestonesList];
     updated[mIdx].stages = updated[mIdx].stages.filter((_, i) => i !== sIdx);
     setMilestonesList(updated);
@@ -224,6 +240,7 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleMilestoneAmountChange = (mIdx, val) => {
+    if (isAppRefundLocked(application, refunds)) return;
     const numVal = Math.max(0, Number(val) || 0);
     const updated = [...milestonesList];
     updated[mIdx] = {
@@ -236,6 +253,7 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleFileUploadForStage = (mIdx, sIdx, e) => {
+    if (isAppRefundLocked(application, refunds)) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -276,12 +294,17 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleRemoveStageDocument = (mIdx, sIdx) => {
+    if (isAppRefundLocked(application, refunds)) return;
     const updated = [...milestonesList];
     updated[mIdx].stages[sIdx].document = null;
     setMilestonesList(updated);
   };
 
   const handleApproveCurrentPayment = async (mIdx) => {
+    if (isAppRefundLocked(application, refunds)) {
+      alert(`Payment processing is frozen due to an active refund claim (${getAppRefundStatus(application, refunds) || "Pending Admin Approval"}).`);
+      return;
+    }
     const targetM = milestonesList[mIdx];
     if (!application || !targetM) return;
     setPaymentBusy(true);
@@ -303,6 +326,10 @@ export default function AdminCandidateMilestones() {
   };
 
   const handleRejectCurrentPayment = async (mIdx) => {
+    if (isAppRefundLocked(application, refunds)) {
+      alert(`Payment processing is frozen due to an active refund claim (${getAppRefundStatus(application, refunds) || "Pending Admin Approval"}).`);
+      return;
+    }
     const targetM = milestonesList[mIdx];
     if (!application || !targetM) return;
     setPaymentBusy(true);
@@ -329,6 +356,10 @@ export default function AdminCandidateMilestones() {
 
   const handleSave = async () => {
     if (!application) return;
+    if (isAppRefundLocked(application, refunds)) {
+      alert(`Processing is frozen due to an active refund claim (${getAppRefundStatus(application, refunds) || "Pending Admin Approval"}).`);
+      return;
+    }
     setSaveLoading(true);
     try {
       const targetAppId = application.id || application.applicationId || application._id || appId;
@@ -396,7 +427,9 @@ export default function AdminCandidateMilestones() {
     currentMilestone?.paymentStatus === "Pending Verification" ||
     currentMilestone?.status === "Submitted";
   const isCurrentRejected = currentMilestone?.paymentStatus === "Rejected";
-  const canUpdateCurrentStages = isCurrentPaid || currentAmt === 0;
+  const refundLocked = isAppRefundLocked(application, refunds);
+  const refundStatus = getAppRefundStatus(application, refunds);
+  const canUpdateCurrentStages = !refundLocked && (isCurrentPaid || currentAmt === 0);
   const currentStages = currentMilestone?.stages || [];
   const currentStagesDoneCount = currentStages.filter((s) => s.status === "Completed").length;
 
@@ -476,6 +509,30 @@ export default function AdminCandidateMilestones() {
       </div>
 
       {/* Project Milestones Stepper / Sequence (Clean, Simple, Compact) */}
+      {refundLocked && (
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle size={17} className="text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs space-y-0.5">
+              <div className="font-bold text-rose-950">
+                Payment &amp; Processing Frozen — Refund Claim ({refundStatus || "Pending Admin Approval"})
+              </div>
+              <p className="text-[11px] text-rose-800">
+                {refundStatus === "Pending Admin Approval"
+                  ? "All milestone fee edits, payment approvals, and stage progression are paused until Admin reviews and responds to this refund claim."
+                  : "Admin has processed this refund claim. Processing on this project remains closed; proceed with candidate reassignment from the Refund Claims page."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/admin/vendor/refunds")}
+            className="px-3 py-1.5 rounded-lg bg-white border border-rose-300 hover:bg-rose-100 text-rose-800 font-bold text-[11px] shrink-0 cursor-pointer transition"
+          >
+            Open Refund Claims →
+          </button>
+        </div>
+      )}
       <div>
         <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5 pl-0.5">
           Project Milestone Sequence
@@ -496,34 +553,30 @@ export default function AdminCandidateMilestones() {
                 key={m.id || mIdx}
                 type="button"
                 onClick={() => setActiveMilestoneIdx(mIdx)}
-                className={`p-2.5 rounded-xl border text-left transition cursor-pointer relative shadow-2xs ${
-                  isSelectedTab
-                    ? "bg-slate-900 border-blue-600 text-white shadow-xs ring-1 ring-blue-500"
-                    : allDone
+                className={`p-2.5 rounded-xl border text-left transition cursor-pointer relative shadow-2xs ${isSelectedTab
+                  ? "bg-slate-900 border-blue-600 text-white shadow-xs ring-1 ring-blue-500"
+                  : allDone
                     ? "bg-gradient-to-br from-blue-50/90 via-slate-50/80 to-blue-50/70 border-blue-300 text-slate-900 hover:bg-blue-100/60 hover:border-blue-400 shadow-2xs"
                     : isPaid
-                    ? "bg-blue-50/60 border-blue-200 text-slate-900 hover:bg-blue-100/40"
-                    : "bg-slate-50/90 border-slate-200 text-slate-600 hover:bg-slate-100"
-                }`}
+                      ? "bg-blue-50/60 border-blue-200 text-slate-900 hover:bg-blue-100/40"
+                      : "bg-slate-50/90 border-slate-200 text-slate-600 hover:bg-slate-100"
+                  }`}
               >
                 <div className="flex items-center justify-between text-[10px] font-bold mb-0.5">
                   <span
-                    className={`uppercase tracking-wider ${
-                      isSelectedTab ? "text-blue-300" : "text-blue-900 font-extrabold"
-                    }`}
+                    className={`uppercase tracking-wider ${isSelectedTab ? "text-blue-300" : "text-blue-900 font-extrabold"
+                      }`}
                   >
                     Milestone {mIdx + 1}
                   </span>
                   {allDone ? (
-                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                      isSelectedTab ? "bg-blue-900/90 text-cyan-300 border border-blue-700" : "bg-blue-100 text-blue-950 border border-blue-200"
-                    }`}>
+                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isSelectedTab ? "bg-blue-900/90 text-cyan-300 border border-blue-700" : "bg-blue-100 text-blue-950 border border-blue-200"
+                      }`}>
                       <CheckCircle2 size={11} className={isSelectedTab ? "text-cyan-400" : "text-blue-700"} /> Done
                     </span>
                   ) : isPaid ? (
-                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                      isSelectedTab ? "bg-blue-900/90 text-cyan-300 border border-blue-700" : "bg-blue-100/70 text-blue-900 border border-blue-200/80"
-                    }`}>
+                    <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${isSelectedTab ? "bg-blue-900/90 text-cyan-300 border border-blue-700" : "bg-blue-100/70 text-blue-900 border border-blue-200/80"
+                      }`}>
                       <CheckCircle2 size={11} className={isSelectedTab ? "text-cyan-400" : "text-blue-600"} /> Paid
                     </span>
                   ) : (
@@ -533,25 +586,22 @@ export default function AdminCandidateMilestones() {
                   )}
                 </div>
                 <h4
-                  className={`font-bold text-xs truncate ${
-                    isSelectedTab ? "text-white" : "text-slate-900"
-                  }`}
+                  className={`font-bold text-xs truncate ${isSelectedTab ? "text-white" : "text-slate-900"
+                    }`}
                   title={m.name}
                 >
                   {m.name}
                 </h4>
                 <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-200/40 text-[10px]">
                   <span
-                    className={`font-semibold ${
-                      isSelectedTab ? "text-slate-200" : "text-blue-950 font-bold"
-                    }`}
+                    className={`font-semibold ${isSelectedTab ? "text-slate-200" : "text-blue-950 font-bold"
+                      }`}
                   >
                     ₹{Number(m.amount).toLocaleString()}
                   </span>
                   <span
-                    className={`font-semibold ${
-                      isSelectedTab ? "text-blue-300" : "text-blue-700"
-                    }`}
+                    className={`font-semibold ${isSelectedTab ? "text-blue-300" : "text-blue-700"
+                      }`}
                   >
                     {doneCount}/{stages.length} Steps
                   </span>
@@ -579,9 +629,10 @@ export default function AdminCandidateMilestones() {
                     type="number"
                     min="0"
                     step="any"
+                    disabled={refundLocked}
                     value={currentMilestone.amount ?? currentMilestone.paymentAmount ?? 0}
                     onChange={(e) => handleMilestoneAmountChange(activeMilestoneIdx, e.target.value)}
-                    className="w-24 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-white text-[11px] font-bold focus:outline-none focus:border-blue-400"
+                    className="w-24 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-white text-[11px] font-bold focus:outline-none focus:border-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                 </label>
               </div>
@@ -600,17 +651,19 @@ export default function AdminCandidateMilestones() {
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
                     <Lock size={11} className="text-slate-400" />
-                    <span>Awaiting Payment</span>
+                    <span>{refundLocked ? "Frozen (Refund Claim)" : "Awaiting Payment"}</span>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => handleUnlockMilestone(activeMilestoneIdx)}
-                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold transition cursor-pointer shadow-2xs flex items-center gap-1"
-                    title="Unlock milestone stages immediately for vendor"
-                  >
-                    <Unlock size={11} />
-                    <span>Unlock & Mark Paid</span>
-                  </button>
+                  {!refundLocked && (
+                    <button
+                      type="button"
+                      onClick={() => handleUnlockMilestone(activeMilestoneIdx)}
+                      className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold transition cursor-pointer shadow-2xs flex items-center gap-1"
+                      title="Unlock milestone stages immediately for vendor"
+                    >
+                      <Unlock size={11} />
+                      <span>Unlock & Mark Paid</span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -625,23 +678,22 @@ export default function AdminCandidateMilestones() {
                     1. Milestone Payment &amp; Receipt Verification
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                      isCurrentPaid
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : isCurrentSubmitted
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isCurrentPaid
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : isCurrentSubmitted
                         ? "bg-amber-50 text-amber-800 border-amber-300"
                         : isCurrentRejected
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : "bg-slate-100 text-slate-700 border-slate-200"
-                    }`}
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : "bg-slate-100 text-slate-700 border-slate-200"
+                      }`}
                   >
                     {isCurrentPaid
                       ? "Paid & Approved"
                       : isCurrentSubmitted
-                      ? "Vendor Paid — Pending Approval"
-                      : isCurrentRejected
-                      ? "Receipt Rejected"
-                      : "Payment Required"}
+                        ? "Vendor Paid — Pending Approval"
+                        : isCurrentRejected
+                          ? "Receipt Rejected"
+                          : "Payment Required"}
                   </span>
                 </div>
                 {currentMilestone.paymentRef && (
@@ -677,7 +729,7 @@ export default function AdminCandidateMilestones() {
                     <Receipt size={13} />
                     <span>View Invoice / Receipt</span>
                   </button>
-                ) : isCurrentSubmitted ? (
+                ) : !refundLocked && isCurrentSubmitted ? (
                   <>
                     <button
                       type="button"
@@ -701,7 +753,7 @@ export default function AdminCandidateMilestones() {
                       <span>{paymentBusy ? "Approving..." : "Approve Received Payment"}</span>
                     </button>
                   </>
-                ) : (
+                ) : !refundLocked ? (
                   <button
                     type="button"
                     disabled={paymentBusy}
@@ -711,6 +763,10 @@ export default function AdminCandidateMilestones() {
                     <Unlock size={13} />
                     <span>{paymentBusy ? "Approving..." : "Approve / Mark Paid"}</span>
                   </button>
+                ) : (
+                  <span className="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold">
+                    Frozen (Refund Claim Active)
+                  </span>
                 )}
               </div>
             </div>
@@ -785,15 +841,14 @@ export default function AdminCandidateMilestones() {
                   return (
                     <div
                       key={stage.id || sIdx}
-                      className={`p-2.5 sm:p-3 rounded-lg border transition-all ${
-                        !canUpdateCurrentStages
-                          ? "bg-slate-50/70 border-slate-200 opacity-75"
-                          : isDone
+                      className={`p-2.5 sm:p-3 rounded-lg border transition-all ${!canUpdateCurrentStages
+                        ? "bg-slate-50/70 border-slate-200 opacity-75"
+                        : isDone
                           ? "bg-emerald-50/30 border-emerald-200"
                           : isInProgress
-                          ? "bg-blue-50/30 border-blue-300 shadow-2xs"
-                          : "bg-white border-slate-200 hover:border-slate-300"
-                      }`}
+                            ? "bg-blue-50/30 border-blue-300 shadow-2xs"
+                            : "bg-white border-slate-200 hover:border-slate-300"
+                        }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -803,11 +858,12 @@ export default function AdminCandidateMilestones() {
                           <div className="flex-1 min-w-0">
                             <input
                               type="text"
+                              disabled={refundLocked}
                               value={stage.name}
                               onChange={(e) =>
                                 handleStageNameChange(activeMilestoneIdx, sIdx, e.target.value)
                               }
-                              className="w-full text-xs font-semibold text-slate-900 bg-transparent hover:bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 rounded px-1.5 py-0.5 border border-transparent hover:border-slate-200 transition"
+                              className="w-full text-xs font-semibold text-slate-900 bg-transparent hover:bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 rounded px-1.5 py-0.5 border border-transparent hover:border-slate-200 transition disabled:opacity-60 disabled:cursor-not-allowed"
                               placeholder="Step title..."
                             />
                             {stage.completedAt && isDone && (
@@ -819,14 +875,16 @@ export default function AdminCandidateMilestones() {
                               <div className="flex items-center gap-1 text-[10px] text-blue-700 font-semibold pl-1.5 mt-0.5">
                                 <FileText size={11} />
                                 <span className="truncate">{stage.document.fileName || stage.document.name}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveStageDocument(activeMilestoneIdx, sIdx)}
-                                  className="text-rose-500 hover:text-rose-700 ml-1 cursor-pointer font-bold"
-                                  title="Remove attached document"
-                                >
-                                  ×
-                                </button>
+                                {!refundLocked && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveStageDocument(activeMilestoneIdx, sIdx)}
+                                    className="text-rose-500 hover:text-rose-700 ml-1 cursor-pointer font-bold"
+                                    title="Remove attached document"
+                                  >
+                                    ×
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
@@ -838,11 +896,10 @@ export default function AdminCandidateMilestones() {
                               type="button"
                               disabled={!canUpdateCurrentStages}
                               onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "Pending")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                                isPending
-                                  ? "bg-white text-slate-800 shadow-2xs border border-slate-200/80"
-                                  : "text-slate-500 hover:text-slate-800"
-                              }`}
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isPending
+                                ? "bg-white text-slate-800 shadow-2xs border border-slate-200/80"
+                                : "text-slate-500 hover:text-slate-800"
+                                }`}
                             >
                               Pending
                             </button>
@@ -850,11 +907,10 @@ export default function AdminCandidateMilestones() {
                               type="button"
                               disabled={!canUpdateCurrentStages}
                               onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "In Progress")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                isInProgress
-                                  ? "bg-slate-900 text-white shadow-2xs"
-                                  : "text-slate-500 hover:text-slate-800"
-                              }`}
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${isInProgress
+                                ? "bg-slate-900 text-white shadow-2xs"
+                                : "text-slate-500 hover:text-slate-800"
+                                }`}
                             >
                               <Clock size={10} />
                               <span>In Progress</span>
@@ -863,11 +919,10 @@ export default function AdminCandidateMilestones() {
                               type="button"
                               disabled={!canUpdateCurrentStages}
                               onClick={() => handleStageStatusChange(activeMilestoneIdx, sIdx, "Completed")}
-                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                isDone
-                                  ? "bg-emerald-600 text-white shadow-2xs"
-                                  : "text-slate-500 hover:text-slate-800"
-                              }`}
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${isDone
+                                ? "bg-emerald-600 text-white shadow-2xs"
+                                : "text-slate-500 hover:text-slate-800"
+                                }`}
                             >
                               <Check size={11} />
                               <span>Done</span>
@@ -875,9 +930,8 @@ export default function AdminCandidateMilestones() {
                           </div>
 
                           <label
-                            className={`p-1 rounded-md border border-slate-200 bg-white text-slate-600 transition shadow-2xs ${
-                              canUpdateCurrentStages ? "hover:bg-slate-50 hover:text-slate-900 cursor-pointer" : "opacity-50 cursor-not-allowed"
-                            }`}
+                            className={`p-1 rounded-md border border-slate-200 bg-white text-slate-600 transition shadow-2xs ${canUpdateCurrentStages ? "hover:bg-slate-50 hover:text-slate-900 cursor-pointer" : "opacity-50 cursor-not-allowed"
+                              }`}
                             title="Attach proof or documentation"
                           >
                             <Upload size={12} />
@@ -892,8 +946,9 @@ export default function AdminCandidateMilestones() {
 
                           <button
                             type="button"
+                            disabled={refundLocked}
                             onClick={() => handleRemoveStage(activeMilestoneIdx, sIdx)}
-                            className="p-1 rounded-md border border-transparent hover:border-rose-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                            className="p-1 rounded-md border border-transparent hover:border-rose-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Delete step"
                           >
                             <Trash2 size={12} />
@@ -934,13 +989,12 @@ export default function AdminCandidateMilestones() {
             </button>
             <button
               type="button"
-              disabled={saveLoading}
+              disabled={saveLoading || refundLocked}
               onClick={handleSave}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 select-none ${
-                saveSuccess
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-900 hover:bg-blue-950 text-white"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none ${saveSuccess
+                ? "bg-blue-600 text-white"
+                : "bg-slate-900 hover:bg-blue-950 text-white"
+                }`}
             >
               {saveLoading ? (
                 <>

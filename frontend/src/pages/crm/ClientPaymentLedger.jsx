@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Receipt, RefreshCw, Download, Plus } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -53,8 +53,8 @@ export function ClientPaymentLedger() {
       const clientList = Array.isArray(res?.clients)
         ? res.clients
         : Array.isArray(res)
-        ? res
-        : [];
+          ? res
+          : [];
       setClients(clientList);
     } catch (err) {
       console.error("Error loading clients:", err);
@@ -72,8 +72,10 @@ export function ClientPaymentLedger() {
     }
   }, [selectedClient]);
 
-  const loadPayments = useCallback(async () => {
-    setLoading(true);
+  const refreshRef = useRef(null);
+
+  const loadPayments = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const params = {
         page,
@@ -91,20 +93,65 @@ export function ClientPaymentLedger() {
       }
     } catch (err) {
       console.error("Error loading payments:", err);
-      showToast("Failed to load payment ledger records", "error");
+      if (!silent) showToast("Failed to load payment ledger records", "error");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [page, limit, searchTerm, selectedClient, selectedStatus, showToast]);
 
   useEffect(() => {
-    loadClientsList();
-    loadLedgerStats();
+    refreshRef.current = () => {
+      loadClientsList();
+      loadLedgerStats();
+      loadPayments({ silent: true });
+    };
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        loadClientsList();
+        loadLedgerStats();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loadClientsList, loadLedgerStats]);
 
   useEffect(() => {
-    loadPayments();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        loadPayments();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loadPayments]);
+
+  useEffect(() => {
+    let timer = null;
+    const handleLiveUpdate = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        refreshRef.current?.();
+      }, 200);
+    };
+    const events = [
+      "immigo:dashboard-update",
+      "immigo:project-update",
+      "immigo:refund-update",
+      "immigo:application-update",
+    ];
+    events.forEach((evt) => window.addEventListener(evt, handleLiveUpdate));
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach((evt) => window.removeEventListener(evt, handleLiveUpdate));
+    };
+  }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

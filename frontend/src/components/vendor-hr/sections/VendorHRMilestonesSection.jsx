@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Search,
   ArrowLeft,
@@ -10,10 +9,12 @@ import {
 } from "lucide-react";
 import CandidateProcessTimeline from "../../vendor/CandidateProcessTimeline.jsx";
 import crmVendorService from "../../../services/crmVendorService.js";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { isAppRefundLocked } from "../../../services/refundService.js";
+import { getCandidateInitials, formatCandidateEmail } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRMilestonesSection({
   applications = [],
+  refunds = [],
   projectsList = [],
   vendorName = "",
   hideProjectNames = false,
@@ -52,6 +53,7 @@ export default function VendorHRMilestonesSection({
     return Array.isArray(cand?.processMilestones) ? cand.processMilestones : [];
   };
   const postSelectionCandidates = applications.filter((cand) => {
+    if (isAppRefundLocked(cand, refunds)) return false;
     const stage = cand.recruitmentStage || cand.status || "";
     return [
       "Selected",
@@ -86,10 +88,8 @@ export default function VendorHRMilestonesSection({
 
   return (
     <div className="space-y-4">
-      {/* Case 1: When a Selected Candidate is picked, show full Processing Timeline */}
       {selectedMilestoneApp ? (
         <div className="space-y-3">
-          {/* Top Compact Bar: Back button, Candidate overview, and Processing ID */}
           <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <button
@@ -137,7 +137,6 @@ export default function VendorHRMilestonesSection({
             </div>
           </div>
 
-          {/* Integrated Candidate Process Timeline */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -150,15 +149,14 @@ export default function VendorHRMilestonesSection({
             <CandidateProcessTimeline
               application={selectedMilestoneApp}
               project={resolveMatchedProject(selectedMilestoneApp)}
+              refunds={refunds}
               isAdmin={true}
               onUpdate={handleTimelineUpdate}
             />
           </div>
         </div>
       ) : (
-        /* Case 2: Selected Candidates Roster List */
         <div className="space-y-4">
-          {/* Section Title Card */}
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -173,7 +171,6 @@ export default function VendorHRMilestonesSection({
             </div>
           </div>
 
-          {/* Summary Metric Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Selected</span>
@@ -206,7 +203,6 @@ export default function VendorHRMilestonesSection({
             </div>
           </div>
 
-          {/* Search & Filter Bar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
             <div className="relative flex-1 min-w-[240px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -244,7 +240,6 @@ export default function VendorHRMilestonesSection({
             </div>
           </div>
 
-          {/* Selected Candidates Table */}
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
@@ -275,7 +270,6 @@ export default function VendorHRMilestonesSection({
                         0
                       );
 
-                      // Calculate Active Milestone
                       let activeM = null;
                       let activeMIdx = 0;
                       for (let mIdx = 0; mIdx < milestones.length; mIdx++) {
@@ -313,14 +307,11 @@ export default function VendorHRMilestonesSection({
 
                       return (
                         <tr key={cand.applicationId || cand.id || idx} className="hover:bg-teal-50/20 transition">
-                          {/* Col 1: Profile + Passport */}
                           <td className="py-3 px-4">
                             <div className="flex items-start space-x-2.5">
-                              <img
-                                src={AVATARS[idx % AVATARS.length]}
-                                alt={cand.candidateName}
-                                className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5"
-                              />
+                              <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">
+                                {getCandidateInitials(cand.candidateName)}
+                              </div>
                               <div className="min-w-0">
                                 <div className="font-bold text-slate-900 text-xs truncate flex items-center gap-1.5">
                                   <span>{cand.candidateName}</span>
@@ -329,16 +320,15 @@ export default function VendorHRMilestonesSection({
                                   </span>
                                 </div>
                                 <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                                  {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                                  {cand.passportNumber ? `Passport: ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
                                 </div>
                                 <div className="text-[10px] text-slate-400 truncate mt-0.5">
-                                  {cand.candidatePhone || cand.candidateEmail}
+                                  {cand.candidatePhone || cand.phone || formatCandidateEmail(cand.candidateEmail) || "-"}
                                 </div>
                               </div>
                             </div>
                           </td>
 
-                          {/* Col 2: Job & Project */}
                           <td className="py-3 px-4">
                             <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
                               {cand.jobTitle || "Specialist Technician"}
@@ -356,7 +346,6 @@ export default function VendorHRMilestonesSection({
                             )}
                           </td>
 
-                          {/* Col 3: Stage Badge */}
                           <td className="py-3 px-3">
                             <button
                               type="button"
@@ -382,7 +371,6 @@ export default function VendorHRMilestonesSection({
                             </div>
                           </td>
 
-                          {/* Col 4: Active Milestone & Progress */}
                           <td className="py-3 px-4">
                             <div className="space-y-1.5 max-w-[210px]">
                               <div className="text-[11px] font-bold text-slate-900 truncate">
@@ -401,7 +389,6 @@ export default function VendorHRMilestonesSection({
                             </div>
                           </td>
 
-                          {/* Col 5: Payment Gate Status */}
                           <td className="py-3 px-4">
                             {totalFeeAmount > 0 && (
                               <div className="text-[10.5px] font-bold text-slate-700 mb-1">
@@ -439,7 +426,6 @@ export default function VendorHRMilestonesSection({
                             )}
                           </td>
 
-                          {/* Col 6: Actions */}
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end space-x-1.5">
                               <button

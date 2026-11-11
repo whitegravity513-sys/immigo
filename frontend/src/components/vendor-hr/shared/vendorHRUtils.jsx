@@ -1,29 +1,3 @@
-import React from "react";
-
-export function Sparkline({ color = "#6366F1", id = "spark" }) {
-  return (
-    <svg className="w-16 h-8 overflow-visible" viewBox="0 0 70 30" fill="none">
-      <defs>
-        <linearGradient id={`grad-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M 0,25 C 15,22 25,12 35,18 C 45,24 55,8 70,10 L 70,30 L 0,30 Z"
-        fill={`url(#grad-${id})`}
-      />
-      <path
-        d="M 0,25 C 15,22 25,12 35,18 C 45,24 55,8 70,10"
-        stroke={color}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
 export function formatSalary(salary) {
   if (!salary) return "Not Specified";
   if (typeof salary === "string") return salary.trim() || "Not Specified";
@@ -55,12 +29,113 @@ export function formatSalary(salary) {
   return String(salary);
 }
 
-export const AVATARS = [
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80",
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&h=120&q=80",
-  "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=120&h=120&q=80",
-];
+export function formatCandidateEmail(email) {
+  const clean = String(email || "").trim();
+  if (!clean || clean.toLowerCase().includes("@candidate.local")) return "";
+  return clean;
+}
+
+export function getCandidateInitials(name) {
+  const clean = String(name || "").trim();
+  if (!clean) return "C";
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return clean.slice(0, 2).toUpperCase();
+}
+
+export function extractCandidateDocuments(cand) {
+  if (!cand) return { docs: [], primaryResume: null };
+  const rawList = [];
+
+  const pushDoc = (entry, fallbackLabel = "Candidate Document") => {
+    if (!entry) return;
+    if (typeof entry === "string") {
+      const url = entry.trim();
+      if (!url) return;
+      rawList.push({
+        name: fallbackLabel,
+        fileName: fallbackLabel,
+        docType: fallbackLabel,
+        fileUrl: url,
+        mimeType: "",
+      });
+      return;
+    }
+    if (typeof entry === "object") {
+      const url = String(entry.fileUrl || entry.url || entry.dataUrl || entry.path || "").trim();
+      if (!url) return;
+      const name = entry.name || entry.docType || entry.title || entry.fileName || fallbackLabel;
+      rawList.push({
+        name,
+        fileName: entry.fileName || name,
+        docType: entry.docType || name,
+        fileUrl: url,
+        mimeType: entry.mimeType || entry.type || "",
+      });
+    }
+  };
+
+  [cand.documents, cand.candidateData?.documents].forEach((arr) => {
+    if (Array.isArray(arr)) {
+      arr.forEach((doc) => pushDoc(doc, doc?.docType || doc?.name || doc?.title || "Candidate Document"));
+    }
+  });
+
+  pushDoc(cand.resumeUrl, "Resume / CV");
+  pushDoc(cand.cvUrl, "Resume / CV");
+  pushDoc(cand.passportCopyUrl, "Passport Copy");
+  pushDoc(cand.candidateData?.resumeUrl, "Resume / CV");
+  pushDoc(cand.candidateData?.cvUrl, "Resume / CV");
+  pushDoc(cand.candidateData?.passportCopyUrl, "Passport Copy");
+
+  const seen = new Set();
+  const docs = [];
+  rawList.forEach((d) => {
+    const key = `${String(d.fileUrl)}::${String(d.name || d.fileName).toLowerCase()}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    docs.push(d);
+  });
+
+  const primaryResume =
+    docs.find((d) => /resume|cv/i.test(`${d.name} ${d.docType} ${d.fileName}`)) ||
+    docs[0] ||
+    null;
+
+  return { docs, primaryResume };
+}
+
+export function getEffectiveStage(cand) {
+  if (!cand) return "Applied";
+  const candidates = [cand.recruitmentStage, cand.status]
+    .map((v) => String(v || "").trim())
+    .filter(Boolean);
+
+  const priorityChecks = [
+    (s) => s === "Did Not Join",
+    (s) => s === "Rejected",
+    (s) => s === "On Hold",
+    (s) => s === "Joined" || s === "Deployed" || s === "Completed",
+    (s) => s === "Visa Issued" || s === "Visa Allotted",
+    (s) =>
+      ["Visa Processing", "Offer Accepted", "Offer Released", "Processing", "Selected"].includes(
+        s
+      ),
+    (s) => /interview/i.test(s),
+    (s) => s === "Shortlisted",
+  ];
+
+  for (const check of priorityChecks) {
+    const match = candidates.find(check);
+    if (match) return match;
+  }
+
+  if (cand.interview?.scheduledDate) {
+    return "Interview Scheduled";
+  }
+
+  return candidates[0] || "Applied";
+}
 

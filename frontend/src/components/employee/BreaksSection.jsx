@@ -1,18 +1,21 @@
-import React from "react";
-import { Coffee, Play, Pause, AlertCircle, Clock, ShieldCheck, Timer } from "lucide-react";
+import {
+  Coffee,
+  Play,
+  Pause,
+  Clock,
+  ShieldCheck,
+  Timer,
+} from "lucide-react";
 
 export default function BreaksSection({
   isOnBreak,
-  lastBreak,
   status,
   statusColor,
   lunchSeconds = 0,
   breakSeconds = 0,
-  workSeconds = 0,
   statusRecord,
   fmtDur,
   fmtTime,
-  overLimit,
   isCheckedOut,
   isActive,
   loading,

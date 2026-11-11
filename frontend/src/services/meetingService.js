@@ -9,11 +9,10 @@ export const meetingService = {
       const res = await apiClient.get("/admin/meetings/calendar-stats");
       return res.data;
     } catch (err) {
-      // Fallback if routed via /meetings
       try {
         const res = await apiClient.get("/meetings/calendar-stats");
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -27,7 +26,7 @@ export const meetingService = {
       try {
         const res = await apiClient.get("/meetings", { params });
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -41,7 +40,7 @@ export const meetingService = {
       try {
         const res = await apiClient.post("/meetings", data);
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -55,7 +54,7 @@ export const meetingService = {
       try {
         const res = await apiClient.put(`/meetings/${id}`, data);
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -69,7 +68,7 @@ export const meetingService = {
       try {
         const res = await apiClient.put(`/meetings/${id}/reschedule`, data);
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -83,7 +82,7 @@ export const meetingService = {
       try {
         const res = await apiClient.put(`/meetings/${id}/cancel`, { reason });
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -97,7 +96,7 @@ export const meetingService = {
       try {
         const res = await apiClient.delete(`/meetings/${id}`);
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }
@@ -110,7 +109,7 @@ export const meetingService = {
         params: { search },
       });
       return res.data?.employees || [];
-    } catch (err) {
+    } catch {
       if (isVendorSession()) return [];
       try {
         const res = await apiClient.get("/admin/employee/list");
@@ -123,7 +122,7 @@ export const meetingService = {
             e.employeeId?.toLowerCase().includes(q) ||
             e.email?.toLowerCase().includes(q)
         );
-      } catch (e) {
+      } catch {
         return [];
       }
     }
@@ -136,7 +135,7 @@ export const meetingService = {
         params: { search },
       });
       return res.data?.vendors || [];
-    } catch (err) {
+    } catch {
       if (isVendorSession()) return [];
       try {
         const res = await apiClient.get("/v1/vendors", {
@@ -157,7 +156,7 @@ export const meetingService = {
           phone: v.phone || v.mobile || "",
           status: v.status || "Active",
         }));
-      } catch (e) {
+      } catch {
         return [];
       }
     }
@@ -169,14 +168,14 @@ export const meetingService = {
         params: { search, hrType },
       });
       return res.data?.hrs || [];
-    } catch (err) {
+    } catch {
       if (isVendorSession()) {
         try {
           const res = await apiClient.get("/meetings/hrs", {
             params: { search, hrType },
           });
           return res.data?.hrs || [];
-        } catch (e) {
+        } catch {
           return [];
         }
       }
@@ -199,7 +198,7 @@ export const meetingService = {
           department: h.department || "",
           phone: h.phone || "",
         }));
-      } catch (e) {
+      } catch {
         return [];
       }
     }
@@ -212,7 +211,19 @@ export const meetingService = {
         params: { search, vendorId },
       });
       return res.data?.candidates || [];
-    } catch (err) {
+    } catch {
+      return [];
+    }
+  },
+
+  searchAdmins: async (search = "") => {
+    if (isVendorSession()) return [];
+    try {
+      const res = await apiClient.get("/admin/meetings/admins", {
+        params: { search },
+      });
+      return res.data?.admins || [];
+    } catch {
       return [];
     }
   },
@@ -221,7 +232,7 @@ export const meetingService = {
     try {
       const res = await apiClient.get("/employee/meetings", { params });
       return res.data;
-    } catch (err) {
+    } catch {
       return { meetings: [] };
     }
   },
@@ -244,7 +255,7 @@ export const meetingService = {
           outcomeRemarks,
         });
         return res.data;
-      } catch (e) {
+      } catch {
         throw err;
       }
     }

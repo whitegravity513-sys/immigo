@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Building2,
   XCircle,
@@ -62,7 +61,6 @@ export function AdminAddVendorModal({
         </div>
 
         <form onSubmit={handleAddVendorSubmit} className="space-y-6 text-xs">
-          {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Building2 size={14} className="text-blue-600" />
@@ -175,7 +173,6 @@ export function AdminAddVendorModal({
             </div>
           </div>
 
-          {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <UserCheck size={14} className="text-blue-600" />
@@ -322,7 +319,6 @@ export function AdminAddVendorModal({
             </div>
           </div>
 
-          {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Briefcase size={14} className="text-blue-600" />
@@ -399,7 +395,6 @@ export function AdminAddVendorModal({
             </div>
           </div>
 
-          {}
           <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-200/80">
             <h4 className="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5 border-b border-slate-200/80 pb-2">
               <Paperclip size={14} className="text-blue-600" />

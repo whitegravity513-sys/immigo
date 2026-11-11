@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Clock,
@@ -9,8 +8,6 @@ import {
   Calendar,
   IndianRupee,
   LayoutDashboard,
-  Building2,
-  FolderKanban,
   UserPlus,
 } from "lucide-react";
 import WorkforceDashboardSection from "../../components/admin/WorkforceDashboardSection.jsx";
@@ -18,34 +15,28 @@ import DashboardMeetingWidget from "../../components/common/meeting/DashboardMee
 import ActiveMeetingAlertBanner from "../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
 import { useAdminDashboard } from "../../hooks/useAdminDashboard";
 import EditAttendance from "../../components/admin/EditAttendance.jsx";
-import NotificationBell from "../../components/admin/NotificationBell.jsx";
 import AnnouncementsSection from "../../components/admin/AnnouncementsSection.jsx";
 import CalendarMeetings from "./meetings/CalendarMeetings.jsx";
 import EmployeeMonthlyReport from "./employee/EmployeeMonthlyReport.jsx";
 
 import {
-  LiveAttendanceSection,
   EmployeesDirectorySection,
   LeaveApprovalsSection,
   AttendanceSummarySection,
-  HolidaysSection,
   ExpensesSection,
   EmployeeDetailSection,
   AttendanceCalendarSection,
-  RegisterEmployeeModal,
   RegisterEmployeeSection,
   EditEmployeeSection,
 } from "../../components/admin";
 import { AdminLayout } from "../../layouts";
 import ErrorBoundary from "../../components/common/ErrorBoundary.jsx";
-import { toLocalDateStr } from "../../utils/formatters.js";
 import PastAttendanceModal from "../../components/admin/modals/PastAttendanceModal.jsx";
 import DocPreviewModal from "../../components/admin/modals/DocPreviewModal.jsx";
 import TextModal from "../../components/admin/modals/TextModal.jsx";
 import LeaveActionModal from "../../components/admin/modals/LeaveActionModal.jsx";
 
 function AdminDashboard({ user, token, onLogout }) {
-  const [renewalMenuOpen, setRenewalMenuOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -78,7 +69,6 @@ function AdminDashboard({ user, token, onLogout }) {
     clientMenuOpen,
     projectMenuOpen,
     invoiceMenuOpen,
-    selectedProject,
     previewDoc,
     loading,
     errorMsg,
@@ -86,18 +76,14 @@ function AdminDashboard({ user, token, onLogout }) {
     attendanceReport,
     employees,
     leavesReport,
-    filterStart,
-    filterEnd,
     selectedEmployeeId,
     employeeHistory,
     employeeHistoryLoading,
     detailFromDate,
     detailToDate,
-    previousPath,
     leaveActionModal,
     editingAttendance,
     leaveActionRemark,
-    isAddModalOpen,
     employeeForm,
     editingEmployee,
     editForm,
@@ -105,11 +91,6 @@ function AdminDashboard({ user, token, onLogout }) {
     summaryMonth,
     summaryYear,
     summaryLoading,
-    inlineLeaveEdit,
-    inlineLeaveLoading,
-    notesData,
-    notesDate,
-    notesLoading,
     holidays,
     holidayForm,
     holidayLoading,
@@ -121,11 +102,7 @@ function AdminDashboard({ user, token, onLogout }) {
     expenses,
     expenseLoading,
     expenseForm,
-    editingExpense,
     expenseFilterDate,
-    renewals,
-    renewalAlerts,
-    renewalLoading,
     setSidebarCollapsed,
     setSidebarMobileOpen,
     setEmployeeMenuOpen,
@@ -133,54 +110,27 @@ function AdminDashboard({ user, token, onLogout }) {
     setClientMenuOpen,
     setProjectMenuOpen,
     setInvoiceMenuOpen,
-    setSelectedProject,
     setPreviewDoc,
-    setLoading,
-    setErrorMsg,
-    setSuccessMsg,
-    setAttendanceReport,
-    setEmployees,
-    setLeavesReport,
-    setFilterStart,
-    setFilterEnd,
-    setSelectedEmployeeId,
-    setEmployeeHistory,
-    setEmployeeHistoryLoading,
     setDetailFromDate,
     setDetailToDate,
-    setPreviousPath,
     setLeaveActionModal,
     setEditingAttendance,
     setLeaveActionRemark,
-    setIsAddModalOpen,
     setEmployeeForm,
     setEditingEmployee,
     setEditForm,
-    setSummaryData,
     setSummaryMonth,
     setSummaryYear,
-    setSummaryLoading,
-    setInlineLeaveEdit,
-    setInlineLeaveLoading,
-    setNotesData,
-    setNotesDate,
-    setNotesLoading,
-    setHolidays,
     setHolidayForm,
-    setHolidayLoading,
     setEmployeeDetailView,
     setCalendarMonth,
     setCalendarYear,
     setPastAttendanceModal,
     setTextModalData,
-    setExpenses,
-    setExpenseLoading,
     setExpenseForm,
-    setEditingExpense,
     setExpenseFilterDate,
     fetchAdminReports,
     fetchSummary,
-    fetchNotes,
     fetchHolidays,
     fetchExpenses,
     handleExpenseSubmit,
@@ -190,7 +140,6 @@ function AdminDashboard({ user, token, onLogout }) {
     handleDeleteHoliday,
     handleSavePastAttendance,
     openTextModal,
-    handleSetLeaveBalance,
     openEmployeeDetail,
     handleGoBack,
     fetchEmployeeHistoryById,
@@ -202,7 +151,6 @@ function AdminDashboard({ user, token, onLogout }) {
     openLeaveActionModal,
     handleSubmitLeaveAction,
     handleDirectLeaveAction,
-    formatDuration,
     formatDate,
     formatTime,
     navigateTo,
@@ -212,19 +160,19 @@ function AdminDashboard({ user, token, onLogout }) {
     <div className="space-y-4">
       <ActiveMeetingAlertBanner customRole="EMPLOYEE_HR" />
       <WorkforceDashboardSection
-      employees={employees}
-      attendanceReport={attendanceReport}
-      leavesReport={leavesReport}
-      openEmployeeDetail={openEmployeeDetail}
-      openAddModal={handleOpenAddModal}
-      fetchAdminReports={fetchAdminReports}
-      openLeaveAction={openLeaveActionModal}
-      navigateTo={navigateTo}
-      formatTime={formatTime}
-      formatDate={formatDate}
-      setEditingAttendance={setEditingAttendance}
-      isFullRegisterPage={false}
-    />
+        employees={employees}
+        attendanceReport={attendanceReport}
+        leavesReport={leavesReport}
+        openEmployeeDetail={openEmployeeDetail}
+        openAddModal={handleOpenAddModal}
+        fetchAdminReports={fetchAdminReports}
+        openLeaveAction={openLeaveActionModal}
+        navigateTo={navigateTo}
+        formatTime={formatTime}
+        formatDate={formatDate}
+        setEditingAttendance={setEditingAttendance}
+        isFullRegisterPage={false}
+      />
       <DashboardMeetingWidget role="EMPLOYEE_HR" />
     </div>
   );
@@ -246,26 +194,9 @@ function AdminDashboard({ user, token, onLogout }) {
     />
   );
 
-  const renderLiveTracker = () => (
-    <LiveAttendanceSection
-      attendanceReport={attendanceReport}
-      filterStart={filterStart}
-      filterEnd={filterEnd}
-      setFilterStart={setFilterStart}
-      setFilterEnd={setFilterEnd}
-      fetchAdminReports={fetchAdminReports}
-      openEmployeeDetail={openEmployeeDetail}
-      formatTime={formatTime}
-      formatDuration={formatDuration}
-      setEditingAttendance={setEditingAttendance}
-      currentPath={location.pathname}
-    />
-  );
-
   const renderEmployeesDirectory = () => (
     <EmployeesDirectorySection
       employees={employees}
-      handleOpenAddModal={handleOpenAddModal}
       openEmployeeDetail={openEmployeeDetail}
       formatDate={formatDate}
       handleEditClick={handleEditClick}
@@ -294,10 +225,6 @@ function AdminDashboard({ user, token, onLogout }) {
       employees={employees}
       fetchSummary={fetchSummary}
       openEmployeeDetail={openEmployeeDetail}
-      inlineLeaveEdit={inlineLeaveEdit}
-      setInlineLeaveEdit={setInlineLeaveEdit}
-      inlineLeaveLoading={inlineLeaveLoading}
-      handleSetLeaveBalance={handleSetLeaveBalance}
     />
   );
 

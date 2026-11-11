@@ -1,21 +1,17 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/useAuth.js";
 import ProtectedRoute from "../components/common/ProtectedRoute.jsx";
 import PermissionRoute from "../components/common/PermissionRoute.jsx";
 import LoadingFallback from "../components/common/LoadingFallback.jsx";
 import appConfig from "../config/appConfig.js";
 
-
 const AdminLoginPage = lazy(() => import("../pages/admin/AdminLoginPage.jsx"));
 const EmployeeLoginPage = lazy(() => import("../pages/employee/EmployeeLoginPage.jsx"));
 
-
 const MainAdminDashboard = lazy(() => import("../pages/admin/MainAdminDashboard.jsx"));
 
-
 const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
-
 
 const HRDashboard = lazy(() => import("../pages/hr/HRDashboard.jsx"));
 const VendorHRLoginPage = lazy(() => import("../pages/vendor-hr/VendorHRLoginPage.jsx"));
@@ -24,9 +20,7 @@ const HRLoginPage = lazy(() => import("../pages/hr/HRLoginPage.jsx"));
 const PermissionManagementPage = lazy(() => import("../pages/admin/permissions/PermissionManagementPage.jsx"));
 const MeetingsPage = lazy(() => import("../pages/common/MeetingsPage.jsx"));
 
-
 const EmployeeDashboard = lazy(() => import("../pages/employee/EmployeeDashboard.jsx"));
-
 
 const ClientLayout = lazy(() => import("../components/client/layout/ClientLayout.jsx"));
 const ProjectLayout = lazy(() => import("../components/project/layout/ProjectLayout.jsx"));
@@ -43,7 +37,6 @@ const ClientPaymentLedger = lazy(() => import("../pages/crm/ClientPaymentLedger.
 const RecordClientPaymentPage = lazy(() => import("../pages/crm/RecordClientPaymentPage.jsx"));
 const RecordClientExpensePage = lazy(() => import("../pages/crm/RecordClientExpensePage.jsx"));
 const PaymentsExpensesPage = lazy(() => import("../pages/crm/PaymentsExpensesPage.jsx"));
-
 
 const VendorLogin = lazy(() => import("../pages/vendor/VendorLogin.jsx"));
 const VendorRegister = lazy(() => import("../pages/vendor/VendorRegister.jsx"));
@@ -68,7 +61,6 @@ const VendorProjects = lazy(() => import("../pages/vendor/VendorProjects.jsx"));
 const VendorEditCandidate = lazy(() => import("../pages/vendor/EditCandidate.jsx"));
 const VendorRefunds = lazy(() => import("../pages/vendor/VendorRefunds.jsx"));
 const VendorNewRefund = lazy(() => import("../pages/vendor/VendorNewRefund.jsx"));
-
 
 const VendorManagementLayout = lazy(() => import("../components/admin/layout/VendorManagementLayout.jsx"));
 const AdminVendorDashboard = lazy(() => import("../pages/admin/vendor/AdminVendorDashboard.jsx"));
@@ -170,12 +162,10 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        { }
         <Route path="/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/vendor/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
         <Route path="/admin/invoice/:appId/:milestoneId" element={<InvoiceReceiptPage />} />
 
-        {/* Dedicated Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -274,8 +264,6 @@ export default function AppRoutes() {
           }
         />
 
-
-        {/* Dedicated Super Admin Routes */}
         <Route
           path="/super-admin"
           element={<Navigate to="/super-admin/dashboard" replace />}
@@ -309,7 +297,6 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Admin & Super Admin Role & Permission Management */}
         <Route
           path="/admin/permissions"
           element={
@@ -319,7 +306,6 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Alias routes for clean separate URLs */}
         <Route path="/admin/employees" element={<Navigate to={isHR ? "/hr/dashboard/employees" : "/admin/dashboard/employees"} replace />} />
         <Route path="/admin/candidates" element={<Navigate to={appConfig.FEATURE_FLAGS?.HIDE_CANDIDATE_MODULE ? "/admin/vendor" : "/admin/candidates/dashboard"} replace />} />
         <Route path="/admin/vendors" element={<Navigate to="/admin/vendor" replace />} />
@@ -340,7 +326,6 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Shared Dashboard Routes */}
         <Route
           path="/admin/dashboard"
           element={
@@ -361,7 +346,6 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Dedicated HR Portal & Separate Shareable Base URL (/hr) */}
         <Route path="/hr" element={<Navigate to="/hr/dashboard" replace />} />
         <Route
           path="/hr/login"
@@ -398,7 +382,6 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Dedicated Vendor HR Routes */}
         <Route path="/vendor-hr" element={<Navigate to="/vendor-hr/dashboard" replace />} />
         <Route
           path="/vendor-hr/login"
@@ -460,7 +443,6 @@ export default function AppRoutes() {
         />
         <Route path="/hr/*" element={<Navigate to="/hr/dashboard" replace />} />
 
-        { }
         <Route
           path="/employee/dashboard"
           element={
@@ -470,7 +452,6 @@ export default function AppRoutes() {
           }
         />
 
-        { }
         <Route
           path="/client/dashboard"
           element={
@@ -737,7 +718,6 @@ export default function AppRoutes() {
           }
         />
 
-        { }
         <Route
           path="/clients"
           element={
@@ -851,7 +831,6 @@ export default function AppRoutes() {
           }
         />
 
-        { }
         <Route
           path="/admin/vendor"
           element={
@@ -899,7 +878,6 @@ export default function AppRoutes() {
 
         <Route path="/admin/vendors" element={<Navigate to="/admin/vendor/vendors" replace />} />
 
-        { }
         <Route
           path="/vendor"
           element={

@@ -1,8 +1,16 @@
 import ProjectAssignmentService from "../../services/projectAssignment.service.js";
 import ProjectAssignment from "../../models/ProjectAssignment.js";
+import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
-import { ApiError } from "../../utils/apiError.js";
+
+const emitAssignmentSync = (vendorId = null) => {
+  emitRealtimeEvent({
+    events: ["immigo:project-update", "immigo:dashboard-update", "immigo:vendor-hr-refresh", "immigo:notification-update"],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    vendorId: vendorId ? String(vendorId) : null,
+  });
+};
 
 export const assignVendorToProject = asyncHandler(async (req, res) => {
   const { projectId, vendorId, notes } = req.body;
@@ -12,6 +20,7 @@ export const assignVendorToProject = asyncHandler(async (req, res) => {
     notes,
     actorUser: req.user,
   });
+  emitAssignmentSync(vendorId);
   return ApiResponse.send(res, 201, "Vendor assigned to project successfully", assignment);
 });
 
@@ -23,6 +32,7 @@ export const assignVendorToMultipleProjects = asyncHandler(async (req, res) => {
     notes,
     actorUser: req.user,
   });
+  emitAssignmentSync(vendorId);
   return ApiResponse.send(res, 200, "Vendor multi-project assignments processed", results);
 });
 
@@ -34,6 +44,7 @@ export const assignMultipleVendorsToOneProject = asyncHandler(async (req, res) =
     notes,
     actorUser: req.user,
   });
+  emitAssignmentSync();
   return ApiResponse.send(res, 200, "Project multi-vendor assignments processed", results);
 });
 
@@ -45,6 +56,7 @@ export const removeVendorFromProject = asyncHandler(async (req, res) => {
     reason,
     actorUser: req.user,
   });
+  emitAssignmentSync(vendorId);
   return ApiResponse.send(res, 200, "Vendor removed from project successfully", assignment);
 });
 
@@ -57,6 +69,7 @@ export const assignVendorHRToProject = asyncHandler(async (req, res) => {
     notes,
     actorUser: req.user,
   });
+  emitAssignmentSync(vendorId);
   return ApiResponse.send(res, 201, "Vendor HR assigned to project successfully", assignment);
 });
 
@@ -69,6 +82,7 @@ export const batchAssignHRToProjectsAndVendors = asyncHandler(async (req, res) =
     notes,
     actorUser: req.user,
   });
+  emitAssignmentSync();
   return ApiResponse.send(res, 201, "HR assigned to projects and vendors successfully", assignments);
 });
 
@@ -81,6 +95,7 @@ export const removeAssignmentById = asyncHandler(async (req, res) => {
     reason,
     actorUser: req.user,
   });
+  emitAssignmentSync(assignment?.vendorId || null);
   return ApiResponse.send(res, 200, "Assignment unlinked successfully", assignment);
 });
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -73,12 +73,12 @@ export default function AdminVendorDetailsPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const showToast = (message, type = "success") => {
+  const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
-  };
+  }, []);
 
-  const loadDetails = async () => {
+  const loadDetails = useCallback(async () => {
     try {
       setLoading(true);
       const res = await adminVendorV1Service.getVendorDetails(id);
@@ -92,11 +92,17 @@ export default function AdminVendorDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, showToast]);
 
   useEffect(() => {
-    loadDetails();
-  }, [id]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadDetails();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadDetails]);
 
   const handleAssignProject = async (e) => {
     e.preventDefault();
@@ -218,7 +224,6 @@ export default function AdminVendorDetailsPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div className="flex items-center space-x-3">
           <button
@@ -281,7 +286,6 @@ export default function AdminVendorDetailsPage() {
         <>
           <VendorMetricsBar stats={stats} />
 
-          {/* Tab Navigation */}
           <div className="border-b border-slate-800 flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
             {[
               { id: "overview", label: "1. Overview" },

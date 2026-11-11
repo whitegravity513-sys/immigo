@@ -8,11 +8,11 @@ import {
   getApplications,
   getInterviews,
 } from "../../controllers/v1/recruitment.controller.js";
-import { authenticateRBAC } from "../../middleware/rbac.middleware.js";
+import { authenticateRBAC, requireRoles, blockEmployeeHR } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.use(authenticateRBAC);
+router.use(authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN", "HR", "VENDOR_HR"), blockEmployeeHR);
 
 router.post("/candidates", submitCandidate);
 router.put("/applications/:id/stage", updateCandidateStage);

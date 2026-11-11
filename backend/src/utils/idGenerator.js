@@ -1,27 +1,143 @@
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import Client from "../models/Client.js";
+import Project from "../models/Project.js";
 import Vendor from "../models/Vendor.js";
 import Candidate from "../models/Candidate.js";
+import CrmCandidate from "../models/CrmCandidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
+import CrmCandidateApplication from "../models/CrmCandidateApplication.js";
+import User from "../models/User.js";
+
+const getNextNumericMax = (prefix, values = []) => {
+  const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const rx = new RegExp(`^${escaped}(\\d+)$`, "i");
+  let max = 0;
+  for (const val of values) {
+    if (!val) continue;
+    const match = String(val).trim().match(rx);
+    if (match) {
+      const n = parseInt(match[1], 10);
+      if (!Number.isNaN(n) && n > max) {
+        max = n;
+      }
+    }
+  }
+  return max;
+};
+
+const formatSeq = (prefix, num, pad = 3) =>
+  `${prefix}${String(num).padStart(pad, "0")}`;
 
 export const generateNextVendorId = async () => {
-  const latest = await Vendor.findOne(
-    { vendorId: /^IMM-VND-\d{5}$/i },
-    { vendorId: 1 }
-  ).sort({ vendorId: -1 }).lean();
-
-  let nextNum = 1;
-  if (latest?.vendorId) {
-    const lastNum = parseInt(latest.vendorId.slice(-5), 10);
-    if (!isNaN(lastNum)) nextNum = lastNum + 1;
-  }
-
-  let vendorId = `IMM-VND-${String(nextNum).padStart(5, "0")}`;
+  const prefix = "IMMI-VE-";
+  const regex = /^IMMI-VE-\d+$/i;
+  const rows = await Vendor.find({ vendorId: regex }, { vendorId: 1 }).lean();
+  let nextNum = getNextNumericMax(prefix, rows.map((r) => r.vendorId)) + 1;
+  let vendorId = formatSeq(prefix, nextNum, 3);
   while (await Vendor.exists({ vendorId })) {
     nextNum++;
-    vendorId = `IMM-VND-${String(nextNum).padStart(5, "0")}`;
+    vendorId = formatSeq(prefix, nextNum, 3);
   }
   return vendorId;
+};
+
+export const generateNextProjectId = async () => {
+  const prefix = "IMMI-PR-";
+  const regex = /^IMMI-PR-\d+$/i;
+  const [directRows, clientRows] = await Promise.all([
+    Project.find({ projectId: regex }, { projectId: 1 }).lean(),
+    CrmOverseasClient.find({}, { "projects.id": 1, "projects.projectId": 1 }).lean(),
+  ]);
+  const existingVals = [
+    ...directRows.map((r) => r.projectId),
+    ...clientRows.flatMap((c) =>
+      (Array.isArray(c.projects) ? c.projects : []).flatMap((p) => [p?.id, p?.projectId])
+    ),
+  ];
+  let nextNum = getNextNumericMax(prefix, existingVals) + 1;
+  let projectId = formatSeq(prefix, nextNum, 3);
+  while (
+    (await Project.exists({ projectId })) ||
+    (await CrmOverseasClient.exists({
+      $or: [{ "projects.id": projectId }, { "projects.projectId": projectId }],
+    }))
+  ) {
+    nextNum++;
+    projectId = formatSeq(prefix, nextNum, 3);
+  }
+  return projectId;
+};
+
+export const generateNextCandidateId = async () => {
+  const prefix = "IMMI-CA-";
+  const regex = /^IMMI-CA-\d+$/i;
+  const [candRows, crmCandRows, appRows, crmAppRows] = await Promise.all([
+    Candidate.find({ candidateId: regex }, { candidateId: 1 }).lean(),
+    CrmCandidate.find({ candidateId: regex }, { candidateId: 1 }).lean(),
+    CandidateApplication.find({ candidateId: regex }, { candidateId: 1 }).lean(),
+    CrmCandidateApplication.find({ candidateId: regex }, { candidateId: 1 }).lean(),
+  ]);
+  const existingVals = [
+    ...candRows.map((r) => r.candidateId),
+    ...crmCandRows.map((r) => r.candidateId),
+    ...appRows.map((r) => r.candidateId),
+    ...crmAppRows.map((r) => r.candidateId),
+  ];
+  let nextNum = getNextNumericMax(prefix, existingVals) + 1;
+  let candidateId = formatSeq(prefix, nextNum, 3);
+  while (
+    (await Candidate.exists({ candidateId })) ||
+    (await CrmCandidate.exists({ candidateId }))
+  ) {
+    nextNum++;
+    candidateId = formatSeq(prefix, nextNum, 3);
+  }
+  return candidateId;
+};
+
+export const generateNextMouId = async () => {
+  const prefix = "IMMI-MO-";
+  const regex = /^IMMI-MO-\d+$/i;
+  const rows = await Vendor.find(
+    {
+      $or: [
+        { "mouDocument.mouNumber": regex },
+        { "mouDocument.refNumber": regex },
+      ],
+    },
+    { "mouDocument.mouNumber": 1, "mouDocument.refNumber": 1 }
+  ).lean();
+  const existingVals = rows.flatMap((r) => [
+    r?.mouDocument?.mouNumber,
+    r?.mouDocument?.refNumber,
+  ]);
+  let nextNum = getNextNumericMax(prefix, existingVals) + 1;
+  let mouNumber = formatSeq(prefix, nextNum, 3);
+  while (
+    await Vendor.exists({
+      $or: [
+        { "mouDocument.mouNumber": mouNumber },
+        { "mouDocument.refNumber": mouNumber },
+      ],
+    })
+  ) {
+    nextNum++;
+    mouNumber = formatSeq(prefix, nextNum, 3);
+  }
+  return mouNumber;
+};
+
+export const generateNextHRId = async () => {
+  const prefix = "IMMI-HR-";
+  const regex = /^IMMI-HR-\d+$/i;
+  const rows = await User.find({ hrId: regex }, { hrId: 1 }).lean();
+  let nextNum = getNextNumericMax(prefix, rows.map((r) => r.hrId)) + 1;
+  let hrId = formatSeq(prefix, nextNum, 3);
+  while (await User.exists({ hrId })) {
+    nextNum++;
+    hrId = formatSeq(prefix, nextNum, 3);
+  }
+  return hrId;
 };
 
 export const generateNextClientId = async () => {
@@ -29,83 +145,50 @@ export const generateNextClientId = async () => {
   const prefix = `IMCL-${yy}-`;
   const regex = new RegExp(`^${prefix}\\d{4}$`, "i");
 
-  const [latestCrm, latestClient] = await Promise.all([
-    CrmOverseasClient.findOne({ clientId: regex }, { clientId: 1 }).sort({ clientId: -1 }).lean(),
-    Client.findOne({ clientId: regex }, { clientId: 1 }).sort({ clientId: -1 }).lean(),
+  const [crmRows, clientRows] = await Promise.all([
+    CrmOverseasClient.find({ clientId: regex }, { clientId: 1 }).lean(),
+    Client.find({ clientId: regex }, { clientId: 1 }).lean(),
   ]);
 
-  let maxNum = 0;
-  if (latestCrm?.clientId) {
-    const num = parseInt(latestCrm.clientId.slice(-4), 10);
-    if (!isNaN(num) && num > maxNum) maxNum = num;
-  }
-  if (latestClient?.clientId) {
-    const num = parseInt(latestClient.clientId.slice(-4), 10);
-    if (!isNaN(num) && num > maxNum) maxNum = num;
-  }
-
-  let nextNum = maxNum + 1;
-  let clientId = `${prefix}${String(nextNum).padStart(4, "0")}`;
+  let nextNum =
+    getNextNumericMax(prefix, [
+      ...crmRows.map((r) => r.clientId),
+      ...clientRows.map((r) => r.clientId),
+    ]) + 1;
+  let clientId = formatSeq(prefix, nextNum, 4);
 
   while (
     (await CrmOverseasClient.exists({ clientId })) ||
     (await Client.exists({ clientId }))
   ) {
     nextNum++;
-    clientId = `${prefix}${String(nextNum).padStart(4, "0")}`;
+    clientId = formatSeq(prefix, nextNum, 4);
   }
   return clientId;
-};
-
-export const generateNextCandidateId = async (dobInput, dojInput) => {
-  const dojDate = dojInput ? new Date(dojInput) : new Date();
-  const dojMonth = String(dojDate.getMonth() + 1).padStart(2, "0");
-  const dojYear = String(dojDate.getFullYear()).slice(-2);
-  const dojStr = `${dojMonth}${dojYear}`;
-
-  let dobStr = "0100";
-  if (dobInput) {
-    const dobDate = new Date(dobInput);
-    if (!isNaN(dobDate.getTime())) {
-      const day = String(dobDate.getDate()).padStart(2, "0");
-      const yy = String(dobDate.getFullYear()).slice(-2);
-      dobStr = `${day}${yy}`;
-    }
-  }
-
-  const baseCandidateId = `IMC-${dojStr}-${dobStr}`;
-  let candidateId = baseCandidateId;
-  let counter = 1;
-
-  while (await Candidate.exists({ candidateId })) {
-    candidateId = `${baseCandidateId}-${counter}`;
-    counter++;
-  }
-
-  return candidateId;
 };
 
 export const generateNextCandidateApplicationId = async () => {
   const yy = new Date().getFullYear().toString().slice(-2);
   const prefix = `APP-${yy}-`;
-  const regex = new RegExp(`^${prefix}\\d{4}$`, "i");
+  const regex = new RegExp(`^${prefix}\\d+$`, "i");
 
-  const latest = await CandidateApplication.findOne(
-    { applicationId: regex },
-    { applicationId: 1 }
-  ).sort({ applicationId: -1 }).lean();
+  const [appRows, crmAppRows] = await Promise.all([
+    CandidateApplication.find({ applicationId: regex }, { applicationId: 1 }).lean(),
+    CrmCandidateApplication.find({ applicationId: regex }, { applicationId: 1 }).lean(),
+  ]);
 
-  let nextNum = 1;
-  if (latest?.applicationId) {
-    const lastNum = parseInt(latest.applicationId.slice(-4), 10);
-    if (!isNaN(lastNum)) nextNum = lastNum + 1;
-  }
-
-  let applicationId = `${prefix}${String(nextNum).padStart(4, "0")}`;
-  while (await CandidateApplication.exists({ applicationId })) {
+  let nextNum =
+    getNextNumericMax(prefix, [
+      ...appRows.map((r) => r.applicationId),
+      ...crmAppRows.map((r) => r.applicationId),
+    ]) + 1;
+  let applicationId = formatSeq(prefix, nextNum, 4);
+  while (
+    (await CandidateApplication.exists({ applicationId })) ||
+    (await CrmCandidateApplication.exists({ applicationId }))
+  ) {
     nextNum++;
-    applicationId = `${prefix}${String(nextNum).padStart(4, "0")}`;
+    applicationId = formatSeq(prefix, nextNum, 4);
   }
   return applicationId;
 };
-

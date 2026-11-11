@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useCallback } from "react";
-
-const UIContext = createContext(null);
+import { useState, useCallback } from "react";
+import { UIContext } from "./useUI.js";
 
 export function UIProvider({ children }) {
   const [toast, setToast] = useState(null);
@@ -56,13 +55,3 @@ export function UIProvider({ children }) {
     </UIContext.Provider>
   );
 }
-
-export function useUI() {
-  const context = useContext(UIContext);
-  if (!context) {
-    throw new Error("useUI must be used within a UIProvider");
-  }
-  return context;
-}
-
-export default UIContext;

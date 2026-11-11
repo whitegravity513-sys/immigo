@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ProjectForm from "../../components/crm/projects/ProjectForm.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService from "../../services/crmClientService.js";
 
 export function EditProject() {
@@ -28,7 +28,7 @@ export function EditProject() {
     fetchProject();
   }, [clientId, projectId, navigate, showToast]);
 
-  const handleSubmit = async (projectData, submitClientId, asDraft) => {
+  const handleSubmit = async (projectData) => {
     setSaving(true);
     try {
       await crmClientService.updateProject(clientId, projectId, projectData);

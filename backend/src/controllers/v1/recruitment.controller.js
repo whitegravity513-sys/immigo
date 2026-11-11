@@ -9,6 +9,7 @@ import { fetchAllMergedProjects } from "../../utils/projectResolver.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
+import { emitRealtimeEvent } from "../../services/realtime.service.js";
 
 const isValidObjectId = (val) =>
   typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
@@ -87,6 +88,11 @@ export const submitCandidate = asyncHandler(async (req, res) => {
     ...req.body,
     actorUser: req.user,
   });
+  emitRealtimeEvent({
+    events: ["immigo:application-update", "immigo:candidate-update", "immigo:dashboard-update", "immigo:vendor-hr-refresh"],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    vendorId: result?.vendorId ? String(result.vendorId) : null,
+  });
   return ApiResponse.send(res, 201, "Candidate submitted successfully", result);
 });
 
@@ -111,6 +117,20 @@ export const updateCandidateStage = asyncHandler(async (req, res) => {
     documents,
     actorUser: req.user,
   });
+  emitRealtimeEvent({
+    events: [
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    vendorId: application?.vendorId ? String(application.vendorId) : null,
+    candidateId: application?.candidateId ? String(application.candidateId) : null,
+    detail: { applicationId: application?.applicationId || id },
+  });
   return ApiResponse.send(res, 200, "Candidate recruitment stage updated", application);
 });
 
@@ -118,6 +138,20 @@ export const scheduleInterview = asyncHandler(async (req, res) => {
   const interview = await RecruitmentService.scheduleInterview({
     ...req.body,
     actorUser: req.user,
+  });
+  emitRealtimeEvent({
+    events: [
+      "immigo:application-update",
+      "immigo:meeting-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    vendorId: interview?.vendorId ? String(interview.vendorId) : null,
+    candidateId: interview?.candidateId ? String(interview.candidateId) : null,
   });
   return ApiResponse.send(res, 201, "Interview scheduled successfully", interview);
 });
@@ -131,6 +165,11 @@ export const recordInterviewFeedback = asyncHandler(async (req, res) => {
     feedback,
     recommendation,
     actorUser: req.user,
+  });
+  emitRealtimeEvent({
+    events: ["immigo:application-update", "immigo:dashboard-update", "immigo:vendor-hr-refresh"],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    vendorId: interview?.vendorId ? String(interview.vendorId) : null,
   });
   return ApiResponse.send(res, 200, "Interview feedback recorded successfully", interview);
 });
@@ -146,6 +185,21 @@ export const reassignCandidateApplication = asyncHandler(async (req, res) => {
     jobTitle,
     notes,
     actorUser: req.user,
+  });
+  emitRealtimeEvent({
+    events: [
+      "immigo:application-update",
+      "immigo:refund-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+      "immigo:vendor-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    vendorId: application?.vendorId ? String(application.vendorId) : null,
+    candidateId: application?.candidateId ? String(application.candidateId) : null,
+    detail: { applicationId: application?.applicationId || id },
   });
   return ApiResponse.send(res, 200, "Candidate application successfully reassigned to new project", application);
 });

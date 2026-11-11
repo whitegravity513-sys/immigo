@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -35,7 +34,6 @@ export default function CandidateSelectionTable({
 }) {
   return (
     <div className="bg-white rounded-lg border border-slate-300 shadow-xs overflow-hidden">
-      {/* Search & Filter Toolbar */}
       <div className="p-4 sm:p-5 border-b border-slate-200">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-bold overflow-x-auto">
@@ -131,7 +129,6 @@ export default function CandidateSelectionTable({
         )}
       </div>
 
-      {/* Roster Table */}
       <div className="overflow-x-auto bg-white max-h-[500px]">
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">

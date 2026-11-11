@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import apiClient from "../../services/apiClient.js";
 import {
   Video,
@@ -22,7 +22,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
   const [copiedId, setCopiedId] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
 
-  const fetchMeetings = async (showLoading = true) => {
+  const fetchMeetings = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const res = await apiClient.get("/employee/meetings");
@@ -36,13 +36,19 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchMeetings();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchMeetings();
+    });
     const interval = setInterval(() => fetchMeetings(false), 25000);
-    return () => clearInterval(interval);
-  }, [token]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [token, fetchMeetings]);
 
   const handleCopyLink = (link, id) => {
     if (!link) return;
@@ -68,7 +74,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
 
   return (
     <div className="space-y-3">
-      {/* Compact Header with Tabs */}
       <div className="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0">
@@ -88,7 +93,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
         </div>
 
         <div className="flex items-center gap-1.5 flex-wrap self-start sm:self-auto">
-          {/* Quick filter pills */}
           <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
             <button
               type="button"
@@ -150,7 +154,6 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
         </div>
       </div>
 
-      {/* Meetings List */}
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
         {loading && meetings.length === 0 ? (
           <div className="p-6 text-center text-xs text-slate-400">

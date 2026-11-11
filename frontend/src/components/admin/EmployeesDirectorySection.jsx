@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Edit, UserMinus, UserCheck, Trash2, MoreVertical, Eye } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import DeleteConfirmModal from "../common/DeleteConfirmModal.jsx";
@@ -6,7 +6,6 @@ import employeeService from "../../services/employeeService.js";
 
 export default function EmployeesDirectorySection({
   employees = [],
-  handleOpenAddModal,
   openEmployeeDetail,
   formatDate,
   handleEditClick,

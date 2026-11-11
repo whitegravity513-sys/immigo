@@ -1,22 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Users,
   Search,
-  Filter,
-  Eye,
-  CheckCircle2,
-  XCircle,
-  FileText,
-  Clock,
-  ShieldCheck,
   Lock,
   Unlock,
   RefreshCw,
-  X,
-  ExternalLink,
-  Briefcase,
-  Award,
   Download,
   Trash2,
 } from "lucide-react";
@@ -47,12 +35,12 @@ export default function AdminAllCandidates() {
   const [search, setSearch] = useState("");
   const [accountStatus, setAccountStatus] = useState("All");
   const [documentStatus, setDocumentStatus] = useState("All");
-  const [jobAccess, setJobAccess] = useState("All");
+  const [jobAccess] = useState("All");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -74,11 +62,17 @@ export default function AdminAllCandidates() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, accountStatus, documentStatus, jobAccess, page]);
 
   useEffect(() => {
-    fetchCandidates();
-  }, [search, accountStatus, documentStatus, jobAccess, page]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchCandidates();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCandidates]);
 
   const handleDeleteCandidate = async (cand) => {
     const confirmDelete = window.confirm(

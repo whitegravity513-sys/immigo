@@ -78,7 +78,7 @@ export class LeaveService {
         employeeName: leave.employeeId?.name || "",
         metadata: { leaveId: leave._id, status },
       });
-    } catch (e) {
+    } catch {
     }
 
     return this.formatLeave(leave);
@@ -149,7 +149,7 @@ export class LeaveService {
         moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, leaveId: leave._id, leaveType, diffDays, reason },
       });
-    } catch (e) {
+    } catch {
     }
 
     return this.formatLeave(leave, false);

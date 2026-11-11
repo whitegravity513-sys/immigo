@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import AuthHeader from "../../components/auth/AuthHeader.jsx";
-import AuthHeroSection, { AuthHeroHeadline, AuthHeroFeatures } from "../../components/auth/AuthHeroSection.jsx";
+import AuthHeroSection from "../../components/auth/AuthHeroSection.jsx";
 import AdminLoginForm from "../../components/auth/AdminLoginForm.jsx";
 import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
 import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
@@ -25,14 +25,12 @@ export default function AdminLoginPage() {
     }
   };
 
-
   const handleResetSuccess = () => {
     setForgotModal(false);
     setResetSuccessNotice(true);
     setTimeout(() => setResetSuccessNotice(false), 8000);
   };
 
-  
   const renderAdminLoginCard = () => (
     <div className="w-full max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-slate-200/90 p-4 sm:p-5 text-left relative mx-auto">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -71,7 +69,6 @@ export default function AdminLoginPage() {
         </div>
       )}
 
-      {/* Admin Login Form */}
       <AdminLoginForm
         onLoginSuccess={handleSuccess}
         onForgotPassword={() => setForgotModal(true)}
@@ -81,18 +78,15 @@ export default function AdminLoginPage() {
 
   return (
     <div className="h-screen max-h-screen w-screen overflow-hidden relative flex flex-col justify-between font-sans select-none bg-slate-50">
-      {/* Background Graphic */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-40"
         style={{ backgroundImage: `url(${heroTravelerBg})` }}
       />
 
-      {/* Fixed Header */}
       <div className="fixed top-0 inset-x-0 z-30">
         <AuthHeader portalBadge="Admin Portal" />
       </div>
 
-      {/* Main Content strictly between Fixed Header & Footer */}
       <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-10 xl:px-12 pt-[52px] pb-[38px] max-w-[1400px] mx-auto overflow-hidden">
         <div className="w-full flex items-center justify-center lg:justify-between gap-6 lg:gap-10 xl:gap-14">
           <div className="hidden lg:block flex-1 min-w-0 max-w-2xl xl:max-w-3xl">
@@ -104,7 +98,6 @@ export default function AdminLoginPage() {
         </div>
       </main>
 
-      {/* Fixed Navy Blue Footer */}
       <footer className="fixed bottom-0 inset-x-0 z-30 h-[38px] px-6 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md flex items-center justify-center">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
         <span className="mx-2 text-cyan-400">&bull;</span>
@@ -115,7 +108,7 @@ export default function AdminLoginPage() {
         isOpen={forgotModal}
         onClose={() => setForgotModal(false)}
         role="superadmin"
-        initialEmail="admin@vista.com"
+        initialEmail=""
         onSuccess={handleResetSuccess}
       />
     </div>

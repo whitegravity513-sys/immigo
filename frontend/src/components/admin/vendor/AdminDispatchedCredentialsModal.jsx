@@ -1,4 +1,3 @@
-import React from "react";
 import { CheckCircle2, Check, Copy } from "lucide-react";
 
 export function AdminDispatchedCredentialsModal({
@@ -28,7 +27,6 @@ export function AdminDispatchedCredentialsModal({
           </p>
         </div>
 
-        {}
         <div className="bg-slate-50/90 rounded-xl border border-slate-200 p-2.5 text-left text-xs space-y-3">
           <div className="flex justify-between items-center border-b border-slate-200 pb-2">
             <span className="text-slate-500 font-semibold">Agency Name:</span>

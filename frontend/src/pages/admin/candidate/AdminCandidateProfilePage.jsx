@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -8,17 +8,13 @@ import {
   Calendar,
   MapPin,
   Briefcase,
-  ShieldCheck,
   FileText,
   ExternalLink,
   CheckCircle2,
   XCircle,
   AlertCircle,
   Trash2,
-  Lock,
-  Unlock,
   RefreshCw,
-  Clock,
   RotateCcw,
   Award,
 } from "lucide-react";
@@ -35,16 +31,14 @@ export default function AdminCandidateProfilePage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [notification, setNotification] = useState(null);
 
-  // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Document reject modal state
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const loadCandidateData = async () => {
+  const loadCandidateData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiClient.get(`/admin/candidates/${id}`);
@@ -63,18 +57,23 @@ export default function AdminCandidateProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    loadCandidateData();
-  }, [id]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadCandidateData();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadCandidateData]);
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // Delete candidate
   const handleDeleteCandidate = async () => {
     if (!candidate) return;
     setDeleting(true);
@@ -94,7 +93,6 @@ export default function AdminCandidateProfilePage() {
     }
   };
 
-  // Approve Account
   const handleApproveAccount = async () => {
     setActionLoading(true);
     try {
@@ -110,7 +108,6 @@ export default function AdminCandidateProfilePage() {
     }
   };
 
-  // Reject Account
   const handleRejectAccount = async () => {
     const reason = window.prompt("Enter rejection reason for candidate account:");
     if (!reason || !reason.trim()) return;
@@ -130,7 +127,6 @@ export default function AdminCandidateProfilePage() {
     }
   };
 
-  // Document Verification
   const handleVerifyDocument = async (doc) => {
     setActionLoading(true);
     try {
@@ -148,7 +144,6 @@ export default function AdminCandidateProfilePage() {
     }
   };
 
-  // Document Reject / Re-upload
   const handleRejectDocument = async () => {
     if (!rejectionReason.trim()) {
       alert("A reason for rejection/re-upload is mandatory.");
@@ -167,7 +162,7 @@ export default function AdminCandidateProfilePage() {
         setSelectedDoc(null);
         loadCandidateData();
       }
-    } catch (err) {
+    } catch {
       showNotification("error", "Failed to update document status.");
     } finally {
       setActionLoading(false);
@@ -199,7 +194,6 @@ export default function AdminCandidateProfilePage() {
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto pb-10">
-      {/* Toast Notification */}
       {notification && (
         <div
           className={`p-3.5 rounded-xl border flex items-center justify-between text-xs font-semibold shadow-xs animate-in fade-in duration-150 ${
@@ -225,7 +219,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       )}
 
-      {/* Top Header Card */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <button
@@ -272,7 +265,6 @@ export default function AdminCandidateProfilePage() {
           </div>
         </div>
 
-        {/* Candidate Profile Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
           <div className="flex items-center gap-3.5">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl flex items-center justify-center shrink-0 shadow-sm uppercase">
@@ -328,7 +320,6 @@ export default function AdminCandidateProfilePage() {
           </div>
         </div>
 
-        {/* Tab Navigation */}
         <div className="flex items-center gap-2 border-b border-slate-200 pt-3 text-xs font-bold">
           <button
             type="button"
@@ -377,7 +368,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       </div>
 
-      {/* Tab 1: Personal & Contact Details */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
@@ -454,7 +444,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       )}
 
-      {/* Tab 2: Professional & Skills */}
       {activeTab === "skills" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
@@ -500,7 +489,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       )}
 
-      {/* Tab 3: Documents & Compliance */}
       {activeTab === "documents" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
           <div className="flex items-center justify-between">
@@ -603,7 +591,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       )}
 
-      {/* Tab 4: Applications & Projects */}
       {activeTab === "applications" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
@@ -652,7 +639,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
@@ -701,7 +687,6 @@ export default function AdminCandidateProfilePage() {
         </div>
       )}
 
-      {/* Document Re-upload Request Modal */}
       {rejectModalOpen && selectedDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">

@@ -1,22 +1,14 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   ArrowLeft,
   Camera,
   Upload,
   FileText,
   Trash2,
-  Building,
   Award,
   Briefcase,
   User,
-  Mail,
-  Lock,
-  Phone,
-  Calendar,
-  MapPin,
-  CheckCircle2,
   AlertCircle,
-  Plus,
   UserPlus,
 } from "lucide-react";
 import DateInput from "../common/DateInput.jsx";
@@ -31,7 +23,6 @@ export const RegisterEmployeeSection = ({
 }) => {
   const [docCategory, setDocCategory] = useState("Aadhaar Card");
   const [docTitle, setDocTitle] = useState("");
-  const [docFileLabel, setDocFileLabel] = useState("");
   const [docStagingLoading, setDocStagingLoading] = useState(false);
   const [localError, setLocalError] = useState("");
   const fileInputRef = useRef(null);
@@ -135,7 +126,6 @@ export const RegisterEmployeeSection = ({
         documents: [...(prev.documents || []), newDoc],
       }));
       setDocTitle("");
-      setDocFileLabel("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       setDocStagingLoading(false);
       setLocalError("");

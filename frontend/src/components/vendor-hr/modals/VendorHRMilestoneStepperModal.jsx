@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Award,
   X,
@@ -9,11 +8,14 @@ import {
   IndianRupee,
   Circle,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
+import { isAppRefundLocked, getAppRefundStatus } from "../../../services/refundService.js";
 
 export default function VendorHRMilestoneStepperModal({
   show,
   selectedMilestoneCandidate,
+  refunds = [],
   onClose,
   completingStageId,
   setCompletingStageId,
@@ -23,14 +25,15 @@ export default function VendorHRMilestoneStepperModal({
   handleApproveMilestonePayment,
   hideProjectNames = false,
   actionLoading = false,
-  hrUserName = "Vendor HR Officer",
 }) {
   if (!show || !selectedMilestoneCandidate) return null;
+
+  const refundLocked = isAppRefundLocked(selectedMilestoneCandidate, refunds);
+  const refundStatus = getAppRefundStatus(selectedMilestoneCandidate, refunds);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in duration-200">
-        {/* Header */}
         <div className="p-4 sm:p-5 bg-gradient-to-r from-teal-900 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
@@ -69,9 +72,22 @@ export default function VendorHRMilestoneStepperModal({
           </button>
         </div>
 
-        {/* Stepper Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
-          {/* Sequential Rule Banner */}
+          {refundLocked && (
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-start space-x-3 text-xs text-rose-900">
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <span className="font-bold text-rose-950 block">
+                  Payment &amp; Processing Frozen — Refund Claim ({refundStatus || "Pending Admin Approval"})
+                </span>
+                <p className="text-[11.5px] leading-relaxed text-rose-800">
+                  {refundStatus === "Pending Admin Approval"
+                    ? "Milestone payment approvals and stage progression are paused until Admin reviews and responds to this refund claim."
+                    : "Admin has processed this refund claim. Payment and stage progression on this project remain closed; proceed with candidate reassignment."}
+                </p>
+              </div>
+            </div>
+          )}
           <div className="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 flex items-start space-x-3 text-xs">
             <ShieldCheck className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
             <div className="text-slate-700 space-y-1">
@@ -88,7 +104,6 @@ export default function VendorHRMilestoneStepperModal({
             </div>
           </div>
 
-          {/* Milestones Container */}
           <div className="space-y-4">
             {(selectedMilestoneCandidate.processMilestones || []).map((milestone, mIdx) => {
               const milestones = selectedMilestoneCandidate.processMilestones || [];
@@ -128,7 +143,6 @@ export default function VendorHRMilestoneStepperModal({
                       : "border-slate-200 bg-slate-50/60 opacity-85"
                   }`}
                 >
-                  {/* Milestone Header */}
                   <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50/50">
                     <div className="flex items-center space-x-3">
                       <div
@@ -154,7 +168,6 @@ export default function VendorHRMilestoneStepperModal({
                       </div>
                     </div>
 
-                    {/* Status Pills */}
                     <div className="flex items-center space-x-2">
                       {amt > 0 ? (
                         isApproved ? (
@@ -201,7 +214,6 @@ export default function VendorHRMilestoneStepperModal({
                     </div>
                   </div>
 
-                  {/* Milestone Body */}
                   <div className="p-3.5 sm:p-4">
                     {isLocked && (
                       <div className="p-3 rounded-xl bg-slate-100/90 border border-slate-200 flex items-center space-x-2.5 text-xs text-slate-600">
@@ -227,17 +239,21 @@ export default function VendorHRMilestoneStepperModal({
 
                         <div className="flex items-center justify-between pt-1 border-t border-amber-200/80">
                           <span className="text-[11px] text-amber-800 font-medium">
-                            Received payment offline / bank transfer?
+                            {refundLocked
+                              ? "Payment verification frozen awaiting Admin refund response"
+                              : "Received payment offline / bank transfer?"}
                           </span>
-                          <button
-                            type="button"
-                            disabled={actionLoading}
-                            onClick={() => handleApproveMilestonePayment(milestone.id)}
-                            className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs transition cursor-pointer shadow-2xs flex items-center gap-1.5"
-                          >
-                            <Check size={12} />
-                            <span>Verify & Approve Payment (₹{amt.toLocaleString()})</span>
-                          </button>
+                          {!refundLocked && (
+                            <button
+                              type="button"
+                              disabled={actionLoading}
+                              onClick={() => handleApproveMilestonePayment(milestone.id)}
+                              className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+                            >
+                              <Check size={12} />
+                              <span>Verify & Approve Payment (₹{amt.toLocaleString()})</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -303,7 +319,7 @@ export default function VendorHRMilestoneStepperModal({
                                   </div>
                                 </div>
 
-                                {isStageActive && (
+                                {!refundLocked && isStageActive && (
                                   <div className="shrink-0 flex items-center space-x-2">
                                     {completingStageId === stage.id ? (
                                       <div className="flex items-center space-x-1.5 animate-in fade-in">
@@ -311,7 +327,7 @@ export default function VendorHRMilestoneStepperModal({
                                           type="text"
                                           value={stageCompletionRemark}
                                           onChange={(e) => setStageCompletionRemark(e.target.value)}
-                                          placeholder="Enter verification remark..."
+                                          placeholder="Optional verification remark..."
                                           className="px-2.5 py-1 bg-white border border-blue-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 w-44 sm:w-56"
                                         />
                                         <button
@@ -338,7 +354,7 @@ export default function VendorHRMilestoneStepperModal({
                                         type="button"
                                         onClick={() => {
                                           setCompletingStageId(stage.id);
-                                          setStageCompletionRemark(`Verified by Vendor HR (${hrUserName})`);
+                                          setStageCompletionRemark("");
                                         }}
                                         className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer flex items-center gap-1.5"
                                       >
@@ -361,7 +377,6 @@ export default function VendorHRMilestoneStepperModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
           <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
             <CheckCircle2 size={13} className="text-teal-600" />

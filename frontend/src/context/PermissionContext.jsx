@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useAuth } from "./AuthContext.jsx";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "./useAuth.js";
 import permissionService from "../services/permissionService.js";
-
-const PermissionContext = createContext(null);
+import { PermissionContext } from "./usePermissions.js";
 
 export const PermissionProvider = ({ children }) => {
   const { token, user, role: authRole } = useAuth();
@@ -40,7 +39,7 @@ export const PermissionProvider = ({ children }) => {
         setIsSuperAdmin(isSuper);
         localStorage.setItem("user_permissions", JSON.stringify(perms));
       }
-    } catch (err) {
+    } catch {
       if (user?.permissions) {
         setPermissions(user.permissions);
       }
@@ -52,7 +51,15 @@ export const PermissionProvider = ({ children }) => {
   }, [token, authRole, user]);
 
   useEffect(() => {
-    fetchPermissions();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        fetchPermissions();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchPermissions]);
 
   const hasPermission = useCallback(
@@ -109,13 +116,3 @@ export const PermissionProvider = ({ children }) => {
 
   return <PermissionContext.Provider value={value}>{children}</PermissionContext.Provider>;
 };
-
-export const usePermissions = () => {
-  const context = useContext(PermissionContext);
-  if (!context) {
-    throw new Error("usePermissions must be used within a PermissionProvider");
-  }
-  return context;
-};
-
-export default PermissionContext;

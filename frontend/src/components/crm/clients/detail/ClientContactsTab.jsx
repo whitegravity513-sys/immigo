@@ -1,4 +1,3 @@
-import React from "react";
 
 export function ClientContactsTab({ client }) {
   if (!client) return null;

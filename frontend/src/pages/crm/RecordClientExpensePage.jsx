@@ -1,22 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, useParams, Link } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import {
   ArrowLeft,
-  Receipt,
-  Building2,
-  Calendar,
-  CreditCard,
   Upload,
-  FileCheck,
-  AlertCircle,
   CheckCircle2,
   TrendingDown,
-  User,
-  Tag,
   Info,
 } from "lucide-react";
 import crmClientService from "../../services/crmClientService.js";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import DateInput from "../../components/common/DateInput.jsx";
 
 const EXPENSE_CATEGORIES = [
@@ -47,11 +39,19 @@ export default function RecordClientExpensePage() {
   const [searchParams] = useSearchParams();
   const { expenseId } = useParams();
   const initialClientId = searchParams.get("clientId") || "";
-  const { showToast } = useCrmToast() || { showToast: (msg) => console.log(msg) };
+  const { showToast: contextShowToast } = useCrmToast() || {};
+  const showToast = useCallback(
+    (msg, type) => {
+      if (contextShowToast) {
+        contextShowToast(msg, type);
+      } else {
+        console.log(msg);
+      }
+    },
+    [contextShowToast]
+  );
 
   const [clients, setClients] = useState([]);
-  const [loadingClients, setLoadingClients] = useState(false);
-  const [loadingExpense, setLoadingExpense] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -77,10 +77,8 @@ export default function RecordClientExpensePage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  
   useEffect(() => {
     const fetchClients = async () => {
-      setLoadingClients(true);
       try {
         const res = await crmClientService.getClients({ limit: 200 });
         const list = Array.isArray(res?.clients) ? res.clients : Array.isArray(res) ? res : [];
@@ -99,18 +97,14 @@ export default function RecordClientExpensePage() {
         }
       } catch (err) {
         console.error("Failed to fetch clients:", err);
-      } finally {
-        setLoadingClients(false);
       }
     };
     fetchClients();
   }, [initialClientId, expenseId]);
 
-  
   useEffect(() => {
     if (expenseId) {
       const loadExpenseData = async () => {
-        setLoadingExpense(true);
         try {
           const allExp = await crmClientService.getAllExpenses();
           const target = allExp.find((e) => String(e.id || e._id) === String(expenseId));
@@ -138,13 +132,11 @@ export default function RecordClientExpensePage() {
         } catch (err) {
           console.error("Failed to load expense for edit:", err);
           showToast("Failed to load expense details", "error");
-        } finally {
-          setLoadingExpense(false);
         }
       };
       loadExpenseData();
     }
-  }, [expenseId]);
+  }, [expenseId, showToast]);
 
   const handleClientChange = (e) => {
     const cId = e.target.value;
@@ -212,7 +204,6 @@ export default function RecordClientExpensePage() {
         showToast("Expense recorded successfully!", "success");
       }
 
-      
       if (formData.clientId) {
         navigate(`/client/clients/${formData.clientId}?tab=milestones`);
       } else {
@@ -228,7 +219,6 @@ export default function RecordClientExpensePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -265,7 +255,6 @@ export default function RecordClientExpensePage() {
         </div>
       </div>
 
-      {}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
@@ -276,7 +265,6 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Client Organization <span className="text-rose-500">*</span>
@@ -301,7 +289,6 @@ export default function RecordClientExpensePage() {
               )}
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Project Name (Optional)
@@ -340,7 +327,6 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">2. Expense Classification & Amount</h2>
@@ -350,7 +336,6 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Expense Category <span className="text-rose-500">*</span>
@@ -368,7 +353,6 @@ export default function RecordClientExpensePage() {
               </select>
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Expense Amount (₹) <span className="text-rose-500">*</span>
@@ -397,7 +381,6 @@ export default function RecordClientExpensePage() {
               )}
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Paid To (Vendor / Employee / Person)
@@ -412,7 +395,6 @@ export default function RecordClientExpensePage() {
             </div>
           </div>
 
-          {}
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
               Expense Description / Purpose <span className="text-rose-500">*</span>
@@ -435,7 +417,6 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">3. Payment Method & Status</h2>
@@ -445,7 +426,6 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Expense Status <span className="text-rose-500">*</span>
@@ -463,7 +443,6 @@ export default function RecordClientExpensePage() {
               </select>
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Payment Date <span className="text-rose-500">*</span>
@@ -475,7 +454,6 @@ export default function RecordClientExpensePage() {
               />
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Payment Method
@@ -493,7 +471,6 @@ export default function RecordClientExpensePage() {
               </select>
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Transaction Ref / UTR {formData.status === "Paid" && <span className="text-rose-500">*</span>}
@@ -517,7 +494,6 @@ export default function RecordClientExpensePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Recorded By
@@ -530,7 +506,6 @@ export default function RecordClientExpensePage() {
               />
             </div>
 
-            {}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
                 Remarks / Audit Note (Optional)
@@ -545,7 +520,6 @@ export default function RecordClientExpensePage() {
             </div>
           </div>
 
-          {}
           <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
               Bill / Invoice / Payment Proof Attachment (Optional)
@@ -571,7 +545,6 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        {}
         <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 flex items-start gap-3 text-xs text-blue-900">
           <Info size={18} className="text-blue-600 shrink-0 mt-0.5" />
           <p>
@@ -579,7 +552,6 @@ export default function RecordClientExpensePage() {
           </p>
         </div>
 
-        {}
         <div className="flex items-center justify-end gap-3 pt-4">
           <button
             type="button"

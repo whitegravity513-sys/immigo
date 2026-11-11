@@ -71,7 +71,7 @@ class MeetingSchedulerService {
         if (!meetingDate) continue;
 
         const diffMinutes = Math.floor((meetingDate - now) / (60 * 1000));
-        if (diffMinutes < 0) continue; // Past meeting
+        if (diffMinutes < 0) continue;
 
         const remindersSent = meeting.remindersSent || [];
         let updated = false;

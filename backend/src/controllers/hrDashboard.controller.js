@@ -17,7 +17,6 @@ export const getHrDashboard = asyncHandler(async (req, res) => {
     employeesList,
     todayAttendance,
     pendingLeaves,
-    allLeaves,
   ] = await Promise.all([
     Employee.countDocuments({ status: { $ne: "Terminated" } }),
     Employee.find({ status: { $ne: "Terminated" } })
@@ -27,7 +26,6 @@ export const getHrDashboard = asyncHandler(async (req, res) => {
     Leave.find({ status: "Pending" })
       .sort({ createdAt: -1 })
       .limit(10),
-    Leave.find().sort({ createdAt: -1 }).limit(100),
   ]);
 
   const presentToday = todayAttendance.filter(

@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { Building2, Plus, ArrowRight, MapPin, Mail, Phone } from "lucide-react";
 import StatusBadge from "../../crm/ui/StatusBadge.jsx";

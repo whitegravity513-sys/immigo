@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Video,
@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 import { getIndiaDateString, isMeetingExpired } from "../../../utils/formatters.js";
 
 export default function ActiveMeetingAlertBanner({
@@ -25,7 +25,7 @@ export default function ActiveMeetingAlertBanner({
   const [actionLoading, setActionLoading] = useState(false);
   const [notice, setNotice] = useState(null);
 
-  const fetchActiveMeeting = async () => {
+  const fetchActiveMeeting = useCallback(async () => {
     try {
       const todayStr = getIndiaDateString();
 
@@ -67,20 +67,23 @@ export default function ActiveMeetingAlertBanner({
     } finally {
       setLoading(false);
     }
-  };
+  }, [contextVendorId, effectiveRole]);
 
   useEffect(() => {
-    fetchActiveMeeting();
+    const t = setTimeout(() => {
+      fetchActiveMeeting();
+    }, 0);
 
     const handleUpdate = () => fetchActiveMeeting();
     window.addEventListener("immigo:meeting-update", handleUpdate);
     const interval = setInterval(fetchActiveMeeting, 25000);
 
     return () => {
+      clearTimeout(t);
       window.removeEventListener("immigo:meeting-update", handleUpdate);
       clearInterval(interval);
     };
-  }, [contextVendorId, effectiveRole]);
+  }, [fetchActiveMeeting]);
 
   const handleMarkCompleted = async () => {
     if (!activeMeeting) return;
@@ -142,7 +145,9 @@ export default function ActiveMeetingAlertBanner({
       ? "/vendor/meetings"
       : effectiveRole === "employee" || effectiveRole === "EMPLOYEE"
       ? "/employee/dashboard"
-      : effectiveRole === "HR" || effectiveRole === "VENDOR_HR"
+      : effectiveRole === "VENDOR_HR"
+      ? "/vendor-hr/dashboard?view=meetings"
+      : effectiveRole === "HR"
       ? "/hr/meetings"
       : "/admin/meetings";
 

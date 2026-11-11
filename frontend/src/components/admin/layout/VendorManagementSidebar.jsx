@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Building2,
   Users,
-  Send,
   UserCheck,
   XCircle,
   Clock,
@@ -20,7 +19,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 export function VendorManagementSidebar({
   mobileOpen = false,
@@ -79,9 +78,6 @@ export function VendorManagementSidebar({
         (tabParam === "on hold" || tabParam === "on-hold" || tabParam === "hold")
       );
     }
-    if (path === "/admin/vendor/submissions") {
-      return currentPath.includes("/submissions");
-    }
     if (path === "/admin/vendor/selected") {
       return currentPath.includes("/selected");
     }
@@ -137,7 +133,6 @@ export function VendorManagementSidebar({
 
   const candidateSubItems = [
     { title: "All Candidates", icon: Users, path: "/admin/vendor/candidates" },
-    { title: "Pending Review", icon: Send, path: "/admin/vendor/submissions" },
     { title: "Shortlisted", icon: Clock, path: "/admin/vendor/candidates?tab=shortlisted" },
     { title: "Selected", icon: UserCheck, path: "/admin/vendor/selected" },
     { title: "On Hold", icon: Clock, path: "/admin/vendor/candidates?tab=on+hold" },
@@ -164,7 +159,6 @@ export function VendorManagementSidebar({
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Header */}
         <div
           className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
@@ -192,7 +186,6 @@ export function VendorManagementSidebar({
           )}
         </div>
 
-        {/* Navigation */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           <div className="mb-2.5">
             <Link
@@ -214,7 +207,6 @@ export function VendorManagementSidebar({
             </p>
           )}
 
-          {/* Main Dashboard Link */}
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -241,7 +233,6 @@ export function VendorManagementSidebar({
             );
           })}
 
-          {/* Vendors Expandable Section */}
           <div className="space-y-0.5">
             <button
               type="button"
@@ -301,7 +292,6 @@ export function VendorManagementSidebar({
             )}
           </div>
 
-          {/* Candidates Expandable Section (Matches uploaded screenshot) */}
           <div className="space-y-0.5">
             <button
               type="button"
@@ -361,7 +351,6 @@ export function VendorManagementSidebar({
             )}
           </div>
 
-          {/* Candidate Process Section */}
           <div className="space-y-0.5">
             <button
               type="button"
@@ -421,7 +410,6 @@ export function VendorManagementSidebar({
             )}
           </div>
 
-          {/* Payments Direct Link */}
           <Link
             to="/admin/vendor/payments"
             onClick={() => setMobileOpen(false)}
@@ -438,7 +426,6 @@ export function VendorManagementSidebar({
             {!collapsed && <span className="truncate font-semibold">Payments</span>}
           </Link>
 
-          {/* Refunds Direct Link */}
           <Link
             to="/admin/vendor/refunds"
             onClick={() => setMobileOpen(false)}
@@ -456,7 +443,6 @@ export function VendorManagementSidebar({
           </Link>
         </div>
 
-        {/* Footer Logout */}
         <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
           <button
             type="button"

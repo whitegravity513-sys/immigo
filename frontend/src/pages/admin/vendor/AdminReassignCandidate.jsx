@@ -1,64 +1,116 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { UserCheck, Building2, Briefcase, ArrowLeft } from "lucide-react";
+import { UserCheck, Building2, Briefcase, ArrowLeft, AlertTriangle, RotateCcw } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 import { crmClientService } from "../../../services/crmClientService";
+import refundService, {
+  getAppRefundStatus,
+  REASSIGN_ELIGIBLE_REFUND_STATUSES,
+} from "../../../services/refundService";
 
 export default function AdminReassignCandidate() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const appId = searchParams.get("appId");
+  const refundIdParam = searchParams.get("refundId");
 
   const [application, setApplication] = useState(null);
+  const [refundRecord, setRefundRecord] = useState(null);
   const [clients, setClients] = useState([]);
   const [assignForm, setAssignForm] = useState({ clientId: "", projectId: "", position: "" });
   const [loading, setLoading] = useState(true);
   const [assignLoading, setAssignLoading] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [appId]);
-
-  const loadData = async () => {
-    if (!appId) return;
+  const loadData = useCallback(async () => {
+    if (!appId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
-      const apps = await crmVendorService.getApplications();
-      const app = apps.find(a => String(a.id) === String(appId));
-      if (app) setApplication(app);
+      const [apps, clientsData, refunds] = await Promise.all([
+        crmVendorService.getApplications(),
+        crmClientService.getClients({ limit: 1000 }),
+        refundService.getAllRefunds().catch(() => []),
+      ]);
+      const app = (apps || []).find((a) =>
+        [a.id, a.applicationId, a._id]
+          .filter(Boolean)
+          .map(String)
+          .includes(String(appId))
+      );
+      if (app) {
+        setApplication(app);
+      }
 
-      const clientsData = await crmClientService.getClients({ limit: 1000 });
-      setClients(clientsData.clients || []);
+      const matchedRefund = (refunds || []).find((r) => {
+        if (!r || r.reassigned) return false;
+        if (refundIdParam && String(r.id || r._id) === String(refundIdParam)) return true;
+        return (
+          r.applicationId &&
+          String(r.applicationId) === String(app?.applicationId || app?.id || appId) &&
+          r.refundStatus !== "Rejected"
+        );
+      });
+      setRefundRecord(matchedRefund || null);
+      setClients(clientsData?.clients || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [appId, refundIdParam]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadData();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [loadData]);
+
+  const activeRefundStatus =
+    refundRecord?.refundStatus || getAppRefundStatus(application, refundRecord ? [refundRecord] : []);
+  const isRefundAwaitingApproval = activeRefundStatus === "Pending Admin Approval";
+  const isFromApprovedRefund = Boolean(
+    refundRecord || REASSIGN_ELIGIBLE_REFUND_STATUSES.has(activeRefundStatus)
+  );
 
   const handleAssignProject = async () => {
+    if (isRefundAwaitingApproval) {
+      alert("Cannot reassign candidate while refund claim is pending Admin approval.");
+      return;
+    }
     if (!assignForm.projectId || !assignForm.position) {
       alert("Please select a project and position.");
       return;
     }
-    
+
     let projName = "";
-    clients.forEach(c => {
-      const p = c.projects?.find(px => px.id === assignForm.projectId);
-      if (p) projName = p.projectName;
+    let reqCode = "REQ-0000";
+    clients.forEach((c) => {
+      const p = (c.projects || []).find(
+        (px) => String(px.id || px.projectId || px._id) === String(assignForm.projectId)
+      );
+      if (p) {
+        projName = p.projectName || p.title || "";
+        const req = (p.manpowerRequirements || []).find(
+          (r) => String(r.position || r.positionTitle || "") === String(assignForm.position)
+        );
+        reqCode = req?.requirementCode || req?.id || "REQ-0000";
+      }
     });
 
     setAssignLoading(true);
     try {
       await crmVendorService.reassignApplicationToProject(
-        application.id,
+        application.applicationId || application.id,
         assignForm.projectId,
         projName,
         assignForm.position,
-        "REQ-0000"
+        reqCode
       );
-      alert(`Candidate successfully reassigned! Status is now Submitted.`);
-      navigate("/admin/vendor/submissions");
+      alert("Candidate successfully reassigned! Status is now Submitted.");
+      navigate(isFromApprovedRefund ? "/admin/vendor/refunds" : "/admin/vendor/submissions");
     } catch (err) {
       alert(err.message);
     } finally {
@@ -79,20 +131,29 @@ export default function AdminReassignCandidate() {
     return (
       <div className="p-12 text-center max-w-3xl mx-auto">
         <p className="text-sm font-bold text-slate-800">Application not found.</p>
-        <button onClick={() => navigate(-1)} className="mt-4 text-emerald-600 hover:underline text-xs">Go Back</button>
+        <button onClick={() => navigate(-1)} className="mt-4 text-emerald-600 hover:underline text-xs cursor-pointer">
+          Go Back
+        </button>
       </div>
     );
   }
 
+  const selectedClient = clients.find(
+    (c) => String(c.id || c._id) === String(assignForm.clientId)
+  );
+  const clientProjects = selectedClient?.projects || [];
+  const selectedProject = clientProjects.find(
+    (p) => String(p.id || p.projectId || p._id) === String(assignForm.projectId)
+  );
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {}
       <div>
         <button
           onClick={() => navigate(-1)}
           className="text-xs font-bold text-slate-400 hover:text-slate-700 flex items-center gap-1 mb-4 transition-colors cursor-pointer"
         >
-          <ArrowLeft size={14} /> Back to Rejected List
+          <ArrowLeft size={14} /> {isFromApprovedRefund ? "Back to Refunds List" : "Back to Rejected List"}
         </button>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
           <UserCheck className="w-6 h-6 text-emerald-600" /> Reassign Candidate
@@ -101,6 +162,40 @@ export default function AdminReassignCandidate() {
           Assign candidate <strong>{application.candidateName}</strong> to a new project requirement.
         </p>
       </div>
+
+      {(refundRecord || activeRefundStatus) && (
+        <div
+          className={`rounded-xl border p-4 text-xs flex items-start gap-3 ${
+            isRefundAwaitingApproval
+              ? "bg-amber-50 border-amber-200 text-amber-900"
+              : "bg-blue-50 border-blue-200 text-blue-900"
+          }`}
+        >
+          {isRefundAwaitingApproval ? (
+            <AlertTriangle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          ) : (
+            <RotateCcw size={18} className="text-blue-600 shrink-0 mt-0.5" />
+          )}
+          <div className="space-y-1">
+            <div className="font-bold">
+              Refund Status: {activeRefundStatus || "Resolved"}
+            </div>
+            {isRefundAwaitingApproval ? (
+              <p>
+                Reassignment is locked until an Administrator approves or rejects the active refund request.
+              </p>
+            ) : (
+              <p>
+                Previous project <strong>{refundRecord?.projectName || application.projectName}</strong>
+                {refundRecord?.refundAmount !== undefined
+                  ? ` • Refund Amount: ₹${Number(refundRecord.refundAmount || 0).toLocaleString()}`
+                  : ""}
+                {refundRecord?.paymentRef ? ` • Ref: ${refundRecord.paymentRef}` : ""}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="p-6 space-y-6">
@@ -115,7 +210,14 @@ export default function AdminReassignCandidate() {
                 className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-50 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <option value="">-- Choose Client --</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
+                {clients.map((c) => {
+                  const cid = c.id || c._id;
+                  return (
+                    <option key={cid} value={cid}>
+                      {c.companyName}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -130,9 +232,14 @@ export default function AdminReassignCandidate() {
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-50 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <option value="">-- Choose Project --</option>
-                  {(clients.find(c => c.id === assignForm.clientId)?.projects || []).map(p => (
-                    <option key={p.id} value={p.id}>{p.projectName}</option>
-                  ))}
+                  {clientProjects.map((p) => {
+                    const pid = p.id || p.projectId || p._id;
+                    return (
+                      <option key={pid} value={pid}>
+                        {p.projectName || p.title}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             )}
@@ -148,13 +255,14 @@ export default function AdminReassignCandidate() {
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-50 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   <option value="">-- Choose Position --</option>
-                  {(() => {
-                    const client = clients.find(c => c.id === assignForm.clientId);
-                    const project = client?.projects?.find(p => p.id === assignForm.projectId);
-                    return (project?.manpowerRequirements || []).map(r => (
-                      <option key={r.id} value={r.position}>{r.position}</option>
-                    ));
-                  })()}
+                  {(selectedProject?.manpowerRequirements || []).map((r, rIdx) => {
+                    const posLabel = r.position || r.positionTitle || `Position ${rIdx + 1}`;
+                    return (
+                      <option key={r.id || `${posLabel}-${rIdx}`} value={posLabel}>
+                        {posLabel}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             )}
@@ -170,7 +278,7 @@ export default function AdminReassignCandidate() {
           </button>
           <button
             onClick={handleAssignProject}
-            disabled={assignLoading || !assignForm.position}
+            disabled={assignLoading || !assignForm.position || isRefundAwaitingApproval}
             className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
           >
             {assignLoading ? (

@@ -14,12 +14,12 @@ import {
   Layers,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import refundService, { isAppRefundLocked } from "../../services/refundService";
 
 export default function Payments() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -31,7 +31,10 @@ export default function Payments() {
       const curVendor = crmVendorService.getCurrentVendor();
 
       await crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []);
-      const apps = await crmVendorService.getApplications(curVendor?.id);
+      const [apps, allRefunds] = await Promise.all([
+        crmVendorService.getApplications(curVendor?.id),
+        refundService.getAllRefunds(curVendor?.id).catch(() => []),
+      ]);
 
       const postSelectionStatuses = new Set([
         "Selected",
@@ -48,8 +51,9 @@ export default function Payments() {
 
       const selectedApps = (apps || []).filter(
         (a) =>
-          postSelectionStatuses.has(a.status) ||
-          postSelectionStatuses.has(a.recruitmentStage)
+          (postSelectionStatuses.has(a.status) ||
+            postSelectionStatuses.has(a.recruitmentStage)) &&
+          !isAppRefundLocked(a, allRefunds)
       );
       setApplications(selectedApps);
     } catch (err) {
@@ -66,12 +70,14 @@ export default function Payments() {
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -86,7 +92,6 @@ export default function Payments() {
     });
   };
 
-  
   const candidateAccounts = applications.map((app) => {
     const syncedMs = !app.milestonesOverridden
       ? crmVendorService.syncAppMilestonesWithProject(app)
@@ -167,7 +172,6 @@ export default function Payments() {
     };
   });
 
-  
   const totalContractFee = candidateAccounts.reduce((acc, c) => acc + c.totalFee, 0);
   const totalPaidOverall = candidateAccounts.reduce((acc, c) => acc + c.paidAmount, 0);
   const totalDueOverall = candidateAccounts.reduce((acc, c) => acc + c.dueAmount, 0);
@@ -175,7 +179,6 @@ export default function Payments() {
   const fullyPaidCount = candidateAccounts.filter((c) => c.isFullyPaid).length;
   const dueAccountsCount = candidateAccounts.filter((c) => c.dueAmount > 0).length;
 
-  
   const filteredAccounts = candidateAccounts.filter((cand) => {
     if (activeTab === "Paid" && cand.paidAmount <= 0) return false;
     if (activeTab === "Due" && cand.dueAmount <= 0) return false;
@@ -195,7 +198,6 @@ export default function Payments() {
 
   return (
     <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-600 uppercase tracking-wider mb-0.5">
@@ -219,7 +221,6 @@ export default function Payments() {
         </button>
       </div>
 
-      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white px-3 py-2 rounded-lg border border-slate-200 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
@@ -273,7 +274,6 @@ export default function Payments() {
         </div>
       </div>
 
-      {}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold w-full sm:w-auto">
           <button
@@ -320,7 +320,6 @@ export default function Payments() {
         </div>
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -370,7 +369,6 @@ export default function Payments() {
                   return (
                     <Fragment key={cand.appId}>
                       <tr className="hover:bg-slate-50/70 transition group">
-                        {}
                         <td className="py-1.5 px-3">
                           <Link
                             to={`/vendor/candidates/${cand.candidateId}`}
@@ -383,7 +381,6 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3">
                           <span className="font-bold text-slate-800 block truncate max-w-[170px]">
                             {cand.projectName}
@@ -393,7 +390,6 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span className="font-bold text-slate-900 text-sm">
                             ₹{cand.totalFee.toLocaleString()}
@@ -403,7 +399,6 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span className="font-bold text-emerald-600 text-sm">
                             ₹{cand.paidAmount.toLocaleString()}
@@ -419,7 +414,6 @@ export default function Payments() {
                           </span>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           <span
                             className={`font-bold text-sm ${
@@ -439,13 +433,12 @@ export default function Payments() {
                           )}
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3">
-                          <div className="flex items-center gap-1.5 flex-wrap max-w-xs">
+                          <div className="flex items-center gap-1 flex-nowrap whitespace-nowrap">
                             {cand.milestones.slice(0, 3).map((m) => (
                               <span
                                 key={m.id}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold ${
+                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap ${
                                   m.isPaid
                                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                     : m.isSubmitted
@@ -455,26 +448,25 @@ export default function Payments() {
                                 title={`${m.name}: ₹${m.amount.toLocaleString()} (${m.status})`}
                               >
                                 {m.isPaid ? (
-                                  <CheckCircle2 size={10} className="text-emerald-500" />
+                                  <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
                                 ) : (
-                                  <Clock size={10} className="text-amber-500" />
+                                  <Clock size={10} className="text-amber-500 shrink-0" />
                                 )}
-                                <span className="truncate max-w-[80px]">M{m.index}</span>
+                                <span>M{m.index}</span>
                                 <span>₹{Number(m.amount || 0).toLocaleString()}</span>
                               </span>
                             ))}
                             {cand.milestones.length > 3 && (
                               <button
                                 onClick={() => toggleExpand(cand.appId)}
-                                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded-lg cursor-pointer"
+                                className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded-md cursor-pointer whitespace-nowrap shrink-0"
                               >
-                                +{cand.milestones.length - 3} more
+                                +{cand.milestones.length - 3}
                               </button>
                             )}
                           </div>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 text-center whitespace-nowrap">
                           {cand.isFullyPaid ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -494,7 +486,6 @@ export default function Payments() {
                           )}
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
@@ -524,7 +515,6 @@ export default function Payments() {
                         </td>
                       </tr>
 
-                      {}
                       {isExpanded && (
                         <tr className="bg-slate-50/90 border-b border-slate-200">
                           <td colSpan={8} className="p-4 sm:p-5">

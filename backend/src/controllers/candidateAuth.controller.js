@@ -1,6 +1,5 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
 import env from "../config/env.js";
 import Candidate from "../models/Candidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
@@ -13,6 +12,9 @@ import { sendCandidatePaymentReceiptEmail } from "../services/email.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { generateNextCandidateId, generateNextCandidateApplicationId } from "../utils/idGenerator.js";
 import { saveBase64File } from "../utils/fileStorage.js";
+import { checkApplicationRefundLock } from "../utils/refundLock.js";
+import { verifyAndFetchRazorpayPayment } from "../services/razorpayVerification.service.js";
+import { emitRealtimeEvent } from "../services/realtime.service.js";
 
 const calculateProfileCompletion = (candidate) => {
   let score = 20;
@@ -689,9 +691,8 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   }
 
   const { id } = req.params;
-  const targetMilestoneId = req.params.milestoneId || req.body.milestoneId;
+  const targetMilestoneId = String(req.params.milestoneId || req.body.milestoneId || "").trim();
   const {
-    amount,
     paymentMode = "Razorpay Online",
     referenceNumber = "",
     paymentReference = "",
@@ -700,7 +701,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     razorpay_order_id,
     razorpay_payment_id,
     razorpay_signature,
-  } = req.body;
+  } = req.body || {};
 
   const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
   const query = isObjectId ? { $or: [{ _id: id }, { applicationId: id }] } : { applicationId: id };
@@ -714,34 +715,71 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
     return res.status(404).json({ success: false, message: "Application not found." });
   }
 
+  const lockState = await checkApplicationRefundLock(app);
+  if (lockState.locked) {
+    return res.status(409).json({
+      success: false,
+      message: `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}).`,
+    });
+  }
+
   const milestones = [...(app.processMilestones || [])];
-  const mIdx = milestones.findIndex((m) => String(m.id) === String(targetMilestoneId));
+  const mIdx = milestones.findIndex((m) => String(m.id) === targetMilestoneId);
   if (mIdx === -1) {
     return res.status(404).json({ success: false, message: "Milestone not found." });
   }
 
-  const expectedAmount = Number(milestones[mIdx].paymentAmount || milestones[mIdx].amount || 0);
-  const paidAmt = Number(amount) || expectedAmount || 0;
-  const refNum =
-    (referenceNumber || paymentReference || razorpay_payment_id || "").trim() ||
-    `TXN-${Date.now().toString().slice(-8)}`;
+  if (milestones[mIdx].paymentStatus === "Approved") {
+    return res.status(400).json({ success: false, message: "Milestone payment has already been approved." });
+  }
+
+  const paidAmt = Number(milestones[mIdx].paymentAmount ?? milestones[mIdx].amount ?? 0);
+  if (!paidAmt || Number.isNaN(paidAmt) || paidAmt <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid milestone payment amount." });
+  }
+
+  const normalizedMode = String(paymentMode || "").trim();
+  const isOfflineBankTransfer =
+    normalizedMode === "Bank Transfer" ||
+    normalizedMode === "NEFT" ||
+    normalizedMode === "Manual Bank Transfer";
+
   const receiptNum = `INV-${app.applicationId || app.id}-${targetMilestoneId}`;
   const payDate = new Date().toISOString().split("T")[0];
-  const notesText = paymentNotes || remarks || `Paid via ${paymentMode}`;
+  const notesText = paymentNotes || remarks || `Paid via ${normalizedMode || "Razorpay Online"}`;
 
   let isAutoApproved = false;
-  const keySecret = env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+  let refNum = "";
 
-  if (razorpay_order_id && razorpay_payment_id && razorpay_signature && keySecret) {
-    const payload = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const expectedSig = crypto
-      .createHmac("sha256", keySecret)
-      .update(payload)
-      .digest("hex");
-    const expBuf = Buffer.from(expectedSig, "utf8");
-    const recBuf = Buffer.from(razorpay_signature, "utf8");
-    if (expBuf.length === recBuf.length && crypto.timingSafeEqual(expBuf, recBuf)) {
-      isAutoApproved = true;
+  if (!isOfflineBankTransfer) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Verified Razorpay order_id, payment_id, and signature are required for online payments.",
+      });
+    }
+
+    await verifyAndFetchRazorpayPayment({
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      signature: razorpay_signature,
+      expectedAmountInr: paidAmt,
+      applicationId: app.applicationId || app.id || id,
+      milestoneId: targetMilestoneId,
+      actorId: candidate.candidateId,
+      actorRole: "CANDIDATE",
+      consume: true,
+    });
+
+    isAutoApproved = true;
+    refNum = String(razorpay_payment_id).trim();
+  } else {
+    refNum = String(referenceNumber || paymentReference || "").trim();
+    if (!refNum) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid UTR or bank payment reference number.",
+      });
     }
   }
 
@@ -766,7 +804,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   } else {
     milestones[mIdx].paymentStatus = "Submitted";
     milestones[mIdx].paymentRef = refNum;
-    milestones[mIdx].paymentRemark = paymentNotes || `Payment reference submitted by candidate (${paymentMode})`;
+    milestones[mIdx].paymentRemark = paymentNotes || `Payment reference submitted by candidate (${normalizedMode})`;
   }
 
   if (!Array.isArray(app.payments)) {
@@ -775,16 +813,16 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
 
   const paymentRecord = {
     id: `pay-${Date.now()}`,
-    milestoneId,
+    milestoneId: targetMilestoneId,
     milestoneName: milestones[mIdx].name,
     amount: paidAmt,
-    paymentMode,
+    paymentMode: normalizedMode || "Razorpay Online",
     referenceNumber: refNum,
     receiptNumber: receiptNum,
     paymentDate: payDate,
     status: isAutoApproved ? "Verified" : "Pending Verification",
     verifiedBy: isAutoApproved ? "Razorpay Gateway (Verified)" : "Pending Admin Verification",
-    notes: paymentNotes || `Candidate payment via ${paymentMode}`,
+    notes: paymentNotes || `Candidate payment via ${normalizedMode || "Razorpay Online"}`,
     createdAt: new Date(),
   };
 
@@ -828,7 +866,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
       message: isAutoApproved
         ? `Payment of ₹${Number(paidAmt).toLocaleString()} for ${milestones[mIdx].name} confirmed. Receipt #: ${receiptNum}`
         : `Your payment reference ${refNum} for ₹${Number(paidAmt).toLocaleString()} has been submitted for admin verification.`,
-      link: isAutoApproved ? `/invoice/${app.applicationId}/${milestoneId}` : "/candidate/dashboard",
+      link: isAutoApproved ? `/invoice/${app.applicationId}/${targetMilestoneId}` : "/candidate/dashboard",
       type: "success",
     });
 
@@ -840,7 +878,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
         milestoneName: milestones[mIdx].name,
         amount: paidAmt,
         receiptNumber: receiptNum,
-        paymentMode,
+        paymentMode: normalizedMode || "Razorpay Online",
       });
     }
 
@@ -855,6 +893,20 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   } catch (notifErr) {
     console.warn("Notification error during candidate payment:", notifErr);
   }
+
+  emitRealtimeEvent({
+    events: [
+      "immigo:application-update",
+      "immigo:dashboard-update",
+      "immigo:vendor-hr-refresh",
+      "immigo:notification-update",
+      "immigo:admin-notification",
+    ],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR", "CANDIDATE"],
+    vendorId: app.vendorId && app.vendorId !== "DIRECT" ? String(app.vendorId) : null,
+    candidateId: candidate.candidateId,
+    detail: { applicationId: app.applicationId, milestoneId: targetMilestoneId },
+  });
 
   return res.status(200).json({
     success: true,
@@ -900,11 +952,30 @@ export const getCandidateNotifications = asyncHandler(async (req, res) => {
 });
 
 export const markCandidateNotificationAsRead = asyncHandler(async (req, res) => {
+  const candidate = await findCandidateFromRequest(req);
+  if (!candidate) {
+    return res.status(404).json({ success: false, message: "Candidate not found." });
+  }
   const { id } = req.params;
   const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
-  const query = isObjectId ? { $or: [{ _id: id }, { notificationId: id }] } : { notificationId: id };
+  const idCond = isObjectId ? { $or: [{ _id: id }, { notificationId: id }] } : { notificationId: id };
 
-  await CrmNotification.updateOne(query, { $set: { read: true } });
+  await CrmNotification.updateOne(
+    {
+      $and: [
+        idCond,
+        { recipientRole: { $in: ["CANDIDATE", "ALL"] } },
+        {
+          $or: [
+            { candidateId: candidate.candidateId },
+            { candidateId: null },
+            { candidateId: { $exists: false } },
+          ],
+        },
+      ],
+    },
+    { $set: { read: true } }
+  );
 
   return res.status(200).json({
     success: true,

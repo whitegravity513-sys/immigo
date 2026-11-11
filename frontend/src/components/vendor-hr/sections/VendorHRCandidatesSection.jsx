@@ -13,11 +13,18 @@ import {
   Award,
   RotateCcw,
 } from "lucide-react";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import {
+  getCandidateInitials,
+  formatCandidateEmail,
+  extractCandidateDocuments,
+  getEffectiveStage,
+} from "../shared/vendorHRUtils.jsx";
 import { openUploadedDocument } from "../../../utils/printDocument.js";
+import { isAppRefundLocked } from "../../../services/refundService.js";
 
 export default function VendorHRCandidatesSection({
   applications = [],
+  refunds = [],
   vendorName = "",
   hideProjectNames = false,
   candidateSearch = "",
@@ -35,13 +42,15 @@ export default function VendorHRCandidatesSection({
   navigateByTag,
 }) {
   const preSelectionCandidates = applications.filter((cand) => {
-    const stage = cand.recruitmentStage || cand.status || "Applied";
+    if (isAppRefundLocked(cand, refunds)) return false;
+    const stage = getEffectiveStage(cand);
     return !["Joined", "Deployed"].includes(stage);
   });
 
   const preSelectionCount = preSelectionCandidates.length;
   const postSelectionCount = applications.filter((cand) => {
-    const stage = cand.recruitmentStage || cand.status || "";
+    if (isAppRefundLocked(cand, refunds)) return false;
+    const stage = getEffectiveStage(cand);
     return [
       "Selected",
       "Processing",
@@ -58,15 +67,15 @@ export default function VendorHRCandidatesSection({
 
   const filteredCandidates = preSelectionCandidates.filter((cand) => {
     if (candidateStageFilter !== "ALL") {
-      const stage = cand.recruitmentStage || cand.status || "Applied";
+      const stage = getEffectiveStage(cand);
       if (candidateStageFilter === "Applied") {
         if (!["Applied", "Screening", "Submitted", "Under Review"].includes(stage)) return false;
       } else if (candidateStageFilter === "Shortlisted") {
         if (stage !== "Shortlisted") return false;
       } else if (candidateStageFilter === "Interview") {
-        if (!stage.includes("Interview")) return false;
+        if (!stage.toLowerCase().includes("interview")) return false;
       } else if (candidateStageFilter === "On Hold") {
-        if (stage !== "On Hold" && cand.status !== "On Hold") return false;
+        if (stage !== "On Hold") return false;
       } else if (candidateStageFilter === "Rejected") {
         if (stage !== "Rejected") return false;
       } else if (stage !== candidateStageFilter) {
@@ -76,20 +85,21 @@ export default function VendorHRCandidatesSection({
 
     if (!candidateSearch) return true;
     const q = candidateSearch.toLowerCase();
+    const cleanEmail = formatCandidateEmail(cand.candidateEmail);
     return (
       cand.candidateName?.toLowerCase().includes(q) ||
+      cand.candidateId?.toLowerCase().includes(q) ||
       cand.passportNumber?.toLowerCase().includes(q) ||
       cand.jobTitle?.toLowerCase().includes(q) ||
       (!hideProjectNames && cand.projectName?.toLowerCase().includes(q)) ||
       cand.phone?.toLowerCase().includes(q) ||
       cand.candidatePhone?.toLowerCase().includes(q) ||
-      cand.candidateEmail?.toLowerCase().includes(q)
+      cleanEmail.toLowerCase().includes(q)
     );
   });
 
   return (
     <div className="space-y-4">
-      {/* Header Card */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -99,7 +109,7 @@ export default function VendorHRCandidatesSection({
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Evaluate profiles, review CV & passport, shortlist, hold, reject, and schedule interviews. Selected candidates move to <strong>Candidate Milestones</strong>.
+            Review full profiles, CVs, and passports, shortlist candidates, schedule interviews, and manage hiring decisions.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -109,7 +119,7 @@ export default function VendorHRCandidatesSection({
             className="px-3 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs border border-teal-200 transition flex items-center gap-1.5 cursor-pointer"
           >
             <Sliders size={13} className="text-teal-700" />
-            <span>Go to Selected Milestones ({postSelectionCount})</span>
+            <span>Selected Milestones ({postSelectionCount})</span>
           </button>
           <button
             type="button"
@@ -122,7 +132,6 @@ export default function VendorHRCandidatesSection({
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -132,53 +141,48 @@ export default function VendorHRCandidatesSection({
             onChange={(e) => setCandidateSearch(e.target.value)}
             placeholder={
               hideProjectNames
-                ? "Search candidate by name, passport, trade or phone..."
-                : "Search candidate by name, passport, trade, project or phone..."
+                ? "Search candidate by name, ID, passport, trade or phone..."
+                : "Search candidate by name, ID, passport, trade, project or phone..."
             }
             className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
           />
         </div>
 
-        {/* Status Tabs Bar */}
         <div className="flex items-center space-x-1.5 flex-wrap">
           {[
             { id: "ALL", label: `All (${preSelectionCount})` },
             {
               id: "Applied",
               label: `Applied (${
-                preSelectionCandidates.filter(
-                  (c) =>
-                    (!c.recruitmentStage && !c.status) ||
-                    ["Applied", "Screening", "Submitted", "Under Review"].includes(
-                      c.recruitmentStage || c.status
-                    )
+                preSelectionCandidates.filter((c) =>
+                  ["Applied", "Screening", "Submitted", "Under Review"].includes(getEffectiveStage(c))
                 ).length
               })`,
             },
             {
               id: "Shortlisted",
               label: `Shortlisted (${
-                preSelectionCandidates.filter((c) => c.recruitmentStage === "Shortlisted" || c.status === "Shortlisted").length
+                preSelectionCandidates.filter((c) => getEffectiveStage(c) === "Shortlisted").length
               })`,
             },
             {
               id: "Interview",
               label: `Interview (${
-                preSelectionCandidates.filter(
-                  (c) => c.recruitmentStage?.includes("Interview") || c.status?.includes("Interview")
+                preSelectionCandidates.filter((c) =>
+                  getEffectiveStage(c).toLowerCase().includes("interview")
                 ).length
               })`,
             },
             {
               id: "On Hold",
               label: `On Hold (${
-                preSelectionCandidates.filter((c) => c.recruitmentStage === "On Hold" || c.status === "On Hold").length
+                preSelectionCandidates.filter((c) => getEffectiveStage(c) === "On Hold").length
               })`,
             },
             {
               id: "Rejected",
               label: `Rejected (${
-                preSelectionCandidates.filter((c) => c.recruitmentStage === "Rejected" || c.status === "Rejected").length
+                preSelectionCandidates.filter((c) => getEffectiveStage(c) === "Rejected").length
               })`,
             },
           ].map((tab) => (
@@ -198,17 +202,16 @@ export default function VendorHRCandidatesSection({
         </div>
       </div>
 
-      {/* Pre-Selection Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
               <tr>
-                <th className="py-3 px-4">Candidate Profile & CV</th>
-                <th className="py-3 px-4">{hideProjectNames ? "Job & Agency" : "Job & Project"}</th>
-                <th className="py-3 px-3">Screening Stage</th>
-                <th className="py-3 px-4">Screening & HR Decisions</th>
-                <th className="py-3 px-4 text-right">Dossier</th>
+                <th className="py-3 px-4">Candidate &amp; Resume</th>
+                <th className="py-3 px-4">{hideProjectNames ? "Trade & Agency" : "Trade & Project"}</th>
+                <th className="py-3 px-3">Stage</th>
+                <th className="py-3 px-4">Actions</th>
+                <th className="py-3 px-4 text-right">Profile</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
@@ -220,39 +223,57 @@ export default function VendorHRCandidatesSection({
                 </tr>
               ) : (
                 filteredCandidates.map((cand, idx) => {
-                  const resumeLink = cand.resumeUrl || (Array.isArray(cand.documents) && cand.documents[0]?.fileUrl);
+                  const effectiveStage = getEffectiveStage(cand);
+                  const cleanEmail = formatCandidateEmail(cand.candidateEmail);
+                  const { primaryResume } = extractCandidateDocuments(cand);
+                  const isPreScreening = ["Applied", "Screening", "Submitted", "Under Review"].includes(
+                    effectiveStage
+                  );
+                  const isShortlisted = effectiveStage === "Shortlisted";
+                  const isInterview = effectiveStage.toLowerCase().includes("interview");
+                  const isOnHold = effectiveStage === "On Hold";
+                  const isRejected = effectiveStage === "Rejected";
+                  const isSelectedPipeline = [
+                    "Selected",
+                    "Processing",
+                    "Offer Released",
+                    "Offer Accepted",
+                    "Visa Processing",
+                    "Visa Issued",
+                    "Visa Allotted",
+                    "Completed",
+                  ].includes(effectiveStage);
 
                   return (
                     <tr key={cand.applicationId || cand.id || idx} className="hover:bg-blue-50/20 transition">
-                      {/* Col 1: Profile + Resume */}
                       <td className="py-3 px-4">
                         <div className="flex items-start space-x-2.5">
-                          <img
-                            src={AVATARS[idx % AVATARS.length]}
-                            alt={cand.candidateName}
-                            className="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5"
-                          />
+                          <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-[11px] shrink-0 mt-0.5">
+                            {getCandidateInitials(cand.candidateName)}
+                          </div>
                           <div className="min-w-0">
-                            <div className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</div>
-                            <div className="text-[10px] text-slate-400 font-mono">
-                              {cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</span>
+                              {cand.candidateId && (
+                                <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded">
+                                  {cand.candidateId}
+                                </span>
+                              )}
                             </div>
-                            <div className="text-[10px] text-slate-500 truncate mt-0.5">
-                              {cand.candidatePhone || cand.candidateEmail}
+                            <div className="text-[10.5px] text-slate-500 truncate mt-0.5 flex items-center gap-2 flex-wrap">
+                              {cand.passportNumber && (
+                                <span className="font-mono">Passport: {cand.passportNumber}</span>
+                              )}
+                              {(cand.candidatePhone || cand.phone) && (
+                                <span>{cand.candidatePhone || cand.phone}</span>
+                              )}
+                              {cleanEmail && <span>{cleanEmail}</span>}
                             </div>
-                            {resumeLink ? (
+                            {primaryResume ? (
                               <button
                                 type="button"
-                                onClick={() =>
-                                  openUploadedDocument({
-                                    fileUrl: resumeLink,
-                                    fileName:
-                                      (Array.isArray(cand.documents) && cand.documents[0]?.fileName) ||
-                                      `${cand.candidateName || "Candidate"}_Resume`,
-                                    mimeType: Array.isArray(cand.documents) ? cand.documents[0]?.mimeType : "",
-                                  })
-                                }
-                                className="inline-flex items-center gap-1 text-[9.5px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 mt-1 cursor-pointer transition"
+                                onClick={() => openUploadedDocument(primaryResume)}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 mt-1 cursor-pointer transition"
                                 title="Open Candidate Resume / CV in new tab"
                               >
                                 <FileText size={10} />
@@ -260,16 +281,15 @@ export default function VendorHRCandidatesSection({
                                 <ExternalLink size={9} />
                               </button>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[9.5px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded mt-1">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded mt-1">
                                 <FileText size={10} />
-                                <span>No CV Uploaded</span>
+                                <span>No CV</span>
                               </span>
                             )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Col 2: Job & Project */}
                       <td className="py-3 px-4">
                         <div className="font-bold text-slate-800 text-xs truncate max-w-[190px]">
                           {cand.jobTitle || "Specialist Technician"}
@@ -287,33 +307,29 @@ export default function VendorHRCandidatesSection({
                         )}
                       </td>
 
-                      {/* Col 3: Current Stage Badge */}
                       <td className="py-3 px-3">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (navigateByTag) navigateByTag(cand.recruitmentStage || cand.status, cand);
+                            if (navigateByTag) navigateByTag(effectiveStage, cand);
                           }}
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap cursor-pointer hover:shadow-xs hover:scale-105 active:scale-95 transition ${
-                            cand.recruitmentStage === "Shortlisted"
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 whitespace-nowrap cursor-pointer hover:shadow-xs transition ${
+                            isShortlisted
                               ? "bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100"
-                              : cand.recruitmentStage?.includes("Interview")
+                              : isInterview
                               ? "bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100"
-                              : cand.recruitmentStage === "Rejected" || cand.status === "Rejected"
+                              : isRejected
                               ? "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
-                              : cand.recruitmentStage === "On Hold" || cand.status === "On Hold"
+                              : isOnHold
                               ? "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
-                              : cand.recruitmentStage === "Selected"
+                              : isSelectedPipeline
                               ? "bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100"
-                              : cand.recruitmentStage === "Visa Issued"
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
                               : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
                           }`}
-                          title={`Click to open ${cand.recruitmentStage || cand.status || "Candidates"} section`}
+                          title={`Click to open ${effectiveStage} section`}
                         >
-                          {cand.recruitmentStage === "Rejected" || cand.status === "Rejected" ? "✕ " : "● "}
-                          <span>{cand.recruitmentStage || cand.status || "Applied"}</span>
+                          <span>{isRejected ? "✕" : "●"} {effectiveStage}</span>
                           <ArrowRight size={10} className="text-slate-400 shrink-0" />
                         </button>
 
@@ -325,7 +341,7 @@ export default function VendorHRCandidatesSection({
                             Reason: {cand.rejectionReason}
                           </div>
                         )}
-                        {(cand.recruitmentStage === "On Hold" || cand.status === "On Hold") && cand.holdReason && (
+                        {isOnHold && cand.holdReason && (
                           <div
                             className="text-[10px] text-amber-700 font-medium truncate max-w-[160px] mt-1"
                             title={cand.holdReason}
@@ -335,215 +351,161 @@ export default function VendorHRCandidatesSection({
                         )}
                       </td>
 
-                      {/* Col 4: Pre-Screening Decisions */}
                       <td className="py-3 px-4">
-                        {(!cand.recruitmentStage ||
-                          ["Applied", "Screening", "Submitted", "Under Review"].includes(cand.recruitmentStage || cand.status)) &&
-                          cand.recruitmentStage !== "Shortlisted" &&
-                          cand.recruitmentStage !== "On Hold" &&
-                          cand.status !== "On Hold" &&
-                          !cand.recruitmentStage?.includes("Interview") &&
-                          cand.recruitmentStage !== "Rejected" &&
-                          cand.status !== "Rejected" && (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
-                              Screening Decision:
-                            </span>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Shortlisted")}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                title="Shortlist for Interview"
-                              >
-                                <Check size={11} />
-                                <span>Shortlist</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const appId = cand.applicationId || cand.id || cand._id;
-                                  setScheduleInterviewTarget({ ...cand, applicationId: appId });
-                                  setScheduleForm((prev) => ({
-                                    ...prev,
-                                    applicationId: appId,
-                                    round: "Technical Interview",
-                                  }));
-                                  setShowScheduleModal(true);
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                title="Schedule Interview"
-                              >
-                                <Calendar size={11} />
-                                <span>Interview</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Selected")}
-                                className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                title="Select Candidate"
-                              >
-                                <Award size={11} />
-                                <span>Select</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Rejected", "Rejected during HR screening")}
-                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
-                                title="Reject Candidate"
-                              >
-                                <X size={11} />
-                                <span>Reject</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {cand.recruitmentStage === "Shortlisted" && (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-indigo-600 block">Shortlisted Cleared:</span>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const appId = cand.applicationId || cand.id || cand._id;
-                                  setScheduleInterviewTarget({ ...cand, applicationId: appId });
-                                  setScheduleForm((prev) => ({
-                                    ...prev,
-                                    applicationId: appId,
-                                    round: "Technical Interview",
-                                  }));
-                                  setShowScheduleModal(true);
-                                }}
-                                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              >
-                                <Calendar size={12} />
-                                <span>Schedule Interview</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Selected")}
-                                className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                              >
-                                <Award size={11} />
-                                <span>Select</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Rejected", "Rejected after shortlisting")}
-                                className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
-                              >
-                                <X size={11} />
-                                <span>Reject</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {(cand.recruitmentStage === "On Hold" || cand.status === "On Hold") && (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-amber-700 block">On Hold — Final Outcome:</span>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Selected")}
-                                className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                title="Select Candidate"
-                              >
-                                <Award size={12} />
-                                <span>Select Candidate</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Rejected", "Rejected after on-hold review")}
-                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
-                                title="Reject Candidate"
-                              >
-                                <X size={11} />
-                                <span>Reject</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Interview Scheduled / L1 / L2 -> Select, Reject or Hold */}
-                        {(cand.recruitmentStage?.includes("Interview") || cand.status?.includes("Interview")) && (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-purple-700 block">Interview Active:</span>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Selected")}
-                                className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
-                                title="Select Candidate"
-                              >
-                                <Award size={12} />
-                                <span>Select Candidate</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "Rejected", "Did not clear technical interview round")}
-                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
-                                title="Reject Candidate"
-                              >
-                                <X size={11} />
-                                <span>Reject</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleQuickStage(cand, "On Hold", "Candidate placed on hold after interview")}
-                                className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-[11px] border border-amber-200 transition inline-flex items-center gap-1 cursor-pointer"
-                                title="Put Candidate On Hold"
-                              >
-                                <Clock size={11} />
-                                <span>Hold</span>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Rejected -> Available for Reassignment */}
-                        {(cand.recruitmentStage === "Rejected" || cand.status === "Rejected") && (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-slate-400 block">In Vendor Pool:</span>
+                        {isPreScreening ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <button
                               type="button"
-                              onClick={() => openReassignModal(cand)}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              title={hideProjectNames ? "Reassign this candidate to another open requirement" : "Submit this candidate to a different overseas project"}
+                              onClick={() => handleQuickStage(cand, "Shortlisted")}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                             >
-                              <RotateCcw size={12} />
-                              <span>{hideProjectNames ? "Reassign Candidate" : "Apply to Another Project"}</span>
+                              <Check size={11} />
+                              <span>Shortlist</span>
                             </button>
-                          </div>
-                        )}
-
-                        {["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Completed"].includes(
-                          cand.recruitmentStage || cand.status || ""
-                        ) && (
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-teal-700 block">Selected Pipeline:</span>
                             <button
                               type="button"
-                              onClick={() => navigateByTag && navigateByTag("Selected", cand)}
-                              className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              title="Open candidate milestone and payment timeline"
+                              onClick={() => {
+                                const appId = cand.applicationId || cand.id || cand._id;
+                                setScheduleInterviewTarget({ ...cand, applicationId: appId });
+                                setScheduleForm((prev) => ({
+                                  ...prev,
+                                  applicationId: appId,
+                                  round: "Technical Interview",
+                                }));
+                                setShowScheduleModal(true);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                             >
-                              <Award size={12} />
-                              <span>Selected • View Milestones</span>
+                              <Calendar size={11} />
+                              <span>Interview</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Selected")}
+                              className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                            >
+                              <Award size={11} />
+                              <span>Select</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Rejected", "Rejected during HR screening")}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <X size={11} />
+                              <span>Reject</span>
                             </button>
                           </div>
-                        )}
+                        ) : isShortlisted ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const appId = cand.applicationId || cand.id || cand._id;
+                                setScheduleInterviewTarget({ ...cand, applicationId: appId });
+                                setScheduleForm((prev) => ({
+                                  ...prev,
+                                  applicationId: appId,
+                                  round: "Technical Interview",
+                                }));
+                                setShowScheduleModal(true);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                            >
+                              <Calendar size={11} />
+                              <span>Schedule Interview</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Selected")}
+                              className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                            >
+                              <Award size={11} />
+                              <span>Select</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Rejected", "Rejected after shortlisting")}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <X size={11} />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : isInterview ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Selected")}
+                              className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                            >
+                              <Award size={11} />
+                              <span>Select</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "On Hold", "Candidate placed on hold after interview")}
+                              className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-[11px] border border-amber-200 transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Clock size={11} />
+                              <span>Hold</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Rejected", "Did not clear technical interview round")}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <X size={11} />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : isOnHold ? (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Selected")}
+                              className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                            >
+                              <Award size={11} />
+                              <span>Select</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStage(cand, "Rejected", "Rejected after on-hold review")}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] border border-rose-200 transition inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <X size={11} />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : isRejected ? (
+                          <button
+                            type="button"
+                            onClick={() => openReassignModal(cand)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <RotateCcw size={12} />
+                            <span>{hideProjectNames ? "Reassign Candidate" : "Apply to Another Project"}</span>
+                          </button>
+                        ) : isSelectedPipeline ? (
+                          <button
+                            type="button"
+                            onClick={() => navigateByTag && navigateByTag("Selected", cand)}
+                            className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <Award size={12} />
+                            <span>View Milestones</span>
+                          </button>
+                        ) : null}
                       </td>
 
-                      {/* Col 5: Dossier Details */}
                       <td className="py-3 px-4 text-right">
                         <button
                           type="button"
                           onClick={() => openCandidateModal(cand)}
                           className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
                         >
-                          <span>Manage</span>
+                          <span>View Details</span>
                           <ArrowRight size={12} />
                         </button>
                       </td>

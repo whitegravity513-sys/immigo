@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import { getEmployeeList, getEmployeeMonthlyReport } from "../services/employeeService";
 
@@ -14,9 +14,31 @@ export const useEmployeeMonthlyReport = (token) => {
   const [successMsg, setSuccessMsg] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const fetchEmployees = useCallback(async () => {
+    try {
+      const data = await getEmployeeList(token);
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.employees)
+        ? data.employees
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+      setEmployees(list.filter((emp) => emp && emp.status !== "inactive"));
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to load employees");
+    }
+  }, [token]);
+
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchEmployees();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchEmployees]);
 
   useEffect(() => {
     if (errorMsg) {
@@ -31,22 +53,6 @@ export const useEmployeeMonthlyReport = (token) => {
       return () => clearTimeout(timer);
     }
   }, [successMsg]);
-
-  const fetchEmployees = async () => {
-    try {
-      const data = await getEmployeeList(token);
-      const list = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.employees)
-        ? data.employees
-        : Array.isArray(data?.data)
-        ? data.data
-        : [];
-      setEmployees(list.filter((emp) => emp && emp.status !== "inactive"));
-    } catch (err) {
-      setErrorMsg(err.response?.data?.message || err.message || "Failed to load employees");
-    }
-  };
 
   const fetchMonthlyReport = async (overrideStart = null, overrideEnd = null) => {
     if (!selectedEmployee) {

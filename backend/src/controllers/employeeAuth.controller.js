@@ -31,46 +31,14 @@ export const employeeLogin = asyncHandler(async (req, res) => {
   });
 
   if (!employee) {
-    if (
-      (cleanPassword === "12345" || cleanPassword === "admin" || cleanPassword === "Password@123") &&
-      (identifier.toUpperCase().startsWith("IMMI-") || alphanumeric.startsWith("IMMI") || alphanumeric === "001" || alphanumeric === "1")
-    ) {
-      const demoEmpId = identifier.toUpperCase().startsWith("IMMI-") ? identifier.toUpperCase() : "IMMI-0124-1598";
-      const hashedPassword = await bcrypt.hash("12345", 10);
-      employee = await Employee.create({
-        employeeId: demoEmpId,
-        name: "Abhishek Sharma",
-        email: `employee_${demoEmpId.toLowerCase().replace(/[^a-z0-9]/g, "")}@immigo.com`,
-        password: hashedPassword,
-        designation: "Operations Executive",
-        department: "Operations",
-        status: "active",
-        leaveBalance: 12,
-        joiningDate: new Date(),
-      });
-    } else {
-      throw new ApiError(401, "Invalid Employee ID or password.");
-    }
+    throw new ApiError(401, "Invalid Employee ID or password.");
   }
 
   if (employee.status === "inactive") {
     throw new ApiError(403, "Your account has been deactivated / marked inactive. You cannot log in or mark attendance. Please contact administrator.");
   }
 
-  let isMatch = await bcrypt.compare(cleanPassword, employee.password);
-
-  if (
-    !isMatch &&
-    (cleanPassword === "12345" ||
-     cleanPassword === "Password@123" ||
-     cleanPassword === "admin" ||
-     employee.employeeId?.toUpperCase() === "IMMI-001")
-  ) {
-    isMatch = true;
-    const newHash = await bcrypt.hash("12345", 10);
-    employee.password = newHash;
-    await employee.save().catch(() => {});
-  }
+  const isMatch = employee.password ? await bcrypt.compare(cleanPassword, employee.password) : false;
 
   if (!isMatch) {
     throw new ApiError(401, "Invalid Employee ID or password.");

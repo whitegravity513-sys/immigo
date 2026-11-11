@@ -1,7 +1,8 @@
 import { ApiError } from "../utils/apiError.js";
 import { logger } from "../utils/logger.js";
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
+  void _next;
   let error = err;
 
   if (!(error instanceof ApiError)) {

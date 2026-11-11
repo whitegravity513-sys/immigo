@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService.js";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 import CandidateProfileBar from "../../../components/admin/candidate/milestones/CandidateProfileBar.jsx";
 import MilestoneTabsNav from "../../../components/admin/candidate/milestones/MilestoneTabsNav.jsx";
@@ -45,20 +45,7 @@ export default function AdminDirectCandidateMilestones() {
   const [docAudience, setDocAudience] = useState("both");
   const [docUploading, setDocUploading] = useState(false);
 
-  useEffect(() => {
-    loadApplicationData();
-    const handleRefresh = () => loadApplicationData();
-    window.addEventListener("immigo:application-update", handleRefresh);
-    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
-    window.addEventListener("storage", handleRefresh);
-    return () => {
-      window.removeEventListener("immigo:application-update", handleRefresh);
-      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
-      window.removeEventListener("storage", handleRefresh);
-    };
-  }, [id]);
-
-  const loadApplicationData = async () => {
+  const loadApplicationData = useCallback(async () => {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
@@ -95,7 +82,26 @@ export default function AdminDirectCandidateMilestones() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadApplicationData();
+    });
+    const handleRefresh = () => {
+      if (!cancelled) loadApplicationData();
+    };
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadApplicationData]);
 
   const autoSyncMilestones = async (newList, customTotal, options = {}) => {
     if (!application) return;
@@ -412,7 +418,6 @@ export default function AdminDirectCandidateMilestones() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2.5">
           <button

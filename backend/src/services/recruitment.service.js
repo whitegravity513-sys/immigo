@@ -4,23 +4,36 @@ import CandidateApplication from "../models/CandidateApplication.js";
 import CrmCandidateApplication from "../models/CrmCandidateApplication.js";
 import Job from "../models/Job.js";
 import Interview from "../models/Interview.js";
-import Offer from "../models/Offer.js";
 import User from "../models/User.js";
 import Vendor from "../models/Vendor.js";
 import ProjectAssignment from "../models/ProjectAssignment.js";
 import ActivityLog from "../models/ActivityLog.js";
-import Notification from "../models/Notification.js";
 import CrmNotification from "../models/CrmNotification.js";
 import { ApiError } from "../utils/apiError.js";
+import { saveBase64File } from "../utils/fileStorage.js";
+import {
+  generateNextCandidateId,
+  generateNextCandidateApplicationId,
+} from "../utils/idGenerator.js";
 import {
   findProjectAcrossSources,
   fetchAllMergedProjects,
   resolveProjectMilestonesData,
   normalizeMilestoneStages,
 } from "../utils/projectResolver.js";
+import {
+  checkApplicationRefundLock,
+  markApplicationRefundsReassigned,
+} from "../utils/refundLock.js";
 
 const isValidObjectId = (val) =>
   typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
+
+const sanitizeCandidateEmail = (val) => {
+  const s = String(val || "").trim();
+  if (!s || s.toLowerCase().includes("@candidate.local")) return "";
+  return s;
+};
 
 const normalizeStageAlias = (stage) => {
   if (!stage) return "";
@@ -50,20 +63,20 @@ const getFreshVendorAccess = async (actorUser) => {
       if (freshUser && Array.isArray(freshUser.assignedVendors)) {
         list = freshUser.assignedVendors.map(String);
       }
-    } catch {}
+    } catch { }
   }
   const hexIds = list.filter(isValidObjectId);
   const vendorDocs =
     list.length > 0
       ? await Vendor.find({
-          $or: [
-            { vendorId: { $in: list } },
-            { id: { $in: list } },
-            ...(hexIds.length > 0 ? [{ _id: { $in: hexIds } }] : []),
-          ],
-        })
-          .select("vendorId _id companyName")
-          .lean()
+        $or: [
+          { vendorId: { $in: list } },
+          { id: { $in: list } },
+          ...(hexIds.length > 0 ? [{ _id: { $in: hexIds } }] : []),
+        ],
+      })
+        .select("vendorId _id companyName")
+        .lean()
       : [];
   const expanded = Array.from(
     new Set(
@@ -164,7 +177,7 @@ const findOrMirrorApplication = async (applicationId) => {
         candidateId: String(crmDoc.candidateId || resolvedAppId),
         candidateObjectId: candObjectId,
         candidateName: crmDoc.candidateName || "Candidate",
-        candidateEmail: fallbackEmail || `${crmDoc.candidateId || resolvedAppId}@candidate.local`,
+        candidateEmail: sanitizeCandidateEmail(fallbackEmail),
         candidatePhone: fallbackPhone || "",
         projectId: String(crmDoc.projectId || ""),
         projectName: crmDoc.projectName || "Overseas Project",
@@ -179,6 +192,9 @@ const findOrMirrorApplication = async (applicationId) => {
         processMilestones: Array.isArray(crmDoc.processMilestones) ? crmDoc.processMilestones : [],
         paymentPlan: crmDoc.paymentPlan || { totalAmount: 0, currency: "INR", milestones: [] },
         rejectionReason: crmDoc.rejectionReason || "",
+        didNotJoinReason: crmDoc.didNotJoinReason || "",
+        refundStatus: crmDoc.refundStatus || "",
+        refundDetails: crmDoc.refundDetails ?? null,
         adminRemarks: crmDoc.adminRemark || "",
       },
     },
@@ -206,7 +222,16 @@ const syncCrmApplicationMirror = async (application, extra = {}) => {
     const patch = {
       status: application.recruitmentStage || application.status,
       recruitmentStage: application.recruitmentStage || application.status,
+      projectId: application.projectId,
+      projectName: application.projectName,
+      clientId: application.clientId || "",
+      position: application.position || application.jobTitle || "",
+      jobId: application.jobId || "",
+      jobTitle: application.jobTitle || application.position || "",
       rejectionReason: application.rejectionReason || "",
+      didNotJoinReason: application.didNotJoinReason || "",
+      refundStatus: application.refundStatus || "",
+      refundDetails: application.refundDetails ?? null,
       adminRemark: application.adminRemarks || "",
       processMilestones: Array.isArray(application.processMilestones)
         ? application.processMilestones
@@ -217,22 +242,21 @@ const syncCrmApplicationMirror = async (application, extra = {}) => {
         : {}),
       ...(application.interview?.scheduledDate
         ? {
-            interviewDetails: {
-              dateTime: application.interview.scheduledDate
-                ? `${application.interview.scheduledDate}${
-                    application.interview.scheduledTime
-                      ? `T${application.interview.scheduledTime}`
-                      : ""
-                  }`
-                : "",
-              scheduledDate: application.interview.scheduledDate || "",
-              scheduledTime: application.interview.scheduledTime || "",
-              mode: application.interview.mode || "Google Meet",
-              meetingLink: application.interview.locationOrLink || "",
-              interviewer: application.interview.interviewerName || "",
-              notes: application.interview.remarks || "",
-            },
-          }
+          interviewDetails: {
+            dateTime: application.interview.scheduledDate
+              ? `${application.interview.scheduledDate}${application.interview.scheduledTime
+                ? `T${application.interview.scheduledTime}`
+                : ""
+              }`
+              : "",
+            scheduledDate: application.interview.scheduledDate || "",
+            scheduledTime: application.interview.scheduledTime || "",
+            mode: application.interview.mode || "Google Meet",
+            meetingLink: application.interview.locationOrLink || "",
+            interviewer: application.interview.interviewerName || "",
+            notes: application.interview.remarks || "",
+          },
+        }
         : {}),
     };
 
@@ -262,38 +286,79 @@ const syncCrmApplicationMirror = async (application, extra = {}) => {
 export class RecruitmentService {
   static async submitCandidate({
     fullName,
-    email,
-    phone,
+    email = "",
+    phone = "",
+    passportNumber = "",
     projectId,
     jobId,
     jobTitle,
     vendorId,
     vendorName,
     resumeUrl = "",
+    resumeFileName = "",
+    documents = [],
     experience = "",
+    experienceYears = "",
     skills = [],
     location = "",
     notes = "",
     actorUser,
   }) {
-    if (!fullName || !email || !projectId) {
-      throw new ApiError(400, "Candidate name, email, and project ID are required.");
+    if (!fullName || !projectId) {
+      throw new ApiError(400, "Candidate name and project ID are required.");
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const sanitizedEmail = sanitizeCandidateEmail(email);
+    const cleanEmail = sanitizedEmail ? sanitizedEmail.toLowerCase() : "";
+    const cleanPhone = String(phone || "").trim();
+    const cleanPassport = String(passportNumber || "").trim().toUpperCase();
+    const parsedExp = Number(experienceYears || experience || 0) || 0;
+    const skillsArr = Array.isArray(skills)
+      ? skills.map((s) => String(s).trim()).filter(Boolean)
+      : String(skills || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-    let candidate = await Candidate.findOne({ email: cleanEmail });
-    if (!candidate) {
-      const candidateId = `CAND-${Date.now().toString().slice(-6)}`;
-      candidate = await Candidate.create({
-        candidateId,
-        fullName: fullName.trim(),
-        email: cleanEmail,
-        phone: phone || "",
-        password: "TempPassword123!",
-        accountStatus: "Approved",
-        documentStatus: "Verified",
-        jobApplicationAccess: "Unlocked",
+    const savedResumeUrl = resumeUrl
+      ? String(resumeUrl).startsWith("data:")
+        ? saveBase64File(resumeUrl, "documents", resumeFileName || "resume.pdf")
+        : String(resumeUrl).trim()
+      : "";
+
+    const normalizedDocs = Array.isArray(documents)
+      ? documents
+        .filter((d) => d && (d.fileUrl || d.url || d.fileName || d.name))
+        .map((d, idx) => {
+          const rawUrl = String(d.fileUrl || d.url || "").trim();
+          const fName = String(d.fileName || d.name || `document-${idx + 1}`).trim();
+          const savedUrl = rawUrl.startsWith("data:")
+            ? saveBase64File(rawUrl, "documents", fName)
+            : rawUrl;
+          return {
+            id: d.id || `doc-${Date.now()}-${idx}`,
+            docType: d.docType || d.type || "Resume / CV",
+            type: d.type || d.docType || "Resume / CV",
+            name: d.name || fName,
+            fileName: fName,
+            fileUrl: savedUrl,
+            status: "Verified",
+            uploadedAt: d.uploadedAt || new Date(),
+          };
+        })
+        .filter((d) => Boolean(d.fileUrl))
+      : [];
+
+    if (savedResumeUrl && !normalizedDocs.some((d) => d.fileUrl === savedResumeUrl)) {
+      normalizedDocs.unshift({
+        id: `doc-cv-${Date.now()}`,
+        docType: "Resume / CV",
+        type: "Resume / CV",
+        name: resumeFileName || "Resume / CV",
+        fileName: resumeFileName || "resume.pdf",
+        fileUrl: savedResumeUrl,
+        status: "Verified",
+        uploadedAt: new Date(),
       });
     }
 
@@ -334,25 +399,173 @@ export class RecruitmentService {
         .select("vendorId companyName")
         .lean();
     }
+    const finalVendorId = resolvedVendorDoc?.vendorId || effectiveVendorId;
     const effectiveVendorName =
       vendorName || resolvedVendorDoc?.companyName || (isVendorHR ? actorUser?.name : "");
     const resolvedTradeTitle = job ? job.title : jobTitle || resolvedProject.projectName;
 
-    const applicationId = `APP-${Date.now().toString().slice(-6)}`;
+    let candidate = null;
+    if (cleanEmail) {
+      candidate = await Candidate.findOne({ email: cleanEmail });
+    } else if (cleanPhone) {
+      candidate = await Candidate.findOne({ phone: cleanPhone });
+    }
+
+    let crmCandidate = null;
+    if (!candidate) {
+      if (cleanEmail) {
+        const candidateId = await generateNextCandidateId();
+        candidate = await Candidate.create({
+          candidateId,
+          fullName: fullName.trim(),
+          email: cleanEmail,
+          phone: cleanPhone || "N/A",
+          password: "TempPassword123!",
+          accountStatus: "Approved",
+          documentStatus: normalizedDocs.length > 0 ? "Verified" : "Not Submitted",
+          jobApplicationAccess: "Unlocked",
+          profile: {
+            trade: resolvedTradeTitle,
+            passportNumber: cleanPassport,
+            experienceYears: parsedExp,
+            skills: skillsArr,
+            address: location || "",
+            preferredJobRole: resolvedTradeTitle,
+          },
+          documents: normalizedDocs.map((d) => ({
+            id: d.id,
+            docType: d.docType,
+            name: d.name,
+            fileName: d.fileName,
+            fileUrl: d.fileUrl,
+            status: "Verified",
+            uploadedAt: d.uploadedAt,
+          })),
+        });
+      } else {
+        if (cleanPhone) {
+          crmCandidate = await CrmCandidate.findOne({
+            phone: cleanPhone,
+            ...(finalVendorId ? { vendorId: finalVendorId } : {}),
+          });
+        }
+        if (crmCandidate) {
+          const mergedDocs = [
+            ...(Array.isArray(crmCandidate.documents) ? crmCandidate.documents : []),
+            ...normalizedDocs.filter(
+              (nd) =>
+                !(crmCandidate.documents || []).some(
+                  (ed) => ed.fileUrl && ed.fileUrl === nd.fileUrl
+                )
+            ),
+          ];
+          crmCandidate.fullName = fullName.trim() || crmCandidate.fullName;
+          if (cleanPassport) crmCandidate.passportNumber = cleanPassport;
+          if (parsedExp) crmCandidate.experienceYears = parsedExp;
+          if (skillsArr.length > 0) crmCandidate.skills = skillsArr;
+          if (location) crmCandidate.location = location;
+          if (mergedDocs.length > 0) crmCandidate.documents = mergedDocs;
+          await crmCandidate.save();
+        } else {
+          const candidateId = await generateNextCandidateId();
+          crmCandidate = await CrmCandidate.create({
+            candidateId,
+            vendorId: finalVendorId || "DIRECT",
+            vendorName: effectiveVendorName || "",
+            fullName: fullName.trim(),
+            email: "",
+            phone: cleanPhone,
+            passportNumber: cleanPassport,
+            currentPosition: resolvedTradeTitle,
+            experienceYears: parsedExp,
+            skills: skillsArr,
+            location: location || "",
+            preferredCountry: resolvedProject.destinationCountry || "",
+            verificationStatus: normalizedDocs.length > 0 ? "Verified" : "Pending",
+            documents: normalizedDocs,
+          });
+        }
+      }
+    } else {
+      const existingDocs = Array.isArray(candidate.documents) ? [...candidate.documents] : [];
+      const existingUrls = new Set(existingDocs.map((d) => d.fileUrl).filter(Boolean));
+      normalizedDocs.forEach((d) => {
+        if (d.fileUrl && !existingUrls.has(d.fileUrl)) {
+          existingDocs.push({
+            id: d.id,
+            docType: d.docType,
+            name: d.name,
+            fileName: d.fileName,
+            fileUrl: d.fileUrl,
+            status: "Verified",
+            uploadedAt: d.uploadedAt,
+          });
+        }
+      });
+      candidate.documents = existingDocs;
+      if (cleanPhone && (!candidate.phone || candidate.phone === "N/A")) {
+        candidate.phone = cleanPhone;
+      }
+      candidate.profile = {
+        ...(candidate.profile || {}),
+        passportNumber: cleanPassport || candidate.profile?.passportNumber || "",
+        experienceYears: parsedExp || candidate.profile?.experienceYears || 0,
+        skills: skillsArr.length > 0 ? skillsArr : candidate.profile?.skills || [],
+        address: location || candidate.profile?.address || "",
+        trade: candidate.profile?.trade || resolvedTradeTitle,
+      };
+      if (existingDocs.length > 0) {
+        candidate.documentStatus = "Verified";
+      }
+      await candidate.save();
+    }
+
+    const finalCandidateId = candidate?.candidateId || crmCandidate?.candidateId;
+    const finalCandidateName = candidate?.fullName || crmCandidate?.fullName || fullName.trim();
+    const finalCandidateEmail = cleanEmail || sanitizeCandidateEmail(candidate?.email || "");
+    const finalCandidatePhone = cleanPhone || candidate?.phone || crmCandidate?.phone || "";
+    const finalResumeUrl =
+      savedResumeUrl ||
+      normalizedDocs[0]?.fileUrl ||
+      candidate?.documents?.[0]?.fileUrl ||
+      crmCandidate?.documents?.[0]?.fileUrl ||
+      "";
+
+    const applicationId = await generateNextCandidateApplicationId();
 
     const application = await CandidateApplication.create({
       applicationId,
-      candidateId: candidate.candidateId,
-      candidateObjectId: candidate._id,
-      candidateName: candidate.fullName,
-      candidateEmail: candidate.email,
-      candidatePhone: candidate.phone,
+      candidateId: finalCandidateId,
+      ...(candidate?._id ? { candidateObjectId: candidate._id } : {}),
+      candidateName: finalCandidateName,
+      candidateEmail: finalCandidateEmail,
+      candidatePhone: finalCandidatePhone === "N/A" ? "" : finalCandidatePhone,
+      passportNumber: cleanPassport || candidate?.profile?.passportNumber || crmCandidate?.passportNumber || "",
+      experienceYears: parsedExp ? String(parsedExp) : String(experience || ""),
+      skills: skillsArr,
+      location: location || candidate?.profile?.address || "",
+      notes: notes || "",
+      resumeUrl: finalResumeUrl,
+      documents: normalizedDocs,
+      candidateData: {
+        email: finalCandidateEmail,
+        phone: finalCandidatePhone === "N/A" ? "" : finalCandidatePhone,
+        passportNumber: cleanPassport || candidate?.profile?.passportNumber || "",
+        experienceYears: parsedExp ? String(parsedExp) : String(experience || ""),
+        skills: skillsArr,
+        location: location || "",
+        notes: notes || "",
+        resumeUrl: finalResumeUrl,
+        documents: normalizedDocs,
+      },
       projectId: resolvedProject.projectId,
       projectName: resolvedProject.projectName,
       clientId: resolvedProject.clientId || "",
+      clientName: resolvedProject.clientName || "",
+      destinationCountry: resolvedProject.destinationCountry || "",
       jobId: job ? job.jobId : jobId || "",
       jobTitle: resolvedTradeTitle,
-      vendorId: resolvedVendorDoc?.vendorId || effectiveVendorId,
+      vendorId: finalVendorId,
       vendorName: effectiveVendorName,
       vendorHrId: isVendorHR ? actorUser?._id?.toString() : "",
       vendorHrName: isVendorHR ? actorUser?.name : "",
@@ -364,19 +577,21 @@ export class RecruitmentService {
       appliedAt: new Date(),
     });
 
+    await syncCrmApplicationMirror(application);
+
     await ActivityLog.create({
       userType: resolveLogUserType(actorUser),
       userId: actorUser?._id?.toString() || actorUser?.id || "System",
       userName: actorUser?.name || "HR Manager",
       action: "CANDIDATE_SUBMITTED",
-      title: `Submitted Candidate [${candidate.fullName}]`,
+      title: `Submitted Candidate [${finalCandidateName}]`,
       description: `Submitted for job ${resolvedTradeTitle} under project ${resolvedProject.projectName}.`,
       entityType: "Candidate",
-      entityId: candidate.candidateId,
-      entityName: candidate.fullName,
-      candidateId: candidate.candidateId,
-      candidateName: candidate.fullName,
-      vendorId: resolvedVendorDoc?.vendorId || effectiveVendorId,
+      entityId: finalCandidateId,
+      entityName: finalCandidateName,
+      candidateId: finalCandidateId,
+      candidateName: finalCandidateName,
+      vendorId: finalVendorId,
       vendorName: effectiveVendorName,
       status: "Applied",
       newStatus: "Applied",
@@ -384,7 +599,7 @@ export class RecruitmentService {
       remarks: notes || `Submitted by ${actorUser?.name}`,
     });
 
-    return { candidate, application };
+    return { candidate: candidate || crmCandidate, application };
   }
 
   static async updateCandidateStage({
@@ -411,6 +626,14 @@ export class RecruitmentService {
     }
 
     await ensureVendorHRAccessToApp(actorUser, application);
+
+    const lockState = await checkApplicationRefundLock(application);
+    if (lockState.locked) {
+      throw new ApiError(
+        409,
+        `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}). Wait for Admin decision before updating payment or stages.`
+      );
+    }
 
     const normalizedStage = normalizeStageAlias(
       newStage || application.recruitmentStage || application.status || "Selected"
@@ -553,21 +776,21 @@ export class RecruitmentService {
             normalizedStage === "Selected"
               ? "Candidate Selected"
               : normalizedStage === "Rejected"
-              ? "Candidate Application Rejected"
-              : normalizedStage === "On Hold"
-              ? "Candidate Placed On Hold"
-              : `Candidate Stage Updated: ${normalizedStage}`,
+                ? "Candidate Application Rejected"
+                : normalizedStage === "On Hold"
+                  ? "Candidate Placed On Hold"
+                  : `Candidate Stage Updated: ${normalizedStage}`,
           message: `${application.candidateName} (${application.projectName}) stage updated to "${normalizedStage}" by ${actorUser?.name || "HR Team"}.`,
           type: normalizedStage === "Selected" ? "success" : normalizedStage === "Rejected" ? "warning" : "info",
           link:
             normalizedStage === "Selected"
               ? "/vendor/selected"
               : normalizedStage === "Rejected"
-              ? "/vendor/rejected"
-              : "/vendor/candidates",
+                ? "/vendor/rejected"
+                : "/vendor/candidates",
         });
       }
-    } catch {}
+    } catch { }
 
     await ActivityLog.create({
       userType: resolveLogUserType(actorUser),
@@ -614,6 +837,14 @@ export class RecruitmentService {
     if (!application) throw new ApiError(404, "Candidate application not found.");
 
     await ensureVendorHRAccessToApp(actorUser, application);
+
+    const lockState = await checkApplicationRefundLock(application);
+    if (lockState.locked) {
+      throw new ApiError(
+        409,
+        `Action locked: candidate has an active refund claim (${lockState.refundStatus || "Pending Admin Approval"}).`
+      );
+    }
 
     const interviewId = `INT-${Date.now().toString().slice(-6)}`;
 
@@ -673,7 +904,7 @@ export class RecruitmentService {
           link: "/vendor/candidates",
         });
       }
-    } catch {}
+    } catch { }
 
     await ActivityLog.create({
       userType: resolveLogUserType(actorUser),
@@ -804,6 +1035,17 @@ export class RecruitmentService {
 
     await ensureVendorHRAccessToApp(actorUser, application);
 
+    const lockState = await checkApplicationRefundLock(application);
+    if (
+      lockState.refundStatus === "Pending Admin Approval" ||
+      String(application.refundStatus || "").trim() === "Pending Admin Approval"
+    ) {
+      throw new ApiError(
+        409,
+        "Cannot reassign candidate while the refund request is awaiting Admin approval."
+      );
+    }
+
     const resolvedProject = await findProjectAcrossSources(projectId);
     const targetProjectName =
       projectName || resolvedProject?.projectName || resolvedProject?.title || "Overseas Project";
@@ -817,6 +1059,7 @@ export class RecruitmentService {
     }
     const targetJobTitle = jobTitle || job?.title || application.jobTitle || targetProjectName;
 
+    const prevProjId = application.projectId;
     const prevProj = application.projectName;
     application.projectId = resolvedProject?.projectId || projectId;
     application.projectName = targetProjectName;
@@ -827,6 +1070,9 @@ export class RecruitmentService {
     application.recruitmentStage = "Applied";
     application.status = "Applied";
     application.rejectionReason = "";
+    application.didNotJoinReason = "";
+    application.refundStatus = "";
+    application.refundDetails = null;
     application.interview = null;
     application.processMilestones = [];
     application.paymentPlan = { totalAmount: 0, currency: "INR", milestones: [] };
@@ -844,6 +1090,15 @@ export class RecruitmentService {
 
     await application.save();
     await syncCrmApplicationMirror(application, { milestonesOverridden: false });
+    await markApplicationRefundsReassigned({
+      applicationId: application.applicationId,
+      candidateId: application.candidateId,
+      oldProjectId: prevProjId,
+      oldProjectName: prevProj,
+      targetProjectId: application.projectId,
+      targetProjectName: application.projectName,
+      targetPosition: application.position,
+    });
 
     await ActivityLog.create({
       userType: resolveLogUserType(actorUser),

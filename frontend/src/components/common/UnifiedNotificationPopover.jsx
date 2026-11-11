@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { resolveNotificationLink } from "../../utils/notificationLinks.js";
 import {
@@ -7,11 +7,7 @@ import {
   Video,
   UserCheck,
   IndianRupee,
-  Briefcase,
-  Calendar,
-  Info,
   ArrowRight,
-  Check,
   CheckCheck,
   X,
 } from "lucide-react";
@@ -49,6 +45,7 @@ export default function UnifiedNotificationPopover({
       return "candidate";
     }
     if (
+      text.includes("refund") ||
       text.includes("payment") ||
       text.includes("milestone") ||
       text.includes("fee") ||
@@ -143,7 +140,9 @@ export default function UnifiedNotificationPopover({
     return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
   };
 
-  const getCategoryMeta = (cat) => {
+  const getCategoryMeta = (cat, n = null) => {
+    const isRefund =
+      n && `${n.title || ""} ${n.message || ""}`.toLowerCase().includes("refund");
     switch (cat) {
       case "meeting":
         return {
@@ -161,10 +160,10 @@ export default function UnifiedNotificationPopover({
         };
       case "payment":
         return {
-          label: "PAYMENT",
-          badgeBg: "bg-blue-50 text-[#163868]",
-          icon: <IndianRupee size={16} className="text-[#163868]" />,
-          actionText: "View receipt",
+          label: isRefund ? "REFUND" : "PAYMENT",
+          badgeBg: isRefund ? "bg-rose-50 text-rose-700" : "bg-blue-50 text-[#163868]",
+          icon: <IndianRupee size={16} className={isRefund ? "text-rose-600" : "text-[#163868]"} />,
+          actionText: isRefund ? "View refund" : "View receipt",
         };
       default:
         return {
@@ -182,7 +181,6 @@ export default function UnifiedNotificationPopover({
     <div
       className={`absolute right-0 mt-2.5 w-84 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden font-sans text-slate-800 animate-in fade-in slide-in-from-top-2 duration-150 ${className}`}
     >
-      {/* Top Header */}
       <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell size={17} className="text-blue-600" />
@@ -194,7 +192,6 @@ export default function UnifiedNotificationPopover({
           )}
         </div>
 
-        {/* Header Actions: Mark All Read & Delete All */}
         <div className="flex items-center gap-1.5">
           {unreadCount > 0 && onMarkAllRead && (
             <button
@@ -221,7 +218,6 @@ export default function UnifiedNotificationPopover({
         </div>
       </div>
 
-      {/* Filter Tabs */}
       <div className="px-4 border-b border-slate-100 flex items-center gap-4 text-xs overflow-x-auto no-scrollbar">
         <button
           type="button"
@@ -282,9 +278,23 @@ export default function UnifiedNotificationPopover({
             {counts.candidates}
           </span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("payments")}
+          className={`py-2 font-semibold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-colors border-b-2 ${
+            activeTab === "payments"
+              ? "border-blue-600 text-blue-700 font-bold"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <span>Payments</span>
+          <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+            {counts.payments}
+          </span>
+        </button>
       </div>
 
-      {/* Notifications List */}
       <div className="max-h-[350px] overflow-y-auto divide-y divide-slate-100 text-xs">
         {groupedNotifications.length === 0 ? (
           <div className="py-10 text-center text-slate-400">
@@ -304,7 +314,7 @@ export default function UnifiedNotificationPopover({
                   const notifId = n.id || n._id;
                   const isRead = Boolean(n.read || n.isRead);
                   const cat = getItemCategory(n);
-                  const meta = getCategoryMeta(cat);
+                  const meta = getCategoryMeta(cat, n);
                   const timeAgo = formatTimeAgo(n.createdAt || n.timestamp);
                   const resolvedLink = resolveNotificationLink(
                     n,
@@ -318,7 +328,6 @@ export default function UnifiedNotificationPopover({
                         !isRead ? "bg-blue-50/20" : "bg-white"
                       }`}
                     >
-                      {/* Unread blue dot */}
                       <div className="pt-2 shrink-0">
                         <span
                           className={`block w-2 h-2 rounded-full ${
@@ -327,12 +336,10 @@ export default function UnifiedNotificationPopover({
                         />
                       </div>
 
-                      {/* Icon Avatar */}
                       <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60 shadow-2xs">
                         {meta.icon}
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 min-w-0 pr-1">
                         <div className="flex items-center justify-between gap-1 mb-1">
                           <span
@@ -345,7 +352,6 @@ export default function UnifiedNotificationPopover({
                             <span className="text-[10px] font-medium text-slate-400">
                               {timeAgo}
                             </span>
-                            {/* Individual Delete Button */}
                             {onDeleteOne && (
                               <button
                                 type="button"
@@ -370,7 +376,6 @@ export default function UnifiedNotificationPopover({
                           {n.message}
                         </p>
 
-                        {/* Action buttons: View Link | Mark Read | Delete */}
                         <div className="mt-1.5 flex items-center gap-2.5 text-[11px] flex-wrap">
                           {(n.meetingLink || n.metadata?.meetingLink) && (
                             <a
@@ -442,7 +447,6 @@ export default function UnifiedNotificationPopover({
         )}
       </div>
 
-      {/* Footer */}
       <div className="px-4 py-2 bg-slate-50/80 border-t border-slate-100 flex flex-col items-center justify-center gap-1 text-center">
         <div className="flex items-center justify-center gap-3 text-xs flex-wrap">
           {viewAllLink ? (

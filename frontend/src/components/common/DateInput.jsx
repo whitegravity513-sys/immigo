@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   Calendar as CalendarIcon,
@@ -9,7 +15,7 @@ import {
   Clock,
 } from "lucide-react";
 
-export const MONTH_NAMES = [
+const MONTH_NAMES = [
   "January",
   "February",
   "March",
@@ -365,16 +371,21 @@ export function DateInput({
   const yearScrollRef = useRef(null);
   const activeYearRef = useRef(null);
 
-  useEffect(() => {
+  const parsedSyncKey = parsedValue
+    ? `${parsedValue.year}-${parsedValue.month}-${parsedValue.day}-${parsedValue.hour ?? 10}-${parsedValue.minute ?? 0}`
+    : "";
+  const [prevParsedKey, setPrevParsedKey] = useState(parsedSyncKey);
+  if (parsedSyncKey !== prevParsedKey) {
+    setPrevParsedKey(parsedSyncKey);
     if (parsedValue) {
       setViewYear(parsedValue.year);
       setViewMonth(parsedValue.month);
       setTimeHour(parsedValue.hour ?? 10);
       setTimeMinute(parsedValue.minute ?? 0);
     }
-  }, [parsedValue?.year, parsedValue?.month, parsedValue?.day, parsedValue?.hour, parsedValue?.minute]);
+  }
 
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     const popWidth = 284;
@@ -395,11 +406,14 @@ export function DateInput({
     }
 
     setCoords({ top, left, width: popWidth });
-  };
+  }, [includeTime]);
 
   useEffect(() => {
     if (!isOpen) return;
-    updatePosition();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) updatePosition();
+    });
 
     const handleOutside = (e) => {
       if (
@@ -425,12 +439,13 @@ export function DateInput({
     window.addEventListener("scroll", handleScrollOrResize, true);
     window.addEventListener("resize", handleScrollOrResize);
     return () => {
+      cancelled = true;
       document.removeEventListener("mousedown", handleOutside);
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScrollOrResize, true);
       window.removeEventListener("resize", handleScrollOrResize);
     };
-  }, [isOpen, includeTime]);
+  }, [isOpen, updatePosition]);
 
   useEffect(() => {
     if (isOpen && viewMode === "years" && yearScrollRef.current && activeYearRef.current) {

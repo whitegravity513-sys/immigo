@@ -48,7 +48,7 @@ export const rotateRefreshToken = async (rawRefreshToken, req = {}) => {
   let decoded;
   try {
     decoded = verifyRefreshToken(rawRefreshToken);
-  } catch (error) {
+  } catch {
     throw new ApiError(401, "Invalid or expired refresh token");
   }
 

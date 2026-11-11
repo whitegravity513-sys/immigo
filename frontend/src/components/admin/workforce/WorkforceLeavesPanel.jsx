@@ -1,4 +1,3 @@
-import React from "react";
 import { Calendar, CheckCircle2, Eye, Check, X } from "lucide-react";
 import { EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
 

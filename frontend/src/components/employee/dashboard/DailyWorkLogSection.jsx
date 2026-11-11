@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiClient } from "../../../services/apiClient.js";
 import {
   FileText,
@@ -30,11 +30,14 @@ export default function DailyWorkLogSection({
   const [showHistory, setShowHistory] = useState(false);
   const [historyLogs, setHistoryLogs] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const onWorkLogSavedRef = useRef(onWorkLogSaved);
+  useEffect(() => {
+    onWorkLogSavedRef.current = onWorkLogSaved;
+  }, [onWorkLogSaved]);
 
   useEffect(() => {
     let isMounted = true;
     const fetchTodayLog = async () => {
-      setLoading(true);
       try {
         const res = await apiClient.get("/employee/worklog/today");
         if (isMounted) {
@@ -47,7 +50,7 @@ export default function DailyWorkLogSection({
             setSavedText(existing);
             setLastSavedAt(res.data.log.updatedAt || res.data.log.submittedAt);
             setIsSubmitted(true);
-            if (onWorkLogSaved) onWorkLogSaved(existing);
+            if (onWorkLogSavedRef.current) onWorkLogSavedRef.current(existing);
           } else if (res.data?.isSubmitted) {
             setIsSubmitted(true);
           }

@@ -1,5 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Calendar, PartyPopper, X, Bell } from "lucide-react";
+
+const computeInitialOpen = (isHolidayToday, forceOpen, storageKey) => {
+  if (!isHolidayToday) return false;
+  if (forceOpen) return true;
+  try {
+    return !sessionStorage.getItem(storageKey);
+  } catch {
+    return true;
+  }
+};
 
 export default function HolidayAnnouncementModals({
   todayHoliday,
@@ -9,29 +19,33 @@ export default function HolidayAnnouncementModals({
   onViewAnnouncements,
   onViewCalendar,
 }) {
-  const [open, setOpen] = useState(false);
-
   const dateKey = String(
     todayHoliday?.date ||
       new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date())
   ).split("T")[0];
 
   const storageKey = `holiday_popup_dismissed_${dateKey}`;
+  const syncKey = `${isHolidayToday}:${forceOpen}:${storageKey}`;
 
-  useEffect(() => {
+  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
+  const [open, setOpen] = useState(() =>
+    computeInitialOpen(isHolidayToday, forceOpen, storageKey)
+  );
+
+  if (syncKey !== prevSyncKey) {
+    setPrevSyncKey(syncKey);
     if (forceOpen && isHolidayToday) {
       setOpen(true);
-      return;
-    }
-    if (isHolidayToday) {
-      const dismissed = sessionStorage.getItem(storageKey);
-      if (!dismissed) {
-        setOpen(true);
-      }
+    } else if (isHolidayToday) {
+      try {
+        if (!sessionStorage.getItem(storageKey)) {
+          setOpen(true);
+        }
+      } catch {}
     } else {
       setOpen(false);
     }
-  }, [isHolidayToday, forceOpen, storageKey]);
+  }
 
   const handleDismiss = () => {
     try {

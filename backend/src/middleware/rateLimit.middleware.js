@@ -4,14 +4,15 @@ const isDev = process.env.NODE_ENV !== "production";
 
 export const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: isDev ? 50000 : 10000,
+  max: isDev ? 50000 : 2500,
   standardHeaders: true,
   legacyHeaders: false,
   validate: { xForwardedForHeader: false, trustProxy: false },
   skip: (req) =>
     req.method === "OPTIONS" ||
     req.path === "/health" ||
-    Boolean(req.originalUrl && req.originalUrl.startsWith("/api/health")),
+    req.path === "/events/stream" ||
+    Boolean(req.originalUrl && (req.originalUrl.startsWith("/api/health") || req.originalUrl.startsWith("/api/events/stream"))),
   message: {
     success: false,
     statusCode: 429,

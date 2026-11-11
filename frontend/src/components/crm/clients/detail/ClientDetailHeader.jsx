@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,7 +11,6 @@ export function ClientDetailHeader({
   tabs,
   activeTab,
   setActiveTab,
-  setDeleteModalOpen,
 }) {
   if (!client) return null;
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   CreditCard,
@@ -17,8 +17,6 @@ import {
   RefreshCw,
   Globe,
   Briefcase,
-  IndianRupee,
-  Check,
 } from "lucide-react";
 import apiClient from "../../services/apiClient.js";
 
@@ -37,12 +35,6 @@ export default function CandidatePaymentPage() {
   const [customVpa, setCustomVpa] = useState("");
   const [selectedBank, setSelectedBank] = useState("HDFC");
   const [selectedWallet, setSelectedWallet] = useState("paytm");
-  const [cardData, setCardData] = useState({
-    number: "",
-    name: "",
-    expiry: "",
-    cvv: "",
-  });
 
   const [utrNumber, setUtrNumber] = useState("");
   const [bankNotes, setBankNotes] = useState("");
@@ -129,7 +121,6 @@ export default function CandidatePaymentPage() {
             referenceNumber: utrNumber.trim(),
             remarks: bankNotes || "Manual Bank Transfer",
             amount,
-            isInstantMock: false,
           }
         );
 
@@ -154,121 +145,111 @@ export default function CandidatePaymentPage() {
 
     try {
       let orderData = null;
-      try {
-        const orderRes = await apiClient.post("/payments/create-order", {
-          amount: amount,
-          receipt: `rcpt_${appId}_${milestone.id}`,
-          notes: {
-            appId,
-            milestoneId: milestone.id,
-            candidateName: candidate?.fullName || application.candidateName,
-            projectName: application.projectName,
-          },
-        });
-        if (orderRes.data?.order) {
-          orderData = orderRes.data.order;
-        }
-      } catch {}
+      let razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
+      const orderRes = await apiClient.post("/payments/create-order", {
+        applicationId: appId,
+        milestoneId: milestone.id,
+        amount,
+        receipt: `rcpt_${appId}_${milestone.id}`,
+        notes: {
+          appId,
+          milestoneId: milestone.id,
+          candidateName: candidate?.fullName || application.candidateName,
+          projectName: application.projectName,
+        },
+      });
+      orderData = orderRes.data?.order || null;
+      if (orderRes.data?.keyId) {
+        razorpayKey = orderRes.data.keyId;
+      }
 
-      const scriptLoaded = await loadRazorpayScript();
-      if (scriptLoaded && window.Razorpay) {
-        const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
-          amount: amount * 100,
-          currency: "INR",
-          name: "Immigo Global Mobility",
-          description: `Fee: ${milestone.name}`,
-          order_id: orderData?.id || undefined,
-          prefill: {
-            name: candidate?.fullName || application.candidateName || "",
-            email: candidate?.email || application.candidateEmail || "",
-            contact: candidate?.phone || application.candidatePhone || "",
-          },
-          theme: {
-            color: "#163868",
-          },
-          handler: async function (response) {
-            try {
-              try {
-                if (response.razorpay_signature) {
-                  await apiClient.post("/payments/verify-payment", {
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature,
-                  });
-                }
-              } catch {}
-
-              const paymentRef = response.razorpay_payment_id || `RZP_${Date.now()}`;
-              await apiClient.post(
-                `/candidate/applications/${appId}/milestones/${milestone.id}/pay`,
-                {
-                  paymentMode: "Razorpay Online",
-                  paymentReference: paymentRef,
-                  remarks: `Paid via Razorpay (${response.razorpay_payment_id})`,
-                  amount,
-                  isInstantMock: true,
-                }
-              );
-
-              setPaymentSuccess({
-                txnId: paymentRef,
-                mode: "Razorpay Online Gateway",
-                amount,
-                status: "Approved & Verified",
-                note: "Your milestone fee has been successfully paid and verified! Your next deployment stage is now unlocked.",
-              });
-            } catch (pErr) {
-              alert("Payment captured with reference: " + (response.razorpay_payment_id || "Done"));
-              setPaymentSuccess({
-                txnId: response.razorpay_payment_id || `RZP_${Date.now()}`,
-                mode: "Razorpay Online",
-                amount,
-                status: "Approved",
-                note: "Your payment has been successfully recorded.",
-              });
-            } finally {
-              setSubmitting(false);
-            }
-          },
-          modal: {
-            ondismiss: function () {
-              setSubmitting(false);
-            },
-          },
-        };
-
-        const rzp = new window.Razorpay(options);
-        rzp.open();
+      if (!orderData?.id || !razorpayKey) {
+        alert("Payment gateway is not configured right now. Please use Bank Transfer or contact admin.");
+        setSubmitting(false);
         return;
       }
-    } catch {}
 
-    try {
-      const mockRef = `RZP-DIRECT-${Date.now().toString(36).toUpperCase()}`;
-      const res = await apiClient.post(
-        `/candidate/applications/${appId}/milestones/${milestone.id}/pay`,
-        {
-          paymentMode: "Razorpay Online",
-          paymentReference: mockRef,
-          remarks: "Online Payment via Razorpay Gateway",
-          amount,
-          isInstantMock: true,
-        }
-      );
-
-      if (res.data?.success) {
-        setPaymentSuccess({
-          txnId: mockRef,
-          mode: "Razorpay Instant Pay",
-          amount,
-          status: "Approved & Verified",
-          note: "Your milestone fee has been confirmed.",
-        });
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        alert("Razorpay Checkout SDK could not be loaded. Please check your connection or use Bank Transfer.");
+        setSubmitting(false);
+        return;
       }
+
+      const options = {
+        key: razorpayKey,
+        amount: orderData.amount || Math.round(amount * 100),
+        currency: orderData.currency || "INR",
+        name: "Immigo Global Mobility",
+        description: `Fee: ${milestone.name}`,
+        order_id: orderData.id,
+        prefill: {
+          name: candidate?.fullName || application.candidateName || "",
+          email: candidate?.email || application.candidateEmail || "",
+          contact: candidate?.phone || application.candidatePhone || "",
+        },
+        theme: {
+          color: "#163868",
+        },
+        handler: async function (response) {
+          try {
+            if (!response.razorpay_payment_id || !response.razorpay_signature) {
+              throw new Error("Incomplete gateway response received.");
+            }
+            const resolvedOrderId = response.razorpay_order_id || orderData.id;
+            await apiClient.post("/payments/verify-payment", {
+              razorpay_order_id: resolvedOrderId,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              applicationId: appId,
+              milestoneId: milestone.id,
+            });
+
+            const res = await apiClient.post(
+              `/candidate/applications/${appId}/milestones/${milestone.id}/pay`,
+              {
+                paymentMode: "Razorpay Online",
+                paymentReference: response.razorpay_payment_id,
+                razorpay_order_id: resolvedOrderId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                remarks: `Paid via Razorpay (${response.razorpay_payment_id})`,
+                amount,
+              }
+            );
+
+            if (!res.data?.success) {
+              throw new Error(res.data?.message || "Payment verification failed.");
+            }
+
+            setPaymentSuccess({
+              txnId: response.razorpay_payment_id,
+              mode: "Razorpay Online Gateway",
+              amount,
+              status: "Approved & Verified",
+              note: "Your milestone fee has been successfully paid and verified! Your next deployment stage is now unlocked.",
+            });
+          } catch (pErr) {
+            alert(pErr?.response?.data?.message || pErr?.message || "Payment verification failed.");
+          } finally {
+            setSubmitting(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setSubmitting(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (resp) => {
+        alert(resp?.error?.description || "Payment failed or cancelled.");
+        setSubmitting(false);
+      });
+      rzp.open();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to process payment.");
-    } finally {
+      alert(err.response?.data?.message || err.message || "Failed to initialize payment.");
       setSubmitting(false);
     }
   };
@@ -378,7 +359,6 @@ export default function CandidatePaymentPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] text-slate-800 flex flex-col font-sans" style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
-      {/* Dedicated Full Page Branded Header */}
       <header className="bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white border-b border-blue-900/60 sticky top-0 z-30 shadow-xs">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -404,11 +384,8 @@ export default function CandidatePaymentPage() {
         </div>
       </header>
 
-      {/* Main Full Page Checkout Grid */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-5 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5" style={{ backgroundColor: "#f8fafc" }}>
-        {/* Left Column: Milestone & Project Summary */}
         <div className="lg:col-span-5 space-y-3.5">
-          {/* Project Details Banner - Navy Theme */}
           <div className="bg-gradient-to-br from-[#0f274a] via-[#163868] to-[#1e4a82] text-white p-4 sm:p-4.5 rounded-2xl shadow-xs space-y-3">
             <div className="flex items-center justify-between gap-2">
               <span className="px-2 py-0.5 rounded-md bg-white/15 text-cyan-200 border border-white/20 text-[10px] font-bold">
@@ -444,7 +421,6 @@ export default function CandidatePaymentPage() {
             </div>
           </div>
 
-          {/* Milestone Details Card */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
             <div>
               <span className="text-[10px] font-bold text-[#163868] uppercase tracking-wider block">
@@ -455,7 +431,6 @@ export default function CandidatePaymentPage() {
               </h3>
             </div>
 
-            {/* Stages included in this milestone - Navy/Blue theme */}
             {Array.isArray(milestone.stages) && milestone.stages.length > 0 && (
               <div className="space-y-1.5 pt-2 border-t border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -475,7 +450,6 @@ export default function CandidatePaymentPage() {
               </div>
             )}
 
-            {/* Fee Breakdown - No green colors */}
             <div className="pt-2.5 border-t border-slate-100 space-y-1.5 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Milestone Base Amount:</span>
@@ -500,7 +474,6 @@ export default function CandidatePaymentPage() {
             </div>
           </div>
 
-          {/* Immigo Official Guarantee - Navy/Blue Card (No Green) */}
           <div className="bg-blue-50/70 border border-blue-200 p-3.5 rounded-2xl text-[11px] text-slate-800 space-y-1" style={{ backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }}>
             <div className="flex items-center gap-1.5 font-bold text-[#163868]">
               <ShieldCheck size={16} className="text-[#163868]" />
@@ -512,7 +485,6 @@ export default function CandidatePaymentPage() {
           </div>
         </div>
 
-        {/* Right Column: Multiple Payment Options */}
         <div className="lg:col-span-7 space-y-3.5">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
             <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
@@ -529,7 +501,6 @@ export default function CandidatePaymentPage() {
               </span>
             </div>
 
-            {/* Methods Tabs - Navy Accent */}
             <div className="grid grid-cols-3 sm:grid-cols-6 border-b border-slate-200 text-center text-xs font-semibold bg-slate-50/50">
               <button
                 type="button"
@@ -610,7 +581,6 @@ export default function CandidatePaymentPage() {
               </button>
             </div>
 
-            {/* Tab 1: UPI Apps Fast Pay */}
             {selectedMethod === "upi_apps" && (
               <div className="p-4 sm:p-5 space-y-3.5 text-xs">
                 <div>
@@ -664,7 +634,6 @@ export default function CandidatePaymentPage() {
               </div>
             )}
 
-            {/* Tab 2: Scan UPI QR Code */}
             {selectedMethod === "upi_qr" && (
               <div className="p-4 sm:p-5 space-y-3.5 text-xs text-center">
                 <div>
@@ -702,7 +671,6 @@ export default function CandidatePaymentPage() {
               </div>
             )}
 
-            {/* Tab 3: Credit / Debit Cards */}
             {selectedMethod === "card" && (
               <div className="p-4 sm:p-5 space-y-3 text-xs">
                 <div>
@@ -710,78 +678,26 @@ export default function CandidatePaymentPage() {
                     Credit / Debit Card Payment
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    We accept Visa, MasterCard, RuPay, Maestro, and American Express.
+                    We accept Visa, MasterCard, RuPay, Maestro, and American Express via PCI-DSS encrypted Razorpay Checkout.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap text-[10px] text-slate-500 font-semibold mb-1">
+                <div className="flex items-center gap-2 flex-wrap text-[10px] text-slate-500 font-semibold">
                   <span className="px-2 py-0.5 bg-slate-100 rounded border border-slate-200">Visa</span>
                   <span className="px-2 py-0.5 bg-slate-100 rounded border border-slate-200">MasterCard</span>
                   <span className="px-2 py-0.5 bg-slate-100 rounded border border-slate-200">RuPay</span>
                   <span className="px-2 py-0.5 bg-slate-100 rounded border border-slate-200">Maestro</span>
                 </div>
 
-                <div className="space-y-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="4111 2222 3333 4444"
-                      maxLength={19}
-                      value={cardData.number}
-                      onChange={(e) => setCardData({ ...cardData, number: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 font-mono text-xs focus:border-[#163868] focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
-                        Expiry Date
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="MM / YY"
-                        maxLength={5}
-                        value={cardData.expiry}
-                        onChange={(e) => setCardData({ ...cardData, expiry: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 font-mono text-xs focus:border-[#163868] focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
-                        CVV / CVC
-                      </label>
-                      <input
-                        type="password"
-                        placeholder="•••"
-                        maxLength={4}
-                        value={cardData.cvv}
-                        onChange={(e) => setCardData({ ...cardData, cvv: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 font-mono text-xs focus:border-[#163868] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-0.5">
-                      Cardholder Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Name on card"
-                      value={cardData.name}
-                      onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:border-[#163868] focus:outline-none"
-                    />
-                  </div>
+                <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-emerald-900 flex items-start gap-2.5">
+                  <ShieldCheck size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] leading-relaxed">
+                    Click <strong>Pay Safely</strong> below to enter your card details directly inside Razorpay&apos;s secured checkout window. Immigo never stores raw card numbers or CVV codes.
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Tab 4: NetBanking */}
             {selectedMethod === "netbanking" && (
               <div className="p-4 sm:p-5 space-y-3.5 text-xs">
                 <div>
@@ -844,7 +760,6 @@ export default function CandidatePaymentPage() {
               </div>
             )}
 
-            {/* Tab 5: Wallets */}
             {selectedMethod === "wallets" && (
               <div className="p-4 sm:p-5 space-y-3.5 text-xs">
                 <div>
@@ -881,7 +796,6 @@ export default function CandidatePaymentPage() {
               </div>
             )}
 
-            {/* Tab 6: Offline Bank Transfer (NEFT/RTGS/IMPS) */}
             {selectedMethod === "bank_transfer" && (
               <div className="p-4 sm:p-5 space-y-3.5 text-xs">
                 <div>
@@ -964,7 +878,6 @@ export default function CandidatePaymentPage() {
               </div>
             )}
 
-            {/* Bottom Checkout Action Row */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="text-xs">
                 <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">

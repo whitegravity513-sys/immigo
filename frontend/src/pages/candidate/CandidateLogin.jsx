@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import apiClient from "../../services/apiClient.js";
 import {
   Mail,
@@ -82,11 +82,9 @@ export default function CandidateLogin() {
 
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden font-sans bg-gradient-to-br from-[#f0f4f9] via-[#e8f0fe] to-[#edf3fa] text-slate-800">
-      {/* Background Decorative Blobs */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top Header Bar */}
       <header className="relative z-20 w-full px-4 sm:px-8 lg:px-12 py-3 flex items-center justify-between border-b border-blue-900/60 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-xs shrink-0">
         <div className="flex items-center gap-3">
           <Link to="/" className="inline-block">
@@ -113,11 +111,8 @@ export default function CandidateLogin() {
         </div>
       </header>
 
-      {/* Main Two-Column Content Showcase */}
       <main className="relative z-10 w-full flex-1 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-8 flex flex-col lg:flex-row items-center justify-between gap-10">
-        {/* Left Column: Feature Highlights & Boxes */}
         <div className="w-full lg:w-[54%] space-y-6 text-left">
-          {/* Header Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-600/10 border border-blue-600/25 text-blue-700 text-xs font-bold shadow-2xs">
             <Sparkles size={13} className="text-blue-600" />
             <span>Global Manpower Supply & Deployment Network</span>
@@ -135,9 +130,7 @@ export default function CandidateLogin() {
             </p>
           </div>
 
-          {/* 3 Structured Feature Highlight Boxes */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-            {/* Box 1: Visa Tracking */}
             <div className="p-4 rounded-2xl bg-white/90 backdrop-blur-xs border border-blue-200/80 shadow-xs hover:border-blue-400 hover:shadow-md transition space-y-2">
               <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                 <Plane className="w-4 h-4" />
@@ -150,7 +143,6 @@ export default function CandidateLogin() {
               </p>
             </div>
 
-            {/* Box 2: Milestone Verification */}
             <div className="p-4 rounded-2xl bg-white/90 backdrop-blur-xs border border-indigo-200/80 shadow-xs hover:border-indigo-400 hover:shadow-md transition space-y-2">
               <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                 <FileCheck className="w-4 h-4" />
@@ -163,7 +155,6 @@ export default function CandidateLogin() {
               </p>
             </div>
 
-            {/* Box 3: Certified Employers */}
             <div className="p-4 rounded-2xl bg-white/90 backdrop-blur-xs border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition space-y-2">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                 <ShieldCheck className="w-4 h-4" />
@@ -177,7 +168,6 @@ export default function CandidateLogin() {
             </div>
           </div>
 
-          {/* Trust Metric Strip */}
           <div className="pt-2 flex items-center gap-6 text-xs font-semibold text-slate-600 flex-wrap">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 size={14} className="text-emerald-600" />
@@ -194,10 +184,8 @@ export default function CandidateLogin() {
           </div>
         </div>
 
-        {/* Right Column: Modern Authentication Card */}
         <div className="w-full lg:w-[42%] flex justify-center">
           <div className="w-full max-w-[440px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(20,50,90,0.12)] border border-slate-200/90 p-6 sm:p-8 text-left space-y-5">
-            {/* Form Header */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
@@ -213,7 +201,6 @@ export default function CandidateLogin() {
               </p>
             </div>
 
-            {/* Error Message */}
             {errorMsg && (
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
                 <AlertCircle size={15} className="shrink-0 mt-0.5" />
@@ -221,7 +208,6 @@ export default function CandidateLogin() {
               </div>
             )}
 
-            {/* Status Notice (Pending / Rejected) */}
             {statusNotice && (
               <div
                 className={`p-3.5 rounded-xl border space-y-1 text-xs ${
@@ -244,9 +230,7 @@ export default function CandidateLogin() {
               </div>
             )}
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-              {/* Email Address */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Registered Email Address *
@@ -268,7 +252,6 @@ export default function CandidateLogin() {
                 </div>
               </div>
 
-              {/* Password */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-slate-700">
@@ -299,7 +282,6 @@ export default function CandidateLogin() {
                 </div>
               </div>
 
-              {/* Remember Me */}
               <div className="flex items-center text-xs text-slate-600 font-medium">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
@@ -312,7 +294,6 @@ export default function CandidateLogin() {
                 </label>
               </div>
 
-              {/* Login Button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -328,7 +309,6 @@ export default function CandidateLogin() {
                 )}
               </button>
 
-              {/* Agency Provisioning Notice (Replaces self-registration) */}
               <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/80 text-[11px] text-slate-600 space-y-0.5">
                 <span className="font-bold text-blue-900 block">Candidate Account Provisioning:</span>
                 <p className="leading-relaxed">
@@ -336,7 +316,6 @@ export default function CandidateLogin() {
                 </p>
               </div>
 
-              {/* Vendor Agency Link */}
               <div className="pt-2 border-t border-slate-100 text-center">
                 <span className="text-[11px] text-slate-400 block mb-1">
                   Recruitment Agency or Manpower Supplier?
@@ -355,7 +334,6 @@ export default function CandidateLogin() {
         </div>
       </main>
 
-      {/* Navy Blue Master Footer */}
       <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
         <span className="mx-2 text-cyan-400">&bull;</span>

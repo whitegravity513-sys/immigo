@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   X,
@@ -6,10 +6,12 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { getCandidateInitials } from "../shared/vendorHRUtils.jsx";
+import { isAppRefundLocked } from "../../../services/refundService.js";
 
 export default function VendorHRVisaAllottedSection({
   applications = [],
+  refunds = [],
   hideProjectNames = false,
   openCandidateModal,
   navigateByTag,
@@ -17,6 +19,7 @@ export default function VendorHRVisaAllottedSection({
   const [visaSearch, setVisaSearch] = useState("");
 
   const visaAllottedCandidates = applications.filter((cand) => {
+    if (isAppRefundLocked(cand, refunds)) return false;
     const stage = cand.recruitmentStage || cand.status || "";
     const visaStatus = cand.visaDetails?.visaStatus || cand.visaStatus || "";
     return (
@@ -108,16 +111,14 @@ export default function VendorHRVisaAllottedSection({
                 <tr key={cand.applicationId || cand.id || idx} className="hover:bg-slate-50/60 transition">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={AVATARS[idx % AVATARS.length]}
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
-                      />
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-[11px] shrink-0">
+                        {getCandidateInitials(cand.candidateName)}
+                      </div>
                       <div className="min-w-0">
                         <h4 className="font-bold text-slate-900 text-xs truncate">{cand.candidateName}</h4>
                         <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-mono">
-                          <span>{cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${cand.applicationId?.slice(0, 8)}`}</span>
-                          {cand.candidatePhone && <span>• 📞 {cand.candidatePhone}</span>}
+                          <span>{cand.passportNumber ? `Passport: ${cand.passportNumber}` : `ID: ${cand.candidateId || cand.applicationId}`}</span>
+                          {cand.candidatePhone && <span>• {cand.candidatePhone}</span>}
                         </div>
                       </div>
                     </div>

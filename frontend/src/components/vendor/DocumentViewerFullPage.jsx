@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import {
   FileText,
   Download,
@@ -16,28 +16,30 @@ import {
 } from "../../utils/printDocument.js";
 
 export default function DocumentViewerFullPage({ doc, vendor, candidate, onBack }) {
-  const [pdfBlobUrl, setPdfBlobUrl] = useState("");
-
-  useEffect(() => {
-    if (!doc?.fileUrl || !doc.fileUrl.startsWith("data:application/pdf")) {
-      setPdfBlobUrl("");
-      return;
+  const fileUrl = doc?.fileUrl;
+  const pdfBlobUrl = useMemo(() => {
+    if (!fileUrl || !fileUrl.startsWith("data:application/pdf")) {
+      return "";
     }
     try {
-      const base64 = doc.fileUrl.split(",")[1];
+      const base64 = fileUrl.split(",")[1];
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) {
         bytes[i] = binary.charCodeAt(i);
       }
       const blob = new Blob([bytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      setPdfBlobUrl(url);
-      return () => URL.revokeObjectURL(url);
+      return URL.createObjectURL(blob);
     } catch {
-      setPdfBlobUrl("");
+      return "";
     }
-  }, [doc?.fileUrl]);
+  }, [fileUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    };
+  }, [pdfBlobUrl]);
 
   if (!doc) return null;
 

@@ -4,9 +4,9 @@ import {
   UserCheck,
   Search,
   Clock,
-  Sliders,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import refundService, { isAppRefundLocked } from "../../../services/refundService";
 
 export default function AdminSelectedCandidates() {
   const [selectedApps, setSelectedApps] = useState([]);
@@ -17,7 +17,10 @@ export default function AdminSelectedCandidates() {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
-      const data = await crmVendorService.getApplications();
+      const [data, allRefunds] = await Promise.all([
+        crmVendorService.getApplications(),
+        refundService.getAllRefunds().catch(() => []),
+      ]);
       const postSelectionStatuses = new Set([
         "Selected",
         "Completed",
@@ -32,8 +35,9 @@ export default function AdminSelectedCandidates() {
       ]);
       const filtered = (data || []).filter(
         (a) =>
-          postSelectionStatuses.has(a.status) ||
-          postSelectionStatuses.has(a.recruitmentStage)
+          (postSelectionStatuses.has(a.status) ||
+            postSelectionStatuses.has(a.recruitmentStage)) &&
+          !isAppRefundLocked(a, allRefunds)
       );
       setSelectedApps(filtered);
     } catch (err) {
@@ -50,12 +54,14 @@ export default function AdminSelectedCandidates() {
     const handleRefresh = () => loadSelected();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(t);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -75,12 +81,11 @@ export default function AdminSelectedCandidates() {
 
   return (
     <div className="space-y-3 max-w-full w-full mx-auto font-sans antialiased text-slate-800">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Selected Candidates & Milestone Management</h1>
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Selected Candidates</h1>
           <p className="text-xs text-slate-500 mt-0.5 font-medium">
-            Manage client-selected candidates, customize default project milestone payments, and track deployment progress.
+            Manage client-selected candidates, view milestone payments, and open Process Timeline to update processing stages.
           </p>
         </div>
 
@@ -91,7 +96,6 @@ export default function AdminSelectedCandidates() {
         </div>
       </div>
 
-      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -103,7 +107,6 @@ export default function AdminSelectedCandidates() {
         />
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -218,18 +221,10 @@ export default function AdminSelectedCandidates() {
                           <Link
                             to={`/admin/vendor/processing?appId=${resolvedAppId}`}
                             className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
-                            title="Open full processing stepper & complete stages"
+                            title="Open Process Timeline to view and update candidate processing stages"
                           >
                             <Clock size={13} />
-                            <span>Processing Stepper</span>
-                          </Link>
-                          <Link
-                            to={`/admin/vendor/milestones-manage?appId=${resolvedAppId}`}
-                            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
-                            title="Manage candidate processing stages & upload documents"
-                          >
-                            <Sliders size={13} />
-                            <span>Manage Stages</span>
+                            <span>Process Timeline</span>
                           </Link>
                         </div>
                       </td>

@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,18 +10,16 @@ import {
   Award,
   XCircle,
   X,
-  Shield,
   ArrowLeft,
   LogOut,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 export function CandidateManagementSidebar({
   mobileOpen = false,
   setMobileOpen = () => {},
   collapsed = false,
-  setCollapsed = () => {},
 }) {
   const { logout } = useAuth();
   const location = useLocation();

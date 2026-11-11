@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -8,8 +8,6 @@ import {
   Trash2,
   Save,
   ArrowLeft,
-  FileText,
-  Globe,
   AlertCircle,
   FileCheck,
   CreditCard,
@@ -20,10 +18,8 @@ import {
 import FormSection from "../ui/FormSection.jsx";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
-import TextareaField from "../ui/TextareaField.jsx";
-import CountrySelectField from "../ui/CountrySelectField.jsx";
 import DocumentsList from "../documents/DocumentsList.jsx";
-import { useCrmToast } from "../layout/CrmLayout.jsx";
+import { useCrmToast } from "../layout/crmToastContext.js";
 
 const COMPANY_TYPES = [
   "Construction",
@@ -37,17 +33,78 @@ const COMPANY_TYPES = [
   "Other",
 ];
 
-
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email || "").trim());
 
-const isValidPhone = (phone) => {
-  const digits = (phone || "").replace(/[\s\-\(\)\+]/g, "");
-  return /^\d{7,15}$/.test(digits);
-};
+const buildClientFormData = (initialData) => ({
+  companyName: initialData?.companyName || "",
+  companyType: initialData?.companyType || "Construction",
+  registrationNumber: initialData?.registrationNumber || "",
+  tradeLicenseNumber: initialData?.tradeLicenseNumber || "",
+  taxNumber: initialData?.taxNumber || "",
+  website: initialData?.website || "",
+  email: initialData?.email || "",
+  phone: initialData?.phone || "",
+  status: initialData?.status || "Active",
 
-const isValidPAN = (pan) =>
-  /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test((pan || "").trim().toUpperCase());
+  country: initialData?.country || "UAE",
+  state: initialData?.state || "",
+  city: initialData?.city || "",
+  address: initialData?.address || "",
+  address2: initialData?.address2 || "",
+  postalCode: initialData?.postalCode || "",
+
+  directorName: initialData?.directorName || "",
+  directorEmail: initialData?.directorEmail || "",
+  directorMobile: initialData?.directorMobile || "",
+
+  panNumber: initialData?.panNumber || "",
+
+  contacts:
+    initialData?.contacts && initialData.contacts.length > 0
+      ? initialData.contacts
+      : [
+          {
+            id: "c-1",
+            name: "",
+            designation: initialData ? "" : "HR Director",
+            department: initialData ? "" : "Human Resources",
+            email: "",
+            phone: "",
+            whatsapp: "",
+            alternativePhone: "",
+            isPrimary: true,
+          },
+        ],
+
+  localLicenseNumber: initialData?.localLicenseNumber || "",
+  notes: initialData?.notes || "",
+  documents: Array.isArray(initialData?.documents) ? initialData.documents : [],
+  paymentMilestones:
+    Array.isArray(initialData?.paymentMilestones) && initialData.paymentMilestones.length > 0
+      ? initialData.paymentMilestones.map((m, idx) => ({
+          id: m.id || `mls-${idx + 1}`,
+          name: m.name || `Milestone ${idx + 1}`,
+          amount: String(m.amount || ""),
+          condition: m.condition || "",
+          timeline: "",
+          description: m.description || "",
+          status: m.status || "Pending",
+          paidAmount: m.paidAmount || 0,
+          remainingBalance: m.remainingBalance || m.amount || 0,
+          remarks: m.remarks || "",
+        }))
+      : [],
+});
+
+const resolveInitialPaymentTotal = (initialData) => {
+  if (initialData?.totalAgreedAmount) return String(initialData.totalAgreedAmount);
+  if (Array.isArray(initialData?.paymentMilestones)) {
+    const sum = initialData.paymentMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
+    if (sum > 0) return String(sum);
+  }
+  return "";
+};
 
 export function ClientForm({
   initialData = null,
@@ -59,148 +116,30 @@ export function ClientForm({
   const { showToast } = useCrmToast();
   const panFileRef = useRef(null);
 
-  const [formData, setFormData] = useState({
-    companyName: "",
-    companyType: "Construction",
-    registrationNumber: "",
-    tradeLicenseNumber: "",
-    taxNumber: "",
-    website: "",
-    email: "",
-    phone: "",
-    status: "Active",
+  const [formData, setFormData] = useState(() => buildClientFormData(initialData));
 
-    
-    country: "UAE",
-    state: "",
-    city: "",
-    address: "",
-    address2: "",
-    postalCode: "",
-
-    
-    directorName: "",
-    directorEmail: "",
-    directorMobile: "",
-
-    
-    panNumber: "",
-
-    
-    contacts: [
-      {
-        id: "c-1",
-        name: "",
-        designation: "HR Director",
-        department: "Human Resources",
-        email: "",
-        phone: "",
-        whatsapp: "",
-        alternativePhone: "",
-        isPrimary: true,
-      },
-    ],
-
-    
-    localLicenseNumber: "",
-    notes: "",
-
-    
-    documents: [],
-
-    
-    paymentMilestones: [],
-  });
-
-  const [totalPaymentInput, setTotalPaymentInput] = useState(() => {
-    if (initialData?.totalAgreedAmount) return String(initialData.totalAgreedAmount);
-    return "";
-  });
+  const [totalPaymentInput, setTotalPaymentInput] = useState(() =>
+    resolveInitialPaymentTotal(initialData)
+  );
   const [errors, setErrors] = useState({});
   const [panFile, setPanFile] = useState(null);
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
 
-  useEffect(() => {
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
     if (initialData) {
-      setFormData({
-        companyName: initialData.companyName || "",
-        companyType: initialData.companyType || "Construction",
-        registrationNumber: initialData.registrationNumber || "",
-        tradeLicenseNumber: initialData.tradeLicenseNumber || "",
-        taxNumber: initialData.taxNumber || "",
-        website: initialData.website || "",
-        email: initialData.email || "",
-        phone: initialData.phone || "",
-        status: initialData.status || "Active",
-
-        country: initialData.country || "UAE",
-        state: initialData.state || "",
-        city: initialData.city || "",
-        address: initialData.address || "",
-        address2: initialData.address2 || "",
-        postalCode: initialData.postalCode || "",
-
-        
-        directorName: initialData.directorName || "",
-        directorEmail: initialData.directorEmail || "",
-        directorMobile: initialData.directorMobile || "",
-
-        
-        panNumber: initialData.panNumber || "",
-
-        contacts:
-          initialData.contacts && initialData.contacts.length > 0
-            ? initialData.contacts
-            : [
-                {
-                  id: "c-1",
-                  name: "",
-                  designation: "",
-                  department: "",
-                  email: "",
-                  phone: "",
-                  whatsapp: "",
-                  alternativePhone: "",
-                  isPrimary: true,
-                },
-              ],
-
-        localLicenseNumber: initialData.localLicenseNumber || "",
-        notes: initialData.notes || "",
-        documents: Array.isArray(initialData.documents) ? initialData.documents : [],
-        paymentMilestones:
-          Array.isArray(initialData.paymentMilestones) && initialData.paymentMilestones.length > 0
-            ? initialData.paymentMilestones.map((m, idx) => ({
-                id: m.id || `mls-${idx + 1}`,
-                name: m.name || `Milestone ${idx + 1}`,
-                amount: String(m.amount || ""),
-                condition: m.condition || "",
-                timeline: "",
-                description: m.description || "",
-                status: m.status || "Pending",
-                paidAmount: m.paidAmount || 0,
-                remainingBalance: m.remainingBalance || m.amount || 0,
-                remarks: m.remarks || "",
-              }))
-            : [],
-      });
-
-      if (initialData.totalAgreedAmount) {
-        setTotalPaymentInput(String(initialData.totalAgreedAmount));
-      } else if (Array.isArray(initialData.paymentMilestones)) {
-        const sum = initialData.paymentMilestones.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
-        if (sum > 0) setTotalPaymentInput(String(sum));
-      }
+      setFormData(buildClientFormData(initialData));
+      const resolvedTotal = resolveInitialPaymentTotal(initialData);
+      if (resolvedTotal) setTotalPaymentInput(resolvedTotal);
     }
-  }, [initialData]);
+  }
 
-  
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  
   const handleContactChange = (index, field, value) => {
     setFormData((prev) => {
       const updated = [...prev.contacts];
@@ -214,26 +153,6 @@ export function ClientForm({
     }
   };
 
-  const handleAddContact = () => {
-    setFormData((prev) => ({
-      ...prev,
-      contacts: [
-        ...prev.contacts,
-        {
-          id: `c-${Date.now()}`,
-          name: "",
-          designation: "",
-          department: "",
-          email: "",
-          phone: "",
-          whatsapp: "",
-          alternativePhone: "",
-          isPrimary: false,
-        },
-      ],
-    }));
-  };
-
   const handleRemoveContact = (index) => {
     if (formData.contacts.length <= 1) return;
     setFormData((prev) => ({
@@ -242,12 +161,10 @@ export function ClientForm({
     }));
   };
 
-  
   const handleTotalPaymentChange = (e) => {
     const val = e.target.value;
     setTotalPaymentInput(val);
 
-    
     if ((formData.paymentMilestones || []).length === 1) {
       setFormData((prev) => ({
         ...prev,
@@ -283,7 +200,6 @@ export function ClientForm({
     showToast(`Distributed ₹${total.toLocaleString("en-IN")} evenly across ${count} milestones`, "success");
   };
 
-  
   const handleMilestoneChange = (index, field, value) => {
     setFormData((prev) => {
       const updated = [...(prev.paymentMilestones || [])];
@@ -342,7 +258,6 @@ export function ClientForm({
     });
   };
 
-  
   const handlePanFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -358,11 +273,9 @@ export function ClientForm({
     setErrors((prev) => ({ ...prev, panFile: "" }));
   };
 
-  
   const validate = () => {
     const newErrors = {};
 
-    
     if (!formData.companyName || !formData.companyName.trim()) {
       newErrors.companyName = "Company name is required";
     }
@@ -375,7 +288,6 @@ export function ClientForm({
       newErrors.directorEmail = "Enter a valid director email (e.g. director@company.com)";
     }
 
-    
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -475,7 +387,6 @@ export function ClientForm({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {}
       <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <button
@@ -516,7 +427,6 @@ export function ClientForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {}
         <FormSection
           id="company"
           title="1. Company Information"
@@ -610,7 +520,6 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {}
         <FormSection
           id="director"
           title="2. Director Details"
@@ -664,7 +573,6 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {}
         <FormSection
           id="address"
           title="3. Client Address & Location"
@@ -726,7 +634,6 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {}
         <FormSection
           id="contact"
           title="4. Contact Person(s)"
@@ -880,11 +787,9 @@ export function ClientForm({
               </div>
             ))}
 
-
           </div>
         </FormSection>
 
-        {}
         <FormSection
           id="pan"
           title="5. PAN Card Details"
@@ -976,7 +881,6 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {}
         <FormSection
           id="milestones"
           title="6. Client Payment Milestones (Payable Schedule)"
@@ -984,7 +888,6 @@ export function ClientForm({
           icon={CreditCard}
         >
           <div className="space-y-4">
-            {}
             <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <label className="text-[11px] font-bold text-blue-900 uppercase tracking-wider block mb-1.5">
@@ -1019,7 +922,6 @@ export function ClientForm({
                   </span>
                 </div>
 
-                {}
                 {(() => {
                   const milestonesSum = (formData.paymentMilestones || []).reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
                   const targetTotal = Number(totalPaymentInput) || 0;
@@ -1060,7 +962,6 @@ export function ClientForm({
               </button>
             </div>
 
-            {}
             {(!formData.paymentMilestones || formData.paymentMilestones.length === 0) ? (
               <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                 <p className="text-xs text-gray-500 font-medium">No payment milestones configured (Optional).</p>
@@ -1106,7 +1007,6 @@ export function ClientForm({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {}
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                           Milestone Name
@@ -1120,7 +1020,6 @@ export function ClientForm({
                         />
                       </div>
 
-                      {}
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                           Payment Amount (₹)
@@ -1139,7 +1038,6 @@ export function ClientForm({
                         </div>
                       </div>
 
-                      {}
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                           Payment Trigger / Condition (Optional)
@@ -1154,7 +1052,6 @@ export function ClientForm({
                       </div>
                     </div>
 
-                    {}
                     <div>
                       <label className="block text-[11px] font-medium text-gray-500 mb-1">
                         Optional Description or Remarks
@@ -1187,7 +1084,6 @@ export function ClientForm({
           </div>
         </FormSection>
 
-        {}
         <FormSection
           id="documents"
           title="7. Legal & Compliance Documents"
@@ -1199,7 +1095,6 @@ export function ClientForm({
           />
         </FormSection>
 
-        {}
         <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <p className="text-xs text-gray-500">
             Once saved, you can add deployment projects and trade manpower requirements directly under this client.

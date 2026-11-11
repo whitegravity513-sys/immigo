@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   Calendar as CalendarIcon,
   UserCheck,
   UserX,
   Clock,
-  Coffee,
   Download,
   Search,
   Pencil,
-  CheckCircle2,
-  AlertCircle,
   Users,
   Briefcase,
-  FileSpreadsheet,
   RotateCcw,
-  } from "lucide-react";
+} from "lucide-react";
 import apiClient from "../../services/apiClient.js";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import DateInput, { MonthYearSelector } from "../common/DateInput.jsx";
@@ -54,49 +55,53 @@ export default function AttendanceCalendarSection({
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
 
   const [monthData, setMonthData] = useState(null);
-  const [monthLoading, setMonthLoading] = useState(false);
 
   const [dateRecords, setDateRecords] = useState([]);
   const [dateLoading, setDateLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchMonthCalendar = useCallback(async () => {
-    setMonthLoading(true);
     try {
       const res = await apiClient.get(`/admin/attendance/calendar-month?month=${currentMonth}&year=${currentYear}`);
       setMonthData(res.data);
     } catch (err) {
       console.error("Failed to fetch calendar month data:", err);
-    } finally {
-      setMonthLoading(false);
     }
   }, [currentMonth, currentYear]);
 
   const fetchDateAttendance = useCallback(async (date) => {
     setDateLoading(true);
-    setErrorMsg("");
     try {
       const res = await apiClient.get(`/admin/attendance?date=${date}`);
       setDateRecords(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch date attendance:", err);
-      setErrorMsg("Failed to load attendance records for " + date);
     } finally {
       setDateLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchMonthCalendar();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchMonthCalendar();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchMonthCalendar, refreshTrigger]);
 
   useEffect(() => {
-    if (selectedDate) {
-      fetchDateAttendance(selectedDate);
-    }
+    if (!selectedDate) return;
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchDateAttendance(selectedDate);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedDate, fetchDateAttendance, refreshTrigger]);
 
   const handleJumpToToday = () => {

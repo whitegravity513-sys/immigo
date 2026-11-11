@@ -1,32 +1,29 @@
-import React, { useState, useEffect, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
   Receipt,
-  IndianRupee,
-  TrendingUp,
   TrendingDown,
   Clock,
   Search,
-  Download,
   Plus,
   RefreshCw,
-  Building2,
-  Calendar,
   Eye,
-  Filter,
   CheckCircle2,
   AlertCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-  X,
   FileSpreadsheet,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import crmClientService from "../../services/crmClientService.js";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import TransactionDetailModal from "../../components/crm/payments/TransactionDetailModal.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import DateInput from "../../components/common/DateInput.jsx";
 
 const PAYMENT_TABS = [
@@ -51,13 +48,20 @@ const PAYMENT_METHODS = [
 ];
 
 export default function PaymentsExpensesPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const initialClientId = searchParams.get("clientId") || "";
   const initialView = searchParams.get("view") || "";
   const initialTab =
     searchParams.get("tab") ||
     (initialView === "expenses" ? "expenses" : "received");
-  const { showToast } = useCrmToast() || { showToast: (msg) => console.log(msg) };
+  const crmToast = useCrmToast();
+  const showToast = useCallback(
+    (msg, type) => {
+      if (crmToast?.showToast) crmToast.showToast(msg, type);
+      else console.log(msg);
+    },
+    [crmToast]
+  );
 
   const [payments, setPayments] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -70,10 +74,13 @@ export default function PaymentsExpensesPage() {
   const [selectedClient, setSelectedClient] = useState(initialClientId);
   const [selectedMethod, setSelectedMethod] = useState("All");
 
-  useEffect(() => {
-    const viewParam = searchParams.get("view");
-    const tabParam = searchParams.get("tab");
-    const clientParam = searchParams.get("clientId");
+  const viewParam = searchParams.get("view");
+  const tabParam = searchParams.get("tab");
+  const clientParam = searchParams.get("clientId");
+  const urlSyncKey = `${viewParam || ""}|${tabParam || ""}|${clientParam ?? ""}`;
+  const [prevUrlSyncKey, setPrevUrlSyncKey] = useState(urlSyncKey);
+  if (urlSyncKey !== prevUrlSyncKey) {
+    setPrevUrlSyncKey(urlSyncKey);
     if (clientParam !== null) setSelectedClient(clientParam);
     if (tabParam) {
       setActiveTab(tabParam);
@@ -82,7 +89,7 @@ export default function PaymentsExpensesPage() {
     } else if (viewParam === "payments") {
       setActiveTab("received");
     }
-  }, [searchParams]);
+  }
 
   const isExpenseView =
     activeTab === "expenses" ||
@@ -91,19 +98,15 @@ export default function PaymentsExpensesPage() {
   const visibleTabs = isExpenseView ? EXPENSE_TABS : PAYMENT_TABS;
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [sortOrder, setSortOrder] = useState("desc"); 
+  const [sortOrder] = useState("desc");
 
-  
   const [viewingTx, setViewingTx] = useState(null);
   const [viewingType, setViewingType] = useState("payment");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadClients();
-    loadAllData();
-  }, []);
+  const refreshRef = useRef(null);
 
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       const res = await crmClientService.getClients({ limit: 200 });
       const list = Array.isArray(res?.clients) ? res.clients : Array.isArray(res) ? res : [];
@@ -111,10 +114,10 @@ export default function PaymentsExpensesPage() {
     } catch (err) {
       console.error("Failed to load clients:", err);
     }
-  };
+  }, []);
 
-  const loadAllData = async () => {
-    setLoading(true);
+  const loadAllData = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const [paymentsRes, expensesRes] = await Promise.all([
         crmClientService.getClientPayments({ limit: 500 }),
@@ -125,13 +128,53 @@ export default function PaymentsExpensesPage() {
       setExpenses(Array.isArray(expensesRes) ? expensesRes : []);
     } catch (err) {
       console.error("Failed to load transaction data:", err);
-      showToast("Failed to load transactions", "error");
+      if (!silent) showToast("Failed to load transactions", "error");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  
+  useEffect(() => {
+    refreshRef.current = () => {
+      loadClients();
+      loadAllData({ silent: true });
+    };
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        loadClients();
+        loadAllData();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadClients, loadAllData]);
+
+  useEffect(() => {
+    let timer = null;
+    const handleLiveUpdate = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        refreshRef.current?.();
+      }, 200);
+    };
+    const events = [
+      "immigo:dashboard-update",
+      "immigo:project-update",
+      "immigo:refund-update",
+      "immigo:application-update",
+    ];
+    events.forEach((evt) => window.addEventListener(evt, handleLiveUpdate));
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach((evt) => window.removeEventListener(evt, handleLiveUpdate));
+    };
+  }, []);
+
   const unifiedTransactions = useMemo(() => {
     const pList = payments.map((p) => {
       const agreed = Number(p.agreedMilestoneAmount) || 0;
@@ -201,7 +244,6 @@ export default function PaymentsExpensesPage() {
     return [...pList, ...eList];
   }, [payments, expenses]);
 
-
   const stats = useMemo(() => {
     const activePayments = payments.filter((p) => !p.isReversed);
     const settledPayments = activePayments.filter(
@@ -252,7 +294,6 @@ export default function PaymentsExpensesPage() {
     };
   }, [payments, expenses]);
 
-
   const filteredTransactions = useMemo(() => {
     const matchedClientIds = new Set();
     if (selectedClient && selectedClient !== "All" && selectedClient !== "") {
@@ -287,12 +328,10 @@ export default function PaymentsExpensesPage() {
           if (!matchedClientIds.has(String(tx.clientId))) return false;
         }
 
-        
         if (selectedMethod !== "All") {
           if (tx.paymentMethod?.toLowerCase() !== selectedMethod.toLowerCase()) return false;
         }
 
-        
         if (startDate) {
           const txDate = new Date(tx.date).getTime();
           const start = new Date(startDate).getTime();
@@ -304,7 +343,6 @@ export default function PaymentsExpensesPage() {
           if (txDate > end) return false;
         }
 
-        
         if (search.trim()) {
           const q = search.toLowerCase();
           const matches =
@@ -327,7 +365,6 @@ export default function PaymentsExpensesPage() {
       });
   }, [unifiedTransactions, activeTab, selectedClient, clients, selectedMethod, startDate, endDate, search, sortOrder]);
 
-  
   const handleExport = () => {
     if (filteredTransactions.length === 0) {
       showToast("No records to export", "info");
@@ -565,9 +602,7 @@ export default function PaymentsExpensesPage() {
           })}
         </div>
 
-        {}
         <div className="p-4 border-b border-gray-100 bg-white grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
-          {}
           <div className="relative lg:col-span-2">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -579,7 +614,6 @@ export default function PaymentsExpensesPage() {
             />
           </div>
 
-          {}
           <div>
             <select
               value={selectedClient}
@@ -595,7 +629,6 @@ export default function PaymentsExpensesPage() {
             </select>
           </div>
 
-          {}
           <div>
             <select
               value={selectedMethod}
@@ -610,7 +643,6 @@ export default function PaymentsExpensesPage() {
             </select>
           </div>
 
-          {}
           <div>
             <DateInput
               value={startDate}
@@ -621,7 +653,6 @@ export default function PaymentsExpensesPage() {
             />
           </div>
 
-          {}
           <div>
             <DateInput
               value={endDate}
@@ -633,7 +664,6 @@ export default function PaymentsExpensesPage() {
           </div>
         </div>
 
-        {}
         {loading ? (
           <div className="p-8">
             <LoadingSkeleton type="card" count={3} />
@@ -668,7 +698,6 @@ export default function PaymentsExpensesPage() {
                   const isPayment = tx.type === "payment";
                   return (
                     <tr key={tx.id} className="hover:bg-gray-50/60 transition-colors">
-                      {}
                       <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -684,12 +713,10 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-gray-700 whitespace-nowrap">
                         {formatDate(tx.date)}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <Link
                           to={`/client/clients/${tx.clientId}?tab=milestones`}
@@ -699,12 +726,10 @@ export default function PaymentsExpensesPage() {
                         </Link>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-gray-700 max-w-xs truncate">
                         {tx.projectName}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <span
                           className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${
@@ -717,7 +742,6 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 whitespace-nowrap">
                         <div
                           className={`font-semibold text-sm ${
@@ -738,7 +762,6 @@ export default function PaymentsExpensesPage() {
                         )}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <div className="text-gray-900 font-semibold">{tx.paymentMethod}</div>
                         <div className="font-mono text-[10px] text-gray-500 truncate max-w-[120px]">
@@ -750,7 +773,6 @@ export default function PaymentsExpensesPage() {
                         {isPayment ? `By: ${tx.receivedBy}` : `To: ${tx.paidTo}`}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadge(
@@ -761,7 +783,6 @@ export default function PaymentsExpensesPage() {
                         </span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-right whitespace-nowrap space-x-1">
                         {isPayment && tx.isScheduledPayable && (
                           <Link
@@ -800,7 +821,6 @@ export default function PaymentsExpensesPage() {
         </div>
       </div>
 
-      {}
       <TransactionDetailModal
         isOpen={isModalOpen}
         onClose={() => {

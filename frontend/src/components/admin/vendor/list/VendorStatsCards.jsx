@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function VendorStatsCards({ vendors = [], statusFilter, onSelectFilter }) {
   const suspendedCount = vendors.filter((v) => v.status === "Suspended").length;
@@ -31,7 +30,6 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {/* 1. Newly Registered */}
       <div
         onClick={() => onSelectFilter(statusFilter === "Registered" ? "All" : "Registered")}
         className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs ${
@@ -82,7 +80,6 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
         </div>
       </div>
 
-      {/* 2. Verified & Approved */}
       <div
         onClick={() => onSelectFilter(statusFilter === "Approved" ? "All" : "Approved")}
         className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs ${
@@ -127,7 +124,6 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
         </div>
       </div>
 
-      {/* 3. Suspended */}
       <div
         onClick={() => onSelectFilter(statusFilter === "Suspended" ? "All" : "Suspended")}
         className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs ${
@@ -172,7 +168,6 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
         </div>
       </div>
 
-      {/* 4. Rejected */}
       <div
         onClick={() => onSelectFilter(statusFilter === "Rejected" ? "All" : "Rejected")}
         className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs ${

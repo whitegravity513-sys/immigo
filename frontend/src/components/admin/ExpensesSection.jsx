@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import DateInput from "../common/DateInput.jsx";
 import {
   DollarSign,
-  CheckCircle,
   CheckCircle2,
   AlertCircle,
   Edit,
@@ -11,10 +10,6 @@ import {
   Building2,
   Users,
   FileText,
-  UploadCloud,
-  Check,
-  X,
-  Filter,
   Receipt,
   ExternalLink,
 } from "lucide-react";
@@ -47,9 +42,6 @@ export default function ExpensesSection({
 }) {
   const [activeTab, setActiveTab] = useState("company"); 
   const [clients, setClients] = useState([]);
-  const [selectedClientId, setSelectedClientId] = useState("");
-  const [clientExpenseData, setClientExpenseData] = useState(null);
-  const [clientLoading, setClientLoading] = useState(false);
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState(null);
@@ -64,7 +56,6 @@ export default function ExpensesSection({
 
   const [receiptModalUrl, setReceiptModalUrl] = useState(null);
 
-  const [corporateReceipt, setCorporateReceipt] = useState("");
   const [corporateReceiptName, setCorporateReceiptName] = useState("");
 
   const [expenseTargetFilter, setExpenseTargetFilter] = useState("all"); 
@@ -122,25 +113,6 @@ export default function ExpensesSection({
     loadClients();
   }, []);
 
-  useEffect(() => {
-    if (!selectedClientId) {
-      setClientExpenseData(null);
-      return;
-    }
-    async function fetchClientExpenses() {
-      try {
-        setClientLoading(true);
-        const res = await apiClient.get(`/admin/expenses/client/${selectedClientId}`);
-        setClientExpenseData(res.data?.data || res.data || null);
-      } catch (err) {
-        console.error("Failed to load client expenses", err);
-      } finally {
-        setClientLoading(false);
-      }
-    }
-    fetchClientExpenses();
-  }, [selectedClientId]);
-
   const handleSubmitReview = async (e, overrideStatus = null) => {
     if (e) e.preventDefault();
     const claimId = selectedClaim?._id || selectedClaim?.id;
@@ -171,7 +143,7 @@ export default function ExpensesSection({
 
       try {
         await apiClient.patch(`/admin/expenses/${claimId}/review`, payload);
-      } catch (patchErr) {
+      } catch {
         await apiClient.put(`/admin/expenses/${claimId}/review`, payload);
       }
 
@@ -209,18 +181,14 @@ export default function ExpensesSection({
 
   const employeeClaims = safeExpenses.filter(e => e && (e.employee || e.employeeId));
   const pendingClaims = employeeClaims.filter(e => e.status === "Pending");
-  const approvedClaims = employeeClaims.filter(e => e.status === "Approved");
 
   const clientExpenses = safeExpenses.filter(e => e && (e.client || e.clientId));
   const employeeExpenses = safeExpenses.filter(e => e && (e.employee || e.employeeId));
   const companyExpenses = safeExpenses.filter(e => e && !e.client && !e.clientId && !e.employee && !e.employeeId);
 
-  const totalExpense = safeExpenses.filter(e => e && (e.type === "Expense" || !e.type)).reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const totalIncome = safeExpenses.filter(e => e && e.type === "Income").reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const totalCompanyAmount = companyExpenses.filter(e => e && (e.type === "Expense" || !e.type)).reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const totalClientAmount = clientExpenses.filter(e => e && (e.type === "Expense" || !e.type)).reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const totalEmployeeAmount = employeeExpenses.filter(e => e && (e.type === "Expense" || !e.type)).reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const totalPendingAmount = pendingClaims.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
   const targetFilterStr = expenseFilterDate ? toLocalDateStr(expenseFilterDate) : null;
   let baseFiltered = targetFilterStr
@@ -259,7 +227,6 @@ export default function ExpensesSection({
     }
     const reader = new FileReader();
     reader.onload = () => {
-      setCorporateReceipt(reader.result);
       setCorporateReceiptName(file.name);
       if (setExpenseForm) {
         setExpenseForm(prev => ({ ...prev, receipt: reader.result }));
@@ -452,7 +419,6 @@ export default function ExpensesSection({
                           clientId: "",
                         });
                       }
-                      setCorporateReceipt("");
                       setCorporateReceiptName("");
                     }}
                     className="text-[11px] text-rose-600 font-bold hover:underline cursor-pointer"
@@ -906,7 +872,6 @@ export default function ExpensesSection({
         </div>
       )}
 
-      {}
       {reviewModalOpen && selectedClaim && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div
@@ -916,7 +881,6 @@ export default function ExpensesSection({
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
-              {}
               <div className="px-4 py-3 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">
                 <div>
                   <h4 className="text-sm font-bold tracking-tight">
@@ -934,7 +898,6 @@ export default function ExpensesSection({
                 </button>
               </div>
 
-              {}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar text-left">
                 {reviewError && (
                   <div className="p-3 bg-rose-50 border border-rose-300 text-rose-800 rounded-xl text-xs font-semibold flex items-center gap-2">
@@ -949,7 +912,6 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                {}
                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-2.5">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee</span>
@@ -1000,7 +962,6 @@ export default function ExpensesSection({
                   )}
                 </div>
 
-                {}
                 <div className="space-y-3 pt-2">
                   <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                     Update Claim Status & Payment
@@ -1051,7 +1012,6 @@ export default function ExpensesSection({
                     </button>
                   </div>
 
-                  {}
                   {reviewAction === "Paid" && (
                     <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2.5 animate-in fade-in duration-150">
                       <span className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider block">
@@ -1096,7 +1056,6 @@ export default function ExpensesSection({
                     </div>
                   )}
 
-                  {}
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-600 block">
                       Admin Remarks / Notes for Employee
@@ -1112,7 +1071,6 @@ export default function ExpensesSection({
                 </div>
               </div>
 
-              {}
               <div className="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
                 <button
                   type="button"

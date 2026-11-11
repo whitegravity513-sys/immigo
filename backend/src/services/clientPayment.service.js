@@ -3,7 +3,6 @@ import Client from "../models/Client.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import ActivityService from "./activity.service.js";
 import { ApiError } from "../utils/apiError.js";
-import { logger } from "../utils/logger.js";
 
 export class ClientPaymentService {
   static async resolveClientIds(clientId) {

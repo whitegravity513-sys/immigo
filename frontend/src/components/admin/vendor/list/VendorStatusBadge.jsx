@@ -1,4 +1,3 @@
-import React from "react";
 import { CheckCircle2, Clock, FileText, XCircle, Ban, ShieldCheck } from "lucide-react";
 
 export default function VendorStatusBadge({ status }) {

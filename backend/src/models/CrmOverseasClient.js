@@ -4,7 +4,6 @@ const crmOverseasClientSchema = new mongoose.Schema(
   {
     clientId: {
       type: String,
-      sparse: true,
       trim: true,
     },
     companyName: {
@@ -67,7 +66,9 @@ const crmOverseasClientSchema = new mongoose.Schema(
   }
 );
 
+crmOverseasClientSchema.index({ clientId: 1 }, { sparse: true });
 crmOverseasClientSchema.index({ companyName: 1 });
+crmOverseasClientSchema.index({ createdAt: -1 });
 
 const CrmOverseasClient = mongoose.model("CrmOverseasClient", crmOverseasClientSchema);
 export default CrmOverseasClient;

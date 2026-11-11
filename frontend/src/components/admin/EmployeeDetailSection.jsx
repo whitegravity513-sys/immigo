@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Calendar as CalendarIcon,
@@ -76,16 +76,17 @@ export default function EmployeeDetailSection({
   const location = useLocation();
   const validTabs = ["attendance", "payments", "documents", "leaves"];
   const urlTab = new URLSearchParams(location.search).get("tab");
+  const normalizedUrlTab = urlTab && validTabs.includes(urlTab) ? urlTab : null;
 
-  const [activeTab, setActiveTab] = useState(
-    urlTab && validTabs.includes(urlTab) ? urlTab : "attendance"
-  );
-
-  useEffect(() => {
-    if (urlTab && validTabs.includes(urlTab)) {
-      setActiveTab(urlTab);
+  const [activeTab, setActiveTab] = useState(normalizedUrlTab || "attendance");
+  const [prevSyncKey, setPrevSyncKey] = useState(`${selectedEmployeeId}:${normalizedUrlTab || ""}`);
+  const syncKey = `${selectedEmployeeId}:${normalizedUrlTab || ""}`;
+  if (syncKey !== prevSyncKey) {
+    setPrevSyncKey(syncKey);
+    if (normalizedUrlTab) {
+      setActiveTab(normalizedUrlTab);
     }
-  }, [urlTab, selectedEmployeeId]);
+  }
 
   const joiningDateStr = (() => {
     if (!emp?.joiningDate) return null;

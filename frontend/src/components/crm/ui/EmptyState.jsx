@@ -1,4 +1,3 @@
-import React from "react";
 import { FolderX, Plus } from "lucide-react";
 
 export function EmptyState({

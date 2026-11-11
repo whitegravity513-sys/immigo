@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Users,
   User,
@@ -6,23 +6,12 @@ import {
   Briefcase,
   Search,
   X,
-  Check,
   CheckCircle2,
   ShieldCheck,
-  Sparkles,
-  ChevronDown,
   FolderKanban,
 } from "lucide-react";
 import meetingService from "../../../services/meetingService.js";
 
-/**
- * DynamicMeetingParticipantSelector
- * Clean, modern, adaptive participant selector that transforms based on meetingType.
- * Supports:
- *  - "ALL" mode (e.g. All Employees, All Vendors, All HRs)
- *  - "SPECIFIC" mode (1, 2-3, or multiple participants via multi-select tags/chips)
- *  - Real-time name search with full data preview (badges, IDs, roles, emails)
- */
 export default function DynamicMeetingParticipantSelector({
   meetingType = "CANDIDATE_INTERVIEW",
   targetMode = "SPECIFIC",
@@ -41,8 +30,6 @@ export default function DynamicMeetingParticipantSelector({
   },
   onCandidateChange,
   isVendorRestricted = false,
-  selectedProjectId = "",
-  onProjectChange,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -63,19 +50,17 @@ export default function DynamicMeetingParticipantSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (isVendorRestricted && targetMode !== "SPECIFIC" && onTargetModeChange) {
-      onTargetModeChange("SPECIFIC");
-    }
-    loadCategoryData();
-  }, [meetingType, isVendorRestricted]);
-
-  const loadCategoryData = async () => {
+  const loadCategoryData = useCallback(async () => {
     setLoading(true);
     setSearchQuery("");
     try {
       if (isVendorRestricted || meetingType === "INTERNAL_HR") {
         const data = await meetingService.searchHRs();
+        const normalized = data || [];
+        setOptionsList(normalized);
+        setFilteredOptions(normalized);
+      } else if (meetingType === "ADMIN_DISCUSSION") {
+        const data = await meetingService.searchAdmins();
         const normalized = data || [];
         setOptionsList(normalized);
         setFilteredOptions(normalized);
@@ -105,13 +90,27 @@ export default function DynamicMeetingParticipantSelector({
         setOptionsList(combined);
         setFilteredOptions(combined);
       }
-    } catch (err) {
+    } catch {
       setOptionsList([]);
       setFilteredOptions([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isVendorRestricted, meetingType]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      if (isVendorRestricted && targetMode !== "SPECIFIC" && onTargetModeChange) {
+        onTargetModeChange("SPECIFIC");
+      }
+      loadCategoryData();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isVendorRestricted, targetMode, onTargetModeChange, loadCategoryData]);
 
   const handleSearchChange = (query) => {
     setSearchQuery(query);
@@ -131,6 +130,9 @@ export default function DynamicMeetingParticipantSelector({
         item.candidateId?.toLowerCase().includes(q) ||
         item.email?.toLowerCase().includes(q) ||
         item.designation?.toLowerCase().includes(q) ||
+        item.roleLabel?.toLowerCase().includes(q) ||
+        item.role?.toLowerCase().includes(q) ||
+        item.department?.toLowerCase().includes(q) ||
         item.position?.toLowerCase().includes(q) ||
         (Array.isArray(item.assignedProjects) &&
           item.assignedProjects.some(
@@ -178,6 +180,8 @@ export default function DynamicMeetingParticipantSelector({
         role:
           isVendorRestricted || meetingType === "INTERNAL_HR"
             ? item.hrType || item.role || "HR"
+            : meetingType === "ADMIN_DISCUSSION"
+            ? item.role || "ADMIN"
             : meetingType === "VENDOR_DISCUSSION"
             ? "VENDOR"
             : meetingType === "EMPLOYEE"
@@ -185,7 +189,7 @@ export default function DynamicMeetingParticipantSelector({
             : item.role || "ATTENDEE",
         code: item.employeeId || item.vendorId || "",
         companyName: item.companyName || "",
-        designation: item.designation || item.hrType || "",
+        designation: item.designation || item.roleLabel || item.hrType || "",
         assignedProjects: Array.isArray(item.assignedProjects) ? item.assignedProjects : [],
       });
     }
@@ -392,7 +396,179 @@ export default function DynamicMeetingParticipantSelector({
     );
   }
 
-  // 1. VENDOR DISCUSSION VIEW
+  if (meetingType === "ADMIN_DISCUSSION") {
+    return (
+      <div
+        ref={containerRef}
+        className="p-3.5 rounded-xl bg-gradient-to-br from-sky-50/70 to-indigo-50/40 border border-sky-200/90 space-y-3"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-sky-950 font-bold text-xs flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-sky-600" />
+            <span>Admin &amp; Super Admin Invitees</span>
+          </label>
+
+          <div className="inline-flex rounded-lg bg-white/80 p-0.5 border border-sky-200 text-[11px] font-bold">
+            <button
+              type="button"
+              onClick={() => onTargetModeChange("ALL")}
+              className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
+                targetMode === "ALL"
+                  ? "bg-sky-600 text-white shadow-2xs"
+                  : "text-sky-800 hover:text-sky-950"
+              }`}
+            >
+              All Admins
+            </button>
+            <button
+              type="button"
+              onClick={() => onTargetModeChange("SPECIFIC")}
+              className={`px-2.5 py-0.5 rounded-md transition cursor-pointer ${
+                targetMode === "SPECIFIC"
+                  ? "bg-sky-600 text-white shadow-2xs"
+                  : "text-sky-800 hover:text-sky-950"
+              }`}
+            >
+              Select Specific ({selectedParticipants.length})
+            </button>
+          </div>
+        </div>
+
+        {targetMode === "ALL" ? (
+          <div className="p-3 bg-white/90 rounded-xl border border-sky-200 text-xs text-sky-900 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-sky-600 shrink-0" />
+            <span>
+              All Administrators and Super Administrators will receive this meeting invitation and alert notification.
+            </span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {selectedParticipants.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 p-2 bg-white/90 rounded-xl border border-sky-200 max-h-24 overflow-y-auto custom-scrollbar">
+                {selectedParticipants.map((p) => (
+                  <span
+                    key={p.id || p.email}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-100/80 text-sky-950 text-xs font-bold border border-sky-300/80 shadow-2xs"
+                  >
+                    <div className="w-4 h-4 rounded-full bg-sky-600 text-white text-[9px] flex items-center justify-center font-bold">
+                      {p.name?.slice(0, 1).toUpperCase()}
+                    </div>
+                    <span>{p.name}</span>
+                    {p.role && (
+                      <span className="text-[10px] text-sky-800 bg-sky-200/60 px-1 py-0.2 rounded">
+                        {p.role === "SUPER_ADMIN" ? "Super Admin" : "Admin"}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveParticipant(p.id || p.email)}
+                      className="ml-0.5 hover:text-rose-600 text-sky-700 cursor-pointer"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="relative">
+              <div className="relative flex items-center">
+                <Search className="w-3.5 h-3.5 text-sky-400 absolute left-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search Admin or Super Admin by name or email..."
+                  value={searchQuery}
+                  onFocus={() => setDropdownOpen(true)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 rounded-xl border border-sky-200 bg-white text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none placeholder:text-slate-400"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange("")}
+                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              {dropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl z-50 divide-y divide-slate-100 custom-scrollbar">
+                  {loading ? (
+                    <div className="p-3 text-center text-xs text-slate-400">
+                      Loading Admins &amp; Super Admins...
+                    </div>
+                  ) : filteredOptions.length === 0 ? (
+                    <div className="p-3 text-center text-xs text-slate-500">
+                      {searchQuery
+                        ? `No Admin or Super Admin found matching "${searchQuery}".`
+                        : "No Admins available."}
+                    </div>
+                  ) : (
+                    filteredOptions.map((a) => {
+                      const selected = isSelected(a);
+                      const isSuper = a.role === "SUPER_ADMIN" || a.roleLabel === "Super Admin";
+                      return (
+                        <div
+                          key={a.id || a._id}
+                          onClick={() => handleSelectOption(a)}
+                          className={`p-2.5 flex items-center justify-between cursor-pointer transition ${
+                            selected ? "bg-sky-50/90 text-sky-950 font-bold" : "hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-lg text-white font-bold flex items-center justify-center text-xs shrink-0 ${
+                                isSuper ? "bg-indigo-700" : "bg-sky-600"
+                              }`}
+                            >
+                              {a.name?.slice(0, 2).toUpperCase() || "AD"}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-900 text-xs truncate">
+                                {a.name}
+                              </div>
+                              <div className="text-[10px] text-slate-500 truncate flex items-center gap-1.5 flex-wrap">
+                                <span
+                                  className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                    isSuper
+                                      ? "bg-indigo-100 text-indigo-700"
+                                      : "bg-sky-100 text-sky-700"
+                                  }`}
+                                >
+                                  {a.roleLabel || (isSuper ? "Super Admin" : "Admin")}
+                                </span>
+                                <span>{a.email}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                              selected
+                                ? "bg-sky-600 text-white"
+                                : "bg-sky-50 text-sky-700 hover:bg-sky-100"
+                            }`}
+                          >
+                            {selected ? "Selected" : "+ Add"}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+
+            <p className="text-[10px] text-sky-700/80 font-medium">
+              Select one or more Administrators / Super Administrators, or toggle &quot;All Admins&quot;.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (meetingType === "VENDOR_DISCUSSION") {
     return (
       <div
@@ -405,7 +581,6 @@ export default function DynamicMeetingParticipantSelector({
             <span>Vendor Agency Invitees</span>
           </label>
 
-          {/* Toggle All vs Specific */}
           <div className="inline-flex rounded-lg bg-white/80 p-0.5 border border-amber-200 text-[11px] font-bold">
             <button
               type="button"
@@ -441,7 +616,6 @@ export default function DynamicMeetingParticipantSelector({
           </div>
         ) : (
           <div className="space-y-2">
-            {/* Multi-select Tags/Chips */}
             {selectedParticipants.length > 0 && (
               <div className="flex flex-wrap gap-1.5 p-2 bg-white/90 rounded-xl border border-amber-200 max-h-24 overflow-y-auto custom-scrollbar">
                 {selectedParticipants.map((p) => (
@@ -468,7 +642,6 @@ export default function DynamicMeetingParticipantSelector({
               </div>
             )}
 
-            {/* Search Input */}
             <div className="relative">
               <div className="relative flex items-center">
                 <Search className="w-3.5 h-3.5 text-amber-400 absolute left-3 pointer-events-none" />
@@ -491,7 +664,6 @@ export default function DynamicMeetingParticipantSelector({
                 )}
               </div>
 
-              {/* Dropdown Options */}
               {dropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl z-50 divide-y divide-slate-100 custom-scrollbar">
                   {loading ? (
@@ -549,7 +721,6 @@ export default function DynamicMeetingParticipantSelector({
     );
   }
 
-  // 2. EMPLOYEE DISCUSSION VIEW
   if (meetingType === "EMPLOYEE") {
     return (
       <div
@@ -562,7 +733,6 @@ export default function DynamicMeetingParticipantSelector({
             <span>Employee Participants</span>
           </label>
 
-          {/* Toggle All vs Specific */}
           <div className="inline-flex rounded-lg bg-white/80 p-0.5 border border-blue-200 text-[11px] font-bold">
             <button
               type="button"
@@ -598,7 +768,6 @@ export default function DynamicMeetingParticipantSelector({
           </div>
         ) : (
           <div className="space-y-2">
-            {/* Multi-select Tags/Chips */}
             {selectedParticipants.length > 0 && (
               <div className="flex flex-wrap gap-1.5 p-2 bg-white/90 rounded-xl border border-blue-200 max-h-24 overflow-y-auto custom-scrollbar">
                 {selectedParticipants.map((p) => (
@@ -627,7 +796,6 @@ export default function DynamicMeetingParticipantSelector({
               </div>
             )}
 
-            {/* Search Input */}
             <div className="relative">
               <div className="relative flex items-center">
                 <Search className="w-3.5 h-3.5 text-blue-400 absolute left-3 pointer-events-none" />
@@ -650,7 +818,6 @@ export default function DynamicMeetingParticipantSelector({
                 )}
               </div>
 
-              {/* Dropdown Options */}
               {dropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl z-50 divide-y divide-slate-100 custom-scrollbar">
                   {loading ? (
@@ -708,7 +875,6 @@ export default function DynamicMeetingParticipantSelector({
     );
   }
 
-  // 4. CANDIDATE INTERVIEW VIEW
   if (meetingType === "CANDIDATE_INTERVIEW") {
     return (
       <div
@@ -792,7 +958,7 @@ export default function DynamicMeetingParticipantSelector({
                   onCandidateChange({
                     ...candidateData,
                     candidateName: e.target.value,
-                    candidateId: candidateData.candidateId || `CAND-${Date.now().toString().slice(-4)}`,
+                    candidateId: candidateData.candidateId || `IMMI-CA-${Date.now().toString().slice(-3)}`,
                   })
                 }
                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none"
@@ -822,7 +988,7 @@ export default function DynamicMeetingParticipantSelector({
               <Search className="w-3.5 h-3.5 text-emerald-400 absolute left-3 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search candidate by name, ID or job (e.g. Sneha Patel, CAND-1029)..."
+                placeholder="Search candidate by name, ID or job (e.g. Sneha Patel, IMMI-CA-001)..."
                 value={searchQuery}
                 onFocus={() => setDropdownOpen(true)}
                 onChange={(e) => handleSearchChange(e.target.value)}
@@ -887,7 +1053,6 @@ export default function DynamicMeetingParticipantSelector({
     );
   }
 
-  // 5. GENERAL VIEW
   return (
     <div
       ref={containerRef}

@@ -1,4 +1,3 @@
-import React from "react";
 import { MonthYearSelector } from "../common/DateInput.jsx";
 
 export default function AttendanceCalendarTab({

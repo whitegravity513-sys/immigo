@@ -279,7 +279,6 @@ export default function Documents() {
 
   return (
     <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
@@ -305,7 +304,6 @@ export default function Documents() {
         </button>
       </div>
 
-      {}
       <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
         {isMouAssigned && (
           <button
@@ -344,12 +342,11 @@ export default function Documents() {
         
         <div className="space-y-3">
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
-            {}
             <div className="p-3 sm:p-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex flex-col md:flex-row md:items-center justify-between gap-2.5">
               <div>
                 <div className="flex items-center gap-2 flex-wrap mb-1.5">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
-                    Ref: {mouData.refNumber || `MOU-${vendor?.id || "VND"}`}
+                    Ref: {mouData.mouNumber || mouData.refNumber || `IMMI-MO-${String(vendor?.vendorId || vendor?.id || "001").slice(-3)}`}
                   </span>
                   {isRejected ? (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/25 text-rose-200 border border-rose-400/40">
@@ -449,7 +446,6 @@ export default function Documents() {
               </div>
             </div>
 
-            {}
             <div className="p-2.5 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2 bg-slate-50/60 border-b border-slate-200/80">
               <div className="p-2 rounded-md bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Authorized Signatory</span>
@@ -537,7 +533,6 @@ export default function Documents() {
               </div>
             </div>
 
-            {}
             <div className="p-3 space-y-2">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Operative Clauses & Mandate Summary
@@ -668,7 +663,6 @@ export default function Documents() {
         </div>
       )}
 
-      {}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">

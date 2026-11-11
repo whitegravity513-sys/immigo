@@ -6,11 +6,11 @@ import {
   getMilestones,
   getPaymentAnalytics,
 } from "../../controllers/v1/vendorPayment.controller.js";
-import { authenticateRBAC } from "../../middleware/rbac.middleware.js";
+import { authenticateRBAC, requireRoles } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.use(authenticateRBAC);
+router.use(authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN"));
 
 router.post("/milestones", createMilestone);
 router.put("/milestones/:id", updateMilestone);

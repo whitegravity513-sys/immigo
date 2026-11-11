@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   FolderPlus,
@@ -6,20 +6,15 @@ import {
   Building2,
   Users,
   Gift,
-  FileCheck,
-  Calendar,
   CreditCard,
   Plus,
   Trash2,
-  Sliders,
   Globe,
 } from "lucide-react";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
 import TextareaField from "../ui/TextareaField.jsx";
 import CountrySelectField from "../ui/CountrySelectField.jsx";
-import ManpowerTable from "../manpower/ManpowerTable.jsx";
-import DocumentsList from "../documents/DocumentsList.jsx";
 import { crmVendorService } from "../../../services/crmVendorService.js";
 
 const PROJECT_TYPES = [
@@ -89,15 +84,71 @@ const generatePresetMilestones = (parts, totalFee) => {
   }
 };
 
-export function AddProjectModal({
-  isOpen,
-  onClose,
-  onSave,
-  client = null,
-  clientCountry = "UAE",
-  projectToEdit = null,
-}) {
-  const [formData, setFormData] = useState({
+const buildAddProjectFormData = (client, clientCountry, projectToEdit) => {
+  if (projectToEdit) {
+    const existingMs =
+      Array.isArray(projectToEdit.paymentMilestoneConfig?.milestones) &&
+      projectToEdit.paymentMilestoneConfig.milestones.length > 0
+        ? projectToEdit.paymentMilestoneConfig.milestones
+        : Array.isArray(projectToEdit.paymentMilestones) &&
+          projectToEdit.paymentMilestones.length > 0
+        ? projectToEdit.paymentMilestones
+        : Array.isArray(projectToEdit.recruitmentConfig?.paymentMilestones) &&
+          projectToEdit.recruitmentConfig.paymentMilestones.length > 0
+        ? projectToEdit.recruitmentConfig.paymentMilestones
+        : null;
+    const resolvedFee = Number(
+      projectToEdit.paymentMilestoneConfig?.totalFeePerCandidate ??
+        projectToEdit.totalMilestoneAmount ??
+        projectToEdit.totalAgreedAmount ??
+        (existingMs
+          ? existingMs.reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0)
+          : 0)
+    );
+    const normalizedExisting = existingMs
+      ? existingMs.map((m, idx) => {
+          const amt = Number(m.paymentAmount ?? m.amount ?? 0);
+          return {
+            ...m,
+            id: m.id || `M${idx + 1}`,
+            name: m.name || `Milestone ${idx + 1}`,
+            amount: amt,
+            paymentAmount: String(amt),
+            percentage:
+              m.percentage !== undefined
+                ? m.percentage
+                : resolvedFee > 0
+                ? Math.round((amt / resolvedFee) * 100)
+                : 0,
+          };
+        })
+      : generatePresetMilestones(4, resolvedFee);
+
+    return {
+      ...projectToEdit,
+      positionTitle:
+        projectToEdit.positionTitle ||
+        projectToEdit.primaryPosition ||
+        projectToEdit.manpowerRequirements?.[0]?.position ||
+        "",
+      country: projectToEdit.country || client?.country || clientCountry || "UAE",
+      salary:
+        projectToEdit.salary ??
+        projectToEdit.manpowerRequirements?.[0]?.salary ??
+        "",
+      currency:
+        projectToEdit.currency ??
+        projectToEdit.manpowerRequirements?.[0]?.currency ??
+        "",
+      paymentMilestoneConfig: {
+        partsCount: normalizedExisting.length || 4,
+        totalFeePerCandidate: resolvedFee,
+        milestones: normalizedExisting,
+      },
+    };
+  }
+
+  return {
     projectName: "",
     positionTitle: "",
     projectType: "Construction",
@@ -134,130 +185,61 @@ export function AddProjectModal({
     },
     vendorVisibility: "all",
     assignedVendorIds: [],
-  });
+  };
+};
+
+export function AddProjectModal({
+  isOpen,
+  onClose,
+  onSave,
+  client = null,
+  clientCountry = "UAE",
+  projectToEdit = null,
+}) {
+  const [formData, setFormData] = useState(() =>
+    buildAddProjectFormData(client, clientCountry, projectToEdit)
+  );
 
   const [errors, setErrors] = useState({});
 
-  
   const [allVendors, setAllVendors] = useState([]);
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
   const [vendorCurrentPage, setVendorCurrentPage] = useState(1);
 
-  
-  useEffect(() => {
-    crmVendorService.getVendors({ status: "Approved" }).then((vendors) => {
-      setAllVendors(vendors || []);
-    }).catch(() => {});
-  }, []);
-
-  useEffect(() => {
+  const [prevSync, setPrevSync] = useState({
+    isOpen,
+    client,
+    clientCountry,
+    projectToEdit,
+  });
+  if (
+    isOpen !== prevSync.isOpen ||
+    (isOpen &&
+      (client !== prevSync.client ||
+        clientCountry !== prevSync.clientCountry ||
+        projectToEdit !== prevSync.projectToEdit))
+  ) {
+    setPrevSync({ isOpen, client, clientCountry, projectToEdit });
     if (isOpen) {
-      if (projectToEdit) {
-        const existingMs =
-          Array.isArray(projectToEdit.paymentMilestoneConfig?.milestones) &&
-          projectToEdit.paymentMilestoneConfig.milestones.length > 0
-            ? projectToEdit.paymentMilestoneConfig.milestones
-            : Array.isArray(projectToEdit.paymentMilestones) &&
-              projectToEdit.paymentMilestones.length > 0
-            ? projectToEdit.paymentMilestones
-            : Array.isArray(projectToEdit.recruitmentConfig?.paymentMilestones) &&
-              projectToEdit.recruitmentConfig.paymentMilestones.length > 0
-            ? projectToEdit.recruitmentConfig.paymentMilestones
-            : null;
-        const resolvedFee = Number(
-          projectToEdit.paymentMilestoneConfig?.totalFeePerCandidate ??
-            projectToEdit.totalMilestoneAmount ??
-            projectToEdit.totalAgreedAmount ??
-            (existingMs
-              ? existingMs.reduce((acc, m) => acc + Number(m.paymentAmount ?? m.amount ?? 0), 0)
-              : 0)
-        );
-        const normalizedExisting = existingMs
-          ? existingMs.map((m, idx) => {
-              const amt = Number(m.paymentAmount ?? m.amount ?? 0);
-              return {
-                ...m,
-                id: m.id || `M${idx + 1}`,
-                name: m.name || `Milestone ${idx + 1}`,
-                amount: amt,
-                paymentAmount: String(amt),
-                percentage:
-                  m.percentage !== undefined
-                    ? m.percentage
-                    : resolvedFee > 0
-                    ? Math.round((amt / resolvedFee) * 100)
-                    : 0,
-              };
-            })
-          : generatePresetMilestones(4, resolvedFee);
-
-        setFormData({
-          ...projectToEdit,
-          positionTitle:
-            projectToEdit.positionTitle ||
-            projectToEdit.primaryPosition ||
-            projectToEdit.manpowerRequirements?.[0]?.position ||
-            "",
-          country: projectToEdit.country || client?.country || clientCountry || "UAE",
-          salary:
-            projectToEdit.salary ??
-            projectToEdit.manpowerRequirements?.[0]?.salary ??
-            "",
-          currency:
-            projectToEdit.currency ??
-            projectToEdit.manpowerRequirements?.[0]?.currency ??
-            "",
-          paymentMilestoneConfig: {
-            partsCount: normalizedExisting.length || 4,
-            totalFeePerCandidate: resolvedFee,
-            milestones: normalizedExisting,
-          },
-        });
-      } else {
-        setFormData({
-          projectName: "",
-          positionTitle: "",
-          projectType: "Construction",
-          country: client?.country || clientCountry || "UAE",
-          location: "",
-          salary: "",
-          currency: "",
-          startDate: new Date().toISOString().split("T")[0],
-          duration: "24 Months",
-          description: "",
-          status: "Active",
-          benefits: [
-            "Accommodation",
-            "Transportation",
-            "Medical Insurance",
-            "Visa",
-            "Work Permit",
-          ],
-          otherBenefits: "",
-          additionalRequirements: {
-            requiredDocuments: "",
-            specialSkills: "",
-            languageRequirements: "English / Hindi",
-            medicalRequirements: "GAMCA Fit certificate",
-            otherInstructions: "",
-          },
-          totalHeadcount: 25,
-          workforceNotes: "",
-          documents: [],
-          paymentMilestoneConfig: {
-            partsCount: 4,
-            totalFeePerCandidate: 0,
-            milestones: generatePresetMilestones(4, 0),
-          },
-          vendorVisibility: "all",
-          assignedVendorIds: [],
-        });
-      }
+      setFormData(buildAddProjectFormData(client, clientCountry, projectToEdit));
       setErrors({});
       setVendorSearchTerm("");
       setVendorCurrentPage(1);
     }
-  }, [isOpen, client, clientCountry, projectToEdit]);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    crmVendorService
+      .getVendors({ status: "Approved" })
+      .then((vendors) => {
+        if (!cancelled) setAllVendors(vendors || []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -383,23 +365,6 @@ export function AddProjectModal({
     onClose();
   };
 
-  const defaultCurrency =
-    formData.country === "Saudi Arabia"
-      ? "SAR"
-      : formData.country === "Qatar"
-      ? "QAR"
-      : formData.country === "Oman"
-      ? "OMR"
-      : formData.country === "Kuwait"
-      ? "KWD"
-      : formData.country === "Bahrain"
-      ? "BHD"
-      : formData.country === "Germany"
-      ? "EUR"
-      : formData.country === "United Kingdom"
-      ? "GBP"
-      : "AED";
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
@@ -410,7 +375,6 @@ export function AddProjectModal({
       <div className="flex min-h-full items-center justify-center p-3 text-center sm:p-0">
         <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-200">
           <form onSubmit={handleSubmit}>
-            {}
             <div className="bg-gray-50/80 px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
@@ -434,7 +398,6 @@ export function AddProjectModal({
               </button>
             </div>
 
-            {}
             {client && (
               <div className="bg-blue-50/70 border-b border-blue-100 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2 truncate">
@@ -452,9 +415,7 @@ export function AddProjectModal({
               </div>
             )}
 
-            {}
             <div className="p-4 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              {}
               <div className="space-y-4">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Building2 size={15} className="text-blue-600" />
@@ -569,7 +530,6 @@ export function AddProjectModal({
                 </div>
               </div>
 
-              {}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
@@ -597,7 +557,6 @@ export function AddProjectModal({
                 </div>
               </div>
 
-              {}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Gift size={15} className="text-blue-600" />
@@ -640,7 +599,6 @@ export function AddProjectModal({
                 )}
               </div>
 
-              {}
               <div className="space-y-3 pt-4 border-t border-gray-100">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Globe size={15} className="text-blue-600" />
@@ -657,7 +615,7 @@ export function AddProjectModal({
                         name="vendorVisibility"
                         value="all"
                         checked={formData.vendorVisibility === 'all'}
-                        onChange={(e) => setFormData(prev => ({ ...prev, vendorVisibility: 'all' }))}
+                        onChange={() => setFormData(prev => ({ ...prev, vendorVisibility: 'all' }))}
                         className="mt-0.5 text-blue-600 cursor-pointer shrink-0"
                       />
                       <div>
@@ -672,7 +630,7 @@ export function AddProjectModal({
                         name="vendorVisibility"
                         value="specific"
                         checked={formData.vendorVisibility === 'specific'}
-                        onChange={(e) => setFormData(prev => ({ ...prev, vendorVisibility: 'specific' }))}
+                        onChange={() => setFormData(prev => ({ ...prev, vendorVisibility: 'specific' }))}
                         className="mt-0.5 text-blue-600 cursor-pointer shrink-0"
                       />
                       <div>
@@ -789,7 +747,6 @@ export function AddProjectModal({
                 </div>
               </div>
 
-              {}
               <div className="space-y-4 pt-4 border-t border-gray-100">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
@@ -856,7 +813,6 @@ export function AddProjectModal({
                     </div>
                   </div>
 
-                  {/* Actions & Balance Bar */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
                     <div className="flex items-center gap-2">
                       <button
@@ -939,7 +895,6 @@ export function AddProjectModal({
                     </button>
                   </div>
 
-                  {/* Milestones Table with Editable Price Inputs */}
                   <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
                     <table className="w-full text-left border-collapse">
                       <thead>
@@ -1043,7 +998,6 @@ export function AddProjectModal({
                     </table>
                   </div>
 
-                  {/* Summary Comparison */}
                   {(() => {
                     const list = formData.paymentMilestoneConfig?.milestones || [];
                     const sum = list.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
@@ -1075,7 +1029,6 @@ export function AddProjectModal({
               </div>
             </div>
 
-            {}
             <div className="bg-gray-50 px-4 sm:px-6 py-3.5 flex items-center justify-end gap-3 border-t border-gray-100">
               <button
                 type="button"

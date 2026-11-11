@@ -1,26 +1,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import refundService from "../../services/refundService";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 
 export default function PaymentHistory() {
   const { appId } = useParams();
-  const [vendor, setVendor] = useState(null);
   const [app, setApp] = useState(null);
   const [matchedProject, setMatchedProject] = useState(null);
+  const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
-      setVendor(curVendor);
 
-      const [projs, allApps] = await Promise.all([
+      const [projs, allApps, rData] = await Promise.all([
         crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []),
         crmVendorService.getApplications(curVendor?.id),
+        refundService.getAllRefunds(curVendor?.id).catch(() => []),
       ]);
+      setRefunds(rData || []);
       const targetApp = allApps?.find(
         (a) =>
           String(a.id) === String(appId) ||
@@ -52,12 +54,14 @@ export default function PaymentHistory() {
     }, 0);
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
@@ -159,6 +163,7 @@ export default function PaymentHistory() {
           <CandidateProcessTimeline
             application={app}
             project={matchedProject}
+            refunds={refunds}
             isAdmin={false}
             onUpdate={loadData}
           />

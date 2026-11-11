@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Edit2, X, Shield, Users, Briefcase, Info, Eye, EyeOff, KeyRound } from "lucide-react";
 
 export default function EditAdminModal({

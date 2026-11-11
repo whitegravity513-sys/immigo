@@ -1,11 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Building2,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
   ShieldCheck,
   Key,
   CheckCircle2,
@@ -13,7 +8,6 @@ import {
   Save,
   Lock,
   Camera,
-  Upload,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
@@ -21,7 +15,6 @@ export default function Profile() {
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  
   const [companyName, setCompanyName] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,20 +28,14 @@ export default function Profile() {
   const [contactPersonPhone, setContactPersonPhone] = useState("");
   const [specialization, setSpecialization] = useState("");
 
-  
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwdSuccess, setPwdSuccess] = useState(false);
   const [pwdError, setPwdError] = useState("");
-
-  useEffect(() => {
-    loadProfile();
-  }, []);
 
   const loadProfile = () => {
     try {
@@ -74,6 +61,10 @@ export default function Profile() {
     }
   };
 
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
   const handleProfileImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -94,7 +85,7 @@ export default function Profile() {
         setVendor(updated);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
-      } catch (err) {
+      } catch {
         setSaveError("Failed to update profile image.");
       }
     };
@@ -166,7 +157,6 @@ export default function Profile() {
 
   return (
     <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
-      {}
       <div>
         <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">
           <Building2 className="w-4 h-4" />
@@ -180,7 +170,6 @@ export default function Profile() {
         </p>
       </div>
 
-      {}
       <div className="p-3 rounded-lg bg-white border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <div className="flex items-center gap-2.5">
           <div className="relative group shrink-0">
@@ -227,7 +216,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs p-3 sm:p-3.5">
         <h3 className="text-xs font-bold text-slate-900 mb-2.5 pb-1.5 border-b border-slate-100 flex items-center gap-1.5">
           <Building2 className="w-5 h-5 text-indigo-600" />
@@ -300,7 +288,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {}
           <div className="pt-2">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
               Designated Operations Contact
@@ -338,7 +325,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {}
           <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div className="sm:col-span-3">
               <label className="block text-xs font-medium text-slate-600 mb-1">Office Address</label>
@@ -393,7 +379,6 @@ export default function Profile() {
         </form>
       </div>
 
-      {}
       <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs p-3 sm:p-3.5">
         <h3 className="text-xs font-bold text-slate-900 mb-2.5 pb-1.5 border-b border-slate-100 flex items-center gap-1.5">
           <Lock className="w-5 h-5 text-indigo-600" />

@@ -8,14 +8,16 @@ import {
   Search,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
+import refundService, { isAppRefundLocked } from "../../../services/refundService";
 import CandidateProcessTimeline from "../../../components/vendor/CandidateProcessTimeline.jsx";
 
 export default function AdminProcessingList() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryAppId = searchParams.get("appId");
 
   const [applications, setApplications] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [refunds, setRefunds] = useState([]);
   const [selectedApp, setSelectedApp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,11 +25,13 @@ export default function AdminProcessingList() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [projs, data] = await Promise.all([
+      const [projs, data, allRefunds] = await Promise.all([
         crmVendorService.getAvailableProjects().catch(() => []),
         crmVendorService.getApplications(),
+        refundService.getAllRefunds().catch(() => []),
       ]);
       setProjects(projs || []);
+      setRefunds(allRefunds || []);
       const postSelectionStatuses = new Set([
         "Selected",
         "Completed",
@@ -40,18 +44,22 @@ export default function AdminProcessingList() {
         "Joined",
         "Deployed",
       ]);
-      const selected = (data || []).filter(
+      const allPostSelection = (data || []).filter(
         (a) =>
           postSelectionStatuses.has(a.status) ||
           postSelectionStatuses.has(a.recruitmentStage)
       );
-      setApplications(selected);
+      const unlockedSelected = allPostSelection.filter(
+        (a) => !isAppRefundLocked(a, allRefunds)
+      );
+      setApplications(unlockedSelected);
 
       setSelectedApp((prev) => {
         const lookupId = queryAppId || prev?.id || prev?.applicationId || prev?._id;
         if (!lookupId) return null;
+        const pool = queryAppId ? (data || []) : unlockedSelected;
         return (
-          selected.find(
+          pool.find(
             (a) =>
               String(a.id) === String(lookupId) ||
               String(a.applicationId) === String(lookupId) ||
@@ -73,12 +81,14 @@ export default function AdminProcessingList() {
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(t);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -86,6 +96,21 @@ export default function AdminProcessingList() {
 
   const handleTimelineUpdate = () => {
     loadData();
+  };
+
+  const handleSelectCandidate = (app) => {
+    const resolvedId = app.id || app.applicationId || app._id;
+    setSelectedApp(app);
+    if (resolvedId) {
+      setSearchParams({ appId: String(resolvedId) }, { replace: true });
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedApp(null);
+    if (searchParams.get("appId")) {
+      setSearchParams({}, { replace: true });
+    }
   };
 
   const filteredApps = applications.filter((app) => {
@@ -113,17 +138,39 @@ export default function AdminProcessingList() {
             p.title === selectedApp.projectName ||
             p.projectName === selectedApp.projectName))
     ) || null;
+    const syncedMilestones = !selectedApp.milestonesOverridden
+      ? crmVendorService.syncAppMilestonesWithProject(selectedApp)
+      : [];
+    const effectiveMilestones = syncedMilestones.length > 0
+      ? syncedMilestones
+      : selectedApp.processMilestones?.length
+      ? selectedApp.processMilestones
+      : selectedApp.paymentPlan?.milestones || [];
+    let totalMilestoneStages = 0;
+    let completedMilestoneStages = 0;
+    effectiveMilestones.forEach((m) => {
+      (m.stages || []).forEach((s) => {
+        totalMilestoneStages += 1;
+        if (s.status === "Completed") completedMilestoneStages += 1;
+      });
+    });
+    const stageBadgeLabel = totalMilestoneStages > 0
+      ? completedMilestoneStages >= totalMilestoneStages || selectedApp.status === "Completed"
+        ? `All ${totalMilestoneStages} Stages Completed`
+        : `${completedMilestoneStages}/${totalMilestoneStages} Stages Completed`
+      : selectedApp.status === "Completed" || currentStageIndex >= 7
+      ? "All 8 Stages Completed"
+      : `Stage ${currentStageIndex + 1} of 8 Active`;
 
     return (
       <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-        {}
         <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
           <button
-            onClick={() => setSelectedApp(null)}
+            onClick={handleBackToList}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
           >
             <ArrowLeft size={16} />
-            <span>← Back to Candidate Processing Roster</span>
+            <span>Back to Candidate Processing Roster</span>
           </button>
 
           <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
@@ -131,7 +178,6 @@ export default function AdminProcessingList() {
           </span>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">
@@ -151,9 +197,7 @@ export default function AdminProcessingList() {
                     {selectedApp.position}
                   </span>
                   <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-bold text-xs rounded-full border border-emerald-200">
-                    {selectedApp.status === "Completed" || currentStageIndex >= 7
-                      ? "All 8 Stages Completed"
-                      : `Stage ${currentStageIndex + 1} of 8 Active`}
+                    {stageBadgeLabel}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-1 font-semibold flex items-center gap-3 flex-wrap">
@@ -168,10 +212,8 @@ export default function AdminProcessingList() {
             <div className="flex items-center gap-2">
             </div>
           </div>
-          {}
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -184,6 +226,7 @@ export default function AdminProcessingList() {
           <CandidateProcessTimeline
             application={selectedApp}
             project={matchedProject}
+            refunds={refunds}
             isAdmin={true}
             onUpdate={handleTimelineUpdate}
           />
@@ -209,7 +252,6 @@ export default function AdminProcessingList() {
         </div>
       </div>
 
-      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -221,7 +263,6 @@ export default function AdminProcessingList() {
         />
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -255,7 +296,7 @@ export default function AdminProcessingList() {
                   return (
                     <tr
                       key={resolvedAppId}
-                      onClick={() => setSelectedApp(app)}
+                      onClick={() => handleSelectCandidate(app)}
                       className="hover:bg-indigo-50/40 transition cursor-pointer group"
                     >
                       <td className="py-1.5 px-3 sm:px-5 font-bold text-slate-900 group-hover:text-indigo-600 transition">
@@ -281,7 +322,7 @@ export default function AdminProcessingList() {
 
                       <td className="py-1.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
-                          onClick={() => setSelectedApp(app)}
+                          onClick={() => handleSelectCandidate(app)}
                           className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer ml-auto"
                         >
                           <Edit3 size={14} />

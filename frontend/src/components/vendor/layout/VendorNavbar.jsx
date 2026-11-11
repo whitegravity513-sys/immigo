@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -25,27 +25,50 @@ export function VendorNavbar({
   const notifRef = useRef(null);
 
   const vendorName = vendor?.companyName || "Vendor Partner";
-  const vendorId = vendor?.id || "VND-1001";
+  const rawVendorId = vendor?.id;
+  const vendorId = rawVendorId || "VND-1001";
 
-  const refreshNotifications = async () => {
+  const refreshNotifications = useCallback(async () => {
     try {
-      const list = await crmVendorService.getNotificationsAsync(vendor?.id);
+      const list = await crmVendorService.getNotificationsAsync(rawVendorId);
       setNotifications(list || []);
     } catch {
-      const local = crmVendorService.getNotifications(vendor?.id);
+      const local = crmVendorService.getNotifications(rawVendorId);
       setNotifications(local || []);
     }
-  };
+  }, [rawVendorId]);
 
   useEffect(() => {
-    refreshNotifications();
+    const t = setTimeout(() => {
+      refreshNotifications();
+    }, 0);
+    const handleNotifRefresh = (e) => {
+      if (
+        e?.type === "storage" &&
+        e.key &&
+        e.key !== "immigo_crm_vendor_notifications_v3" &&
+        e.key !== "immigo_crm_notifications_v3"
+      ) {
+        return;
+      }
+      refreshNotifications();
+    };
+    window.addEventListener("immigo:notification-update", handleNotifRefresh);
+    window.addEventListener("immigo:vendor-notification", handleNotifRefresh);
+    window.addEventListener("storage", handleNotifRefresh);
     const interval = setInterval(() => {
       if (typeof document !== "undefined" && !document.hidden) {
         refreshNotifications();
       }
     }, 30000);
-    return () => clearInterval(interval);
-  }, [vendor?.id]);
+    return () => {
+      clearTimeout(t);
+      clearInterval(interval);
+      window.removeEventListener("immigo:notification-update", handleNotifRefresh);
+      window.removeEventListener("immigo:vendor-notification", handleNotifRefresh);
+      window.removeEventListener("storage", handleNotifRefresh);
+    };
+  }, [refreshNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {

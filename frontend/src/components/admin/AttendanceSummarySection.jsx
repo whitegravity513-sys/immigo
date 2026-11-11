@@ -1,4 +1,3 @@
-import React from "react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import { MonthYearSelector } from "../common/DateInput.jsx";
 
@@ -12,10 +11,6 @@ export default function AttendanceSummarySection({
   employees = [],
   fetchSummary,
   openEmployeeDetail,
-  inlineLeaveEdit,
-  setInlineLeaveEdit,
-  inlineLeaveLoading,
-  handleSetLeaveBalance
 }) {
   return (
     <div className="space-y-4">
@@ -60,7 +55,6 @@ export default function AttendanceSummarySection({
             <tbody>
               {summaryData.map(emp => {
                 const empId = emp._id || emp.employeeId || emp.id;
-                const workingDays = emp.summary?.applicableWorkingDays ?? emp.applicableWorkingDays ?? 0;
                 const presentDays = emp.summary?.presentDays ?? emp.totalPresent ?? 0;
                 const halfDays = emp.summary?.halfDays ?? 0;
                 const absentDays = emp.summary?.absentDays ?? 0;

@@ -1,4 +1,5 @@
-import React from "react";
+import { useState } from "react";
+import { Upload, FileText, X } from "lucide-react";
 
 export default function VendorHRSubmitModal({
   show,
@@ -11,11 +12,58 @@ export default function VendorHRSubmitModal({
   hideProjectNames = false,
   actionLoading = false,
 }) {
+  const [fileError, setFileError] = useState("");
+
   if (!show) return null;
+
+  const handleResumeChange = (e) => {
+    const file = e.target.files?.[0];
+    setFileError("");
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      setFileError("Please upload a file smaller than 4 MB.");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      setSubmitForm((prev) => ({
+        ...prev,
+        resumeUrl: dataUrl,
+        resumeFileName: file.name,
+        documents: [
+          ...(Array.isArray(prev.documents)
+            ? prev.documents.filter((d) => d.docType !== "Resume / CV")
+            : []),
+          {
+            name: file.name,
+            fileName: file.name,
+            docType: "Resume / CV",
+            mimeType: file.type || "",
+            fileUrl: dataUrl,
+          },
+        ],
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearResume = () => {
+    setFileError("");
+    setSubmitForm((prev) => ({
+      ...prev,
+      resumeUrl: "",
+      resumeFileName: "",
+      documents: Array.isArray(prev.documents)
+        ? prev.documents.filter((d) => d.docType !== "Resume / CV")
+        : [],
+    }));
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">Submit New Candidate</h3>
@@ -24,6 +72,7 @@ export default function VendorHRSubmitModal({
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
           >
@@ -46,10 +95,9 @@ export default function VendorHRSubmitModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Email Address *</label>
+              <label className="block text-slate-700 font-bold mb-1">Email Address (Optional)</label>
               <input
                 type="email"
-                required
                 value={submitForm.email}
                 onChange={(e) => setSubmitForm({ ...submitForm, email: e.target.value })}
                 placeholder="ramesh@example.com"
@@ -63,6 +111,29 @@ export default function VendorHRSubmitModal({
                 value={submitForm.phone}
                 onChange={(e) => setSubmitForm({ ...submitForm, phone: e.target.value })}
                 placeholder="+91 98765 43210"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-600"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-700 font-bold mb-1">Passport Number</label>
+              <input
+                type="text"
+                value={submitForm.passportNumber || ""}
+                onChange={(e) => setSubmitForm({ ...submitForm, passportNumber: e.target.value.toUpperCase() })}
+                placeholder="e.g. Z1234567"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-indigo-600"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 font-bold mb-1">Experience</label>
+              <input
+                type="text"
+                value={submitForm.experience || ""}
+                onChange={(e) => setSubmitForm({ ...submitForm, experience: e.target.value })}
+                placeholder="e.g. 4 Years"
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-600"
               />
             </div>
@@ -114,6 +185,49 @@ export default function VendorHRSubmitModal({
               value={submitForm.skills}
               onChange={(e) => setSubmitForm({ ...submitForm, skills: e.target.value })}
               placeholder="Wiring, Switchgear, Blueprint reading..."
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-600"
+            />
+          </div>
+
+          <div>
+            <label className="block text-slate-700 font-bold mb-1">Resume / CV (Optional)</label>
+            {submitForm.resumeFileName ? (
+              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-900">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText size={14} className="text-blue-600 shrink-0" />
+                  <span className="truncate font-semibold">{submitForm.resumeFileName}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearResume}
+                  className="text-blue-700 hover:text-rose-600 p-1 cursor-pointer"
+                  title="Remove attached file"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/40 text-slate-600 cursor-pointer transition">
+                <Upload size={14} className="text-indigo-600" />
+                <span>Attach PDF, DOC, DOCX, or Image (max 4 MB)</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,image/*"
+                  onChange={handleResumeChange}
+                  className="hidden"
+                />
+              </label>
+            )}
+            {fileError && <p className="text-[11px] text-rose-600 font-semibold mt-1">{fileError}</p>}
+          </div>
+
+          <div>
+            <label className="block text-slate-700 font-bold mb-1">Profile Notes (Optional)</label>
+            <input
+              type="text"
+              value={submitForm.notes || ""}
+              onChange={(e) => setSubmitForm({ ...submitForm, notes: e.target.value })}
+              placeholder="Any screening notes or background details..."
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-600"
             />
           </div>

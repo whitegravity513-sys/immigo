@@ -209,6 +209,8 @@ const vendorSchema = new mongoose.Schema(
       ifsc: { type: String, default: "" },
     },
     mouDocument: {
+      mouNumber: { type: String, default: "" },
+      refNumber: { type: String, default: "" },
       title: { type: String, default: "Memorandum of Understanding (MOU)" },
       sentAt: { type: Date, default: null },
       agreementDate: { type: String, default: "" },

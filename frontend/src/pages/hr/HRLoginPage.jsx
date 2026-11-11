@@ -7,17 +7,15 @@ import {
   EyeOff,
   ArrowRight,
   ShieldCheck,
-  Shield,
   Users,
   Calendar,
   UserCheck,
   FileText,
   CheckCircle2,
-  Info,
 } from "lucide-react";
 import hrOfficeBg from "../../assets/hr-portal-office-bg.jpg";
 import { adminLogin } from "../../services/authService.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import AuthErrorMessage from "../../components/auth/AuthErrorMessage.jsx";
 import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
 import AuthHeader from "../../components/auth/AuthHeader.jsx";
@@ -48,8 +46,7 @@ export default function HRLoginPage() {
     setLoading(true);
 
     try {
-      const cleanId = identifier.trim();
-      const hrEmail = cleanId.toLowerCase() === "hr" ? "hr@immigo.com" : cleanId;
+      const hrEmail = identifier.trim().toLowerCase();
 
       const data = await adminLogin(hrEmail, password);
       const token = data?.accessToken || data?.token;
@@ -92,15 +89,12 @@ export default function HRLoginPage() {
 
   return (
     <div className="h-screen w-screen max-h-screen overflow-hidden relative flex flex-col justify-between font-sans select-none bg-slate-900">
-      {/* Background Image - Bright, Warm & Crisp Office Sunset Scene */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
         style={{ backgroundImage: `url(${hrOfficeBg})` }}
       />
-      {/* Gentle light scrim purely for text legibility, zero blue overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent pointer-events-none" />
 
-      {/* Fixed Official ImmiGo AuthHeader */}
       <div className="fixed top-0 inset-x-0 z-30">
         <AuthHeader
           portalBadge="HR Portal"
@@ -116,13 +110,10 @@ export default function HRLoginPage() {
         />
       </div>
 
-      {/* Main Content: Hero on Left, Compact Floating Card on Right - Strictly Between Header & Footer */}
       <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-8 lg:px-14 xl:px-16 pt-[52px] pb-[38px] max-w-7xl mx-auto overflow-hidden">
         <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
           
-          {/* Left Hero Section */}
           <div className="w-full lg:w-[55%] text-left">
-            {/* HR Portal Team Badge from Reference Mockup */}
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-xl bg-blue-600/35 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-md shadow-blue-900/40 shrink-0">
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -157,7 +148,6 @@ export default function HRLoginPage() {
               Streamline your HR operations, manage your team and build a better workplace &mdash; all in one place.
             </p>
 
-            {/* 4 Feature Circles in 1 single row */}
             <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-lg">
               <div className="flex flex-col items-center text-center group cursor-default">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600/25 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-md shadow-blue-900/30 transition-transform group-hover:scale-105">
@@ -196,7 +186,6 @@ export default function HRLoginPage() {
               </div>
             </div>
 
-            {/* Subtle Handwritten Motto */}
             <div className="mt-4 hidden sm:block">
               <span className="text-xs text-sky-200/60 italic font-serif tracking-wide border-b border-sky-400/20 pb-0.5">
                 &ldquo;Great People Build Great Companies&rdquo;
@@ -204,14 +193,11 @@ export default function HRLoginPage() {
             </div>
           </div>
 
-          {/* Right Compact Login Card */}
           <div className="w-full lg:w-[45%] flex items-center justify-center lg:justify-end">
             <div className="w-full max-w-[390px] bg-white rounded-[26px] sm:rounded-[30px] shadow-[0_20px_50px_rgba(0,0,0,0.35)] border border-white/90 p-4 sm:p-5 text-left relative overflow-hidden backdrop-blur-md">
-              {/* Soft decorative background circles */}
               <div className="absolute -top-10 -left-10 w-28 h-28 bg-blue-100/60 rounded-full blur-2xl pointer-events-none" />
               <div className="absolute -top-10 -right-10 w-28 h-28 bg-sky-100/60 rounded-full blur-2xl pointer-events-none" />
 
-              {/* Centered Team Icon */}
               <div className="relative z-10 text-center">
                 <div className="w-9 h-9 mx-auto rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1d4ed8] shadow-xs">
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -238,7 +224,6 @@ export default function HRLoginPage() {
 
               <AuthErrorMessage msg={error} />
 
-              {/* Login Form with Compact Inputs */}
               <form onSubmit={handleSubmit} className="space-y-2.5 relative z-10" autoComplete="off">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
@@ -323,7 +308,6 @@ export default function HRLoginPage() {
                 </button>
               </form>
 
-              {/* Divider: OR */}
               <div className="flex items-center my-2.5">
                 <div className="flex-1 border-t border-slate-200" />
                 <span className="px-2.5 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
@@ -332,7 +316,6 @@ export default function HRLoginPage() {
                 <div className="flex-1 border-t border-slate-200" />
               </div>
 
-              {/* Security / Authorized User Notice Box */}
               <div className="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-full bg-white border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
                   <ShieldCheck size={14} />
@@ -351,14 +334,12 @@ export default function HRLoginPage() {
         </div>
       </main>
 
-      {/* Fixed ImmiGo Official Navy Blue Footer */}
       <footer className="fixed bottom-0 inset-x-0 z-30 px-6 py-2 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
         <span className="mx-2 text-cyan-400">&bull;</span>
         <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
 
-      {/* Forgot Password Modal */}
       <ForgotPasswordOtpModal
         isOpen={forgotModal}
         onClose={() => setForgotModal(false)}

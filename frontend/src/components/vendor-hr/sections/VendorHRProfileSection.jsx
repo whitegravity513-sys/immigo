@@ -1,26 +1,25 @@
-import React from "react";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { getCandidateInitials } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRProfileSection({
   user,
+  hrProfile = null,
   hrUserName = "",
   vendorName = "",
 }) {
   const displayName = hrUserName || user?.name || "Vendor HR Officer";
-  const displayEmail = user?.email || "Not provided";
-  const displayPhone = user?.phone || "Not provided";
-  const displayStaffId = user?.employeeId || user?.id?.slice(0, 8) || "Assigned";
+  const displayEmail = hrProfile?.email || user?.email || "Not provided";
+  const displayPhone = hrProfile?.phone || user?.phone || "Not provided";
+  const displayStaffId =
+    hrProfile?.hrId || user?.hrId || user?.employeeId || user?.id?.slice(0, 8) || "Assigned";
   const displayVendor = vendorName || "Not assigned";
 
   return (
     <div className="max-w-2xl space-y-6">
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-6">
         <div className="flex items-center space-x-4 border-b border-slate-100 pb-4">
-          <img
-            src={AVATARS[0]}
-            alt={displayName}
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-indigo-500 shadow-md"
-          />
+          <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-xl border-2 border-indigo-200 shadow-md shrink-0">
+            {getCandidateInitials(displayName)}
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-extrabold text-slate-900 truncate">{displayName}</h3>
@@ -51,7 +50,7 @@ export default function VendorHRProfileSection({
             <span className="font-bold text-slate-800">{displayPhone}</span>
           </div>
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <span className="text-slate-400 block font-semibold mb-0.5">Staff / Employee ID</span>
+            <span className="text-slate-400 block font-semibold mb-0.5">HR Officer ID</span>
             <span className="font-bold text-slate-800 font-mono">
               {displayStaffId}
             </span>

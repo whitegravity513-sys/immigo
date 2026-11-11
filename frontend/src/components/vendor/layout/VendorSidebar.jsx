@@ -12,7 +12,7 @@ import {
   Calendar,
   Lock,
 } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
 import { ChevronDown, ChevronRight, RotateCcw } from "lucide-react";
@@ -34,13 +34,11 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor, isPortalLocke
 
   const renderContent = () => (
     <div className="flex flex-col h-full bg-[#F3F7FC] text-slate-800 font-sans border-r border-blue-200/80">
-      {}
       <div className="h-16 flex items-center justify-between px-5 border-b border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950">
         <div className="flex items-center gap-2.5">
           <ImmiGoLogo size="sm" theme="light" subtitle="Vendor Portal" />
         </div>
 
-        {}
         {mobileOpen && (
           <button
             type="button"
@@ -52,7 +50,6 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor, isPortalLocke
         )}
       </div>
 
-      {}
       <div className="p-3.5 mx-3 mt-3 bg-blue-100/70 rounded-xl border border-blue-300 shadow-2xs">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className={`w-9 h-9 rounded-xl ${vendorLogo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 shadow-xs overflow-hidden`}>
@@ -88,7 +85,6 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor, isPortalLocke
         </div>
       )}
 
-      {}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <NavLink to="/vendor/dashboard" onClick={() => { if (window.innerWidth < 1024) setMobileOpen(false); }} className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-150 cursor-pointer ${isActive ? "bg-blue-600 text-white shadow-md font-bold" : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-800"}`}>
           <LayoutDashboard size={16} /> <span>Dashboard</span>
@@ -196,7 +192,6 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor, isPortalLocke
         )}
       </nav>
 
-      {}
       <div className="h-[48px] min-h-[48px] px-4 border-t border-blue-800/80 shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 flex items-center">
         <button
           type="button"
@@ -212,12 +207,10 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor, isPortalLocke
 
   return (
     <>
-      {}
       <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 z-30 shadow-md">
         {renderContent()}
       </aside>
 
-      {}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -225,7 +218,6 @@ export function VendorSidebar({ mobileOpen, setMobileOpen, vendor, isPortalLocke
         />
       )}
 
-      {}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-in-out lg:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"
           }`}

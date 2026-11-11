@@ -1,24 +1,20 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   UploadCloud,
   FileText,
   Plus,
   Trash2,
-  Calendar,
   Download,
-  Eye,
   FileCheck,
   Clock,
-  X,
   CheckCircle2,
-  AlertCircle,
   Paperclip,
-  } from "lucide-react";
+} from "lucide-react";
 import AddDocumentModal from "./AddDocumentModal.jsx";
 import ConfirmDialog from "../ui/ConfirmDialog.jsx";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
-import { useCrmToast } from "../layout/CrmLayout.jsx";
+import { useCrmToast } from "../layout/crmToastContext.js";
 
 const DOCUMENT_CATEGORIES = [
   "Trade License",
@@ -31,15 +27,6 @@ const DOCUMENT_CATEGORIES = [
   "Chamber of Commerce Attestation",
   "Insurance Policy",
   "Other Document",
-];
-
-const PRESET_CHIPS = [
-  { label: "Trade License", type: "Trade License" },
-  { label: "Commercial Registration (CR)", type: "Commercial Registration (CR)" },
-  { label: "Demand Letter (DL)", type: "Demand Letter (DL)" },
-  { label: "Power of Attorney (POA)", type: "Power of Attorney (POA)" },
-  { label: "Tax / VAT Certificate", type: "Tax / VAT Certificate" },
-  { label: "Other Document", type: "Other Document" },
 ];
 
 export function DocumentsList({
@@ -55,7 +42,6 @@ export function DocumentsList({
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  
   const [inlineDoc, setInlineDoc] = useState({
     name: "",
     type: "Trade License",
@@ -127,16 +113,6 @@ export function DocumentsList({
     }
   };
 
-  const handleApplyPreset = (chip) => {
-    const isOther = chip.type === "Other Document" || chip.type === "Other";
-    setInlineDoc((prev) => ({
-      ...prev,
-      type: chip.type,
-      name: isOther ? "" : chip.label,
-    }));
-    setInlineError("");
-  };
-
   const handleAddInlineDocument = (e) => {
     e?.preventDefault();
     const isOther =
@@ -167,7 +143,6 @@ export function DocumentsList({
     onChange([...documents, newDoc]);
     showToast(`Document "${newDoc.name}" attached successfully.`, "success");
 
-    
     setInlineDoc({
       name: "",
       type: "Trade License",
@@ -206,23 +181,8 @@ export function DocumentsList({
     }
   };
 
-  const formatDate = (isoString) => {
-    if (!isoString) return "";
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return isoString;
-    }
-  };
-
   return (
     <div className="space-y-5">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
@@ -245,7 +205,6 @@ export function DocumentsList({
         </div>
       </div>
 
-      {}
       {!readOnly && (
         <div className="bg-gradient-to-b from-blue-50/40 to-white rounded-xl border border-blue-200/80 p-4 sm:p-5 shadow-2xs space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -258,7 +217,6 @@ export function DocumentsList({
             </span>
           </div>
 
-          {}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -317,7 +275,6 @@ export function DocumentsList({
             </div>
           </div>
 
-          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
             <div>
               <SelectField
@@ -371,7 +328,6 @@ export function DocumentsList({
             </div>
           </div>
 
-          {}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <div className="text-[11px] text-gray-500">
               {inlineDoc.fileName ? (
@@ -413,7 +369,6 @@ export function DocumentsList({
         </div>
       )}
 
-      {}
       {documents.length === 0 ? (
         <div className="p-8 text-center bg-gray-50/60 rounded-xl border border-dashed border-gray-300">
           <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center mx-auto mb-2.5">
@@ -465,7 +420,6 @@ export function DocumentsList({
                 )}
               </div>
 
-              {}
               <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500 flex-wrap gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1 truncate">
                   <span className="text-gray-400 font-mono text-[10px] truncate max-w-[180px]">
@@ -502,14 +456,12 @@ export function DocumentsList({
         </div>
       )}
 
-      {}
       <AddDocumentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleAddModalDocument}
       />
 
-      {}
       <ConfirmDialog
         isOpen={deleteIndex !== null}
         onClose={() => setDeleteIndex(null)}

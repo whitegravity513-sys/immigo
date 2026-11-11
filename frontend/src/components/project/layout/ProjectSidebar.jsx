@@ -1,24 +1,21 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FolderKanban,
   FolderPlus,
   ArrowLeft,
   X,
-  Shield,
   LogOut,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 export function ProjectSidebar({
   mobileOpen = false,
   setMobileOpen = () => {},
   collapsed = false,
-  setCollapsed = () => {},
 }) {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const currentPath = location.pathname;
 
   const isActive = (path) => {
@@ -26,11 +23,6 @@ export function ProjectSidebar({
     if (path === "/client/projects/new") return currentPath.endsWith("/projects/new");
     return currentPath === path;
   };
-
-  const adminName =
-    (typeof user?.name === "string" ? user.name : user?.name?.first) ||
-    user?.email?.split("@")[0] ||
-    "Project Lead";
 
   return (
     <>
@@ -47,7 +39,6 @@ export function ProjectSidebar({
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {}
         <div
           className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
@@ -75,9 +66,7 @@ export function ProjectSidebar({
           )}
         </div>
 
-        {}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
-          {}
           <div className="mb-2.5">
             <Link
               to="/admin/dashboard"
@@ -128,7 +117,6 @@ export function ProjectSidebar({
           })}
         </div>
 
-        {}
         <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
           <button
             type="button"

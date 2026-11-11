@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Globe,
-  ShieldCheck,
   Award,
   CheckCircle2,
   ArrowRight,
@@ -20,54 +18,52 @@ import {
 } from "lucide-react";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 
-export default function LandingPage() {
-  const heroSlides = [
-    {
-      id: 1,
-      image: "/manpower-hero-1.jpg",
-      tagline: "Overseas Recruitment & Manpower Supply",
-      title: "Global Manpower Supply & International Careers",
-      subtitle:
-        "Connecting premier enterprise projects in Saudi Arabia, UAE, Qatar, Oman, and Europe with government-verified, trade-tested technicians, engineers, and workforce.",
-      badge: "Gulf & Europe Deployments",
-    },
-    {
-      id: 2,
-      image: "/manpower-hero-2.jpg",
-      tagline: "Certified Technical Specialists",
-      title: "Government-Approved Trade Testing & Verification",
-      subtitle:
-        "Rigorous technical assessments for certified 6G welders, industrial electricians, mechanical fitters, and heavy equipment operators with zero emigration delays.",
-      badge: "Verified Skill Centers",
-    },
-    {
-      id: 3,
-      image: "/manpower-hero-3.jpg",
-      tagline: "End-to-End International Placement",
-      title: "100% Legal Work Visas & Guaranteed Flights",
-      subtitle:
-        "Complete emigration clearance, embassy work visa stamping, pre-departure briefing, and guaranteed flight deployment with dedicated deployment desks.",
-      badge: "100% Legal Work Visas",
-    },
-    {
-      id: 4,
-      image: "/manpower-hero-4.jpg",
-      tagline: "Industrial & Energy Mega Projects",
-      title: "Certified Manpower for Infrastructure & Energy Plants",
-      subtitle:
-        "Supplying high-demand technical workforce for petrochemical, refinery, pipeline, and mega infrastructure projects with verified safety and skill accreditations.",
-      badge: "High-Volume Deployments",
-    },
-  ];
+const heroSlides = [
+  {
+    id: 1,
+    image: "/manpower-hero-1.jpg",
+    tagline: "Overseas Recruitment & Manpower Supply",
+    title: "Global Manpower Supply & International Careers",
+    subtitle:
+      "Connecting premier enterprise projects in Saudi Arabia, UAE, Qatar, Oman, and Europe with government-verified, trade-tested technicians, engineers, and workforce.",
+    badge: "Gulf & Europe Deployments",
+  },
+  {
+    id: 2,
+    image: "/manpower-hero-2.jpg",
+    tagline: "Certified Technical Specialists",
+    title: "Government-Approved Trade Testing & Verification",
+    subtitle:
+      "Rigorous technical assessments for certified 6G welders, industrial electricians, mechanical fitters, and heavy equipment operators with zero emigration delays.",
+    badge: "Verified Skill Centers",
+  },
+  {
+    id: 3,
+    image: "/manpower-hero-3.jpg",
+    tagline: "End-to-End International Placement",
+    title: "100% Legal Work Visas & Guaranteed Flights",
+    subtitle:
+      "Complete emigration clearance, embassy work visa stamping, pre-departure briefing, and guaranteed flight deployment with dedicated deployment desks.",
+    badge: "100% Legal Work Visas",
+  },
+  {
+    id: 4,
+    image: "/manpower-hero-4.jpg",
+    tagline: "Industrial & Energy Mega Projects",
+    title: "Certified Manpower for Infrastructure & Energy Plants",
+    subtitle:
+      "Supplying high-demand technical workforce for petrochemical, refinery, pipeline, and mega infrastructure projects with verified safety and skill accreditations.",
+    badge: "High-Volume Deployments",
+  },
+];
 
+export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Book Opening Reveal Animation State (Opens from the middle in royal blue upon loading)
   const [bookOpened, setBookOpened] = useState(false);
   const [curtainRemoved, setCurtainRemoved] = useState(false);
 
   useEffect(() => {
-    // Open like a book from the center shortly after loading
     const openTimer = setTimeout(() => {
       setBookOpened(true);
     }, 180);
@@ -82,7 +78,6 @@ export default function LandingPage() {
     };
   }, []);
 
-  // Pre-load all hero images immediately into browser cache for instant display
   useEffect(() => {
     heroSlides.forEach((slide) => {
       const preloadImg = new Image();
@@ -90,15 +85,13 @@ export default function LandingPage() {
     });
   }, []);
 
-  // Auto slide timer (cycles 4 images, 3 seconds per image, loops back to 1st after 4th)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, [heroSlides.length]);
+  }, []);
 
-  // Inquiry form state
   const [inquiryForm, setInquiryForm] = useState({
     name: "",
     email: "",
@@ -142,7 +135,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-600 selection:text-white flex flex-col justify-between">
-      {/* Top Navigation Header */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white border-b border-blue-800/80 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -197,17 +189,13 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section
         id="home"
         className="relative bg-white text-slate-900 overflow-hidden select-none"
       >
-        {/* Slideshow Container: 100% Full-Width Cover with slightly increased balanced height */}
         <div className="relative min-h-[460px] sm:min-h-[500px] lg:min-h-[535px] w-full overflow-hidden flex flex-col justify-between">
-          {/* Book-Style Opening Reveal from Center in Royal Blue upon Page Load */}
           {!curtainRemoved && (
             <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden flex">
-              {/* Left Blue Book Page */}
               <div
                 className={`w-1/2 h-full bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 border-r border-cyan-400/30 shadow-2xl transition-all duration-1000 ease-in-out ${
                   bookOpened
@@ -215,7 +203,6 @@ export default function LandingPage() {
                     : "translate-x-0 opacity-100"
                 }`}
               />
-              {/* Right Blue Book Page */}
               <div
                 className={`w-1/2 h-full bg-gradient-to-l from-blue-950 via-blue-900 to-indigo-900 border-l border-cyan-400/30 shadow-2xl transition-all duration-1000 ease-in-out ${
                   bookOpened
@@ -226,7 +213,6 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* Smooth Crossfade Slides: Fades 1 -> 2 -> 3 -> 4 -> 1 seamlessly without any sliding motion */}
           <div className="absolute inset-0 w-full h-full overflow-hidden">
             {heroSlides.map((slide, index) => {
               const isActive = index === currentSlide;
@@ -250,9 +236,7 @@ export default function LandingPage() {
             })}
           </div>
 
-          {/* Inner Content Grid: Aligned with site max-w-7xl grid */}
           <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-between h-full min-h-[460px] sm:min-h-[500px] lg:min-h-[535px] pointer-events-none">
-            {/* Upper Content: On the left side in the clear sky area */}
             <div className="max-w-2xl text-left space-y-2 sm:space-y-3 pt-2 sm:pt-4 pointer-events-auto">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white tracking-tight leading-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
                 {heroSlides[currentSlide].title}
@@ -262,7 +246,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Vendor Partner Registration Button: Positioned on the bottom-left side away from people's faces */}
             <div className="pb-2 sm:pb-4 flex justify-start items-end pointer-events-auto">
               <Link
                 to="/vendor/register"
@@ -276,7 +259,6 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Floating Trust Metric Bar: Strictly 1 Single Row on All Screen Sizes */}
         <div className="relative z-30 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-t border-b border-blue-700/60 shadow-lg backdrop-blur-md py-3 sm:py-5">
           <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 grid grid-cols-4 gap-1 sm:gap-4 text-center divide-x divide-blue-800/50">
             <div className="space-y-0.5 px-1 sm:px-2">
@@ -307,7 +289,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* About Section: Clean Two-Column Responsive Layout (Mobile & Laptop) */}
       <section id="about" className="py-14 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-2 mb-10 sm:mb-14">
@@ -318,7 +299,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Headline, Narrative, Service Cards, Trust & CTAs */}
             <div className="lg:col-span-7 space-y-6">
               <div className="space-y-3">
                 <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
@@ -332,7 +312,6 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* On Phone & Tablet: Image appears right after paragraph */}
               <div className="block lg:hidden w-full my-2">
                 <div className="relative rounded-2xl overflow-hidden shadow-xl border border-slate-200 aspect-16/9 max-h-[340px]">
                   <img
@@ -352,7 +331,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Dual Service Cards: Enterprise Manpower & Vendor Agency */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2 flex flex-col justify-between">
                   <div>
@@ -401,7 +379,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Trust Checkmarks */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-[11px] sm:text-xs text-slate-700 font-semibold pt-1">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
@@ -421,7 +398,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="pt-1 flex flex-wrap items-center gap-3">
                 <a
                   href="#contact"
@@ -439,7 +415,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column: Featured Image for Desktop (lg and up) */}
             <div className="hidden lg:block lg:col-span-5 w-full">
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-slate-200 aspect-4/3 max-h-[440px] group">
                 <img
@@ -462,7 +437,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Systematic Process Section */}
       <section id="process" className="py-14 sm:py-18 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-xl mx-auto mb-10 space-y-1">
@@ -539,7 +513,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Integrated Contact & Inquiry Section on Home Page */}
       <section id="contact" className="py-14 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-2 mb-8 sm:mb-12">
@@ -550,7 +523,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left: Contact Info Cards */}
             <div className="lg:col-span-5 space-y-4">
               <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4 shadow-xs">
                 <h3 className="text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5">
@@ -603,7 +575,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right: Direct Inquiry Form */}
             <div className="lg:col-span-7">
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs">
                 <div className="pb-3 border-b border-slate-200 mb-4">
@@ -710,7 +681,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white pt-10 pb-6 border-t border-blue-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10 items-start">
@@ -799,7 +769,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Floating WhatsApp Quick-Contact Button */}
       <a
         href={
           import.meta.env.VITE_WHATSAPP_NUMBER

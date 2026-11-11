@@ -1,10 +1,8 @@
 import Attendance from "../models/Attendance.js";
-import Employee from "../models/Employee.js";
 import NotificationService from "../services/notification.service.js";
 import { logger } from "./logger.js";
 
 const NINE_HOURS_MS = 9 * 60 * 60 * 1000;
-const NINE_HOURS_SECONDS = 9 * 60 * 60; 
 
 export const startCronJobs = () => {
   setInterval(async () => {

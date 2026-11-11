@@ -14,7 +14,8 @@ import {
   XCircle,
 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import refundService, { isAppRefundLocked } from "../../../services/refundService";
+import { useAuth } from "../../../context/useAuth.js";
 
 export default function AdminMilestonesList() {
   const { user, isSuperAdmin, isVendorHR } = useAuth();
@@ -39,7 +40,10 @@ export default function AdminMilestonesList() {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
-      const data = await crmVendorService.getApplications();
+      const [data, allRefunds] = await Promise.all([
+        crmVendorService.getApplications(),
+        refundService.getAllRefunds().catch(() => []),
+      ]);
       const postSelectionStatuses = new Set([
         "Selected",
         "Completed",
@@ -56,6 +60,7 @@ export default function AdminMilestonesList() {
         (a) =>
           (postSelectionStatuses.has(a.status) ||
             postSelectionStatuses.has(a.recruitmentStage)) &&
+          !isAppRefundLocked(a, allRefunds) &&
           resolveMilestones(a).length > 0
       );
       setApplications(selectedApps);
@@ -73,12 +78,14 @@ export default function AdminMilestonesList() {
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(t);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -316,7 +323,6 @@ export default function AdminMilestonesList() {
         </div>
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -376,7 +382,6 @@ export default function AdminMilestonesList() {
                   return (
                     <Fragment key={resolvedAppId}>
                       <tr className="hover:bg-slate-50/70 transition">
-                        {}
                         <td className="py-1.5 px-3 sm:px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-800 font-bold flex items-center justify-center text-sm border border-slate-200 shrink-0">
@@ -393,7 +398,6 @@ export default function AdminMilestonesList() {
                           </div>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 whitespace-nowrap">
                           <div className="font-bold text-slate-900 text-xs sm:text-sm">
                             ₹{totalAmt.toLocaleString()}
@@ -410,9 +414,8 @@ export default function AdminMilestonesList() {
                           </div>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3">
-                          <div className="flex flex-wrap items-center gap-1.5 max-w-md">
+                          <div className="flex items-center gap-1 flex-nowrap whitespace-nowrap">
                             {milestones.map((m, mIdx) => {
                               const isPaid =
                                 m.status === "Paid" || m.paymentStatus === "Approved" || m.status === "Completed";
@@ -423,44 +426,42 @@ export default function AdminMilestonesList() {
                               return (
                                 <span
                                   key={m.id || mIdx}
-                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
+                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border whitespace-nowrap ${
                                     isPaid
-                                      ? "bg-slate-50 text-emerald-800 border-emerald-200"
+                                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                       : isSub
-                                      ? "bg-slate-50 text-slate-800 border-slate-300"
-                                      : "bg-slate-100 text-slate-700 border-slate-200"
+                                      ? "bg-amber-50 text-amber-700 border-amber-200"
+                                      : "bg-slate-50 text-slate-600 border-slate-200"
                                   }`}
                                   title={`${m.name}: ₹${mAmt.toLocaleString()} (${
                                     isPaid ? "Paid" : isSub ? "Submitted" : "Pending"
                                   })`}
                                 >
                                   {isPaid ? (
-                                    <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
+                                    <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
                                   ) : (
-                                    <Clock size={11} className="text-slate-400 shrink-0" />
+                                    <Clock size={10} className={isSub ? "text-amber-500 shrink-0" : "text-slate-400 shrink-0"} />
                                   )}
-                                  <span>M{mIdx + 1}:</span>
-                                  <span className="font-semibold">₹{mAmt.toLocaleString()}</span>
+                                  <span>M{mIdx + 1}</span>
+                                  <span>₹{mAmt.toLocaleString()}</span>
                                 </span>
                               );
                             })}
                           </div>
 
-                          {}
-                          <div className="flex items-center gap-2 mt-2 w-48">
-                            <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="flex items-center gap-1.5 mt-1 w-36">
+                            <div className="flex-1 bg-slate-100 rounded-full h-1 overflow-hidden">
                               <div
-                                className="bg-emerald-500 h-1.5 rounded-full transition-all"
+                                className="bg-emerald-500 h-1 rounded-full transition-all"
                                 style={{ width: `${percentPaid}%` }}
                               />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-500">
+                            <span className="text-[10px] font-semibold text-slate-500 whitespace-nowrap">
                               {percentPaid}% ({paidMilestones.length}/{milestones.length})
                             </span>
                           </div>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 whitespace-nowrap">
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
@@ -483,17 +484,8 @@ export default function AdminMilestonesList() {
                           </span>
                         </td>
 
-                        {}
                         <td className="py-1.5 px-3 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Link
-                              to={`/admin/vendor/milestones-manage?appId=${resolvedAppId}`}
-                              className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-2xs"
-                              title="Manage stages and milestones for candidate"
-                            >
-                              <Sliders size={12} />
-                              <span>Manage Stages</span>
-                            </Link>
                             <button
                               type="button"
                               onClick={() => toggleExpand(resolvedAppId)}
@@ -507,7 +499,6 @@ export default function AdminMilestonesList() {
                         </td>
                       </tr>
 
-                      {}
                       {isExpanded && (
                         <tr className="bg-slate-50/80">
                           <td colSpan={5} className="p-4 sm:px-6">

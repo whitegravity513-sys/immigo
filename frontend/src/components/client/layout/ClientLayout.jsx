@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ClientSidebar from "./ClientSidebar.jsx";
 import ClientNavbar from "./ClientNavbar.jsx";
-import { CrmToastContext } from "../../crm/layout/CrmLayout.jsx";
+import { CrmToastContext } from "../../crm/layout/crmToastContext.js";
 import { ToastNotification } from "../../crm/ui/ToastNotification.jsx";
 import AppFooter from "../../common/AppFooter.jsx";
 
@@ -48,7 +48,6 @@ export function ClientLayout({
             {children}
           </main>
 
-          {}
           <AppFooter role="admin" />
         </div>
 

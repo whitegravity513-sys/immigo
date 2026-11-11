@@ -135,6 +135,8 @@ export const findProjectAcrossSources = async (rawProjectId) => {
       ),
       totalAgreedAmount: Number(projectDoc.totalAgreedAmount ?? projectDoc.totalMilestoneAmount ?? 0),
       recruitmentConfig: projectDoc.recruitmentConfig || {},
+      vendorAssignmentType: projectDoc.vendorAssignmentType || "",
+      vendorVisibility: projectDoc.vendorVisibility || "",
       assignedVendors: normalizeAssignedVendorsList(
         projectDoc.assignedVendors,
         projectDoc.assignedVendorIds
@@ -226,6 +228,8 @@ export const findProjectAcrossSources = async (rawProjectId) => {
         ),
         totalAgreedAmount: Number(crmProj.totalAgreedAmount ?? crmProj.totalMilestoneAmount ?? 0),
         recruitmentConfig: crmProj.recruitmentConfig || {},
+        vendorAssignmentType: crmProj.vendorAssignmentType || "",
+        vendorVisibility: crmProj.vendorVisibility || "",
         assignedVendors: normalizeAssignedVendorsList(
           crmProj.assignedVendors,
           crmProj.assignedVendorIds
@@ -317,6 +321,8 @@ export const fetchAllMergedProjects = async () => {
         ),
         totalAgreedAmount: Number(p.totalAgreedAmount ?? p.totalMilestoneAmount ?? 0),
         recruitmentConfig: p.recruitmentConfig || {},
+        vendorAssignmentType: p.vendorAssignmentType || "",
+        vendorVisibility: p.vendorVisibility || "",
         assignedVendors: normalizeAssignedVendorsList(p.assignedVendors, p.assignedVendorIds),
         assignedVendorHRs: Array.isArray(p.assignedVendorHRs) ? p.assignedVendorHRs : [],
         description: p.description || p.notes || p.remark || "",
@@ -392,6 +398,8 @@ export const fetchAllMergedProjects = async () => {
       ),
       totalAgreedAmount: Number(dp.totalAgreedAmount ?? dp.totalMilestoneAmount ?? 0),
       recruitmentConfig: dp.recruitmentConfig || {},
+      vendorAssignmentType: dp.vendorAssignmentType || "",
+      vendorVisibility: dp.vendorVisibility || "",
       assignedVendors: normalizeAssignedVendorsList(dp.assignedVendors, dp.assignedVendorIds),
       assignedVendorHRs: Array.isArray(dp.assignedVendorHRs) ? dp.assignedVendorHRs : [],
       description: dp.description || dp.remark || dp.notes || "",

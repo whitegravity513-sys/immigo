@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { UserPlus, X, Shield, Users, Briefcase, Info, Eye, EyeOff, Mail } from "lucide-react";
 
 export default function CreateAdminModal({

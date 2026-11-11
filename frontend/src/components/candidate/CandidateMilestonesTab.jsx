@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   Award,
@@ -18,7 +17,6 @@ export default function CandidateMilestonesTab({
   selectedAppForProcessing,
   setSelectedAppForProcessing,
   milestonesData,
-  onOpenPayModal = () => {},
   onNavigateTab = () => {},
   onFetchAppMilestones = () => {},
 }) {
@@ -48,7 +46,6 @@ export default function CandidateMilestonesTab({
 
   const curApp = selectedAppForProcessing || selectedApps[0];
 
-  // Look up project's configured paymentMilestones
   let projectMilestones = null;
   if (curApp) {
     const matched = (projects || []).find(
@@ -150,7 +147,6 @@ export default function CandidateMilestonesTab({
 
   return (
     <div className="space-y-3">
-      {/* Selected Project Header Card */}
       <div className="bg-gradient-to-r from-[#163868] via-[#1e4a82] to-[#2563eb] text-white p-3 sm:p-3.5 rounded-lg shadow-xs space-y-2 border border-blue-400/20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           <div>
@@ -209,7 +205,6 @@ export default function CandidateMilestonesTab({
           )}
         </div>
 
-        {/* Progress Bar & Fee Highlights */}
         <div className="pt-2 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="sm:col-span-2 space-y-1">
             <div className="flex items-center justify-between text-[11px]">
@@ -240,7 +235,6 @@ export default function CandidateMilestonesTab({
         </div>
       </div>
 
-      {/* Milestones & Processing Timeline Cards */}
       <div className="space-y-2.5">
         {rawMs.map((m, mIdx) => {
           const isDone = m.status === "Completed";
@@ -336,7 +330,6 @@ export default function CandidateMilestonesTab({
                 </div>
               </div>
 
-              {/* Stages Checklist */}
               <div className="p-2 sm:p-2.5 space-y-1.5">
                 <h4 className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                   Clearances & Document Proofs
@@ -412,7 +405,6 @@ export default function CandidateMilestonesTab({
                   );
                 })}
 
-                {/* Candidate Released Clearance Documents */}
                 {candidateDocs.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-slate-100">
                     <div className="text-[9px] font-bold text-[#163868] uppercase tracking-wider mb-1 flex items-center gap-1">

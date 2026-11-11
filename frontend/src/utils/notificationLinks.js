@@ -74,10 +74,13 @@ function normalizeRawLink(
   }
 
   if (isVendorHr) {
-    if (link.startsWith("/hr/meetings") || link.startsWith("/vendor-hr/") || link.startsWith("/hr/vendor-dashboard")) {
+    if (link === "/admin/vendor/refunds") return "/vendor-hr/dashboard?view=refunds";
+    if (link === "/admin/meetings" || link === "/hr/meetings" || link.startsWith("/hr/meetings")) {
+      return "/vendor-hr/dashboard?view=meetings";
+    }
+    if (link.startsWith("/vendor-hr/") || link.startsWith("/hr/vendor-dashboard")) {
       return link;
     }
-    if (link === "/admin/meetings") return "/hr/meetings";
     return "";
   }
 
@@ -217,7 +220,10 @@ export function resolveNotificationLink(notification, roleContext = {}) {
 
   if (isVendorHr) {
     if (scopeUpper === "MEETING" || typeUpper.startsWith("MEETING") || text.includes("meeting")) {
-      return "/hr/meetings";
+      return "/vendor-hr/dashboard?view=meetings";
+    }
+    if (text.includes("refund")) {
+      return "/vendor-hr/dashboard?view=refunds";
     }
     if (text.includes("selected") || text.includes("visa") || text.includes("milestone")) {
       return "/vendor-hr/dashboard?view=milestones";

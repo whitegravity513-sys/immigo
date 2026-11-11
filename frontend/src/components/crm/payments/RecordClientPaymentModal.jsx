@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
-  CreditCard,
-  Building2,
-  Calendar,
   AlertCircle,
-  CheckCircle2,
   Upload,
-  FileCheck,
   Percent,
   Receipt,
-  ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 import crmClientService from "../../../services/crmClientService.js";
 import DateInput from "../../common/DateInput.jsx";
@@ -45,7 +38,6 @@ export function RecordClientPaymentModal({
   initialCandidateName = "",
 }) {
   const [clients, setClients] = useState([]);
-  const [loadingClients, setLoadingClients] = useState(false);
 
   const [formData, setFormData] = useState({
     clientId: initialClientId || "",
@@ -75,76 +67,81 @@ export function RecordClientPaymentModal({
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  
   useEffect(() => {
     if (!isOpen) return;
+    let cancelled = false;
     const fetchClients = async () => {
-      setLoadingClients(true);
       try {
         const res = await crmClientService.getClients({ limit: 100 });
+        if (cancelled) return;
         const list = res.clients || [];
         setClients(list);
 
-        
         if (initialClientId) {
           const found = list.find((c) => String(c.id) === String(initialClientId));
           if (found) {
             setSelectedClient(found);
+            const msList = found.paymentMilestones || [];
+            const ms = initialMilestoneId
+              ? msList.find((m) => String(m.id) === String(initialMilestoneId))
+              : msList[0];
+            if (ms) setSelectedMilestone(ms);
             setFormData((prev) => ({
               ...prev,
               clientId: found.id,
               clientName: found.companyName || found.name || "",
+              ...(ms
+                ? {
+                    milestoneId: ms.id,
+                    milestoneName: ms.name,
+                    amountPaid:
+                      prev.amountPaid ||
+                      (ms.remainingBalance
+                        ? String(ms.remainingBalance)
+                        : String(ms.amount || "")),
+                  }
+                : {}),
             }));
           }
         }
       } catch (err) {
         console.error("Failed to fetch clients for payment modal:", err);
-      } finally {
-        setLoadingClients(false);
       }
     };
-    fetchClients();
-  }, [isOpen, initialClientId]);
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchClients();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, initialClientId, initialMilestoneId]);
 
-  
-  useEffect(() => {
-    if (selectedClient && selectedClient.paymentMilestones) {
-      const msList = selectedClient.paymentMilestones || [];
-      const ms = initialMilestoneId
-        ? msList.find((m) => String(m.id) === String(initialMilestoneId))
-        : msList[0];
-      if (ms) {
-        setSelectedMilestone(ms);
-        setFormData((prev) => ({
-          ...prev,
-          milestoneId: ms.id,
-          milestoneName: ms.name,
-          amountPaid: prev.amountPaid || (ms.remainingBalance ? String(ms.remainingBalance) : String(ms.amount || "")),
-        }));
-      }
-    }
-  }, [selectedClient, initialMilestoneId]);
-
-  
   const handleClientChange = (e) => {
     const cId = e.target.value;
     const found = clients.find((c) => String(c.id) === String(cId));
     setSelectedClient(found || null);
-    setSelectedMilestone(null);
+    const msList = found?.paymentMilestones || [];
+    const ms = initialMilestoneId
+      ? msList.find((m) => String(m.id) === String(initialMilestoneId))
+      : msList[0];
+    setSelectedMilestone(ms || null);
     setFormData((prev) => ({
       ...prev,
       clientId: cId,
       clientName: found?.companyName || found?.name || "",
-      milestoneId: "",
-      milestoneName: "",
+      milestoneId: ms ? ms.id : "",
+      milestoneName: ms ? ms.name : "",
       projectId: "",
       projectName: "",
-      amountPaid: "",
+      amountPaid: ms
+        ? ms.remainingBalance
+          ? String(ms.remainingBalance)
+          : String(ms.amount || "")
+        : "",
     }));
     if (errors.clientId) setErrors((prev) => ({ ...prev, clientId: "" }));
   };
 
-  
   const handleMilestoneChange = (e) => {
     const mId = e.target.value;
     const msList = selectedClient?.paymentMilestones || [];
@@ -159,7 +156,6 @@ export function RecordClientPaymentModal({
     if (errors.milestoneId) setErrors((prev) => ({ ...prev, milestoneId: "" }));
   };
 
-  
   const numericAmount = Math.max(0, Number(formData.amountPaid) || 0);
   let computedGstAmount = 0;
   let computedTotalTransaction = numericAmount;
@@ -179,7 +175,6 @@ export function RecordClientPaymentModal({
   const currentPaid = Number(selectedMilestone?.paidAmount) || 0;
   const remainingAfterPayment = Math.max(0, agreedAmount - (currentPaid + numericAmount));
 
-  
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -246,7 +241,6 @@ export function RecordClientPaymentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden my-6">
-        {}
         <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-6 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
@@ -268,7 +262,6 @@ export function RecordClientPaymentModal({
           </button>
         </div>
 
-        {}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
           {errors.form && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
@@ -277,7 +270,6 @@ export function RecordClientPaymentModal({
             </div>
           )}
 
-          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -324,7 +316,6 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {}
           {selectedMilestone && (
             <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between text-xs flex-wrap gap-2">
               <div>
@@ -350,7 +341,6 @@ export function RecordClientPaymentModal({
             </div>
           )}
 
-          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Related Project (Optional)</label>
@@ -378,7 +368,6 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -452,7 +441,6 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {}
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -510,7 +498,6 @@ export function RecordClientPaymentModal({
               </div>
             )}
 
-            {}
             <div className="mt-2 p-3 rounded-lg bg-white border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <div>
                 <span className="text-[10px] text-slate-400 block uppercase">Agreed Milestone</span>
@@ -535,7 +522,6 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Remarks / Note</label>
@@ -570,7 +556,6 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          {}
           <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
             <span className="text-[11px] text-slate-500">
               Transaction reference will be validated to prevent accidental duplicate entries.

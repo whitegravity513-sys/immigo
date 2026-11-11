@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -18,18 +18,27 @@ import {
   User,
   Plus,
   RefreshCw,
+  ArrowRightLeft,
+  Video,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import vendorHRService from "../../services/vendorHRService.js";
 import crmVendorService from "../../services/crmVendorService.js";
+import meetingService from "../../services/meetingService.js";
+import {
+  refundService,
+  isAppRefundLocked,
+  getAppRefundStatus,
+  REASSIGN_ELIGIBLE_REFUND_STATUSES,
+} from "../../services/refundService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 import ActiveMeetingAlertBanner from "../../components/common/meeting/ActiveMeetingAlertBanner.jsx";
-import { formatSalary } from "../../components/vendor-hr/shared/vendorHRUtils.jsx";
+import MeetingCalendarSection from "../../components/common/meeting/MeetingCalendarSection.jsx";
+import { formatSalary, getEffectiveStage } from "../../components/vendor-hr/shared/vendorHRUtils.jsx";
 import AdminMasterLayout from "../../components/admin/layout/AdminMasterLayout.jsx";
 import AssignHRSection from "../../components/admin/hr/AssignHRSection.jsx";
 import NotificationBell from "../../components/admin/NotificationBell.jsx";
 
-// Modular Section Components
 import VendorHROverviewSection from "../../components/vendor-hr/sections/VendorHROverviewSection.jsx";
 import VendorHRProjectsSection from "../../components/vendor-hr/sections/VendorHRProjectsSection.jsx";
 import VendorHRJobsSection from "../../components/vendor-hr/sections/VendorHRJobsSection.jsx";
@@ -40,9 +49,9 @@ import VendorHRMilestonesSection from "../../components/vendor-hr/sections/Vendo
 import VendorHRVisaAllottedSection from "../../components/vendor-hr/sections/VendorHRVisaAllottedSection.jsx";
 import VendorHROnHoldSection from "../../components/vendor-hr/sections/VendorHROnHoldSection.jsx";
 import VendorHRRejectedSection from "../../components/vendor-hr/sections/VendorHRRejectedSection.jsx";
+import VendorHRRefundsSection from "../../components/vendor-hr/sections/VendorHRRefundsSection.jsx";
 import VendorHRProfileSection from "../../components/vendor-hr/sections/VendorHRProfileSection.jsx";
 
-// Modular Modal Components
 import VendorHRSubmitModal from "../../components/vendor-hr/modals/VendorHRSubmitModal.jsx";
 import VendorHRCandidateModal from "../../components/vendor-hr/modals/VendorHRCandidateModal.jsx";
 import VendorHRScheduleModal from "../../components/vendor-hr/modals/VendorHRScheduleModal.jsx";
@@ -96,17 +105,16 @@ export default function VendorHRDashboardPage() {
     return () => clearTimeout(t);
   }, [searchParams, isSuperAdmin, isAdmin, setSearchParams]);
 
-  // Master State Data
   const [selectedProject, setSelectedProject] = useState("ALL");
   const [dashboardData, setDashboardData] = useState(null);
   const [projectsList, setProjectsList] = useState([]);
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [jobs, setJobs] = useState([]);
-  const [activities, setActivities] = useState([]);
+  const [refunds, setRefunds] = useState([]);
+  const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Search & Filters
   const [candidateSearch, setCandidateSearch] = useState("");
   const [candidateStageFilter, setCandidateStageFilter] = useState("ALL");
   const [detailedProject, setDetailedProject] = useState(null);
@@ -130,16 +138,18 @@ export default function VendorHRDashboardPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // Form states
   const [submitForm, setSubmitForm] = useState({
     fullName: "",
     email: "",
     phone: "",
+    passportNumber: "",
     projectId: "",
     jobId: "",
     experience: "3-5 Years",
     skills: "",
     resumeUrl: "",
+    resumeFileName: "",
+    documents: [],
     notes: "",
   });
 
@@ -200,6 +210,11 @@ export default function VendorHRDashboardPage() {
   const userAssignedVendorsRef = useRef([]);
   const loadDataRef = useRef(null);
   const lastRefreshAtRef = useRef(0);
+  const activeMenuRef = useRef(activeMenu);
+
+  useEffect(() => {
+    activeMenuRef.current = activeMenu;
+  }, [activeMenu]);
 
   useEffect(() => {
     userAssignedVendorsRef.current = Array.isArray(user?.assignedVendors)
@@ -207,22 +222,81 @@ export default function VendorHRDashboardPage() {
       : [];
   }, [user?.assignedVendors]);
 
+  const mergeScopedRefunds = useCallback(
+    (apiRefunds = [], dashRefunds = [], data = {}, appsList = []) => {
+      const scopedVendorIds = new Set(
+        [
+          ...(Array.isArray(data?.assignedVendors) ? data.assignedVendors : []),
+          ...userAssignedVendorsRef.current,
+          ...(Array.isArray(data?.vendors)
+            ? data.vendors.flatMap((v) => [v?.vendorId, v?.id, v?._id])
+            : []),
+        ]
+          .filter(Boolean)
+          .map(String)
+      );
+      const scopedAppIds = new Set(
+        (appsList || [])
+          .flatMap((a) => [a?.applicationId, a?.id, a?._id])
+          .filter(Boolean)
+          .map(String)
+      );
+      const allowedApi =
+        isSuperAdmin || isAdmin
+          ? apiRefunds || []
+          : (apiRefunds || []).filter(
+              (r) =>
+                (r?.vendorId && scopedVendorIds.has(String(r.vendorId))) ||
+                (r?.applicationId && scopedAppIds.has(String(r.applicationId)))
+            );
+      const map = new Map();
+      [...allowedApi, ...(dashRefunds || [])].forEach((r) => {
+        if (!r) return;
+        const key = String(r.id || r.refundId || r._id || r.applicationId || "");
+        if (!key) return;
+        const existing = map.get(key) || {};
+        map.set(key, {
+          ...existing,
+          ...r,
+          totalPaid: Number(r.totalPaid || existing.totalPaid || 0),
+          refundAmount: Number(r.refundAmount || existing.refundAmount || 0),
+        });
+      });
+      return Array.from(map.values());
+    },
+    [isSuperAdmin, isAdmin]
+  );
+
   const loadData = useCallback(async ({ silent = false } = {}) => {
     try {
       if (!silent) setLoading(true);
       const params = selectedProject && selectedProject !== "ALL" ? { projectId: selectedProject } : {};
-      const [res] = await Promise.all([
+      const [res, , apiRefunds, apiMeetings] = await Promise.all([
         vendorHRService.getDashboard(params),
         crmVendorService.getAvailableProjects?.().catch(() => []),
+        refundService.getAllRefunds().catch(() => []),
+        meetingService.getMeetings({ limit: 50 }).catch(() => []),
       ]);
       const data = res?.data || res;
       const nextApps = data?.applications || [];
+      const mergedRefunds = mergeScopedRefunds(
+        apiRefunds,
+        Array.isArray(data?.refunds) ? data.refunds : [],
+        data,
+        nextApps
+      );
+      const nextMeetings = Array.isArray(apiMeetings)
+        ? apiMeetings
+        : Array.isArray(apiMeetings?.meetings)
+        ? apiMeetings.meetings
+        : [];
       setDashboardData(data);
       setProjectsList(data?.projects || []);
       setApplications(nextApps);
       setInterviews(data?.interviews || []);
       setJobs(data?.jobs || []);
-      setActivities(data?.activities || []);
+      setRefunds(mergedRefunds);
+      setMeetings(nextMeetings);
 
       setSelectedMilestoneApp((prev) => {
         if (!prev) return null;
@@ -244,43 +318,61 @@ export default function VendorHRDashboardPage() {
       if (!isSuperAdmin && !isAdmin && Array.isArray(data?.assignedVendors)) {
         const current = userAssignedVendorsRef.current;
         const next = data.assignedVendors.map(String);
-        if (JSON.stringify(current) !== JSON.stringify(next)) {
+        const remoteHrId = data?.vendorHRProfile?.hrId || "";
+        const needsVendorSync = JSON.stringify(current) !== JSON.stringify(next);
+        const needsHrIdSync = remoteHrId && user?.hrId !== remoteHrId;
+        if (needsVendorSync || needsHrIdSync) {
           updateUser({
             assignedVendors: next,
+            ...(remoteHrId ? { hrId: remoteHrId } : {}),
             ...(Array.isArray(data?.vendors) ? { vendors: data.vendors } : {}),
           });
         }
       }
       lastRefreshAtRef.current = Date.now();
-      return { applications: nextApps, projects: data?.projects || [] };
+      return { applications: nextApps, projects: data?.projects || [], refunds: mergedRefunds };
     } catch (err) {
       console.warn("Using fallback vendor HR dataset:", err);
       try {
-        const [crmApps, crmProjects] = await Promise.all([
+        const [crmApps, crmProjects, fallbackRefunds, fallbackMeetings] = await Promise.all([
           crmVendorService.getApplications(),
           crmVendorService.getAvailableProjects?.().catch(() => []),
+          refundService.getAllRefunds().catch(() => []),
+          meetingService.getMeetings({ limit: 50 }).catch(() => []),
         ]);
-        setApplications(crmApps || []);
+        const nextApps = crmApps || [];
+        const nextMeetings = Array.isArray(fallbackMeetings)
+          ? fallbackMeetings
+          : Array.isArray(fallbackMeetings?.meetings)
+          ? fallbackMeetings.meetings
+          : [];
+        setApplications(nextApps);
         if (Array.isArray(crmProjects) && crmProjects.length > 0) {
           setProjectsList(crmProjects);
         }
-        return { applications: crmApps || [], projects: crmProjects || [] };
+        const scopedRefunds = mergeScopedRefunds(fallbackRefunds, [], {}, nextApps);
+        setRefunds(scopedRefunds);
+        setMeetings(nextMeetings);
+        return { applications: nextApps, projects: crmProjects || [], refunds: scopedRefunds };
       } catch {
         if (!silent) showToast("Error connecting to server. Please refresh.", "error");
-        return { applications: [], projects: [] };
+        return { applications: [], projects: [], refunds: [] };
       }
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [selectedProject, isSuperAdmin, isAdmin, updateUser]);
+  }, [selectedProject, isSuperAdmin, isAdmin, user?.hrId, updateUser, mergeScopedRefunds]);
 
   useEffect(() => {
     loadDataRef.current = loadData;
   }, [loadData]);
 
   useEffect(() => {
-    if ((isSuperAdmin || isAdmin) && activeMenu === "assignments") return;
-    loadDataRef.current?.();
+    const t = setTimeout(() => {
+      if ((isSuperAdmin || isAdmin) && activeMenuRef.current === "assignments") return;
+      loadDataRef.current?.();
+    }, 0);
+    return () => clearTimeout(t);
   }, [userId, selectedProject, isSuperAdmin, isAdmin]);
 
   useEffect(() => {
@@ -296,6 +388,8 @@ export default function VendorHRDashboardPage() {
     window.addEventListener("immigo:vendor-hr-refresh", handleImmediateRefresh);
     window.addEventListener("immigo:application-update", handleImmediateRefresh);
     window.addEventListener("immigo:dashboard-update", handleImmediateRefresh);
+    window.addEventListener("immigo:refund-update", handleImmediateRefresh);
+    window.addEventListener("immigo:meeting-update", handleImmediateRefresh);
     window.addEventListener("storage", handleImmediateRefresh);
     window.addEventListener("focus", handleFocusOrVisibility);
     document.addEventListener("visibilitychange", handleFocusOrVisibility);
@@ -308,6 +402,8 @@ export default function VendorHRDashboardPage() {
       window.removeEventListener("immigo:vendor-hr-refresh", handleImmediateRefresh);
       window.removeEventListener("immigo:application-update", handleImmediateRefresh);
       window.removeEventListener("immigo:dashboard-update", handleImmediateRefresh);
+      window.removeEventListener("immigo:refund-update", handleImmediateRefresh);
+      window.removeEventListener("immigo:meeting-update", handleImmediateRefresh);
       window.removeEventListener("storage", handleImmediateRefresh);
       window.removeEventListener("focus", handleFocusOrVisibility);
       document.removeEventListener("visibilitychange", handleFocusOrVisibility);
@@ -315,11 +411,14 @@ export default function VendorHRDashboardPage() {
     };
   }, [isSuperAdmin, isAdmin, activeMenu]);
 
-  // Immediate Tag Navigation
   const navigateByTag = (stageOrTag, cand = null) => {
     const s = (stageOrTag || "").toLowerCase();
     let target = "candidates";
-    if (s.includes("shortlist")) {
+    if (s.includes("refund")) {
+      target = "refunds";
+    } else if (s.includes("meeting")) {
+      target = "meetings";
+    } else if (s.includes("shortlist")) {
       target = "shortlisted";
     } else if (s.includes("interview")) {
       target = "interviews";
@@ -338,8 +437,8 @@ export default function VendorHRDashboardPage() {
 
   const handleCandidateSubmit = async (e) => {
     e.preventDefault();
-    if (!submitForm.fullName || !submitForm.email || !submitForm.projectId) {
-      showToast("Please fill in candidate name, email, and target selection.", "error");
+    if (!submitForm.fullName || !submitForm.projectId) {
+      showToast("Please fill in candidate name and target selection.", "error");
       return;
     }
     try {
@@ -356,13 +455,18 @@ export default function VendorHRDashboardPage() {
         fullName: submitForm.fullName.trim(),
         email: submitForm.email.trim(),
         phone: submitForm.phone.trim(),
+        passportNumber: String(submitForm.passportNumber || "").trim().toUpperCase(),
+        experience: submitForm.experience || "",
         projectId: submitForm.projectId,
         projectName: prj?.projectName || "Assigned Project",
         jobId: submitForm.jobId,
         jobTitle: jb?.title || "Technician",
         vendorId,
         vendorName: dashboardData?.vendor?.companyName || defaultVendorName || user?.name || "",
-        skills: submitForm.skills ? submitForm.skills.split(",").map((s) => s.trim()) : [],
+        skills: submitForm.skills ? submitForm.skills.split(",").map((s) => s.trim()).filter(Boolean) : [],
+        resumeUrl: submitForm.resumeUrl || "",
+        resumeFileName: submitForm.resumeFileName || "",
+        documents: Array.isArray(submitForm.documents) ? submitForm.documents : [],
         notes: submitForm.notes,
       });
 
@@ -372,11 +476,14 @@ export default function VendorHRDashboardPage() {
         fullName: "",
         email: "",
         phone: "",
+        passportNumber: "",
         projectId: "",
         jobId: "",
         experience: "3-5 Years",
         skills: "",
         resumeUrl: "",
+        resumeFileName: "",
+        documents: [],
         notes: "",
       });
       await loadData();
@@ -411,10 +518,19 @@ export default function VendorHRDashboardPage() {
     setShowCandidateModal(true);
   };
 
-  // Save Candidate Stage & Details Update
   const handleCandidateUpdate = async (e) => {
     e.preventDefault();
     if (!selectedCandidate) return;
+    if (
+      isAppRefundLocked(selectedCandidate, refunds) &&
+      candidateUpdateForm.stage !== "Did Not Join"
+    ) {
+      showToast(
+        "This candidate has an active refund request. Processing and stage progression are paused until Admin responds.",
+        "error"
+      );
+      return;
+    }
     try {
       setActionLoading(true);
       const appId = selectedCandidate.applicationId || selectedCandidate.id || selectedCandidate._id;
@@ -475,7 +591,6 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Record Feedback Submit
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     if (!feedbackInterviewTarget) return;
@@ -496,8 +611,14 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Quick Action: Shortlist, Select, or Reject directly
   const handleQuickStage = async (cand, newStage, remarks = "") => {
+    if (isAppRefundLocked(cand, refunds) && newStage !== "Did Not Join") {
+      showToast(
+        "This candidate has an active refund request. Processing and stage progression are paused until Admin responds.",
+        "error"
+      );
+      return;
+    }
     try {
       setActionLoading(true);
       const appId = cand.applicationId || cand.id || cand._id;
@@ -532,14 +653,21 @@ export default function VendorHRDashboardPage() {
     setReassignTargetCandidate(cand);
     const otherProj = projectsList.find((p) => p.projectId !== cand.projectId) || projectsList[0];
     const initialJob = jobs.find((j) => j.projectId === otherProj?.projectId);
+    const refundStatus = getAppRefundStatus(cand, refunds);
+    const isRefundReassign = REASSIGN_ELIGIBLE_REFUND_STATUSES.has(refundStatus);
+    const defaultNote = isRefundReassign
+      ? hideProjectNames
+        ? `Reassigned after refund settlement (${refundStatus})`
+        : `Reassigned after refund settlement (${refundStatus}) from project [${cand.projectName || cand.projectId}]`
+      : hideProjectNames
+      ? "Reassigned from rejected pipeline"
+      : `Reassigned from rejected project [${cand.projectName || cand.projectId}]`;
     setReassignForm({
       projectId: otherProj?.projectId || "",
       projectName: otherProj?.projectName || "",
       jobId: initialJob?.jobId || "",
       jobTitle: initialJob?.title || "",
-      notes: hideProjectNames
-        ? "Reassigned from rejected pipeline"
-        : `Reassigned from rejected project [${cand.projectName || cand.projectId}]`,
+      notes: defaultNote,
     });
     setShowReassignModal(true);
   };
@@ -572,6 +700,8 @@ export default function VendorHRDashboardPage() {
       setShowReassignModal(false);
       setReassignTargetCandidate(null);
       await loadData();
+      window.dispatchEvent(new CustomEvent("immigo:refund-update"));
+      window.dispatchEvent(new CustomEvent("immigo:vendor-hr-refresh"));
     } catch (err) {
       showToast(err.response?.data?.message || err.message || "Failed to reassign candidate", "error");
     } finally {
@@ -579,12 +709,8 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Stepper handlers
   const handleCompleteMilestoneStage = async (milestoneId, stageId) => {
-    if (!stageCompletionRemark.trim()) {
-      showToast("Please enter verification remarks before completing this stage.", "error");
-      return;
-    }
+    const trimmedRemark = stageCompletionRemark.trim();
     try {
       setActionLoading(true);
       const candAppId = selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id;
@@ -592,7 +718,7 @@ export default function VendorHRDashboardPage() {
         candAppId,
         milestoneId,
         stageId,
-        stageCompletionRemark.trim(),
+        trimmedRemark,
         "Vendor HR",
         selectedMilestoneCandidate
       );
@@ -601,7 +727,9 @@ export default function VendorHRDashboardPage() {
         await vendorHRService.updateCandidateStage(candAppId, {
           stage: selectedMilestoneCandidate?.recruitmentStage || selectedMilestoneCandidate?.status || "Selected",
           processMilestones: updatedApp.processMilestones,
-          remarks: `Stage [${stageId}] completed by Vendor HR: ${stageCompletionRemark.trim()}`,
+          remarks: trimmedRemark
+            ? `Stage [${stageId}] completed by Vendor HR: ${trimmedRemark}`
+            : `Stage [${stageId}] completed by Vendor HR`,
         });
       } catch (backendErr) {
         console.warn("Backend sync notice:", backendErr?.message);
@@ -670,34 +798,49 @@ export default function VendorHRDashboardPage() {
     }
   };
 
-  // Nav menu badges
   const navMenuItems = useMemo(() => {
-    const shortlistedCount = applications.filter((a) => (a.recruitmentStage || a.status) === "Shortlisted").length;
-    const interviewCount = interviews.length;
-    const selectedCount = applications.filter((a) =>
-      ["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed", "Completed"].includes(a.recruitmentStage || a.status)
+    const activeApps = applications.filter((a) => !isAppRefundLocked(a, refunds));
+    const shortlistedCount = activeApps.filter((a) => getEffectiveStage(a) === "Shortlisted").length;
+    const lockedAppIds = new Set(
+      applications
+        .filter((a) => isAppRefundLocked(a, refunds))
+        .flatMap((a) => [a.applicationId, a.id, a._id])
+        .filter(Boolean)
+        .map(String)
+    );
+    const interviewCount = interviews.filter(
+      (item) => !lockedAppIds.has(String(item.applicationId || item.candidateRef?.applicationId || item.id || ""))
     ).length;
-    const visaCount = applications.filter((a) => {
-      const st = a.recruitmentStage || a.status || "";
+    const selectedCount = activeApps.filter((a) =>
+      ["Selected", "Processing", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed", "Completed"].includes(
+        getEffectiveStage(a)
+      )
+    ).length;
+    const visaCount = activeApps.filter((a) => {
+      const st = getEffectiveStage(a);
       const vs = a.visaDetails?.visaStatus || a.visaStatus || "";
       return st === "Visa Issued" || st === "Visa Allotted" || st === "Joined" || vs === "Visa Issued" || Boolean(a.visaDetails?.visaNumber || a.visaNumber);
     }).length;
-    const holdCount = applications.filter((a) => (a.recruitmentStage || a.status) === "On Hold").length;
-    const rejectCount = applications.filter((a) => (a.recruitmentStage || a.status) === "Rejected").length;
+    const refundCount = refunds.filter((r) => !r.reassigned).length;
+    const holdCount = activeApps.filter((a) => getEffectiveStage(a) === "On Hold").length;
+    const rejectCount = activeApps.filter((a) => getEffectiveStage(a) === "Rejected").length;
+    const activeMeetingsCount = meetings.filter((m) => m.status !== "CANCELLED").length;
 
     return [
       { id: "overview", label: "Overview", icon: LayoutDashboard },
       { id: "projects", label: "My Projects", icon: FolderKanban, badge: projectsList.length },
       { id: "jobs", label: "Jobs", icon: Briefcase, badge: jobs.length },
-      { id: "candidates", label: "All Candidates", icon: Users, badge: applications.length },
+      { id: "candidates", label: "All Candidates", icon: Users, badge: activeApps.length },
       { id: "shortlisted", label: "Shortlisted", icon: CheckCircle2, badge: shortlistedCount },
       { id: "interviews", label: "Interviews", icon: Calendar, badge: interviewCount },
       { id: "selected", label: "Selected Candidates", icon: Award, badge: selectedCount },
       { id: "visa-allotted", label: "Visa Allotted", icon: Plane, badge: visaCount },
+      { id: "refunds", label: "Refunds", icon: ArrowRightLeft, badge: refundCount },
       { id: "on-hold", label: "On Hold", icon: Clock, badge: holdCount },
       { id: "rejected", label: "Rejected Candidates", icon: XCircle, badge: rejectCount },
+      { id: "meetings", label: "Meetings", icon: Video, badge: activeMeetingsCount },
     ];
-  }, [applications, projectsList, jobs, interviews]);
+  }, [applications, projectsList, jobs, interviews, refunds, meetings]);
 
   if ((isSuperAdmin || isAdmin) && activeMenu === "assignments") {
     return (
@@ -719,7 +862,6 @@ export default function VendorHRDashboardPage() {
 
   return (
     <div className="flex h-screen bg-[#f8fafc] font-sans antialiased overflow-hidden text-slate-800">
-      {/* Toast Alert */}
       {toast && (
         <div
           className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold transition-all animate-in fade-in slide-in-from-top-2 ${toast.type === "error"
@@ -731,9 +873,7 @@ export default function VendorHRDashboardPage() {
         </div>
       )}
 
-      {/* 1. LEFT SIDEBAR */}
       <aside className="w-[240px] flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none">
-        {/* Top Header */}
         <div className="h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs shrink-0">
           <ImmiGoLogo
             size="sm"
@@ -742,7 +882,6 @@ export default function VendorHRDashboardPage() {
           />
         </div>
 
-        {/* Back to Admin Dashboard Pill (Prominent at top of Sidebar) */}
         {(isSuperAdmin || isAdmin) && (
           <div className="p-3 pb-1.5 border-b border-blue-200/60 bg-blue-50/60">
             <button
@@ -757,13 +896,12 @@ export default function VendorHRDashboardPage() {
           </div>
         )}
 
-        {/* Navigation Items */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
           <p className="text-[11px] font-bold text-blue-900/60 uppercase tracking-[0.14em] px-3 mb-2 mt-1">
             {isSuperAdmin ? "Super Admin HR Console" : isAdmin ? "Admin HR Console" : "Vendor HR Workspace"}
           </p>
 
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {navMenuItems.map((item) => {
               const Icon = item.icon;
               const active = activeMenu === item.id || (item.id === "selected" && activeMenu === "milestones");
@@ -775,7 +913,7 @@ export default function VendorHRDashboardPage() {
                     if (item.id === "projects") setDetailedProject(null);
                     handleSelectMenu(item.id);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${active
+                  className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${active
                     ? "bg-blue-600 text-white shadow-sm shadow-blue-500/25 font-bold"
                     : "text-slate-700 hover:bg-blue-100/70 hover:text-blue-950"
                     }`}
@@ -805,7 +943,6 @@ export default function VendorHRDashboardPage() {
           </nav>
         </div>
 
-        {/* Sign Out Footer */}
         <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
           <button
             type="button"
@@ -819,7 +956,6 @@ export default function VendorHRDashboardPage() {
         </div>
       </aside>
 
-      {/* 2. MAIN WORKSPACE */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
           <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
@@ -841,8 +977,10 @@ export default function VendorHRDashboardPage() {
                     {activeMenu === "interviews" && "Scheduled Interviews & Assessments"}
                     {(activeMenu === "selected" || activeMenu === "milestones") && (selectedMilestoneApp ? `Milestones / ${selectedMilestoneApp.candidateName}` : "Selected Candidates & Milestones")}
                     {activeMenu === "visa-allotted" && "Visa Allotted Candidates"}
+                    {activeMenu === "refunds" && "Candidate Refunds & Reassignments"}
                     {activeMenu === "on-hold" && "On Hold Candidate Roster"}
                     {activeMenu === "rejected" && "Rejected Candidates & Vendor Pool"}
+                    {activeMenu === "meetings" && "Meetings & Calendar Scheduling"}
                     {activeMenu === "profile" && "Agency Profile"}
                   </span>
                 </>
@@ -926,6 +1064,8 @@ export default function VendorHRDashboardPage() {
               projectsList={projectsList}
               jobs={jobs}
               interviews={interviews}
+              refunds={refunds}
+              meetings={meetings}
               vendorName={defaultVendorName}
               hideProjectNames={hideProjectNames}
               setActiveMenu={handleSelectMenu}
@@ -939,6 +1079,7 @@ export default function VendorHRDashboardPage() {
             <VendorHRProjectsSection
               projectsList={projectsList}
               applications={applications}
+              refunds={refunds}
               jobs={jobs}
               vendorName={defaultVendorName}
               detailedProject={detailedProject}
@@ -967,6 +1108,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "candidates" && (
             <VendorHRCandidatesSection
               applications={applications}
+              refunds={refunds}
               vendorName={defaultVendorName}
               hideProjectNames={hideProjectNames}
               candidateSearch={candidateSearch}
@@ -988,6 +1130,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "shortlisted" && (
             <VendorHRShortlistedSection
               applications={applications}
+              refunds={refunds}
               hideProjectNames={hideProjectNames}
               setScheduleInterviewTarget={setScheduleInterviewTarget}
               setScheduleForm={setScheduleForm}
@@ -1001,6 +1144,8 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "interviews" && (
             <VendorHRInterviewsSection
               interviews={interviews}
+              applications={applications}
+              refunds={refunds}
               hideProjectNames={hideProjectNames}
               setShowScheduleModal={setShowScheduleModal}
               handleQuickStage={handleQuickStage}
@@ -1013,6 +1158,7 @@ export default function VendorHRDashboardPage() {
           {(activeMenu === "selected" || activeMenu === "milestones") && (
             <VendorHRMilestonesSection
               applications={applications}
+              refunds={refunds}
               projectsList={projectsList}
               vendorName={defaultVendorName}
               hideProjectNames={hideProjectNames}
@@ -1031,15 +1177,27 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "visa-allotted" && (
             <VendorHRVisaAllottedSection
               applications={applications}
+              refunds={refunds}
               hideProjectNames={hideProjectNames}
               openCandidateModal={openCandidateModal}
               navigateByTag={navigateByTag}
             />
           )}
 
+          {activeMenu === "refunds" && (
+            <VendorHRRefundsSection
+              refunds={refunds}
+              applications={applications}
+              hideProjectNames={hideProjectNames}
+              openReassignModal={openReassignModal}
+              openCandidateModal={openCandidateModal}
+            />
+          )}
+
           {activeMenu === "on-hold" && (
             <VendorHROnHoldSection
               applications={applications}
+              refunds={refunds}
               hideProjectNames={hideProjectNames}
               handleQuickStage={handleQuickStage}
               openCandidateModal={openCandidateModal}
@@ -1050,6 +1208,7 @@ export default function VendorHRDashboardPage() {
           {activeMenu === "rejected" && (
             <VendorHRRejectedSection
               applications={applications}
+              refunds={refunds}
               hideProjectNames={hideProjectNames}
               openReassignModal={openReassignModal}
               openCandidateModal={openCandidateModal}
@@ -1057,15 +1216,22 @@ export default function VendorHRDashboardPage() {
             />
           )}
 
+          {activeMenu === "meetings" && (
+            <MeetingCalendarSection
+              role={isSuperAdmin ? "SUPER_ADMIN" : isAdmin ? "ADMIN" : "VENDOR_HR"}
+              assignedVendors={dashboardData?.assignedVendors || user?.assignedVendors || []}
+            />
+          )}
+
           {activeMenu === "profile" && (
             <VendorHRProfileSection
               user={user}
+              hrProfile={dashboardData?.vendorHRProfile}
               hrUserName={hrUserName}
               vendorName={defaultVendorName}
             />
           )}
         </main>
-
 
         <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
           <div className="w-full flex items-center justify-between gap-3 flex-wrap">
@@ -1087,7 +1253,6 @@ export default function VendorHRDashboardPage() {
         </footer>
       </div>
 
-
       <VendorHRSubmitModal
         show={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
@@ -1103,6 +1268,7 @@ export default function VendorHRDashboardPage() {
       <VendorHRCandidateModal
         show={showCandidateModal}
         candidate={selectedCandidate}
+        refunds={refunds}
         onClose={() => setShowCandidateModal(false)}
         onSubmit={handleCandidateUpdate}
         candidateUpdateForm={candidateUpdateForm}
@@ -1124,6 +1290,7 @@ export default function VendorHRDashboardPage() {
         scheduleInterviewTarget={scheduleInterviewTarget}
         setScheduleInterviewTarget={setScheduleInterviewTarget}
         applications={applications}
+        refunds={refunds}
         hrUserName={hrUserName}
         actionLoading={actionLoading}
       />
@@ -1141,6 +1308,7 @@ export default function VendorHRDashboardPage() {
       <VendorHRReassignModal
         show={showReassignModal}
         reassignTargetCandidate={reassignTargetCandidate}
+        refunds={refunds}
         onClose={() => setShowReassignModal(false)}
         onSubmit={handleReassignSubmit}
         reassignForm={reassignForm}
@@ -1154,6 +1322,7 @@ export default function VendorHRDashboardPage() {
       <VendorHRMilestoneStepperModal
         show={showMilestoneStepperModal}
         selectedMilestoneCandidate={selectedMilestoneCandidate}
+        refunds={refunds}
         onClose={() => setShowMilestoneStepperModal(false)}
         completingStageId={completingStageId}
         setCompletingStageId={setCompletingStageId}

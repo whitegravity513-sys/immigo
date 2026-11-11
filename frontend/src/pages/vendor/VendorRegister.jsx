@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Building2,
@@ -65,7 +65,6 @@ export function VendorRegister() {
   const [successSubmitted, setSuccessSubmitted] = useState(false);
   const [submittedVendor, setSubmittedVendor] = useState(null);
 
-  // 3D Flip entrance animation state for the side card
   const [animationDone, setAnimationDone] = useState(false);
 
   useEffect(() => {
@@ -229,7 +228,6 @@ export function VendorRegister() {
         }
       `}</style>
 
-      {/* 100% Crystal-Clear Background Photo with Zero Color Tint Overlays */}
       <div className="fixed inset-0 z-0 overflow-hidden select-none pointer-events-none">
         <img
           src={vendorConstructionManpower}
@@ -238,7 +236,6 @@ export function VendorRegister() {
         />
       </div>
 
-      {/* Top Header Bar */}
       <header className="relative z-20 w-full px-5 sm:px-10 py-2.5 flex items-center justify-between border-b border-white/20 bg-slate-900/75 backdrop-blur-md shrink-0 text-white shadow-xs">
         <div className="flex items-center gap-3">
           <Link to="/" className="inline-block">
@@ -268,7 +265,6 @@ export function VendorRegister() {
         </div>
       </header>
 
-      {/* Main Container - Card positioned on the SIDE with 3D Flip entrance */}
       <main className="relative z-10 w-full flex-1 flex items-center justify-end px-4 sm:px-8 lg:px-12 xl:px-16 py-2 min-h-0 overflow-hidden">
         <div
           className={`w-full max-w-lg lg:max-w-xl bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/90 p-4 sm:p-5 max-h-[calc(100vh-75px)] overflow-y-auto ${
@@ -625,7 +621,6 @@ export function VendorRegister() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="relative z-20 px-5 sm:px-10 py-1 border-t border-white/15 bg-slate-900/75 backdrop-blur-md flex items-center justify-between text-[11px] text-slate-300 shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo CRM &bull; Designed by White Gravity Web Solutions</span>
         <span className="flex items-center gap-1 text-slate-300">

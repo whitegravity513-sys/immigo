@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import crmVendorService from "../../../services/crmVendorService";
 
 export default function AdminPaymentHistory() {
@@ -83,7 +83,6 @@ export default function AdminPaymentHistory() {
           </div>
         </div>
 
-        {}
         <div className="space-y-4 text-xs">
           <h4 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
             Milestone Disbursement Logs

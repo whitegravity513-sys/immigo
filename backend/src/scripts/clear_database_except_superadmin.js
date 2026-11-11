@@ -22,7 +22,6 @@ async function clearDatabase() {
 
   const passwordHash = await bcrypt.hash(superAdminPassword, 12);
 
-  // Upsert Super Admin in 'users' collection
   let superAdminUser = await db.collection("users").findOne({
     $or: [{ role: "SUPER_ADMIN" }, { email: superAdminEmail }],
   });
@@ -58,17 +57,19 @@ async function clearDatabase() {
     console.log("Updated existing Super Admin credentials and password hash in 'users'.");
   }
 
-  // Ensure in 'admins' collection
   await db.collection("admins").updateOne(
     { email: superAdminEmail },
     {
       $set: {
         email: superAdminEmail,
-        passwordHash,
+        password: passwordHash,
         role: "SUPER_ADMIN",
         name: superAdminName,
         isActive: true,
         updatedAt: new Date(),
+      },
+      $unset: {
+        passwordHash: "",
       },
       $setOnInsert: {
         createdAt: new Date(),
@@ -78,15 +79,12 @@ async function clearDatabase() {
   );
   console.log("Ensured Super Admin in 'admins' collection.");
 
-  // Delete all users except Super Admin
   const deletedUsers = await db.collection("users").deleteMany({ _id: { $ne: superAdminUser._id } });
   console.log(`Deleted ${deletedUsers.deletedCount} non-superadmin users from 'users'.`);
 
-  // Delete all admins except Super Admin
   const deletedAdmins = await db.collection("admins").deleteMany({ email: { $ne: superAdminEmail } });
   console.log(`Deleted ${deletedAdmins.deletedCount} non-superadmin records from 'admins'.`);
 
-  // Collections to wipe completely
   const collectionsToWipe = [
     "candidates",
     "candidateapplications",
@@ -94,6 +92,9 @@ async function clearDatabase() {
     "crmcandidateapplications",
     "crmoverseasclients",
     "crmnotifications",
+    "crmrefunds",
+    "paymenttransactions",
+    "candidateactivities",
     "clients",
     "clientpayments",
     "projects",
@@ -133,7 +134,6 @@ async function clearDatabase() {
     }
   }
 
-  // Check final user state
   const remainingUsers = await db.collection("users").find({}).toArray();
   console.log("\n=== FINAL DATABASE STATE ===");
   console.log("Remaining Users:", remainingUsers.map(u => ({ id: u._id, name: u.name, email: u.email, role: u.role })));

@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import LoadingFallback from "./LoadingFallback.jsx";
 
 export default function ProtectedRoute({ children, allowedRole, allowedRoles: allowedRolesProp }) {
@@ -46,7 +46,6 @@ export default function ProtectedRoute({ children, allowedRole, allowedRoles: al
       .map((r) => r.trim().replace(/[\s_-]/g, ""));
   }
 
-  // Super Admin can access admin & hr areas
   const isSuperAdmin = normalizedRole === "superadmin";
   const hasAccess =
     !validRoles ||

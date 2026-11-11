@@ -1,7 +1,6 @@
-import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldAlert, ArrowLeft, Home, Lock, RefreshCw } from "lucide-react";
-import { usePermissions } from "../../context/PermissionContext.jsx";
+import { usePermissions } from "../../context/usePermissions.js";
 
 export function AccessDenied({
   title = "Access Restricted",
@@ -10,12 +9,11 @@ export function AccessDenied({
   requiredRole,
 }) {
   const navigate = useNavigate();
-  const { role, isSuperAdmin, reloadPermissions } = usePermissions();
+  const { role, reloadPermissions } = usePermissions();
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200/90 shadow-[0_20px_50px_rgba(0,0,0,0.08)] p-6 sm:p-8 text-center relative overflow-hidden">
-        {/* Decorative background glow */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 

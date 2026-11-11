@@ -1,30 +1,23 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Activity,
   Clock,
   User,
   Building2,
-  Calendar,
-  MessageSquare,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  Plus,
   Send,
   Video,
 } from "lucide-react";
 import candidateActivityService from "../../../services/candidateActivityService.js";
-import { useAuth } from "../../../context/AuthContext.jsx";
 
 export default function CandidateActivityTimeline({
   candidateId,
   candidateName = "",
   vendorId = "",
   vendorName = "",
+  allowStageEdit = true,
   onActivityAdded = () => {},
 }) {
-  const { user, isVendor, isAdmin, isSuperAdmin } = useAuth();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [remarkText, setRemarkText] = useState("");
@@ -33,18 +26,12 @@ export default function CandidateActivityTimeline({
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState(null);
 
-  useEffect(() => {
-    if (candidateId) {
-      loadActivities();
-    }
-  }, [candidateId]);
-
   const showToast = (msg, type = "success") => {
     setNotice({ msg, type });
     setTimeout(() => setNotice(null), 3500);
   };
 
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     try {
       setLoading(true);
       const data = await candidateActivityService.getCandidateActivities(candidateId);
@@ -54,7 +41,18 @@ export default function CandidateActivityTimeline({
     } finally {
       setLoading(false);
     }
-  };
+  }, [candidateId]);
+
+  useEffect(() => {
+    if (!candidateId) return;
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadActivities();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [candidateId, loadActivities]);
 
   const handleAddRemark = async (e) => {
     e.preventDefault();
@@ -101,7 +99,6 @@ export default function CandidateActivityTimeline({
         </div>
       )}
 
-      {/* Header */}
       <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center">
@@ -125,47 +122,50 @@ export default function CandidateActivityTimeline({
         </span>
       </div>
 
-      {/* Add Process Remark / Quick Status Update Bar */}
       <div className="p-3.5 bg-blue-50/40 border-b border-blue-100">
         <form onSubmit={handleAddRemark} className="space-y-2.5 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="text"
-              placeholder="Add process remark or candidate notes..."
+              placeholder={allowStageEdit ? "Add process remark or candidate notes..." : "Add candidate note or remark..."}
               value={remarkText}
               onChange={(e) => setRemarkText(e.target.value)}
               className="flex-1 min-w-[200px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
             />
 
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
-            >
-              <option value="">Status (No Change)</option>
-              <option value="Applied">Applied</option>
-              <option value="Shortlisted">Shortlisted</option>
-              <option value="Interview Scheduled">Interview Scheduled</option>
-              <option value="Selected">Selected</option>
-              <option value="On Hold">On Hold</option>
-              <option value="Rejected">Rejected</option>
-              <option value="Completed">Completed</option>
-            </select>
+            {allowStageEdit && (
+              <>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
+                >
+                  <option value="">Status (No Change)</option>
+                  <option value="Applied">Applied</option>
+                  <option value="Shortlisted">Shortlisted</option>
+                  <option value="Interview Scheduled">Interview Scheduled</option>
+                  <option value="Selected">Selected</option>
+                  <option value="On Hold">On Hold</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Completed">Completed</option>
+                </select>
 
-            <select
-              value={newStage}
-              onChange={(e) => setNewStage(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
-            >
-              <option value="">Stage (No Change)</option>
-              <option value="Screening">Screening</option>
-              <option value="Technical Interview">Technical Interview</option>
-              <option value="Client Interview">Client Interview</option>
-              <option value="Document Verification">Document Verification</option>
-              <option value="Medical & Biometrics">Medical & Biometrics</option>
-              <option value="Visa Processing">Visa Processing</option>
-              <option value="Flight & Deployment">Flight & Deployment</option>
-            </select>
+                <select
+                  value={newStage}
+                  onChange={(e) => setNewStage(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
+                >
+                  <option value="">Stage (No Change)</option>
+                  <option value="Screening">Screening</option>
+                  <option value="Technical Interview">Technical Interview</option>
+                  <option value="Client Interview">Client Interview</option>
+                  <option value="Document Verification">Document Verification</option>
+                  <option value="Medical & Biometrics">Medical & Biometrics</option>
+                  <option value="Visa Processing">Visa Processing</option>
+                  <option value="Flight & Deployment">Flight & Deployment</option>
+                </select>
+              </>
+            )}
 
             <button
               type="submit"
@@ -179,7 +179,6 @@ export default function CandidateActivityTimeline({
         </form>
       </div>
 
-      {/* Chronological Timeline */}
       <div className="p-4 sm:p-5">
         {loading ? (
           <div className="text-center py-8 text-xs text-slate-400">Loading activity timeline...</div>
@@ -196,7 +195,6 @@ export default function CandidateActivityTimeline({
 
               return (
                 <div key={act.id || act._id} className="relative group">
-                  {/* Timeline bullet dot */}
                   <div
                     className={`absolute -left-6 top-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs ${
                       isMeeting
@@ -209,9 +207,7 @@ export default function CandidateActivityTimeline({
                     }`}
                   />
 
-                  {/* Card Content */}
                   <div className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-slate-300 transition-all shadow-2xs">
-                    {/* User and Role Header */}
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2 mb-2 text-xs">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900 flex items-center gap-1.5">
@@ -240,14 +236,12 @@ export default function CandidateActivityTimeline({
                       </div>
                     </div>
 
-                    {/* Candidate Name Reference */}
                     {act.candidateName && (
                       <div className="text-[11px] font-semibold text-slate-500 mb-1.5">
                         Candidate: <strong className="text-slate-800">{act.candidateName}</strong>
                       </div>
                     )}
 
-                    {/* Status Change Strip */}
                     {(act.previousStatus || act.newStatus) && (
                       <div className="flex items-center gap-2 text-xs font-bold my-1 text-slate-800">
                         <span className="text-slate-500 text-[11px] uppercase font-semibold">Status:</span>
@@ -265,7 +259,6 @@ export default function CandidateActivityTimeline({
                       </div>
                     )}
 
-                    {/* Stage Change Strip */}
                     {(act.previousStage || act.newStage) && (
                       <div className="flex items-center gap-2 text-xs font-bold my-1 text-slate-800">
                         <span className="text-slate-500 text-[11px] uppercase font-semibold">Stage:</span>
@@ -283,7 +276,6 @@ export default function CandidateActivityTimeline({
                       </div>
                     )}
 
-                    {/* Milestone Change Strip */}
                     {(act.previousMilestone || act.newMilestone) && (
                       <div className="flex items-center gap-2 text-xs font-bold my-1 text-slate-800">
                         <span className="text-slate-500 text-[11px] uppercase font-semibold">Milestone:</span>
@@ -301,7 +293,6 @@ export default function CandidateActivityTimeline({
                       </div>
                     )}
 
-                    {/* Remarks / Description */}
                     {(act.remarks || act.description) && (
                       <p className="mt-2 text-xs text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200/60 leading-relaxed">
                         <strong className="text-slate-900 font-semibold">Remarks: </strong>
@@ -309,7 +300,6 @@ export default function CandidateActivityTimeline({
                       </p>
                     )}
 
-                    {/* Meeting Link Reference if applicable */}
                     {act.metadata?.meetingLink && (
                       <div className="mt-2 flex items-center gap-2">
                         <a

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ClientForm from "../../components/crm/clients/ClientForm.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService from "../../services/crmClientService.js";
 
 export function AddClient() {
@@ -9,7 +9,7 @@ export function AddClient() {
   const { showToast } = useCrmToast();
   const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (formData, asDraft) => {
+  const handleSubmit = async (formData) => {
     setSaving(true);
     try {
       const created = await crmClientService.createClient(formData);

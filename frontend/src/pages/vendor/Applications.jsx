@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   FileText,
   Search,
-  Filter,
   CheckCircle2,
   Clock,
   XCircle,
@@ -11,23 +10,18 @@ import {
   RotateCcw,
   ExternalLink,
   Building2,
-  MapPin,
-  ChevronRight,
-  AlertTriangle,
   RefreshCw,
   Send,
   Video,
-  Pause,
   Calendar,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 
 export default function Applications() {
-  const [vendor, setVendor] = useState(null);
+
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState("All");
@@ -36,7 +30,7 @@ export default function Applications() {
     try {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
-      setVendor(curVendor);
+
       const data = await crmVendorService.getApplications(curVendor?.id);
       setApplications(data || []);
     } catch (err) {
@@ -64,10 +58,8 @@ export default function Applications() {
     };
   }, [loadData]);
 
-  
   const projectList = Array.from(new Set(applications.map((a) => a.projectName).filter(Boolean)));
 
-  
   const statusTabs = [
     { label: "All", count: applications.length },
     { label: "Submitted", count: applications.filter((a) => a.status === "Submitted").length },
@@ -79,7 +71,6 @@ export default function Applications() {
     { label: "Completed", count: applications.filter((a) => a.status === "Completed").length },
   ];
 
-  
   const filteredApplications = applications.filter((app) => {
     if (activeTab === "Under Review") {
       if (app.status !== "Under Review" && app.status !== "Shortlisted") return false;
@@ -178,7 +169,6 @@ export default function Applications() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">
@@ -202,7 +192,6 @@ export default function Applications() {
         </Link>
       </div>
 
-      {}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
         {statusTabs.map((tab) => {
           const isActive = activeTab === tab.label;
@@ -210,17 +199,15 @@ export default function Applications() {
             <button
               key={tab.label}
               onClick={() => setActiveTab(tab.label)}
-              className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-2 ${
-                isActive
+              className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer flex items-center gap-2 ${isActive
                   ? "bg-indigo-600 text-white shadow-sm"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-              }`}
+                }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`px-1.5 py-0.2 rounded-full text-[11px] ${
-                  isActive ? "bg-white/20 text-white" : "bg-slate-200/80 text-slate-700"
-                }`}
+                className={`px-1.5 py-0.2 rounded-full text-[11px] ${isActive ? "bg-white/20 text-white" : "bg-slate-200/80 text-slate-700"
+                  }`}
               >
                 {tab.count}
               </span>
@@ -229,7 +216,6 @@ export default function Applications() {
         })}
       </div>
 
-      {}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -258,7 +244,6 @@ export default function Applications() {
         </div>
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -302,12 +287,11 @@ export default function Applications() {
                 {filteredApplications.map((app) => {
                   const isRejected = app.status === "Rejected";
                   const isSelected = app.status === "Selected" || app.status === "Completed";
-                  const stageIndex = app.processing?.currentStageIndex ?? 0;
-                  const currentStageName = app.processing?.stages?.[stageIndex]?.name;
+
+
 
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                      {}
                       <td className="py-1.5 px-3 sm:px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0 border border-slate-200">
@@ -327,7 +311,6 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <div className="font-semibold text-slate-800 truncate max-w-[180px]">
                           {app.projectName}
@@ -340,17 +323,14 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <span className="font-medium text-slate-800">{app.position}</span>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-slate-500 text-xs">
                         {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "-"}
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3">
                         <div>
                           {getStatusBadge(app.status)}
@@ -388,7 +368,6 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      {}
                       <td className="py-1.5 px-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {isSelected && (

@@ -6,11 +6,7 @@ import { extractEmployeeViewFromLink } from "../../utils/notificationLinks.js";
 import CheckInOutSection from "../../components/employee/CheckInOutSection.jsx";
 import BreaksSection from "../../components/employee/BreaksSection.jsx";
 import AttendanceCalendarTab from "../../components/employee/AttendanceCalendarTab.jsx";
-import MonthlyTrackerTab from "../../components/employee/MonthlyTrackerTab.jsx";
-import ApplyLeaveModal from "../../components/employee/ApplyLeaveModal.jsx";
-import LeaveHistorySection from "../../components/employee/LeaveHistorySection.jsx";
 import LeaveManagementSection from "../../components/employee/LeaveManagementSection.jsx";
-import EmployeeNotificationBell from "../../components/employee/EmployeeNotificationBell.jsx";
 import EmployeeMeetingsTab from "../../components/employee/EmployeeMeetingsTab.jsx";
 import EmployeeAnnouncementsTab from "../../components/employee/EmployeeAnnouncementsTab.jsx";
 import EmployeeProfileDocsTab from "../../components/employee/EmployeeProfileDocsTab.jsx";
@@ -38,18 +34,20 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     }
   });
 
-  const handleProfileImageUpdate = (newImage) => {
+  const [statusRecord, setStatusRecord] = useState(null);
+
+  const handleProfileImageUpdate = useCallback((newImage) => {
     if (!newImage) return;
     setCurrentUser((prev) => {
       const updated = { ...(prev || {}), profileImage: newImage };
       try {
         const stored = JSON.parse(localStorage.getItem("user") || "{}");
         localStorage.setItem("user", JSON.stringify({ ...stored, profileImage: newImage }));
-      } catch (e) { }
+      } catch { }
       return updated;
     });
     setStatusRecord((prev) => (prev ? { ...prev, profileImage: newImage } : prev));
-  };
+  }, []);
 
   useEffect(() => {
     const onUserUpdated = () => {
@@ -58,15 +56,15 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         if (stored?.profileImage) {
           handleProfileImageUpdate(stored.profileImage);
         }
-      } catch (e) { }
+      } catch { }
     };
     window.addEventListener("user-updated", onUserUpdated);
     return () => window.removeEventListener("user-updated", onUserUpdated);
-  }, []);
+  }, [handleProfileImageUpdate]);
 
   const [employeeProfile, setEmployeeProfile] = useState(null);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!token) return;
     try {
       const res = await apiClient.get("/employee/profile");
@@ -79,12 +77,18 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
           setCurrentUser((prev) => ({ ...(prev || {}), department: res.data.department }));
         }
       }
-    } catch (e) { }
-  };
+    } catch { }
+  }, [token, handleProfileImageUpdate]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [token]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchProfile();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchProfile]);
 
   const REQUIRED_DOC_TYPES = [
     "Resume / CV",
@@ -113,12 +117,14 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     return initialFromUrl || "home";
   });
 
-  useEffect(() => {
-    const urlView = extractEmployeeViewFromLink(`?${searchParams.toString()}`);
+  const urlView = extractEmployeeViewFromLink(`?${searchParams.toString()}`);
+  const [prevUrlView, setPrevUrlView] = useState(urlView);
+  if (urlView !== prevUrlView) {
+    setPrevUrlView(urlView);
     if (urlView && urlView !== view) {
       setViewState(urlView);
     }
-  }, [searchParams]);
+  }
 
   const setView = useCallback(
     (nextView) => {
@@ -153,14 +159,13 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     };
     window.addEventListener("new-admin-notification", handleNewAdminNotif);
     return () => window.removeEventListener("new-admin-notification", handleNewAdminNotif);
-  }, []);
+  }, [fetchProfile]);
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [statusRecord, setStatusRecord] = useState(null);
   const [leaveHistory, setLeaveHistory] = useState([]);
   const [holidays, setHolidays] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
@@ -187,39 +192,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
   useEffect(() => { if (errorMsg) { const t = setTimeout(() => setErrorMsg(""), 6000); return () => clearTimeout(t); } }, [errorMsg]);
   useEffect(() => { if (successMsg) { const t = setTimeout(() => setSuccessMsg(""), 6000); return () => clearTimeout(t); } }, [successMsg]);
 
-  useEffect(() => {
-    if (!token) return;
-    fetchAll();
-
-    const todayStr = getIndiaDateString();
-    apiClient.get(`/employee/meetings`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => {
-      const all = Array.isArray(res.data) ? res.data : [];
-      setTodayMeetings(all.filter((m) => m.date === todayStr && !isMeetingExpired(m)));
-    }).catch(() => { });
-
-    
-    const iv = setInterval(() => {
-      fetchAll(true);
-    }, 2000);
-
-    const handleFocus = () => fetchAll(true);
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      clearInterval(iv);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [token]);
-
-  useEffect(() => {
-    if (token && (view === "calendar" || view === "tracker")) {
-      fetchMonthlyAttendance(calendarMonth, calendarYear);
-    }
-  }, [token, view, calendarMonth, calendarYear]);
-
-  async function fetchAll(silent = false) {
+  const fetchAll = useCallback(async (silent = false) => {
     try {
       const [sRes, lRes, hRes, aRes] = await Promise.all([
         apiClient.get(`/employee/status`),
@@ -231,8 +204,12 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       if (sRes.data?.profileImage) {
         handleProfileImageUpdate(sRes.data.profileImage);
       }
-      if (sRes.data?.department && sRes.data.department !== currentUser?.department) {
-        setCurrentUser((prev) => ({ ...(prev || {}), department: sRes.data.department }));
+      if (sRes.data?.department) {
+        setCurrentUser((prev) =>
+          prev?.department === sRes.data.department
+            ? prev
+            : { ...(prev || {}), department: sRes.data.department }
+        );
       }
       setLeaveHistory(lRes.data);
       setHolidays(hRes.data || []);
@@ -242,9 +219,9 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     } finally {
       setInitialLoading(false);
     }
-  }
+  }, [handleProfileImageUpdate]);
 
-  async function fetchMonthlyAttendance(month = calendarMonth, year = calendarYear, silent = false) {
+  const fetchMonthlyAttendance = useCallback(async (month, year, silent = false) => {
     if (!silent) setMonthlyLoading(true);
     try {
       const res = await apiClient.get(`/employee/monthly?month=${month}&year=${year}`);
@@ -253,6 +230,69 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       console.error("Failed to load monthly attendance", err);
     } finally {
       if (!silent) setMonthlyLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchAll();
+    });
+
+    const todayStr = getIndiaDateString();
+    apiClient.get(`/employee/meetings`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      const all = Array.isArray(res.data) ? res.data : [];
+      setTodayMeetings(all.filter((m) => m.date === todayStr && !isMeetingExpired(m)));
+    }).catch(() => { });
+
+    const iv = setInterval(() => {
+      fetchAll(true);
+    }, 2000);
+
+    const handleFocus = () => fetchAll(true);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [token, fetchAll]);
+
+  useEffect(() => {
+    if (token && (view === "calendar" || view === "tracker")) {
+      let cancelled = false;
+      Promise.resolve().then(() => {
+        if (!cancelled) fetchMonthlyAttendance(calendarMonth, calendarYear);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [token, view, calendarMonth, calendarYear, fetchMonthlyAttendance]);
+
+  const [prevStatusRecord, setPrevStatusRecord] = useState(null);
+  if (statusRecord !== prevStatusRecord) {
+    setPrevStatusRecord(statusRecord);
+    if (statusRecord) {
+      const {
+        status: recStatus,
+        lunchBreakSeconds: ls = 0,
+        otherBreakSeconds: os = 0,
+        totalWorkSeconds: recTotalWork = 0,
+      } = statusRecord;
+      if (recStatus === "Checked Out") {
+        setWorkSeconds(recTotalWork || 0);
+        setLunchSeconds(ls);
+        setBreakSeconds(os);
+      } else if (recStatus !== "Active" && recStatus !== "On Break") {
+        setWorkSeconds(0);
+        setLunchSeconds(0);
+        setBreakSeconds(0);
+      }
     }
   }
 
@@ -268,6 +308,7 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
       breaks = []
     } = statusRecord;
 
+    let cancelled = false;
     if (status === "Active" && checkInTime) {
       const start = new Date(checkInTime).getTime();
       const tick = () => {
@@ -276,7 +317,9 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         setLunchSeconds(ls);
         setBreakSeconds(os);
       };
-      tick();
+      Promise.resolve().then(() => {
+        if (!cancelled) tick();
+      });
       timerRef.current = setInterval(tick, 1000);
     } else if (status === "On Break" && checkInTime) {
       const lastBreak = breaks && breaks.length > 0 ? breaks[breaks.length - 1] : null;
@@ -292,18 +335,13 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
         setLunchSeconds(curLunch);
         setBreakSeconds(curOther);
       };
-      tick();
+      Promise.resolve().then(() => {
+        if (!cancelled) tick();
+      });
       timerRef.current = setInterval(tick, 1000);
-    } else if (status === "Checked Out") {
-      setWorkSeconds(statusRecord.totalWorkSeconds || 0);
-      setLunchSeconds(ls);
-      setBreakSeconds(os);
-    } else {
-      setWorkSeconds(0);
-      setLunchSeconds(0);
-      setBreakSeconds(0);
     }
     return () => {
+      cancelled = true;
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [statusRecord]);
@@ -314,44 +352,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
     const br = ua.includes("Chrome") ? "Chrome" : ua.includes("Firefox") ? "Firefox" : ua.includes("Safari") ? "Safari" : "Browser";
     return `${os} (${br})`;
   };
-  const getLoc = () => new Promise((resolve) => {
-    try {
-      if (!navigator?.geolocation) {
-        return resolve({ latitude: null, longitude: null, address: "Device Location" });
-      }
-      let resolved = false;
-      const fallbackTimer = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          resolve({ latitude: null, longitude: null, address: "Device Location" });
-        }
-      }, 500);
-
-      navigator.geolocation.getCurrentPosition(
-        (p) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(fallbackTimer);
-            resolve({
-              latitude: p.coords.latitude,
-              longitude: p.coords.longitude,
-              address: `${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}`,
-            });
-          }
-        },
-        () => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(fallbackTimer);
-            resolve({ latitude: null, longitude: null, address: "Device Location" });
-          }
-        },
-        { enableHighAccuracy: false, timeout: 500, maximumAge: 60000 }
-      );
-    } catch (e) {
-      resolve({ latitude: null, longitude: null, address: "Device Location" });
-    }
-  });
 
   const apiCall = async (fn) => {
     setLoading(true);
@@ -499,8 +499,6 @@ export default function EmployeeDashboard({ user, token, onLogout }) {
 
   const status = initialLoading && !statusRecord ? "Syncing..." : (statusRecord?.status || "Absent");
   const leaveBalance = statusRecord?.leaveBalance ?? 0;
-
-  const nextMonthLeaves = statusRecord?.nextMonthLeaves ?? 0;
   const isOnBreak = status === "On Break";
   const isActive = status === "Active";
   const isCheckedOut = status === "Checked Out";

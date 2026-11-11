@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Users,
   UserCheck,
@@ -47,7 +47,7 @@ export default function WorkforceDashboardSection({
   const [metricModal, setMetricModal] = useState(null);
   const [metricModalSearch, setMetricModalSearch] = useState("");
 
-  const fetchWorkLogs = async (targetDate = selectedDate) => {
+  const fetchWorkLogs = useCallback(async (targetDate = selectedDate) => {
     setLoadingLogs(true);
     try {
       const res = await apiClient.get("/admin/worklogs", {
@@ -59,9 +59,9 @@ export default function WorkforceDashboardSection({
     } finally {
       setLoadingLogs(false);
     }
-  };
+  }, [selectedDate]);
 
-  const fetchDateAttendance = async (dateToFetch) => {
+  const fetchDateAttendance = useCallback(async (dateToFetch) => {
     setLoadingDateAttendance(true);
     try {
       const res = await apiClient.get("/admin/attendance", {
@@ -73,16 +73,23 @@ export default function WorkforceDashboardSection({
     } finally {
       setLoadingDateAttendance(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (selectedDate !== todayDate) {
-      fetchDateAttendance(selectedDate);
-    } else {
-      setDateAttendance(null);
-    }
-    fetchWorkLogs(selectedDate);
-  }, [selectedDate, todayDate]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      if (selectedDate !== todayDate) {
+        fetchDateAttendance(selectedDate);
+      } else {
+        setDateAttendance(null);
+      }
+      fetchWorkLogs(selectedDate);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate, todayDate, fetchDateAttendance, fetchWorkLogs]);
 
   const currentAttendanceList =
     selectedDate === todayDate && !dateAttendance ? attendanceReport : dateAttendance || attendanceReport;

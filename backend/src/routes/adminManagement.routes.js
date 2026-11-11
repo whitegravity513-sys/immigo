@@ -16,7 +16,6 @@ import {
   authenticateRBAC,
   requireSuperAdmin,
   requireRoles,
-  requirePermission,
 } from "../middleware/rbac.middleware.js";
 
 const router = express.Router();

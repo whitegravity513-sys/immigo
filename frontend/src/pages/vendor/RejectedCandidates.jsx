@@ -61,7 +61,6 @@ export default function RejectedCandidates() {
 
   return (
     <div className="p-2 sm:p-3 max-w-full w-full mx-auto space-y-3 font-sans text-slate-800">
-      {}
       <div>
         <div className="flex items-center gap-2 text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">
           <XCircle className="w-4 h-4" />
@@ -75,7 +74,6 @@ export default function RejectedCandidates() {
         </p>
       </div>
 
-      {}
       <div className="p-2.5 sm:p-3 rounded-lg bg-amber-50/80 border border-amber-200/80 flex items-start gap-2 shadow-2xs text-xs">
         <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
           <Info className="w-5 h-5 text-amber-800" />
@@ -86,7 +84,6 @@ export default function RejectedCandidates() {
         </div>
       </div>
 
-      {}
       <div className="relative">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -98,7 +95,6 @@ export default function RejectedCandidates() {
         />
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -131,7 +127,6 @@ export default function RejectedCandidates() {
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((app) => (
                   <tr key={app.id} className="hover:bg-slate-50/70 transition">
-                    {}
                     <td className="py-1 px-2 sm:px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded-md bg-rose-50 text-rose-700 font-bold flex items-center justify-center text-xs shrink-0 border border-rose-200">
@@ -151,7 +146,6 @@ export default function RejectedCandidates() {
                       </div>
                     </td>
 
-                    {}
                     <td className="py-1 px-2">
                       <div className="font-semibold text-slate-800">{app.projectName}</div>
                       <div className="text-[11px] text-slate-500 flex items-center gap-1">
@@ -162,10 +156,8 @@ export default function RejectedCandidates() {
                       </div>
                     </td>
 
-                    {}
                     <td className="py-1 px-2 font-medium text-slate-700">{app.position}</td>
 
-                    {}
                     <td className="py-1 px-2 max-w-[240px]">
                       <div className="p-2 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 text-xs">
                         <span className="font-semibold block text-[10px] uppercase tracking-wider text-rose-600">
@@ -175,7 +167,6 @@ export default function RejectedCandidates() {
                       </div>
                     </td>
 
-                    {}
                     <td className="py-1 px-2 text-slate-500 text-xs">
                       {app.rejectionDate
                         ? new Date(app.rejectionDate).toLocaleDateString()
@@ -184,7 +175,6 @@ export default function RejectedCandidates() {
                         : "-"}
                     </td>
 
-                    {}
                     <td className="py-1 px-2 text-right">
                       <Link
                         to={`/vendor/candidates/submit?candidateId=${app.candidateId}`}

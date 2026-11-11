@@ -1,12 +1,12 @@
 import Vendor from "../models/Vendor.js";
 import User from "../models/User.js";
-import Project from "../models/Project.js";
 import ProjectAssignment from "../models/ProjectAssignment.js";
 import CandidateApplication from "../models/CandidateApplication.js";
 import VendorPaymentMilestone from "../models/VendorPaymentMilestone.js";
 import ActivityLog from "../models/ActivityLog.js";
 import NotificationService from "./notification.service.js";
 import { ApiError } from "../utils/apiError.js";
+import { generateNextVendorId } from "../utils/idGenerator.js";
 import bcrypt from "bcryptjs";
 
 export class VendorManagementService {
@@ -39,7 +39,7 @@ export class VendorManagementService {
     }
 
     const generatedCode =
-      vendorCode?.trim() || `VND-${Date.now().toString().slice(-5)}`;
+      vendorCode?.trim() || (await generateNextVendorId());
     const randomPassword = await bcrypt.hash(`Vendor@${Date.now().toString().slice(-4)}`, 10);
 
     const vendor = await Vendor.create({
@@ -125,7 +125,7 @@ export class VendorManagementService {
     return vendor;
   }
 
-  static async getVendorsList({ search, status, page = 1, limit = 50, actorUser }) {
+  static async getVendorsList({ search, status }) {
     const filter = {};
     if (status && status !== "ALL") {
       filter.status = status;
@@ -224,8 +224,6 @@ export class VendorManagementService {
     if (!vendor) {
       throw new ApiError(404, "Vendor not found.");
     }
-
-    const vId = vendor.vendorId || vendor._id.toString();
 
     const [assignments, vendorHRs, applications, milestones, activityLogs] = await Promise.all([
       ProjectAssignment.find({

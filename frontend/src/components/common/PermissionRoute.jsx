@@ -1,5 +1,4 @@
-import React from "react";
-import { usePermissions } from "../../context/PermissionContext.jsx";
+import { usePermissions } from "../../context/usePermissions.js";
 import AccessDenied from "./AccessDenied.jsx";
 import LoadingFallback from "./LoadingFallback.jsx";
 
@@ -7,7 +6,7 @@ export function PermissionRoute({
   children,
   permission,
   permissions,
-  mode = "all", // "all" or "any"
+  mode = "all",
   superAdminOnly = false,
   requiredRole,
 }) {

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import env, { getJwtVerificationSecrets } from "../config/env.js";
 
 export const generateAccessToken = (user) => {
   return jwt.sign(
@@ -8,7 +9,7 @@ export const generateAccessToken = (user) => {
       role: user.role,
       tokenVersion: user.tokenVersion || 0,
     },
-    process.env.JWT_ACCESS_SECRET || "default_access_secret_change_in_production",
+    env.JWT_ACCESS_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES || "30d",
     }
@@ -21,7 +22,7 @@ export const generateRefreshToken = (user) => {
       sub: user._id.toString(),
       tokenVersion: user.tokenVersion || 0,
     },
-    process.env.JWT_REFRESH_SECRET || "default_refresh_secret_change_in_production",
+    env.JWT_REFRESH_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES || "30d",
     }
@@ -29,17 +30,30 @@ export const generateRefreshToken = (user) => {
 };
 
 export const verifyAccessToken = (token) => {
-  return jwt.verify(
-    token,
-    process.env.JWT_ACCESS_SECRET || "default_access_secret_change_in_production"
-  );
+  let lastError = null;
+  for (const secret of getJwtVerificationSecrets()) {
+    try {
+      return jwt.verify(token, secret);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("Invalid access token");
 };
 
 export const verifyRefreshToken = (token) => {
-  return jwt.verify(
-    token,
-    process.env.JWT_REFRESH_SECRET || "default_refresh_secret_change_in_production"
+  const secrets = Array.from(
+    new Set([env.JWT_REFRESH_SECRET, env.JWT_SECRET].filter(Boolean))
   );
+  let lastError = null;
+  for (const secret of secrets) {
+    try {
+      return jwt.verify(token, secret);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError || new Error("Invalid refresh token");
 };
 
 export default {

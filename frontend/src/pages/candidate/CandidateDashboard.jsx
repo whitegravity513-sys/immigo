@@ -1,9 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, AlertCircle, XCircle } from "lucide-react";
 import { extractCandidateTabFromLink } from "../../utils/notificationLinks.js";
 import AppFooter from "../../components/common/AppFooter.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import apiClient from "../../services/apiClient.js";
 
 import CandidateSidebar from "../../components/candidate/CandidateSidebar.jsx";
@@ -26,12 +31,14 @@ export default function CandidateDashboard() {
     return initialTab || "overview";
   });
 
-  useEffect(() => {
-    const urlTab = extractCandidateTabFromLink(`?${searchParams.toString()}`);
+  const urlTab = extractCandidateTabFromLink(`?${searchParams.toString()}`);
+  const [prevUrlTab, setPrevUrlTab] = useState(urlTab);
+  if (urlTab !== prevUrlTab) {
+    setPrevUrlTab(urlTab);
     if (urlTab && urlTab !== activeTab) {
       setActiveTabState(urlTab);
     }
-  }, [searchParams]);
+  }
 
   const setActiveTab = useCallback(
     (nextTab) => {
@@ -51,7 +58,6 @@ export default function CandidateDashboard() {
   const [candidate, setCandidate] = useState(null);
   const [projects, setProjects] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
@@ -61,10 +67,9 @@ export default function CandidateDashboard() {
 
   const [selectedAppForProcessing, setSelectedAppForProcessing] = useState(null);
   const [milestonesData, setMilestonesData] = useState(null);
-  const [milestonesLoading, setMilestonesLoading] = useState(false);
 
   const [payModalOpen, setPayModalOpen] = useState(false);
-  const [selectedMilestoneToPay, setSelectedMilestoneToPay] = useState(null);
+  const [selectedMilestoneToPay] = useState(null);
   const [paymentTypeTab, setPaymentTypeTab] = useState("online");
   const [paymentRefInput, setPaymentRefInput] = useState("");
   const [paymentNotesInput, setPaymentNotesInput] = useState("");
@@ -97,7 +102,7 @@ export default function CandidateDashboard() {
   const [docFileName, setDocFileName] = useState("");
   const [uploadingDoc, setUploadingDoc] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await apiClient.get("/candidate/notifications");
       if (res.data?.success) {
@@ -105,7 +110,7 @@ export default function CandidateDashboard() {
         setUnreadNotifCount(res.data.unreadCount || 0);
       }
     } catch {}
-  };
+  }, []);
 
   const handleMarkNotificationRead = async (notifId) => {
     try {
@@ -147,9 +152,10 @@ export default function CandidateDashboard() {
     setUnreadNotifCount(0);
   };
 
-  const fetchAppMilestones = async (appId) => {
+  const liveSyncRef = useRef(null);
+
+  const fetchAppMilestones = useCallback(async (appId) => {
     if (!appId) return;
-    setMilestonesLoading(true);
     try {
       const res = await apiClient.get(`/candidate/applications/${appId}/milestones`);
       if (res.data?.success) {
@@ -157,13 +163,10 @@ export default function CandidateDashboard() {
       }
     } catch (err) {
       console.error("Failed to load milestones:", err);
-    } finally {
-      setMilestonesLoading(false);
     }
-  };
+  }, []);
 
-  const fetchCandidateData = async () => {
-    setLoading(true);
+  const fetchCandidateData = useCallback(async ({ silent = false } = {}) => {
     try {
       const [candRes, projRes, appRes] = await Promise.all([
         apiClient.get("/candidate/me"),
@@ -174,32 +177,34 @@ export default function CandidateDashboard() {
       if (candRes.data?.candidate) {
         const c = candRes.data.candidate;
         setCandidate(c);
-        const p = c.profile || {};
-        setProfileForm({
-          fullName: c.fullName || "",
-          phone: c.phone || "",
-          dob: p.dob || "",
-          gender: p.gender || "",
-          address: p.address || "",
-          city: p.city || "",
-          state: p.state || "",
-          pincode: p.pincode || "",
-          countryPreference: Array.isArray(p.countryPreference)
-            ? p.countryPreference.join(", ")
-            : p.countryPreference || "",
-          education: Array.isArray(p.education) ? p.education : [],
-          skills: Array.isArray(p.skills) ? p.skills.join(", ") : p.skills || "",
-          trade: p.trade || "",
-          experienceYears: p.experienceYears || 0,
-          currentOccupation: p.currentOccupation || "",
-          preferredJobRole: p.preferredJobRole || "",
-          languages: Array.isArray(p.languages)
-            ? p.languages.join(", ")
-            : p.languages || "",
-          passportNumber: p.passportNumber || "",
-          passportExpiry: p.passportExpiry || "",
-          passportIssueCountry: p.passportIssueCountry || "",
-        });
+        if (!silent) {
+          const p = c.profile || {};
+          setProfileForm({
+            fullName: c.fullName || "",
+            phone: c.phone || "",
+            dob: p.dob || "",
+            gender: p.gender || "",
+            address: p.address || "",
+            city: p.city || "",
+            state: p.state || "",
+            pincode: p.pincode || "",
+            countryPreference: Array.isArray(p.countryPreference)
+              ? p.countryPreference.join(", ")
+              : p.countryPreference || "",
+            education: Array.isArray(p.education) ? p.education : [],
+            skills: Array.isArray(p.skills) ? p.skills.join(", ") : p.skills || "",
+            trade: p.trade || "",
+            experienceYears: p.experienceYears || 0,
+            currentOccupation: p.currentOccupation || "",
+            preferredJobRole: p.preferredJobRole || "",
+            languages: Array.isArray(p.languages)
+              ? p.languages.join(", ")
+              : p.languages || "",
+            passportNumber: p.passportNumber || "",
+            passportExpiry: p.passportExpiry || "",
+            passportIssueCountry: p.passportIssueCountry || "",
+          });
+        }
       }
       if (projRes.data?.projects) {
         setProjects(projRes.data.projects);
@@ -230,14 +235,49 @@ export default function CandidateDashboard() {
       }
     } catch (err) {
       console.error("Failed to fetch candidate details:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [fetchAppMilestones]);
 
   useEffect(() => {
-    fetchCandidateData();
-    fetchNotifications();
+    liveSyncRef.current = () => {
+      fetchCandidateData({ silent: true });
+      fetchNotifications();
+    };
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        fetchCandidateData();
+        fetchNotifications();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchCandidateData, fetchNotifications]);
+
+  useEffect(() => {
+    let timer = null;
+    const handleLiveUpdate = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        liveSyncRef.current?.();
+      }, 200);
+    };
+    const events = [
+      "immigo:candidate-update",
+      "immigo:application-update",
+      "immigo:notification-update",
+      "immigo:dashboard-update",
+      "immigo:project-update",
+    ];
+    events.forEach((evt) => window.addEventListener(evt, handleLiveUpdate));
+    return () => {
+      if (timer) clearTimeout(timer);
+      events.forEach((evt) => window.removeEventListener(evt, handleLiveUpdate));
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -412,89 +452,122 @@ export default function CandidateDashboard() {
 
     if (isOnline) {
       setSubmittingPayment(true);
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TlPlO103C4S5Jl";
+      setNotification(null);
 
-      const loadScript = () =>
-        new Promise((resolve) => {
-          if (window.Razorpay) return resolve(true);
-          const script = document.createElement("script");
-          script.src = "https://checkout.razorpay.com/v1/checkout.js";
-          script.onload = () => resolve(true);
-          script.onerror = () => resolve(false);
-          document.body.appendChild(script);
+      try {
+        const orderRes = await apiClient.post("/payments/create-order", {
+          applicationId: appId,
+          milestoneId,
+          amount,
+          receipt: `rcpt_${appId}_${milestoneId}`,
         });
+        const orderData = orderRes.data?.order || null;
+        const razorpayKey = orderRes.data?.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 
-      const hasRzp = await loadScript();
-
-      if (hasRzp && window.Razorpay) {
-        try {
-          const options = {
-            key: razorpayKey,
-            amount: Math.round(amount * 100),
-            currency: "INR",
-            name: "Immigo Global Mobility",
-            description: `Milestone: ${selectedMilestoneToPay.name}`,
-            prefill: {
-              name: candidate?.fullName || candidate?.name || "Candidate",
-              email: candidate?.email || "candidate@immigo.com",
-              contact: candidate?.phone || "",
-            },
-            theme: { color: "#163868" },
-            handler: async function (response) {
-              try {
-                setSubmittingPayment(true);
-                const res = await apiClient.post(
-                  `/candidate/applications/${appId}/milestones/${milestoneId}/pay`,
-                  {
-                    paymentMode: "Razorpay Online",
-                    paymentReference: response.razorpay_payment_id || `RZP_${Date.now()}`,
-                    remarks: `Paid Online via Razorpay Gateway (Payment ID: ${response.razorpay_payment_id || "N/A"})`,
-                    amount,
-                    isInstantMock: true,
-                  }
-                );
-                if (res.data?.success) {
-                  setNotification({
-                    type: "success",
-                    message: "Payment successful! Milestone unlocked.",
-                  });
-                  setPayModalOpen(false);
-                  setPaymentRefInput("");
-                  setPaymentNotesInput("");
-                  fetchAppMilestones(appId);
-                  fetchCandidateData();
-                  fetchNotifications();
-                }
-              } catch (err) {
-                setNotification({
-                  type: "error",
-                  message: err.response?.data?.message || "Payment verification failed.",
-                });
-              } finally {
-                setSubmittingPayment(false);
-              }
-            },
-            modal: {
-              ondismiss: function () {
-                setSubmittingPayment(false);
-              },
-            },
-          };
-
-          const rzpInstance = new window.Razorpay(options);
-          rzpInstance.on("payment.failed", function (resp) {
-            setNotification({
-              type: "error",
-              message: `Payment failed: ${resp.error?.description || "Transaction cancelled."}`,
-            });
-            setSubmittingPayment(false);
-          });
-          rzpInstance.open();
-          return;
-        } catch (rErr) {
-          console.error("Razorpay initiation error:", rErr);
+        if (!orderData?.id || !razorpayKey) {
+          throw new Error("Payment gateway is not configured right now. Please use Bank Transfer.");
         }
+
+        const loadScript = () =>
+          new Promise((resolve) => {
+            if (window.Razorpay) return resolve(true);
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+          });
+
+        const hasRzp = await loadScript();
+        if (!hasRzp || !window.Razorpay) {
+          throw new Error("Razorpay Checkout SDK could not be loaded. Please try Bank Transfer.");
+        }
+
+        const options = {
+          key: razorpayKey,
+          amount: orderData.amount || Math.round(amount * 100),
+          currency: orderData.currency || "INR",
+          name: "Immigo Global Mobility",
+          description: `Milestone: ${selectedMilestoneToPay.name}`,
+          order_id: orderData.id,
+          prefill: {
+            name: candidate?.fullName || candidate?.name || "Candidate",
+            email: candidate?.email || "candidate@immigo.com",
+            contact: candidate?.phone || "",
+          },
+          theme: { color: "#163868" },
+          handler: async function (response) {
+            try {
+              setSubmittingPayment(true);
+              if (!response.razorpay_payment_id || !response.razorpay_signature) {
+                throw new Error("Incomplete gateway response received.");
+              }
+              const resolvedOrderId = response.razorpay_order_id || orderData.id;
+              await apiClient.post("/payments/verify-payment", {
+                razorpay_order_id: resolvedOrderId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                applicationId: appId,
+                milestoneId,
+              });
+
+              const res = await apiClient.post(
+                `/candidate/applications/${appId}/milestones/${milestoneId}/pay`,
+                {
+                  paymentMode: "Razorpay Online",
+                  paymentReference: response.razorpay_payment_id,
+                  razorpay_order_id: resolvedOrderId,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  remarks: `Paid Online via Razorpay Gateway (Payment ID: ${response.razorpay_payment_id})`,
+                  amount,
+                }
+              );
+              if (res.data?.success) {
+                setNotification({
+                  type: "success",
+                  message: "Payment successful! Milestone unlocked.",
+                });
+                setPayModalOpen(false);
+                setPaymentRefInput("");
+                setPaymentNotesInput("");
+                fetchAppMilestones(appId);
+                fetchCandidateData();
+                fetchNotifications();
+              }
+            } catch (err) {
+              setNotification({
+                type: "error",
+                message: err.response?.data?.message || err.message || "Payment verification failed.",
+              });
+            } finally {
+              setSubmittingPayment(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              setSubmittingPayment(false);
+            },
+          },
+        };
+
+        const rzpInstance = new window.Razorpay(options);
+        rzpInstance.on("payment.failed", function (resp) {
+          setNotification({
+            type: "error",
+            message: `Payment failed: ${resp.error?.description || "Transaction cancelled."}`,
+          });
+          setSubmittingPayment(false);
+        });
+        rzpInstance.open();
+      } catch (rErr) {
+        setNotification({
+          type: "error",
+          message: rErr?.response?.data?.message || rErr?.message || "Unable to initiate online payment.",
+        });
+        setSubmittingPayment(false);
       }
+      return;
     }
 
     setSubmittingPayment(true);
@@ -504,22 +577,17 @@ export default function CandidateDashboard() {
       const res = await apiClient.post(
         `/candidate/applications/${appId}/milestones/${milestoneId}/pay`,
         {
-          paymentMode: isOnline ? "Razorpay Online" : "Bank Transfer",
-          paymentReference: isOnline
-            ? `RZP-${Date.now().toString(36).toUpperCase()}`
-            : paymentRefInput.trim(),
-          remarks: isOnline
-            ? "Instant Online Payment via Razorpay Gateway"
-            : paymentNotesInput || "Manual Bank Transfer",
+          paymentMode: "Bank Transfer",
+          paymentReference: paymentRefInput.trim(),
+          remarks: paymentNotesInput || "Manual Bank Transfer",
           amount,
-          isInstantMock: isOnline,
         }
       );
 
       if (res.data?.success) {
         setNotification({
           type: "success",
-          message: res.data.message || "Payment processed successfully!",
+          message: res.data.message || "Payment reference submitted successfully!",
         });
         setPayModalOpen(false);
         setPaymentRefInput("");

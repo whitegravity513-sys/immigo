@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function LoadingFallback({ message = "Loading secure portal…" }) {
   return (

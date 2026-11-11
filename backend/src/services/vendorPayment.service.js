@@ -125,7 +125,6 @@ export class VendorPaymentService {
     }
 
     const previousStatus = milestone.status;
-    const previousAmount = milestone.amount;
 
     if (updateData.milestoneName) milestone.milestoneName = updateData.milestoneName.trim();
     if (updateData.amount !== undefined) milestone.amount = Number(updateData.amount);

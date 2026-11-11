@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   User,
@@ -6,17 +6,13 @@ import {
   Phone,
   MapPin,
   Briefcase,
-  Building,
   Calendar,
   Lock,
   Eye,
   EyeOff,
   Copy,
   Check,
-  ShieldAlert,
   Save,
-  DollarSign,
-  FileText,
   AlertCircle,
   RefreshCw,
 } from "lucide-react";

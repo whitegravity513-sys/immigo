@@ -300,13 +300,13 @@ export class AttendanceService {
         moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, date: today, time: now, location },
       });
-    } catch (e) {
+    } catch {
     }
 
     return await this.getEmployeeStatus(employeeId);
   }
 
-  static async startBreak(employeeId, breakType = "Break") {
+  static async startBreak(employeeId) {
     const emp = await Employee.findById(employeeId).select("name employeeId status").lean();
     if (!emp) {
       throw new ApiError(404, "Employee not found");
@@ -378,7 +378,7 @@ export class AttendanceService {
         moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, breakType: normalizedType, startTime: breakStart },
       });
-    } catch (e) {
+    } catch {
     }
 
     return await this.getEmployeeStatus(employeeId);
@@ -450,7 +450,7 @@ export class AttendanceService {
         moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName },
       });
-    } catch (e) {
+    } catch {
     }
 
     return await this.getEmployeeStatus(employeeId);
@@ -577,7 +577,7 @@ export class AttendanceService {
         moduleScope: "WORKFORCE",
         metadata: { employeeId: empIdCode, name: empName, date: today, time: now, checkOutNote: finalNote, totalWorkSeconds: record.totalWorkSeconds },
       });
-    } catch (e) {
+    } catch {
     }
 
     return await this.getEmployeeStatus(employeeId);
@@ -811,7 +811,6 @@ export class AttendanceService {
 
     for (let day = 1; day <= totalDays; day++) {
       const dateStr = `${y}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const dayDate = new Date(`${dateStr}T00:00:00`);
       const isOff = isWeeklyOff(dateStr);
       const isHoliday = holidayMap.has(dateStr);
       const holidayTitle = isHoliday ? holidayMap.get(dateStr) : null;
@@ -987,7 +986,7 @@ export class AttendanceService {
         employeeName: emp.name || "",
         metadata: { date: targetDate, status: record.status },
       });
-    } catch (e) {
+    } catch {
     }
 
     return this.formatAttendance(record);
@@ -998,7 +997,6 @@ export class AttendanceService {
     const m = month ? parseInt(month, 10) : now.getMonth() + 1;
     const y = year ? parseInt(year, 10) : now.getFullYear();
 
-    const startDay = 1;
     const endDay = new Date(y, m, 0).getDate();
     const startDate = `${y}-${String(m).padStart(2, "0")}-01`;
     const endDate = `${y}-${String(m).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;

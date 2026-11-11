@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
   FolderKanban,
@@ -22,28 +22,12 @@ import { crmClientService } from "../../services/crmClientService.js";
 
 export default function VendorProjectDetails() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    loadProjectDetails();
-    const handleRefresh = () => loadProjectDetails();
-    window.addEventListener("immigo:application-update", handleRefresh);
-    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
-    window.addEventListener("immigo:dashboard-update", handleRefresh);
-    window.addEventListener("storage", handleRefresh);
-    return () => {
-      window.removeEventListener("immigo:application-update", handleRefresh);
-      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
-      window.removeEventListener("immigo:dashboard-update", handleRefresh);
-      window.removeEventListener("storage", handleRefresh);
-    };
-  }, [id]);
-
-  const loadProjectDetails = async () => {
+  const loadProjectDetails = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -59,7 +43,26 @@ export default function VendorProjectDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadProjectDetails();
+    });
+    const handleRefresh = () => loadProjectDetails();
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadProjectDetails]);
 
   if (loading) {
     return (
@@ -100,7 +103,6 @@ export default function VendorProjectDetails() {
 
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto">
-      {}
       <div className="flex items-center justify-between gap-3">
         <Link
           to="/vendor/projects"
@@ -113,7 +115,6 @@ export default function VendorProjectDetails() {
         </span>
       </div>
 
-      {}
       <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-5 sm:p-7 text-white shadow-md border border-slate-800">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="flex items-start gap-4">
@@ -161,7 +162,6 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-blue-700 font-bold text-[11px] uppercase tracking-wider mb-1">
@@ -204,7 +204,6 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -296,7 +295,6 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {}
       {project.description && (
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 space-y-2">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -309,7 +307,6 @@ export default function VendorProjectDetails() {
         </div>
       )}
 
-      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs p-5 space-y-3">
           <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -366,7 +363,6 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      {}
       <div className="pt-4 flex items-center justify-between border-t border-slate-200 flex-wrap gap-3">
         <Link
           to="/vendor/dashboard"

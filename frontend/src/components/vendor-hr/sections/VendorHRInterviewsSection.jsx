@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   Plus,
@@ -8,10 +8,13 @@ import {
   Video,
   Award,
 } from "lucide-react";
-import { AVATARS } from "../shared/vendorHRUtils.jsx";
+import { getCandidateInitials } from "../shared/vendorHRUtils.jsx";
+import { isAppRefundLocked } from "../../../services/refundService.js";
 
 export default function VendorHRInterviewsSection({
   interviews = [],
+  applications = [],
+  refunds = [],
   hideProjectNames = false,
   setShowScheduleModal,
   handleQuickStage,
@@ -21,7 +24,18 @@ export default function VendorHRInterviewsSection({
 }) {
   const [interviewSearch, setInterviewSearch] = useState("");
 
+  const lockedAppIds = new Set(
+    applications
+      .filter((a) => isAppRefundLocked(a, refunds))
+      .flatMap((a) => [a.applicationId, a.id, a._id])
+      .filter(Boolean)
+      .map(String)
+  );
+
   const filteredInterviews = interviews.filter((item) => {
+    const itemAppId = String(item.applicationId || item.candidateRef?.applicationId || item.id || "");
+    if (lockedAppIds.has(itemAppId)) return false;
+    if (item.candidateRef && isAppRefundLocked(item.candidateRef, refunds)) return false;
     if (!interviewSearch) return true;
     const q = interviewSearch.toLowerCase();
     return (
@@ -122,15 +136,13 @@ export default function VendorHRInterviewsSection({
                   <tr key={item.interviewId || idx} className="hover:bg-slate-50/60 transition">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        <img
-                          src={AVATARS[idx % AVATARS.length]}
-                          alt=""
-                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
-                        />
+                        <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-[11px] shrink-0">
+                          {getCandidateInitials(item.candidateName)}
+                        </div>
                         <div className="min-w-0">
                           <h4 className="font-bold text-slate-900 text-xs truncate">{item.candidateName}</h4>
                           <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                            {item.candidatePhone ? `📞 ${item.candidatePhone}` : cand.passportNumber ? `🛂 ${cand.passportNumber}` : `ID: ${item.interviewId || "N/A"}`}
+                            {item.candidatePhone ? item.candidatePhone : cand.passportNumber ? `Passport: ${cand.passportNumber}` : `ID: ${cand.candidateId || item.interviewId || "N/A"}`}
                           </div>
                         </div>
                       </div>

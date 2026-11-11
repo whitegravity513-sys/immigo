@@ -1,22 +1,10 @@
-import React from "react";
 import {
   X,
   Receipt,
-  Building2,
-  Calendar,
-  CreditCard,
   FileCheck,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
   ExternalLink,
-  ShieldCheck,
   History,
-  User,
-  Tag,
-  ArrowRight,
   TrendingDown,
-  TrendingUp,
   FileText,
 } from "lucide-react";
 
@@ -79,7 +67,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full border border-gray-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        {}
         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/70 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
@@ -115,9 +102,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
           </button>
         </div>
 
-        {}
         <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-          {}
           <div
             className={`rounded-xl p-5 border ${
               isPayment
@@ -156,7 +141,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             </div>
           </div>
 
-          {}
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
               <span className="text-gray-400 block font-medium">Client Organization</span>
@@ -219,7 +203,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             </div>
           </div>
 
-          {}
           {isPayment && (transaction.totalMilestoneAmount > 0 || transaction.agreedMilestoneAmount > 0) && (
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
               <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
@@ -248,7 +231,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             </div>
           )}
 
-          {}
           {(transaction.remarks || transaction.description || transaction.notes) && (
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
               <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
@@ -260,7 +242,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             </div>
           )}
 
-          {}
           {proofUrl && (
             <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
               <div className="flex items-center justify-between mb-2">
@@ -300,7 +281,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             </div>
           )}
 
-          {}
           {Array.isArray(transaction.auditTrail) && transaction.auditTrail.length > 0 && (
             <div className="border-t border-gray-100 pt-4">
               <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -329,7 +309,6 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
           )}
         </div>
 
-        {}
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
           <button
             type="button"

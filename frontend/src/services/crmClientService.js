@@ -1,5 +1,4 @@
 
-import { initialClients } from "../data/mockClients.js";
 import { apiClient } from "./apiClient.js";
 
 const STORAGE_KEY = "crm_clients_data_v3";
@@ -56,7 +55,30 @@ export const calculateClientManpower = (client) => {
 };
 
 
-const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getNextSeqProjectId = (clients = [], pendingProjects = []) => {
+  const rx = /^IMMI-PR-(\d+)$/i;
+  let max = 0;
+  const scan = (val) => {
+    if (!val) return;
+    const m = String(val).trim().match(rx);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (!Number.isNaN(n) && n > max) max = n;
+    }
+  };
+  (clients || []).forEach((c) => {
+    (c?.projects || []).forEach((p) => {
+      scan(p?.id);
+      scan(p?.projectId);
+    });
+  });
+  (pendingProjects || []).forEach((p) => {
+    scan(p?.id);
+    scan(p?.projectId);
+  });
+  return `IMMI-PR-${String(max + 1).padStart(3, "0")}`;
+};
 
 const emitProjectSyncEvents = () => {
   try {
@@ -155,7 +177,6 @@ export const crmClientService = {
 
   
   getClientById: async (id) => {
-    await delay(60);
     const all = loadClientsFromStorage();
     const target = String(id).trim().toLowerCase();
     const found = all.find(
@@ -169,7 +190,6 @@ export const crmClientService = {
 
   
   createClient: async (payload) => {
-    await delay(120);
     const all = loadClientsFromStorage();
 
     const yy = new Date().getFullYear().toString().slice(-2);
@@ -192,9 +212,14 @@ export const crmClientService = {
 
     const now = new Date().toISOString();
 
-    
-    const projects = (payload.projects || []).map((proj, pIdx) => {
-      const projectId = proj.id || `prj-${clientId}-${pIdx + 1}`;
+    const assignedPending = [];
+    const projects = (payload.projects || []).map((proj) => {
+      const existingPid = proj.id || proj.projectId;
+      const projectId =
+        existingPid && !/^prj-/i.test(String(existingPid))
+          ? existingPid
+          : getNextSeqProjectId(all, assignedPending);
+      assignedPending.push({ id: projectId });
       const manpowerRequirements = (proj.manpowerRequirements || []).map((req, rIdx) => ({
         ...req,
         id: req.id || `mpr-${projectId}-${rIdx + 1}`,
@@ -266,7 +291,6 @@ export const crmClientService = {
 
   
   updateClient: async (id, payload) => {
-    await delay(100);
     const all = loadClientsFromStorage();
     const index = all.findIndex(
       (c) =>
@@ -283,8 +307,11 @@ export const crmClientService = {
 
     
     let updatedProjects = payload.projects ? [...payload.projects] : existing.projects || [];
-    updatedProjects = updatedProjects.map((proj, pIdx) => {
-      const projId = proj.id || `prj-${id}-${pIdx + 1}`;
+    const assignedEditPending = [];
+    updatedProjects = updatedProjects.map((proj) => {
+      const existingPid = proj.id || proj.projectId;
+      const projId = existingPid || getNextSeqProjectId(all, assignedEditPending);
+      assignedEditPending.push({ id: projId });
       const manpowerRequirements = (proj.manpowerRequirements || []).map((req, rIdx) => ({
         ...req,
         id: req.id || `mpr-${projId}-${rIdx + 1}`,
@@ -342,7 +369,6 @@ export const crmClientService = {
 
   
   addProject: async (clientId, projectData) => {
-    await delay(100);
     let all = loadClientsFromStorage();
     let client = all.find(
       (c) =>
@@ -381,7 +407,7 @@ export const crmClientService = {
       all.unshift(client);
     }
 
-    const projectId = projectData.id || `prj-${Date.now().toString().slice(-6)}`;
+    const projectId = projectData.id || projectData.projectId || getNextSeqProjectId(all);
     const manpowerRequirements = (projectData.manpowerRequirements || []).map((req, idx) => ({
       ...req,
       id: req.id || `mpr-${projectId}-${idx + 1}`,
@@ -394,6 +420,7 @@ export const crmClientService = {
     const newProject = {
       ...projectData,
       id: projectId,
+      projectId,
       clientId,
       clientName: client.companyName || projectData.clientName || "Direct Overseas Client",
       salary: projectData.salary !== undefined && projectData.salary !== null ? String(projectData.salary).trim() : "",
@@ -418,7 +445,23 @@ export const crmClientService = {
     saveClientsToStorage(all);
 
     try {
-      await apiClient.post("/crm-sync/projects", { clientId, project: newProject });
+      const res = await apiClient.post("/crm-sync/projects", { clientId, project: newProject });
+      if (res.data?.project) {
+        const serverProj = {
+          ...newProject,
+          ...res.data.project,
+          id: res.data.project.id || res.data.project.projectId || newProject.id,
+          projectId: res.data.project.projectId || res.data.project.id || newProject.id,
+        };
+        const idxInList = client.projects.findIndex(
+          (p) => String(p.id) === String(newProject.id) || String(p.id) === String(serverProj.id)
+        );
+        if (idxInList !== -1) {
+          client.projects[idxInList] = serverProj;
+        }
+        saveClientsToStorage(all);
+        Object.assign(newProject, serverProj);
+      }
     } catch (err) {
       console.warn("Failed to sync project to backend:", err);
     }
@@ -449,7 +492,6 @@ export const crmClientService = {
 
   
   getProjectById: async (clientId, projectId) => {
-    await delay(60);
     const all = loadClientsFromStorage();
     const targetProjectId = projectId || clientId;
     let client = null;
@@ -518,7 +560,6 @@ export const crmClientService = {
 
   
   updateProject: async (clientId, projectId, projectData) => {
-    await delay(100);
     const all = loadClientsFromStorage();
     const targetProjectId = projectId || clientId;
     let client = clientId
@@ -603,7 +644,6 @@ export const crmClientService = {
 
   
   toggleProjectStatus: async (clientId, projectId) => {
-    await delay(80);
     let all = loadClientsFromStorage();
     const targetProjectId = projectId || clientId;
     let client = clientId
@@ -711,7 +751,6 @@ export const crmClientService = {
 
   
   addManpowerPosition: async (clientId, projectId, positionData) => {
-    await delay(80);
     const all = loadClientsFromStorage();
     const client = all.find((c) => String(c.id) === String(clientId));
     if (!client) throw new Error("Client not found");
@@ -743,7 +782,6 @@ export const crmClientService = {
 
   
   deleteManpowerPosition: async (clientId, projectId, positionId) => {
-    await delay(80);
     const all = loadClientsFromStorage();
     const client = all.find((c) => String(c.id) === String(clientId));
     if (!client) throw new Error("Client not found");
@@ -761,7 +799,6 @@ export const crmClientService = {
 
   
   updateManpowerPosition: async (clientId, projectId, positionId, positionData) => {
-    await delay(80);
     const all = loadClientsFromStorage();
     const client = all.find((c) => String(c.id) === String(clientId));
     if (!client) throw new Error("Client not found");
@@ -791,7 +828,6 @@ export const crmClientService = {
 
   
   getDashboardStats: async () => {
-    await delay(80);
     const all = loadClientsFromStorage();
 
     const totalClients = all.length;
@@ -923,15 +959,6 @@ export const crmClientService = {
     };
   },
 
-  
-  resetToMockData: () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialClients));
-    return initialClients;
-  },
-
-  
-  
-  
   getClientPayments: async (params = {}) => {
     try {
       const res = await apiClient.get("/admin/client-payments", { params });

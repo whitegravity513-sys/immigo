@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Menu, Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
 import { extractCandidateTabFromLink } from "../../utils/notificationLinks.js";

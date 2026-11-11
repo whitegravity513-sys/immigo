@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { apiClient } from "../../services/apiClient.js";
 import {
   User,
@@ -25,6 +25,7 @@ import {
   FileCheck,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
+import { formatFileUrl, compressImage } from "../../utils/fileHelpers.js";
 
 const REQUIRED_DOC_TYPES = [
   { type: "Resume / CV", desc: "Updated Curriculum Vitae / Resume", required: true },
@@ -40,54 +41,7 @@ const REQUIRED_DOC_TYPES = [
   { type: "Other", desc: "Any other supporting certifications or documents", required: false },
 ];
 
-export const formatFileUrl = (url) => {
-  if (!url) return "";
-  if (url.startsWith("data:") || url.startsWith("http://") || url.startsWith("https://")) {
-    return url;
-  }
-  const apiBase = (apiClient.defaults.baseURL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
-  return `${apiBase}${url.startsWith("/") ? "" : "/"}${url}`;
-};
-
-export const compressImage = (file, maxDimension = 1200, quality = 0.85) => {
-  return new Promise((resolve) => {
-    if (!file || !file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-      return;
-    }
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      let { width, height } = img;
-      if (width > maxDimension || height > maxDimension) {
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", quality));
-    };
-    img.onerror = () => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    };
-    img.src = objectUrl;
-  });
-};
-
-export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate }) {
+export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
   const [profile, setProfile] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("user") || "null");
@@ -96,10 +50,12 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
       return user || null;
     }
   });
-  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [uploadingDoc, setUploadingDoc] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const onProfileUpdateRef = useRef(onProfileUpdate);
+  useEffect(() => {
+    onProfileUpdateRef.current = onProfileUpdate;
+  }, [onProfileUpdate]);
 
   const [editingContact, setEditingContact] = useState(false);
   const [contactForm, setContactForm] = useState(() => ({
@@ -134,7 +90,7 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
     setTimeout(() => setSuccessMsg(""), 5000);
   };
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await apiClient.get("/employee/profile");
       if (res.data) {
@@ -148,19 +104,23 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
             relation: res.data.emergencyContact?.relation || "",
           },
         });
-        if (res.data.profileImage && typeof onProfileUpdate === "function") {
-          onProfileUpdate(res.data.profileImage);
+        if (res.data.profileImage && typeof onProfileUpdateRef.current === "function") {
+          onProfileUpdateRef.current(res.data.profileImage);
         }
       }
     } catch (err) {
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchProfile();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchProfile]);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -530,15 +490,14 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                 return (
                   <div
                     key={item.type}
-                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
-                      isRejected
-                        ? "bg-rose-50/50 border-rose-200"
-                        : isVerified
+                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${isRejected
+                      ? "bg-rose-50/50 border-rose-200"
+                      : isVerified
                         ? "bg-emerald-50/40 border-emerald-200"
                         : isUploaded
-                        ? "bg-amber-50/30 border-amber-200"
-                        : "bg-slate-50/60 border-slate-200/80 hover:border-slate-300"
-                    }`}
+                          ? "bg-amber-50/30 border-amber-200"
+                          : "bg-slate-50/60 border-slate-200/80 hover:border-slate-300"
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -563,13 +522,12 @@ export default function EmployeeProfileDocsTab({ user, token, onProfileUpdate })
                               <Eye size={14} />
                             </button>
                             <span
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                                isVerified
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : isRejected
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${isVerified
+                                ? "bg-emerald-100 text-emerald-800"
+                                : isRejected
                                   ? "bg-rose-100 text-rose-800"
                                   : "bg-amber-100 text-amber-800"
-                              }`}
+                                }`}
                             >
                               {existingDoc.status || "Submitted"}
                             </span>

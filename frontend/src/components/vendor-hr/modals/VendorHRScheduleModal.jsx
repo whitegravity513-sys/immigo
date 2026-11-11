@@ -1,4 +1,5 @@
-import React from "react";
+import { isAppRefundLocked } from "../../../services/refundService.js";
+import { getEffectiveStage } from "../shared/vendorHRUtils.jsx";
 
 export default function VendorHRScheduleModal({
   show,
@@ -9,6 +10,7 @@ export default function VendorHRScheduleModal({
   scheduleInterviewTarget,
   setScheduleInterviewTarget,
   applications = [],
+  refunds = [],
   hrUserName = "Vendor HR Officer",
   actionLoading = false,
 }) {
@@ -47,12 +49,27 @@ export default function VendorHRScheduleModal({
             >
               <option value="">Choose a candidate for interview</option>
               {applications
-                .filter((a) => !["Selected", "Rejected", "Joined", "Deployed"].includes(a.recruitmentStage || a.status))
+                .filter((a) => {
+                  if (isAppRefundLocked(a, refunds)) return false;
+                  const stage = getEffectiveStage(a);
+                  return ![
+                    "Selected",
+                    "Processing",
+                    "Visa Processing",
+                    "Visa Issued",
+                    "Visa Allotted",
+                    "Joined",
+                    "Deployed",
+                    "Completed",
+                    "On Hold",
+                    "Rejected",
+                  ].includes(stage);
+                })
                 .map((a) => {
                   const appKey = a.applicationId || a.id || a._id;
                   return (
                     <option key={appKey} value={appKey}>
-                      {a.candidateName} — {a.jobTitle || a.position} [{a.recruitmentStage || a.status || "Shortlisted"}]
+                      {a.candidateName} — {a.jobTitle || a.position} [{getEffectiveStage(a) || "Shortlisted"}]
                     </option>
                   );
                 })}

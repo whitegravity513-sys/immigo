@@ -13,7 +13,7 @@ import {
 import { ApiError } from "../utils/apiError.js";
 
 const permissionCache = new Map();
-const CACHE_TTL_MS = 60 * 1000; // 60 seconds
+const CACHE_TTL_MS = 60 * 1000;
 
 export class PermissionService {
   static invalidateUserCache(userId) {
@@ -148,7 +148,6 @@ export class PermissionService {
 
     let existingRecord = await UserPermission.findOne({ userId: targetAdminId });
     const oldAssigned = existingRecord ? existingRecord.assignedPermissions || [] : [];
-    const oldDenied = existingRecord ? existingRecord.deniedPermissions || [] : [];
 
     const cleanAssigned = Array.isArray(newPermissions)
       ? newPermissions.filter((p) => ALL_PERMISSIONS.includes(p))

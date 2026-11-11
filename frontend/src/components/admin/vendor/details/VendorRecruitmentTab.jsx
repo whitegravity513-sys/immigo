@@ -1,4 +1,3 @@
-import React from "react";
 import { RECRUITMENT_STAGES } from "../../../../constants/recruitmentStages.js";
 
 export default function VendorRecruitmentTab({ candidates }) {

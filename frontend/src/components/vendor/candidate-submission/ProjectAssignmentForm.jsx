@@ -1,4 +1,3 @@
-import React from "react";
 import { RotateCcw } from "lucide-react";
 
 export function ProjectAssignmentForm({
@@ -41,7 +40,6 @@ export function ProjectAssignmentForm({
           </button>
         </div>
 
-        {/* Selected Candidates Summary Pills */}
         <div className="mb-4 p-3 bg-blue-50/50 rounded-lg border border-blue-200 text-xs">
           <span className="font-bold text-blue-900 block mb-1">
             Selected Candidate(s) for Assignment ({selectedCandidateIds.length}):

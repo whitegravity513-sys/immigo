@@ -15,9 +15,10 @@ import {
   User,
   RotateCcw,
   Printer,
+  AlertTriangle,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
-import refundService from "../../services/refundService.js";
+import refundService, { isAppRefundLocked, getAppRefundStatus } from "../../services/refundService.js";
 import CandidateProcessTimeline from "../../components/vendor/CandidateProcessTimeline.jsx";
 import CandidateActivityTimeline from "../../components/common/candidate/CandidateActivityTimeline.jsx";
 import DocumentViewerFullPage from "../../components/vendor/DocumentViewerFullPage.jsx";
@@ -27,6 +28,7 @@ export function CandidateDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [candidate, setCandidate] = useState(null);
+  const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resumeModalOpen, setResumeModalOpen] = useState(false);
   const [previewingDoc, setPreviewingDoc] = useState(null);
@@ -39,9 +41,13 @@ export function CandidateDetails() {
   const loadCandidate = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await crmVendorService.getCandidateById(id);
+      const [data, rData] = await Promise.all([
+        crmVendorService.getCandidateById(id),
+        refundService.getAllRefunds().catch(() => []),
+      ]);
       await crmVendorService.getAvailableProjects(data?.vendorId).catch(() => []);
       setCandidate(data);
+      setRefunds(rData || []);
     } catch (err) {
       console.error("Failed to load candidate:", err);
     } finally {
@@ -55,12 +61,14 @@ export function CandidateDetails() {
     }, 0);
     const handleRefresh = () => loadCandidate();
     window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
@@ -101,10 +109,15 @@ export function CandidateDetails() {
     setRefundSubmitting(true);
     try {
       const selectedApp =
-        candidate.applications?.find((a) => a.id === selectedRefundAppId) ||
+        candidate.applications?.find(
+          (a) =>
+            String(a.id) === String(selectedRefundAppId) ||
+            String(a.applicationId) === String(selectedRefundAppId) ||
+            String(a._id) === String(selectedRefundAppId)
+        ) ||
         candidate.applications?.[0] ||
         {};
-      const appId = selectedApp.id || candidate.applicationId || `APP-${candidate.id}`;
+      const appId = selectedApp.id || selectedApp.applicationId || candidate.applicationId || `APP-${candidate.id}`;
       const prjName =
         selectedApp.projectName ||
         candidate.appliedProjectName ||
@@ -120,7 +133,10 @@ export function CandidateDetails() {
         candidateName: candidate.fullName,
         vendorId: candidate.vendorId || curVendor?.id,
         vendorName: vName,
+        projectId: selectedApp.projectId || "",
         projectName: prjName,
+        clientName: selectedApp.clientName || "",
+        position: selectedApp.position || "",
         reason: refundForm.reason.trim(),
         documentPath: refundForm.documentPath || "",
       });
@@ -187,7 +203,6 @@ export function CandidateDetails() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <button
@@ -208,7 +223,6 @@ export function CandidateDetails() {
 
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative group shrink-0">
@@ -261,7 +275,6 @@ export function CandidateDetails() {
               </span>
             </div>
 
-            {}
             <div className="flex flex-wrap gap-1.5 pt-1">
               {(candidate.tags || candidate.skills || []).map((t, i) => (
                 <span
@@ -274,7 +287,6 @@ export function CandidateDetails() {
             </div>
           </div>
 
-          {}
           <div className="flex flex-col gap-2 shrink-0 self-stretch sm:self-auto border-t sm:border-t-0 sm:border-l sm:border-slate-100 sm:pl-6 pt-3 sm:pt-0">
             <button
               type="button"
@@ -303,9 +315,7 @@ export function CandidateDetails() {
         </div>
       </div>
 
-      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Personal Information
@@ -340,7 +350,6 @@ export function CandidateDetails() {
           </div>
         </div>
 
-        {}
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Professional Information
@@ -376,7 +385,6 @@ export function CandidateDetails() {
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
         <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
           Attached Compliance Documents ({candidate.documents?.length || 0})
@@ -433,7 +441,6 @@ export function CandidateDetails() {
         )}
       </div>
 
-      {}
       {(() => {
         const activeApp = candidate.applications?.find(
           (a) => a.interviewDetails || a.shortlistRemark || a.remarks?.length
@@ -495,7 +502,6 @@ export function CandidateDetails() {
         );
       })()}
 
-      {}
       {(() => {
         const postSelectionStatuses = new Set([
           "Selected",
@@ -511,6 +517,7 @@ export function CandidateDetails() {
         ]);
         const selectedAppWithPlan = candidate.applications?.find(
           (a) =>
+            !isAppRefundLocked(a, refunds) &&
             (postSelectionStatuses.has(a.status) ||
               postSelectionStatuses.has(a.recruitmentStage)) &&
             (a.processMilestones?.length || a.paymentPlan)
@@ -598,7 +605,6 @@ export function CandidateDetails() {
               </div>
             </div>
 
-            {}
             <div className="space-y-2 pt-1">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Milestone Disbursement Schedule:
@@ -649,8 +655,6 @@ export function CandidateDetails() {
         );
       })()}
 
-      {}
-      {}
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
@@ -677,7 +681,10 @@ export function CandidateDetails() {
           </div>
         ) : (
           <div className="space-y-3">
-            {candidate.applications.map((app) => (
+            {candidate.applications.map((app) => {
+              const appRefundLocked = isAppRefundLocked(app, refunds);
+              const appRefundStatus = getAppRefundStatus(app, refunds);
+              return (
               <div
                 key={app.id}
                 className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
@@ -695,6 +702,14 @@ export function CandidateDetails() {
                     >
                       {app.status}
                     </span>
+                    {appRefundLocked && (
+                      <Link
+                        to="/vendor/refunds"
+                        className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100"
+                      >
+                        Refund: {appRefundStatus}
+                      </Link>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-3 text-slate-500 text-[11px]">
@@ -711,17 +726,34 @@ export function CandidateDetails() {
                     <span>Submitted: {new Date(app.submittedAt).toLocaleDateString("en-GB")}</span>
                   </div>
 
-                  {}
+                  {appRefundLocked && (
+                    <div className="mt-1.5 p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 text-[11px] flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 font-semibold">
+                        <AlertTriangle size={13} className="text-rose-600 shrink-0" />
+                        <span>
+                          Processing &amp; payments paused due to Refund Claim ({appRefundStatus}).
+                        </span>
+                      </span>
+                      <Link to="/vendor/refunds" className="text-rose-700 font-bold underline shrink-0">
+                        View Claim
+                      </Link>
+                    </div>
+                  )}
+
                   {app.status === "Rejected" && (
                     <div className="mt-1.5 p-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-[11px]">
                       <strong>Rejection Reason:</strong> {app.rejectionReason}
                     </div>
                   )}
 
-                  {}
                   {["Selected", "Processing", "Completed", "Offer Released", "Offer Accepted", "Visa Processing", "Visa Issued", "Visa Allotted", "Joined", "Deployed"].includes(app.status) ? (
                     <div className="mt-1.5 pt-3 border-t border-slate-100">
-                      <CandidateProcessTimeline application={app} isAdmin={false} onUpdate={loadCandidate} />
+                      <CandidateProcessTimeline
+                        application={app}
+                        refunds={refunds}
+                        isAdmin={false}
+                        onUpdate={loadCandidate}
+                      />
                     </div>
                   ) : null}
                 </div>
@@ -737,12 +769,33 @@ export function CandidateDetails() {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {}
+      {(() => {
+        const activeRefundAppIds = new Set(
+          (refunds || [])
+            .filter(
+              (r) =>
+                !r.reassigned &&
+                !r.appProjectMismatch &&
+                r.refundStatus !== "Rejected" &&
+                r.refundStatus !== "No Refund"
+            )
+            .map((r) => String(r.applicationId || ""))
+            .filter(Boolean)
+        );
+        const refundClaimableApps = (candidate.applications || []).filter((a) => {
+          const aKeys = [a.id, a.applicationId, a._id].filter(Boolean).map(String);
+          return !aKeys.some((k) => activeRefundAppIds.has(k)) && !isAppRefundLocked(a, refunds);
+        });
+        const allAppsHaveActiveRefund =
+          (candidate.applications || []).length > 0 && refundClaimableApps.length === 0;
+
+        return (
       <div className="bg-slate-50/80 rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -771,32 +824,37 @@ export function CandidateDetails() {
             >
               View All Claims
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                setShowRefundForm(!showRefundForm);
-                if (!selectedRefundAppId && candidate.applications?.length > 0) {
-                  setSelectedRefundAppId(candidate.applications[0].id);
-                }
-              }}
-              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer ${
-                showRefundForm
-                  ? "bg-slate-200 text-slate-800 hover:bg-slate-300"
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
-            >
-              <RotateCcw size={14} />
-              <span>{showRefundForm ? "Hide Claim Form" : "Request Refund"}</span>
-            </button>
+            {allAppsHaveActiveRefund ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-rose-50 text-rose-800 border border-rose-200">
+                <AlertTriangle size={13} className="text-rose-600" />
+                <span>Refund Claim Raised</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRefundForm(!showRefundForm);
+                  if (!selectedRefundAppId && refundClaimableApps.length > 0) {
+                    setSelectedRefundAppId(refundClaimableApps[0].id);
+                  }
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer ${
+                  showRefundForm
+                    ? "bg-slate-200 text-slate-800 hover:bg-slate-300"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                <RotateCcw size={14} />
+                <span>{showRefundForm ? "Hide Claim Form" : "Request Refund"}</span>
+              </button>
+            )}
           </div>
         </div>
 
-        {}
-        {showRefundForm && (
+        {showRefundForm && !allAppsHaveActiveRefund && (
           <div className="pt-4 mt-2 border-t border-slate-200/80 bg-white rounded-xl p-4 sm:p-5 border shadow-2xs">
             <form onSubmit={handleRequestRefund} className="space-y-4 text-xs">
-              {}
-              {candidate.applications?.length > 1 ? (
+              {refundClaimableApps.length > 1 ? (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Associated Project for Refund Claim <span className="text-blue-600">*</span>
@@ -806,7 +864,7 @@ export function CandidateDetails() {
                     onChange={(e) => setSelectedRefundAppId(e.target.value)}
                     className="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium text-slate-800"
                   >
-                    {candidate.applications.map((a) => (
+                    {refundClaimableApps.map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.projectName} ({a.status})
                       </option>
@@ -820,7 +878,8 @@ export function CandidateDetails() {
                       Associated Project
                     </span>
                     <span className="text-xs font-bold text-slate-800">
-                      {candidate.applications?.[0]?.projectName ||
+                      {refundClaimableApps[0]?.projectName ||
+                        candidate.applications?.[0]?.projectName ||
                         candidate.appliedProjectName ||
                         candidate.projectName ||
                         "General Placement Requirement"}
@@ -832,7 +891,6 @@ export function CandidateDetails() {
                 </div>
               )}
 
-              {}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Reason for Refund Claim <span className="text-blue-600">*</span>
@@ -847,7 +905,6 @@ export function CandidateDetails() {
                 />
               </div>
 
-              {}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Supporting Document <span className="text-slate-400 font-normal">(Medical certificate, dropout letter, etc.)</span>
@@ -875,7 +932,6 @@ export function CandidateDetails() {
                 )}
               </div>
 
-              {}
               <div className="flex gap-2 justify-end pt-3 border-t border-slate-100">
                 <button
                   type="button"
@@ -895,18 +951,19 @@ export function CandidateDetails() {
             </form>
           </div>
         )}
-        {/* Section 12 & 13: Permanent Candidate Activity History & Audit Log */}
         <div className="pt-2">
           <CandidateActivityTimeline
             candidateId={candidate.id || id}
             candidateName={candidate.fullName}
             vendorId={candidate.vendorId}
+            allowStageEdit={false}
             onActivityAdded={loadCandidate}
           />
         </div>
       </div>
+        );
+      })()}
 
-      {/* Verified Resume Profile Modal */}
       {resumeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
@@ -926,7 +983,6 @@ export function CandidateDetails() {
               </button>
             </div>
 
-            {}
             <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 space-y-4">
               <div className="border-b border-slate-200 pb-3">
                 <h2 className="text-base font-bold text-slate-900 font-sans">{candidate.fullName}</h2>

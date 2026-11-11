@@ -37,18 +37,17 @@ export const adminForgotPassword = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Super Administrator email address is required");
   }
 
-  let cleanEmail = String(email).trim().toLowerCase();
-  if (cleanEmail === "admin" || cleanEmail === "superadmin") {
-    cleanEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
+  const cleanEmail = String(email).trim().toLowerCase();
+  const superAdminEmail = (env.SUPER_ADMIN_EMAIL || env.SUPERADMIN_EMAIL || "").trim().toLowerCase();
+  const admin = await Admin.findOne({ email: cleanEmail });
+  const user = await User.findOne({ email: cleanEmail });
+
+  if (!admin && !user) {
+    throw new ApiError(404, "Super Administrator account not found");
   }
 
-  const superAdminEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
-  let admin = await Admin.findOne({ email: cleanEmail });
-  let user = await User.findOne({ email: cleanEmail });
-
   const isSuperAdmin =
-    cleanEmail === superAdminEmail ||
-    admin?.role === "SUPER_ADMIN" ||
+    (superAdminEmail && cleanEmail === superAdminEmail) ||
     user?.role === "SUPER_ADMIN";
 
   if (!isSuperAdmin) {
@@ -56,14 +55,6 @@ export const adminForgotPassword = asyncHandler(async (req, res) => {
       403,
       "Password reset is strictly allowed for Super Administrator only. Standard Admin passwords must be managed by the Super Admin."
     );
-  }
-
-  if (!admin && !user) {
-    admin = await Admin.create({
-      email: cleanEmail,
-      role: "SUPER_ADMIN",
-      password: await bcrypt.hash("12345", 10),
-    });
   }
 
   const name = user?.name || "Super Administrator";
@@ -78,7 +69,7 @@ export const adminForgotPassword = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: `A 6-digit verification OTP has been sent from abhishekyadav36219@gmail.com to ${cleanEmail}. Please enter the OTP to reset Super Admin password.`,
+    message: `A 6-digit verification OTP has been sent to ${cleanEmail}. Please enter the OTP to reset Super Admin password.`,
     email: cleanEmail,
   });
 });
@@ -90,18 +81,17 @@ export const adminResetPassword = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email, OTP code, and new password are required");
   }
 
-  let cleanEmail = String(email).trim().toLowerCase();
-  if (cleanEmail === "admin" || cleanEmail === "superadmin") {
-    cleanEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
+  const cleanEmail = String(email).trim().toLowerCase();
+  const superAdminEmail = (env.SUPER_ADMIN_EMAIL || env.SUPERADMIN_EMAIL || "").trim().toLowerCase();
+  let admin = await Admin.findOne({ email: cleanEmail });
+  const user = await User.findOne({ email: cleanEmail });
+
+  if (!admin && !user) {
+    throw new ApiError(404, "Super Administrator account not found");
   }
 
-  const superAdminEmail = (env.SUPERADMIN_EMAIL || "admin@vista.com").toLowerCase();
-  let admin = await Admin.findOne({ email: cleanEmail });
-  let user = await User.findOne({ email: cleanEmail });
-
   const isSuperAdmin =
-    cleanEmail === superAdminEmail ||
-    admin?.role === "SUPER_ADMIN" ||
+    (superAdminEmail && cleanEmail === superAdminEmail) ||
     user?.role === "SUPER_ADMIN";
 
   if (!isSuperAdmin) {

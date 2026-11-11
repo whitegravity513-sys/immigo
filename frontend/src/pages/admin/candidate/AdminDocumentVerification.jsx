@@ -1,18 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
-  FileCheck2,
   Search,
-  Filter,
-  Check,
   X,
   ExternalLink,
   AlertCircle,
   RefreshCw,
-  Clock,
   RotateCcw,
   CheckCircle2,
-  XCircle,
   ChevronDown,
   ChevronUp,
   FileText,
@@ -53,7 +48,7 @@ export default function AdminDocumentVerification() {
   const [expandedCandidateId, setExpandedCandidateId] = useState(null);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
-  const fetchDocs = async () => {
+  const fetchDocs = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiClient.get("/admin/candidates/list?limit=100");
@@ -65,11 +60,17 @@ export default function AdminDocumentVerification() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchDocs();
-  }, []);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchDocs();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchDocs]);
 
   const candidateDocGroups = [];
   (candidates || []).forEach((c) => {
@@ -138,7 +139,7 @@ export default function AdminDocumentVerification() {
         setRejectionReason("");
         fetchDocs();
       }
-    } catch (err) {
+    } catch {
       setNotification({
         type: "error",
         message: "Failed to update document status.",
@@ -281,7 +282,6 @@ export default function AdminDocumentVerification() {
                 key={candidate.candidateId}
                 className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden transition-all"
               >
-                {/* Candidate Single Row Summary - Click to View Documents */}
                 <div
                   onClick={() =>
                     setExpandedCandidateId((prev) =>
@@ -368,7 +368,6 @@ export default function AdminDocumentVerification() {
                   </div>
                 </div>
 
-                {/* Documents Table - Visible only when clicked */}
                 {isExpanded && (
                   <div className="border-t border-slate-200 bg-slate-50/50 p-2 sm:p-3 overflow-x-auto animate-in fade-in duration-150">
                     <table className="w-full text-left border-collapse text-xs bg-white rounded-lg border border-slate-200 overflow-hidden">

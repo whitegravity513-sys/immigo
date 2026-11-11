@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Plus,
   Trash2,
@@ -13,16 +13,17 @@ export default function ProjectMilestoneBuilder({
   onTotalChange,
 }) {
   const [localTotal, setLocalTotal] = useState(totalAmount || "");
+  const [prevTotalAmount, setPrevTotalAmount] = useState(totalAmount);
 
-  useEffect(() => {
+  if (totalAmount !== prevTotalAmount) {
+    setPrevTotalAmount(totalAmount);
     if (totalAmount !== undefined && totalAmount !== null) {
       setLocalTotal(String(totalAmount));
     }
-  }, [totalAmount]);
+  }
 
   const parsedTotal = Number(localTotal) || 0;
 
-  // Update All Over Total without forcibly overwriting individual milestone prices
   const handleTotalInputChange = (val) => {
     setLocalTotal(val);
     if (onTotalChange) {
@@ -30,7 +31,6 @@ export default function ProjectMilestoneBuilder({
     }
   };
 
-  // Optional: Auto-distribute All Over Total evenly across existing milestones
   const handleAutoDistribute = () => {
     const total = Number(localTotal);
     if (!total || total <= 0) return;
@@ -131,7 +131,6 @@ export default function ProjectMilestoneBuilder({
 
   return (
     <div className="space-y-4">
-      {/* Top All Over Total Amount Box */}
       <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-slate-50 border border-blue-200 shadow-2xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
           <div className="space-y-1.5 flex-1">
@@ -188,7 +187,6 @@ export default function ProjectMilestoneBuilder({
         </div>
       </div>
 
-      {/* Milestones List with Manual Price Inputs */}
       <div className="space-y-3">
         {(milestones || []).map((milestone, index) => {
           const rawAmount =
@@ -201,9 +199,7 @@ export default function ProjectMilestoneBuilder({
               key={milestone.id || index}
               className="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden flex flex-col transition-all hover:border-blue-300"
             >
-              {/* Milestone Name, Manual Price, Add Stage & Delete */}
               <div className="px-3 sm:px-4 py-2.5 bg-slate-50/90 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                {/* Milestone Name */}
                 <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                   <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold shrink-0">
                     {index + 1}
@@ -219,7 +215,6 @@ export default function ProjectMilestoneBuilder({
                   />
                 </div>
 
-                {/* Manual Price Input */}
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1 shadow-2xs focus-within:border-indigo-600 focus-within:ring-1 focus-within:ring-indigo-600">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -261,7 +256,6 @@ export default function ProjectMilestoneBuilder({
                 </div>
               </div>
 
-              {/* Stages Row */}
               <div className="px-3 sm:px-4 py-2.5 bg-white flex flex-wrap gap-1.5 items-center">
                 <span className="text-[10px] font-bold text-slate-400 uppercase mr-1 tracking-wider">
                   STAGES:

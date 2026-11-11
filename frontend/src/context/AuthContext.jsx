@@ -1,8 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import appConfig from "../config/appConfig.js";
 import apiClient from "../services/apiClient.js";
-
-const AuthContext = createContext(null);
+import { AuthContext } from "./useAuth.js";
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => {
@@ -22,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const [loading, setLoading] = useState(false);
+  const loading = false;
 
   useEffect(() => {
     if (token) {
@@ -43,7 +42,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async (customRedirect) => {
-    // If called directly via onClick={logout}, customRedirect is the React event object!
     const redirectUrl =
       typeof customRedirect === "string" && customRedirect.trim()
         ? customRedirect.trim()
@@ -78,7 +76,7 @@ export const AuthProvider = ({ children }) => {
         appConfig.STORAGE_KEYS.SESSION_TIMESTAMP,
       ].forEach((key) => localStorage.removeItem(key));
 
-      let targetLogin = "/admin/login";
+      let targetLogin;
       if (
         previousRole === "super_admin" ||
         previousRole === "superadmin" ||
@@ -86,7 +84,6 @@ export const AuthProvider = ({ children }) => {
         currentPath.startsWith("/super-admin") ||
         currentPath.startsWith("/admin")
       ) {
-        // Normal Admin & Super Admin both redirect directly to /admin/login
         targetLogin = "/admin/login";
       } else if (previousRole === "vendor_hr" || currentPath.startsWith("/vendor-hr")) {
         targetLogin = "/vendor-hr/login";
@@ -156,13 +153,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
-export default AuthContext;

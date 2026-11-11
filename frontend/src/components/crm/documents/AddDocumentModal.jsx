@@ -1,5 +1,10 @@
-import React, { useState } from "react";
-import { X, FileText, Upload, Plus, Check } from "lucide-react";
+import { useState } from "react";
+import {
+  X,
+  FileText,
+  Upload,
+  Plus,
+} from "lucide-react";
 import InputField from "../ui/InputField.jsx";
 import SelectField from "../ui/SelectField.jsx";
 import TextareaField from "../ui/TextareaField.jsx";
@@ -110,7 +115,6 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-gray-200">
           <form onSubmit={handleSubmit}>
-            {}
             <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
@@ -134,7 +138,6 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
               </button>
             </div>
 
-            {}
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SelectField
@@ -178,7 +181,6 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
                 />
               )}
 
-              {}
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-700 tracking-wide">
                   Attach Document File <span className="text-red-500">*</span>
@@ -230,7 +232,6 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
               />
             </div>
 
-            {}
             <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-100">
               <button
                 type="button"

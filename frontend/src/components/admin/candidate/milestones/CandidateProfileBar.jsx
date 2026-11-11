@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function CandidateProfileBar({ application, totalPaid, totalAmount }) {
   return (

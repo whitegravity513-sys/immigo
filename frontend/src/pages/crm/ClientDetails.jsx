@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Building2,
@@ -13,7 +13,7 @@ import AddProjectModal from "../../components/crm/projects/AddProjectModal.jsx";
 import DocumentsList from "../../components/crm/documents/DocumentsList.jsx";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
 import { RecordClientPaymentModal } from "../../components/crm/payments/RecordClientPaymentModal.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService, {
   calculateClientManpower,
 } from "../../services/crmClientService.js";
@@ -44,17 +44,29 @@ export function ClientDetails() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
     if (tabParam) {
       setActiveTab(tabParam);
     }
-  }, [tabParam]);
+  }
 
-  useEffect(() => {
-    loadClient();
+  const loadClientPayments = useCallback(async (cid) => {
+    const idToFetch = cid || clientId;
+    if (!idToFetch) return;
+    setLoadingPayments(true);
+    try {
+      const res = await crmClientService.getClientPayments({ clientId: idToFetch, limit: 50 });
+      setClientPayments(res.payments || []);
+    } catch (err) {
+      console.error("Error fetching client payments:", err);
+    } finally {
+      setLoadingPayments(false);
+    }
   }, [clientId]);
 
-  const loadClient = async () => {
+  const loadClient = useCallback(async () => {
     setLoading(true);
     try {
       const data = await crmClientService.getClientById(clientId);
@@ -71,21 +83,17 @@ export function ClientDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientId, showToast, navigate, loadClientPayments]);
 
-  const loadClientPayments = async (cid) => {
-    const idToFetch = cid || clientId;
-    if (!idToFetch) return;
-    setLoadingPayments(true);
-    try {
-      const res = await crmClientService.getClientPayments({ clientId: idToFetch, limit: 50 });
-      setClientPayments(res.payments || []);
-    } catch (err) {
-      console.error("Error fetching client payments:", err);
-    } finally {
-      setLoadingPayments(false);
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadClient();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadClient]);
 
   const handleDeleteClient = async () => {
     setIsDeleting(true);
@@ -106,7 +114,7 @@ export function ClientDetails() {
       await crmClientService.addProject(clientId, projectData);
       showToast("Project added successfully to client!", "success");
       loadClient();
-    } catch (err) {
+    } catch {
       showToast("Failed to add project", "error");
     }
   };
@@ -116,7 +124,7 @@ export function ClientDetails() {
       const updated = await crmClientService.toggleProjectStatus(clientId, projId);
       showToast(`Project status changed to ${updated.status}.`, "success");
       loadClient();
-    } catch (err) {
+    } catch {
       showToast("Failed to update project status", "error");
     }
   };
@@ -129,7 +137,7 @@ export function ClientDetails() {
       });
       setClient((prev) => ({ ...prev, documents: updatedDocs }));
       showToast("Client documents updated successfully.", "success");
-    } catch (err) {
+    } catch {
       showToast("Failed to update documents", "error");
     }
   };

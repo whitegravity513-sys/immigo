@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import crmVendorService from "../../../services/crmVendorService.js";
+import refundService, { isAppRefundLocked } from "../../../services/refundService.js";
 import DocumentViewerFullPage from "../../../components/vendor/DocumentViewerFullPage.jsx";
 import CandidateDownloadModal from "../../../components/admin/vendor/candidates/CandidateDownloadModal.jsx";
 import CandidateTabsBar from "../../../components/admin/vendor/candidates/CandidateTabsBar.jsx";
@@ -15,6 +16,7 @@ export default function AdminCandidatesList() {
   const [candidates, setCandidates] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [localTab, setLocalTab] = useState("All");
@@ -70,15 +72,17 @@ export default function AdminCandidatesList() {
   const loadData = useCallback(async ({ silent = false } = {}) => {
     try {
       if (!silent) setLoading(true);
-      const [cData, vData, aData] = await Promise.all([
+      const [cData, vData, aData, , rData] = await Promise.all([
         crmVendorService.getCandidates(),
         crmVendorService.getVendors(),
         crmVendorService.getApplications(),
         crmVendorService.getAvailableProjects().catch(() => []),
+        refundService.getAllRefunds().catch(() => []),
       ]);
       setCandidates(cData || []);
       setVendors(vData || []);
       setApplications(aData || []);
+      setRefunds(rData || []);
     } catch (err) {
       console.error("Failed to load candidates roster data:", err);
     } finally {
@@ -92,11 +96,13 @@ export default function AdminCandidatesList() {
     }, 0);
     const handleRefresh = () => loadData({ silent: true });
     window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -386,15 +392,24 @@ export default function AdminCandidatesList() {
         "Deployed",
         "Completed",
       ]);
-      if (candApps.some((a) => postSelection.has(a.status) || postSelection.has(a.recruitmentStage))) return "Selected";
-      if (candApps.some((a) => a.status === "Interview" || a.status === "Interview Scheduled" || a.recruitmentStage === "Interview" || a.recruitmentStage === "Interview Scheduled")) return "Interview";
-      if (candApps.some((a) => a.status === "Shortlisted" || a.recruitmentStage === "Shortlisted")) return "Shortlisted";
-      if (candApps.some((a) => a.status === "On Hold" || a.recruitmentStage === "On Hold")) return "On Hold";
-      if (candApps.some((a) => a.status === "Under Review" || a.status === "Submitted")) return "Under Review";
+      if (
+        candApps.some(
+          (a) =>
+            !isAppRefundLocked(a, refunds) &&
+            (postSelection.has(a.status) || postSelection.has(a.recruitmentStage))
+        )
+      ) {
+        return "Selected";
+      }
+      if (candApps.some((a) => !isAppRefundLocked(a, refunds) && (a.status === "Interview" || a.status === "Interview Scheduled" || a.recruitmentStage === "Interview" || a.recruitmentStage === "Interview Scheduled"))) return "Interview";
+      if (candApps.some((a) => !isAppRefundLocked(a, refunds) && (a.status === "Shortlisted" || a.recruitmentStage === "Shortlisted"))) return "Shortlisted";
+      if (candApps.some((a) => !isAppRefundLocked(a, refunds) && (a.status === "On Hold" || a.recruitmentStage === "On Hold"))) return "On Hold";
+      if (candApps.some((a) => !isAppRefundLocked(a, refunds) && (a.status === "Under Review" || a.status === "Submitted"))) return "Under Review";
+      if (candApps.some((a) => isAppRefundLocked(a, refunds))) return "Refund Claim";
       if (candApps.every((a) => a.status === "Rejected")) return "Rejected";
       return "Pending";
     },
-    [applications]
+    [applications, refunds]
   );
 
   const countAll = candidates.length;
@@ -427,6 +442,7 @@ export default function AdminCandidatesList() {
       "On Hold": "bg-amber-100 text-amber-800 border border-amber-200",
       Rejected: "bg-rose-100 text-rose-800 border border-rose-200",
       "Under Review": "bg-blue-100 text-blue-800 border border-blue-200",
+      "Refund Claim": "bg-rose-50 text-rose-800 border border-rose-200",
       Submitted: "bg-sky-100 text-sky-800 border border-sky-200",
       "Candidate Pool": "bg-slate-100 text-slate-700 border border-slate-200",
     };
@@ -596,6 +612,7 @@ export default function AdminCandidatesList() {
         vendorName={vendorName}
         statusBadgeClass={statusBadgeClass}
         submissionHistory={submissionHistory}
+        refunds={refunds}
         onAcceptAllCandidateDocs={handleAcceptAllCandidateDocs}
         onPreviewDoc={(doc) => setPreviewingDoc(doc)}
         onDownloadDoc={handleDownloadDoc}

@@ -1,4 +1,3 @@
-import React from "react";
 import { Users } from "lucide-react";
 import ManpowerTable from "../../manpower/ManpowerTable.jsx";
 
@@ -26,7 +25,6 @@ export function ProjectManpowerSection({
         </span>
       </div>
 
-      {}
       <div className="bg-gradient-to-r from-blue-50/70 to-indigo-50/40 rounded-xl border border-blue-200/80 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
@@ -59,7 +57,6 @@ export function ProjectManpowerSection({
         </div>
       </div>
 
-      {}
       {Array.isArray(project.manpowerRequirements) &&
         project.manpowerRequirements.length > 1 && (
           <ManpowerTable

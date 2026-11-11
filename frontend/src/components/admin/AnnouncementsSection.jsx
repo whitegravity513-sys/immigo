@@ -4,12 +4,10 @@ import {
   Megaphone,
   Trash2,
   CalendarDays,
-  Sun,
   Bell,
   Search,
   CheckCircle2,
   AlertCircle,
-  Clock,
   Calendar,
   RefreshCw,
   X,
@@ -95,7 +93,13 @@ export default function AnnouncementsSection({
   };
 
   useEffect(() => {
-    fetchAnnouncements();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchAnnouncements();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

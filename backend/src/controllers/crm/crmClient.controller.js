@@ -3,18 +3,49 @@ import Client from "../../models/Client.js";
 import ClientPayment from "../../models/ClientPayment.js";
 import ClientPaymentService from "../../services/clientPayment.service.js";
 import ActivityService from "../../services/activity.service.js";
+import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { generateNextClientId } from "../../utils/idGenerator.js";
+import { generateNextClientId, generateNextProjectId } from "../../utils/idGenerator.js";
+
+const getVendorAllowedSet = (req) =>
+  new Set([req.vendorId, req.userId].filter(Boolean).map((v) => String(v).trim()));
+
+const isProjectVisibleToVendor = (project, allowedVendorIds) => {
+  if (!project) return false;
+  const visType = project.vendorAssignmentType || project.vendorVisibility || "";
+  if (visType !== "Specific Vendor" && visType !== "specific") return true;
+  const assigned = project.assignedVendors || project.assignedVendorIds || [];
+  return Array.isArray(assigned) && assigned.some((v) => allowedVendorIds.has(String(v).trim()));
+};
 
 export const getClients = asyncHandler(async (req, res) => {
   const clients = await CrmOverseasClient.find({}).sort({ createdAt: -1 }).lean();
 
-  for (const c of clients || []) {
-    if (Array.isArray(c.paymentMilestones) && c.paymentMilestones.length > 0) {
-      try {
-        await ClientPaymentService.syncClientMilestonesToPayments(c);
-      } catch {}
-    }
+  if (req.isVendor) {
+    const allowedVendorIds = getVendorAllowedSet(req);
+    const vendorClients = (clients || []).map((c) => {
+      const visibleProjects = (Array.isArray(c.projects) ? c.projects : [])
+        .filter((p) => isProjectVisibleToVendor(p, allowedVendorIds))
+        .map((p) => {
+          const clone = { ...p };
+          delete clone.assignedVendors;
+          delete clone.assignedVendorIds;
+          delete clone.assignedVendorHRs;
+          return clone;
+        });
+      return {
+        _id: c._id,
+        id: c.clientId || c._id.toString(),
+        clientId: c.clientId || c._id.toString(),
+        companyName: c.companyName,
+        companyType: c.companyType,
+        country: c.country,
+        city: c.city,
+        status: c.status,
+        projects: visibleProjects,
+      };
+    });
+    return res.status(200).json({ success: true, clients: vendorClients });
   }
 
   const formatted = (clients || []).map((c) => ({
@@ -26,7 +57,11 @@ export const getClients = asyncHandler(async (req, res) => {
 });
 
 export const saveClient = asyncHandler(async (req, res) => {
-  const clientData = { ...req.body };
+  const clientData = { ...(req.body || {}) };
+  if (!String(clientData.companyName || "").trim()) {
+    return res.status(400).json({ success: false, message: "Client companyName is required." });
+  }
+  clientData.companyName = String(clientData.companyName).trim();
   let clientId = clientData.id || clientData.clientId;
   delete clientData._id;
   delete clientData.__v;
@@ -81,6 +116,29 @@ export const saveClient = asyncHandler(async (req, res) => {
   let doc = await CrmOverseasClient.findOne({ $or: queryConditions });
   const isNew = !doc;
 
+  if (Array.isArray(clientData.projects)) {
+    const existingProjIds = new Set(
+      (doc?.projects || [])
+        .flatMap((p) => [p?.id, p?.projectId, p?._id ? String(p._id) : ""])
+        .filter(Boolean)
+        .map(String)
+    );
+    const normalizedProjects = [];
+    for (const p of clientData.projects) {
+      if (!p) continue;
+      const rawPid = String(p.id || p.projectId || "").trim();
+      const shouldKeep =
+        rawPid && (existingProjIds.has(rawPid) || !/^prj-/i.test(rawPid));
+      const finalPid = shouldKeep ? rawPid : await generateNextProjectId();
+      normalizedProjects.push({
+        ...p,
+        id: finalPid,
+        projectId: finalPid,
+      });
+    }
+    clientData.projects = normalizedProjects;
+  }
+
   if (doc) {
     Object.assign(doc, clientData, {
       clientId: doc.clientId || clientId,
@@ -127,6 +185,12 @@ export const saveClient = asyncHandler(async (req, res) => {
     console.error("Activity log error:", err.message);
   }
 
+  emitRealtimeEvent({
+    events: ["immigo:project-update", "immigo:dashboard-update", "immigo:vendor-hr-refresh"],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    detail: { clientId: doc.clientId || doc._id.toString() },
+  });
+
   return res.status(200).json({
     success: true,
     client: { ...doc.toObject(), id: doc.clientId || doc._id.toString() },
@@ -169,6 +233,12 @@ export const deleteClient = asyncHandler(async (req, res) => {
       performedByRole: "admin",
     });
   } catch {}
+
+  emitRealtimeEvent({
+    events: ["immigo:project-update", "immigo:dashboard-update", "immigo:vendor-hr-refresh"],
+    roles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR", "VENDOR"],
+    detail: { clientId: id, deleted: true },
+  });
 
   return res.status(200).json({
     success: true,

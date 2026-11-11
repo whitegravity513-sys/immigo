@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ROLES, HR_TYPES } from "../constants/roles.js";
+import { ROLES } from "../constants/roles.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -44,6 +44,12 @@ const userSchema = new mongoose.Schema(
     hrType: {
       type: String,
       enum: ["EMPLOYEE_HR", "VENDOR_HR", ""],
+      default: "",
+    },
+
+    hrId: {
+      type: String,
+      trim: true,
       default: "",
     },
 
@@ -108,6 +114,8 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.index({ hrId: 1 }, { sparse: true });
 
 userSchema.methods.isLocked = function () {
   return !!(this.lockedUntil && this.lockedUntil > new Date());

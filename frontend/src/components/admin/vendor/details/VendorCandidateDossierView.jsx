@@ -12,12 +12,14 @@ import {
   Download,
   Eye,
   Printer,
+  AlertTriangle,
 } from "lucide-react";
 import {
   downloadUploadedDocument,
   openUploadedDocument,
   printUploadedDocument,
 } from "../../../../utils/printDocument.js";
+import { isAppRefundLocked, getAppRefundStatus } from "../../../../services/refundService.js";
 
 export default function VendorCandidateDossierView({
   selectedVendor,
@@ -49,6 +51,9 @@ export default function VendorCandidateDossierView({
     selectedCandidate?.candApp;
   const appId = currentApp?.id || currentApp?.applicationId || currentApp?._id;
   const appStatus = currentApp?.status || "Submitted";
+  const refundStatus = getAppRefundStatus(currentApp);
+  const refundLocked = isAppRefundLocked(currentApp);
+  const isPendingRefundApproval = refundStatus === "Pending Admin Approval";
 
   const handleConfirmRejectCandDocAction = async () => {
     if (!candDocRemarks.trim()) {
@@ -183,8 +188,9 @@ export default function VendorCandidateDossierView({
                 {["Submitted", "Applied", "Screening", "Under Review"].includes(appStatus) && (
                   <button
                     type="button"
-                    onClick={() => onUpdateAppStatus(appId, "Shortlisted")}
-                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    onClick={() => !refundLocked && onUpdateAppStatus(appId, "Shortlisted")}
+                    disabled={refundLocked}
+                    className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
                     <UserCheck size={14} />
                     <span>Shortlist</span>
@@ -194,9 +200,9 @@ export default function VendorCandidateDossierView({
                 {appStatus !== "On Hold" && !["Selected", "Processing", "Completed", "Rejected"].includes(appStatus) && (
                   <button
                     type="button"
-                    onClick={() => onUpdateAppStatus(appId, "Interview")}
-                    disabled={appStatus === "Interview" || appStatus === "Interview Scheduled"}
-                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    onClick={() => !refundLocked && onUpdateAppStatus(appId, "Interview")}
+                    disabled={refundLocked || appStatus === "Interview" || appStatus === "Interview Scheduled"}
+                    className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
                     <Briefcase size={14} />
                     <span>Interview</span>
@@ -205,9 +211,9 @@ export default function VendorCandidateDossierView({
 
                 <button
                   type="button"
-                  onClick={() => onUpdateAppStatus(appId, "Selected")}
-                  disabled={appStatus === "Selected"}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  onClick={() => !refundLocked && onUpdateAppStatus(appId, "Selected")}
+                  disabled={refundLocked || appStatus === "Selected"}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
                   <CheckCircle2 size={14} />
                   <span>Select</span>
@@ -216,11 +222,12 @@ export default function VendorCandidateDossierView({
                 <button
                   type="button"
                   onClick={() => {
+                    if (refundLocked) return;
                     setShowAppRejectModal({ appId, candName: selectedCandidate.fullName });
                     setAppRejectReason("");
                   }}
-                  disabled={appStatus === "Rejected"}
-                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  disabled={refundLocked || appStatus === "Rejected"}
+                  className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
                   <XCircle size={14} />
                   <span>Reject</span>
@@ -229,8 +236,9 @@ export default function VendorCandidateDossierView({
                 {(appStatus === "Interview" || appStatus === "Interview Scheduled") && (
                   <button
                     type="button"
-                    onClick={() => onUpdateAppStatus(appId, "On Hold")}
-                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    onClick={() => !refundLocked && onUpdateAppStatus(appId, "On Hold")}
+                    disabled={refundLocked}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
                     <Clock size={14} />
                     <span>Hold</span>
@@ -239,7 +247,9 @@ export default function VendorCandidateDossierView({
 
                 <button
                   type="button"
+                  disabled={isPendingRefundApproval}
                   onClick={() => {
+                    if (isPendingRefundApproval) return;
                     setShowReassignProjModal({
                       appId,
                       candName: selectedCandidate.fullName,
@@ -248,7 +258,7 @@ export default function VendorCandidateDossierView({
                     setReassignProjId(String(currentApp?.projectId || availableProjects[0]?.id || ""));
                     setReassignPosition(selectedCandidate.currentPosition || "");
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
                   <ExternalLink size={14} />
                   <span>Edit / Change Project</span>
@@ -256,6 +266,22 @@ export default function VendorCandidateDossierView({
               </div>
             )}
           </div>
+
+          {refundLocked && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 flex items-start gap-2 text-xs">
+              <AlertTriangle size={15} className="text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-rose-950">
+                  Processing Frozen — Refund Claim ({refundStatus || "Pending Admin Approval"})
+                </span>
+                <span className="block text-[11px] text-rose-800 mt-0.5">
+                  {isPendingRefundApproval
+                    ? "Stage transitions and project edits are paused until Admin responds to the refund request."
+                    : "Admin has processed this refund claim. Stage transitions remain locked; you may reassign this candidate to a new project if applicable."}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">

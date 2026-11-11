@@ -1,5 +1,4 @@
 import Notification from "../models/Notification.js";
-import Employee from "../models/Employee.js";
 import mongoose from "mongoose";
 
 const isConfiguredSuperAdminEmail = (email) => {
@@ -168,6 +167,7 @@ const buildStaffVisibilityQuery = (options = {}) => {
             {
               targetRole: { $in: ["ADMIN", "HR"] },
               moduleScope: { $in: ["VENDOR", "CANDIDATE"] },
+              "metadata.splitForRoles": { $ne: true },
             },
             ...(userId ? [{ targetUserId: userId }] : []),
           ],
@@ -539,7 +539,24 @@ export class NotificationService {
 
   static async clearAll(options = {}) {
     const query = buildStaffVisibilityQuery(options);
-    await Notification.deleteMany(query);
+    const isVendorHrRole =
+      String(options?.role || "").toUpperCase() === "VENDOR_HR" ||
+      String(options?.hrType || "").toUpperCase() === "VENDOR_HR";
+    const deleteFilter = isVendorHrRole
+      ? {
+          $and: [
+            query,
+            {
+              $or: [
+                { targetRole: "VENDOR_HR" },
+                { targetRoles: "VENDOR_HR" },
+                ...(options?.userId ? [{ targetUserId: String(options.userId) }] : []),
+              ],
+            },
+          ],
+        }
+      : query;
+    await Notification.deleteMany(deleteFilter);
     return { success: true };
   }
 

@@ -1,4 +1,3 @@
-import React from "react";
 import { Plus, CheckCircle2 } from "lucide-react";
 
 export default function VendorMilestonesTab({

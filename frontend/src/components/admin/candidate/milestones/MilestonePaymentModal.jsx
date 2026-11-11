@@ -1,4 +1,3 @@
-import React from "react";
 import { IndianRupee, X } from "lucide-react";
 
 export default function MilestonePaymentModal({

@@ -4,7 +4,6 @@ const crmCandidateSchema = new mongoose.Schema(
   {
     candidateId: {
       type: String,
-      sparse: true,
       trim: true,
     },
     vendorId: {
@@ -66,7 +65,9 @@ const crmCandidateSchema = new mongoose.Schema(
   }
 );
 
+crmCandidateSchema.index({ candidateId: 1 }, { sparse: true });
 crmCandidateSchema.index({ vendorId: 1 });
+crmCandidateSchema.index({ createdAt: -1 });
 
 const CrmCandidate = mongoose.model("CrmCandidate", crmCandidateSchema);
 export default CrmCandidate;

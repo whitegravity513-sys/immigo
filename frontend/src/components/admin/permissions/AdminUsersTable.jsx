@@ -1,5 +1,11 @@
-import React from "react";
-import { Search, UserPlus, Shield, Briefcase, Users, Lock, Edit2, Trash2 } from "lucide-react";
+import {
+  Search,
+  UserPlus,
+  Briefcase,
+  Lock,
+  Edit2,
+  Trash2,
+} from "lucide-react";
 
 export default function AdminUsersTable({
   adminsList,
@@ -83,6 +89,11 @@ export default function AdminUsersTable({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-xs text-slate-900 truncate">{adm.name}</span>
+                      {adm.hrId && (
+                        <span className="text-[9px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-semibold shrink-0">
+                          {adm.hrId}
+                        </span>
+                      )}
                       {adm.isActive === false && (
                         <span className="text-[8px] bg-rose-100 text-rose-700 px-1 py-0.2 rounded font-bold uppercase">
                           Disabled

@@ -1,33 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "../../services/apiClient.js";
 import {
   IndianRupee,
   Plus,
   FileText,
-  Clock,
   CheckCircle2,
   AlertCircle,
-  XCircle,
   Eye,
-  Calendar,
-  Tag,
   UploadCloud,
-  FileUp,
   ExternalLink,
   MessageSquare,
   Trash2,
 } from "lucide-react";
-import { compressImage, formatFileUrl } from "./EmployeeProfileDocsTab.jsx";
+import { compressImage, formatFileUrl } from "../../utils/fileHelpers.js";
 import DateInput from "../common/DateInput.jsx";
 
-export default function EmployeeExpensesTab({ user, token }) {
+export default function EmployeeExpensesTab() {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [activeFilter, setActiveFilter] = useState("ALL"); 
+  const [activeFilter, setActiveFilter] = useState("ALL");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,19 +38,18 @@ export default function EmployeeExpensesTab({ user, token }) {
 
   const [previewReceipt, setPreviewReceipt] = useState(null);
 
-  const showError = (msg) => {
+  const showError = useCallback((msg) => {
     setErrorMsg(msg);
     setTimeout(() => setErrorMsg(""), 5000);
-  };
+  }, []);
 
   const showSuccess = (msg) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(""), 5000);
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
       const [expRes, catRes] = await Promise.all([
         apiClient.get("/employee/expenses"),
         apiClient.get("/employee/expense-categories").catch(() => ({ data: [] })),
@@ -65,19 +58,25 @@ export default function EmployeeExpensesTab({ user, token }) {
       setExpenses(Array.isArray(expRes.data) ? expRes.data : []);
       const cats = Array.isArray(catRes.data) ? catRes.data : [];
       setCategories(cats);
-      if (cats.length > 0 && !formData.categoryId) {
-        setFormData((prev) => ({ ...prev, categoryId: cats[0]._id || cats[0].id }));
+      if (cats.length > 0) {
+        setFormData((prev) =>
+          prev.categoryId ? prev : { ...prev, categoryId: cats[0]._id || cats[0].id }
+        );
       }
     } catch (err) {
       showError(err.response?.data?.message || "Failed to load expense history.");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [showError]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchData();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchData]);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -252,9 +251,8 @@ export default function EmployeeExpensesTab({ user, token }) {
                 key={f}
                 type="button"
                 onClick={() => setActiveFilter(f)}
-                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                  activeFilter === f ? "bg-white text-slate-800 shadow-2xs" : "text-slate-500 hover:text-slate-800"
-                }`}
+                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${activeFilter === f ? "bg-white text-slate-800 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+                  }`}
               >
                 {f === "ALL" ? "All Claims" : f}
               </button>
@@ -303,13 +301,12 @@ export default function EmployeeExpensesTab({ user, token }) {
                   </td>
                   <td className="px-3 py-1.5 whitespace-nowrap">
                     <span
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase border ${
-                        item.status === "Approved"
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : item.status === "Rejected"
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase border ${item.status === "Approved"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : item.status === "Rejected"
                           ? "bg-rose-50 text-rose-700 border-rose-200"
                           : "bg-amber-50 text-amber-700 border-amber-200"
-                      }`}
+                        }`}
                     >
                       {item.status}
                     </span>
@@ -373,131 +370,131 @@ export default function EmployeeExpensesTab({ user, token }) {
                 </button>
               </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Expense Category *
-                  </label>
-                  <span className="text-[10px] text-blue-600 font-semibold">Type custom or pick</span>
-                </div>
-                <input
-                  type="text"
-                  required
-                  placeholder="Type category (e.g. Travel, Food, Office Supplies, Lodging)"
-                  value={formData.categoryName || ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const matched = categories.find((c) => c.name.toLowerCase() === val.toLowerCase());
-                    setFormData({
-                      ...formData,
-                      categoryName: val,
-                      categoryId: matched ? (matched._id || matched.id) : val,
-                    });
-                  }}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-semibold focus:outline-none focus:border-blue-500 transition-all placeholder:font-normal placeholder:text-slate-400"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Expense Title *</label>
+              <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Expense Category *
+                    </label>
+                    <span className="text-[10px] text-blue-600 font-semibold">Type custom or pick</span>
+                  </div>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Client Dinner / Flight Ticket"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Type category (e.g. Travel, Food, Office Supplies, Lodging)"
+                    value={formData.categoryName || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const matched = categories.find((c) => c.name.toLowerCase() === val.toLowerCase());
+                      setFormData({
+                        ...formData,
+                        categoryName: val,
+                        categoryId: matched ? (matched._id || matched.id) : val,
+                      });
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-semibold focus:outline-none focus:border-blue-500 transition-all placeholder:font-normal placeholder:text-slate-400"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Expense Title *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Client Dinner / Flight Ticket"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-medium focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Amount (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      placeholder="0"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Expense *</label>
+                  <DateInput
+                    required
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-medium focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Amount (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="0"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:border-blue-500"
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Description & Purpose</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Provide business justification or detailed breakdown…"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 resize-none"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Expense *</label>
-                <DateInput
-                  required
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-medium focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Description & Purpose</label>
-                <textarea
-                  rows={2}
-                  placeholder="Provide business justification or detailed breakdown…"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Bill Receipt Document <span className="font-normal normal-case text-slate-400">(Image or PDF)</span>
-                </label>
-                <div className="border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/40 rounded-2xl p-4 transition-all text-center">
-                  <label className="flex flex-col items-center gap-1.5 cursor-pointer text-slate-600">
-                    <UploadCloud size={24} className="text-blue-600" />
-                    <span className="text-xs font-bold text-slate-700">
-                      {receiptLabel ? "Selected: " + receiptLabel : "Click to select Receipt / Tax Invoice"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="application/pdf,image/*"
-                      className="hidden"
-                      onChange={handleFileChange}
-                    />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Bill Receipt Document <span className="font-normal normal-case text-slate-400">(Image or PDF)</span>
                   </label>
+                  <div className="border border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50/40 rounded-2xl p-4 transition-all text-center">
+                    <label className="flex flex-col items-center gap-1.5 cursor-pointer text-slate-600">
+                      <UploadCloud size={24} className="text-blue-600" />
+                      <span className="text-xs font-bold text-slate-700">
+                        {receiptLabel ? "Selected: " + receiptLabel : "Click to select Receipt / Tax Invoice"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="application/pdf,image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Additional Remarks</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Paid via corporate credit card / Personal UPI"
-                  value={formData.remarks}
-                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
-                />
-              </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Additional Remarks</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Paid via corporate credit card / Personal UPI"
+                    value={formData.remarks}
+                    onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500"
+                  />
+                </div>
 
-              <div className="flex items-center gap-2 pt-3">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? "Submitting Claim…" : "Submit Claim for Approval"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm cursor-pointer"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+                <div className="flex items-center gap-2 pt-3">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? "Submitting Claim…" : "Submit Claim for Approval"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {previewReceipt && (

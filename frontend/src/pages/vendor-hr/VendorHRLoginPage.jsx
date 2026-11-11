@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Mail,
   Lock,
@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Sparkles,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import vendorHRService from "../../services/vendorHRService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 
@@ -66,7 +66,6 @@ export default function VendorHRLoginPage() {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-950 font-sans antialiased text-slate-800">
-      {/* MOBILE / TABLET TOP BRAND BAR (< lg only) */}
       <div className="lg:hidden w-full bg-[#080D1A] border-b border-slate-800/80 px-4 py-3.5 flex items-center justify-between">
         <ImmiGoLogo size="sm" theme="light" subtitle="Vendor HR Portal" />
         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">
@@ -74,20 +73,16 @@ export default function VendorHRLoginPage() {
         </span>
       </div>
 
-      {/* LEFT SIDE: HERO & VALUE PROPOSITION (Desktop >= lg) */}
       <div className="hidden lg:flex relative w-1/2 xl:w-[48%] bg-[#080D1A] text-white p-8 xl:p-12 flex-col justify-between overflow-hidden min-h-screen max-h-screen">
-        {/* Abstract glowing radial decorations */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-[480px] h-64 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 right-10 w-2 h-2 rounded-full bg-indigo-400/60 blur-xs" />
         <div className="absolute top-1/4 right-24 w-1.5 h-1.5 rounded-full bg-purple-400/60 blur-xs" />
 
-        {/* Top Brand Logo with official ImmiGoLogo */}
         <div className="relative z-10 flex items-center justify-between">
           <ImmiGoLogo size="md" theme="light" subtitle="Overseas Manpower & Recruitment" showBadge badgeText="Official Portal" />
         </div>
 
-        {/* Center Content */}
         <div className="relative z-10 my-auto py-6 max-w-lg space-y-6">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/30 text-blue-300 text-xs font-semibold mb-3">
@@ -105,7 +100,6 @@ export default function VendorHRLoginPage() {
             </p>
           </div>
 
-          {/* Feature List */}
           <div className="space-y-3.5">
             {[
               {
@@ -121,7 +115,7 @@ export default function VendorHRLoginPage() {
               {
                 icon: BarChart3,
                 title: "Monitor Hiring & Milestones",
-                desc: "Live database sync on overseas trade targets and project quotas.",
+                desc: "Live database sync on overseas trade deployments and milestone progress.",
               },
             ].map((f, idx) => {
               const Icon = f.icon;
@@ -139,9 +133,7 @@ export default function VendorHRLoginPage() {
             })}
           </div>
 
-          {/* Floating Glassmorphic Progress Card */}
           <div className="inline-flex items-center space-x-4 px-4 py-3 rounded-xl bg-slate-900/70 backdrop-blur-xl border border-indigo-500/25 shadow-xl shadow-indigo-950/60">
-            {/* Mini SVG Donut Chart */}
             <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
               <svg className="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
                 <path
@@ -165,7 +157,7 @@ export default function VendorHRLoginPage() {
             </div>
 
             <div>
-              <div className="text-[10.5px] font-medium text-slate-400">Target Fulfillment Rate</div>
+              <div className="text-[10.5px] font-medium text-slate-400">Live Placement Pipeline</div>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs font-bold text-cyan-300">Live Synchronized</span>
                 <span className="text-[10px] text-emerald-400 font-semibold flex items-center">
@@ -176,16 +168,13 @@ export default function VendorHRLoginPage() {
           </div>
         </div>
 
-        {/* Bottom subtle note */}
         <div className="relative z-10 text-[11px] text-slate-500 font-medium">
           IMMIGO Enterprise Global Recruitment Portal • Verified Vendor Network
         </div>
       </div>
 
-      {/* RIGHT SIDE: CLEAN LOGIN CARD */}
       <div className="w-full lg:w-1/2 xl:w-[52%] bg-white flex items-center justify-center p-4 sm:p-8 xl:p-12 min-h-screen overflow-y-auto">
         <div className="w-full max-w-md my-auto py-4 space-y-5">
-          {/* Official IMMIGO Logo & Header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-1">
               <ImmiGoLogo size="lg" theme="dark" subtitle="Vendor HR Portal" />
@@ -198,7 +187,6 @@ export default function VendorHRLoginPage() {
             </p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start space-x-2 animate-in fade-in">
               <span className="text-sm font-bold text-red-500 leading-none">!</span>
@@ -206,7 +194,6 @@ export default function VendorHRLoginPage() {
             </div>
           )}
 
-          {/* Form */}
           <form className="space-y-3.5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -253,7 +240,6 @@ export default function VendorHRLoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password Row */}
             <div className="flex items-center justify-between text-xs pt-0.5">
               <label className="flex items-center space-x-2 text-slate-600 cursor-pointer select-none">
                 <input
@@ -274,7 +260,6 @@ export default function VendorHRLoginPage() {
               </button>
             </div>
 
-            {/* Submit Button */}
             <div className="pt-1.5">
               <button
                 type="submit"
@@ -293,7 +278,6 @@ export default function VendorHRLoginPage() {
             </div>
           </form>
 
-          {/* Divider */}
           <div className="relative my-3 text-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200" />
@@ -303,13 +287,11 @@ export default function VendorHRLoginPage() {
             </span>
           </div>
 
-          {/* Security Badge Pill */}
           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center space-x-2 text-slate-600 text-xs font-medium">
             <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
             <span>Secure access for authorized Vendor HR only</span>
           </div>
 
-          {/* Copyright Footer */}
           <div className="text-center pt-2">
             <p className="text-[11px] text-slate-400">
               © 2026 IMMIGO. All rights reserved.

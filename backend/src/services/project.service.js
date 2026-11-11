@@ -1,5 +1,6 @@
 import Project from "../models/Project.js";
 import { ApiError } from "../utils/apiError.js";
+import { generateNextProjectId } from "../utils/idGenerator.js";
 
 export class ProjectService {
   static formatProject(project) {
@@ -54,8 +55,13 @@ export class ProjectService {
     const extAmt = Number(extendedAmount) || 0;
     const totAmt = initAmt + extAmt;
 
+    const resolvedProjectId =
+      projectId && String(projectId).trim()
+        ? String(projectId).trim()
+        : await generateNextProjectId();
+
     const newProject = await Project.create({
-      projectId: projectId || `PRJ-${Date.now().toString().slice(-4)}`,
+      projectId: resolvedProjectId,
       title: finalTitle.trim(),
       description: description || "",
       projectType: projectType || "",

@@ -11,6 +11,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
+import refundService, { isAppRefundLocked } from "../../services/refundService";
 
 const POST_SELECTION_STATUSES = new Set([
   "Selected",
@@ -36,11 +37,15 @@ export default function ProcessingTimeline() {
       setLoading(true);
       const curVendor = crmVendorService.getCurrentVendor();
       await crmVendorService.getAvailableProjects(curVendor?.id).catch(() => []);
-      const data = await crmVendorService.getApplications(curVendor?.id);
+      const [data, allRefunds] = await Promise.all([
+        crmVendorService.getApplications(curVendor?.id),
+        refundService.getAllRefunds(curVendor?.id).catch(() => []),
+      ]);
       const selectedApps = (data || []).filter(
         (a) =>
-          POST_SELECTION_STATUSES.has(a.status) ||
-          POST_SELECTION_STATUSES.has(a.recruitmentStage)
+          (POST_SELECTION_STATUSES.has(a.status) ||
+            POST_SELECTION_STATUSES.has(a.recruitmentStage)) &&
+          !isAppRefundLocked(a, allRefunds)
       );
       setApplications(selectedApps);
     } catch (err) {
@@ -57,12 +62,14 @@ export default function ProcessingTimeline() {
     const handleRefresh = () => loadData();
     window.addEventListener("immigo:application-update", handleRefresh);
     window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:refund-update", handleRefresh);
     window.addEventListener("immigo:dashboard-update", handleRefresh);
     window.addEventListener("storage", handleRefresh);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("immigo:application-update", handleRefresh);
       window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:refund-update", handleRefresh);
       window.removeEventListener("immigo:dashboard-update", handleRefresh);
       window.removeEventListener("storage", handleRefresh);
     };
@@ -268,21 +275,64 @@ export default function ProcessingTimeline() {
                         </td>
 
                         <td className="py-3 px-4">
-                          <div className="w-36 space-y-1">
-                            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                              <span>
-                                {allStages.length > 0
-                                  ? `${doneStages}/${allStages.length} Stages`
-                                  : `Milestone ${paidM}/${totalM}`}
-                              </span>
-                              <span className="text-indigo-700">{stagePct}%</span>
+                          <div className="space-y-1.5">
+                            <div className="w-40 space-y-1">
+                              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                                <span>
+                                  {allStages.length > 0
+                                    ? `${doneStages}/${allStages.length} Stages`
+                                    : `Milestone ${paidM}/${totalM}`}
+                                </span>
+                                <span className="text-indigo-700">{stagePct}%</span>
+                              </div>
+                              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
+                                  style={{ width: `${stagePct}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${stagePct}%` }}
-                              />
-                            </div>
+                            {milestones.length > 0 && (
+                              <div className="flex items-center gap-1 flex-nowrap whitespace-nowrap">
+                                {milestones.slice(0, 3).map((m, mIdx) => {
+                                  const isMPaid =
+                                    m.paymentStatus === "Approved" ||
+                                    m.status === "Paid" ||
+                                    m.status === "Completed";
+                                  const isMSub =
+                                    m.paymentStatus === "Submitted" ||
+                                    m.paymentStatus === "Pending Verification" ||
+                                    m.status === "Submitted";
+                                  const mAmt = Number(m.paymentAmount ?? m.amount ?? 0);
+                                  return (
+                                    <span
+                                      key={m.id || mIdx}
+                                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap ${
+                                        isMPaid
+                                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                          : isMSub
+                                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                          : "bg-slate-100 text-slate-600 border border-slate-200"
+                                      }`}
+                                      title={`${m.name}: ₹${mAmt.toLocaleString()}`}
+                                    >
+                                      {isMPaid ? (
+                                        <CheckCircle2 size={10} className="text-emerald-500 shrink-0" />
+                                      ) : (
+                                        <Clock size={10} className="text-amber-500 shrink-0" />
+                                      )}
+                                      <span>M{mIdx + 1}</span>
+                                      <span>₹{mAmt.toLocaleString()}</span>
+                                    </span>
+                                  );
+                                })}
+                                {milestones.length > 3 && (
+                                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-200">
+                                    +{milestones.length - 3}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </td>
 

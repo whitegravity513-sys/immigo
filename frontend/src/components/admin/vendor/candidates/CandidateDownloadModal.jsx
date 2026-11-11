@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Download, X, FileSpreadsheet, CheckSquare, Square, Check, AlertCircle } from "lucide-react";
 import DateInput from "../../../common/DateInput.jsx";
 
-export const DEFAULT_CANDIDATE_FIELDS = [
+const DEFAULT_CANDIDATE_FIELDS = [
   { key: "fullName", label: "Candidate Name", defaultSelected: true },
   { key: "passportNumber", label: "Passport Number", defaultSelected: true },
   { key: "passportIssueDate", label: "Date of Issue", defaultSelected: true },
@@ -55,7 +55,6 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-2xs">
@@ -75,9 +74,7 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-4 space-y-4 overflow-y-auto flex-1">
-          {/* Filters Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 text-xs">
             <div>
               <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">
@@ -119,7 +116,6 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
             </div>
           </div>
 
-          {/* Fields Selection Section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -149,7 +145,6 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
               </button>
             </div>
 
-            {/* Checkboxes Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
               {DEFAULT_CANDIDATE_FIELDS.map((f) => {
                 const isSelected = selectedFields.includes(f.key);
@@ -187,7 +182,6 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             type="button"

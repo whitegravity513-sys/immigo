@@ -2,7 +2,6 @@ import { Otp, OTP_PURPOSES } from "../models/Otp.js";
 import { generateOtp, hashToken, timingSafeCompare } from "../utils/crypto.js";
 import { sendOtpEmail } from "./email.service.js";
 import { ApiError } from "../utils/apiError.js";
-import { logger } from "../utils/logger.js";
 
 const OTP_EXPIRY_MINUTES = Number(process.env.OTP_EXPIRY_MINUTES || 10);
 const OTP_MAX_ATTEMPTS = Number(process.env.OTP_MAX_ATTEMPTS || 3);

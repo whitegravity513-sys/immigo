@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,42 +5,31 @@ import {
   Building2,
   FolderKanban,
   Briefcase,
-  Settings,
   LogOut,
   X,
-  Shield,
   ShieldCheck,
-  Receipt,
   UserCheck,
   KeyRound,
   Calendar,
   ArrowLeft,
-  Activity,
-  Layers,
-  ExternalLink,
-  FileCheck,
-  CheckCircle2,
-  History,
-  User as UserIcon,
   Plane,
   Award,
   Clock,
   XCircle,
 } from "lucide-react";
 import { ImmiGoLogo, ImmiGoIcon } from "../../common/ImmiGoLogo.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
-import { usePermissions } from "../../../context/PermissionContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
+import { usePermissions } from "../../../context/usePermissions.js";
 import appConfig from "../../../config/appConfig.js";
 
 export function AdminMasterSidebar({
   mobileOpen = false,
   setMobileOpen = () => {},
   collapsed = false,
-  setCollapsed = () => {},
 }) {
   const location = useLocation();
-  const { user, logout, isVendorHR, isHR } = useAuth();
-  const { canAccessModule, isSuperAdmin, hasPermission, role } = usePermissions();
+  const { logout, isVendorHR, isHR } = useAuth();
+  const { canAccessModule, isSuperAdmin, role } = usePermissions();
   const currentPath = location.pathname;
 
   const isActive = (path) => {
@@ -190,7 +178,6 @@ export function AdminMasterSidebar({
     },
   ];
 
-  // Filter items dynamically: check function takes highest priority
   const navItems = rawNavItems.filter((item) => {
     if (typeof item.check === "function") return item.check();
     if (item.alwaysVisible) return true;
@@ -265,17 +252,6 @@ export function AdminMasterSidebar({
     },
   ];
 
-  const adminName =
-    (typeof user?.name === "string" ? user.name : user?.name?.first) ||
-    user?.email?.split("@")[0] ||
-    (isSuperAdmin ? "Super Admin" : "System Admin");
-
-  const displayRole = isSuperAdmin
-    ? "Super Admin"
-    : role === "HR"
-    ? "HR Manager"
-    : "Administrator";
-
   return (
     <>
       {mobileOpen && (
@@ -291,7 +267,6 @@ export function AdminMasterSidebar({
           collapsed ? "w-[72px]" : "w-[240px]"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Top Header */}
         <div
           className={`h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center gap-2 shadow-xs shrink-0 ${
             collapsed ? "justify-center" : "justify-between"
@@ -318,11 +293,9 @@ export function AdminMasterSidebar({
           )}
         </div>
 
-        {/* Dynamic Navigation Items */}
         <div className="flex-1 px-3 py-3 space-y-1 overflow-y-auto custom-scrollbar">
           {isHRActivitySection ? (
             <>
-              {/* Back to Main Admin Dashboard Button */}
               <div className="mb-2.5">
                 <Link
                   to={isSuperAdmin ? "/super-admin/dashboard" : "/admin/dashboard"}
@@ -437,7 +410,6 @@ export function AdminMasterSidebar({
           )}
         </div>
 
-        {/* Footer matching Dashboard Footer height (48px) with clean Sign Out button */}
         <div className="h-[48px] min-h-[48px] border-t border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 px-3 flex items-center justify-center shadow-xs shrink-0">
           <button
             type="button"

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ProjectSidebar from "./ProjectSidebar.jsx";
 import ProjectNavbar from "./ProjectNavbar.jsx";
-import { CrmToastContext } from "../../crm/layout/CrmLayout.jsx";
+import { CrmToastContext } from "../../crm/layout/crmToastContext.js";
 import { ToastNotification } from "../../crm/ui/ToastNotification.jsx";
 import AppFooter from "../../common/AppFooter.jsx";
 
@@ -48,7 +48,6 @@ export function ProjectLayout({
             {children}
           </main>
 
-          {}
           <AppFooter role="admin" />
         </div>
 

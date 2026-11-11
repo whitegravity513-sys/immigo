@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Users,
@@ -12,10 +12,8 @@ import {
   Award,
   ArrowRight,
   RefreshCw,
-  Search,
   Check,
   X,
-  ExternalLink,
   AlertCircle,
   Eye,
 } from "lucide-react";
@@ -46,7 +44,7 @@ export default function AdminCandidateDashboard() {
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const fetchDashboardData = async (silent = false) => {
+  const fetchDashboardData = useCallback(async (silent = false) => {
     if (silent !== true) {
       setLoading(true);
     }
@@ -73,10 +71,13 @@ export default function AdminCandidateDashboard() {
         setLoading(false);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchDashboardData(false);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchDashboardData(false);
+    });
 
     let debounceTimer = null;
     const handleUpdate = (e) => {
@@ -85,7 +86,7 @@ export default function AdminCandidateDashboard() {
       }
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        fetchDashboardData(true);
+        if (!cancelled) fetchDashboardData(true);
       }, 100);
     };
 
@@ -95,13 +96,14 @@ export default function AdminCandidateDashboard() {
     window.addEventListener("storage", handleUpdate);
 
     return () => {
+      cancelled = true;
       if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:candidate-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, []);
+  }, [fetchDashboardData]);
 
   const handleQuickApprove = async (candidateId, name) => {
     setActionLoading(true);

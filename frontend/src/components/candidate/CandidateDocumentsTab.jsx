@@ -1,4 +1,3 @@
-import React from "react";
 import { Upload, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react";
 
 export default function CandidateDocumentsTab({

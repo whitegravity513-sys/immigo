@@ -13,6 +13,7 @@ const VENDOR_PORTAL_STORAGE_KEYS = new Set([
   "immigo_crm_candidates_v3",
   "immigo_crm_applications_v3",
   "immigo_crm_vendors_v3",
+  "immigo_crm_refunds_v3",
 ]);
 
 export function VendorDashboard() {
@@ -20,11 +21,13 @@ export function VendorDashboard() {
   const [showMouPage, setShowMouPage] = useState(false);
   const [vendor, setVendor] = useState(() => crmVendorService.getCurrentVendor());
 
+  const vendorId = vendor?.id;
+
   const loadDashboardData = useCallback(async () => {
     try {
       const [data, projs] = await Promise.all([
-        crmVendorService.getVendorDashboardStats(vendor?.id),
-        crmVendorService.getAvailableProjects(vendor?.id),
+        crmVendorService.getVendorDashboardStats(vendorId),
+        crmVendorService.getAvailableProjects(vendorId),
       ]);
       setStats({
         ...data,
@@ -33,7 +36,7 @@ export function VendorDashboard() {
     } catch (err) {
       console.error("Failed to load vendor dashboard:", err);
     }
-  }, [vendor?.id]);
+  }, [vendorId]);
 
   useEffect(() => {
     const syncVendorState = () => {
@@ -45,7 +48,10 @@ export function VendorDashboard() {
   }, []);
 
   useEffect(() => {
-    loadDashboardData();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadDashboardData();
+    });
 
     let debounceTimer = null;
     const handleUpdate = (e) => {
@@ -60,13 +66,16 @@ export function VendorDashboard() {
 
     window.addEventListener("immigo:application-update", handleUpdate);
     window.addEventListener("immigo:candidate-update", handleUpdate);
+    window.addEventListener("immigo:refund-update", handleUpdate);
     window.addEventListener("immigo:dashboard-update", handleUpdate);
     window.addEventListener("storage", handleUpdate);
 
     return () => {
+      cancelled = true;
       if (debounceTimer) clearTimeout(debounceTimer);
       window.removeEventListener("immigo:application-update", handleUpdate);
       window.removeEventListener("immigo:candidate-update", handleUpdate);
+      window.removeEventListener("immigo:refund-update", handleUpdate);
       window.removeEventListener("immigo:dashboard-update", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
@@ -189,7 +198,6 @@ export function VendorDashboard() {
 
       <VendorMetricCards cards={CARDS} />
 
-      {/* Today's Meetings & Daily Schedule Compact Widget */}
       <DashboardMeetingWidget
         role="VENDOR"
         assignedVendors={[vendor?.id || vendor?.vendorId].filter(Boolean)}

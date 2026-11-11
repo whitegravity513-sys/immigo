@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
-import Role from "../models/Role.js";
 import UserPermission from "../models/UserPermission.js";
 import AuditLog from "../models/AuditLog.js";
 import { ROLES } from "../constants/roles.js";
@@ -11,6 +10,7 @@ import NotificationService from "../services/notification.service.js";
 import { sendStaffAccountCredentialsEmail } from "../services/email.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { generateNextHRId } from "../utils/idGenerator.js";
 import { logAudit, invalidateUserAuthCache } from "../middleware/rbac.middleware.js";
 
 export const getAdmins = asyncHandler(async (req, res) => {
@@ -59,6 +59,7 @@ export const getAdmins = asyncHandler(async (req, res) => {
         email: u.email,
         role: u.role,
         hrType: u.hrType || "",
+        hrId: u.hrId || "",
         assignedVendors: u.assignedVendors || [],
         phone: u.phone || "",
         department: u.department || "",
@@ -103,6 +104,7 @@ export const getAdminById = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       hrType: user.hrType || "",
+      hrId: user.hrId || "",
       assignedVendors: user.assignedVendors || [],
       phone: user.phone || "",
       department: user.department || "",
@@ -175,6 +177,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
   }
 
   const passwordHash = await bcrypt.hash(plainPassword, 10);
+  const generatedHrId = assignedRole === ROLES.HR ? await generateNextHRId() : "";
 
   const newUser = await User.create({
     name: String(name).trim(),
@@ -183,6 +186,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
     rawPassword: plainPassword,
     role: assignedRole,
     hrType: assignedHrType,
+    hrId: generatedHrId,
     assignedVendors: Array.isArray(assignedVendors) ? assignedVendors : [],
     phone: phone ? String(phone).trim() : "",
     department: department ? String(department).trim() : "",
@@ -241,6 +245,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
       email: newUser.email,
       role: newUser.role,
       hrType: newUser.hrType,
+      hrId: newUser.hrId || "",
       assignedVendors: newUser.assignedVendors,
       assignedPermissions: userPermDoc?.assignedPermissions || [],
     },
@@ -261,6 +266,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
       email: newUser.email,
       role: newUser.role,
       hrType: newUser.hrType,
+      hrId: newUser.hrId || "",
       assignedVendors: newUser.assignedVendors,
       phone: newUser.phone || "",
       department: newUser.department || "",
@@ -387,6 +393,10 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     }
   }
 
+  if (targetUser.role === ROLES.HR && !targetUser.hrId) {
+    targetUser.hrId = await generateNextHRId();
+  }
+
   await targetUser.save();
   invalidateUserAuthCache(id);
   PermissionService.invalidateUserCache(id);
@@ -452,6 +462,7 @@ export const updateAdmin = asyncHandler(async (req, res) => {
       email: targetUser.email,
       role: targetUser.role,
       hrType: targetUser.hrType,
+      hrId: targetUser.hrId || "",
       assignedVendors: targetUser.assignedVendors,
       phone: targetUser.phone,
       department: targetUser.department,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import apiClient from "../../services/apiClient.js";
 import { Bell } from "lucide-react";
 import UnifiedNotificationPopover from "../common/UnifiedNotificationPopover.jsx";
@@ -19,6 +19,10 @@ export default function EmployeeNotificationBell({
   const dropdownRef = useRef(null);
   const lastKnownIdRef = useRef(null);
   const initialFetchDone = useRef(false);
+  const onNewNotificationRef = useRef(onNewNotification);
+  useEffect(() => {
+    onNewNotificationRef.current = onNewNotification;
+  }, [onNewNotification]);
 
   const getDeletedIds = () => {
     try {
@@ -28,7 +32,7 @@ export default function EmployeeNotificationBell({
     }
   };
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await apiClient.get("/employee/notifications?limit=50");
       if (res.data) {
@@ -64,7 +68,7 @@ export default function EmployeeNotificationBell({
           const newestId = newest.id || newest._id;
           if (newestId !== lastKnownIdRef.current && !newest.read) {
             lastKnownIdRef.current = newestId;
-            if (onNewNotification) onNewNotification(newest);
+            if (onNewNotificationRef.current) onNewNotificationRef.current(newest);
             window.dispatchEvent(new CustomEvent("new-admin-notification", { detail: newest }));
           }
         }
@@ -75,17 +79,23 @@ export default function EmployeeNotificationBell({
         initialFetchDone.current = true;
       }
     } catch {}
-  };
+  }, []);
 
   useEffect(() => {
-    fetchNotifications();
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchNotifications();
+    });
     const interval = setInterval(() => {
       if (typeof document !== "undefined" && !document.hidden) {
         fetchNotifications();
       }
     }, 25000);
-    return () => clearInterval(interval);
-  }, [token]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [token, fetchNotifications]);
 
   useEffect(() => {
     function handleClickOutside(event) {

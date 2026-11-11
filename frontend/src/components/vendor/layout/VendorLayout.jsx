@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Outlet } from "react-router-dom";
 import VendorSidebar from "./VendorSidebar.jsx";
 import VendorNavbar from "./VendorNavbar.jsx";
 import crmVendorService from "../../../services/crmVendorService.js";
 import AppFooter from "../../common/AppFooter.jsx";
 import { VendorOnboarding } from "./VendorOnboarding.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 const VENDOR_SYNC_STORAGE_KEYS = new Set([
   "immigo_crm_vendors_v3",
@@ -104,8 +104,12 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
       }
     };
 
-    const syncFromLocal = () => {
+    const syncFromLocal = (evt) => {
       if (!isMounted) return;
+      if (evt?.detail?.remote) {
+        syncVendor();
+        return;
+      }
       const local = crmVendorService.getCurrentVendor();
       if (local) {
         setVendor((prev) => (hasVendorChanged(prev, local) ? local : prev));

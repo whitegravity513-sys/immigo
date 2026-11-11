@@ -1,4 +1,3 @@
-import React from "react";
 import {
   LogIn,
   LogOut,
@@ -31,7 +30,6 @@ export default function CheckInOutSection({
   checkOutNote,
   setCheckOutNote,
 }) {
-  const isOffDay = isHolidayToday || isWeeklyOffToday;
   const totalBreakSec = (lunchSeconds || 0) + (breakSeconds || 0);
 
   return (

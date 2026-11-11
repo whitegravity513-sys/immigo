@@ -37,21 +37,22 @@ const meetingSchema = new mongoose.Schema(
         "EMPLOYEE",
         "CANDIDATE_INTERVIEW",
         "VENDOR_DISCUSSION",
+        "ADMIN_DISCUSSION",
         "GENERAL",
       ],
       default: "GENERAL",
     },
     date: {
-      type: String, // YYYY-MM-DD
+      type: String,
       required: [true, "Meeting date is required"],
       index: true,
     },
     startTime: {
-      type: String, // HH:MM
+      type: String,
       required: [true, "Meeting start time is required"],
     },
     endTime: {
-      type: String, // HH:MM
+      type: String,
       default: "",
     },
     meetingLink: {
@@ -65,7 +66,6 @@ const meetingSchema = new mongoose.Schema(
       default: "Google Meet",
     },
 
-    // Meeting Organizer
     createdBy: {
       type: mongoose.Schema.Types.Mixed,
       default: null,
@@ -79,10 +79,8 @@ const meetingSchema = new mongoose.Schema(
       default: "ADMIN",
     },
 
-    // Attendees list
     attendees: [attendeeSchema],
 
-    // Target employees (for backward compatibility)
     targetType: {
       type: String,
       enum: ["ALL", "SPECIFIC"],
@@ -106,8 +104,13 @@ const meetingSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    targetAdmins: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
 
-    // Candidate Reference
     candidateId: {
       type: String,
       default: "",
@@ -126,7 +129,6 @@ const meetingSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Vendor Reference
     vendorId: {
       type: String,
       default: "",
@@ -137,7 +139,6 @@ const meetingSchema = new mongoose.Schema(
       default: "",
     },
 
-    // HR Reference
     hrId: {
       type: String,
       default: "",
@@ -158,7 +159,6 @@ const meetingSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Status: Scheduled, Completed, Cancelled, Rescheduled
     status: {
       type: String,
       enum: ["SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED"],
@@ -166,7 +166,6 @@ const meetingSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Meeting Attendance & Outcome
     attendance: {
       type: String,
       enum: ["Present", "Absent", "Pending"],
@@ -195,7 +194,6 @@ const meetingSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Reminder tracking: ['24h', '1h', '15m']
     remindersSent: [
       {
         type: String,

@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   UserCheck,
   Search,
-  ArrowRight,
   Clock,
   CheckCircle2,
-  Building2,
-  ExternalLink,
   Sliders,
   IndianRupee,
   CreditCard,
@@ -17,10 +14,11 @@ import {
   Globe,
   Award,
   RefreshCw,
-  Plus,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
 import crmVendorService from "../../../services/crmVendorService.js";
+
+const createTxnReference = () => `TXN-${Date.now().toString().slice(-6)}`;
 
 export default function AdminSelectedCandidates() {
   const [selectedApps, setSelectedApps] = useState([]);
@@ -35,22 +33,7 @@ export default function AdminSelectedCandidates() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  useEffect(() => {
-    loadSelected();
-    const handleRefresh = () => loadSelected();
-    window.addEventListener("immigo:application-update", handleRefresh);
-    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
-    window.addEventListener("immigo:dashboard-update", handleRefresh);
-    window.addEventListener("storage", handleRefresh);
-    return () => {
-      window.removeEventListener("immigo:application-update", handleRefresh);
-      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
-      window.removeEventListener("immigo:dashboard-update", handleRefresh);
-      window.removeEventListener("storage", handleRefresh);
-    };
-  }, []);
-
-  const loadSelected = async () => {
+  const loadSelected = useCallback(async () => {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
@@ -63,7 +46,28 @@ export default function AdminSelectedCandidates() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadSelected();
+    });
+    const handleRefresh = () => {
+      if (!cancelled) loadSelected();
+    };
+    window.addEventListener("immigo:application-update", handleRefresh);
+    window.addEventListener("immigo:vendor-hr-refresh", handleRefresh);
+    window.addEventListener("immigo:dashboard-update", handleRefresh);
+    window.addEventListener("storage", handleRefresh);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("immigo:application-update", handleRefresh);
+      window.removeEventListener("immigo:vendor-hr-refresh", handleRefresh);
+      window.removeEventListener("immigo:dashboard-update", handleRefresh);
+      window.removeEventListener("storage", handleRefresh);
+    };
+  }, [loadSelected]);
 
   const handleOpenPaymentModal = (app) => {
     setPaymentModalApp(app);
@@ -84,7 +88,7 @@ export default function AdminSelectedCandidates() {
       setSelectedMilestoneId("");
       setPaymentAmount(0);
     }
-    setReferenceNumber(`TXN-${Date.now().toString().slice(-6)}`);
+    setReferenceNumber(createTxnReference());
     setPaymentRemarks("Milestone payment confirmed by Admin");
   };
 
@@ -144,7 +148,6 @@ export default function AdminSelectedCandidates() {
 
   return (
     <div className="space-y-4 max-w-full w-full mx-auto font-sans antialiased text-slate-800">
-      {/* Toast Notification */}
       {notification && (
         <div
           className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between shadow-sm animate-fade-in ${
@@ -163,7 +166,6 @@ export default function AdminSelectedCandidates() {
         </div>
       )}
 
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -187,7 +189,6 @@ export default function AdminSelectedCandidates() {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="relative max-w-md w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -209,7 +210,6 @@ export default function AdminSelectedCandidates() {
         </button>
       </div>
 
-      {/* Candidates List / Table */}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -293,7 +293,6 @@ export default function AdminSelectedCandidates() {
 
                   return (
                       <tr key={app.id || app.applicationId} className="hover:bg-blue-50/30 transition">
-                        {/* Candidate Column */}
                         <td className="py-2.5 px-4">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-lg bg-[#163868] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
@@ -313,7 +312,6 @@ export default function AdminSelectedCandidates() {
                           </div>
                         </td>
 
-                        {/* Project Column */}
                         <td className="py-2.5 px-3">
                           <div className="text-xs font-semibold text-slate-900 leading-tight">
                             {app.projectName}
@@ -325,7 +323,6 @@ export default function AdminSelectedCandidates() {
                           </div>
                         </td>
 
-                        {/* Position Column */}
                         <td className="py-2.5 px-3">
                           <div className="text-xs font-medium text-slate-800">{app.position || "Specialist"}</div>
                           {app.salary && (
@@ -335,7 +332,6 @@ export default function AdminSelectedCandidates() {
                           )}
                         </td>
 
-                        {/* Processing Stage Column */}
                         <td className="py-2.5 px-3">
                           <div className="space-y-1">
                             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-[#163868] border border-blue-200">
@@ -359,7 +355,6 @@ export default function AdminSelectedCandidates() {
                           </div>
                         </td>
 
-                        {/* Milestones & Payment Column */}
                         <td className="py-2.5 px-3">
                           <div>
                             <div className="text-xs font-bold text-slate-900">
@@ -387,7 +382,6 @@ export default function AdminSelectedCandidates() {
                           </div>
                         </td>
 
-                        {/* Actions Column */}
                         <td className="py-2.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
@@ -418,7 +412,6 @@ export default function AdminSelectedCandidates() {
         </div>
       )}
 
-      {/* Record Payment Modal */}
       {paymentModalApp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">

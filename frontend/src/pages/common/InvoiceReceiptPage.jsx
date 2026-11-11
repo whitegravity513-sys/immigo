@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { ArrowLeft, Download, Printer, CheckCircle2 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService";
 import apiClient from "../../services/apiClient.js";
-
 
 function numberToWords(num) {
   if (!num || isNaN(num) || Number(num) === 0) return "Zero Rupees Only";
@@ -66,11 +65,7 @@ export default function InvoiceReceiptPage() {
   const [milestone, setMilestone] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, [appId, milestoneId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       await crmVendorService.getAvailableProjects().catch(() => []);
@@ -134,7 +129,17 @@ export default function InvoiceReceiptPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [appId, milestoneId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadData();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadData]);
 
   if (loading) {
     return (
@@ -167,7 +172,6 @@ export default function InvoiceReceiptPage() {
   const app = application;
   const currentMilestone = milestone || {};
 
-  
   const msList =
     app.processMilestones?.length > 0
       ? app.processMilestones
@@ -181,7 +185,6 @@ export default function InvoiceReceiptPage() {
   const paidAmount = Number(currentMilestone.paymentAmount ?? currentMilestone.amount ?? 0);
   const dueAmount = Math.max(0, totalPlanAmount - paidAmount);
 
-  
   const rawDate = currentMilestone.paymentDate || currentMilestone.completedAt || new Date().toISOString();
   const dateObj = new Date(rawDate);
   const formattedFullDate = dateObj.toLocaleDateString("en-GB", {
@@ -210,7 +213,6 @@ export default function InvoiceReceiptPage() {
     vendor?.address ||
     "Authorized Partner Office, New Delhi - 110075";
 
-  
   let paymentMode = "Bank / Online Transfer";
   let txnRef = currentMilestone.paymentRef || "TXN-VERIFIED-98234";
   if (currentMilestone.paymentRef) {
@@ -260,7 +262,6 @@ export default function InvoiceReceiptPage() {
         }
       `}</style>
 
-      {}
       <div className="max-w-[800px] mx-auto mb-4 flex items-center justify-between print-hide">
         <button
           onClick={() => window.close()}
@@ -287,12 +288,9 @@ export default function InvoiceReceiptPage() {
         </div>
       </div>
 
-      {}
       <div className="receipt-paper max-w-[800px] mx-auto bg-white border-2 border-slate-900 p-6 sm:p-8 shadow-md text-slate-900 text-xs leading-relaxed space-y-4 font-sans">
         
-        {}
         <div className="border border-slate-900 flex flex-col sm:flex-row items-stretch">
-          {}
           <div className="flex-1 p-4 border-b sm:border-b-0 sm:border-r border-slate-900 flex items-start gap-3">
             <div className="shrink-0 pt-0.5">
               <div className="flex items-baseline">
@@ -317,7 +315,6 @@ export default function InvoiceReceiptPage() {
             </div>
           </div>
 
-          {}
           <div className="w-full sm:w-[320px] bg-slate-50/70 p-3.5 flex flex-col justify-between">
             <div className="text-center sm:text-right border-b border-slate-300 pb-1.5 mb-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-950 block">
@@ -345,9 +342,7 @@ export default function InvoiceReceiptPage() {
           </div>
         </div>
 
-        {}
         <div className="border border-slate-900 grid grid-cols-1 sm:grid-cols-2 text-[11px]">
-          {}
           <div className="p-3.5 border-b sm:border-b-0 sm:border-r border-slate-900 space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
               Received From (Vendor Partner)
@@ -361,7 +356,6 @@ export default function InvoiceReceiptPage() {
             </p>
           </div>
 
-          {}
           <div className="p-3.5 space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block">
               Candidate & Overseas Deployment
@@ -384,7 +378,6 @@ export default function InvoiceReceiptPage() {
           </div>
         </div>
 
-        {}
         <div className="border border-slate-900 overflow-x-auto">
           <table className="w-full text-left text-[11px] border-collapse">
             <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-900 text-[10px]">
@@ -416,7 +409,6 @@ export default function InvoiceReceiptPage() {
                 </td>
               </tr>
 
-              {}
               <tr className="border-b border-slate-900 bg-slate-50/50 text-[10px]">
                 <td colSpan={3} className="py-2 px-3 border-r border-slate-900">
                   <span className="text-slate-500">Amount Received (In Words): </span>
@@ -432,7 +424,6 @@ export default function InvoiceReceiptPage() {
                 </td>
               </tr>
 
-              {}
               <tr className="text-[10px]">
                 <td colSpan={3} className="py-2 px-3 border-r border-slate-900 text-slate-600">
                   Total Agreed Placement Fee: <strong className="text-slate-900">₹{totalPlanAmount.toLocaleString()}</strong>
@@ -448,9 +439,7 @@ export default function InvoiceReceiptPage() {
           </table>
         </div>
 
-        {}
         <div className="border border-slate-900 grid grid-cols-1 sm:grid-cols-2 text-[10px]">
-          {}
           <div className="p-3.5 border-b sm:border-b-0 sm:border-r border-slate-900 space-y-1">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 block border-b border-slate-200 pb-1 mb-1">
               Credited To Company Account
@@ -463,13 +452,11 @@ export default function InvoiceReceiptPage() {
             </div>
           </div>
 
-          {}
           <div className="p-3.5 flex flex-col justify-between text-right">
             <span className="text-[9px] font-bold uppercase tracking-wider text-slate-800 block">
               For IMMIGO EDUCARE LLP
             </span>
 
-            {}
             <div className="py-1 flex items-center justify-end">
               <div className="w-28 h-14 border-2 border-dashed border-blue-600/70 rounded-full flex flex-col items-center justify-center p-1 text-blue-700 rotate-[-3deg] select-none pointer-events-none">
                 <span className="text-[7px] font-bold tracking-widest uppercase">
@@ -492,7 +479,6 @@ export default function InvoiceReceiptPage() {
           </div>
         </div>
 
-        {}
         <div className="text-center pt-2 border-t border-slate-200">
           <p className="text-xs italic text-slate-700 font-serif">
             Thanks for your business

@@ -1,12 +1,21 @@
-import React from "react";
 import {
   Users,
   FolderKanban,
   Briefcase,
   Calendar,
   ArrowRight,
+  Video,
+  ArrowRightLeft,
+  Clock,
 } from "lucide-react";
-import { Sparkline, formatSalary, AVATARS } from "../shared/vendorHRUtils.jsx";
+import { Sparkline } from "../shared/VendorHRSparkline.jsx";
+import {
+  formatSalary,
+  getCandidateInitials,
+  formatCandidateEmail,
+  getEffectiveStage,
+} from "../shared/vendorHRUtils.jsx";
+import { isAppRefundLocked } from "../../../services/refundService.js";
 
 export default function VendorHROverviewSection({
   dashboardData,
@@ -14,6 +23,8 @@ export default function VendorHROverviewSection({
   projectsList = [],
   jobs = [],
   interviews = [],
+  refunds = [],
+  meetings = [],
   vendorName = "",
   hideProjectNames = false,
   setActiveMenu,
@@ -21,13 +32,15 @@ export default function VendorHROverviewSection({
   setDetailedProject,
   openCandidateModal,
 }) {
-  const totalTargetHiring = projectsList.reduce((sum, p) => sum + (Number(p.targetHiring || p.targetManpower) || 0), 0);
-  const overallFulfillment =
-    totalTargetHiring > 0 ? Math.min(100, Math.round((applications.length / totalTargetHiring) * 100)) : 0;
+  const activeApplications = applications.filter((cand) => !isAppRefundLocked(cand, refunds));
+  const activeMeetings = (meetings || []).filter((m) => m.status !== "CANCELLED");
+  const activeRefunds = (refunds || []).filter((r) => !r.reassigned);
+  const pendingRefundCount = activeRefunds.filter(
+    (r) => r.refundStatus === "Pending Admin Approval"
+  ).length;
 
   return (
     <div className="space-y-6">
-      {/* 4 KPI Metric Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
@@ -38,7 +51,7 @@ export default function VendorHROverviewSection({
               <span className="text-xs font-semibold text-slate-600">Total Candidates</span>
             </div>
             <div className="text-2xl font-extrabold text-slate-900 tracking-tight pt-1">
-              {dashboardData?.kpis?.totalCandidates ?? applications.length ?? 0}
+              {activeApplications.length}
             </div>
             <div className="text-[11px] font-bold text-emerald-600 flex items-center space-x-0.5">
               <span>↑</span>
@@ -103,9 +116,7 @@ export default function VendorHROverviewSection({
         </div>
       </div>
 
-      {/* Balanced 2x2 Modular Grid: Projects, Jobs, Candidates & Interviews */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Card 1: Active Overseas Projects */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -115,7 +126,7 @@ export default function VendorHROverviewSection({
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">Active Overseas Projects</h2>
-                  <p className="text-[11px] text-slate-400 font-medium">Assigned manpower projects & quota</p>
+                  <p className="text-[11px] text-slate-400 font-medium">Assigned manpower projects & requirements</p>
                 </div>
               </div>
               <button
@@ -140,28 +151,16 @@ export default function VendorHROverviewSection({
                       <span className="text-lg font-extrabold text-blue-700 font-mono">{projectsList.length}</span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-white border border-slate-100">
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Target</span>
-                      <span className="text-lg font-extrabold text-slate-800 font-mono">{totalTargetHiring}</span>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Active Trades</span>
+                      <span className="text-lg font-extrabold text-slate-800 font-mono">{jobs.length}</span>
                     </div>
                     <div className="p-2.5 rounded-lg bg-white border border-slate-100">
                       <span className="block text-[10px] font-bold text-slate-400 uppercase">Submitted</span>
                       <span className="text-lg font-extrabold text-emerald-700 font-mono">{applications.length}</span>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                      <span>Overall Quota Progress</span>
-                      <span className="font-mono font-bold text-blue-700">{overallFulfillment}%</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-white border border-blue-100 overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                        style={{ width: `${overallFulfillment}%` }}
-                      />
-                    </div>
-                  </div>
                   <p className="text-[11px] text-slate-500">
-                    Open <strong>My Projects</strong> to inspect project briefs, client quotas, and submit candidates.
+                    Open <strong>My Projects</strong> to inspect project briefs, trade requirements, and submit candidates.
                   </p>
                 </div>
               ) : projectsList.length === 0 ? (
@@ -190,9 +189,6 @@ export default function VendorHROverviewSection({
                       <div className="text-[11px] text-slate-500 flex items-center gap-3 mt-1">
                         <span>📍 {p.destinationCountry || p.country || "Overseas"}</span>
                         <span className="truncate max-w-[150px]">🏢 {p.clientName || "Client"}</span>
-                        <span className="text-blue-600 font-semibold font-mono">
-                          Target: {p.targetHiring || p.targetManpower || 50}
-                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -301,9 +297,6 @@ export default function VendorHROverviewSection({
                         {formatSalary(j.salaryRange)}
                       </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200 shrink-0">
-                      {j.openings || 1} Openings
-                    </span>
                   </div>
                 ))
               )}
@@ -311,7 +304,7 @@ export default function VendorHROverviewSection({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span>Active Requirements: {dashboardData?.kpis?.activeOpenings ?? jobs.length ?? 0}</span>
+            <span>Active Requirements: {jobs.length ?? 0}</span>
             <button
               type="button"
               onClick={() => setActiveMenu("jobs")}
@@ -347,61 +340,64 @@ export default function VendorHROverviewSection({
             </div>
 
             <div className="space-y-2.5 pt-1">
-              {applications.length === 0 ? (
+              {activeApplications.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
-                  No candidates submitted yet.
+                  No active candidates submitted yet.
                 </div>
               ) : (
-                applications.slice(0, 3).map((cand, idx) => (
-                  <div
-                    key={cand.applicationId || idx}
-                    className="p-3 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <img
-                        src={AVATARS[idx % AVATARS.length]}
-                        alt={cand.candidateName}
-                        className="w-8 h-8 rounded-full object-cover shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <div className="font-bold text-xs text-slate-900 truncate">
-                          {cand.candidateName}
+                activeApplications.slice(0, 3).map((cand, idx) => {
+                  const stageLabel = getEffectiveStage(cand);
+                  const cleanEmail = formatCandidateEmail(cand.candidateEmail);
+                  const subText = [
+                    cand.jobTitle || "Technician",
+                    !hideProjectNames && cand.projectName ? cand.projectName : "",
+                    cand.candidateId || "",
+                    cand.passportNumber ? `Passport: ${cand.passportNumber}` : cleanEmail,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ");
+
+                  return (
+                    <div
+                      key={cand.applicationId || idx}
+                      className="p-3 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-[11px] shrink-0">
+                          {getCandidateInitials(cand.candidateName)}
                         </div>
-                        <div className="text-[11px] text-slate-500 truncate">
-                          {cand.jobTitle || "Technician"}
-                          {!hideProjectNames && cand.projectName
-                            ? ` • ${cand.projectName}`
-                            : cand.passportNumber
-                            ? ` • 🛂 ${cand.passportNumber}`
-                            : ""}
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs text-slate-900 truncate">
+                            {cand.candidateName}
+                          </div>
+                          <div className="text-[11px] text-slate-500 truncate">{subText}</div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center space-x-2 shrink-0">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                          cand.recruitmentStage === "Joined"
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${stageLabel === "Joined"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : cand.recruitmentStage?.includes("Interview")
-                            ? "bg-blue-50 text-blue-700 border-blue-200"
-                            : cand.recruitmentStage === "Selected"
-                            ? "bg-teal-50 text-teal-700 border-teal-200"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
-                      >
-                        {cand.recruitmentStage || cand.status || "Applied"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openCandidateModal(cand)}
-                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-xs font-bold text-slate-700 transition cursor-pointer"
-                      >
-                        Process
-                      </button>
+                            : stageLabel.toLowerCase().includes("interview")
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : stageLabel === "Selected"
+                                ? "bg-teal-50 text-teal-700 border-teal-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200"
+                            }`}
+                        >
+                          {stageLabel}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => openCandidateModal(cand)}
+                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-xs font-bold text-slate-700 transition cursor-pointer"
+                        >
+                          View
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -418,7 +414,6 @@ export default function VendorHROverviewSection({
           </div>
         </div>
 
-        {/* Card 4: Upcoming Interviews */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -483,10 +478,145 @@ export default function VendorHROverviewSection({
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
             <span>Live interview evaluations</span>
             <button
+              type="button"
               onClick={() => setActiveMenu("interviews")}
-              className="text-sky-600 hover:underline font-semibold"
+              className="text-sky-600 hover:underline font-semibold cursor-pointer"
             >
               Open Calendar →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                  <Video className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Meetings &amp; Coordination</h2>
+                  <p className="text-[11px] text-slate-400 font-medium">Schedule discussions with Admin, Super Admin &amp; Vendor</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveMenu("meetings")}
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+              >
+                <span>Open Meetings ({activeMeetings.length})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              {activeMeetings.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200 space-y-2">
+                  <div>No meetings scheduled yet.</div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMenu("meetings")}
+                    className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer"
+                  >
+                    Schedule Meeting
+                  </button>
+                </div>
+              ) : (
+                activeMeetings.slice(0, 2).map((m, idx) => (
+                  <div
+                    key={m._id || m.id || idx}
+                    onClick={() => setActiveMenu("meetings")}
+                    className="p-2.5 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/20 transition flex items-center justify-between gap-2 cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-xs text-slate-900 truncate">{m.title || "Meeting"}</div>
+                      <div className="text-[11px] text-slate-500 truncate">
+                        {m.meetingType || "Discussion"} {m.vendorName ? `• ${m.vendorName}` : ""}
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 shrink-0">
+                      <Clock size={10} />
+                      <span>{m.date} {m.startTime}</span>
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+            <span>Direct sync with Admin &amp; Vendor Partners</span>
+            <button
+              type="button"
+              onClick={() => setActiveMenu("meetings")}
+              className="text-indigo-600 hover:underline font-semibold cursor-pointer"
+            >
+              Manage Meetings →
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                  <ArrowRightLeft className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Refund Claims &amp; Reassignments</h2>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    Track vendor refund claims, admin approvals &amp; candidate reassignments
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveMenu("refunds")}
+                className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
+              >
+                <span>Open Refunds ({activeRefunds.length})</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              {activeRefunds.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                  No active refund claims at the moment.
+                </div>
+              ) : (
+                activeRefunds.slice(0, 2).map((r, idx) => (
+                  <div
+                    key={r.id || r._id || r.applicationId || idx}
+                    onClick={() => setActiveMenu("refunds")}
+                    className="p-2.5 rounded-xl border border-slate-100 hover:border-rose-200 hover:bg-rose-50/20 transition flex items-center justify-between gap-2 cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-xs text-slate-900 truncate">{r.candidateName || "Candidate"}</div>
+                      <div className="text-[11px] text-slate-500 truncate">
+                        {r.refundReason || "Refund request"} • Paid ₹{Number(r.totalPaid || 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 shrink-0">
+                      {r.refundStatus || "Pending"}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+            <span>Pending Admin Review: {pendingRefundCount}</span>
+            <button
+              type="button"
+              onClick={() => setActiveMenu("refunds")}
+              className="text-rose-600 hover:underline font-semibold cursor-pointer"
+            >
+              Open Refund Claims →
             </button>
           </div>
         </div>

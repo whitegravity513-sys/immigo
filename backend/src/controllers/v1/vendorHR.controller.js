@@ -10,6 +10,7 @@ import CrmCandidate from "../../models/CrmCandidate.js";
 import Interview from "../../models/Interview.js";
 import Job from "../../models/Job.js";
 import ActivityLog from "../../models/ActivityLog.js";
+import CrmRefund from "../../models/CrmRefund.js";
 import env from "../../config/env.js";
 import { getCookieOptions } from "../../config/security.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -21,6 +22,14 @@ import {
   resolveProjectMilestonesData,
   normalizeMilestoneStages,
 } from "../../utils/projectResolver.js";
+import { isRecordRefundLocked } from "../../utils/refundLock.js";
+import { generateNextHRId } from "../../utils/idGenerator.js";
+
+const cleanCandidateEmail = (val) => {
+  const s = String(val || "").trim();
+  if (!s || s.toLowerCase().includes("@candidate.local")) return "";
+  return s;
+};
 
 const normalizeRecruitmentStageValue = (val) => {
   if (!val) return "Screening";
@@ -68,21 +77,19 @@ export const vendorHRLogin = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Access restricted. This portal is strictly for Vendor HR personnel.");
   }
 
-  const isConvenientDevPass =
-    password === "12345" ||
-    password === "VendorHR@123" ||
-    password === "Admin@123";
-
-  const isMatch = isConvenientDevPass || (await bcrypt.compare(password, user.passwordHash));
+  const isMatch = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
   if (!isMatch) {
     throw new ApiError(401, "Invalid email or password.");
   }
 
   user.lastLoginAt = new Date();
+  if (!user.hrId) {
+    user.hrId = await generateNextHRId();
+  }
   await user.save();
 
   const assignedVendors = Array.isArray(user.assignedVendors) ? user.assignedVendors : [];
-  const vendorDocs = await Vendor.find({ vendorId: { $in: assignedVendors } }).lean();
+  const vendorDocs = await Vendor.find({ vendorId: { $in: assignedVendors } }).select("-password").lean();
 
   const resolved = await PermissionService.resolveUserPermissions(user);
 
@@ -92,6 +99,7 @@ export const vendorHRLogin = asyncHandler(async (req, res) => {
     sub: user._id.toString(),
     role: "HR",
     hrType: "VENDOR_HR",
+    hrId: user.hrId || "",
     assignedVendors,
     email: user.email,
     name: user.name,
@@ -114,6 +122,7 @@ export const vendorHRLogin = asyncHandler(async (req, res) => {
       phone: user.phone || "",
       role: "HR",
       hrType: "VENDOR_HR",
+      hrId: user.hrId || "",
       assignedVendors,
       vendors: vendorDocs.map((v) => ({
         vendorId: v.vendorId,
@@ -159,7 +168,9 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
           { id: qVId },
           ...(isValidObjectId(qVId) ? [{ _id: qVId }] : []),
         ],
-      }).lean();
+      })
+        .select("-password")
+        .lean();
       expandedAssignedVendors = Array.from(
         new Set(
           [
@@ -170,7 +181,7 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
       );
       freshAssignedVendors = vendorDocs.map((v) => v.vendorId || v._id?.toString()).filter(Boolean);
     } else {
-      vendorDocs = await Vendor.find().lean();
+      vendorDocs = await Vendor.find().select("-password").lean();
       expandedAssignedVendors = vendorDocs
         .flatMap((v) => [v.vendorId, v._id?.toString()].filter(Boolean))
         .map(String);
@@ -186,7 +197,9 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
               { id: { $in: freshAssignedVendors } },
               ...(hexVendorIds.length > 0 ? [{ _id: { $in: hexVendorIds } }] : []),
             ],
-          }).lean()
+          })
+            .select("-password")
+            .lean()
         : [];
     expandedAssignedVendors = Array.from(
       new Set(
@@ -492,12 +505,23 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
       : {}),
   };
 
-  const [directApplications, crmApplications, dbJobs, interviews, activities] = await Promise.all([
+  const refundQuery =
+    req.query.vendorId && req.query.vendorId !== "ALL"
+      ? { vendorId: { $in: expandedAssignedVendors } }
+      : !isAdminOrSuper
+      ? {
+          vendorId:
+            expandedAssignedVendors.length > 0 ? { $in: expandedAssignedVendors } : { $in: [] },
+        }
+      : {};
+
+  const [directApplications, crmApplications, dbJobs, interviews, activities, rawRefunds] = await Promise.all([
     CandidateApplication.find(appQuery).sort({ createdAt: -1 }).lean(),
     CrmCandidateApplication.find(appQuery).sort({ createdAt: -1 }).lean(),
     Job.find(jobQuery).sort({ createdAt: -1 }).lean(),
     Interview.find(interviewQuery).sort({ scheduledDate: 1, startTime: 1 }).lean(),
     ActivityLog.find(activityQuery).sort({ createdAt: -1 }).limit(30).lean(),
+    CrmRefund.find(refundQuery).sort({ createdAt: -1 }).lean(),
   ]);
 
   const combinedAppMap = new Map();
@@ -665,20 +689,61 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
         }
       : app.interview || null;
 
+    const resumeFileCandidates = [
+      { label: "Resume / CV", type: "Resume / CV", url: app.resumeUrl || cData.resumeUrl || cData.cvUrl || crmRec?.resumeUrl || cRec?.resumeUrl },
+      { label: "CV Document", type: "Resume / CV", url: app.cvUrl || crmRec?.cvUrl || cRec?.cvUrl },
+      { label: "Passport Copy", type: "Passport Copy", url: app.passportCopyUrl || cData.passportCopyUrl || crmRec?.passportCopyUrl || cRec?.profile?.passportCopyUrl },
+    ].filter((item) => item.url && String(item.url).trim());
+
+    const syntheticDocs = resumeFileCandidates.map((item, idx) => ({
+      id: `doc-synth-${app.applicationId || app._id || idx}-${idx}`,
+      docType: item.type,
+      type: item.type,
+      name: item.label,
+      fileName: item.label,
+      fileUrl: String(item.url).trim(),
+      status: "Submitted",
+    }));
+
     const rawDocs = [
       ...(Array.isArray(app.documents) ? app.documents : []),
       ...(Array.isArray(cData.documents) ? cData.documents : []),
       ...(Array.isArray(crmRec?.documents) ? crmRec.documents : []),
       ...(Array.isArray(cRec?.documents) ? cRec.documents : []),
+      ...syntheticDocs,
     ];
     const seenDocKeys = new Set();
     const combinedDocs = rawDocs.filter((doc) => {
-      if (!doc) return false;
-      const key = `${doc.fileName || ""}|${doc.name || doc.docType || ""}|${doc.fileUrl ? String(doc.fileUrl).slice(0, 64) : ""}`;
+      if (!doc || (!doc.fileUrl && !doc.url && !doc.fileName && !doc.name)) return false;
+      const resolvedUrl = doc.fileUrl || doc.url || "";
+      const key = resolvedUrl
+        ? `url:${String(resolvedUrl).slice(0, 120)}`
+        : `${doc.fileName || ""}|${doc.name || doc.docType || ""}`;
       if (seenDocKeys.has(key)) return false;
       seenDocKeys.add(key);
       return true;
-    });
+    }).map((doc, idx) => ({
+      ...doc,
+      id: doc.id || `doc-${idx}`,
+      name: doc.name || doc.docType || doc.type || doc.fileName || `Document ${idx + 1}`,
+      docType: doc.docType || doc.type || doc.name || "Document",
+      fileName: doc.fileName || doc.name || doc.docType || `Document ${idx + 1}`,
+      fileUrl: doc.fileUrl || doc.url || "",
+    }));
+
+    const primaryResumeUrl =
+      app.resumeUrl ||
+      cData.resumeUrl ||
+      cData.cvUrl ||
+      crmRec?.resumeUrl ||
+      cRec?.resumeUrl ||
+      combinedDocs.find((d) =>
+        `${d.docType || ""} ${d.type || ""} ${d.name || ""} ${d.fileName || ""}`
+          .toLowerCase()
+          .match(/resume|cv|curriculum/)
+      )?.fileUrl ||
+      combinedDocs[0]?.fileUrl ||
+      "";
 
     const normalizedStage = normalizeRecruitmentStageValue(
       app.recruitmentStage || app.status || cData.stage || "Screening"
@@ -720,14 +785,86 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
       cData.experienceYears ||
       "";
 
+    const activeMatchedRefund = (rawRefunds || []).find((r) => {
+      if (r.reassigned) return false;
+      const appMatch =
+        (app.applicationId && String(r.applicationId || "") === String(app.applicationId)) ||
+        (app.candidateId &&
+          String(r.candidateId || "") === String(app.candidateId) &&
+          (!r.projectName ||
+            String(r.projectName).trim().toLowerCase() ===
+              String(app.projectName || "").trim().toLowerCase()));
+      if (!appMatch) return false;
+      if (r.projectId && app.projectId && String(r.projectId) !== String(app.projectId)) {
+        return false;
+      }
+      return true;
+    });
+
+    const syncedRefundStatus = activeMatchedRefund?.refundStatus || app.refundStatus || "";
+    const syncedRefundDetails = activeMatchedRefund
+      ? {
+          amount: Number(activeMatchedRefund.refundAmount || 0),
+          status: activeMatchedRefund.refundStatus,
+          reason: activeMatchedRefund.refundReason || "",
+          date: activeMatchedRefund.refundDate || "",
+          remarks: activeMatchedRefund.remarks || "",
+          paymentRef: activeMatchedRefund.paymentRef || "",
+        }
+      : app.refundDetails || null;
+
+    const resolvedEmail = cleanCandidateEmail(
+      app.candidateEmail || cRec?.email || crmRec?.email || cData.email || ""
+    );
+
     return {
       ...app,
       id: app.applicationId || app.id || app._id?.toString(),
       applicationId: app.applicationId || app.id || app._id?.toString(),
-      candidateEmail:
-        app.candidateEmail || cRec?.email || crmRec?.email || cData.email || "",
+      refundStatus: syncedRefundStatus,
+      refundDetails: syncedRefundDetails,
+      isRefundLocked: isRecordRefundLocked({
+        status: normalizedStatus,
+        refundStatus: syncedRefundStatus,
+        refundDetails: syncedRefundDetails,
+      }),
+      candidateEmail: resolvedEmail,
       candidatePhone:
         app.candidatePhone || cRec?.phone || crmRec?.phone || cData.phone || "",
+      dob: app.dob || cRec?.profile?.dob || crmRec?.dob || cData.dob || "",
+      gender: app.gender || cRec?.profile?.gender || crmRec?.gender || cData.gender || "",
+      address: app.address || app.location || cRec?.profile?.address || crmRec?.address || cData.address || cData.location || "",
+      city: app.city || cRec?.profile?.city || crmRec?.city || cData.city || "",
+      state: app.state || cRec?.profile?.state || crmRec?.state || cData.state || "",
+      pincode: app.pincode || cRec?.profile?.pincode || crmRec?.pincode || cData.pincode || "",
+      nationality: app.nationality || crmRec?.nationality || cData.nationality || "Indian",
+      qualification: app.qualification || crmRec?.qualification || cData.qualification || "",
+      education: cRec?.profile?.education || crmRec?.education || cData.education || [],
+      skills:
+        (Array.isArray(app.skills) && app.skills.length > 0 ? app.skills : null) ||
+        (Array.isArray(cRec?.profile?.skills) && cRec.profile.skills.length > 0 ? cRec.profile.skills : null) ||
+        (Array.isArray(crmRec?.skills) && crmRec.skills.length > 0 ? crmRec.skills : null) ||
+        (Array.isArray(cData.skills) ? cData.skills : []),
+      languages:
+        (Array.isArray(cRec?.profile?.languages) && cRec.profile.languages.length > 0 ? cRec.profile.languages : null) ||
+        (Array.isArray(crmRec?.languages) && crmRec.languages.length > 0 ? crmRec.languages : null) ||
+        [],
+      trade: app.trade || cRec?.profile?.trade || crmRec?.trade || cData.trade || "",
+      currentPosition: crmRec?.currentPosition || cData.currentPosition || cRec?.profile?.currentOccupation || "",
+      passportExpiry: app.passportExpiry || cRec?.profile?.passportExpiry || crmRec?.passportExpiry || cData.passportExpiry || "",
+      passportIssueCountry: app.passportIssueCountry || cRec?.profile?.passportIssueCountry || crmRec?.passportIssueCountry || cData.passportIssueCountry || "",
+      notes: app.notes || cData.notes || crmRec?.notes || "",
+      adminRemarks: app.adminRemarks || app.adminRemark || "",
+      rejectionReason: app.rejectionReason || "",
+      holdReason: app.holdReason || "",
+      didNotJoinReason: app.didNotJoinReason || "",
+      resumeUrl: primaryResumeUrl,
+      candidateData: {
+        ...(app.candidateData || {}),
+        email: resolvedEmail,
+        resumeUrl: primaryResumeUrl || app.candidateData?.resumeUrl || "",
+        documents: combinedDocs,
+      },
       position:
         app.position ||
         app.jobTitle ||
@@ -888,28 +1025,53 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
         Boolean(a.interview?.scheduledDate)
     ).length,
     selected: applications.filter(
-      (a) => a.recruitmentStage === "Selected" || a.status === "Selected"
+      (a) =>
+        (a.recruitmentStage === "Selected" || a.status === "Selected") &&
+        !isRecordRefundLocked(a)
     ).length,
+    refundClaims: (rawRefunds || []).filter((r) => !r.reassigned && r.refundStatus !== "Rejected").length,
     offersReleased: applications.filter(
       (a) =>
-        ["Offer Released", "Offer Accepted"].includes(a.recruitmentStage) ||
-        a.offerDetails?.offerStatus === "Released" ||
-        a.offerDetails?.offerStatus === "Accepted"
+        !isRecordRefundLocked(a) &&
+        (["Offer Released", "Offer Accepted"].includes(a.recruitmentStage) ||
+          a.offerDetails?.offerStatus === "Released" ||
+          a.offerDetails?.offerStatus === "Accepted")
     ).length,
     visaInProcess: applications.filter(
       (a) =>
-        ["Visa Processing", "Visa Issued"].includes(a.recruitmentStage) ||
-        (a.visaDetails && a.visaDetails.visaStatus && a.visaDetails.visaStatus !== "Not Started")
+        !isRecordRefundLocked(a) &&
+        (["Visa Processing", "Visa Issued"].includes(a.recruitmentStage) ||
+          (a.visaDetails && a.visaDetails.visaStatus && a.visaDetails.visaStatus !== "Not Started"))
     ).length,
     joined: applications.filter(
       (a) =>
-        ["Joined", "Deployed"].includes(a.recruitmentStage) ||
-        a.visaDetails?.visaStatus === "Deployed"
+        !isRecordRefundLocked(a) &&
+        (["Joined", "Deployed"].includes(a.recruitmentStage) ||
+          a.visaDetails?.visaStatus === "Deployed")
     ).length,
   };
 
+  let vendorHRProfile = null;
+  if (user && !isAdminOrSuper) {
+    if (user.role === "HR" && !user.hrId) {
+      const generatedHrId = await generateNextHRId();
+      await User.findByIdAndUpdate(user._id, { $set: { hrId: generatedHrId } }).catch(() => {});
+      user.hrId = generatedHrId;
+    }
+    vendorHRProfile = {
+      id: user._id?.toString() || "",
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      role: user.role || "HR",
+      hrType: user.hrType || "VENDOR_HR",
+      hrId: user.hrId || "",
+    };
+  }
+
   return ApiResponse.send(res, 200, "Vendor HR dashboard fetched successfully", {
     kpis,
+    vendorHRProfile,
     projects: enrichedProjects,
     assignedVendors: freshAssignedVendors,
     vendor: vendorDocs[0] || null,
@@ -921,5 +1083,10 @@ export const getVendorHRDashboard = asyncHandler(async (req, res) => {
     upcomingInterviews: interviews.filter((i) => i.status === "Scheduled").slice(0, 15),
     activities,
     recentActivities: activities,
+    refunds: (rawRefunds || []).map((r) => ({
+      ...r,
+      id: r.refundId || r._id?.toString(),
+      _id: r._id?.toString() || "",
+    })),
   });
 });

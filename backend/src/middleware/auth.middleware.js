@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
-import env from "../config/env.js";
+import { getJwtVerificationSecrets } from "../config/env.js";
 import { User } from "../models/User.js";
-import Admin from "../models/Admin.js";
 import Employee from "../models/Employee.js";
 import Vendor from "../models/Vendor.js";
 import Candidate from "../models/Candidate.js";
@@ -27,17 +26,15 @@ export const verifyToken = (req, res, next) => {
   }
 
   let decoded = null;
-  try {
-    decoded = jwt.verify(token, env.JWT_SECRET);
-  } catch (err1) {
+  for (const secret of getJwtVerificationSecrets()) {
     try {
-      decoded = jwt.verify(
-        token,
-        process.env.JWT_ACCESS_SECRET || "default_access_secret_change_in_production"
-      );
-    } catch (err2) {
-      return res.status(401).json({ success: false, message: "Invalid or expired token" });
-    }
+      decoded = jwt.verify(token, secret);
+      break;
+    } catch {}
+  }
+
+  if (!decoded) {
+    return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 
   if (decoded && !decoded.id && decoded.sub) {
@@ -75,7 +72,7 @@ export const verifyEmployee = (req, res, next) => {
         req.employee = employee;
       }
       next();
-    } catch (err) {
+    } catch {
       return res.status(500).json({ success: false, message: "Internal server error validating employee" });
     }
   });
@@ -145,7 +142,7 @@ export const verifyVendorActive = (req, res, next) => {
       }
       req.vendor = vendor;
       next();
-    } catch (err) {
+    } catch {
       return res.status(500).json({ success: false, message: "Error verifying vendor status." });
     }
   });
@@ -191,7 +188,7 @@ export const verifyCandidate = (req, res, next) => {
 
       req.candidate = candidate;
       next();
-    } catch (err) {
+    } catch {
       return res.status(500).json({ success: false, message: "Error verifying candidate status." });
     }
   });

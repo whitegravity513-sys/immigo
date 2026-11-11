@@ -6,7 +6,7 @@ import {
   Shield,
 } from "lucide-react";
 import NotificationBell from "../NotificationBell.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
 export const AdminHeader = ({
@@ -16,7 +16,6 @@ export const AdminHeader = ({
   sidebarMobileOpen,
   setSidebarMobileOpen,
   view = "live",
-  onLogout,
 }) => {
   const { role: authRole, isSuperAdmin } = useAuth();
   const isHR =

@@ -5,22 +5,25 @@ import Candidate from "../models/Candidate.js";
 import { recordCandidateActivity } from "../services/candidateActivity.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
-import { ROLES } from "../constants/roles.js";
 
 const verifyCandidateAccess = async (req, candidateId) => {
-  const role = req.userRole || req.user?.role || "ADMIN";
-  const isSuperAdmin = req.isSuperAdmin || role === ROLES.SUPER_ADMIN;
-  const isVendor = req.isVendor || role === ROLES.VENDOR;
-  const hrType = req.hrType || req.user?.hrType || "";
-  const isEmployeeHR = role === ROLES.HR && (hrType === "EMPLOYEE_HR" || hrType === "");
-  const isVendorHR = role === ROLES.HR && hrType === "VENDOR_HR";
+  const role = String(req.userRole || req.user?.role || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  const hrType = String(req.hrType || req.user?.hrType || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  const isSuperAdmin = req.isSuperAdmin || role === "SUPERADMIN";
+  const isAdmin = role === "ADMIN";
+  const isVendor = Boolean(req.isVendor || role === "VENDOR");
+  const isVendorHR = role === "VENDORHR" || (role === "HR" && hrType === "VENDORHR");
 
-  if (isSuperAdmin || role === ROLES.ADMIN) {
+  if (isSuperAdmin || isAdmin) {
     return { authorized: true };
   }
 
-  if (isEmployeeHR && !isSuperAdmin) {
-    throw new ApiError(403, "Forbidden: Employee Management HR does not have access to candidate recruitment data.");
+  if (!isVendor && !isVendorHR) {
+    throw new ApiError(403, "Forbidden: You are not authorized to access candidate recruitment data.");
   }
 
   let vendorId = "";
@@ -39,31 +42,37 @@ const verifyCandidateAccess = async (req, candidateId) => {
   ]);
 
   if (crmApp) {
-    vendorId = crmApp.vendorId;
-    candidateName = crmApp.candidateName;
+    vendorId = crmApp.vendorId || "";
+    candidateName = crmApp.candidateName || "";
   } else if (crmCand) {
-    vendorId = crmCand.vendorId;
-    candidateName = crmCand.fullName;
+    vendorId = crmCand.vendorId || "";
+    candidateName = crmCand.fullName || "";
   } else if (directCand) {
-    candidateName = directCand.fullName;
+    vendorId = directCand.vendorId || "";
+    candidateName = directCand.fullName || "";
   }
 
   if (isVendor) {
-    if (vendorId && String(vendorId).toUpperCase() !== String(req.vendorId).toUpperCase()) {
+    const allowedSet = new Set(
+      [req.vendorId, req.userId, req.user?._id]
+        .filter(Boolean)
+        .map((v) => String(v).trim().toUpperCase())
+    );
+    if (!vendorId || !allowedSet.has(String(vendorId).trim().toUpperCase())) {
       throw new ApiError(403, "Forbidden: You are only authorized to access candidates submitted by your agency.");
     }
-    return { authorized: true, vendorId: req.vendorId, candidateName };
+    return { authorized: true, vendorId, candidateName };
   }
 
   if (isVendorHR) {
-    const assigned = (req.assignedVendors || []).map((v) => String(v).toLowerCase());
-    if (vendorId && !assigned.includes(String(vendorId).toLowerCase())) {
+    const assigned = (req.assignedVendors || []).map((v) => String(v).trim().toLowerCase());
+    if (!vendorId || !assigned.includes(String(vendorId).trim().toLowerCase())) {
       throw new ApiError(403, "Forbidden: This candidate belongs to a vendor not assigned to your HR profile.");
     }
     return { authorized: true, vendorId, candidateName };
   }
 
-  return { authorized: true, vendorId, candidateName };
+  throw new ApiError(403, "Forbidden: Access restricted.");
 };
 
 export const getCandidateActivityHistory = asyncHandler(async (req, res) => {
@@ -119,14 +128,29 @@ export const addCandidateProcessRemark = asyncHandler(async (req, res) => {
   const effectiveVendorId = access.vendorId || vendorId || req.vendorId || "";
   const effectiveCandidateName = access.candidateName || candidateName || candidateId;
 
-  const role = req.userRole || req.user?.role || "ADMIN";
-  const hrType = req.hrType || req.user?.hrType || "";
-  let userRoleLabel = role;
-  if (role === ROLES.HR && hrType === "VENDOR_HR") {
+  const role = String(req.userRole || req.user?.role || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  const hrType = String(req.hrType || req.user?.hrType || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  const canEditStages =
+    req.isSuperAdmin ||
+    role === "SUPERADMIN" ||
+    role === "ADMIN" ||
+    role === "VENDORHR" ||
+    (role === "HR" && hrType === "VENDORHR");
+
+  if (!canEditStages && (String(newStatus || "").trim() || String(newStage || "").trim() || String(newMilestone || "").trim())) {
+    throw new ApiError(403, "Forbidden: Only Admin, Super Admin, or Vendor HR can update candidate stages or status.");
+  }
+
+  let userRoleLabel = req.userRole || req.user?.role || "ADMIN";
+  if ((role === "HR" && hrType === "VENDORHR") || role === "VENDORHR") {
     userRoleLabel = "Vendor Management HR";
-  } else if (role === ROLES.VENDOR || req.isVendor) {
+  } else if (role === "VENDOR" || req.isVendor) {
     userRoleLabel = "Vendor";
-  } else if (role === ROLES.SUPER_ADMIN) {
+  } else if (role === "SUPERADMIN") {
     userRoleLabel = "Super Admin";
   }
 
@@ -141,29 +165,31 @@ export const addCandidateProcessRemark = asyncHandler(async (req, res) => {
     updatedByRole: userRoleLabel,
     vendorId: effectiveVendorId,
     vendorName: vendorName || req.vendorName || "",
-    actionType,
+    actionType: canEditStages ? actionType : "REMARK_ADDED",
     previousStatus,
-    newStatus,
+    newStatus: canEditStages ? newStatus : "",
     previousStage,
-    newStage,
+    newStage: canEditStages ? newStage : "",
     previousMilestone,
-    newMilestone,
+    newMilestone: canEditStages ? newMilestone : "",
     remarks: remarks || "",
   });
 
-  try {
-    const updateFields = {};
-    if (newStatus) updateFields.status = newStatus;
-    if (remarks) updateFields.adminRemarks = remarks;
-    if (newStage) updateFields["candidateData.stage"] = newStage;
-    if (Object.keys(updateFields).length > 0) {
-      await CrmCandidateApplication.updateMany(
-        { $or: [{ candidateId }, { applicationId: candidateId }] },
-        { $set: updateFields }
-      );
+  if (canEditStages) {
+    try {
+      const updateFields = {};
+      if (newStatus) updateFields.status = newStatus;
+      if (remarks) updateFields.adminRemarks = remarks;
+      if (newStage) updateFields["candidateData.stage"] = newStage;
+      if (Object.keys(updateFields).length > 0) {
+        await CrmCandidateApplication.updateMany(
+          { $or: [{ candidateId }, { applicationId: candidateId }] },
+          { $set: updateFields }
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to sync application fields:", err.message);
     }
-  } catch (err) {
-    console.warn("Failed to sync application fields:", err.message);
   }
 
   return res.status(201).json({

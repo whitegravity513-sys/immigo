@@ -1,4 +1,3 @@
-import React from "react";
 
 export function StatusBadge({ status = "Active", size = "md" }) {
   const norm = (status || "").toLowerCase().trim();

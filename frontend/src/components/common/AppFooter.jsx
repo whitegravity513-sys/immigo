@@ -1,33 +1,7 @@
-import React from "react";
-import { ShieldCheck } from "lucide-react";
 import { ImmiGoLogo } from "./ImmiGoLogo.jsx";
 
-export default function AppFooter({
-  role = "admin",
-  navItems = [],
-  onNavigate,
-}) {
+export default function AppFooter() {
   const currentYear = new Date().getFullYear();
-
-  const defaultAdminLinks = [
-    { label: "Live Tracker", key: "live" },
-    { label: "Employees", key: "employees" },
-    { label: "Summary", key: "summary" },
-    { label: "Monthly Report", key: "monthly-report" },
-    { label: "Expenses", key: "expenses" },
-  ];
-
-  const defaultEmployeeLinks = [
-    { label: "Live Tracker", key: "tracker" },
-    { label: "Calendar", key: "calendar" },
-    { label: "Breaks", key: "breaks" },
-    { label: "Claims", key: "expenses" },
-    { label: "Profile", key: "profile-docs" },
-  ];
-
-  const links = navItems && navItems.length > 0
-    ? navItems
-    : (role === "employee" ? defaultEmployeeLinks : defaultAdminLinks);
 
   return (
     <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
@@ -36,7 +10,6 @@ export default function AppFooter({
           <ImmiGoLogo size="xs" theme="light" />
         </div>
 
-        {/* Copyright and developer attribution */}
         <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-white font-medium">
           <span>&copy; {currentYear} ImmiGo Global Enterprise</span>
           <span className="text-cyan-400">&bull;</span>

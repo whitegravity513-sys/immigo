@@ -2,11 +2,14 @@ import { useEffect } from "react";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 import { AppRoutes } from "./routes";
 import appConfig from "./config/appConfig.js";
+import { useAuth } from "./context/useAuth.js";
+import { startRealtimeSync, stopRealtimeSync } from "./services/realtimeSync.js";
 import "./App.css";
 
 export default function App() {
+  const { token, role } = useAuth();
+
   useEffect(() => {
-    // Non-blocking background pre-warm of backend (eliminates cold-start latency)
     const warmBackend = () => {
       try {
         const healthUrl = `${appConfig.API_BASE_URL}/health`;
@@ -16,7 +19,6 @@ export default function App() {
 
     warmBackend();
 
-    // Gentle 10-minute keep-alive ping while user has the browser open
     const keepAliveTimer = setInterval(() => {
       if (typeof document !== "undefined" && !document.hidden) {
         warmBackend();
@@ -25,6 +27,17 @@ export default function App() {
 
     return () => clearInterval(keepAliveTimer);
   }, []);
+
+  useEffect(() => {
+    if (token && role) {
+      startRealtimeSync({ token, role });
+    } else {
+      stopRealtimeSync();
+    }
+    return () => {
+      stopRealtimeSync();
+    };
+  }, [token, role]);
 
   return (
     <ErrorBoundary>

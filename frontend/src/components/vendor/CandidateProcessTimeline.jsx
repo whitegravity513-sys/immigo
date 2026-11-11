@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle2,
   Circle,
@@ -12,10 +12,12 @@ import {
   Download,
   FileCheck,
   FileText,
+  AlertTriangle,
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
+import refundService, { isAppRefundLocked, getAppRefundStatus } from "../../services/refundService.js";
 import { apiClient } from "../../services/apiClient.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import DateInput from "../common/DateInput.jsx";
 
 const getNowTimestamp = () => Date.now();
@@ -24,6 +26,7 @@ const getTodayDateStr = () => new Date().toISOString().split("T")[0];
 export default function CandidateProcessTimeline({
   application,
   project = null,
+  refunds = null,
   isAdmin = false,
   canManageStages: canManageStagesProp,
   onUpdate,
@@ -49,6 +52,32 @@ export default function CandidateProcessTimeline({
 
   const [paymentAction, setPaymentAction] = useState(null);
   const [paymentRemark, setPaymentRemark] = useState("");
+  const [syncedRefunds, setSyncedRefunds] = useState([]);
+
+  useEffect(() => {
+    if (refunds !== null) return;
+    let active = true;
+    const sync = () => {
+      refundService
+        .getAllRefunds()
+        .then((res) => {
+          if (active && Array.isArray(res)) setSyncedRefunds(res);
+        })
+        .catch(() => {});
+    };
+    sync();
+    window.addEventListener("immigo:refund-update", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("immigo:refund-update", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, [refunds]);
+
+  const effectiveRefunds = refunds !== null ? refunds : syncedRefunds;
+  const refundLocked = isAppRefundLocked(application, effectiveRefunds);
+  const refundStatus = getAppRefundStatus(application, effectiveRefunds);
 
   const [vendorPaymentForm, setVendorPaymentForm] = useState(() => ({
     date: getTodayDateStr(),
@@ -98,6 +127,9 @@ export default function CandidateProcessTimeline({
   });
 
   const handleVisaUpload = async (mId, sId, file) => {
+    if (refundLocked) {
+      return alert(`Processing is frozen due to an active refund claim (${refundStatus || "Pending Admin Approval"}). Please await Admin review before continuing.`);
+    }
     if (!canManageStages) {
       return alert("Only Admin, Super Admin, or Vendor HR can upload visa documents.");
     }
@@ -125,12 +157,13 @@ export default function CandidateProcessTimeline({
   };
 
   const handleUpdateStageStatus = async (mId, sId, targetStatus = stageNextStatus) => {
+    if (refundLocked) {
+      return alert(`Processing is frozen due to an active refund claim (${refundStatus || "Pending Admin Approval"}). Please await Admin review before continuing.`);
+    }
     if (!canManageStages) {
       return alert("Only Admin, Super Admin, or Vendor HR can update stages.");
     }
-    if (targetStatus === "Completed" && !stageRemark?.trim()) {
-      return alert("Please enter a completion remark.");
-    }
+    const cleanRemark = (stageRemark || "").trim();
     setLoading(true);
     try {
       const appSnapshot = { ...application, processMilestones };
@@ -141,12 +174,12 @@ export default function CandidateProcessTimeline({
           mId,
           sId,
           targetStatus,
-          stageRemark.trim(),
+          cleanRemark,
           actorLabel,
           appSnapshot
         );
       } else {
-        await updater(appId, mId, sId, stageRemark.trim(), actorLabel, appSnapshot);
+        await updater(appId, mId, sId, cleanRemark, actorLabel, appSnapshot);
       }
       if (onUpdate) onUpdate();
       setActiveStageForm(null);
@@ -160,6 +193,9 @@ export default function CandidateProcessTimeline({
   };
 
   const handlePaymentAction = async (mId, action) => {
+    if (refundLocked) {
+      return alert(`Payment processing is frozen due to an active refund claim (${refundStatus || "Pending Admin Approval"}). Please await Admin review before continuing.`);
+    }
     setLoading(true);
     try {
       const appSnapshot = { ...application, processMilestones };
@@ -190,6 +226,9 @@ export default function CandidateProcessTimeline({
   };
 
   const handleRazorpayPayment = async (mId, rawAmount) => {
+    if (refundLocked) {
+      return alert(`Payment processing is frozen due to an active refund claim (${refundStatus || "Pending Admin Approval"}). Please await Admin review before continuing.`);
+    }
     try {
       setLoading(true);
 
@@ -201,32 +240,38 @@ export default function CandidateProcessTimeline({
         return;
       }
 
-      let orderId = `order_${getNowTimestamp()}`;
-      let orderAmount = Math.round(parsedAmount * 100);
-
-
+      let orderData = null;
+      let razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
       try {
         const orderRes = await apiClient.post("/payments/create-order", {
+          applicationId: appId,
+          milestoneId: mId,
           amount: parsedAmount,
           receipt: `rcpt_${appId}_${mId}_${getNowTimestamp()}`,
         });
-        if (orderRes?.data?.order?.id) {
-          orderId = orderRes.data.order.id;
-          orderAmount = orderRes.data.order.amount;
+        orderData = orderRes?.data?.order || null;
+        if (orderRes?.data?.keyId) {
+          razorpayKey = orderRes.data.keyId;
         }
       } catch (apiErr) {
-        console.warn("Backend order creation unavailable, using resilient fallback:", apiErr.message);
+        setLoading(false);
+        alert(apiErr?.response?.data?.message || apiErr?.message || "Unable to initialize secure Razorpay order.");
+        return;
       }
 
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TlPlO103C4S5Jl";
+      if (!orderData?.id || !razorpayKey) {
+        setLoading(false);
+        alert("Payment gateway is not configured on the server. Please use manual bank transfer or contact admin.");
+        return;
+      }
 
       const options = {
         key: razorpayKey,
-        amount: orderAmount,
-        currency: "INR",
+        amount: orderData.amount,
+        currency: orderData.currency || "INR",
         name: "ImmiGo Recruitment & Operations",
         description: `Milestone Payment: ${targetM?.name || "Processing Stage"}`,
-        order_id: orderId.startsWith("order_") && orderId.length > 20 ? undefined : orderId,
+        order_id: orderData.id,
         prefill: {
           name: application.candidateName || "Candidate Sponsor",
           email: "support@immigo.com",
@@ -234,26 +279,36 @@ export default function CandidateProcessTimeline({
         },
         handler: async function (response) {
           try {
-            try {
-              if (response.razorpay_signature) {
-                await apiClient.post("/payments/verify-payment", {
-                  razorpay_order_id: response.razorpay_order_id || orderId,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                });
-              }
-            } catch (vErr) {
-              console.warn("Verification logged:", vErr.message);
+            if (!response.razorpay_payment_id || !response.razorpay_signature) {
+              throw new Error("Incomplete payment gateway response received.");
             }
+            const resolvedOrderId = response.razorpay_order_id || orderData.id;
+            await apiClient.post("/payments/verify-payment", {
+              razorpay_order_id: resolvedOrderId,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              applicationId: appId,
+              milestoneId: mId,
+            });
 
-            const txnId = response.razorpay_payment_id || `PAY_${getNowTimestamp()}`;
-            const payload = `[Razorpay] TXN: ${txnId} | Date: ${getTodayDateStr()} | Remark: Paid Online via Razorpay`;
-            await crmVendorService.submitMilestonePayment(appId, mId, payload, { ...application, processMilestones });
+            const payload = `[Razorpay] TXN: ${response.razorpay_payment_id} | Date: ${getTodayDateStr()} | Remark: Paid Online via Razorpay`;
+            await crmVendorService.submitMilestonePayment(
+              appId,
+              mId,
+              payload,
+              { ...application, processMilestones },
+              {
+                milestoneId: mId,
+                razorpay_order_id: resolvedOrderId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }
+            );
             if (onUpdate) onUpdate();
             alert("Payment successful! Opening your official invoice receipt in a new tab...");
-            window.open(`/invoice/${appId}/${mId}`, '_blank');
+            window.open(`/invoice/${appId}/${mId}`, "_blank");
           } catch (e) {
-            alert("Payment recorded with note: " + (e.message || "Done"));
+            alert(e?.response?.data?.message || e?.message || "Payment verification failed.");
           } finally {
             setLoading(false);
           }
@@ -268,23 +323,17 @@ export default function CandidateProcessTimeline({
 
       const executeCheckout = () => {
         if (!window.Razorpay) {
-          const proceedSim = window.confirm(
-            `Razorpay Checkout SDK is loading or blocked.\n\nDo you want to complete this Milestone Payment (₹${parsedAmount.toLocaleString()}) via Instant Test Payment?`
-          );
-          if (proceedSim) {
-            const mockTxn = `PAY_LIVE_${getNowTimestamp()}`;
-            const payload = `[Razorpay] TXN: ${mockTxn} | Date: ${getTodayDateStr()} | Remark: Paid Online via Razorpay`;
-            crmVendorService.submitMilestonePayment(appId, mId, payload, { ...application, processMilestones }).then(() => {
-              if (onUpdate) onUpdate();
-              window.open(`/invoice/${appId}/${mId}`, '_blank');
-            });
-          }
+          alert("Razorpay Checkout SDK could not be loaded. Please disable blockers or try again.");
           setLoading(false);
           return;
         }
 
         try {
           const rzpInstance = new window.Razorpay(options);
+          rzpInstance.on("payment.failed", (resp) => {
+            alert(resp?.error?.description || "Transaction failed or cancelled.");
+            setLoading(false);
+          });
           rzpInstance.open();
         } catch (rzpErr) {
           console.error("Razorpay instance error:", rzpErr);
@@ -306,7 +355,7 @@ export default function CandidateProcessTimeline({
           setLoading(false);
         };
       }
-    } catch(err) {
+    } catch (err) {
       alert("Razorpay error: " + err.message);
       setLoading(false);
     }
@@ -322,9 +371,23 @@ export default function CandidateProcessTimeline({
 
   return (
     <div className="space-y-6">
+      {refundLocked && (
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 flex items-start gap-3 shadow-xs">
+          <AlertTriangle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+          <div className="text-xs space-y-1">
+            <div className="font-bold text-rose-950">
+              Payment &amp; Processing Frozen — Refund Claim ({refundStatus || "Pending Admin Approval"})
+            </div>
+            <p className="text-rose-800 leading-relaxed">
+              {refundStatus === "Pending Admin Approval"
+                ? "All milestone payments, payment approvals, visa uploads, and stage progression are paused until Admin reviews and responds to this refund request."
+                : "Admin has processed this refund claim. Payment and stage progression on this project remain closed; proceed with candidate reassignment if applicable."}
+            </p>
+          </div>
+        </div>
+      )}
       {processMilestones.map((milestone, index) => {
-        
-        
+
         const prevMilestone = index > 0 ? processMilestones[index - 1] : null;
         const isPrevCompleted = index === 0 ||
           prevMilestone?.status === "Completed" ||
@@ -343,8 +406,7 @@ export default function CandidateProcessTimeline({
         const isPaymentSubmitted = milestone.paymentStatus === "Submitted";
         const requiresPayment = amt > 0 && !isApproved;
         const isActive = !isLocked && !isCompleted;
-        
-        
+
         return (
           <div 
             key={milestone.id} 
@@ -388,7 +450,6 @@ export default function CandidateProcessTimeline({
               </div>
             </div>
 
-            {}
             {isLocked && (
               <div className="mb-3 p-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs flex items-center gap-2">
                 <Lock size={15} className="text-slate-400 shrink-0" />
@@ -398,7 +459,6 @@ export default function CandidateProcessTimeline({
               </div>
             )}
 
-            {}
             {!isLocked && requiresPayment && (
               <div className="mb-3 p-3 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs flex items-center gap-2 shadow-2xs">
                 <Lock size={15} className="text-amber-600 shrink-0" />
@@ -446,7 +506,7 @@ export default function CandidateProcessTimeline({
                   )}
                 </div>
 
-                {canManageStages && (isPaymentSubmitted || requiresPayment) && !paymentAction && (
+                {!refundLocked && canManageStages && (isPaymentSubmitted || requiresPayment) && !paymentAction && (
                   <div className="flex gap-2 flex-wrap">
                     {isPaymentSubmitted && (
                       <button
@@ -467,13 +527,13 @@ export default function CandidateProcessTimeline({
                   </div>
                 )}
 
-                {!canManageStages && isPaymentSubmitted && !paymentAction && (
+                {!refundLocked && !canManageStages && isPaymentSubmitted && !paymentAction && (
                   <span className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold">
                     Submitted — Pending Admin Verification
                   </span>
                 )}
 
-                {!canManageStages && requiresPayment && !isPaymentSubmitted && !paymentAction && (
+                {!refundLocked && !canManageStages && requiresPayment && !isPaymentSubmitted && !paymentAction && (
                   <div className="flex gap-2 flex-wrap">
                     <button
                       type="button"
@@ -494,7 +554,7 @@ export default function CandidateProcessTimeline({
                   </div>
                 )}
 
-                {paymentAction?.mId === milestone.id && (
+                {!refundLocked && paymentAction?.mId === milestone.id && (
                   <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-lg w-full sm:max-w-md mt-4 sm:mt-0">
                     {paymentAction.action === "Submit" ? (
                       <div className="space-y-3">
@@ -662,7 +722,7 @@ export default function CandidateProcessTimeline({
                             </div>
                           )}
 
-                          {canManageStages && (stage.name?.toLowerCase().includes("visa") || sIdx === ((milestone.stages || []).length - 1)) && !stage.visaDocumentUrl && (
+                          {!refundLocked && canManageStages && (stage.name?.toLowerCase().includes("visa") || sIdx === ((milestone.stages || []).length - 1)) && !stage.visaDocumentUrl && (
                             <div className="mt-2 p-2 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between gap-2 text-xs">
                               <span className="text-[11px] font-bold text-indigo-900 flex items-center gap-1">
                                 <Upload size={13} className="text-indigo-600" />
@@ -681,12 +741,15 @@ export default function CandidateProcessTimeline({
                           )}
                         </div>
 
-                        {canManageStages && !isFormOpen && !isMilestoneLocked && (
+                        {!refundLocked && canManageStages && !isFormOpen && !isMilestoneLocked && (
                           <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               type="button"
                               onClick={() => {
-                                setStageNextStatus(stage.status || "Completed");
+                                const initialStageStatus = ["Pending", "In Progress", "Completed"].includes(stage.status)
+                                  ? stage.status
+                                  : "Completed";
+                                setStageNextStatus(initialStageStatus);
                                 setStageRemark(stage.remark || "");
                                 setActiveStageForm({ mId: milestone.id, sId: stage.id });
                               }}
@@ -701,7 +764,7 @@ export default function CandidateProcessTimeline({
                           </div>
                         )}
 
-                        {canManageStages && isFormOpen && (
+                        {!refundLocked && canManageStages && isFormOpen && (
                           <div className="w-full sm:w-72 bg-white border border-slate-200 p-3 rounded-lg shadow-sm space-y-2">
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 mb-1">Stage Status</label>
@@ -717,12 +780,12 @@ export default function CandidateProcessTimeline({
                             </div>
                             <div>
                               <label className="block text-[10px] font-bold text-slate-500 mb-1">
-                                {stageNextStatus === "Completed" ? "Completion Remark *" : "Stage Remark"}
+                                Stage Remark (Optional)
                               </label>
                               <textarea
                                 value={stageRemark}
                                 onChange={(e) => setStageRemark(e.target.value)}
-                                placeholder="Enter stage update notes..."
+                                placeholder="Optional stage update notes..."
                                 className="w-full text-xs border border-slate-300 rounded p-1.5 focus:ring-1 focus:ring-indigo-500 outline-none"
                                 rows={2}
                               />
@@ -753,7 +816,8 @@ export default function CandidateProcessTimeline({
               </div>
             </div>
 
-            {Array.isArray(milestone.clearanceDocuments) && milestone.clearanceDocuments.length > 0 && (
+            {Array.isArray(milestone.clearanceDocuments) &&
+              milestone.clearanceDocuments.filter((d) => !d.targetAudience || d.targetAudience !== "candidate").length > 0 && (
               <div className="mt-3 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/90 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <div className="font-bold text-[#163868] flex items-center gap-1.5">
@@ -761,13 +825,13 @@ export default function CandidateProcessTimeline({
                     <span>Official Milestone Clearance Documents</span>
                   </div>
                   <span className="text-[10px] font-semibold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
-                    {milestone.clearanceDocuments.filter((d) => d.targetAudience !== "candidate").length} Documents Available
+                    {milestone.clearanceDocuments.filter((d) => !d.targetAudience || d.targetAudience !== "candidate").length} Documents Available
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {milestone.clearanceDocuments
-                    .filter((d) => d.targetAudience !== "candidate")
+                    .filter((d) => !d.targetAudience || d.targetAudience !== "candidate")
                     .map((doc) => (
                       <div
                         key={doc.id}
@@ -800,50 +864,6 @@ export default function CandidateProcessTimeline({
                 </div>
               </div>
             )}
-
-            {/* Released Milestone Clearance Documents for Vendor */}
-            {Array.isArray(milestone.clearanceDocuments) &&
-              milestone.clearanceDocuments.filter(
-                (d) => !d.targetAudience || d.targetAudience === "both" || d.targetAudience === "vendor"
-              ).length > 0 && (
-                <div className="mt-3 p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
-                  <div className="text-xs font-bold text-[#163868] flex items-center gap-1.5 uppercase tracking-wide">
-                    <FileText size={13} className="text-[#163868]" />
-                    <span>Milestone Clearance & Release Documents (Candidate Deployment)</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {milestone.clearanceDocuments
-                      .filter(
-                        (d) => !d.targetAudience || d.targetAudience === "both" || d.targetAudience === "vendor"
-                      )
-                      .map((doc) => (
-                        <div
-                          key={doc.id}
-                          className="p-2 rounded-lg bg-white border border-blue-200 flex items-center justify-between gap-2 shadow-2xs"
-                        >
-                          <div className="flex items-center gap-2 overflow-hidden">
-                            <FileCheck size={14} className="text-[#163868] shrink-0" />
-                            <div className="truncate">
-                              <span className="font-bold text-xs text-slate-900 block truncate">{doc.title}</span>
-                              <span className="text-[10px] text-slate-500">
-                                {doc.size || "PDF Document"} • {doc.uploadedAt || "Verified"}
-                              </span>
-                            </div>
-                          </div>
-                          <a
-                            href={doc.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2.5 py-1 rounded-md bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-bold shrink-0 flex items-center gap-1 transition"
-                          >
-                            <Download size={11} />
-                            <span>Download</span>
-                          </a>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
           </div>
         );
       })}

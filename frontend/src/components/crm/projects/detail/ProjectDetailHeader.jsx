@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,7 +22,6 @@ export function ProjectDetailHeader({
 
   return (
     <>
-      {}
       <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
         <Link
           to={`/client/clients/${client?.id || clientId || project.clientId}`}
@@ -45,7 +43,6 @@ export function ProjectDetailHeader({
         </div>
       </div>
 
-      {}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -91,7 +88,6 @@ export function ProjectDetailHeader({
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start md:self-auto flex-wrap">
-            {}
             <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3.5 flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <Users size={18} />
@@ -106,7 +102,6 @@ export function ProjectDetailHeader({
               </div>
             </div>
 
-            {}
             <div className="flex items-center gap-2">
               <Link
                 to={`/client/clients/${client?.id || clientId || project.clientId}/projects/${project.id}/edit`}

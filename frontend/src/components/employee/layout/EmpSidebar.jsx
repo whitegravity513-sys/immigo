@@ -1,30 +1,21 @@
-import React from "react";
 import {
   LayoutDashboard,
-  Clock,
   Calendar,
   LogIn,
-  Coffee,
   CalendarPlus,
-  FileText,
   Video,
   Receipt,
   User,
   LogOut,
   X,
-  ChevronRight,
-  ShieldCheck,
-  BellRing
+  BellRing,
 } from "lucide-react";
-import { ImmiGoLogo, EmployeeIdBadge } from "../../common/ImmiGoLogo.jsx";
+import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
 export default function EmpSidebar({
   view,
   setView,
   onLogout,
-  user,
-  status = "Checked Out",
-  statusColor = "bg-slate-400",
   sidebarOpen,
   setSidebarOpen,
 }) {

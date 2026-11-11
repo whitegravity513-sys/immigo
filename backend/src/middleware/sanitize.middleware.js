@@ -1,25 +1,32 @@
+const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
-function sanitizeInPlace(target) {
+function sanitizeInPlace(target, seen = new WeakSet()) {
   if (!target || typeof target !== "object") return;
+  if (seen.has(target)) return;
+  seen.add(target);
 
   if (Array.isArray(target)) {
     for (let i = 0; i < target.length; i++) {
       if (typeof target[i] === "object" && target[i] !== null) {
-        sanitizeInPlace(target[i]);
+        sanitizeInPlace(target[i], seen);
       }
     }
     return;
   }
 
+  if (Object.prototype.hasOwnProperty.call(target, "__proto__")) {
+    delete target.__proto__;
+  }
+
   const keys = Object.keys(target);
   for (const key of keys) {
-    if (key.startsWith("$") || key.includes(".")) {
+    if (DANGEROUS_KEYS.has(key) || key.startsWith("$") || key.includes(".")) {
       delete target[key];
       continue;
     }
 
     if (typeof target[key] === "object" && target[key] !== null) {
-      sanitizeInPlace(target[key]);
+      sanitizeInPlace(target[key], seen);
     }
   }
 }

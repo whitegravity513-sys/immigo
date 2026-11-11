@@ -1,17 +1,13 @@
-import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
   ChevronRight,
   Shield,
-  LogOut,
   LayoutDashboard,
-  Bell,
   FolderPlus,
 } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext.jsx";
 import { ImmiGoLogo } from "../../common/ImmiGoLogo.jsx";
 
 export function ProjectNavbar({
@@ -20,22 +16,8 @@ export function ProjectNavbar({
   collapsed,
   setCollapsed,
   title = "Projects Directory",
-  subtitle = "All active and pending overseas recruitment and site projects.",
-  breadcrumbs = null,
 }) {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/admin/login", { replace: true });
-  };
-
-  const adminName =
-    (typeof user?.name === "string" ? user.name : user?.name?.first) ||
-    user?.email?.split("@")[0] ||
-    "Project Manager";
 
   const getTitle = () => {
     const path = location.pathname;
@@ -49,7 +31,6 @@ export function ProjectNavbar({
     <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-4 sm:px-6 sticky top-0 z-30 flex items-center border-b border-blue-800/80 shadow-md shrink-0">
       <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
 
-        {}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             type="button"
@@ -81,7 +62,6 @@ export function ProjectNavbar({
           </div>
         </div>
 
-        {}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             to="/admin/dashboard"
@@ -104,7 +84,6 @@ export function ProjectNavbar({
             <Shield size={11} className="text-cyan-400" />
             <span>Admin</span>
           </div>
-
 
         </div>
       </div>

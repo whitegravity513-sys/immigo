@@ -1,9 +1,13 @@
-import React from "react";
 import { RotateCcw } from "lucide-react";
+import {
+  getAppRefundStatus,
+  REASSIGN_ELIGIBLE_REFUND_STATUSES,
+} from "../../../services/refundService.js";
 
 export default function VendorHRReassignModal({
   show,
   reassignTargetCandidate,
+  refunds = [],
   onClose,
   onSubmit,
   reassignForm,
@@ -15,6 +19,9 @@ export default function VendorHRReassignModal({
 }) {
   if (!show || !reassignTargetCandidate) return null;
 
+  const refundStatus = getAppRefundStatus(reassignTargetCandidate, refunds);
+  const isRefundApprovedReassign = REASSIGN_ELIGIBLE_REFUND_STATUSES.has(refundStatus);
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
@@ -24,7 +31,9 @@ export default function VendorHRReassignModal({
               {hideProjectNames ? "Reassign Candidate to New Opening" : "Reassign Candidate to Another Project"}
             </h3>
             <p className="text-xs text-slate-500">
-              Re-allocate {reassignTargetCandidate.candidateName} from vendor candidate pool
+              {isRefundApprovedReassign
+                ? `Re-allocate ${reassignTargetCandidate.candidateName} following approved refund settlement`
+                : `Re-allocate ${reassignTargetCandidate.candidateName} from vendor candidate pool`}
             </p>
           </div>
           <button
@@ -35,7 +44,6 @@ export default function VendorHRReassignModal({
           </button>
         </div>
 
-        {/* Candidate Summary Box */}
         <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1">
           <div className="flex justify-between">
             <span className="text-slate-500 font-medium">Candidate Name:</span>
@@ -49,10 +57,16 @@ export default function VendorHRReassignModal({
           </div>
           {!hideProjectNames && reassignTargetCandidate.projectName && (
             <div className="flex justify-between">
-              <span className="text-slate-500 font-medium">Previous / Rejected Project:</span>
+              <span className="text-slate-500 font-medium">Previous Project:</span>
               <span className="text-rose-700 font-semibold truncate max-w-[220px]">
                 {reassignTargetCandidate.projectName}
               </span>
+            </div>
+          )}
+          {refundStatus && (
+            <div className="flex justify-between">
+              <span className="text-slate-500 font-medium">Refund Status:</span>
+              <span className="font-bold text-blue-700">{refundStatus}</span>
             </div>
           )}
         </div>

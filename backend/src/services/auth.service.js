@@ -5,6 +5,7 @@ import { hashPassword, comparePassword } from "../utils/password.js";
 import { requestAndSendOtp, verifyOtp } from "./otp.service.js";
 import { createSession, revokeAllSessions } from "./token.service.js";
 import { ApiError } from "../utils/apiError.js";
+import { generateNextHRId } from "../utils/idGenerator.js";
 
 export const register = async ({ name, email, password, role = ROLES.USER, ipAddress = null }) => {
   const normalizedEmail = email.trim().toLowerCase();
@@ -16,11 +17,15 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
 
   const passwordHash = await hashPassword(password);
 
+  const assignedRole = Object.values(ROLES).includes(role) ? role : ROLES.USER;
+  const hrId = assignedRole === ROLES.HR ? await generateNextHRId() : "";
+
   const user = await User.create({
     name: name.trim(),
     email: normalizedEmail,
     passwordHash,
-    role: Object.values(ROLES).includes(role) ? role : ROLES.USER,
+    role: assignedRole,
+    hrId,
     isActive: true,
     isEmailVerified: false,
   });
@@ -32,7 +37,7 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
       name: user.name,
       ipAddress,
     });
-  } catch (error) {
+  } catch {
   }
 
   return {
@@ -40,11 +45,12 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
     name: user.name,
     email: user.email,
     role: user.role,
+    hrId: user.hrId || "",
     isEmailVerified: user.isEmailVerified,
   };
 };
 
-export const login = async ({ email, password, ipAddress = null, userAgent = null, req = {} }) => {
+export const login = async ({ email, password, ipAddress = null, req = {} }) => {
   const normalizedEmail = email?.trim().toLowerCase();
 
   if (!normalizedEmail || !password) {
@@ -86,6 +92,9 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
   user.lockedUntil = null;
   user.lastLoginAt = new Date();
   user.lastLoginIp = ipAddress;
+  if (user.role === ROLES.HR && !user.hrId) {
+    user.hrId = await generateNextHRId();
+  }
   await user.save();
 
   const session = await createSession(user, req);
@@ -96,6 +105,8 @@ export const login = async ({ email, password, ipAddress = null, userAgent = nul
       name: user.name,
       email: user.email,
       role: user.role,
+      hrType: user.hrType || "",
+      hrId: user.hrId || "",
       isEmailVerified: user.isEmailVerified,
     },
     ...session,

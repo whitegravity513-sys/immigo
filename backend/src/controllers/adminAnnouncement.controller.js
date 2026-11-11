@@ -53,7 +53,7 @@ export const createAnnouncement = asyncHandler(async (req, res) => {
         link: "/admin/dashboard/announcements",
       },
     });
-  } catch (e) {
+  } catch {
   }
 
   return res.status(201).json({

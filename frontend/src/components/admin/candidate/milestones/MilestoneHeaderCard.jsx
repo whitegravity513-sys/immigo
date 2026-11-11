@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { IndianRupee, Unlock, CheckCircle2, FileText, Check, ShieldCheck } from "lucide-react";
 

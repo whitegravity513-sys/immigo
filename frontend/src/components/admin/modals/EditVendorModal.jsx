@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { X, Building2, User, Phone, MapPin, Briefcase, Loader2, Save } from "lucide-react";
-
+import { useState } from "react";
+import {
+  X,
+  Building2,
+  User,
+  MapPin,
+  Loader2,
+  Save,
+} from "lucide-react";
 
 export default function EditVendorModal({
   isOpen,
@@ -9,53 +15,37 @@ export default function EditVendorModal({
   onSave,
   saving = false,
 }) {
-  const [formData, setFormData] = useState({
-    companyName: "",
-    businessType: "Private Limited",
-    registrationNumber: "",
-    establishmentYear: "",
-    gstin: "",
-    pan: "",
-    contactPersonName: "",
-    designation: "",
-    phone: "",
-    alternatePhone: "",
-    email: "",
-    country: "India",
-    state: "",
-    city: "",
-    address: "",
-    specialization: "",
-    experienceYears: "",
-    monthlyCapacity: "",
-    status: "Approved",
+  const buildVendorFormState = (v) => ({
+    companyName: v?.companyName || "",
+    businessType: v?.businessType || "Private Limited",
+    registrationNumber: v?.registrationNumber || "",
+    establishmentYear: v?.establishmentYear || "",
+    gstin: v?.gstin || "",
+    pan: v?.pan || "",
+    contactPersonName: v?.contactPersonName || v?.contactPerson || "",
+    designation: v?.designation || "Director",
+    phone: v?.phone || "",
+    alternatePhone: v?.alternatePhone || "",
+    email: v?.email || "",
+    country: v?.country || "India",
+    state: v?.state || "",
+    city: v?.city || "",
+    address: v?.address || "",
+    specialization: v?.specialization || "",
+    experienceYears: v?.experienceYears || "",
+    monthlyCapacity: v?.monthlyCapacity || "",
+    status: v?.status || "Approved",
   });
 
-  useEffect(() => {
+  const [formData, setFormData] = useState(() => buildVendorFormState(vendor));
+  const [prevVendor, setPrevVendor] = useState(vendor);
+
+  if (vendor !== prevVendor) {
+    setPrevVendor(vendor);
     if (vendor) {
-      setFormData({
-        companyName: vendor.companyName || "",
-        businessType: vendor.businessType || "Private Limited",
-        registrationNumber: vendor.registrationNumber || "",
-        establishmentYear: vendor.establishmentYear || "",
-        gstin: vendor.gstin || "",
-        pan: vendor.pan || "",
-        contactPersonName: vendor.contactPersonName || vendor.contactPerson || "",
-        designation: vendor.designation || "Director",
-        phone: vendor.phone || "",
-        alternatePhone: vendor.alternatePhone || "",
-        email: vendor.email || "",
-        country: vendor.country || "India",
-        state: vendor.state || "",
-        city: vendor.city || "",
-        address: vendor.address || "",
-        specialization: vendor.specialization || "",
-        experienceYears: vendor.experienceYears || "",
-        monthlyCapacity: vendor.monthlyCapacity || "",
-        status: vendor.status || "Approved",
-      });
+      setFormData(buildVendorFormState(vendor));
     }
-  }, [vendor]);
+  }
 
   if (!isOpen || !vendor) return null;
 
@@ -79,7 +69,6 @@ export default function EditVendorModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
-        {}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold">
@@ -104,9 +93,7 @@ export default function EditVendorModal({
           </button>
         </div>
 
-        {}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
-          {}
           <div>
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
               <Building2 size={13} className="text-blue-500" />
@@ -178,7 +165,6 @@ export default function EditVendorModal({
             </div>
           </div>
 
-          {}
           <div className="pt-2 border-t border-slate-100">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
               <User size={13} className="text-blue-500" />
@@ -239,7 +225,6 @@ export default function EditVendorModal({
             </div>
           </div>
 
-          {}
           <div className="pt-2 border-t border-slate-100">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
               <MapPin size={13} className="text-blue-500" />
@@ -308,7 +293,6 @@ export default function EditVendorModal({
             </div>
           </div>
 
-          {}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
             <button
               type="button"

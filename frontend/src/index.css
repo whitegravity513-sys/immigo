@@ -3,7 +3,7 @@
 @theme {
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-heading: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  
+
   --color-indigo-50: #eff6ff;
   --color-indigo-100: #dbeafe;
   --color-indigo-200: #bfdbfe;
@@ -174,7 +174,6 @@ html, body, input, select, textarea, button {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Hide native number stepper spin buttons (▲▼) on all number inputs globally */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -186,7 +185,6 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Hide native datalist dropdown arrows (▼) across all text inputs */
 input:not([type="date"]):not([type="datetime-local"]):not([type="time"]):not([type="month"]):not([type="week"])::-webkit-calendar-picker-indicator {
   display: none !important;
   -webkit-appearance: none !important;
@@ -199,7 +197,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: block !important;
   cursor: pointer;
 }
-
 
 @media print {
   html, body, #root, #root > div, .h-screen, .overflow-hidden, .overflow-y-auto, main {

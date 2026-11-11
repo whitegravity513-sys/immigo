@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import apiClient from "../../../services/apiClient.js";
 import {
   Calendar as CalendarIcon,
@@ -18,7 +18,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Send,
-  X,
 } from "lucide-react";
 import DateInput, { MonthYearSelector } from "../../../components/common/DateInput.jsx";
 
@@ -54,7 +53,12 @@ export default function CalendarMeetings() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth(); 
 
-  const fetchMeetings = async () => {
+  const showFeedback = useCallback((type, message) => {
+    setFeedback({ type, message });
+    setTimeout(() => setFeedback({ type: "", message: "" }), 5000);
+  }, []);
+
+  const fetchMeetings = useCallback(async () => {
     setLoading(true);
     try {
       const res = await apiClient.get("/admin/meetings");
@@ -65,26 +69,29 @@ export default function CalendarMeetings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showFeedback]);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       const res = await apiClient.get("/admin/employee/list");
       setEmployees(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to load employees:", err);
     }
-  };
-
-  useEffect(() => {
-    fetchMeetings();
-    fetchEmployees();
   }, []);
 
-  const showFeedback = (type, message) => {
-    setFeedback({ type, message });
-    setTimeout(() => setFeedback({ type: "", message: "" }), 5000);
-  };
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        fetchMeetings();
+        fetchEmployees();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchMeetings, fetchEmployees]);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay(); 

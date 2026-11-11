@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  Briefcase,
   Search,
   Calendar,
   CheckCircle2,
-  XCircle,
-  Clock,
-  Award,
   RefreshCw,
-  ExternalLink,
   X,
-  Check,
-  UserX,
   AlertCircle,
 } from "lucide-react";
 import apiClient from "../../../services/apiClient.js";
@@ -24,9 +17,6 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
   const [search, setSearch] = useState("");
   const [selectedApp, setSelectedApp] = useState(null);
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
-  const [statusModalOpen, setStatusModalOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState("");
-  const [remarks, setRemarks] = useState("");
 
   const [interviewForm, setInterviewForm] = useState({
     scheduledDate: "",
@@ -40,7 +30,7 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
   const [actionLoading, setActionLoading] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -56,11 +46,17 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, search]);
 
   useEffect(() => {
-    fetchApplications();
-  }, [statusFilter, search]);
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) fetchApplications();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchApplications]);
 
   const handleUpdateStatus = async (app, targetStatus) => {
     setActionLoading(true);
@@ -76,7 +72,7 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
         });
         fetchApplications();
       }
-    } catch (err) {
+    } catch {
       setNotification({
         type: "error",
         message: "Failed to update application status.",
@@ -106,7 +102,7 @@ export default function AdminJobApplications({ prefilteredStatus = "All" }) {
         setInterviewModalOpen(false);
         fetchApplications();
       }
-    } catch (err) {
+    } catch {
       setNotification({
         type: "error",
         message: "Failed to schedule interview.",

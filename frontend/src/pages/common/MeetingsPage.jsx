@@ -1,7 +1,6 @@
-import React from "react";
 import AdminMasterLayout from "../../components/admin/layout/AdminMasterLayout.jsx";
 import MeetingCalendarSection from "../../components/common/meeting/MeetingCalendarSection.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 
 export function MeetingsPage() {
   const { user, role, isSuperAdmin, isVendor, assignedVendors } = useAuth();

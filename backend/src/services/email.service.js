@@ -912,7 +912,6 @@ export const sendCandidateSelectionEmail = async ({
   candidateName,
   projectName,
   position,
-  totalAmount = 0,
 }) => {
   const htmlContent = `
 <!DOCTYPE html>

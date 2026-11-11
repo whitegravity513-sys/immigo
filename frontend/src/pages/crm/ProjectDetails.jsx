@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService, {
   calculateProjectManpower,
 } from "../../services/crmClientService.js";
@@ -24,11 +24,7 @@ export function ProjectDetails() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadProject();
-  }, [clientId, projectId]);
-
-  const loadProject = async () => {
+  const loadProject = useCallback(async () => {
     setLoading(true);
     try {
       const data = await crmClientService.getProjectById(clientId, projectId);
@@ -45,7 +41,17 @@ export function ProjectDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientId, projectId, navigate, showToast]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (!cancelled) loadProject();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadProject]);
 
   const handleManpowerChange = async (updatedPositions) => {
     try {
@@ -56,7 +62,7 @@ export function ProjectDetails() {
       );
       setProject(updated);
       showToast("Workforce requirements saved successfully.", "success");
-    } catch (err) {
+    } catch {
       showToast("Failed to update manpower requirements", "error");
     }
   };
@@ -66,7 +72,7 @@ export function ProjectDetails() {
       const updated = await crmClientService.toggleProjectStatus(clientId, projectId);
       setProject(updated);
       showToast(`Project marked as ${updated.status}.`, "success");
-    } catch (err) {
+    } catch {
       showToast("Failed to update status", "error");
     }
   };

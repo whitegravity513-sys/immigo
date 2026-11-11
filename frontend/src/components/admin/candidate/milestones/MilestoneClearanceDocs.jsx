@@ -1,4 +1,3 @@
-import React from "react";
 import { FileText, Upload, Eye, Trash2 } from "lucide-react";
 
 export default function MilestoneClearanceDocs({

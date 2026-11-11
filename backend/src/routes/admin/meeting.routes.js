@@ -9,6 +9,7 @@ import {
   deleteMeeting,
   getMeetingEmployees,
   getMeetingVendors,
+  getMeetingAdmins,
   getMeetingHRs,
   getMeetingCandidates,
   sendBroadcastNotification,
@@ -19,6 +20,7 @@ const router = express.Router();
 
 router.get("/meetings/employees", requirePermission("meetings.view"), getMeetingEmployees);
 router.get("/meetings/vendors", requirePermission("meetings.view"), getMeetingVendors);
+router.get("/meetings/admins", requirePermission("meetings.view"), getMeetingAdmins);
 router.get("/meetings/hrs", requirePermission("meetings.view"), getMeetingHRs);
 router.get("/meetings/candidates", requirePermission("meetings.view"), getMeetingCandidates);
 router.get("/meetings/calendar-stats", requirePermission("meetings.view"), getMeetingCalendarStats);

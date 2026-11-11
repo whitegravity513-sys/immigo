@@ -263,7 +263,6 @@ export default function AdminSubmissionsList() {
     <div className="space-y-3.5 max-w-7xl mx-auto font-sans">
       {!reviewSub ? (
         <>
-      {}
       <div>
         <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Candidate Submissions & Verification</h1>
         <p className="text-[11px] text-slate-500 mt-0.5">
@@ -271,7 +270,6 @@ export default function AdminSubmissionsList() {
         </p>
       </div>
 
-      {}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
         {["All", "Under Review", "Submitted", "Shortlisted", "Interview Scheduled", "On Hold", "Selected", "Completed"].map((tab) => {
           const count = submissions.filter((s) => (tab === "All" ? true : s.status === tab)).length;
@@ -292,7 +290,6 @@ export default function AdminSubmissionsList() {
         })}
       </div>
 
-      {}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
@@ -304,7 +301,6 @@ export default function AdminSubmissionsList() {
         />
       </div>
 
-      {}
       {loading ? (
         <div className="p-12 text-center bg-white rounded-xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -379,7 +375,6 @@ export default function AdminSubmissionsList() {
           </div>
           
           <div className="bg-white rounded-2xl w-full p-5 sm:p-6 shadow-2xs border border-slate-200 space-y-5">
-            {}
             <div className="flex items-start justify-between border-b border-slate-100 pb-3.5 gap-3 flex-wrap">
               <div>
                 <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block">
@@ -404,7 +399,6 @@ export default function AdminSubmissionsList() {
               </div>
             )}
 
-            {}
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -498,7 +492,6 @@ export default function AdminSubmissionsList() {
               )}
             </div>
 
-            {}
             <div className="space-y-4 pt-1">
               {!isOnHoldStatus && !isShortlistedStatus && !isInterviewStatus && !isFinalized && (
                 <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2.5">

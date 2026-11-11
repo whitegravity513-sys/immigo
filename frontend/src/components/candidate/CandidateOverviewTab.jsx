@@ -1,4 +1,3 @@
-import React from "react";
 import { CheckCircle2, FileText, Lock, Unlock, ShieldCheck } from "lucide-react";
 
 export default function CandidateOverviewTab({
@@ -13,7 +12,6 @@ export default function CandidateOverviewTab({
 }) {
   return (
     <div className="space-y-3">
-      {/* Top Welcome & Eligibility Banner */}
       <div className="bg-gradient-to-r from-sky-50 via-blue-50/70 to-indigo-50/50 border border-sky-200/80 rounded-lg px-3 py-2 text-slate-900 shadow-2xs flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-semibold">
@@ -60,7 +58,6 @@ export default function CandidateOverviewTab({
         </div>
       </div>
 
-      {/* Unlock Notice if incomplete */}
       {!canApply && (
         <div className="px-3 py-1.5 bg-amber-50/80 border border-amber-200/80 rounded-lg flex items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
@@ -75,7 +72,6 @@ export default function CandidateOverviewTab({
         </div>
       )}
 
-      {/* 3 Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.5">
           <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center font-semibold">
@@ -124,7 +120,6 @@ export default function CandidateOverviewTab({
         </div>
       </div>
 
-      {/* Applications list */}
       <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
         <div className="p-2.5 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-xs font-semibold text-slate-900">My Job Applications</h3>

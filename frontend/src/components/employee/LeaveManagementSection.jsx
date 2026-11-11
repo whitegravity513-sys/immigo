@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   CalendarPlus,
   FileText,
@@ -6,16 +6,12 @@ import {
   Eye,
   CheckCircle2,
   Clock,
-  XCircle,
-  Calendar,
   AlertCircle,
-  Filter
 } from "lucide-react";
 import DateInput from "../common/DateInput.jsx";
 import { getIndiaDateString } from "../../utils/formatters.js";
 
 export default function LeaveManagementSection({
-  leaveBalance = 0,
   leaveForm,
   setLeaveForm,
   handleLeaveSubmit,
@@ -30,7 +26,6 @@ export default function LeaveManagementSection({
 
   const pendingCount = leaveHistory.filter((l) => l.status === "Pending").length;
   const approvedCount = leaveHistory.filter((l) => l.status === "Approved").length;
-  const rejectedCount = leaveHistory.filter((l) => l.status === "Rejected").length;
 
   const filteredHistory = leaveHistory.filter((lv) => {
     if (statusFilter === "All") return true;
