@@ -16,6 +16,7 @@ import apiRouter from "./routes/index.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import { ApiError } from "./utils/apiError.js";
 import { UPLOAD_ROOT } from "./utils/fileStorage.js";
+import { getMailTransportMode } from "./services/email.service.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -77,6 +78,7 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
     nodeVersion: process.version,
+    mailMode: getMailTransportMode(),
   });
 });
 

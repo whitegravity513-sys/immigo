@@ -16,7 +16,6 @@ const createTransporter = () => {
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
   if (!user || !pass || user === "your_email@gmail.com" || pass === "your_gmail_app_password_here") {
-    logger.warn("SMTP credentials not fully configured in .env. Falling back to development console mode.");
     return null;
   }
 
@@ -24,6 +23,9 @@ const createTransporter = () => {
     host,
     port,
     secure,
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 12000,
     auth: {
       user,
       pass,
@@ -45,6 +47,257 @@ const getDefaultFrom = () => {
   return smtpUser ? `"ImmiGo" <${smtpUser}>` : '"ImmiGo" <abhishekyadav36219@gmail.com>';
 };
 const DEFAULT_FROM = getDefaultFrom();
+
+export const getMailTransportMode = () => {
+  if (String(process.env.EMAIL_WEBHOOK_URL || "").trim()) return "webhook";
+  if (String(process.env.BREVO_API_KEY || "").trim()) return "brevo";
+  if (String(process.env.RESEND_API_KEY || "").trim()) return "resend";
+  if (getTransporter()) return "smtp";
+  return "simulated";
+};
+
+const parseMailbox = (raw = "") => {
+  const str = String(raw || "").trim();
+  const match = str.match(/^(?:"?([^"]*)"?\s*)?<([^>]+)>$/);
+  if (match) {
+    return {
+      name: String(match[1] || "ImmiGo").trim() || "ImmiGo",
+      email: String(match[2] || "").trim().toLowerCase(),
+    };
+  }
+  return { name: "ImmiGo", email: str.toLowerCase() };
+};
+
+const parseEmailList = (value) => {
+  const arr = Array.isArray(value)
+    ? value
+    : String(value || "")
+        .split(",")
+        .map((s) => s.trim());
+  return Array.from(
+    new Set(
+      arr
+        .map((item) => parseMailbox(item).email)
+        .filter((addr) => addr && addr.includes("@"))
+    )
+  );
+};
+
+const serializeAttachments = (attachments = []) => {
+  if (!Array.isArray(attachments) || attachments.length === 0) return [];
+  const list = [];
+  for (const att of attachments) {
+    if (!att) continue;
+    try {
+      let buf = null;
+      if (Buffer.isBuffer(att.content)) {
+        buf = att.content;
+      } else if (typeof att.content === "string") {
+        buf = Buffer.from(att.content, att.encoding || "utf8");
+      } else if (att.path && fs.existsSync(att.path)) {
+        buf = fs.readFileSync(att.path);
+      }
+      if (!buf || !buf.length) continue;
+      list.push({
+        name: att.filename || "attachment.pdf",
+        content: buf.toString("base64"),
+        contentType: att.contentType || "application/pdf",
+      });
+    } catch (err) {
+      logger.error("Attachment serialization skipped:", err?.message || err);
+    }
+  }
+  return list;
+};
+
+const sendViaWebhook = async (mailOptions, webhookUrl) => {
+  const toList = parseEmailList(mailOptions.to);
+  if (toList.length === 0) {
+    return { success: false, simulated: false, error: "No valid recipient email address." };
+  }
+  const bccList = parseEmailList(mailOptions.bcc);
+  const ccList = parseEmailList(mailOptions.cc);
+  const secret = String(process.env.EMAIL_WEBHOOK_SECRET || "").trim();
+  const res = await fetch(webhookUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(secret ? { "x-webhook-secret": secret } : {}),
+    },
+    body: JSON.stringify({
+      secret,
+      from: mailOptions.from || getDefaultFrom(),
+      to: toList,
+      cc: ccList,
+      bcc: bccList,
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+      text: mailOptions.text,
+      attachments: serializeAttachments(mailOptions.attachments),
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?.success === false) {
+    throw new Error(data?.error || data?.message || `Email webhook failed with HTTP ${res.status}`);
+  }
+  return { success: true, simulated: false, messageId: data?.messageId || "webhook-dispatched" };
+};
+
+const sendViaBrevo = async (mailOptions, apiKey) => {
+  const toList = parseEmailList(mailOptions.to);
+  if (toList.length === 0) {
+    return { success: false, simulated: false, error: "No valid recipient email address." };
+  }
+  const sender = parseMailbox(mailOptions.from || getDefaultFrom());
+  const bccList = parseEmailList(mailOptions.bcc);
+  const ccList = parseEmailList(mailOptions.cc);
+  const attachments = serializeAttachments(mailOptions.attachments).map((a) => ({
+    name: a.name,
+    content: a.content,
+  }));
+
+  const payload = {
+    sender: {
+      name: sender.name || "ImmiGo",
+      email: sender.email || process.env.SMTP_USER || "abhishekyadav36219@gmail.com",
+    },
+    to: toList.map((email) => ({ email })),
+    ...(ccList.length > 0 ? { cc: ccList.map((email) => ({ email })) } : {}),
+    ...(bccList.length > 0 ? { bcc: bccList.map((email) => ({ email })) } : {}),
+    subject: mailOptions.subject,
+    htmlContent: mailOptions.html,
+    ...(mailOptions.text ? { textContent: mailOptions.text } : {}),
+    ...(attachments.length > 0 ? { attachment: attachments } : {}),
+  };
+
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.message || data?.code || `Brevo API failed with HTTP ${res.status}`);
+  }
+  return { success: true, simulated: false, messageId: data?.messageId || "brevo-dispatched" };
+};
+
+const sendViaResend = async (mailOptions, apiKey) => {
+  const toList = parseEmailList(mailOptions.to);
+  if (toList.length === 0) {
+    return { success: false, simulated: false, error: "No valid recipient email address." };
+  }
+  const bccList = parseEmailList(mailOptions.bcc);
+  const ccList = parseEmailList(mailOptions.cc);
+  const attachments = serializeAttachments(mailOptions.attachments).map((a) => ({
+    filename: a.name,
+    content: a.content,
+  }));
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: mailOptions.from || getDefaultFrom(),
+      to: toList,
+      ...(ccList.length > 0 ? { cc: ccList } : {}),
+      ...(bccList.length > 0 ? { bcc: bccList } : {}),
+      subject: mailOptions.subject,
+      html: mailOptions.html,
+      text: mailOptions.text,
+      ...(attachments.length > 0 ? { attachments } : {}),
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.message || data?.name || `Resend API failed with HTTP ${res.status}`);
+  }
+  return { success: true, simulated: false, messageId: data?.id || "resend-dispatched" };
+};
+
+const dispatchMail = async (mailOptions, extra = {}) => {
+  const normalizedOptions = {
+    ...mailOptions,
+    from: mailOptions.from || getDefaultFrom(),
+  };
+
+  const webhookUrl = String(process.env.EMAIL_WEBHOOK_URL || "").trim();
+  const brevoKey = String(process.env.BREVO_API_KEY || "").trim();
+  const resendKey = String(process.env.RESEND_API_KEY || "").trim();
+
+  if (webhookUrl) {
+    try {
+      const res = await sendViaWebhook(normalizedOptions, webhookUrl);
+      logger.info(`Email sent via webhook: ${res.messageId}`);
+      return { ...res, ...extra };
+    } catch (err) {
+      logger.error("Failed to send email via webhook:", err);
+      if (!brevoKey && !resendKey && !getTransporter()) {
+        return { success: false, simulated: false, error: err.message, ...extra };
+      }
+    }
+  }
+
+  if (brevoKey) {
+    try {
+      const res = await sendViaBrevo(normalizedOptions, brevoKey);
+      logger.info(`Email sent via Brevo API: ${res.messageId}`);
+      return { ...res, ...extra };
+    } catch (err) {
+      logger.error("Failed to send email via Brevo API:", err);
+      if (!resendKey && !getTransporter()) {
+        return { success: false, simulated: false, error: err.message, ...extra };
+      }
+    }
+  }
+
+  if (resendKey) {
+    try {
+      const res = await sendViaResend(normalizedOptions, resendKey);
+      logger.info(`Email sent via Resend API: ${res.messageId}`);
+      return { ...res, ...extra };
+    } catch (err) {
+      logger.error("Failed to send email via Resend API:", err);
+      if (!getTransporter()) {
+        return { success: false, simulated: false, error: err.message, ...extra };
+      }
+    }
+  }
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info("No active SMTP or HTTPS email provider configured. Simulated email dispatch.");
+    return { success: true, simulated: true, ...extra };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(normalizedOptions);
+    logger.info(`Email sent via SMTP: ${info.messageId}`);
+    return { success: true, simulated: false, messageId: info.messageId, ...extra };
+  } catch (error) {
+    const msg = String(error?.message || "SMTP send error");
+    const isBlockedPort =
+      error?.code === "ETIMEDOUT" ||
+      error?.code === "ECONNREFUSED" ||
+      error?.code === "ENETUNREACH" ||
+      /timeout/i.test(msg);
+    const friendlyError =
+      isBlockedPort && process.env.RENDER
+        ? "SMTP port timed out because Render Free Tier blocks outbound SMTP (465/587). Configure BREVO_API_KEY, RESEND_API_KEY, or EMAIL_WEBHOOK_URL on Render for HTTPS email delivery."
+        : msg;
+    logger.error("Failed to send email via SMTP:", friendlyError);
+    return { success: false, simulated: false, error: friendlyError, ...extra };
+  }
+};
 
 const escapeHtml = (value) =>
   String(value ?? "")
@@ -268,20 +521,7 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
 
   logger.info(`[OTP DISPATCH] Destination: ${to} | Purpose: ${purpose}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated email dispatch successful.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Email sent successfully: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send email via SMTP:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 
@@ -370,20 +610,7 @@ export const sendVendorRegistrationApprovedEmail = async ({
 
   logger.info(`[VENDOR APPROVAL EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor approval email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor approval email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor approval email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 
@@ -467,20 +694,7 @@ export const sendVendorRegistrationConfirmationEmail = async ({
 
   logger.info(`[VENDOR REGISTRATION CONFIRMATION EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor registration confirmation email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor registration confirmation email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor registration confirmation email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendVendorDocCorrectionEmail = async ({
@@ -544,20 +758,7 @@ export const sendVendorDocCorrectionEmail = async ({
     text: `Dear ${vendorName},\n\nAdmin has requested corrections on your compliance documents (${vendorId}).\nRemarks: ${remarks}\n\nPlease log in to re-upload clear documents: ${docsUrl}\n\nBest regards,\nImmiGo Operations Team`,
   };
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor document correction email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor document correction email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor document correction email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendVendorDocsVerifiedAndMouIssuedEmail = async ({
@@ -657,20 +858,7 @@ export const sendVendorDocsVerifiedAndMouIssuedEmail = async ({
 
   logger.info(`[VENDOR DOCS VERIFIED & MOU ISSUED EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId} | MOU: ${mouNumber} | Attachments: ${attachments.length}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor MOU issued email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor docs verified & MOU issued email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor MOU issued email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendVendorMouSignedConfirmationEmail = async ({
@@ -780,20 +968,7 @@ export const sendVendorMouSignedConfirmationEmail = async ({
 
   logger.info(`[VENDOR MOU SIGNED EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId} | Method: ${signMethod} | Attachments: ${attachments.length}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor signed MOU confirmation email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor signed MOU confirmation email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor signed MOU confirmation email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendVendorMouCorrectionEmail = async ({
@@ -857,20 +1032,7 @@ export const sendVendorMouCorrectionEmail = async ({
     text: `Dear ${vendorName},\n\nAdmin has requested a re-submission of your signed MOU (${vendorId}).\nRemarks: ${remarks}\n\nPlease re-submit on the Vendor Portal: ${mouUrl}\n\nBest regards,\nImmiGo Operations Team`,
   };
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor MOU correction email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor MOU correction email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor MOU correction email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendVendorActivationEmail = async ({
@@ -964,20 +1126,7 @@ export const sendVendorActivationEmail = async ({
 
   logger.info(`[VENDOR ACTIVATION EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId} | Attachments: ${attachments.length}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated vendor activation email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Vendor activation email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send vendor activation email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 
@@ -1114,20 +1263,7 @@ export const sendCredentialsEmail = async ({
 
   logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId} | Reset: ${isPasswordReset}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated credentials email dispatched.");
-    return { success: true, simulated: true, recipients };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Credentials email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId, recipients };
-  } catch (error) {
-    logger.error("Failed to send credentials email:", error);
-    return { success: false, error: error.message, recipients };
-  }
+  return dispatchMail(mailOptions, { recipients });
 };
 
 export const sendStaffAccountCredentialsEmail = async ({
@@ -1264,20 +1400,7 @@ export const sendStaffAccountCredentialsEmail = async ({
     return { success: false, simulated: false, error: "Staff account does not have a valid email address.", recipients };
   }
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info(`[STAFF CREDENTIALS EMAIL SIMULATED] To: ${cleanTo} | Role: ${roleLabel}`);
-    return { success: true, simulated: true, recipients };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Staff credentials email sent to ${cleanTo}: ${info.messageId}`);
-    return { success: true, simulated: false, messageId: info.messageId, recipients };
-  } catch (error) {
-    logger.error("Failed to send staff credentials email:", error);
-    return { success: false, simulated: false, error: error.message, recipients };
-  }
+  return dispatchMail(mailOptions, { recipients });
 };
 
 export const sendCandidateApprovalEmail = async ({
@@ -1399,20 +1522,7 @@ Candidate Portal Login: ${finalPortalUrl}`;
 
   logger.info(`[CANDIDATE APPROVAL EMAIL] Destination: ${to} | Candidate: ${candidateId} (${candidateName})`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated candidate approval email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Candidate approval email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send candidate approval email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendCandidateRejectionEmail = async ({
@@ -1480,19 +1590,7 @@ export const sendCandidateRejectionEmail = async ({
 
   logger.info(`[CANDIDATE REJECTION EMAIL] Destination: ${to} | Candidate: ${candidateId}`);
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated candidate rejection email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send candidate rejection email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendCandidateInterviewEmail = async ({
@@ -1559,19 +1657,7 @@ export const sendCandidateInterviewEmail = async ({
     text: `Dear ${candidateName},\n\nYour interview for ${position} (${projectName}) is scheduled.\nDate: ${interview.scheduledDate}\nTime: ${interview.scheduledTime}\nMode: ${interview.mode}\nLink/Venue: ${interview.locationOrLink}\n\nBest regards,\nTeam Immigo`,
   };
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info("Transporter not active. Simulated interview email dispatched.");
-    return { success: true, simulated: true };
-  }
-
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send interview email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendCandidateSelectionEmail = async ({
@@ -1623,18 +1709,7 @@ export const sendCandidateSelectionEmail = async ({
     text: `Congratulations ${candidateName}! You have been selected for ${position} on ${projectName}. Please login to your Candidate Portal (${candidateDashUrl}) to view your processing milestones.`,
   };
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) {
-    logger.info(`Simulated selection email dispatched to ${to}`);
-    return { success: true, simulated: true };
-  }
-  try {
-    const info = await activeTransporter.sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send selection email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail(mailOptions);
 };
 
 export const sendCandidateMilestoneUpdateEmail = async ({
@@ -1674,21 +1749,13 @@ export const sendCandidateMilestoneUpdateEmail = async ({
 </html>
   `;
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) return { success: true, simulated: true };
-  try {
-    const info = await activeTransporter.sendMail({
-      from: DEFAULT_FROM,
-      to,
-      subject: `Processing Update: ${stageName} is now ${stageStatus} - ${projectName}`,
-      html: htmlContent,
-      text: `Processing Update for ${candidateName}: ${stageName} is now ${stageStatus} on ${projectName}. Portal: ${candidateDashUrl}`,
-    });
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send milestone update email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail({
+    from: getDefaultFrom(),
+    to,
+    subject: `Processing Update: ${stageName} is now ${stageStatus} - ${projectName}`,
+    html: htmlContent,
+    text: `Processing Update for ${candidateName}: ${stageName} is now ${stageStatus} on ${projectName}. Portal: ${candidateDashUrl}`,
+  });
 };
 
 export const sendCandidatePaymentReceiptEmail = async ({
@@ -1723,21 +1790,13 @@ export const sendCandidatePaymentReceiptEmail = async ({
 </html>
   `;
 
-  const activeTransporter = getTransporter();
-  if (!activeTransporter) return { success: true, simulated: true };
-  try {
-    const info = await activeTransporter.sendMail({
-      from: DEFAULT_FROM,
-      to,
-      subject: `Payment Receipt: ₹${Number(amount).toLocaleString()} for ${milestoneName}`,
-      html: htmlContent,
-      text: `Payment Receipt: ₹${amount} received for ${milestoneName} on ${projectName}.`,
-    });
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    logger.error("Failed to send payment receipt email:", error);
-    return { success: false, error: error.message };
-  }
+  return dispatchMail({
+    from: getDefaultFrom(),
+    to,
+    subject: `Payment Receipt: ₹${Number(amount).toLocaleString()} for ${milestoneName}`,
+    html: htmlContent,
+    text: `Payment Receipt: ₹${amount} received for ${milestoneName} on ${projectName}.`,
+  });
 };
 
 export default {
