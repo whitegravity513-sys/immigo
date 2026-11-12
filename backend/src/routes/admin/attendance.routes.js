@@ -7,9 +7,11 @@ import {
   getAttendanceSummary,
   getDailyNotes,
 } from "../../controllers/adminAttendance.controller.js";
-import { requirePermission } from "../../middleware/rbac.middleware.js";
+import { requirePermission, authenticateRBAC, blockVendorHR } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
+
+router.use(authenticateRBAC, blockVendorHR);
 
 router.get("/attendance", requirePermission("attendance.view"), getAttendanceReport);
 router.get("/attendance/calendar-month", requirePermission("attendance.view"), getAttendanceCalendarMonth);

@@ -299,6 +299,25 @@ export const blockEmployeeHR = (req, res, next) => {
   return next();
 };
 
+export const blockVendorHR = (req, res, next) => {
+  const roleNorm = String(req.userRole || req.user?.role || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  const hrTypeNorm = String(req.hrType || req.user?.hrType || "")
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
+  if (
+    !req.isSuperAdmin &&
+    (roleNorm === "VENDORHR" || (roleNorm === "HR" && hrTypeNorm === "VENDORHR"))
+  ) {
+    return res.status(403).json({
+      success: false,
+      message: "Forbidden: Vendor HR cannot access internal employee, attendance, or leave resources.",
+    });
+  }
+  return next();
+};
+
 export const logAudit = async ({
   req,
   action,
@@ -339,5 +358,6 @@ export default {
   requireSuperAdmin,
   requireRoles,
   blockEmployeeHR,
+  blockVendorHR,
   logAudit,
 };

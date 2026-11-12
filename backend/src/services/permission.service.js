@@ -61,7 +61,7 @@ export class PermissionService {
     try {
       if (mongoose.connection?.readyState === 1) {
         const [roleDoc, userPerm] = await Promise.all([
-          Role.findOne({ name: user.role }).lean(),
+          Role.findOne({ name: effectiveRoleKey }).lean(),
           UserPermission.findOne({ userId: user._id || user.id }).lean(),
         ]);
 

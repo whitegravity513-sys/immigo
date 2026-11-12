@@ -6,10 +6,11 @@ import NotificationService from "./notification.service.js";
 export class HolidayService {
   static formatHoliday(holiday) {
     if (!holiday) return null;
+    const plain = typeof holiday.toObject === "function" ? holiday.toObject() : holiday;
     return {
-      ...holiday.toObject(),
-      id: holiday._id.toString(),
-      _id: holiday._id.toString(),
+      ...plain,
+      id: plain._id ? plain._id.toString() : (plain.id || ""),
+      _id: plain._id ? plain._id.toString() : (plain.id || ""),
     };
   }
 

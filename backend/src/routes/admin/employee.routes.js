@@ -16,9 +16,11 @@ import {
   getEmployeeNote,
   getEmployeeLeaves,
 } from "../../controllers/adminEmployee.controller.js";
-import { requirePermission } from "../../middleware/rbac.middleware.js";
+import { requirePermission, authenticateRBAC, blockVendorHR } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
+
+router.use(authenticateRBAC, blockVendorHR);
 
 router.post("/employee/create", requirePermission("employees.create"), createEmployee);
 router.get("/employee/next-id", requirePermission("employees.view"), getNextEmployeeId);

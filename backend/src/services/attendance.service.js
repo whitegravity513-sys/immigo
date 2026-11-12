@@ -19,10 +19,11 @@ import NotificationService from "./notification.service.js";
 export class AttendanceService {
   static formatAttendance(record) {
     if (!record) return null;
+    const plain = typeof record.toObject === "function" ? record.toObject() : record;
     return {
-      ...record.toObject(),
-      id: record._id.toString(),
-      _id: record._id.toString(),
+      ...plain,
+      id: plain._id ? plain._id.toString() : (plain.id || ""),
+      _id: plain._id ? plain._id.toString() : (plain.id || ""),
     };
   }
 

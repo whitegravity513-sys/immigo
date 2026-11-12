@@ -158,7 +158,7 @@ export class LeaveService {
   static async getLeaveHistory(employeeId) {
     const leaves = await Leave.find({ employeeId }).sort({ createdAt: -1 });
     return leaves.map((l) => {
-      const obj = l.toObject();
+      const obj = typeof l.toObject === "function" ? l.toObject() : { ...l };
       delete obj.adminRemark;
       return {
         ...obj,

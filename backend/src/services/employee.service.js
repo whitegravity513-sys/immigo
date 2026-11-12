@@ -826,7 +826,7 @@ export class EmployeeService {
     if (!resolvedEmpId) return [];
     const leaves = await Leave.find({ employeeId: resolvedEmpId }).sort({ createdAt: -1 });
     return leaves.map((l) => ({
-      ...l.toObject(),
+      ...(typeof l.toObject === "function" ? l.toObject() : l),
       id: l._id.toString(),
       _id: l._id.toString(),
     }));
