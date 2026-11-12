@@ -3,6 +3,9 @@ import NotificationService from "../services/notification.service.js";
 import ActivityService from "../services/activity.service.js";
 import {
   sendVendorRegistrationApprovedEmail,
+  sendVendorDocCorrectionEmail,
+  sendVendorDocsVerifiedAndMouIssuedEmail,
+  sendVendorMouCorrectionEmail,
   sendVendorActivationEmail,
 } from "../services/email.service.js";
 import { ApiError } from "../utils/apiError.js";
@@ -223,6 +226,16 @@ export const approveDocsAndSendMou = asyncHandler(async (req, res) => {
   await vendor.save();
 
   try {
+    await sendVendorDocsVerifiedAndMouIssuedEmail({
+      to: vendor.email,
+      vendor,
+      portalUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    });
+  } catch (emailErr) {
+    console.error("Failed to send vendor docs verified & MOU issued email:", emailErr.message);
+  }
+
+  try {
     await NotificationService.notifyStaffAction({
       actor: req.user,
       type: "DOCUMENT_UPDATE",
@@ -285,6 +298,18 @@ export const requestDocCorrection = asyncHandler(async (req, res) => {
     });
   }
   await vendor.save();
+
+  try {
+    await sendVendorDocCorrectionEmail({
+      to: vendor.email,
+      vendorName: vendor.companyName || vendor.contactPersonName,
+      vendorId: vendor.vendorId,
+      remarks: vendor.adminRemarks,
+      portalUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    });
+  } catch (emailErr) {
+    console.error("Failed to send vendor document correction email:", emailErr.message);
+  }
 
   try {
     await NotificationService.notifyStaffAction({
@@ -360,6 +385,7 @@ export const approveMouAndActivate = asyncHandler(async (req, res) => {
       vendorName: vendor.companyName || vendor.contactPersonName,
       vendorId: vendor.vendorId,
       portalUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+      vendor,
     });
   } catch (emailErr) {
     console.error("Failed to send activation email:", emailErr.message);
@@ -427,6 +453,18 @@ export const requestMouCorrection = asyncHandler(async (req, res) => {
       ? "Please re-upload a clear signed & stamped MOU copy."
       : "Please re-submit your signed MOU.");
   await vendor.save();
+
+  try {
+    await sendVendorMouCorrectionEmail({
+      to: vendor.email,
+      vendorName: vendor.companyName || vendor.contactPersonName,
+      vendorId: vendor.vendorId,
+      remarks: vendor.adminRemarks,
+      portalUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    });
+  } catch (emailErr) {
+    console.error("Failed to send vendor MOU correction email:", emailErr.message);
+  }
 
   try {
     await NotificationService.notifyStaffAction({

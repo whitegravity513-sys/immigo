@@ -1,6 +1,10 @@
+import fs from "fs";
+import path from "path";
 import nodemailer from "nodemailer";
 import "../config/env.js";
 import { logger } from "../utils/logger.js";
+import { UPLOAD_ROOT } from "../utils/fileStorage.js";
+import { generateMouPdfBuffer } from "../utils/mouPdfGenerator.js";
 
 const createTransporter = () => {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -34,6 +38,87 @@ export const getTransporter = () => {
   return transporter;
 };
 const DEFAULT_FROM = process.env.EMAIL_FROM || '"ImmiGo" <abhishekyadav36219@gmail.com>';
+
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const resolveVendorRecipients = (to) => {
+  const designatedRecipient = process.env.VENDOR_NOTIFICATION_EMAIL || "abhishekyadav36219@gmail.com";
+  const recipients = Array.isArray(to) ? to.filter(Boolean) : to ? [to] : [];
+  if (designatedRecipient && !recipients.includes(designatedRecipient)) {
+    recipients.push(designatedRecipient);
+  }
+  return recipients;
+};
+
+const MIME_EXT_MAP = {
+  "application/pdf": ".pdf",
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
+  "image/jpg": ".jpg",
+  "image/webp": ".webp",
+};
+
+const buildMouPdfAttachment = (vendor = {}, stage = "issued", filePrefix = "MOU") => {
+  try {
+    const cleanVendorCode = String(vendor?.vendorId || "VENDOR").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const cleanMouNum = String(vendor?.mouDocument?.mouNumber || vendor?.mouDocument?.refNumber || "IMMIGO")
+      .replace(/[^a-zA-Z0-9_-]/g, "_");
+    const pdfBuffer = generateMouPdfBuffer(vendor, { stage });
+    if (!pdfBuffer || !pdfBuffer.length) return null;
+    return {
+      filename: `${filePrefix}_${cleanVendorCode}_${cleanMouNum}.pdf`,
+      content: pdfBuffer,
+      contentType: "application/pdf",
+    };
+  } catch (err) {
+    logger.error("Failed to generate MOU PDF attachment:", err);
+    return null;
+  }
+};
+
+const buildUploadedMouAttachment = (fileUrl = "", baseName = "Signed_MOU_Copy") => {
+  try {
+    const src = String(fileUrl || "").trim();
+    if (!src) return null;
+
+    if (src.startsWith("data:")) {
+      const match = src.match(/^data:([a-zA-Z0-9.+/-]+);base64,(.+)$/s);
+      if (!match) return null;
+      const mimeType = String(match[1]).toLowerCase();
+      const ext = MIME_EXT_MAP[mimeType] || ".pdf";
+      const buf = Buffer.from(match[2].trim(), "base64");
+      if (!buf.length || buf.length > 10 * 1024 * 1024) return null;
+      return {
+        filename: `${baseName}${ext}`,
+        content: buf,
+        contentType: mimeType,
+      };
+    }
+
+    if (src.startsWith("/uploads/")) {
+      const rel = src.replace(/^\/uploads\//, "");
+      const resolved = path.resolve(UPLOAD_ROOT, rel);
+      if (!resolved.startsWith(`${UPLOAD_ROOT}${path.sep}`)) return null;
+      if (!fs.existsSync(resolved)) return null;
+      const ext = path.extname(resolved) || ".pdf";
+      return {
+        filename: `${baseName}${ext}`,
+        path: resolved,
+      };
+    }
+
+    return null;
+  } catch (err) {
+    logger.error("Failed to prepare uploaded MOU attachment:", err);
+    return null;
+  }
+};
 
 const generateOtpEmailTemplate = ({ otp, purposeTitle, name = "User", expiryMinutes = 10 }) => {
   return `
@@ -294,15 +379,517 @@ export const sendVendorRegistrationApprovedEmail = async ({
 };
 
 
+export const sendVendorRegistrationConfirmationEmail = async ({
+  to,
+  vendorName = "Vendor Partner",
+  contactPerson = "",
+  vendorId = "",
+  loginEmail = "",
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const loginUrl = `${finalPortalUrl}/vendor/login`;
+  const recipients = resolveVendorRecipients(to);
+  const safeName = escapeHtml(contactPerson || vendorName);
+  const safeCompany = escapeHtml(vendorName);
+  const safeId = escapeHtml(vendorId);
+  const safeEmail = escapeHtml(loginEmail || to);
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vendor Registration Received - ImmiGo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #bfdbfe; }
+    .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+    .info-box { background: #f1f5f9; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.8; }
+    .btn { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-bottom: 24px; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;">
+            Partner Onboarding Network
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="badge">Registration Submitted &bull; Pending Admin Approval</div>
+    <div class="title">Welcome, ${safeName}!</div>
+    <div class="text">
+      Thank you for registering <strong>${safeCompany}</strong> as a Vendor Partner with ImmiGo. Your registration has been received successfully and is currently under review by the ImmiGo Administration Team.
+    </div>
+
+    <div class="info-box">
+      <strong>Vendor ID:</strong> ${safeId}<br>
+      <strong>Agency Name:</strong> ${safeCompany}<br>
+      <strong>Login Email:</strong> ${safeEmail}<br>
+      <strong>Current Status:</strong> Registration Pending Verification<br>
+      <strong>Next Step:</strong> Once Admin approves your registration, you will receive an approval confirmation email to log in, submit compliance documents, and execute your partnership MOU.
+    </div>
+
+    <a href="${loginUrl}" class="btn">Vendor Portal Sign In</a>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to: recipients.join(", "),
+    subject: `[ImmiGo] Vendor Registration Received: ${vendorName} (${vendorId})`,
+    html: htmlContent,
+    text: `Dear ${contactPerson || vendorName},\n\nThank you for registering ${vendorName} (${vendorId}) with ImmiGo.\n\nYour registration is currently pending Admin verification. Once approved, you will receive a confirmation email to sign in and complete document verification and MOU execution.\n\nLogin Email: ${loginEmail || to}\nVendor Portal: ${loginUrl}\n\nBest regards,\nImmiGo Operations Team`,
+  };
+
+  logger.info(`[VENDOR REGISTRATION CONFIRMATION EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info("Transporter not active. Simulated vendor registration confirmation email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(mailOptions);
+    logger.info(`Vendor registration confirmation email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send vendor registration confirmation email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendVendorDocCorrectionEmail = async ({
+  to,
+  vendorName = "Vendor Partner",
+  vendorId = "",
+  remarks = "",
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const docsUrl = `${finalPortalUrl}/vendor/documents?tab=company`;
+  const recipients = resolveVendorRecipients(to);
+  const safeName = escapeHtml(vendorName);
+  const safeId = escapeHtml(vendorId);
+  const safeRemarks = escapeHtml(remarks || "Please re-upload clearer copies of your compliance documents.");
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document Correction Required - ImmiGo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #fff7ed; color: #c2410c; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #fed7aa; }
+    .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+    .remark-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; color: #92400e; }
+    .btn { display: inline-block; background-color: #d97706; color: #ffffff !important; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-bottom: 24px; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="margin-bottom: 20px;">
+      <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+    </div>
+    <div class="badge">Action Required &bull; Compliance Documents</div>
+    <div class="title">Document Correction Requested (${safeName})</div>
+    <div class="text">
+      Our Compliance Review Team reviewed your submitted documents for Vendor ID <strong>${safeId}</strong> and requires updated copies before issuing your MOU.
+    </div>
+    <div class="remark-box">
+      <strong>Admin Remarks:</strong><br>${safeRemarks}
+    </div>
+    <a href="${docsUrl}" class="btn">Re-upload Compliance Documents</a>
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to: recipients.join(", "),
+    subject: `[ImmiGo] Action Required: Document Correction Requested (${vendorId})`,
+    html: htmlContent,
+    text: `Dear ${vendorName},\n\nAdmin has requested corrections on your compliance documents (${vendorId}).\nRemarks: ${remarks}\n\nPlease log in to re-upload clear documents: ${docsUrl}\n\nBest regards,\nImmiGo Operations Team`,
+  };
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info("Transporter not active. Simulated vendor document correction email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(mailOptions);
+    logger.info(`Vendor document correction email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send vendor document correction email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendVendorDocsVerifiedAndMouIssuedEmail = async ({
+  to,
+  vendor = {},
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const mouUrl = `${finalPortalUrl}/vendor/documents?openMou=1`;
+  const vendorName = vendor.companyName || vendor.contactPersonName || "Vendor Partner";
+  const vendorId = vendor.vendorId || "";
+  const mouDoc = vendor.mouDocument || {};
+  const mouNumber = mouDoc.mouNumber || mouDoc.refNumber || "MOU-IMMIGO";
+  const agreementDate = mouDoc.agreementDate || new Date().toISOString().split("T")[0];
+  const validityYears = mouDoc.validityYears || "1 Year";
+  const recipients = resolveVendorRecipients(to || vendor.email);
+
+  const safeName = escapeHtml(vendorName);
+  const safeId = escapeHtml(vendorId);
+  const safeMouNum = escapeHtml(mouNumber);
+  const safeDate = escapeHtml(agreementDate);
+  const safeValidity = escapeHtml(validityYears);
+
+  const mouAttachment = buildMouPdfAttachment(vendor, "issued", "MOU");
+  const attachments = mouAttachment ? [mouAttachment] : [];
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Documents Verified &amp; MOU Issued - ImmiGo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 5px 12px; border-radius: 9999px; background-color: #ecfdf5; color: #047857; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #a7f3d0; }
+    .title { font-size: 19px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.65; color: #475569; margin-bottom: 18px; }
+    .info-box { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.85; color: #1e293b; }
+    .step-box { background: #eef2ff; border-left: 4px solid #4f46e5; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; color: #312e81; }
+    .btn { display: inline-block; background-color: #4f46e5; color: #ffffff !important; font-weight: 700; font-size: 14px; padding: 12px 26px; border-radius: 8px; text-decoration: none; margin-bottom: 22px; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;">
+            Legal &amp; Compliance Desk
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="badge">&check; Documents Verified &bull; Official MOU Issued</div>
+    <div class="title">Compliance Verified &amp; Official MOU Ready, ${safeName}!</div>
+    <div class="text">
+      Great news! Your submitted compliance documents for <strong>${safeName}</strong> have been verified and approved by the ImmiGo Administration Team. Your official <strong>Memorandum of Understanding (MOU)</strong> has now been issued and is attached to this email as a PDF.
+    </div>
+
+    <div class="info-box">
+      <strong>Vendor ID:</strong> ${safeId}<br>
+      <strong>MOU Reference No.:</strong> ${safeMouNum}<br>
+      <strong>Agreement Date:</strong> ${safeDate}<br>
+      <strong>Validity Term:</strong> ${safeValidity}<br>
+      <strong>Attached Document:</strong> Official MOU Agreement PDF (${safeId})
+    </div>
+
+    <div class="step-box">
+      <strong>Next Step &mdash; Review &amp; Sign Your MOU:</strong><br>
+      1. Review the attached official MOU PDF carefully.<br>
+      2. Sign in to the Vendor Portal to either <strong>Digitally Sign</strong> online OR <strong>Download, Sign &amp; Stamp</strong> and upload your signed copy.<br>
+      3. Once your signed MOU is verified by Admin, your Vendor Portal will be <strong>Fully Activated</strong>.
+    </div>
+
+    <a href="${mouUrl}" class="btn">Review &amp; Sign MOU on Portal</a>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to: recipients.join(", "),
+    subject: `[ImmiGo] Documents Verified & Official MOU Issued (${mouNumber}) - ${vendorName}`,
+    html: htmlContent,
+    text: `Dear ${vendorName},\n\nYour compliance documents (${vendorId}) have been verified by ImmiGo Admin and your Official MOU (${mouNumber}) has been issued.\n\nThe MOU agreement PDF is attached to this email. Please review and sign it on the Vendor Portal (Digitally Sign or Download, Sign/Stamp & Upload Signed Copy):\n${mouUrl}\n\nBest regards,\nImmiGo Legal & Operations Team`,
+    attachments,
+  };
+
+  logger.info(`[VENDOR DOCS VERIFIED & MOU ISSUED EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId} | MOU: ${mouNumber} | Attachments: ${attachments.length}`);
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info("Transporter not active. Simulated vendor MOU issued email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(mailOptions);
+    logger.info(`Vendor docs verified & MOU issued email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send vendor MOU issued email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendVendorMouSignedConfirmationEmail = async ({
+  to,
+  vendor = {},
+  signMethod = "digital",
+  signatoryName = "",
+  designation = "",
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const mouUrl = `${finalPortalUrl}/vendor/documents?openMou=1`;
+  const vendorName = vendor.companyName || vendor.contactPersonName || "Vendor Partner";
+  const vendorId = vendor.vendorId || "";
+  const mouNumber = vendor?.mouDocument?.mouNumber || vendor?.mouDocument?.refNumber || "MOU-IMMIGO";
+  const methodLabel = signMethod === "upload" ? "Uploaded Signed & Stamped Copy" : "Digital Signature";
+  const resolvedSignatory = signatoryName || vendor?.signedMou?.signatoryName || vendor.contactPersonName || "Authorized Signatory";
+  const resolvedDesignation = designation || vendor?.signedMou?.designation || "Authorized Signatory";
+  const signedAtStr = new Date(vendor?.signedMou?.signedAt || Date.now()).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  const recipients = resolveVendorRecipients(to || vendor.email);
+
+  const safeName = escapeHtml(vendorName);
+  const safeId = escapeHtml(vendorId);
+  const safeMouNum = escapeHtml(mouNumber);
+  const safeMethod = escapeHtml(methodLabel);
+  const safeSignatory = escapeHtml(resolvedSignatory);
+  const safeDesig = escapeHtml(resolvedDesignation);
+
+  const attachments = [];
+  const signedPdfAttachment = buildMouPdfAttachment(vendor, "signed", "Signed_MOU");
+  if (signedPdfAttachment) attachments.push(signedPdfAttachment);
+
+  if (signMethod === "upload") {
+    const uploadedUrl = vendor.signedMouDocUrl || vendor?.signedMou?.signedFileUrl || "";
+    const cleanCode = String(vendorId || "VENDOR").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const uploadedAttachment = buildUploadedMouAttachment(uploadedUrl, `Uploaded_Signed_MOU_${cleanCode}`);
+    if (uploadedAttachment) attachments.push(uploadedAttachment);
+  }
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signed MOU Confirmation - ImmiGo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 580px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 5px 12px; border-radius: 9999px; background-color: #fef3c7; color: #92400e; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #fde68a; }
+    .title { font-size: 19px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.65; color: #475569; margin-bottom: 18px; }
+    .info-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 22px; font-size: 13px; line-height: 1.85; color: #1e293b; }
+    .btn { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-weight: 700; font-size: 14px; padding: 12px 26px; border-radius: 8px; text-decoration: none; margin-bottom: 22px; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+      <tr>
+        <td valign="middle" style="line-height: 1;">
+          <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+          <div style="font-size: 10px; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;">
+            Partner Onboarding Network
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="badge">Signed MOU Received &bull; Pending Admin Approval</div>
+    <div class="title">Signed MOU Submitted Successfully, ${safeName}!</div>
+    <div class="text">
+      This confirms that the signed <strong>Memorandum of Understanding (MOU)</strong> for <strong>${safeName}</strong> has been received and recorded on the ImmiGo platform. Our Administration Team will review and issue final approval shortly. A copy of your signed MOU is attached to this email.
+    </div>
+
+    <div class="info-box">
+      <strong>Vendor ID:</strong> ${safeId}<br>
+      <strong>MOU Reference No.:</strong> ${safeMouNum}<br>
+      <strong>Signing Method:</strong> ${safeMethod}<br>
+      <strong>Authorized Signatory:</strong> ${safeSignatory} (${safeDesig})<br>
+      <strong>Submitted On:</strong> ${escapeHtml(signedAtStr)}<br>
+      <strong>Current Status:</strong> Pending Admin Verification &amp; Activation
+    </div>
+
+    <a href="${mouUrl}" class="btn">View Submitted MOU Status</a>
+
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to: recipients.join(", "),
+    subject: `[ImmiGo] Signed MOU Submitted (${mouNumber}) - ${vendorName} (${vendorId})`,
+    html: htmlContent,
+    text: `Dear ${vendorName},\n\nYour signed MOU (${mouNumber}) for Vendor ID ${vendorId} has been submitted successfully via ${methodLabel}.\nSignatory: ${resolvedSignatory} (${resolvedDesignation})\nStatus: Pending Admin Verification & Activation.\n\nA copy of the signed MOU is attached to this email.\nView Status: ${mouUrl}\n\nBest regards,\nImmiGo Operations Team`,
+    attachments,
+  };
+
+  logger.info(`[VENDOR MOU SIGNED EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId} | Method: ${signMethod} | Attachments: ${attachments.length}`);
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info("Transporter not active. Simulated vendor signed MOU confirmation email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(mailOptions);
+    logger.info(`Vendor signed MOU confirmation email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send vendor signed MOU confirmation email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const sendVendorMouCorrectionEmail = async ({
+  to,
+  vendorName = "Vendor Partner",
+  vendorId = "",
+  remarks = "",
+  portalUrl = "",
+}) => {
+  const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
+  const mouUrl = `${finalPortalUrl}/vendor/documents?openMou=1`;
+  const recipients = resolveVendorRecipients(to);
+  const safeName = escapeHtml(vendorName);
+  const safeId = escapeHtml(vendorId);
+  const safeRemarks = escapeHtml(remarks || "Please re-submit a clear signed & stamped MOU copy.");
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MOU Re-submission Requested - ImmiGo</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
+    .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #fff7ed; color: #c2410c; font-size: 12px; font-weight: 700; margin-bottom: 16px; border: 1px solid #fed7aa; }
+    .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+    .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+    .remark-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.7; color: #92400e; }
+    .btn { display: inline-block; background-color: #d97706; color: #ffffff !important; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-bottom: 24px; }
+    .footer { border-top: 1px solid #e2e8f0; padding-top: 16px; font-size: 11px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="margin-bottom: 20px;">
+      <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #2563eb; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
+    </div>
+    <div class="badge">MOU Correction Requested</div>
+    <div class="title">Signed MOU Re-submission Required (${safeName})</div>
+    <div class="text">
+      Our Administration Team reviewed your submitted MOU for Vendor ID <strong>${safeId}</strong> and has requested an updated submission before activation.
+    </div>
+    <div class="remark-box">
+      <strong>Admin Remarks:</strong><br>${safeRemarks}
+    </div>
+    <a href="${mouUrl}" class="btn">Re-submit Signed MOU</a>
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} ImmiGo. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  const mailOptions = {
+    from: DEFAULT_FROM,
+    to: recipients.join(", "),
+    subject: `[ImmiGo] Action Required: MOU Re-submission Requested (${vendorId})`,
+    html: htmlContent,
+    text: `Dear ${vendorName},\n\nAdmin has requested a re-submission of your signed MOU (${vendorId}).\nRemarks: ${remarks}\n\nPlease re-submit on the Vendor Portal: ${mouUrl}\n\nBest regards,\nImmiGo Operations Team`,
+  };
+
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
+    logger.info("Transporter not active. Simulated vendor MOU correction email dispatched.");
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const info = await activeTransporter.sendMail(mailOptions);
+    logger.info(`Vendor MOU correction email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    logger.error("Failed to send vendor MOU correction email:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 export const sendVendorActivationEmail = async ({
   to,
   vendorName = "Vendor Partner",
   vendorId = "",
   portalUrl = "",
+  vendor = null,
 }) => {
   const finalPortalUrl = portalUrl || process.env.FRONTEND_URL || "http://localhost:5173";
   const loginUrl = `${finalPortalUrl}/vendor/login`;
-  const designatedRecipient = process.env.VENDOR_NOTIFICATION_EMAIL || "abhishekyadav36219@gmail.com";
+  const recipients = resolveVendorRecipients(to);
+  const mouNumber = vendor?.mouDocument?.mouNumber || vendor?.mouDocument?.refNumber || "";
+
+  const attachments = [];
+  if (vendor) {
+    const approvedPdf = buildMouPdfAttachment(vendor, "approved", "Executed_MOU");
+    if (approvedPdf) attachments.push(approvedPdf);
+    if (vendor.mouSignMethod === "upload" && (vendor.signedMouDocUrl || vendor?.signedMou?.signedFileUrl)) {
+      const cleanCode = String(vendorId || "VENDOR").replace(/[^a-zA-Z0-9_-]/g, "_");
+      const uploadedCopy = buildUploadedMouAttachment(
+        vendor.signedMouDocUrl || vendor?.signedMou?.signedFileUrl,
+        `Uploaded_Signed_MOU_${cleanCode}`
+      );
+      if (uploadedCopy) attachments.push(uploadedCopy);
+    }
+  }
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -335,14 +922,15 @@ export const sendVendorActivationEmail = async ({
     </table>
 
     <div class="badge">&check; Fully Active Partner</div>
-    <div class="title">Congratulations, ${vendorName}!</div>
+    <div class="title">Congratulations, ${escapeHtml(vendorName)}!</div>
     <div class="text">
       Your compliance documents have been verified and your signed Memorandum of Understanding (MOU) has been fully approved by the ImmiGo Administration Team.
-      Your vendor partner account is now <strong>Fully Active</strong> with complete operational access.
+      Your vendor partner account is now <strong>Fully Active</strong> with complete operational access.${attachments.length ? " Your final approved MOU copy is attached for your records." : ""}
     </div>
 
     <div class="info-box">
-      <strong>Vendor ID:</strong> ${vendorId}<br>
+      <strong>Vendor ID:</strong> ${escapeHtml(vendorId)}<br>
+      ${mouNumber ? `<strong>MOU Reference No.:</strong> ${escapeHtml(mouNumber)}<br>` : ""}
       <strong>Account Status:</strong> Active Partner &bull; Full Operational Privileges<br>
       <strong>Enabled Operations:</strong> Access to Overseas Deployment Projects, Candidate Profile Submissions, Milestone Tracking, and Payment Settlements.
     </div>
@@ -357,28 +945,25 @@ export const sendVendorActivationEmail = async ({
 </html>
   `;
 
-  const recipients = [to];
-  if (designatedRecipient && designatedRecipient !== to && !recipients.includes(designatedRecipient)) {
-    recipients.push(designatedRecipient);
-  }
-
   const mailOptions = {
     from: DEFAULT_FROM,
     to: recipients.join(", "),
     subject: `[ImmiGo] Vendor Account Activated: ${vendorName} (${vendorId})`,
     html: htmlContent,
-    text: `Dear ${vendorName},\n\nCongratulations! Your vendor partner account (${vendorId}) has been fully activated by ImmiGo Admin. You now have complete access to candidate deployment, overseas projects, and milestone management.\n\nPortal Access: ${loginUrl}\n\nBest regards,\nImmiGo Operations Team`,
+    text: `Dear ${vendorName},\n\nCongratulations! Your vendor partner account (${vendorId}) has been fully activated by ImmiGo Admin and your MOU${mouNumber ? ` (${mouNumber})` : ""} is officially approved. You now have complete access to candidate deployment, overseas projects, and milestone management.\n\nPortal Access: ${loginUrl}\n\nBest regards,\nImmiGo Operations Team`,
+    attachments,
   };
 
-  logger.info(`[VENDOR ACTIVATION EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId}`);
+  logger.info(`[VENDOR ACTIVATION EMAIL] Recipients: ${mailOptions.to} | Vendor: ${vendorId} | Attachments: ${attachments.length}`);
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated vendor activation email dispatched.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     logger.info(`Vendor activation email sent: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -1070,7 +1655,12 @@ export const sendCandidatePaymentReceiptEmail = async ({
 
 export default {
   sendOtpEmail,
+  sendVendorRegistrationConfirmationEmail,
   sendVendorRegistrationApprovedEmail,
+  sendVendorDocCorrectionEmail,
+  sendVendorDocsVerifiedAndMouIssuedEmail,
+  sendVendorMouSignedConfirmationEmail,
+  sendVendorMouCorrectionEmail,
   sendVendorActivationEmail,
   sendCredentialsEmail,
   sendStaffAccountCredentialsEmail,

@@ -7,7 +7,10 @@ import env from "../config/env.js";
 import { extractToken } from "../middleware/auth.middleware.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { sendCredentialsEmail } from "../services/email.service.js";
+import {
+  sendVendorRegistrationConfirmationEmail,
+  sendVendorMouSignedConfirmationEmail,
+} from "../services/email.service.js";
 import { requestAndSendOtp, verifyOtp } from "../services/otp.service.js";
 import { OTP_PURPOSES } from "../models/Otp.js";
 import { generateNextVendorId } from "../utils/idGenerator.js";
@@ -163,17 +166,16 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   });
 
   try {
-    await sendCredentialsEmail({
+    await sendVendorRegistrationConfirmationEmail({
       to: newVendor.email,
-      name: newVendor.contactPersonName || newVendor.companyName,
-      role: "Vendor Partner",
-      loginId: newVendor.email,
-      password: password,
-      portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
-      loginType: "Vendor Portal",
+      vendorName: newVendor.companyName,
+      contactPerson: newVendor.contactPersonName || newVendor.companyName,
+      vendorId: newVendor.vendorId,
+      loginEmail: newVendor.email,
+      portalUrl: process.env.FRONTEND_URL || "http://localhost:5173",
     });
   } catch (mailErr) {
-    console.error("Failed to dispatch vendor credentials email:", mailErr.message);
+    console.error("Failed to dispatch vendor registration confirmation email:", mailErr.message);
   }
 
   return res.status(201).json({
@@ -417,6 +419,19 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     status: "Pending MOU Approval",
     visibility: "ADMIN",
   });
+
+  try {
+    await sendVendorMouSignedConfirmationEmail({
+      to: vendor.email,
+      vendor,
+      signMethod: normalizedMethod,
+      signatoryName: vendor.signedMou?.signatoryName || signatoryName || vendor.contactPersonName,
+      designation: vendor.signedMou?.designation || designation || "Authorized Signatory",
+      portalUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+    });
+  } catch (mailErr) {
+    console.error("Failed to dispatch vendor MOU signed confirmation email:", mailErr.message);
+  }
 
   return res.status(200).json({
     message: "Signed MOU agreement submitted successfully. Status is pending Admin verification & approval.",
