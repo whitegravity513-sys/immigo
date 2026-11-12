@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import Client from "../models/Client.js";
 import Project from "../models/Project.js";
@@ -28,14 +29,39 @@ const getNextNumericMax = (prefix, values = []) => {
 const formatSeq = (prefix, num, pad = 3) =>
   `${prefix}${String(num).padStart(pad, "0")}`;
 
+const reserveNextSequence = async (counterKey, currentMax = 0) => {
+  try {
+    const col = mongoose.connection?.db?.collection("id_counters");
+    if (!col) return currentMax + 1;
+    const minBase = Math.max(0, Number(currentMax) || 0);
+    await col.updateOne(
+      { _id: counterKey },
+      { $max: { seq: minBase } },
+      { upsert: true }
+    );
+    const res = await col.findOneAndUpdate(
+      { _id: counterKey },
+      { $inc: { seq: 1 } },
+      { upsert: true, returnDocument: "after" }
+    );
+    const seq = Number(res?.value?.seq ?? res?.seq ?? 0);
+    return Number.isFinite(seq) && seq > minBase ? seq : minBase + 1;
+  } catch {
+    return currentMax + 1;
+  }
+};
+
 export const generateNextVendorId = async () => {
   const prefix = "IMMI-VE-";
   const regex = /^IMMI-VE-\d+$/i;
   const rows = await Vendor.find({ vendorId: regex }, { vendorId: 1 }).lean();
-  let nextNum = getNextNumericMax(prefix, rows.map((r) => r.vendorId)) + 1;
+  let nextNum = await reserveNextSequence(
+    "vendor_id",
+    getNextNumericMax(prefix, rows.map((r) => r.vendorId))
+  );
   let vendorId = formatSeq(prefix, nextNum, 3);
   while (await Vendor.exists({ vendorId })) {
-    nextNum++;
+    nextNum = await reserveNextSequence("vendor_id", nextNum);
     vendorId = formatSeq(prefix, nextNum, 3);
   }
   return vendorId;
@@ -54,7 +80,7 @@ export const generateNextProjectId = async () => {
       (Array.isArray(c.projects) ? c.projects : []).flatMap((p) => [p?.id, p?.projectId])
     ),
   ];
-  let nextNum = getNextNumericMax(prefix, existingVals) + 1;
+  let nextNum = await reserveNextSequence("project_id", getNextNumericMax(prefix, existingVals));
   let projectId = formatSeq(prefix, nextNum, 3);
   while (
     (await Project.exists({ projectId })) ||
@@ -62,7 +88,7 @@ export const generateNextProjectId = async () => {
       $or: [{ "projects.id": projectId }, { "projects.projectId": projectId }],
     }))
   ) {
-    nextNum++;
+    nextNum = await reserveNextSequence("project_id", nextNum);
     projectId = formatSeq(prefix, nextNum, 3);
   }
   return projectId;
@@ -83,13 +109,13 @@ export const generateNextCandidateId = async () => {
     ...appRows.map((r) => r.candidateId),
     ...crmAppRows.map((r) => r.candidateId),
   ];
-  let nextNum = getNextNumericMax(prefix, existingVals) + 1;
+  let nextNum = await reserveNextSequence("candidate_id", getNextNumericMax(prefix, existingVals));
   let candidateId = formatSeq(prefix, nextNum, 3);
   while (
     (await Candidate.exists({ candidateId })) ||
     (await CrmCandidate.exists({ candidateId }))
   ) {
-    nextNum++;
+    nextNum = await reserveNextSequence("candidate_id", nextNum);
     candidateId = formatSeq(prefix, nextNum, 3);
   }
   return candidateId;
@@ -111,7 +137,7 @@ export const generateNextMouId = async () => {
     r?.mouDocument?.mouNumber,
     r?.mouDocument?.refNumber,
   ]);
-  let nextNum = getNextNumericMax(prefix, existingVals) + 1;
+  let nextNum = await reserveNextSequence("mou_id", getNextNumericMax(prefix, existingVals));
   let mouNumber = formatSeq(prefix, nextNum, 3);
   while (
     await Vendor.exists({
@@ -121,7 +147,7 @@ export const generateNextMouId = async () => {
       ],
     })
   ) {
-    nextNum++;
+    nextNum = await reserveNextSequence("mou_id", nextNum);
     mouNumber = formatSeq(prefix, nextNum, 3);
   }
   return mouNumber;
@@ -131,10 +157,10 @@ export const generateNextHRId = async () => {
   const prefix = "IMMI-HR-";
   const regex = /^IMMI-HR-\d+$/i;
   const rows = await User.find({ hrId: regex }, { hrId: 1 }).lean();
-  let nextNum = getNextNumericMax(prefix, rows.map((r) => r.hrId)) + 1;
+  let nextNum = await reserveNextSequence("hr_id", getNextNumericMax(prefix, rows.map((r) => r.hrId)));
   let hrId = formatSeq(prefix, nextNum, 3);
   while (await User.exists({ hrId })) {
-    nextNum++;
+    nextNum = await reserveNextSequence("hr_id", nextNum);
     hrId = formatSeq(prefix, nextNum, 3);
   }
   return hrId;
@@ -150,18 +176,20 @@ export const generateNextClientId = async () => {
     Client.find({ clientId: regex }, { clientId: 1 }).lean(),
   ]);
 
-  let nextNum =
+  let nextNum = await reserveNextSequence(
+    `client_id_${yy}`,
     getNextNumericMax(prefix, [
       ...crmRows.map((r) => r.clientId),
       ...clientRows.map((r) => r.clientId),
-    ]) + 1;
+    ])
+  );
   let clientId = formatSeq(prefix, nextNum, 4);
 
   while (
     (await CrmOverseasClient.exists({ clientId })) ||
     (await Client.exists({ clientId }))
   ) {
-    nextNum++;
+    nextNum = await reserveNextSequence(`client_id_${yy}`, nextNum);
     clientId = formatSeq(prefix, nextNum, 4);
   }
   return clientId;
@@ -177,17 +205,19 @@ export const generateNextCandidateApplicationId = async () => {
     CrmCandidateApplication.find({ applicationId: regex }, { applicationId: 1 }).lean(),
   ]);
 
-  let nextNum =
+  let nextNum = await reserveNextSequence(
+    `application_id_${yy}`,
     getNextNumericMax(prefix, [
       ...appRows.map((r) => r.applicationId),
       ...crmAppRows.map((r) => r.applicationId),
-    ]) + 1;
+    ])
+  );
   let applicationId = formatSeq(prefix, nextNum, 4);
   while (
     (await CandidateApplication.exists({ applicationId })) ||
     (await CrmCandidateApplication.exists({ applicationId }))
   ) {
-    nextNum++;
+    nextNum = await reserveNextSequence(`application_id_${yy}`, nextNum);
     applicationId = formatSeq(prefix, nextNum, 4);
   }
   return applicationId;

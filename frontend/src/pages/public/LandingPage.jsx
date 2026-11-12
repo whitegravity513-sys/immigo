@@ -643,12 +643,7 @@ export default function LandingPage() {
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3 text-xs text-slate-700">
-                    <a
-                      href="https://maps.google.com/?q=Ozone+Arcade+Jupiter+Enclave+Sector+104+Gautam+Budh+Nagar+Uttar+Pradesh+201302"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="col-span-2 lg:col-span-1 flex items-start gap-2.5 sm:gap-3 min-w-0 p-2 rounded-xl hover:bg-white transition-colors border border-transparent hover:border-slate-200"
-                    >
+                    <div className="col-span-2 lg:col-span-1 flex items-start gap-2.5 sm:gap-3 min-w-0 p-2 rounded-xl border border-transparent">
                       <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
                         <MapPin size={15} />
                       </div>
@@ -658,7 +653,7 @@ export default function LandingPage() {
                           D 1, 4th Floor, Ozone Arcade, Jupiter Enclave, Sector 104, Gautam Budh Nagar, Uttar Pradesh - 201302
                         </span>
                       </div>
-                    </a>
+                    </div>
 
                     <a
                       href="tel:+919105921927"
@@ -906,17 +901,12 @@ export default function LandingPage() {
                 Corporate Address
               </span>
               <div className="space-y-1.5 text-[10.5px] sm:text-xs text-slate-300">
-                <a
-                  href="https://maps.google.com/?q=Ozone+Arcade+Jupiter+Enclave+Sector+104+Gautam+Budh+Nagar+Uttar+Pradesh+201302"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-start gap-1.5 hover:text-white transition-colors"
-                >
+                <div className="flex items-start gap-1.5">
                   <MapPin size={13} className="text-blue-400 shrink-0 mt-0.5" />
                   <span className="min-w-0 break-words leading-snug">
                     D 1, 4th Floor, Ozone Arcade, Jupiter Enclave, Sector 104, Gautam Budh Nagar, Uttar Pradesh - 201302
                   </span>
-                </a>
+                </div>
                 <a href="tel:+919105921927" className="flex items-center gap-1.5 hover:text-white transition-colors">
                   <Phone size={13} className="text-blue-400 shrink-0" />
                   <span className="min-w-0 break-words">+91 91059 21927 (Call)</span>
