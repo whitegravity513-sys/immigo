@@ -158,18 +158,16 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
                   <div
                     key={f.key}
                     onClick={() => toggleField(f.key)}
-                    className={`p-2 rounded-lg border text-xs cursor-pointer select-none transition-all flex items-center gap-2 ${
-                      isSelected
+                    className={`p-2 rounded-lg border text-xs cursor-pointer select-none transition-all flex items-center gap-2 ${isSelected
                         ? "bg-blue-50/80 border-blue-300 text-slate-900 font-semibold"
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 ${
-                        isSelected
+                      className={`w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 ${isSelected
                           ? "bg-blue-600 text-white"
                           : "border border-slate-300 bg-white"
-                      }`}
+                        }`}
                     >
                       {isSelected && <Check size={10} strokeWidth={3} />}
                     </div>

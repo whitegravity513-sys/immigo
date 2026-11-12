@@ -3,9 +3,25 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createEmployee = asyncHandler(async (req, res) => {
   const newEmployee = await EmployeeService.createEmployee(req.body, req.user);
+  const emailStatus = newEmployee?._emailStatus || {};
+  const recipientsStr = (emailStatus.recipients || []).join(", ");
+
+  let message = `Employee created successfully with ID: ${newEmployee.employeeId}`;
+  if (emailStatus.sent && recipientsStr) {
+    message = `Employee created successfully with ID: ${newEmployee.employeeId}. Credentials emailed to ${recipientsStr}.`;
+  } else if (emailStatus.simulated) {
+    message = `Employee created with ID: ${newEmployee.employeeId}. (SMTP credentials missing — email simulated on server.)`;
+  } else if (emailStatus.attempted && !emailStatus.sent) {
+    message = `Employee created with ID: ${newEmployee.employeeId}, but credentials email could not be delivered (${emailStatus.error || "SMTP authentication failed"}).`;
+  }
+
   return res.status(201).json({
-    message: `Employee created successfully with ID: ${newEmployee.employeeId}`,
+    message,
     employee: newEmployee,
+    emailSent: Boolean(emailStatus.sent),
+    emailSimulated: Boolean(emailStatus.simulated),
+    emailError: emailStatus.error || "",
+    emailRecipients: emailStatus.recipients || [],
   });
 });
 
@@ -21,9 +37,53 @@ export const getEmployees = asyncHandler(async (req, res) => {
 
 export const updateEmployee = asyncHandler(async (req, res) => {
   const employee = await EmployeeService.updateEmployee(req.params.id, req.body);
+  const emailStatus = employee?._emailStatus || {};
+  const recipientsStr = (emailStatus.recipients || []).join(", ");
+
+  let message = "Employee updated successfully";
+  if (emailStatus.attempted) {
+    if (emailStatus.sent && recipientsStr) {
+      message = `Employee updated and credentials emailed to ${recipientsStr}.`;
+    } else if (emailStatus.simulated) {
+      message = "Employee updated. (SMTP credentials missing — credentials email simulated.)";
+    } else {
+      message = `Employee updated, but credentials email delivery failed (${emailStatus.error || "SMTP error"}).`;
+    }
+  }
+
   return res.status(200).json({
-    message: "Employee updated successfully",
+    message,
     employee,
+    emailAttempted: Boolean(emailStatus.attempted),
+    emailSent: Boolean(emailStatus.sent),
+    emailSimulated: Boolean(emailStatus.simulated),
+    emailError: emailStatus.error || "",
+    emailRecipients: emailStatus.recipients || [],
+  });
+});
+
+export const resendEmployeeCredentials = asyncHandler(async (req, res) => {
+  const result = await EmployeeService.resendCredentials(req.params.id);
+  const recipientsStr = (result.recipients || []).join(", ");
+
+  if (!result.sent && !result.simulated) {
+    return res.status(502).json({
+      success: false,
+      message: `Failed to send credentials email to ${recipientsStr || "employee"}: ${result.error || "SMTP authentication error"}`,
+      emailSent: false,
+      emailError: result.error || "SMTP authentication error",
+      emailRecipients: result.recipients || [],
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: result.sent
+      ? `Credentials email sent successfully to ${recipientsStr}.`
+      : `SMTP not configured on server; email dispatch simulated for ${recipientsStr}.`,
+    emailSent: Boolean(result.sent),
+    emailSimulated: Boolean(result.simulated),
+    emailRecipients: result.recipients || [],
   });
 });
 
@@ -111,6 +171,7 @@ export default {
   getNextEmployeeId,
   getEmployees,
   updateEmployee,
+  resendEmployeeCredentials,
   deactivateEmployee,
   deleteEmployee,
   setLeaveBalance,

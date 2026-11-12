@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, UserMinus, UserCheck, Trash2, MoreVertical, Eye } from "lucide-react";
+import { Edit, UserMinus, UserCheck, Trash2, MoreVertical, Eye, Mail } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
 import DeleteConfirmModal from "../common/DeleteConfirmModal.jsx";
 import employeeService from "../../services/employeeService.js";
@@ -10,6 +10,7 @@ export default function EmployeesDirectorySection({
   formatDate,
   handleEditClick,
   handleDeactivateEmployee,
+  handleResendCredentials,
   onRefresh,
 }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -188,6 +189,20 @@ export default function EmployeesDirectorySection({
                                 <Edit size={12} className="text-slate-600 shrink-0" />
                                 <span>Edit Employee</span>
                               </button>
+                              {handleResendCredentials && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActionOpenId(null);
+                                    handleResendCredentials(emp);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-indigo-50 text-indigo-700 transition-colors cursor-pointer border-t border-slate-100"
+                                >
+                                  <Mail size={12} className="text-indigo-600 shrink-0" />
+                                  <span>Resend Credentials</span>
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 onClick={(e) => {

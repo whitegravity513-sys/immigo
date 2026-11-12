@@ -196,12 +196,20 @@ export class EmployeeService {
       documents: formattedDocs,
     });
 
-    try {
-      const recipientEmails = [];
-      if (cleanPersonalEmail) recipientEmails.push(cleanPersonalEmail);
-      if (cleanEmail && !recipientEmails.includes(cleanEmail)) recipientEmails.push(cleanEmail);
+    const recipientEmails = [];
+    if (cleanPersonalEmail) recipientEmails.push(cleanPersonalEmail);
+    if (cleanEmail && !recipientEmails.includes(cleanEmail)) recipientEmails.push(cleanEmail);
 
-      await sendCredentialsEmail({
+    let emailStatus = {
+      attempted: true,
+      sent: false,
+      simulated: false,
+      error: "",
+      recipients: recipientEmails,
+    };
+
+    try {
+      const mailRes = await sendCredentialsEmail({
         to: recipientEmails.length > 0 ? recipientEmails : cleanEmail,
         name: name.trim(),
         role: designation || role || "Employee",
@@ -212,7 +220,15 @@ export class EmployeeService {
         portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`,
         loginType: "Employee Portal",
       });
+      emailStatus = {
+        attempted: true,
+        sent: Boolean(mailRes?.success && !mailRes?.simulated),
+        simulated: Boolean(mailRes?.simulated),
+        error: mailRes?.error || "",
+        recipients: mailRes?.recipients || recipientEmails,
+      };
     } catch (mailErr) {
+      emailStatus.error = mailErr?.message || "Failed to dispatch email";
       console.error("Failed to send employee credentials email:", mailErr.message);
     }
 
@@ -231,7 +247,9 @@ export class EmployeeService {
       console.warn("Notification notice:", notifErr?.message);
     }
 
-    return this.formatEmployee(newEmployee);
+    const formatted = this.formatEmployee(newEmployee);
+    Object.defineProperty(formatted, "_emailStatus", { value: emailStatus, enumerable: false });
+    return formatted;
   }
 
   static async getEmployees() {
@@ -277,11 +295,13 @@ export class EmployeeService {
       throw new ApiError(404, "Employee not found");
     }
 
+    const prevPersonalEmail = emp.personalEmail || "";
     if (name) emp.name = name.trim();
     if (email) emp.email = email.trim().toLowerCase();
     if (personalEmail !== undefined) {
       emp.personalEmail = personalEmail ? personalEmail.trim().toLowerCase() : "";
     }
+    const personalEmailAddedOrChanged = Boolean(emp.personalEmail && emp.personalEmail !== prevPersonalEmail);
     let passwordUpdated = false;
     const trimmedPassword = password !== undefined && password !== null ? String(password).trim() : "";
     if (trimmedPassword && trimmedPassword !== (emp.rawPassword || "")) {
@@ -314,31 +334,52 @@ export class EmployeeService {
 
     await emp.save();
 
-    if (passwordUpdated) {
-      try {
-        const recipientEmails = [];
-        if (emp.personalEmail) recipientEmails.push(emp.personalEmail);
-        if (emp.email && !recipientEmails.includes(emp.email)) recipientEmails.push(emp.email);
-        if (recipientEmails.length > 0) {
-          await sendCredentialsEmail({
+    let emailStatus = {
+      attempted: false,
+      sent: false,
+      simulated: false,
+      error: "",
+      recipients: [],
+    };
+
+    const passwordForEmail = passwordUpdated ? trimmedPassword : emp.rawPassword || "";
+    if ((passwordUpdated || personalEmailAddedOrChanged) && passwordForEmail) {
+      const recipientEmails = [];
+      if (emp.personalEmail) recipientEmails.push(emp.personalEmail);
+      if (emp.email && !recipientEmails.includes(emp.email)) recipientEmails.push(emp.email);
+      if (recipientEmails.length > 0) {
+        emailStatus.attempted = true;
+        emailStatus.recipients = recipientEmails;
+        try {
+          const mailRes = await sendCredentialsEmail({
             to: recipientEmails,
             name: emp.name,
             role: emp.designation || emp.role || "Employee",
             loginId: emp.employeeId,
             email: emp.email,
-            password: trimmedPassword,
+            password: passwordForEmail,
             department: emp.department || "",
             portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`,
             loginType: "Employee Portal",
-            isPasswordReset: true,
+            isPasswordReset: passwordUpdated,
           });
+          emailStatus = {
+            attempted: true,
+            sent: Boolean(mailRes?.success && !mailRes?.simulated),
+            simulated: Boolean(mailRes?.simulated),
+            error: mailRes?.error || "",
+            recipients: mailRes?.recipients || recipientEmails,
+          };
+        } catch (mailErr) {
+          emailStatus.error = mailErr?.message || "Failed to dispatch email";
+          console.error("Failed to send updated employee credentials email:", mailErr.message);
         }
-      } catch (mailErr) {
-        console.error("Failed to send updated employee credentials email:", mailErr.message);
       }
     }
 
-    return this.formatEmployee(emp);
+    const formatted = this.formatEmployee(emp);
+    Object.defineProperty(formatted, "_emailStatus", { value: emailStatus, enumerable: false });
+    return formatted;
   }
 
   static async toggleStatus(id, targetStatus = null) {
@@ -967,6 +1008,52 @@ export class EmployeeService {
     }
 
     return this.formatEmployee(emp);
+  }
+
+  static async resendCredentials(id) {
+    const cleanId = cleanObjectId(id);
+    if (!cleanId) {
+      throw new ApiError(404, "Employee not found");
+    }
+    const emp = await Employee.findById(cleanId).select("+rawPassword");
+    if (!emp) {
+      throw new ApiError(404, "Employee not found");
+    }
+    if (!emp.rawPassword) {
+      throw new ApiError(
+        400,
+        "Plain-text password is not available for this employee. Please set a new password via Edit Employee."
+      );
+    }
+
+    const recipientEmails = [];
+    if (emp.personalEmail) recipientEmails.push(emp.personalEmail);
+    if (emp.email && !recipientEmails.includes(emp.email)) recipientEmails.push(emp.email);
+    if (recipientEmails.length === 0) {
+      throw new ApiError(400, "No email address found on this employee profile.");
+    }
+
+    const mailRes = await sendCredentialsEmail({
+      to: recipientEmails,
+      name: emp.name,
+      role: emp.designation || emp.role || "Employee",
+      loginId: emp.employeeId,
+      email: emp.email,
+      password: emp.rawPassword,
+      department: emp.department || "",
+      portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`,
+      loginType: "Employee Portal",
+    });
+
+    const sent = Boolean(mailRes?.success && !mailRes?.simulated);
+    const simulated = Boolean(mailRes?.simulated);
+    const recipients = mailRes?.recipients || recipientEmails;
+    return {
+      sent,
+      simulated,
+      error: mailRes?.error || "",
+      recipients,
+    };
   }
 
   static async deleteDocument(id, docId) {

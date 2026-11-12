@@ -148,6 +148,7 @@ function AdminDashboard({ user, token, onLogout }) {
     handleDeactivateEmployee,
     handleEditClick,
     handleUpdateEmployeeSubmit,
+    handleResendEmployeeCredentials,
     openLeaveActionModal,
     handleSubmitLeaveAction,
     handleDirectLeaveAction,
@@ -201,6 +202,8 @@ function AdminDashboard({ user, token, onLogout }) {
       formatDate={formatDate}
       handleEditClick={handleEditClick}
       handleDeactivateEmployee={handleDeactivateEmployee}
+      handleResendCredentials={handleResendEmployeeCredentials}
+      onRefresh={fetchAdminReports}
     />
   );
 

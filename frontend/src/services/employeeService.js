@@ -62,6 +62,11 @@ export const updateEmployee = async (id, payload) => {
   return res.data;
 };
 
+export const resendEmployeeCredentials = async (id) => {
+  const res = await apiClient.post(`/admin/employee/${id}/resend-credentials`);
+  return res.data;
+};
+
 export const deactivateEmployee = async (id, status = null) => {
   const payload = status ? { status } : {};
   const res = await apiClient.put(`/admin/employee/deactivate/${id}`, payload);
@@ -90,6 +95,7 @@ export default {
   getEmployeeMonthlyReport,
   createEmployee,
   updateEmployee,
+  resendEmployeeCredentials,
   deactivateEmployee,
   toggleEmployeeStatus,
   deleteEmployee,

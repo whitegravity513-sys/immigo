@@ -22,11 +22,11 @@ import {
 export default function ForgotPasswordOtpModal({
   isOpen,
   onClose,
-  role = "admin", 
+  role = "admin",
   initialEmail = "",
   onSuccess,
 }) {
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -78,8 +78,8 @@ export default function ForgotPasswordOtpModal({
         isVendor
           ? "Please enter your registered email or Vendor ID."
           : isSuperAdmin
-          ? "Please enter your Super Administrator email address."
-          : "Please enter your administrator email address."
+            ? "Please enter your Super Administrator email address."
+            : "Please enter your administrator email address."
       );
       return;
     }

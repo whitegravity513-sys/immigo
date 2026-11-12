@@ -4,6 +4,7 @@ import {
   getNextEmployeeId,
   getEmployees,
   updateEmployee,
+  resendEmployeeCredentials,
   deactivateEmployee,
   deleteEmployee,
   setLeaveBalance,
@@ -25,6 +26,7 @@ router.get("/employee/list", requirePermission("employees.view"), getEmployees);
 router.get("/employees", requirePermission("employees.view"), getEmployees);
 router.put("/employee/update/:id", requirePermission("employees.update"), updateEmployee);
 router.put("/employee/:id", requirePermission("employees.update"), updateEmployee);
+router.post("/employee/:id/resend-credentials", requirePermission("employees.update"), resendEmployeeCredentials);
 router.delete("/employee/:id", requirePermission("employees.delete"), deleteEmployee);
 router.put("/employee/deactivate/:id", requirePermission("employees.update"), deactivateEmployee);
 router.put("/employee/:id/leave-balance", requirePermission("employees.update"), setLeaveBalance);

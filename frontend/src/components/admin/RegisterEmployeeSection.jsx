@@ -312,7 +312,7 @@ export const RegisterEmployeeSection = ({
                   }
                   className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition font-medium"
                 />
-                <span className="text-[10px] text-slate-400">Personal ID for records</span>
+                <span className="text-[10px] text-slate-400">Credentials will also be emailed to this ID</span>
               </div>
 
               <div className="space-y-1">

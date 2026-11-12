@@ -25,16 +25,16 @@ export default function DashboardMeetingWidget({
   );
   const isVendorHRUser = Boolean(
     !isVendorUser &&
-      (user?.hrType === "VENDOR_HR" ||
-        String(role || authRole || "").toUpperCase() === "VENDOR_HR")
+    (user?.hrType === "VENDOR_HR" ||
+      String(role || authRole || "").toUpperCase() === "VENDOR_HR")
   );
   const fullCalendarLink = isVendorUser
     ? "/vendor/meetings"
     : isVendorHRUser
-    ? "/vendor-hr/dashboard?view=meetings"
-    : isHR
-    ? "/hr/meetings"
-    : "/admin/meetings";
+      ? "/vendor-hr/dashboard?view=meetings"
+      : isHR
+        ? "/hr/meetings"
+        : "/admin/meetings";
 
   const todayDate = new Date();
   const todayStr = todayDate.toISOString().split("T")[0];
@@ -55,8 +55,8 @@ export default function DashboardMeetingWidget({
     meetingType: isVendorUser
       ? "INTERNAL_HR"
       : isVendorHRUser
-      ? "ADMIN_DISCUSSION"
-      : "CANDIDATE_INTERVIEW",
+        ? "ADMIN_DISCUSSION"
+        : "CANDIDATE_INTERVIEW",
     platform: "Google Meet",
     date: todayStr,
     startTime: "11:00",
@@ -204,9 +204,8 @@ export default function DashboardMeetingWidget({
         candidateEmail: cand.candidateEmail || "",
         vendorId: cand.vendorId || "",
         vendorName: cand.vendorName || "",
-        title: `Interview: ${cand.candidateName}${
-          cand.jobTitle ? ` - ${cand.jobTitle}` : ""
-        }`,
+        title: `Interview: ${cand.candidateName}${cand.jobTitle ? ` - ${cand.jobTitle}` : ""
+          }`,
       }));
     }
   };
@@ -224,10 +223,10 @@ export default function DashboardMeetingWidget({
       const list = Array.isArray(resMeetings)
         ? resMeetings
         : Array.isArray(resMeetings?.meetings)
-        ? resMeetings.meetings
-        : Array.isArray(resMeetings?.data)
-        ? resMeetings.data
-        : [];
+          ? resMeetings.meetings
+          : Array.isArray(resMeetings?.data)
+            ? resMeetings.data
+            : [];
 
       setMeetings(list);
       if (resStats?.stats) {
@@ -283,20 +282,20 @@ export default function DashboardMeetingWidget({
       const targetEmployees = isVendorUser
         ? []
         : selectedParticipants
-            .filter((p) => p.role === "EMPLOYEE" || effectiveMeetingType === "EMPLOYEE")
-            .map((p) => p.id || p._id);
+          .filter((p) => p.role === "EMPLOYEE" || effectiveMeetingType === "EMPLOYEE")
+          .map((p) => p.id || p._id);
 
       const targetAdmins = isVendorUser
         ? []
         : selectedParticipants
-            .filter(
-              (p) =>
-                p.role === "ADMIN" ||
-                p.role === "SUPER_ADMIN" ||
-                effectiveMeetingType === "ADMIN_DISCUSSION"
-            )
-            .map((p) => p.id || p._id)
-            .filter(Boolean);
+          .filter(
+            (p) =>
+              p.role === "ADMIN" ||
+              p.role === "SUPER_ADMIN" ||
+              effectiveMeetingType === "ADMIN_DISCUSSION"
+          )
+          .map((p) => p.id || p._id)
+          .filter(Boolean);
 
       if (
         !isVendorUser &&
@@ -313,8 +312,8 @@ export default function DashboardMeetingWidget({
       const targetVendors = isVendorUser
         ? [vendorSelfId].filter(Boolean)
         : selectedParticipants
-            .filter((p) => p.role === "VENDOR" || effectiveMeetingType === "VENDOR_DISCUSSION")
-            .map((p) => p.code || p.id || p.vendorId);
+          .filter((p) => p.role === "VENDOR" || effectiveMeetingType === "VENDOR_DISCUSSION")
+          .map((p) => p.code || p.id || p.vendorId);
 
       if (
         !isVendorUser &&
@@ -388,19 +387,19 @@ export default function DashboardMeetingWidget({
         vendorId: isVendorUser
           ? vendorSelfId
           : effectiveMeetingType === "CANDIDATE_INTERVIEW"
-          ? candidateData.vendorId || formData.vendorId || ""
-          : effectiveMeetingType === "VENDOR_DISCUSSION"
-          ? targetVendors.length === 1
-            ? targetVendors[0]
-            : ""
-          : "",
+            ? candidateData.vendorId || formData.vendorId || ""
+            : effectiveMeetingType === "VENDOR_DISCUSSION"
+              ? targetVendors.length === 1
+                ? targetVendors[0]
+                : ""
+              : "",
         vendorName: isVendorUser
           ? user?.companyName || formData.vendorName || ""
           : effectiveMeetingType === "CANDIDATE_INTERVIEW"
-          ? candidateData.vendorName || formData.vendorName || ""
-          : singleVendorParticipant
-          ? singleVendorParticipant.companyName || singleVendorParticipant.name || ""
-          : "",
+            ? candidateData.vendorName || formData.vendorName || ""
+            : singleVendorParticipant
+              ? singleVendorParticipant.companyName || singleVendorParticipant.name || ""
+              : "",
       };
 
       await meetingService.createMeeting(payload);
@@ -410,8 +409,8 @@ export default function DashboardMeetingWidget({
         meetingType: isVendorUser
           ? "INTERNAL_HR"
           : isVendorHRUser
-          ? "ADMIN_DISCUSSION"
-          : "CANDIDATE_INTERVIEW",
+            ? "ADMIN_DISCUSSION"
+            : "CANDIDATE_INTERVIEW",
         platform: "Google Meet",
         date: todayStr,
         startTime: "11:00",
@@ -476,18 +475,16 @@ export default function DashboardMeetingWidget({
             <button
               type="button"
               onClick={() => setSelectedDate(todayStr)}
-              className={`px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer ${
-                selectedDate === todayStr ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"
-              }`}
+              className={`px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer ${selectedDate === todayStr ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"
+                }`}
             >
               Today
             </button>
             <button
               type="button"
               onClick={() => setSelectedDate(tomorrowStr)}
-              className={`px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer ${
-                selectedDate === tomorrowStr ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"
-              }`}
+              className={`px-2.5 py-1 rounded-md text-[11px] transition-colors cursor-pointer ${selectedDate === tomorrowStr ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"
+                }`}
             >
               Tomorrow
             </button>
@@ -559,13 +556,12 @@ export default function DashboardMeetingWidget({
                         {m.title}
                       </h4>
                       <span
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase shrink-0 ${
-                          isCancelled
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase shrink-0 ${isCancelled
                             ? "bg-rose-100 text-rose-700"
                             : isCompleted
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
                       >
                         {m.status || "SCHEDULED"}
                       </span>
@@ -594,14 +590,14 @@ export default function DashboardMeetingWidget({
                             (Array.isArray(m.attendees) && m.attendees.length > 0
                               ? m.attendees.map((a) => a.name || a.companyName).filter(Boolean).join(", ")
                               : m.meetingType === "ADMIN_DISCUSSION"
-                              ? "All Admins / Super Admins"
-                              : m.meetingType === "VENDOR_DISCUSSION" && m.targetType === "ALL"
-                              ? "All Vendor Agencies"
-                              : m.meetingType === "INTERNAL_HR" && m.targetType === "ALL"
-                              ? "All HR Coordinators"
-                              : m.targetType === "ALL"
-                              ? "All Members"
-                              : "Invited Participants")}
+                                ? "All Admins / Super Admins"
+                                : m.meetingType === "VENDOR_DISCUSSION" && m.targetType === "ALL"
+                                  ? "All Vendor Agencies"
+                                  : m.meetingType === "INTERNAL_HR" && m.targetType === "ALL"
+                                    ? "All HR Coordinators"
+                                    : m.targetType === "ALL"
+                                      ? "All Members"
+                                      : "Invited Participants")}
                         </span>
                       </div>
                       {m.projectName && !isVendorHRUser && (

@@ -7,14 +7,15 @@ import { UPLOAD_ROOT } from "../utils/fileStorage.js";
 import { generateMouPdfBuffer } from "../utils/mouPdfGenerator.js";
 
 const createTransporter = () => {
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT || 465);
-  const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : "";
-  const rawPass = process.env.SMTP_PASS;
-  const pass = rawPass ? rawPass.trim().replace(/\s+/g, "") : "";
+  const host = (process.env.SMTP_HOST || process.env.EMAIL_HOST || "smtp.gmail.com").trim();
+  const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 465);
+  const rawUser = process.env.SMTP_USER || process.env.EMAIL_USER || "";
+  const user = rawUser ? String(rawUser).trim() : "";
+  const rawPass = process.env.SMTP_PASS || process.env.EMAIL_PASS || "";
+  const pass = rawPass ? String(rawPass).trim().replace(/\s+/g, "") : "";
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
-  if (!user || user === "your_email@gmail.com") {
+  if (!user || !pass || user === "your_email@gmail.com" || pass === "your_gmail_app_password_here") {
     logger.warn("SMTP credentials not fully configured in .env. Falling back to development console mode.");
     return null;
   }
@@ -37,7 +38,13 @@ export const getTransporter = () => {
   }
   return transporter;
 };
-const DEFAULT_FROM = process.env.EMAIL_FROM || '"ImmiGo" <abhishekyadav36219@gmail.com>';
+const getDefaultFrom = () => {
+  const configuredFrom = process.env.EMAIL_FROM ? String(process.env.EMAIL_FROM).trim() : "";
+  if (configuredFrom) return configuredFrom;
+  const smtpUser = String(process.env.SMTP_USER || process.env.EMAIL_USER || "").trim();
+  return smtpUser ? `"ImmiGo" <${smtpUser}>` : '"ImmiGo" <abhishekyadav36219@gmail.com>';
+};
+const DEFAULT_FROM = getDefaultFrom();
 
 const escapeHtml = (value) =>
   String(value ?? "")
@@ -1082,14 +1089,22 @@ export const sendCredentialsEmail = async ({
 </html>
   `;
 
-  const recipients = Array.isArray(to) ? to.filter(Boolean) : to ? [to] : [];
-  if (designatedRecipient && !recipients.includes(designatedRecipient)) {
-    recipients.push(designatedRecipient);
-  }
+  const rawRecipients = Array.isArray(to) ? to : to ? [to] : [];
+  const recipients = Array.from(
+    new Set(
+      rawRecipients
+        .map((r) => String(r || "").trim().toLowerCase())
+        .filter((r) => r && r.includes("@"))
+    )
+  );
+  const cleanDesignated = designatedRecipient ? String(designatedRecipient).trim().toLowerCase() : "";
+  const bccRecipients =
+    cleanDesignated && !recipients.includes(cleanDesignated) ? [cleanDesignated] : [];
 
   const mailOptions = {
     from: DEFAULT_FROM,
     to: recipients.join(", "),
+    ...(bccRecipients.length > 0 ? { bcc: bccRecipients.join(", ") } : {}),
     subject: isPasswordReset
       ? `[ImmiGo] Updated Account Credentials & Access Details (${loginType})`
       : `[ImmiGo] Official Account Credentials & Access Details (${loginType})`,
@@ -1102,16 +1117,16 @@ export const sendCredentialsEmail = async ({
   const activeTransporter = getTransporter();
   if (!activeTransporter) {
     logger.info("Transporter not active. Simulated credentials email dispatched.");
-    return { success: true, simulated: true };
+    return { success: true, simulated: true, recipients };
   }
 
   try {
     const info = await activeTransporter.sendMail(mailOptions);
     logger.info(`Credentials email sent: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: info.messageId, recipients };
   } catch (error) {
     logger.error("Failed to send credentials email:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message, recipients };
   }
 };
 

@@ -530,7 +530,12 @@ export const useAdminDashboard = (user, token, navigate, location, view) => {
         phone: cleanPhone,
       };
       const r = await apiClient.post("/admin/employee/create", payload);
-      setSuccessMsg(r.data.message || "Employee created successfully!");
+      if (r.data?.emailSent === false && r.data?.emailError) {
+        setSuccessMsg("");
+        setErrorMsg(r.data.message);
+      } else {
+        setSuccessMsg(r.data.message || "Employee created successfully!");
+      }
       setEmployeeForm({
         name: "",
         email: "",
@@ -621,12 +626,33 @@ export const useAdminDashboard = (user, token, navigate, location, view) => {
     setErrorMsg("");
     try {
       const r = await apiClient.put(`/admin/employee/update/${editingEmployee._id}`, editForm);
-      setSuccessMsg(r.data.message || "Employee updated successfully");
+      if (r.data?.emailAttempted && r.data?.emailSent === false && r.data?.emailError) {
+        setSuccessMsg("");
+        setErrorMsg(r.data.message);
+      } else {
+        setSuccessMsg(r.data.message || "Employee updated successfully");
+      }
       setEditingEmployee(null);
       fetchAdminReports();
       navigateTo("employees");
     } catch (err) {
       setErrorMsg(err.response?.data?.message || "Failed to update employee.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendEmployeeCredentials = async (emp) => {
+    const empId = emp?._id || emp?.id;
+    if (!empId) return;
+    setLoading(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+    try {
+      const r = await apiClient.post(`/admin/employee/${empId}/resend-credentials`);
+      setSuccessMsg(r.data?.message || `Credentials emailed to ${emp.personalEmail || emp.email}`);
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || "Failed to resend employee credentials email.");
     } finally {
       setLoading(false);
     }
@@ -773,6 +799,7 @@ export const useAdminDashboard = (user, token, navigate, location, view) => {
     handleDeactivateEmployee,
     handleEditClick,
     handleUpdateEmployeeSubmit,
+    handleResendEmployeeCredentials,
     openLeaveActionModal,
     handleSubmitLeaveAction,
     handleDirectLeaveAction,

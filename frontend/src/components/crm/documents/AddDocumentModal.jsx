@@ -172,17 +172,17 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
               {(formData.type === "Other Document" ||
                 formData.type === "Other Compliance Document" ||
                 formData.type === "Other") && (
-                <InputField
-                  label="Document Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="e.g. Police Clearance, Certificate..."
-                  required
-                  error={errors.name}
-                  helperText="Enter the name for this custom document"
-                />
-              )}
+                  <InputField
+                    label="Document Name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="e.g. Police Clearance, Certificate..."
+                    required
+                    error={errors.name}
+                    helperText="Enter the name for this custom document"
+                  />
+                )}
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-700 tracking-wide">

@@ -24,10 +24,10 @@ const buildMilestonesState = (application) => {
     synced.length > 0
       ? synced
       : application.processMilestones?.length > 0
-      ? application.processMilestones
-      : application.paymentPlan?.milestones?.length > 0
-      ? application.paymentPlan.milestones
-      : [];
+        ? application.processMilestones
+        : application.paymentPlan?.milestones?.length > 0
+          ? application.paymentPlan.milestones
+          : [];
 
   if (rawMilestones.length === 0) {
     return { totalAmount: 0, milestones: [] };
@@ -49,8 +49,8 @@ const buildMilestonesState = (application) => {
       m.stages && m.stages.length > 0
         ? m.stages
         : pm?.stages && pm.stages.length > 0
-        ? pm.stages
-        : [
+          ? pm.stages
+          : [
             { id: `s${idx}_1`, name: "Skill & Document Clearance", status: "Locked" },
             { id: `s${idx}_2`, name: "Processing Step", status: "Locked" },
           ];
@@ -59,8 +59,8 @@ const buildMilestonesState = (application) => {
       m.percentage !== undefined
         ? Number(m.percentage) || 0
         : resolvedTotal > 0
-        ? Math.round((amt / resolvedTotal) * 100)
-        : 0;
+          ? Math.round((amt / resolvedTotal) * 100)
+          : 0;
 
     return {
       ...m,
@@ -467,13 +467,12 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               </button>
             </div>
 
-            <div className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold ${
-              diffAmount === 0 
+            <div className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-semibold ${diffAmount === 0
                 ? "bg-emerald-50 border-emerald-200 text-emerald-800"
                 : diffAmount > 0
-                ? "bg-amber-50 border-amber-200 text-amber-800"
-                : "bg-rose-50 border-rose-200 text-rose-800"
-            }`}>
+                  ? "bg-amber-50 border-amber-200 text-amber-800"
+                  : "bg-rose-50 border-rose-200 text-rose-800"
+              }`}>
               <div className="flex items-center gap-1.5">
                 {diffAmount === 0 ? (
                   <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
@@ -484,8 +483,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   {diffAmount === 0
                     ? `✓ Exact Match: Total fee (₹${totalAmount.toLocaleString()}) matches sum of all ${milestones.length} milestones.`
                     : diffAmount > 0
-                    ? `Remaining to allocate: ₹${diffAmount.toLocaleString()} (Total Fee: ₹${totalAmount.toLocaleString()})`
-                    : `Milestone sum exceeds Total Fee by ₹${Math.abs(diffAmount).toLocaleString()}`}
+                      ? `Remaining to allocate: ₹${diffAmount.toLocaleString()} (Total Fee: ₹${totalAmount.toLocaleString()})`
+                      : `Milestone sum exceeds Total Fee by ₹${Math.abs(diffAmount).toLocaleString()}`}
                 </span>
               </div>
               {diffAmount !== 0 && (
@@ -529,11 +528,10 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                       <select
                         value={m.status || "Pending"}
                         onChange={(e) => handleMilestoneChange(mIdx, "status", e.target.value)}
-                        className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border cursor-pointer focus:outline-none ${
-                          m.status === "Paid"
+                        className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border cursor-pointer focus:outline-none ${m.status === "Paid"
                             ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                             : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
+                          }`}
                       >
                         <option value="Payment Required">Payment Required</option>
                         <option value="Pending">Pending</option>

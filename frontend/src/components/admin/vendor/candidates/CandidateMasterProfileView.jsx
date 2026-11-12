@@ -283,13 +283,12 @@ export default function CandidateMasterProfileView({
               return (
                 <div
                   key={idx}
-                  className={`p-4 rounded-xl border transition space-y-3 ${
-                    isVerified
+                  className={`p-4 rounded-xl border transition space-y-3 ${isVerified
                       ? "border-emerald-200 bg-emerald-50/30"
                       : isRejected
-                      ? "border-rose-200 bg-rose-50/30"
-                      : "border-slate-200 bg-slate-50/70"
-                  }`}
+                        ? "border-rose-200 bg-rose-50/30"
+                        : "border-slate-200 bg-slate-50/70"
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -481,12 +480,12 @@ export default function CandidateMasterProfileView({
               const canReassignSub = REASSIGN_ELIGIBLE_REFUND_STATUSES.has(subRefundStatus);
               const resolvedSubMilestones = !sub.milestonesOverridden
                 ? crmVendorService.syncAppMilestonesWithProject(sub) ||
-                  sub.processMilestones ||
-                  sub.paymentPlan?.milestones ||
-                  []
+                sub.processMilestones ||
+                sub.paymentPlan?.milestones ||
+                []
                 : sub.processMilestones?.length > 0
-                ? sub.processMilestones
-                : sub.paymentPlan?.milestones || [];
+                  ? sub.processMilestones
+                  : sub.paymentPlan?.milestones || [];
               const resolvedTotal = resolvedSubMilestones.reduce(
                 (sum, ms) => sum + Number(ms.paymentAmount ?? ms.amount ?? 0),
                 0
@@ -495,19 +494,18 @@ export default function CandidateMasterProfileView({
               return (
                 <div
                   key={subId}
-                  className={`rounded-xl border transition overflow-hidden ${
-                    isSelected
+                  className={`rounded-xl border transition overflow-hidden ${isSelected
                       ? "bg-emerald-50/50 border-emerald-200"
                       : isShortlisted
-                      ? "bg-indigo-50/50 border-indigo-200"
-                      : isInterview
-                      ? "bg-purple-50/50 border-purple-200"
-                      : isRejected
-                      ? "bg-rose-50/50 border-rose-200"
-                      : isOnHold
-                      ? "bg-amber-50/50 border-amber-200"
-                      : "bg-slate-50 border-slate-200"
-                  }`}
+                        ? "bg-indigo-50/50 border-indigo-200"
+                        : isInterview
+                          ? "bg-purple-50/50 border-purple-200"
+                          : isRejected
+                            ? "bg-rose-50/50 border-rose-200"
+                            : isOnHold
+                              ? "bg-amber-50/50 border-amber-200"
+                              : "bg-slate-50 border-slate-200"
+                    }`}
                 >
                   <div className="p-5">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -807,8 +805,8 @@ export default function CandidateMasterProfileView({
                                 const msStatusLabel = isPaid
                                   ? "Paid"
                                   : isSub
-                                  ? "Submitted"
-                                  : ms.paymentStatus || ms.status || "Pending";
+                                    ? "Submitted"
+                                    : ms.paymentStatus || ms.status || "Pending";
 
                                 return (
                                   <button
@@ -820,17 +818,15 @@ export default function CandidateMasterProfileView({
                                         setConfigureMilestonesModal({ application: sub });
                                       }
                                     }}
-                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${
-                                      subRefundLocked ? "opacity-75 cursor-not-allowed" : "cursor-pointer hover:shadow-xs"
-                                    } ${
-                                      isPaid
+                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${subRefundLocked ? "opacity-75 cursor-not-allowed" : "cursor-pointer hover:shadow-xs"
+                                      } ${isPaid
                                         ? "bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100"
                                         : isSub
-                                        ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
-                                        : isDue
-                                        ? "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100"
-                                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                                    }`}
+                                          ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
+                                          : isDue
+                                            ? "bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100"
+                                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                                      }`}
                                   >
                                     <span>
                                       {msName} — ₹{msAmount.toLocaleString("en-IN")} [{msStatusLabel}]
@@ -889,13 +885,12 @@ export default function CandidateMasterProfileView({
                                   return (
                                     <div
                                       key={stg.id || i}
-                                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
-                                        isStgCompleted
+                                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${isStgCompleted
                                           ? "bg-emerald-100 text-emerald-800"
                                           : isStgInProgress
-                                          ? "bg-blue-100 text-blue-800"
-                                          : "bg-slate-100 text-slate-500"
-                                      }`}
+                                            ? "bg-blue-100 text-blue-800"
+                                            : "bg-slate-100 text-slate-500"
+                                        }`}
                                     >
                                       {isStgCompleted ? (
                                         <CheckCircle2 size={11} />
