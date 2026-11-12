@@ -47,6 +47,7 @@ export function PermissionManagementPage() {
   const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
   const [adminToDelete, setAdminToDelete] = useState(null);
   const [deletingAdmin, setDeletingAdmin] = useState(false);
+  const [resendingId, setResendingId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -306,7 +307,16 @@ export function PermissionManagementPage() {
         assignedVendors: formData.assignedVendors || [],
       };
       const res = await permissionService.createAdmin(payload);
-      showFeedback(res?.message || `Account created for ${formData.name}!`);
+      if (res?.emailSent === false) {
+        showFeedback(
+          res?.message ||
+            res?.emailError ||
+            `Account created for ${formData.name}, but credentials email could not be delivered.`,
+          "error"
+        );
+      } else {
+        showFeedback(res?.message || `Account created for ${formData.name}!`);
+      }
       setIsCreateModalOpen(false);
       setFormData({
         name: "",
@@ -343,7 +353,16 @@ export function PermissionManagementPage() {
         payload.password = String(editFormData.password).trim();
       }
       const res = await permissionService.updateAdmin(editFormData.id, payload);
-      showFeedback(res?.message || `Account updated for ${editFormData.name}!`);
+      if (res?.emailAttempted && res?.emailSent === false) {
+        showFeedback(
+          res?.message ||
+            res?.emailError ||
+            `Account updated for ${editFormData.name}, but credentials email failed.`,
+          "error"
+        );
+      } else {
+        showFeedback(res?.message || `Account updated for ${editFormData.name}!`);
+      }
       setIsEditModalOpen(false);
       await loadAdmins();
     } catch (err) {
@@ -368,6 +387,20 @@ export function PermissionManagementPage() {
       showFeedback(err.response?.data?.message || err.message || "Failed to delete account", "error");
     } finally {
       setDeletingAdmin(false);
+    }
+  };
+
+  const handleResendAdminCredentials = async (adm) => {
+    const targetId = adm?.id || adm?._id;
+    if (!targetId) return;
+    try {
+      setResendingId(targetId);
+      const res = await permissionService.resendAdminCredentials(targetId);
+      showFeedback(res?.message || `Credentials resent to ${adm.email}.`);
+    } catch (err) {
+      showFeedback(err.response?.data?.message || err.message || "Failed to resend credentials email.", "error");
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -411,6 +444,8 @@ export function PermissionManagementPage() {
               setIsEditModalOpen(true);
             }}
             onOpenDeleteModal={setAdminToDelete}
+            onResendCredentials={handleResendAdminCredentials}
+            resendingId={resendingId}
             isSuperAdmin={isSuperAdmin}
             canManageStaff={canManageStaff}
           />

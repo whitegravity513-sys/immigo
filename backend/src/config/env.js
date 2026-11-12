@@ -1,10 +1,15 @@
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-dotenv.config();
+const rootEnvPath = path.resolve(__dirname, "../../.env");
+if (fs.existsSync(rootEnvPath)) {
+  dotenv.config({ path: rootEnvPath, override: true });
+} else {
+  dotenv.config();
+}
 
 const isProduction = process.env.NODE_ENV === "production";
 const DEV_JWT_FALLBACK = "dev-local-jwt-secret-not-for-production";

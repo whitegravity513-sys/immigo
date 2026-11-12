@@ -35,6 +35,11 @@ export const permissionService = {
     return this.updateAdmin(adminId, data);
   },
 
+  async resendAdminCredentials(adminId) {
+    const res = await apiClient.post(`/admins/${adminId}/resend-credentials`);
+    return res.data;
+  },
+
   async deleteAdmin(adminId) {
     const res = await apiClient.delete(`/admins/${adminId}`);
     return res.data;

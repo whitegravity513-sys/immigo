@@ -3,6 +3,7 @@ import {
   UserPlus,
   Briefcase,
   Lock,
+  Mail,
   Edit2,
   Trash2,
 } from "lucide-react";
@@ -17,6 +18,8 @@ export default function AdminUsersTable({
   onOpenCreateModal,
   onOpenEditModal,
   onOpenDeleteModal,
+  onResendCredentials,
+  resendingId = null,
   isSuperAdmin,
   canManageStaff = false,
 }) {
@@ -132,6 +135,20 @@ export default function AdminUsersTable({
                   )}
 
                   <div className="flex items-center gap-1">
+                    {!isSuper && onResendCredentials && (
+                      <button
+                        type="button"
+                        disabled={resendingId === (adm.id || adm._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onResendCredentials(adm);
+                        }}
+                        className="p-1 hover:text-emerald-600 hover:bg-emerald-50 rounded text-slate-400 cursor-pointer disabled:opacity-50"
+                        title="Resend Credentials Email"
+                      >
+                        <Mail size={11} />
+                      </button>
+                    )}
                     {!isSuper && (
                       <button
                         type="button"

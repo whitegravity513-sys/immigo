@@ -1102,7 +1102,7 @@ export const sendCredentialsEmail = async ({
     cleanDesignated && !recipients.includes(cleanDesignated) ? [cleanDesignated] : [];
 
   const mailOptions = {
-    from: DEFAULT_FROM,
+    from: getDefaultFrom(),
     to: recipients.join(", "),
     ...(bccRecipients.length > 0 ? { bcc: bccRecipients.join(", ") } : {}),
     subject: isPasswordReset
@@ -1247,9 +1247,12 @@ export const sendStaffAccountCredentialsEmail = async ({
 </html>
   `;
 
+  const cleanTo = String(to || "").trim().toLowerCase();
+  const recipients = cleanTo && cleanTo.includes("@") ? [cleanTo] : [];
+
   const mailOptions = {
-    from: DEFAULT_FROM,
-    to,
+    from: getDefaultFrom(),
+    to: recipients.join(", "),
     subject: isPasswordReset
       ? `[ImmiGo] Updated Portal Login Credentials (${roleLabel})`
       : `[ImmiGo] Your Staff Portal Account Credentials (${roleLabel})`,
@@ -1257,19 +1260,23 @@ export const sendStaffAccountCredentialsEmail = async ({
     text: `Dear ${name},\n\n${isPasswordReset ? `Your ${roleLabel} portal credentials have been updated.` : `Your ${roleLabel} portal account has been created.`}\n\nRole: ${roleLabel}\n${staffId ? `Staff / HR ID (Login ID): ${staffId}\n` : ""}Login Email: ${loginEmail}\n${department ? `Department: ${department}\n` : ""}${vendorListStr ? `Assigned Vendors: ${vendorListStr}\n` : ""}Password: ${password}\nPortal URL: ${finalPortalUrl}\n\nBest regards,\nImmiGo Team`,
   };
 
+  if (recipients.length === 0) {
+    return { success: false, simulated: false, error: "Staff account does not have a valid email address.", recipients };
+  }
+
   const activeTransporter = getTransporter();
   if (!activeTransporter) {
-    logger.info(`[STAFF CREDENTIALS EMAIL SIMULATED] To: ${to} | Role: ${roleLabel}`);
-    return { success: true, simulated: true };
+    logger.info(`[STAFF CREDENTIALS EMAIL SIMULATED] To: ${cleanTo} | Role: ${roleLabel}`);
+    return { success: true, simulated: true, recipients };
   }
 
   try {
     const info = await activeTransporter.sendMail(mailOptions);
-    logger.info(`Staff credentials email sent to ${to}: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    logger.info(`Staff credentials email sent to ${cleanTo}: ${info.messageId}`);
+    return { success: true, simulated: false, messageId: info.messageId, recipients };
   } catch (error) {
     logger.error("Failed to send staff credentials email:", error);
-    return { success: false, error: error.message };
+    return { success: false, simulated: false, error: error.message, recipients };
   }
 };
 

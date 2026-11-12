@@ -4,6 +4,7 @@ import {
   getAdminById,
   createAdmin,
   updateAdmin,
+  resendAdminCredentials,
   deleteAdmin,
   getAdminPermissions,
   updateAdminPermissions,
@@ -52,6 +53,13 @@ router.patch(
   authenticateRBAC,
   requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
   updateAdmin
+);
+
+router.post(
+  "/admins/:id/resend-credentials",
+  authenticateRBAC,
+  requireRoles(ROLES.SUPER_ADMIN, ROLES.ADMIN),
+  resendAdminCredentials
 );
 
 router.delete(

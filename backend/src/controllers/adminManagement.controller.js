@@ -232,7 +232,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
       ? `${frontendBaseUrl}/vendor-hr/login`
       : `${frontendBaseUrl}/hr/login`;
 
-  let emailResult = { success: false };
+  let emailResult = { success: false, error: "Email dispatch was not triggered." };
   try {
     emailResult = await sendStaffAccountCredentialsEmail({
       to: newUser.email,
@@ -246,8 +246,17 @@ export const createAdmin = asyncHandler(async (req, res) => {
       portalUrl: staffPortalUrl,
     });
   } catch (mailErr) {
-    emailResult = { success: false, error: mailErr?.message };
+    emailResult = { success: false, error: mailErr?.message || "SMTP error" };
   }
+
+  const emailSent = Boolean(emailResult?.success && !emailResult?.simulated);
+  const emailSimulated = Boolean(emailResult?.simulated);
+  const emailError = emailSent
+    ? ""
+    : emailResult?.error ||
+      (emailSimulated
+        ? "SMTP credentials are not configured on the server (simulated mode)."
+        : "Failed to send credentials email via SMTP.");
 
   await NotificationService.notifyStaffAction({
     actor: req.user,
@@ -279,10 +288,12 @@ export const createAdmin = asyncHandler(async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    emailSent: Boolean(emailResult?.success),
-    message: emailResult?.success
+    emailSent,
+    emailSimulated,
+    emailError,
+    message: emailSent
       ? `Account for ${newUser.name} created and login credentials sent to ${newUser.email}.`
-      : `Account for ${newUser.name} created successfully.`,
+      : `Account for ${newUser.name} created, but credentials email could not be delivered to ${newUser.email}: ${emailError}`,
     admin: {
       id: newUser._id.toString(),
       _id: newUser._id.toString(),
@@ -457,9 +468,11 @@ export const updateAdmin = asyncHandler(async (req, res) => {
       : `${frontendBaseUrl}/hr/login`;
 
   const passwordToSend = passwordChanged ? trimmedPassword : targetUser.rawPassword || "";
-  if ((passwordChanged || emailChanged) && passwordToSend) {
+  const shouldSendEmail = Boolean((passwordChanged || emailChanged) && passwordToSend);
+  let emailResult = null;
+  if (shouldSendEmail) {
     try {
-      await sendStaffAccountCredentialsEmail({
+      emailResult = await sendStaffAccountCredentialsEmail({
         to: targetUser.email,
         name: targetUser.name,
         email: targetUser.email,
@@ -471,8 +484,19 @@ export const updateAdmin = asyncHandler(async (req, res) => {
         isPasswordReset: true,
         portalUrl: staffPortalUrl,
       });
-    } catch {}
+    } catch (mailErr) {
+      emailResult = { success: false, simulated: false, error: mailErr?.message || "SMTP error" };
+    }
   }
+
+  const emailSent = shouldSendEmail && Boolean(emailResult?.success && !emailResult?.simulated);
+  const emailSimulated = Boolean(emailResult?.simulated);
+  const emailError = !shouldSendEmail || emailSent
+    ? ""
+    : emailResult?.error ||
+      (emailSimulated
+        ? "SMTP credentials are not configured on the server (simulated mode)."
+        : "Failed to send credentials email via SMTP.");
 
   await NotificationService.notifyStaffAction({
     actor: req.user,
@@ -497,8 +521,14 @@ export const updateAdmin = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: passwordChanged
-      ? "Account updated and new password emailed successfully."
+    emailAttempted: shouldSendEmail,
+    emailSent,
+    emailSimulated,
+    emailError,
+    message: shouldSendEmail
+      ? emailSent
+        ? `Account updated and login credentials emailed to ${targetUser.email}.`
+        : `Account updated, but credentials email could not be sent to ${targetUser.email}: ${emailError}`
       : "Account details updated successfully.",
     admin: {
       id: targetUser._id.toString(),
@@ -516,6 +546,94 @@ export const updateAdmin = asyncHandler(async (req, res) => {
       rawPassword: targetUser.rawPassword || "",
       effectivePermissions: resolved.permissions,
     },
+  });
+});
+
+export const resendAdminCredentials = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid admin ID.");
+  }
+
+  const targetUser = await User.findById(id).select("+rawPassword");
+  if (!targetUser) {
+    throw new ApiError(404, "Admin/HR account not found.");
+  }
+
+  if (targetUser.role === ROLES.SUPER_ADMIN && !req.isSuperAdmin) {
+    throw new ApiError(403, "Cannot access protected Super Admin account.");
+  }
+
+  if (!req.isSuperAdmin && req.userRole === ROLES.ADMIN && targetUser.role !== ROLES.HR) {
+    throw new ApiError(403, "Admins are strictly permitted to manage HR staff accounts only.");
+  }
+
+  if (!targetUser.email) {
+    throw new ApiError(400, "This staff account does not have a valid login email.");
+  }
+
+  if (!targetUser.rawPassword) {
+    throw new ApiError(400, "No stored password found for this account. Please set a new password in Edit Account to send credentials.");
+  }
+
+  if (targetUser.role === ROLES.HR && !targetUser.hrId) {
+    targetUser.hrId = await generateNextHRId();
+    await targetUser.save();
+  }
+
+  const roleLabel =
+    targetUser.role === ROLES.ADMIN
+      ? "Administrator"
+      : targetUser.hrType === "VENDOR_HR"
+      ? "Vendor HR"
+      : "Employee HR";
+
+  const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const staffPortalUrl =
+    targetUser.role === ROLES.ADMIN
+      ? `${frontendBaseUrl}/admin/login`
+      : targetUser.hrType === "VENDOR_HR"
+      ? `${frontendBaseUrl}/vendor-hr/login`
+      : `${frontendBaseUrl}/hr/login`;
+
+  const emailResult = await sendStaffAccountCredentialsEmail({
+    to: targetUser.email,
+    name: targetUser.name,
+    email: targetUser.email,
+    staffId: targetUser.hrId || "",
+    password: targetUser.rawPassword,
+    roleLabel,
+    department: targetUser.department || "",
+    assignedVendors: targetUser.hrType === "VENDOR_HR" ? targetUser.assignedVendors : [],
+    portalUrl: staffPortalUrl,
+  });
+
+  const emailSent = Boolean(emailResult?.success && !emailResult?.simulated);
+  const emailSimulated = Boolean(emailResult?.simulated);
+  if (!emailSent) {
+    throw new ApiError(
+      502,
+      emailResult?.error ||
+        (emailSimulated
+          ? "SMTP credentials are not configured on the server (simulated mode)."
+          : "Failed to send staff credentials email via SMTP.")
+    );
+  }
+
+  await logAudit({
+    req,
+    action: "ADMIN_RESEND_CREDENTIALS",
+    targetResource: "ADMIN",
+    targetId: targetUser._id,
+    targetName: targetUser.name,
+    description: `Resent portal credentials email to [${targetUser.name}] (${targetUser.email}).`,
+    changes: { email: targetUser.email, hrId: targetUser.hrId || "" },
+  });
+
+  return res.status(200).json({
+    success: true,
+    emailSent: true,
+    message: `Login credentials resent successfully to ${targetUser.email}.`,
   });
 });
 
@@ -697,6 +815,7 @@ export default {
   getAdminById,
   createAdmin,
   updateAdmin,
+  resendAdminCredentials,
   deleteAdmin,
   getAdminPermissions,
   updateAdminPermissions,
