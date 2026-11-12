@@ -299,7 +299,7 @@ export function EmployeeAttendanceTab({
               }`}
               onClick={() => setEmployeeDetailView("table")}
             >
-              📋 Table
+              Table
             </button>
             <button
               className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
@@ -309,7 +309,7 @@ export function EmployeeAttendanceTab({
               }`}
               onClick={() => setEmployeeDetailView("calendar")}
             >
-              📅 Calendar
+              Calendar
             </button>
           </div>
         </div>
@@ -380,7 +380,7 @@ export function EmployeeAttendanceTab({
               });
             }}
           >
-            ➕ Add Past Attendance
+            + Add Past Attendance
           </button>
         </div>
       </div>

@@ -19,6 +19,7 @@ import { UPLOAD_ROOT } from "./utils/fileStorage.js";
 import { getMailTransportMode } from "./services/email.service.js";
 
 const app = express();
+// App runs behind Render / Vercel reverse proxies in production.
 app.set("trust proxy", 1);
 
 app.use(
@@ -37,6 +38,7 @@ app.use(
     threshold: 1024,
     level: 6,
     filter: (req, res) => {
+      // Skip compression on SSE streams so chunks flush immediately.
       if (req.path.includes("/events/stream") || req.headers.accept === "text/event-stream") {
         return false;
       }
@@ -73,7 +75,7 @@ app.use("/api", (req, res, next) => {
 });
 
 app.get("/api/health", (req, res) => {
-  return ApiResponse.send(res, 200, "ImmiGo HRMS & Enterprise API is running smoothly", {
+  return ApiResponse.send(res, 200, "API server healthy", {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
@@ -113,7 +115,7 @@ if (fs.existsSync(frontendDistPath)) {
   app.get("/", (req, res) => {
     res.status(200).json({
       status: "success",
-      message: "ImmiGo HRMS & CRM Enterprise API is running successfully!",
+      message: "ImmiGo API is online",
     });
   });
 }

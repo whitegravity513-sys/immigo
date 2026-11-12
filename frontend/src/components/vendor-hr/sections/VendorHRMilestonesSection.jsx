@@ -117,7 +117,7 @@ export default function VendorHRMilestonesSection({
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium flex items-center gap-2 flex-wrap mt-0.5">
                   <span>
-                    Passport: <strong className="text-slate-800">{selectedMilestoneApp.passportNumber ? `🛂 ${selectedMilestoneApp.passportNumber}` : "Verified"}</strong>
+                    Passport: <strong className="text-slate-800">{selectedMilestoneApp.passportNumber || "Verified"}</strong>
                   </span>
                   {!hideProjectNames && selectedMilestoneApp.projectName && (
                     <>

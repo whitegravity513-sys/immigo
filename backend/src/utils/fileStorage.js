@@ -46,6 +46,7 @@ export function saveBase64File(dataUrl, subDir = "documents", originalName = "")
   const mimeType = match ? String(match[1]).trim().toLowerCase() : "";
   const base64Data = match ? match[2].trim() : trimmed;
 
+  // Block active content types (SVG/HTML/JS) that could execute if served directly.
   if (mimeType && (mimeType.includes("svg") || mimeType.includes("html") || mimeType.includes("javascript"))) {
     throw new ApiError(400, "Unsupported file format.");
   }

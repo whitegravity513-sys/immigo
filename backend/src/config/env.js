@@ -11,6 +11,7 @@ if (fs.existsSync(rootEnvPath)) {
   dotenv.config();
 }
 
+// Dev fallbacks are only used outside NODE_ENV=production.
 const isProduction = process.env.NODE_ENV === "production";
 const DEV_JWT_FALLBACK = "dev-local-jwt-secret-not-for-production";
 const DEV_REFRESH_FALLBACK = "dev-local-refresh-secret-not-for-production";

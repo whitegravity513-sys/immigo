@@ -10,7 +10,7 @@ class MeetingSchedulerService {
   start() {
     if (this.isRunning) return;
     this.isRunning = true;
-    console.log("⏰ Meeting Reminder Scheduler initialized (1-minute tick).");
+    console.log("Meeting reminder scheduler started (60s interval).");
 
     setTimeout(() => this.checkMeetingReminders(), 10000);
 
@@ -89,7 +89,7 @@ class MeetingSchedulerService {
         }
 
         if (diffMinutes <= 20 && diffMinutes >= 1 && !remindersSent.includes("15m")) {
-          await this.sendMeetingReminder(meeting, "🚨 Starting in 15 Minutes", `Meeting "${meeting.title}" starts in 15 minutes! Click below to join now.`);
+          await this.sendMeetingReminder(meeting, "Starting in 15 Minutes", `Meeting "${meeting.title}" starts in 15 minutes! Click below to join now.`);
           remindersSent.push("15m");
           updated = true;
         }
@@ -119,7 +119,7 @@ class MeetingSchedulerService {
     try {
       await Notification.create({
         type: "MEETING_REMINDER",
-        title: `⏰ [${prefix}] ${meeting.title}`,
+        title: `[${prefix}] ${meeting.title}`,
         message,
         targetRole: meeting.organizerRole || "ADMIN",
         targetUserId: meeting.createdBy ? String(meeting.createdBy) : null,
@@ -129,7 +129,7 @@ class MeetingSchedulerService {
       if (meeting.vendorId) {
         await Notification.create({
           type: "MEETING_REMINDER",
-          title: `⏰ [${prefix}] ${meeting.title}`,
+          title: `[${prefix}] ${meeting.title}`,
           message,
           targetRole: "VENDOR",
           targetVendorId: meeting.vendorId,
@@ -142,7 +142,7 @@ class MeetingSchedulerService {
           meeting.targetEmployees.map((empId) =>
             Notification.create({
               type: "MEETING_REMINDER",
-              title: `⏰ [${prefix}] ${meeting.title}`,
+              title: `[${prefix}] ${meeting.title}`,
               message,
               targetRole: "EMPLOYEE",
               targetEmployeeId: empId,

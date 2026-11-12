@@ -211,7 +211,7 @@ export default function CheckInOutSection({
                   </div>
                 </div>
                 <div className="px-3.5 py-2 rounded-xl bg-white/90 border border-emerald-200 text-[11px] text-emerald-800 font-medium max-w-sm">
-                  🔒 <strong>Check-in is locked until tomorrow.</strong> Check-in for the next shift will automatically become active after 12:00 AM midnight.
+                  <strong>Check-in is locked until tomorrow.</strong> Check-in for the next shift will automatically become active after 12:00 AM midnight.
                 </div>
               </div>
             )}

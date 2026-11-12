@@ -26,6 +26,7 @@ export async function resolveVendorHrScope(user) {
     ? user.assignedVendors.map(String).filter(Boolean)
     : [];
 
+  // Query DB for fresh assignedVendors so admin updates apply without requiring a token refresh.
   if (userIdStr && isValidObjectId(userIdStr)) {
     try {
       const freshUser = await User.findById(userIdStr)
@@ -109,3 +110,4 @@ export async function resolveVendorHrScope(user) {
 export default {
   resolveVendorHrScope,
 };
+

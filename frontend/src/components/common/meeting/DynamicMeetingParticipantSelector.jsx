@@ -713,7 +713,7 @@ export default function DynamicMeetingParticipantSelector({
               )}
             </div>
             <p className="text-[10px] text-amber-700/80 font-medium">
-              💡 You can select 1 particular vendor agency, 2-3 agencies, or toggle "All Vendors".
+              Tip: You can select 1 vendor agency, multiple agencies, or toggle "All Vendors".
             </p>
           </div>
         )}
@@ -867,7 +867,7 @@ export default function DynamicMeetingParticipantSelector({
               )}
             </div>
             <p className="text-[10px] text-blue-700/80 font-medium">
-              💡 You can select 1 particular employee, 2-3 team members, or toggle "All Employees".
+              Tip: You can select 1 employee, multiple team members, or toggle "All Employees".
             </p>
           </div>
         )}

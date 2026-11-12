@@ -5,6 +5,7 @@ import { env } from "./env.js";
 let isConnected = false;
 
 export const connectDB = async () => {
+  // Reuse the pooled connection when re-invoked in hot reloads or serverless functions.
   if (isConnected && mongoose.connection.readyState === 1) {
     logger.info("MongoDB already connected, reusing existing connection.");
     return;
@@ -50,10 +51,10 @@ export const connectDB = async () => {
     });
 
     isConnected = true;
-    logger.info(`✅ MongoDB Connected (Host: ${conn.connection.host})`);
+    logger.info(`MongoDB connected (${conn.connection.host})`);
     return conn;
   } catch (error) {
-    logger.error("❌ MongoDB Connection Failed:", error);
+    logger.error("MongoDB connection failed:", error);
     throw error;
   }
 };

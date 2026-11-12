@@ -167,7 +167,7 @@ export default function CandidateApplicationsTab({
                       <div className="p-3 bg-purple-50/90 border border-purple-200 rounded-xl space-y-1.5 text-xs">
                         <div className="flex items-center gap-1.5 font-bold text-purple-900">
                           <Sparkles size={15} className="text-purple-600" />
-                          <span>Profile Shortlisted for Interview! 🎉</span>
+                          <span>Profile Shortlisted for Interview</span>
                         </div>
                         <p className="text-[11px] text-purple-800 leading-relaxed">
                           Congratulations! Your qualifications have met the requirements for this role. You are officially <strong>Shortlisted</strong>. Our recruitment coordinator will schedule your client interview shortly. Keep your phone and email active.
@@ -279,7 +279,7 @@ export default function CandidateApplicationsTab({
                           <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
                           <div>
                             <span className="font-bold text-emerald-950 text-xs block">
-                              Officially Selected for Project 🎉
+                              Officially Selected for Project
                             </span>
                             <span className="text-[11px] text-emerald-800 font-medium">
                               Congratulations on your selection for {app.projectName}. Your overseas deployment milestones and stages are now active.
@@ -335,7 +335,7 @@ export default function CandidateApplicationsTab({
                         </div>
 
                         <p className="text-[10px] text-rose-700 font-medium pt-0.5">
-                          💡 You are encouraged to explore and apply to other vacancies matching your qualifications.
+                          You are encouraged to explore and apply to other vacancies matching your qualifications.
                         </p>
                       </div>
                     )}

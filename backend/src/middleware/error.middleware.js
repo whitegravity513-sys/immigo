@@ -1,6 +1,7 @@
 import { ApiError } from "../utils/apiError.js";
 import { logger } from "../utils/logger.js";
 
+// Hosted platforms can leave NODE_ENV unset or "development"; never expose stacks there.
 const isHostedEnvironment = Boolean(
   process.env.RENDER ||
     process.env.RAILWAY_ENVIRONMENT ||

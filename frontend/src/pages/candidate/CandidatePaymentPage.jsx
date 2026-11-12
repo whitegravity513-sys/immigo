@@ -594,10 +594,10 @@ export default function CandidatePaymentPage() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {[
-                    { id: "gpay", label: "Google Pay", icon: "📱", sub: "Instant App Intent" },
-                    { id: "phonepe", label: "PhonePe", icon: "🟣", sub: "Fast UPI" },
-                    { id: "paytm", label: "Paytm UPI", icon: "🔵", sub: "Wallet & UPI" },
-                    { id: "bhim", label: "BHIM / CRED", icon: "⚡", sub: "All Banks" },
+                    { id: "gpay", label: "Google Pay", icon: "GPay", sub: "Instant App Intent" },
+                    { id: "phonepe", label: "PhonePe", icon: "PhPe", sub: "Fast UPI" },
+                    { id: "paytm", label: "Paytm UPI", icon: "Paytm", sub: "Wallet & UPI" },
+                    { id: "bhim", label: "BHIM / CRED", icon: "UPI", sub: "All Banks" },
                   ].map((app) => (
                     <button
                       key={app.id}
@@ -609,7 +609,7 @@ export default function CandidatePaymentPage() {
                           : "bg-white border-slate-200 hover:border-slate-300"
                       }`}
                     >
-                      <div className="text-base">{app.icon}</div>
+                      <div className="text-xs font-extrabold tracking-tight text-[#163868]">{app.icon}</div>
                       <div className="font-bold text-slate-900 mt-1">{app.label}</div>
                       <div className="text-[9px] text-slate-500 font-medium">{app.sub}</div>
                     </button>

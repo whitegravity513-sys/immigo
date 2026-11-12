@@ -724,7 +724,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
         for (const v of activeVendors) {
           await Notification.create({
             type: "MEETING",
-            title: `📅 Vendor Conference: ${meeting.title}`,
+            title: `Vendor Conference: ${meeting.title}`,
             message: `A vendor conference "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "VENDOR",
             targetVendorId: v.vendorId,
@@ -738,7 +738,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
         for (const vhr of allVendorHRs) {
           await Notification.create({
             type: "MEETING",
-            title: `📅 Vendor Conference: ${meeting.title}`,
+            title: `Vendor Conference: ${meeting.title}`,
             message: `A vendor conference "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "VENDOR_HR",
             targetUserId: vhr._id.toString(),
@@ -760,7 +760,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
         for (const vRef of targetVList) {
           await Notification.create({
             type: "MEETING",
-            title: `📅 Vendor Discussion: ${meeting.title}`,
+            title: `Vendor Discussion: ${meeting.title}`,
             message: `You are invited to a meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: "VENDOR",
             targetVendorId: vRef,
@@ -778,7 +778,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
           for (const vhr of assignedVHRs) {
             await Notification.create({
               type: "MEETING",
-              title: `📅 Vendor Discussion: ${meeting.title}`,
+              title: `Vendor Discussion: ${meeting.title}`,
               message: `Vendor meeting "${meeting.title}" involving agency ${vRef} is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
               targetRole: "VENDOR_HR",
               targetUserId: vhr._id.toString(),
@@ -803,7 +803,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
               : "/hr/meetings";
           await NotificationService.createNotification({
             type: "MEETING",
-            title: `📅 HR Operations Sync: ${meeting.title}`,
+            title: `HR Operations Sync: ${meeting.title}`,
             message: `HR Team sync "${meeting.title}" is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
             targetRole: resolvedHrType,
             targetRoles: [resolvedHrType],
@@ -846,8 +846,8 @@ export const createMeeting = asyncHandler(async (req, res) => {
           await NotificationService.createNotification({
             type: "MEETING",
             title: isVendor
-              ? `📅 Vendor Meeting Request: ${meeting.title}`
-              : `📅 HR Meeting: ${meeting.title}`,
+              ? `Vendor Meeting Request: ${meeting.title}`
+              : `HR Meeting: ${meeting.title}`,
             message: isVendor
               ? `${meeting.vendorName || "Assigned vendor"} scheduled a meeting "${meeting.title}"${meeting.projectName ? ` (${meeting.projectName})` : ""} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`
               : `You are invited to an HR meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
@@ -873,7 +873,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
         await Promise.allSettled([
           NotificationService.createNotification({
             type: "MEETING",
-            title: `📅 Admin Discussion: ${meeting.title}`,
+            title: `Admin Discussion: ${meeting.title}`,
             message: `${organizerName} scheduled "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
             targetRole: "ADMIN",
             targetRoles: ["ADMIN"],
@@ -885,7 +885,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
           }),
           NotificationService.createNotification({
             type: "MEETING",
-            title: `📅 Admin Discussion: ${meeting.title}`,
+            title: `Admin Discussion: ${meeting.title}`,
             message: `${organizerName} scheduled "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
             targetRole: "SUPER_ADMIN",
             targetRoles: ["SUPER_ADMIN"],
@@ -919,7 +919,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
             userRoleMap.get(adminIdStr) || attendeeRoleMap.get(adminIdStr) || "ADMIN";
           await NotificationService.createNotification({
             type: "MEETING",
-            title: `📅 Meeting Invitation: ${meeting.title}`,
+            title: `Meeting Invitation: ${meeting.title}`,
             message: `${organizerName} scheduled "${meeting.title}" with you on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click to join.`,
             targetRole: resolvedAdminRole,
             targetRoles: [resolvedAdminRole],
@@ -938,7 +938,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
       if (effectiveTargetType === "ALL") {
         await NotificationService.createNotification({
           type: "MEETING",
-          title: `📅 Company Meeting: ${meeting.title}`,
+          title: `Company Meeting: ${meeting.title}`,
           message: `A company meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
           targetRole: "EMPLOYEE",
           targetType: "ALL",
@@ -951,7 +951,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
           finalTargetEmployees.map((empId) =>
             NotificationService.createNotification({
               type: "MEETING",
-              title: `📅 Meeting Invitation: ${meeting.title}`,
+              title: `Meeting Invitation: ${meeting.title}`,
               message: `You are invited to a meeting "${meeting.title}" on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
               targetRole: "EMPLOYEE",
               targetType: "SPECIFIC",
@@ -970,7 +970,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
       if (meeting.vendorId && !isVendor) {
         await Notification.create({
           type: "MEETING",
-          title: `📅 Candidate Interview: ${meeting.title}`,
+          title: `Candidate Interview: ${meeting.title}`,
           message: `An interview has been scheduled for candidate ${meeting.candidateName || "Partner"} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
           targetRole: "VENDOR",
           targetVendorId: meeting.vendorId,
@@ -989,7 +989,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
         for (const vhr of vendorHRUsers) {
           await Notification.create({
             type: "MEETING",
-            title: `📅 Candidate Interview: ${meeting.title}`,
+            title: `Candidate Interview: ${meeting.title}`,
             message: `Interview "${meeting.title}" for ${meeting.candidateName || "candidate"} is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
             targetRole: "VENDOR_HR",
             targetUserId: vhr._id.toString(),
@@ -1005,7 +1005,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
           finalTargetEmployees.map((empId) =>
             NotificationService.createNotification({
               type: "MEETING",
-              title: `📅 Candidate Interview: ${meeting.title}`,
+              title: `Candidate Interview: ${meeting.title}`,
               message: `You are scheduled to interview candidate ${meeting.candidateName} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
               targetRole: "EMPLOYEE",
               targetType: "SPECIFIC",
@@ -1024,7 +1024,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
       if (effectiveTargetType === "ALL") {
         await NotificationService.createNotification({
           type: "MEETING",
-          title: `📅 General Meeting: ${meeting.title}`,
+          title: `General Meeting: ${meeting.title}`,
           message: `A meeting is scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}). Click below to join.`,
           targetRole: "EMPLOYEE",
           targetType: "ALL",
@@ -1039,7 +1039,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
       await NotificationService.notifyStaffAction({
         actor: actorSource,
         type: "MEETING",
-        title: `📅 Meeting Scheduled: ${meeting.title}`,
+        title: `Meeting Scheduled: ${meeting.title}`,
         message: `Meeting "${meeting.title}" scheduled on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
         moduleScope: "MEETING",
         metadata: { ...meetingMetadata, link: "/admin/meetings" },
@@ -1049,7 +1049,7 @@ export const createMeeting = asyncHandler(async (req, res) => {
     if (isVendor) {
       await NotificationService.createNotification({
         type: "MEETING",
-        title: `📅 Vendor Meeting Scheduled: ${meeting.title}`,
+        title: `Vendor Meeting Scheduled: ${meeting.title}`,
         message: `${meeting.vendorName || "Vendor"} scheduled a meeting "${meeting.title}" with Vendor HR ${meeting.hrName || ""}${meeting.projectName ? ` (${meeting.projectName})` : ""} on ${meeting.date} at ${meeting.startTime} (${meeting.platform}).`,
         targetRole: "ADMIN",
         targetRoles: ["SUPER_ADMIN", "ADMIN"],
@@ -1410,7 +1410,7 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     if (meeting.meetingType === "EMPLOYEE" || meeting.meetingType === "GENERAL" || (Array.isArray(meeting.targetEmployees) && meeting.targetEmployees.length > 0)) {
       await Notification.create({
         type: "MEETING_RESCHEDULED",
-        title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+        title: `Meeting Rescheduled: ${meeting.title}`,
         message,
         targetRole: "EMPLOYEE",
         actorId: actorMeta.actorId,
@@ -1442,7 +1442,7 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
           : "/hr/meetings";
       await NotificationService.createNotification({
         type: "MEETING_RESCHEDULED",
-        title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+        title: `Meeting Rescheduled: ${meeting.title}`,
         message,
         targetRole: resolvedHrType,
         targetRoles: [resolvedHrType],
@@ -1468,7 +1468,7 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     for (const vRef of reschedVendors) {
       await NotificationService.createNotification({
         type: "MEETING_RESCHEDULED",
-        title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+        title: `Meeting Rescheduled: ${meeting.title}`,
         message,
         targetRole: "VENDOR",
         targetRoles: ["VENDOR"],
@@ -1491,7 +1491,7 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     for (const admId of reschedAdmins) {
       await NotificationService.createNotification({
         type: "MEETING_RESCHEDULED",
-        title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+        title: `Meeting Rescheduled: ${meeting.title}`,
         message,
         targetRole: "ADMIN",
         targetRoles: ["ADMIN", "SUPER_ADMIN"],
@@ -1513,7 +1513,7 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     await NotificationService.notifyStaffAction({
       actor: actorSource,
       type: "MEETING_RESCHEDULED",
-      title: `🔄 Meeting Rescheduled: ${meeting.title}`,
+      title: `Meeting Rescheduled: ${meeting.title}`,
       message,
       moduleScope: "MEETING",
       metadata: {
@@ -1527,7 +1527,7 @@ export const rescheduleMeeting = asyncHandler(async (req, res) => {
     if (isVendor) {
       await NotificationService.createNotification({
         type: "MEETING_RESCHEDULED",
-        title: `🔄 Vendor Meeting Rescheduled: ${meeting.title}`,
+        title: `Vendor Meeting Rescheduled: ${meeting.title}`,
         message,
         targetRole: "ADMIN",
         targetRoles: ["SUPER_ADMIN", "ADMIN"],
@@ -1608,7 +1608,7 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
     if (meeting.meetingType === "EMPLOYEE" || meeting.meetingType === "GENERAL" || (Array.isArray(meeting.targetEmployees) && meeting.targetEmployees.length > 0)) {
       await Notification.create({
         type: "MEETING_CANCELLED",
-        title: `❌ Meeting Cancelled: ${meeting.title}`,
+        title: `Meeting Cancelled: ${meeting.title}`,
         message: cancelMsg,
         targetRole: "EMPLOYEE",
         actorId: actorMeta.actorId,
@@ -1633,7 +1633,7 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
           : "/hr/meetings";
       await NotificationService.createNotification({
         type: "MEETING_CANCELLED",
-        title: `❌ Meeting Cancelled: ${meeting.title}`,
+        title: `Meeting Cancelled: ${meeting.title}`,
         message: cancelMsg,
         targetRole: resolvedHrType,
         targetRoles: [resolvedHrType],
@@ -1652,7 +1652,7 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
     for (const vRef of cancelVendors) {
       await NotificationService.createNotification({
         type: "MEETING_CANCELLED",
-        title: `❌ Meeting Cancelled: ${meeting.title}`,
+        title: `Meeting Cancelled: ${meeting.title}`,
         message: cancelMsg,
         targetRole: "VENDOR",
         targetRoles: ["VENDOR"],
@@ -1668,7 +1668,7 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
     for (const admId of cancelAdmins) {
       await NotificationService.createNotification({
         type: "MEETING_CANCELLED",
-        title: `❌ Meeting Cancelled: ${meeting.title}`,
+        title: `Meeting Cancelled: ${meeting.title}`,
         message: cancelMsg,
         targetRole: "ADMIN",
         targetRoles: ["ADMIN", "SUPER_ADMIN"],
@@ -1683,7 +1683,7 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
     await NotificationService.notifyStaffAction({
       actor: actorSource,
       type: "MEETING_CANCELLED",
-      title: `❌ Meeting Cancelled: ${meeting.title}`,
+      title: `Meeting Cancelled: ${meeting.title}`,
       message: `Meeting "${meeting.title}" scheduled for ${meeting.date} was cancelled.`,
       moduleScope: "MEETING",
       metadata: { meetingId: meeting._id.toString(), link: "/admin/meetings" },
@@ -1691,7 +1691,7 @@ export const cancelMeeting = asyncHandler(async (req, res) => {
     if (isVendor) {
       await NotificationService.createNotification({
         type: "MEETING_CANCELLED",
-        title: `❌ Vendor Meeting Cancelled: ${meeting.title}`,
+        title: `Vendor Meeting Cancelled: ${meeting.title}`,
         message: `Meeting "${meeting.title}" scheduled for ${meeting.date} was cancelled.`,
         targetRole: "ADMIN",
         targetRoles: ["SUPER_ADMIN", "ADMIN"],

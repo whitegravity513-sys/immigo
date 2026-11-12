@@ -110,7 +110,7 @@ export default function VendorHRLoginPage() {
               {
                 icon: Calendar,
                 title: "Schedule & Evaluate Interviews",
-                desc: "Coordinate technical and client interview rounds seamlessly.",
+                desc: "Coordinate technical and client interview rounds in one place.",
               },
               {
                 icon: BarChart3,

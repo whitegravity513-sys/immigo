@@ -128,7 +128,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 <div className="text-[11px] text-green-700">{selectedEmployee.employeeId}</div>
                 {selectedEmployee.joiningDate && (
                   <div className="text-[10px] text-green-700 mt-0.5 font-semibold flex flex-wrap items-center justify-between gap-1.5">
-                    <span>📅 Joined: {new Date(selectedEmployee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span>Joined: {new Date(selectedEmployee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     <button
                       type="button"
                       onClick={handleSetJoiningToToday}
@@ -322,7 +322,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               </div>
               {monthlyData.calcStartDate && (
                 <div className="mt-3 px-3 py-1.5 bg-blue-50/90 rounded-md border border-blue-200 text-xs text-blue-900 flex flex-wrap items-center justify-between gap-2">
-                  <span>📅 Calculation Window: <strong className="font-bold">{monthlyData.calcStartDate}</strong> to <strong className="font-bold">{monthlyData.calcEndDate}</strong></span>
+                  <span>Calculation Window: <strong className="font-bold">{monthlyData.calcStartDate}</strong> to <strong className="font-bold">{monthlyData.calcEndDate}</strong></span>
                   <span>Evaluated Working Days: <strong className="font-bold">{monthlyData.summary?.totalWorkingDays ?? 0} Days</strong></span>
                 </div>
               )}

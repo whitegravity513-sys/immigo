@@ -1828,7 +1828,7 @@ export const crmVendorService = {
     });
 
     crmVendorService.addAdminNotification({
-      title: "New Candidate Submission 📄",
+      title: "New Candidate Submission",
       message: `Vendor submitted ${candidate.fullName} for ${newApp.position} on project ${projectName}.`,
       type: "info",
       link: "/admin/vendor/submissions",
@@ -2021,7 +2021,7 @@ export const crmVendorService = {
     if (status === "Interview" || status === "Interview Scheduled") {
       crmVendorService.addNotification({
         vendorId: apps[idx].vendorId,
-        title: "Interview Scheduled 🎥",
+        title: "Interview Scheduled",
         message: `Interview scheduled for ${apps[idx].candidateName} (${apps[idx].projectName}). Date: ${apps[idx].interviewDetails?.dateTime || "TBD"}. Details available in portal.`,
         type: "info",
         link: "/vendor/applications",
@@ -2033,7 +2033,7 @@ export const crmVendorService = {
       apps[idx].holdDate = new Date().toISOString();
       crmVendorService.addNotification({
         vendorId: apps[idx].vendorId,
-        title: "Candidate Put On Hold ⏸️",
+        title: "Candidate Put On Hold",
         message: `${apps[idx].candidateName} was put On Hold for ${apps[idx].projectName}. Candidate is reusable for other projects.`,
         type: "warning",
         link: "/vendor/on-hold",
@@ -2044,7 +2044,7 @@ export const crmVendorService = {
       apps[idx].shortlistRemark = extraData.remark || "Candidate shortlisted for client review.";
       crmVendorService.addNotification({
         vendorId: apps[idx].vendorId,
-        title: "Candidate Shortlisted ⭐",
+        title: "Candidate Shortlisted",
         message: `${apps[idx].candidateName} has been shortlisted for ${apps[idx].projectName}.`,
         type: "info",
         link: "/vendor/applications",

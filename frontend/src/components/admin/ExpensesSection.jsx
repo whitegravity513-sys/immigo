@@ -255,7 +255,7 @@ export default function ExpensesSection({
         >
           <div className="space-y-0.5 text-left">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-              🏢 Company Overhead
+              Company Overhead
             </span>
             <div className="text-lg font-bold text-blue-700">₹{totalCompanyAmount.toLocaleString("en-IN")}</div>
             <p className="text-[10px] text-slate-500 font-medium">
@@ -275,7 +275,7 @@ export default function ExpensesSection({
         >
           <div className="space-y-0.5 text-left">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-              🤝 Client Hospitality
+              Client Hospitality
             </span>
             <div className="text-lg font-bold text-indigo-700">₹{totalClientAmount.toLocaleString("en-IN")}</div>
             <p className="text-[10px] text-slate-500 font-medium">
@@ -295,7 +295,7 @@ export default function ExpensesSection({
         >
           <div className="space-y-0.5 text-left">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-              👥 Employee Claims
+              Employee Claims
             </span>
             <div className="text-lg font-bold text-emerald-700">₹{totalEmployeeAmount.toLocaleString("en-IN")}</div>
             <p className="text-[10px] text-slate-500 font-medium">
@@ -357,7 +357,7 @@ export default function ExpensesSection({
                   expenseTargetFilter === "company" ? "bg-blue-600 text-white shadow-xs" : "bg-blue-50 text-blue-700 hover:bg-blue-100"
                 }`}
               >
-                🏢 Overhead (₹{totalCompanyAmount.toLocaleString("en-IN")})
+                Overhead (₹{totalCompanyAmount.toLocaleString("en-IN")})
               </button>
               <button
                 type="button"
@@ -366,7 +366,7 @@ export default function ExpensesSection({
                   expenseTargetFilter === "client" ? "bg-indigo-600 text-white shadow-xs" : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
                 }`}
               >
-                🤝 Client Visits (₹{totalClientAmount.toLocaleString("en-IN")})
+                Client Visits (₹{totalClientAmount.toLocaleString("en-IN")})
               </button>
               <button
                 type="button"
@@ -375,7 +375,7 @@ export default function ExpensesSection({
                   expenseTargetFilter === "employee" ? "bg-emerald-600 text-white shadow-xs" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                 }`}
               >
-                👥 Claims (₹{totalEmployeeAmount.toLocaleString("en-IN")})
+                Claims (₹{totalEmployeeAmount.toLocaleString("en-IN")})
               </button>
             </div>
 
@@ -495,7 +495,7 @@ export default function ExpensesSection({
                         expenseTargetType === "company" ? "bg-white text-blue-700 shadow-2xs" : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
-                      🏢 Company
+                      Company
                     </button>
                     <button
                       type="button"
@@ -507,7 +507,7 @@ export default function ExpensesSection({
                         expenseTargetType === "client" ? "bg-white text-indigo-700 shadow-2xs" : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
-                      🤝 Client
+                      Client
                     </button>
                     <button
                       type="button"
@@ -519,7 +519,7 @@ export default function ExpensesSection({
                         expenseTargetType === "employee" ? "bg-white text-emerald-700 shadow-2xs" : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
-                      👥 Employee
+                      Employee
                     </button>
                   </div>
                 </div>
@@ -639,15 +639,15 @@ export default function ExpensesSection({
 
                                 {rec.client ? (
                                   <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                    🤝 Client: {rec.client.name || rec.client.companyName || "Client"}
+                                    Client: {rec.client.name || rec.client.companyName || "Client"}
                                   </span>
                                 ) : rec.employee ? (
                                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                    👥 Employee: {rec.employee.name || "Staff"}
+                                    Employee: {rec.employee.name || "Staff"}
                                   </span>
                                 ) : (
                                   <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                    🏢 Company Overhead
+                                    Company Overhead
                                   </span>
                                 )}
 
@@ -812,7 +812,7 @@ export default function ExpensesSection({
                                 className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold cursor-pointer transition shadow-xs flex items-center gap-1 active:scale-95"
                                 title="Record payment transfer into employee bank account"
                               >
-                                💳 Disburse / Mark Paid
+                                Disburse / Mark Paid
                               </button>
                             ) : claim.status === "Paid" ? (
                               <button
@@ -994,7 +994,7 @@ export default function ExpensesSection({
                           : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
                       }`}
                     >
-                      💳 Disburse (Paid)
+                      Disburse (Paid)
                     </button>
                     <button
                       type="button"

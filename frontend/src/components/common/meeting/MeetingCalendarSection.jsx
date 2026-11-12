@@ -1593,12 +1593,12 @@ export default function MeetingCalendarSection({
                   onChange={(e) => setOutcomeForm({ ...outcomeForm, outcome: e.target.value })}
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-900"
                 >
-                  <option value="Selected">Selected 🎉</option>
-                  <option value="Next Round">Next Round ⏭️</option>
-                  <option value="On Hold">On Hold ⏸️</option>
-                  <option value="Rejected">Rejected ❌</option>
-                  <option value="Reschedule Required">Reschedule Required 🔄</option>
-                  <option value="Completed">Completed Successfully ✅</option>
+                  <option value="Selected">Selected</option>
+                  <option value="Next Round">Next Round</option>
+                  <option value="On Hold">On Hold</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Reschedule Required">Reschedule Required</option>
+                  <option value="Completed">Completed Successfully</option>
                 </select>
               </div>
 

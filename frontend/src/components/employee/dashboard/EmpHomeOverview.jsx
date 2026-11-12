@@ -345,7 +345,7 @@ export default function EmpHomeOverview({
                 <span className="text-slate-100 font-semibold">{user?.designation || "Employee"}</span>
                 {isHolidayToday && (
                   <span className="text-amber-300 font-bold bg-amber-400/25 px-2 py-0.5 rounded-md border border-amber-400/40 text-[10px] flex items-center gap-1">
-                    🌟 {todayHoliday?.title}
+                    {todayHoliday?.title}
                   </span>
                 )}
               </div>
@@ -474,7 +474,7 @@ export default function EmpHomeOverview({
                 </div>
                 <div className="text-[9px] font-semibold">
                   {status === "On Break" || isOnBreak ? (
-                    <span className="text-amber-700">⏸ Break Paused</span>
+                    <span className="text-amber-700">Break Paused</span>
                   ) : status === "Active" ? (
                     <span className="text-emerald-700">▶ Counting Live</span>
                   ) : status === "Checked Out" ? (
@@ -554,7 +554,7 @@ export default function EmpHomeOverview({
 
                 {!isHolidayToday && status === "Checked Out" && (
                   <div className="flex-1 min-w-[150px] py-1.5 px-2.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs">
-                    <span>🔒 Shift Completed (Checked Out)</span>
+                    <span>Shift Completed (Checked Out)</span>
                   </div>
                 )}
 

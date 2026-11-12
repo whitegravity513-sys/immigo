@@ -506,8 +506,8 @@ export default function CalendarMeetings() {
                             }`}
                           >
                             {meeting.targetType === "ALL"
-                              ? "👥 All Employees"
-                              : `👤 ${meeting.targetEmployees?.length || 0} Employees`}
+                              ? "All Employees"
+                              : `${meeting.targetEmployees?.length || 0} Employees`}
                           </span>
                         </div>
 

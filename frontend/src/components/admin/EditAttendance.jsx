@@ -372,7 +372,7 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
               disabled={loading || waivinPenalty || isHolidayBlocked}
             >
               <ShieldCheck size={14} />
-              <span>{waivinPenalty ? 'Waiving Penalty…' : '⚡ Waive Penalty & Mark Present'}</span>
+              <span>{waivinPenalty ? 'Waiving Penalty…' : 'Waive Penalty & Mark Present'}</span>
             </button>
           )}
         </div>

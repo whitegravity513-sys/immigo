@@ -23,7 +23,7 @@ export function AdminDispatchedCredentialsModal({
 
         <div className="space-y-1">
           <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-            Vendor Account Created & Credentials Dispatched! 🎉
+            Vendor Account Created & Credentials Dispatched
           </h3>
           <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
             Login ID, Password, and direct portal access link have been dispatched to:

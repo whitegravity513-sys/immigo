@@ -410,8 +410,8 @@ export const RegisterEmployeeSection = ({
                   }
                   className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition font-semibold cursor-pointer"
                 >
-                  <option value="active">🟢 Active</option>
-                  <option value="inactive">🔴 Inactive</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
                 </select>
                 <span className="text-[10px] text-slate-400">Account status</span>
               </div>

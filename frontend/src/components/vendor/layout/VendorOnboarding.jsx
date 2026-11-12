@@ -749,13 +749,13 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
 
           <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-2xl max-w-lg mx-auto text-left text-xs text-blue-950 space-y-2">
             <p>
-              📋 <b>What happens next?</b> Admin will examine your company registration, PAN, and tax certificates.
+              <b>What happens next?</b> Admin will examine your company registration, PAN, and tax certificates.
             </p>
             <p>
-              📜 Once verified, Admin will generate and dispatch the official <b>Memorandum of Understanding (MOU)</b>.
+              Once verified, Admin will generate and dispatch the official <b>Memorandum of Understanding (MOU)</b>.
             </p>
             <p>
-              ✍️ You will be able to review the MOU format and digitally sign it directly from this screen to unlock your candidates and project pool.
+              You will be able to review the MOU format and digitally sign it directly from this screen to access your candidates and project pool.
             </p>
           </div>
 

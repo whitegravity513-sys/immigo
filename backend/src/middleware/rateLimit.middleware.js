@@ -1,5 +1,6 @@
 import rateLimit from "express-rate-limit";
 
+// Treat managed hosting platforms as production even if NODE_ENV wasn't set explicitly.
 const isHostedEnvironment = Boolean(
   process.env.RENDER ||
     process.env.RAILWAY_ENVIRONMENT ||

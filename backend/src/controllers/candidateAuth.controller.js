@@ -863,7 +863,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   try {
     await NotificationService.createNotification({
       type: "EXPENSE_UPDATE",
-      title: isAutoApproved ? "Candidate Milestone Paid Online! 💳" : "Candidate Submitted Payment Reference 📋",
+      title: isAutoApproved ? "Candidate Milestone Paid Online" : "Candidate Submitted Payment Reference",
       message: `${candidate.fullName} paid ₹${Number(paidAmt).toLocaleString()} for "${milestones[mIdx].name}" on project ${app.projectName} (Ref: ${refNum}).`,
       targetRole: "ADMIN",
       targetRoles: ["SUPER_ADMIN", "ADMIN", "VENDOR_HR"],
@@ -885,7 +885,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
       notificationId: `notif-cand-${Date.now()}`,
       recipientRole: "CANDIDATE",
       candidateId: candidate.candidateId,
-      title: isAutoApproved ? "Payment Successful! 🎉" : "Payment Reference Submitted ⏳",
+      title: isAutoApproved ? "Payment Successful" : "Payment Reference Submitted",
       message: isAutoApproved
         ? `Payment of ₹${Number(paidAmt).toLocaleString()} for ${milestones[mIdx].name} confirmed. Receipt #: ${receiptNum}`
         : `Your payment reference ${refNum} for ₹${Number(paidAmt).toLocaleString()} has been submitted for admin verification.`,

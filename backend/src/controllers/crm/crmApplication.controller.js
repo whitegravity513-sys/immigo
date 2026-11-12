@@ -1071,13 +1071,13 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     try {
       const statusTitle =
         updateData.status === "Selected"
-          ? "Candidate Selected! 🎉"
+          ? "Candidate Selected"
           : updateData.status === "Rejected"
           ? "Candidate Application Rejected"
           : updateData.status === "Interview" || updateData.status === "Interview Scheduled"
-          ? "Interview Scheduled 🎥"
+          ? "Interview Scheduled"
           : updateData.status === "On Hold"
-          ? "Candidate Put On Hold ⏸️"
+          ? "Candidate Put On Hold"
           : `Candidate Status Updated: ${updateData.status}`;
 
       const statusMsg =

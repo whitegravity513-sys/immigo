@@ -72,7 +72,7 @@ export default function CandidatePaymentModal({
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              ⚡ Razorpay Online (UPI/Cards)
+              Razorpay Online (UPI/Cards)
             </button>
             <button
               type="button"
@@ -83,7 +83,7 @@ export default function CandidatePaymentModal({
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
               }`}
             >
-              🏦 Bank Transfer / NEFT
+              Bank Transfer / NEFT
             </button>
           </div>
 

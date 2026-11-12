@@ -8,6 +8,7 @@ import { generateMouPdfBuffer } from "../utils/mouPdfGenerator.js";
 
 const createTransporter = () => {
   const host = (process.env.SMTP_HOST || process.env.EMAIL_HOST || "smtp.gmail.com").trim();
+  // Direct SMTP defaults to SSL port 465 when SMTP_PORT is unset.
   const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 465);
   const rawUser = process.env.SMTP_USER || process.env.EMAIL_USER || "";
   const user = rawUser ? String(rawUser).trim() : "";
@@ -1673,11 +1674,11 @@ export const sendCandidateSelectionEmail = async ({
 <body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
     <div style="text-align: center; margin-bottom: 20px;">
-      <h2 style="color: #0f172a; margin: 0;">🎉 Congratulations, ${escapeHtml(candidateName)}!</h2>
-      <p style="color: #10b981; font-weight: bold; margin-top: 4px;">You have been officially SELECTED!</p>
+      <h2 style="color: #0f172a; margin: 0;">Congratulations, ${escapeHtml(candidateName)}</h2>
+      <p style="color: #10b981; font-weight: bold; margin-top: 4px;">Selection Confirmed</p>
     </div>
     <p>Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
-    <p>We are thrilled to inform you that you have been selected for the position of <strong>${escapeHtml(position || "Specialist")}</strong> on project <strong>${escapeHtml(projectName)}</strong>.</p>
+    <p>We are pleased to inform you that you have been selected for the position of <strong>${escapeHtml(position || "Specialist")}</strong> on project <strong>${escapeHtml(projectName)}</strong>.</p>
     
     <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 20px 0;">
       <h4 style="margin: 0 0 10px 0; color: #0f172a;">Next Steps &amp; Milestone Processing:</h4>
@@ -1704,7 +1705,7 @@ export const sendCandidateSelectionEmail = async ({
   const mailOptions = {
     from: DEFAULT_FROM,
     to,
-    subject: `🎉 Congratulations! Selected for ${projectName} (${position || "Role"})`,
+    subject: `Congratulations! Selected for ${projectName} (${position || "Role"})`,
     html: htmlContent,
     text: `Congratulations ${candidateName}! You have been selected for ${position} on ${projectName}. Please login to your Candidate Portal (${candidateDashUrl}) to view your processing milestones.`,
   };
@@ -1727,7 +1728,7 @@ export const sendCandidateMilestoneUpdateEmail = async ({
 <html>
 <body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px;">
-    <h3 style="color: #0f2744; margin-top: 0;">Processing Stage Update 🚀</h3>
+    <h3 style="color: #0f2744; margin-top: 0;">Processing Stage Update</h3>
     <p>Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
     <p>Your processing status for project <strong>${escapeHtml(projectName)}</strong> has progressed.</p>
     
@@ -1772,7 +1773,7 @@ export const sendCandidatePaymentReceiptEmail = async ({
 <html>
 <body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px;">
-    <h3 style="color: #10b981; margin-top: 0;">Payment Receipt Confirmation ✅</h3>
+    <h3 style="color: #10b981; margin-top: 0;">Payment Receipt Confirmation</h3>
     <p>Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
     <p>We have successfully verified and received your payment for project <strong>${escapeHtml(projectName)}</strong>.</p>
     

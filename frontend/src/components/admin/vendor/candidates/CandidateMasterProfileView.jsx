@@ -554,7 +554,7 @@ export default function CandidateMasterProfileView({
                                   rel="noopener noreferrer"
                                   className="text-purple-700 underline font-bold"
                                 >
-                                  🔗 Join Meeting
+                                  Join Meeting
                                 </a>
                               </div>
                             )}
@@ -696,7 +696,7 @@ export default function CandidateMasterProfileView({
                                 className="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-2xs disabled:opacity-50"
                               >
                                 <UserCheck size={13} />
-                                <span>{actionLoading === subId + "_select" ? "Selecting..." : "Select Candidate 🎉"}</span>
+                                <span>{actionLoading === subId + "_select" ? "Selecting..." : "Select Candidate"}</span>
                               </button>
                               <button
                                 type="button"

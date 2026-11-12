@@ -57,7 +57,7 @@ export default function VendorHRMilestoneStepperModal({
                 <span>•</span>
                 <span className="font-mono text-slate-300">
                   {selectedMilestoneCandidate.passportNumber
-                    ? `🛂 ${selectedMilestoneCandidate.passportNumber}`
+                    ? `Passport: ${selectedMilestoneCandidate.passportNumber}`
                     : `ID: ${selectedMilestoneCandidate.applicationId || selectedMilestoneCandidate.id}`}
                 </span>
                 {!hideProjectNames && selectedMilestoneCandidate.projectName && (
@@ -214,8 +214,8 @@ export default function VendorHRMilestoneStepperModal({
                           : isUnlockedAndActive
                           ? "● In Progress"
                           : requiresPayment
-                          ? "🔒 Payment Gate Active"
-                          : "🔒 Locked"}
+                          ? "Payment Gate Active"
+                          : "Locked"}
                       </span>
                     </div>
                   </div>

@@ -35,8 +35,8 @@ export default function MilestoneClearanceDocs({
           <span>Access:</span>
           <strong className="text-[#163868] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
             {isVendorApp
-              ? `👥 Candidate & Vendor (${application.vendorName || "Vendor"})`
-              : "👤 Candidate Only (Direct Candidate)"}
+              ? `Candidate & Vendor (${application.vendorName || "Vendor"})`
+              : "Candidate Only (Direct Candidate)"}
           </strong>
         </div>
       </div>
@@ -57,13 +57,13 @@ export default function MilestoneClearanceDocs({
               onChange={(e) => setDocAudience(e.target.value)}
               className="px-2 py-1 text-xs font-medium border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#163868] cursor-pointer"
             >
-              <option value="both">👥 Both Candidate & Vendor</option>
-              <option value="candidate">👤 Candidate Only</option>
-              <option value="vendor">🏢 Vendor Only ({application.vendorName || "Vendor"})</option>
+              <option value="both">Both Candidate & Vendor</option>
+              <option value="candidate">Candidate Only</option>
+              <option value="vendor">Vendor Only ({application.vendorName || "Vendor"})</option>
             </select>
           ) : (
             <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-50 text-[#163868] border border-blue-200 shrink-0">
-              👤 Candidate Only
+              Candidate Only
             </span>
           )}
         </div>
@@ -101,10 +101,10 @@ export default function MilestoneClearanceDocs({
                     <span>•</span>
                     <span className="font-semibold text-[#163868]">
                       {doc.targetAudience === "candidate"
-                        ? "👤 Candidate"
+                        ? "Candidate"
                         : doc.targetAudience === "vendor"
-                        ? "🏢 Vendor"
-                        : "👥 Candidate & Vendor"}
+                        ? "Vendor"
+                        : "Candidate & Vendor"}
                     </span>
                   </div>
                 </div>

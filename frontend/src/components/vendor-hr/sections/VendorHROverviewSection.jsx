@@ -187,8 +187,8 @@ export default function VendorHROverviewSection({
                         </span>
                       </div>
                       <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                        <span>📍 {p.destinationCountry || p.country || "Overseas"}</span>
-                        <span className="truncate max-w-[150px]">🏢 {p.clientName || "Client"}</span>
+                        <span>{p.destinationCountry || p.country || "Overseas"}</span>
+                        <span className="truncate max-w-[150px]">{p.clientName || "Client"}</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>

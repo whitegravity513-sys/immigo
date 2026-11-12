@@ -76,9 +76,9 @@ export default function MilestoneStagesChecklist({
                         : "bg-slate-100 text-slate-700 border-slate-300"
                     }`}
                   >
-                    <option value="Completed">✓ Completed</option>
-                    <option value="In Progress">⏳ In Progress</option>
-                    <option value="Pending">🔒 Pending</option>
+                    <option value="Completed">Completed</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Pending">Pending</option>
                   </select>
 
                   <label className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1 cursor-pointer transition">

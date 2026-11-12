@@ -286,8 +286,8 @@ export default function VendorHRProjectsSection({
                                   </span>
                                 </div>
                                 <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
-                                  <span>💰 {formatSalary(job.salaryRange)}</span>
-                                  <span>📍 {detailedProject.destinationCountry}</span>
+                                  <span>{formatSalary(job.salaryRange)}</span>
+                                  <span>{detailedProject.destinationCountry}</span>
                                 </div>
                               </div>
 
