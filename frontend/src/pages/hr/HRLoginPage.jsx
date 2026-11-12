@@ -13,7 +13,6 @@ import {
   FileText,
   CheckCircle2,
 } from "lucide-react";
-import hrOfficeBg from "../../assets/hr-portal-office-bg.jpg";
 import { adminLogin } from "../../services/authService.js";
 import { useAuth } from "../../context/useAuth.js";
 import AuthErrorMessage from "../../components/auth/AuthErrorMessage.jsx";
@@ -91,7 +90,7 @@ export default function HRLoginPage() {
     <div className="min-h-[100dvh] w-full overflow-x-hidden relative flex flex-col justify-between font-sans select-none bg-slate-900">
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-        style={{ backgroundImage: `url(${hrOfficeBg})` }}
+        style={{ backgroundImage: "url('/images/hr-portal-office-bg.jpg')" }}
       />
       <div className="fixed inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent pointer-events-none" />
 

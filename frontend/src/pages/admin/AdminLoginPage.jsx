@@ -5,8 +5,6 @@ import AuthHeader from "../../components/auth/AuthHeader.jsx";
 import AuthHeroSection from "../../components/auth/AuthHeroSection.jsx";
 import AdminLoginForm from "../../components/auth/AdminLoginForm.jsx";
 import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
-import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
-import globePinIllustration from "../../assets/immigo-globe-pin.jpg";
 import { CheckCircle2 } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -43,7 +41,7 @@ export default function AdminLoginPage() {
 
         <div className="w-11 h-11 sm:w-12 sm:h-12 -mr-1 -mt-1 shrink-0 select-none pointer-events-none">
           <img
-            src={globePinIllustration}
+            src="/images/immigo-globe-pin.jpg"
             alt="Global Workforce"
             className="w-full h-full object-contain mix-blend-multiply"
           />
@@ -80,7 +78,7 @@ export default function AdminLoginPage() {
     <div className="min-h-[100dvh] w-full overflow-x-hidden relative flex flex-col justify-between font-sans select-none bg-slate-50">
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-40"
-        style={{ backgroundImage: `url(${heroTravelerBg})` }}
+        style={{ backgroundImage: "url('/images/immigo-hero-traveler-bg.jpg')" }}
       />
 
       <div className="sticky top-0 inset-x-0 z-30 shrink-0">

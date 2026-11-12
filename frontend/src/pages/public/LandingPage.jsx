@@ -109,15 +109,22 @@ export default function LandingPage() {
     if (!inquiryForm.name || !inquiryForm.phone) return;
 
     const customMsg = inquiryForm.message?.trim();
+    const senderInfo = [
+      `Name: ${inquiryForm.name.trim()}`,
+      `Phone: ${inquiryForm.phone.trim()}`,
+      inquiryForm.email?.trim() ? `Email: ${inquiryForm.email.trim()}` : "",
+      inquiryForm.roleType ? `Category: ${inquiryForm.roleType}` : "",
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
     const messageBody = customMsg
-      ? `Hello, I want to know more about your overseas recruitment services. ${customMsg} (From: ${inquiryForm.name})`
-      : `Hello, I want to know more about your overseas recruitment and manpower services. (From: ${inquiryForm.name})`;
+      ? `Hello, I want to know more about your overseas recruitment services. ${customMsg} (${senderInfo})`
+      : `Hello, I want to know more about your overseas recruitment and manpower services. (${senderInfo})`;
 
     const text = encodeURIComponent(messageBody);
-    const phone = import.meta.env.VITE_WHATSAPP_NUMBER;
-    const url = phone
-      ? `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${text}`
-      : `https://api.whatsapp.com/send?text=${text}`;
+    const phone = (import.meta.env.VITE_WHATSAPP_NUMBER || "919105921924").replace(/[^0-9]/g, "");
+    const url = `https://wa.me/${phone}?text=${text}`;
     window.open(url, "_blank");
     setInquirySubmitted(true);
     setTimeout(() => setInquirySubmitted(false), 8000);
@@ -622,61 +629,126 @@ export default function LandingPage() {
             <div className="w-14 h-1 bg-blue-600 mx-auto rounded-full" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-start">
-            <div className="lg:col-span-5 space-y-3">
-              <div className="p-3.5 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 border-b border-slate-200 pb-2">
-                  Contact Us
-                </h3>
-
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3 text-xs text-slate-700">
-                  <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <MapPin size={14} className="sm:w-4 sm:h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Head Office</span>
-                      <span className="text-[10.5px] sm:text-xs font-medium text-slate-800 break-words leading-snug block">
-                        Immigo Overseas Tower, Commercial Plaza, New Delhi, India
-                      </span>
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-stretch">
+            <div className="lg:col-span-5 flex flex-col">
+              <div className="h-full p-4 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between gap-4">
+                <div className="space-y-3.5">
+                  <div className="border-b border-slate-200 pb-2.5">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                      Office &amp; Direct Contact
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Reach our Noida / NCR desk directly via call, WhatsApp, or email.
+                    </p>
                   </div>
 
-                  <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Phone size={14} className="sm:w-4 sm:h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Call / WhatsApp</span>
-                      <span className="text-[10.5px] sm:text-xs font-bold text-slate-900 break-words block">+91 98765 43210</span>
-                    </div>
-                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3 text-xs text-slate-700">
+                    <a
+                      href="https://maps.google.com/?q=Ozone+Arcade+Jupiter+Enclave+Sector+104+Gautam+Budh+Nagar+Uttar+Pradesh+201302"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="col-span-2 lg:col-span-1 flex items-start gap-2.5 sm:gap-3 min-w-0 p-2 rounded-xl hover:bg-white transition-colors border border-transparent hover:border-slate-200"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <MapPin size={15} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Head Office</span>
+                        <span className="text-[11px] sm:text-xs font-medium text-slate-800 break-words leading-snug block">
+                          D 1, 4th Floor, Ozone Arcade, Jupiter Enclave, Sector 104, Gautam Budh Nagar, Uttar Pradesh - 201302
+                        </span>
+                      </div>
+                    </a>
 
-                  <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Mail size={14} className="sm:w-4 sm:h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Email Inquiry</span>
-                      <span className="text-[10.5px] sm:text-xs font-medium text-slate-800 break-all block">inquiry@immigo.com</span>
-                    </div>
-                  </div>
+                    <a
+                      href="tel:+919105921927"
+                      className="flex items-start gap-2 sm:gap-3 min-w-0 p-2 rounded-xl hover:bg-white transition-colors border border-transparent hover:border-slate-200 group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <Phone size={15} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Call Support</span>
+                        <span className="text-[11px] sm:text-xs font-bold text-slate-900 group-hover:text-blue-700 break-words block">
+                          +91 91059 21927
+                        </span>
+                      </div>
+                    </a>
 
-                  <div className="flex items-start gap-2 sm:gap-3 min-w-0">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Clock size={14} className="sm:w-4 sm:h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Working Hours</span>
-                      <span className="text-[10.5px] sm:text-xs font-medium text-slate-800 leading-snug block">Mon - Sat: 9:30 AM - 6:30 PM</span>
+                    <a
+                      href="https://wa.me/919105921924"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-start gap-2 sm:gap-3 min-w-0 p-2 rounded-xl hover:bg-white transition-colors border border-transparent hover:border-slate-200 group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <MessageCircle size={15} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">WhatsApp</span>
+                        <span className="text-[11px] sm:text-xs font-bold text-slate-900 group-hover:text-emerald-700 break-words block">
+                          +91 91059 21924
+                        </span>
+                      </div>
+                    </a>
+
+                    <a
+                      href="mailto:immigoeducare@gmail.com"
+                      className="col-span-2 lg:col-span-1 flex items-start gap-2.5 sm:gap-3 min-w-0 p-2 rounded-xl hover:bg-white transition-colors border border-transparent hover:border-slate-200 group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <Mail size={15} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Email Inquiry</span>
+                        <span className="text-[11px] sm:text-xs font-semibold text-slate-800 group-hover:text-blue-700 group-hover:underline break-all block">
+                          immigoeducare@gmail.com
+                        </span>
+                      </div>
+                    </a>
+
+                    <div className="col-span-2 lg:col-span-1 flex items-start gap-2.5 sm:gap-3 min-w-0 p-2">
+                      <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <Clock size={15} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 block font-semibold">Working Hours</span>
+                        <span className="text-[11px] sm:text-xs font-medium text-slate-800 leading-snug block">Mon - Sat: 9:30 AM - 6:30 PM (IST)</span>
+                      </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200 grid grid-cols-3 gap-2">
+                  <a
+                    href="tel:+919105921927"
+                    className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-slate-200 hover:border-blue-300 text-[11px] font-bold transition-colors"
+                  >
+                    <Phone size={13} className="shrink-0" />
+                    <span>Call Now</span>
+                  </a>
+                  <a
+                    href="https://wa.me/919105921924"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-colors shadow-2xs"
+                  >
+                    <MessageCircle size={13} className="shrink-0" />
+                    <span>WhatsApp</span>
+                  </a>
+                  <a
+                    href="mailto:immigoeducare@gmail.com"
+                    className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-white hover:bg-blue-50 text-slate-800 hover:text-blue-700 border border-slate-200 hover:border-blue-300 text-[11px] font-bold transition-colors"
+                  >
+                    <Mail size={13} className="shrink-0" />
+                    <span>Email Us</span>
+                  </a>
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-7">
-              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3.5 sm:p-6 shadow-xs">
+            <div className="lg:col-span-7 flex flex-col">
+              <div className="h-full bg-slate-50 rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col justify-between">
                 <div className="pb-2.5 border-b border-slate-200 mb-3">
                   <h3 className="text-sm font-bold text-slate-900">
                     Send an Instant Inquiry
@@ -759,7 +831,7 @@ export default function LandingPage() {
                       Your Message or Trade Skills
                     </label>
                     <textarea
-                      rows={2}
+                      rows={4}
                       placeholder="Specify your technical trade (e.g. 6G Welder, Electrician) or manpower requirement details..."
                       value={inquiryForm.message}
                       onChange={(e) => setInquiryForm({ ...inquiryForm, message: e.target.value })}
@@ -834,18 +906,34 @@ export default function LandingPage() {
                 Corporate Address
               </span>
               <div className="space-y-1.5 text-[10.5px] sm:text-xs text-slate-300">
-                <div className="flex items-start gap-1.5">
+                <a
+                  href="https://maps.google.com/?q=Ozone+Arcade+Jupiter+Enclave+Sector+104+Gautam+Budh+Nagar+Uttar+Pradesh+201302"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-start gap-1.5 hover:text-white transition-colors"
+                >
                   <MapPin size={13} className="text-blue-400 shrink-0 mt-0.5" />
-                  <span className="min-w-0 break-words leading-snug">Immigo Overseas Tower, Commercial Plaza, New Delhi, India</span>
-                </div>
-                <div className="flex items-center gap-1.5">
+                  <span className="min-w-0 break-words leading-snug">
+                    D 1, 4th Floor, Ozone Arcade, Jupiter Enclave, Sector 104, Gautam Budh Nagar, Uttar Pradesh - 201302
+                  </span>
+                </a>
+                <a href="tel:+919105921927" className="flex items-center gap-1.5 hover:text-white transition-colors">
                   <Phone size={13} className="text-blue-400 shrink-0" />
-                  <span className="min-w-0 break-words">+91 98765 43210</span>
-                </div>
-                <div className="flex items-center gap-1.5">
+                  <span className="min-w-0 break-words">+91 91059 21927 (Call)</span>
+                </a>
+                <a
+                  href="https://wa.me/919105921924"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 hover:text-emerald-300 transition-colors"
+                >
+                  <MessageCircle size={13} className="text-emerald-400 shrink-0" />
+                  <span className="min-w-0 break-words">+91 91059 21924 (WhatsApp)</span>
+                </a>
+                <a href="mailto:immigoeducare@gmail.com" className="flex items-center gap-1.5 hover:text-white transition-colors">
                   <Mail size={13} className="text-blue-400 shrink-0" />
-                  <span className="min-w-0 break-all">inquiry@immigo.com</span>
-                </div>
+                  <span className="min-w-0 break-all">immigoeducare@gmail.com</span>
+                </a>
               </div>
             </div>
           </div>
@@ -870,11 +958,7 @@ export default function LandingPage() {
       </footer>
 
       <a
-        href={
-          import.meta.env.VITE_WHATSAPP_NUMBER
-            ? `https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER.replace(/[^0-9]/g, "")}?text=Hello%2C%20I%20want%20to%20know%20more%20about%20your%20services.`
-            : `https://api.whatsapp.com/send?text=Hello%2C%20I%20want%20to%20know%20more%20about%20your%20services.`
-        }
+        href={`https://wa.me/${(import.meta.env.VITE_WHATSAPP_NUMBER || "919105921924").replace(/[^0-9]/g, "")}?text=Hello%2C%20I%20want%20to%20know%20more%20about%20your%20services.`}
         target="_blank"
         rel="noreferrer"
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-full shadow-lg shadow-emerald-950/30 flex items-center gap-2 transition-transform hover:scale-105 cursor-pointer"

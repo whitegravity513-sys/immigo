@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
-import vendorConstructionManpower from "../../assets/vendor-construction-manpower.jpg";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -230,7 +229,7 @@ export function VendorRegister() {
 
       <div className="fixed inset-0 z-0 overflow-hidden select-none pointer-events-none">
         <img
-          src={vendorConstructionManpower}
+          src="/images/vendor-construction-manpower.jpg"
           alt="Vendor Construction Manpower Recruitment"
           className="w-full h-full object-cover object-center scale-100"
         />

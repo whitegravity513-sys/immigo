@@ -20,7 +20,6 @@ import {
 import { useAuth } from "../../context/useAuth.js";
 import crmVendorService from "../../services/crmVendorService.js";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
-import heroTravelerBg from "../../assets/immigo-hero-traveler-bg.jpg";
 import ForgotPasswordOtpModal from "../../components/auth/ForgotPasswordOtpModal.jsx";
 
 export function VendorLogin() {
@@ -108,7 +107,7 @@ export function VendorLogin() {
     <div className="min-h-[100dvh] w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-100">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-90"
-        style={{ backgroundImage: `url(${heroTravelerBg})` }}
+        style={{ backgroundImage: "url('/images/immigo-hero-traveler-bg.jpg')" }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-blue-900/30 pointer-events-none" />
 

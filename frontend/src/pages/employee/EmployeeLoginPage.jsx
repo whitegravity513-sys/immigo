@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import AuthHeader from "../../components/auth/AuthHeader.jsx";
 import { employeeLogin } from "../../services/authService.js";
 import { useAuth } from "../../context/useAuth.js";
-import employeeVectorHd from "../../assets/employee-vector-hd.jpg";
 import {
   User,
   Eye,
@@ -235,7 +234,7 @@ export default function EmployeeLoginPage() {
         <div className="hidden lg:flex w-full lg:w-[50%] xl:w-[52%] items-center justify-center lg:justify-end select-none pointer-events-none pr-0 lg:pr-8 xl:pr-12">
           <div className="relative w-full max-w-[460px] xl:max-w-[540px] flex items-center justify-center">
             <img
-              src={employeeVectorHd}
+              src="/images/employee-vector-hd.jpg"
               alt="Employee Workplace Family"
               className="w-full max-h-[72vh] object-contain drop-shadow-[0_20px_45px_rgba(30,70,110,0.18)]"
             />
