@@ -1,9 +1,11 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { fileURLToPath } from "url";
 import { ApiError } from "./apiError.js";
 
-const UPLOAD_ROOT = path.resolve(process.cwd(), "uploads");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const UPLOAD_ROOT = path.resolve(__dirname, "../../uploads");
 const SUBDIRS = ["profiles", "documents", "receipts"];
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
@@ -18,13 +20,6 @@ const ALLOWED_MIME_EXT = {
 };
 
 const ALLOWED_EXTENSIONS = new Set([".pdf", ".png", ".jpg", ".jpeg", ".webp", ".doc", ".docx"]);
-
-for (const dir of SUBDIRS) {
-  const fullPath = path.join(UPLOAD_ROOT, dir);
-  if (!fs.existsSync(fullPath)) {
-    fs.mkdirSync(fullPath, { recursive: true });
-  }
-}
 
 export function saveBase64File(dataUrl, subDir = "documents", originalName = "") {
   if (!dataUrl || typeof dataUrl !== "string") return "";

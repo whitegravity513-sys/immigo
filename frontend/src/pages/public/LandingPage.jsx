@@ -23,7 +23,7 @@ import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 const heroSlides = [
   {
     id: 1,
-    image: "/manpower-hero-1.jpg",
+    image: "/images/manpower-hero-1.jpg",
     tagline: "Overseas Recruitment & Manpower Supply",
     title: "Global Manpower Supply & International Careers",
     subtitle:
@@ -32,7 +32,7 @@ const heroSlides = [
   },
   {
     id: 2,
-    image: "/manpower-hero-2.jpg",
+    image: "/images/manpower-hero-2.jpg",
     tagline: "Certified Technical Specialists",
     title: "Government-Approved Trade Testing & Verification",
     subtitle:
@@ -41,7 +41,7 @@ const heroSlides = [
   },
   {
     id: 3,
-    image: "/manpower-hero-3.jpg",
+    image: "/images/manpower-hero-3.jpg",
     tagline: "End-to-End International Placement",
     title: "100% Legal Work Visas & Guaranteed Flights",
     subtitle:
@@ -50,7 +50,7 @@ const heroSlides = [
   },
   {
     id: 4,
-    image: "/manpower-hero-4.jpg",
+    image: "/images/manpower-hero-4.jpg",
     tagline: "Industrial & Energy Mega Projects",
     title: "Certified Manpower for Infrastructure & Energy Plants",
     subtitle:
@@ -415,7 +415,7 @@ export default function LandingPage() {
               <div className="block lg:hidden w-full my-1">
                 <div className="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 aspect-16/9 max-h-[190px] sm:max-h-[260px]">
                   <img
-                    src="/about-deployment.jpg"
+                    src="/images/about-deployment.jpg"
                     alt="Candidate Selection and Foreign Departure"
                     className="w-full h-full object-cover object-center"
                   />
@@ -518,7 +518,7 @@ export default function LandingPage() {
             <div className="hidden lg:block lg:col-span-5 w-full">
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-slate-200 aspect-4/3 max-h-[410px] group">
                 <img
-                  src="/about-deployment.jpg"
+                  src="/images/about-deployment.jpg"
                   alt="Candidate Selection and Foreign Departure"
                   className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
                 />

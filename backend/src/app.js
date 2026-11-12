@@ -15,6 +15,7 @@ import { apiLimiter } from "./middleware/rateLimit.middleware.js";
 import apiRouter from "./routes/index.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import { ApiError } from "./utils/apiError.js";
+import { UPLOAD_ROOT } from "./utils/fileStorage.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -22,7 +23,7 @@ app.set("trust proxy", 1);
 app.use(
   "/uploads",
   cors(corsOptions),
-  express.static(path.join(process.cwd(), "uploads"), {
+  express.static(UPLOAD_ROOT, {
     setHeaders: (res) => {
       res.setHeader("X-Content-Type-Options", "nosniff");
       res.setHeader("Content-Security-Policy", "default-src 'none'; sandbox");

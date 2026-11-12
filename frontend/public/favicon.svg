@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#0f2744" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)" />
+  <text x="14" y="43" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="30" font-weight="800" fill="#ffffff">i</text>
+  <text x="24" y="43" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="30" font-weight="800" fill="#fb923c">G</text>
+  <path d="M48 18h8m-4-4l4 4-4 4" stroke="#fb923c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+
