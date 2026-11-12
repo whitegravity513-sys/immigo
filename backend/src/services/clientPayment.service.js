@@ -241,7 +241,7 @@ export class ClientPaymentService {
 
     if (!clientId) throw new ApiError(400, "Client selection is required.");
     if (!milestoneId) throw new ApiError(400, "Payment milestone is required.");
-    if (!amountPaid || Number(amountPaid) <= 0) {
+    if (!Number.isFinite(Number(amountPaid)) || Number(amountPaid) <= 0) {
       throw new ApiError(400, "Payment amount must be greater than zero.");
     }
     if (!transactionReference || !String(transactionReference).trim()) {
@@ -503,7 +503,13 @@ export class ClientPaymentService {
     const prevStatus = payment.status;
     const prevAmount = payment.amountPaid;
 
-    if (updateData.amountPaid !== undefined) payment.amountPaid = Number(updateData.amountPaid);
+    if (updateData.amountPaid !== undefined) {
+      const parsedPaid = Number(updateData.amountPaid);
+      if (!Number.isFinite(parsedPaid) || parsedPaid <= 0) {
+        throw new ApiError(400, "Payment amount must be greater than zero.");
+      }
+      payment.amountPaid = parsedPaid;
+    }
     if (updateData.paymentDate) payment.paymentDate = new Date(updateData.paymentDate);
     if (updateData.paymentMethod) payment.paymentMethod = updateData.paymentMethod;
     if (updateData.transactionReference !== undefined) payment.transactionReference = String(updateData.transactionReference).trim();

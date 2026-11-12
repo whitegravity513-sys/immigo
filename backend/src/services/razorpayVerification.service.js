@@ -270,6 +270,7 @@ export const verifyAndFetchRazorpayPayment = async ({
   applicationId = "",
   milestoneId = "",
   actorId = "",
+  actorIds = [],
   actorRole = "",
   consume = false,
 }) => {
@@ -311,11 +312,16 @@ export const verifyAndFetchRazorpayPayment = async ({
     if (txnRecord.milestoneId && cleanMilestoneId && txnRecord.milestoneId !== cleanMilestoneId) {
       throw new ApiError(403, "Payment order belongs to a different milestone.");
     }
+    const allowedActorIds = new Set(
+      [actorId, ...(Array.isArray(actorIds) ? actorIds : [])]
+        .filter(Boolean)
+        .map((v) => String(v).trim())
+    );
     if (
       txnRecord.actorId &&
-      actorId &&
+      allowedActorIds.size > 0 &&
       !isPrivilegedActor &&
-      String(txnRecord.actorId) !== String(actorId)
+      !allowedActorIds.has(String(txnRecord.actorId).trim())
     ) {
       throw new ApiError(403, "Payment order belongs to a different account.");
     }

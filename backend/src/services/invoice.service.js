@@ -55,15 +55,32 @@ export class InvoiceService {
       throw new ApiError(400, "Client, Due Date, and Items are required.");
     }
 
+    const parsedAmount = Number(amount || 0);
+    const parsedTax = Number(tax || 0);
+    const parsedTotal = Number(totalAmount || 0);
+    const parsedIgst = Number(igstRate || 0);
+    const parsedCgst = Number(cgstRate || 0);
+    const parsedSgst = Number(sgstRate || 0);
+    if (
+      !Number.isFinite(parsedAmount) || parsedAmount < 0 ||
+      !Number.isFinite(parsedTax) || parsedTax < 0 ||
+      !Number.isFinite(parsedTotal) || parsedTotal < 0 ||
+      !Number.isFinite(parsedIgst) || parsedIgst < 0 ||
+      !Number.isFinite(parsedCgst) || parsedCgst < 0 ||
+      !Number.isFinite(parsedSgst) || parsedSgst < 0
+    ) {
+      throw new ApiError(400, "Invoice amounts and tax rates must be valid non-negative numbers.");
+    }
+
     const finalInvoiceNo = invoiceNo || `INV-${Date.now().toString().slice(-6)}`;
     const itemsStr = typeof items === "string" ? items : JSON.stringify(items);
 
     const invoice = await Invoice.create({
       invoiceNo: finalInvoiceNo,
       clientId: finalClientId,
-      amount: Number(amount) || 0,
-      tax: Number(tax) || 0,
-      totalAmount: Number(totalAmount) || 0,
+      amount: parsedAmount,
+      tax: parsedTax,
+      totalAmount: parsedTotal,
       status: status || "Unpaid",
       paymentStatus: status || "Unpaid",
       dueDate: new Date(dueDate),
@@ -82,9 +99,9 @@ export class InvoiceService {
       adminContact: adminContact || "",
       adminEmail: adminEmail || "",
       adminGstn: adminGstn || "",
-      igstRate: Number(igstRate) || 0,
-      cgstRate: Number(cgstRate) || 0,
-      sgstRate: Number(sgstRate) || 0,
+      igstRate: parsedIgst,
+      cgstRate: parsedCgst,
+      sgstRate: parsedSgst,
       remark: remark || "",
     });
 
@@ -114,9 +131,27 @@ export class InvoiceService {
       throw new ApiError(404, "Invoice not found.");
     }
 
-    if (amount !== undefined) invoice.amount = Number(amount);
-    if (tax !== undefined) invoice.tax = Number(tax);
-    if (totalAmount !== undefined) invoice.totalAmount = Number(totalAmount);
+    if (amount !== undefined) {
+      const parsedAmount = Number(amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+        throw new ApiError(400, "Invoice amount must be a valid non-negative number.");
+      }
+      invoice.amount = parsedAmount;
+    }
+    if (tax !== undefined) {
+      const parsedTax = Number(tax);
+      if (!Number.isFinite(parsedTax) || parsedTax < 0) {
+        throw new ApiError(400, "Tax must be a valid non-negative number.");
+      }
+      invoice.tax = parsedTax;
+    }
+    if (totalAmount !== undefined) {
+      const parsedTotal = Number(totalAmount);
+      if (!Number.isFinite(parsedTotal) || parsedTotal < 0) {
+        throw new ApiError(400, "Total amount must be a valid non-negative number.");
+      }
+      invoice.totalAmount = parsedTotal;
+    }
     if (status) {
       invoice.status = status;
       invoice.paymentStatus = status;

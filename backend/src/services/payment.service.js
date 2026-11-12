@@ -42,16 +42,25 @@ export class PaymentService {
       throw new ApiError(400, "Project ID and Amount are required.");
     }
 
+    const parsedAmount = Number(amount);
+    const parsedTds = tdsDeducted !== undefined && tdsDeducted !== "" ? Number(tdsDeducted) : 0;
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      throw new ApiError(400, "Payment amount must be a positive number.");
+    }
+    if (!Number.isFinite(parsedTds) || parsedTds < 0) {
+      throw new ApiError(400, "TDS amount must be a valid non-negative number.");
+    }
+
     const finalNote = note || description || "";
     const finalDate = paymentDate || date;
 
     const payment = await ProjectPayment.create({
       projectId: finalProjectId,
-      amount: Number(amount) || 0,
+      amount: parsedAmount,
       note: finalNote,
       paymentDate: finalDate ? new Date(finalDate) : new Date(),
       paymentMode: paymentMode || "Bank Transfer",
-      tdsDeducted: Number(tdsDeducted) || 0,
+      tdsDeducted: parsedTds,
       igst: igst || "",
       cgst: cgst || "",
       sgst: sgst || "",
@@ -93,7 +102,13 @@ export class PaymentService {
       throw new ApiError(404, "Payment not found.");
     }
 
-    if (amount !== undefined) payment.amount = Number(amount);
+    if (amount !== undefined) {
+      const parsedAmount = Number(amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        throw new ApiError(400, "Payment amount must be a positive number.");
+      }
+      payment.amount = parsedAmount;
+    }
     if (note !== undefined || description !== undefined) {
       payment.note = note !== undefined ? note : description;
     }
@@ -101,7 +116,13 @@ export class PaymentService {
       payment.paymentDate = new Date(paymentDate || date);
     }
     if (paymentMode !== undefined) payment.paymentMode = paymentMode;
-    if (tdsDeducted !== undefined) payment.tdsDeducted = Number(tdsDeducted);
+    if (tdsDeducted !== undefined) {
+      const parsedTds = Number(tdsDeducted);
+      if (!Number.isFinite(parsedTds) || parsedTds < 0) {
+        throw new ApiError(400, "TDS amount must be a valid non-negative number.");
+      }
+      payment.tdsDeducted = parsedTds;
+    }
     if (igst !== undefined) payment.igst = igst;
     if (cgst !== undefined) payment.cgst = cgst;
     if (sgst !== undefined) payment.sgst = sgst;

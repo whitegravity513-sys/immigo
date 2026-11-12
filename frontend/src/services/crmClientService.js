@@ -3,6 +3,15 @@ import { apiClient } from "./apiClient.js";
 
 const STORAGE_KEY = "crm_clients_data_v3";
 
+const safeParseList = (raw) => {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 
 const loadClientsFromStorage = () => {
   try {
@@ -974,7 +983,7 @@ export const crmClientService = {
 
     
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
-    let list = JSON.parse(localPaymentsRaw);
+    let list = safeParseList(localPaymentsRaw);
 
     const { clientId, projectId, candidateId, paymentMethod, paymentStatus, gstTreatment, search } = params;
     if (clientId && clientId !== "ALL") list = list.filter((p) => String(p.clientId) === String(clientId));
@@ -1026,7 +1035,7 @@ export const crmClientService = {
 
     
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
-    const list = JSON.parse(localPaymentsRaw);
+    const list = safeParseList(localPaymentsRaw);
 
     const paymentId = `PAY-${new Date().getFullYear()}-${String(list.length + 1).padStart(4, "0")}`;
     const newTx = {
@@ -1108,7 +1117,7 @@ export const crmClientService = {
     });
 
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
-    let list = JSON.parse(localPaymentsRaw).filter((p) => !p.isReversed);
+    let list = safeParseList(localPaymentsRaw).filter((p) => !p.isReversed);
     if (resolvedClientId && resolvedClientId !== "ALL") {
       list = list.filter((p) => String(p.clientId) === String(resolvedClientId));
     }
@@ -1145,7 +1154,7 @@ export const crmClientService = {
     }
 
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
-    const list = JSON.parse(localPaymentsRaw);
+    const list = safeParseList(localPaymentsRaw);
     const pIdx = list.findIndex((p) => String(p.id) === String(paymentId) || String(p.paymentId) === String(paymentId));
     if (pIdx !== -1) {
       list[pIdx].isReversed = true;
@@ -1168,7 +1177,7 @@ export const crmClientService = {
     }
 
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
-    const list = JSON.parse(localPaymentsRaw);
+    const list = safeParseList(localPaymentsRaw);
     const pIdx = list.findIndex((p) => String(p.id) === String(paymentId) || String(p.paymentId) === String(paymentId));
     if (pIdx !== -1) {
       list[pIdx] = { ...list[pIdx], ...updateData, updatedAt: new Date().toISOString() };
@@ -1192,7 +1201,7 @@ export const crmClientService = {
     }
 
     const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
-    let list = JSON.parse(localExpensesRaw);
+    let list = safeParseList(localExpensesRaw);
     if (clientId) {
       list = list.filter((e) => String(e.clientId) === String(clientId));
     }
@@ -1227,7 +1236,7 @@ export const crmClientService = {
     }
 
     const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
-    const list = JSON.parse(localExpensesRaw);
+    const list = safeParseList(localExpensesRaw);
     const expenseId = `EXP-${new Date().getFullYear()}-${String(list.length + 1).padStart(4, "0")}`;
     const newExp = {
       ...expenseData,
@@ -1253,7 +1262,7 @@ export const crmClientService = {
     }
 
     const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
-    const list = JSON.parse(localExpensesRaw);
+    const list = safeParseList(localExpensesRaw);
     const eIdx = list.findIndex((e) => String(e.id || e._id) === String(expenseId));
     if (eIdx !== -1) {
       list[eIdx] = { ...list[eIdx], ...updateData, updatedAt: new Date().toISOString() };
@@ -1272,7 +1281,7 @@ export const crmClientService = {
     }
 
     const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
-    let list = JSON.parse(localExpensesRaw);
+    let list = safeParseList(localExpensesRaw);
     list = list.filter((e) => String(e.id || e._id) !== String(expenseId));
     localStorage.setItem("crm_client_expenses_v1", JSON.stringify(list));
     return true;
@@ -1289,7 +1298,7 @@ export const crmClientService = {
     }
 
     const localExpensesRaw = localStorage.getItem("crm_client_expenses_v1") || "[]";
-    return JSON.parse(localExpensesRaw);
+    return safeParseList(localExpensesRaw);
   },
 };
 

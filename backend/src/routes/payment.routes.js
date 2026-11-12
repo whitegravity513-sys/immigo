@@ -63,6 +63,7 @@ router.post("/verify-payment", verifyToken, paymentLimiter, async (req, res) => 
       applicationId: applicationId || "",
       milestoneId: milestoneId || "",
       actorId: req.user?.vendorId || req.user?.candidateId || req.user?.id || req.user?._id || "",
+      actorIds: [req.user?.vendorId, req.user?.candidateId, req.user?.id, req.user?._id],
       actorRole: req.user?.role || "",
       consume: false,
     });

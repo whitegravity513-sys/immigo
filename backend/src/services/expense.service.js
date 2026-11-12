@@ -309,6 +309,10 @@ export class ExpenseService {
     if (!finalTitle || amount === undefined || amount === null || amount === "") {
       throw new ApiError(400, "Title / Name and amount are required.");
     }
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      throw new ApiError(400, "Expense amount must be a positive number.");
+    }
 
     const isEmployee = userRole === "employee";
     const status = isEmployee ? "Pending" : (data.status || "Approved");
@@ -522,9 +526,15 @@ export class ExpenseService {
       updatedValues.description = description.trim();
       expense.description = description.trim();
     }
-    if (amount !== undefined && parseFloat(amount) !== expense.amount) {
-      updatedValues.amount = parseFloat(amount);
-      expense.amount = parseFloat(amount);
+    if (amount !== undefined) {
+      const parsedAmount = Number(amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        throw new ApiError(400, "Expense amount must be a positive number.");
+      }
+      if (parsedAmount !== expense.amount) {
+        updatedValues.amount = parsedAmount;
+        expense.amount = parsedAmount;
+      }
     }
     if (date) {
       expense.date = new Date(date);

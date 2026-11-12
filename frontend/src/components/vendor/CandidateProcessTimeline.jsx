@@ -42,8 +42,8 @@ export default function CandidateProcessTimeline({
   const actorLabel = isVendorHR
     ? "Vendor HR"
     : authIsSuperAdmin
-    ? "Super Admin"
-    : "Admin";
+      ? "Super Admin"
+      : "Admin";
 
   const [activeStageForm, setActiveStageForm] = useState(null);
   const [stageRemark, setStageRemark] = useState("");
@@ -63,7 +63,7 @@ export default function CandidateProcessTimeline({
         .then((res) => {
           if (active && Array.isArray(res)) setSyncedRefunds(res);
         })
-        .catch(() => {});
+        .catch(() => { });
     };
     sync();
     window.addEventListener("immigo:refund-update", sync);
@@ -92,19 +92,19 @@ export default function CandidateProcessTimeline({
   const syncedFromProject =
     !application?.milestonesOverridden && crmVendorService.syncAppMilestonesWithProject
       ? crmVendorService.syncAppMilestonesWithProject(
-          application,
-          project ? [project] : null
-        )
+        application,
+        project ? [project] : null
+      )
       : [];
 
   const rawMilestones =
     Array.isArray(syncedFromProject) && syncedFromProject.length > 0
       ? syncedFromProject
       : Array.isArray(application?.processMilestones) && application.processMilestones.length > 0
-      ? application.processMilestones
-      : Array.isArray(application?.paymentPlan?.milestones) && application.paymentPlan.milestones.length > 0
-      ? application.paymentPlan.milestones
-      : [];
+        ? application.processMilestones
+        : Array.isArray(application?.paymentPlan?.milestones) && application.paymentPlan.milestones.length > 0
+          ? application.paymentPlan.milestones
+          : [];
 
   const processMilestones = (rawMilestones || []).map((m, mIdx) => {
     const fallbackStageName = `${m.name || `Milestone ${mIdx + 1}`} Verification`;
@@ -112,12 +112,12 @@ export default function CandidateProcessTimeline({
       Array.isArray(m.stages) && m.stages.length > 0
         ? m.stages
         : [
-            {
-              id: `s${mIdx}_1`,
-              name: fallbackStageName,
-              status: m.status === "Completed" ? "Completed" : "Pending",
-            },
-          ];
+          {
+            id: `s${mIdx}_1`,
+            name: fallbackStageName,
+            status: m.status === "Completed" ? "Completed" : "Pending",
+          },
+        ];
     return {
       ...m,
       paymentAmount: Number(m.paymentAmount ?? m.amount ?? 0),
@@ -200,10 +200,14 @@ export default function CandidateProcessTimeline({
     try {
       const appSnapshot = { ...application, processMilestones };
       if (action === "Submit") {
+        if (!vendorPaymentForm.txnId || !vendorPaymentForm.txnId.trim()) {
+          setLoading(false);
+          return alert("Please enter a valid Transaction / Reference ID before submitting receipt.");
+        }
         const targetM = (processMilestones || []).find((m) => m.id === mId);
         const mAmount = Number(targetM?.paymentAmount ?? targetM?.amount ?? 0);
 
-        const payload = `[${vendorPaymentForm.method}] Amount: ₹${mAmount.toLocaleString()} | TXN: ${vendorPaymentForm.txnId} | Date: ${vendorPaymentForm.date} | Remark: ${vendorPaymentForm.remark}`;
+        const payload = `[${vendorPaymentForm.method}] Amount: ₹${mAmount.toLocaleString()} | TXN: ${vendorPaymentForm.txnId.trim()} | Date: ${vendorPaymentForm.date} | Remark: ${vendorPaymentForm.remark}`;
         await crmVendorService.submitMilestonePayment(appId, mId, payload, appSnapshot);
         alert("Offline payment details submitted successfully! Pending Admin verification.");
       } else if (action === "Approve" && canManageStages) {
@@ -400,28 +404,27 @@ export default function CandidateProcessTimeline({
         const isApproved =
           amt > 0
             ? milestone.paymentStatus === "Approved" ||
-              milestone.status === "Paid" ||
-              milestone.status === "Completed"
+            milestone.status === "Paid" ||
+            milestone.status === "Completed"
             : milestone.paymentStatus === "Approved";
         const isPaymentSubmitted = milestone.paymentStatus === "Submitted";
         const requiresPayment = amt > 0 && !isApproved;
         const isActive = !isLocked && !isCompleted;
 
         return (
-          <div 
-            key={milestone.id} 
-            className={`border rounded-xl p-4 transition-all ${
-              isCompleted ? "border-blue-300/80 bg-gradient-to-br from-blue-50/90 via-slate-50/80 to-blue-50/60 shadow-2xs" :
-              !isLocked && (isActive || requiresPayment) ? "border-blue-400 bg-white shadow-xs ring-1 ring-blue-200" :
-              "border-slate-200 bg-slate-50 opacity-75"
-            }`}
+          <div
+            key={milestone.id}
+            className={`border rounded-xl p-4 transition-all ${isCompleted ? "border-blue-300/80 bg-gradient-to-br from-blue-50/90 via-slate-50/80 to-blue-50/60 shadow-2xs" :
+                !isLocked && (isActive || requiresPayment) ? "border-blue-400 bg-white shadow-xs ring-1 ring-blue-200" :
+                  "border-slate-200 bg-slate-50 opacity-75"
+              }`}
           >
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   {isCompleted ? <CheckCircle2 className="w-5 h-5 text-blue-600" /> :
-                   isLocked ? <Lock className="w-4 h-4 text-slate-400" /> :
-                   <Circle className="w-4 h-4 text-blue-600 fill-blue-600" />}
+                    isLocked ? <Lock className="w-4 h-4 text-slate-400" /> :
+                      <Circle className="w-4 h-4 text-blue-600 fill-blue-600" />}
                   <span className={isCompleted ? "text-slate-900 font-extrabold" : isLocked ? "text-slate-500" : "text-blue-950 font-extrabold"}>
                     MILESTONE {index + 1}: {milestone.name}
                   </span>
@@ -432,20 +435,19 @@ export default function CandidateProcessTimeline({
                   <IndianRupee className="w-3 h-3" />
                   {amt.toLocaleString()}
                 </div>
-                <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${
-                  isLocked ? "bg-slate-200 text-slate-600" :
-                  isCompleted ? "bg-blue-100 text-blue-950 border border-blue-200" :
-                  isApproved ? "bg-blue-100/90 text-blue-900 border border-blue-200" :
-                  isPaymentSubmitted ? "bg-amber-100 text-amber-800" :
-                  requiresPayment ? "bg-blue-50 text-blue-700 border border-blue-200" :
-                  "bg-slate-100 text-slate-500"
-                }`}>
+                <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${isLocked ? "bg-slate-200 text-slate-600" :
+                    isCompleted ? "bg-blue-100 text-blue-950 border border-blue-200" :
+                      isApproved ? "bg-blue-100/90 text-blue-900 border border-blue-200" :
+                        isPaymentSubmitted ? "bg-amber-100 text-amber-800" :
+                          requiresPayment ? "bg-blue-50 text-blue-700 border border-blue-200" :
+                            "bg-slate-100 text-slate-500"
+                  }`}>
                   {isLocked ? "Locked" :
-                   isCompleted ? "Completed" :
-                   isApproved ? "Payment Approved" :
-                   isPaymentSubmitted ? "Payment Submitted (Pending)" :
-                   requiresPayment ? "Payment Required" :
-                   "No Payment Required"}
+                    isCompleted ? "Completed" :
+                      isApproved ? "Payment Approved" :
+                        isPaymentSubmitted ? "Payment Submitted (Pending)" :
+                          requiresPayment ? "Payment Required" :
+                            "No Payment Required"}
                 </div>
               </div>
             </div>
@@ -466,8 +468,8 @@ export default function CandidateProcessTimeline({
                   {isPaymentSubmitted
                     ? "Payment submitted by vendor (Pending Admin Approval). Processing stages below will unlock once Admin approves received payment."
                     : milestone.paymentStatus === "Rejected"
-                    ? `Payment receipt rejected${milestone.paymentRemark ? `: ${milestone.paymentRemark}` : ""}. Please re-submit payment proof or pay online to unlock stages below.`
-                    : "Milestone payment required. Complete payment first so Admin can approve receipt and unlock processing stages below."}
+                      ? `Payment receipt rejected${milestone.paymentRemark ? `: ${milestone.paymentRemark}` : ""}. Please re-submit payment proof or pay online to unlock stages below.`
+                      : "Milestone payment required. Complete payment first so Admin can approve receipt and unlock processing stages below."}
                 </span>
               </div>
             )}
@@ -567,11 +569,11 @@ export default function CandidateProcessTimeline({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Date</label>
-                            <DateInput value={vendorPaymentForm.date} onChange={e => setVendorPaymentForm({...vendorPaymentForm, date: e.target.value})} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none bg-white focus:border-indigo-500" />
+                            <DateInput value={vendorPaymentForm.date} onChange={e => setVendorPaymentForm({ ...vendorPaymentForm, date: e.target.value })} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none bg-white focus:border-indigo-500" />
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Method</label>
-                            <select value={vendorPaymentForm.method} onChange={e => setVendorPaymentForm({...vendorPaymentForm, method: e.target.value})} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500">
+                            <select value={vendorPaymentForm.method} onChange={e => setVendorPaymentForm({ ...vendorPaymentForm, method: e.target.value })} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500">
                               <option value="Bank Transfer">Bank Transfer</option>
                               <option value="UPI">UPI</option>
                               <option value="Cheque">Cheque</option>
@@ -580,7 +582,7 @@ export default function CandidateProcessTimeline({
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 mb-1">Transaction / Reference ID</label>
-                          <input type="text" value={vendorPaymentForm.txnId} onChange={e => setVendorPaymentForm({...vendorPaymentForm, txnId: e.target.value})} placeholder="e.g. UTR123456789" className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500" />
+                          <input type="text" value={vendorPaymentForm.txnId} onChange={e => setVendorPaymentForm({ ...vendorPaymentForm, txnId: e.target.value })} placeholder="e.g. UTR123456789" className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500" />
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Proof / Screenshot</label>
@@ -588,7 +590,7 @@ export default function CandidateProcessTimeline({
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 mb-1">Optional Remark</label>
-                          <textarea value={vendorPaymentForm.remark} onChange={e => setVendorPaymentForm({...vendorPaymentForm, remark: e.target.value})} rows={2} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500" placeholder="Any details..." />
+                          <textarea value={vendorPaymentForm.remark} onChange={e => setVendorPaymentForm({ ...vendorPaymentForm, remark: e.target.value })} rows={2} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none focus:border-indigo-500" placeholder="Any details..." />
                         </div>
                       </div>
                     ) : (
@@ -616,11 +618,10 @@ export default function CandidateProcessTimeline({
                         type="button"
                         disabled={loading}
                         onClick={() => handlePaymentAction(milestone.id, paymentAction.action)}
-                        className={`text-[11px] font-bold px-4 py-1.5 rounded-lg text-white transition-colors cursor-pointer ${
-                          paymentAction.action === "Approve" ? "bg-emerald-600 hover:bg-emerald-700" :
-                          paymentAction.action === "Reject" ? "bg-rose-600 hover:bg-rose-700" :
-                          "bg-indigo-600 hover:bg-indigo-700"
-                        }`}
+                        className={`text-[11px] font-bold px-4 py-1.5 rounded-lg text-white transition-colors cursor-pointer ${paymentAction.action === "Approve" ? "bg-emerald-600 hover:bg-emerald-700" :
+                            paymentAction.action === "Reject" ? "bg-rose-600 hover:bg-rose-700" :
+                              "bg-indigo-600 hover:bg-indigo-700"
+                          }`}
                       >
                         Confirm {paymentAction.action}
                       </button>
@@ -650,32 +651,29 @@ export default function CandidateProcessTimeline({
 
                   return (
                     <div key={stage.id} className="relative pl-6">
-                      <div className={`absolute -left-[25px] top-1 w-3 h-3 rounded-full border-2 ${
-                        sCompleted ? "bg-blue-600 border-blue-600" :
-                        sInProgress ? "bg-white border-blue-600 ring-4 ring-blue-100" :
-                        "bg-slate-200 border-slate-300"
-                      }`} />
+                      <div className={`absolute -left-[25px] top-1 w-3 h-3 rounded-full border-2 ${sCompleted ? "bg-blue-600 border-blue-600" :
+                          sInProgress ? "bg-white border-blue-600 ring-4 ring-blue-100" :
+                            "bg-slate-200 border-slate-300"
+                        }`} />
 
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             {sStageLocked && <Lock className="w-3 h-3 text-slate-300" />}
-                            <span className={`text-xs font-bold ${
-                              sCompleted ? "text-slate-800" :
-                              sInProgress ? "text-blue-900" :
-                              !isMilestoneLocked ? "text-slate-700" :
-                              "text-slate-400"
-                            }`}>
+                            <span className={`text-xs font-bold ${sCompleted ? "text-slate-800" :
+                                sInProgress ? "text-blue-900" :
+                                  !isMilestoneLocked ? "text-slate-700" :
+                                    "text-slate-400"
+                              }`}>
                               Stage {sIdx + 1}: {stage.name}
                             </span>
                             {!sStageLocked && (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                sCompleted
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sCompleted
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : sInProgress
-                                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                  : "bg-slate-100 text-slate-600 border border-slate-200"
-                              }`}>
+                                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                                }`}>
                                 {stage.status || "Pending"}
                               </span>
                             )}
@@ -753,11 +751,10 @@ export default function CandidateProcessTimeline({
                                 setStageRemark(stage.remark || "");
                                 setActiveStageForm({ mId: milestone.id, sId: stage.id });
                               }}
-                              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${
-                                sCompleted
+                              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-colors cursor-pointer ${sCompleted
                                   ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                                   : "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200"
-                              }`}
+                                }`}
                             >
                               {sCompleted ? "Update Status" : "Update Stage"}
                             </button>
@@ -818,52 +815,52 @@ export default function CandidateProcessTimeline({
 
             {Array.isArray(milestone.clearanceDocuments) &&
               milestone.clearanceDocuments.filter((d) => !d.targetAudience || d.targetAudience !== "candidate").length > 0 && (
-              <div className="mt-3 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/90 space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <div className="font-bold text-[#163868] flex items-center gap-1.5">
-                    <FileText size={14} className="text-[#163868]" />
-                    <span>Official Milestone Clearance Documents</span>
+                <div className="mt-3 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/90 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="font-bold text-[#163868] flex items-center gap-1.5">
+                      <FileText size={14} className="text-[#163868]" />
+                      <span>Official Milestone Clearance Documents</span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
+                      {milestone.clearanceDocuments.filter((d) => !d.targetAudience || d.targetAudience !== "candidate").length} Documents Available
+                    </span>
                   </div>
-                  <span className="text-[10px] font-semibold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
-                    {milestone.clearanceDocuments.filter((d) => !d.targetAudience || d.targetAudience !== "candidate").length} Documents Available
-                  </span>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {milestone.clearanceDocuments
-                    .filter((d) => !d.targetAudience || d.targetAudience !== "candidate")
-                    .map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="p-2 rounded-lg bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-blue-300 transition"
-                      >
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <div className="w-6 h-6 rounded bg-blue-100 text-[#163868] flex items-center justify-center shrink-0">
-                            <FileCheck size={13} />
-                          </div>
-                          <div className="truncate">
-                            <div className="font-bold text-xs text-slate-900 truncate">{doc.title}</div>
-                            <div className="text-[10px] text-slate-500">
-                              {doc.size || "PDF"} &bull; {doc.uploadedAt || "Uploaded"}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {milestone.clearanceDocuments
+                      .filter((d) => !d.targetAudience || d.targetAudience !== "candidate")
+                      .map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="p-2 rounded-lg bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-blue-300 transition"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <div className="w-6 h-6 rounded bg-blue-100 text-[#163868] flex items-center justify-center shrink-0">
+                              <FileCheck size={13} />
+                            </div>
+                            <div className="truncate">
+                              <div className="font-bold text-xs text-slate-900 truncate">{doc.title}</div>
+                              <div className="text-[10px] text-slate-500">
+                                {doc.size || "PDF"} &bull; {doc.uploadedAt || "Uploaded"}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <a
-                          href={doc.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          download={doc.fileName || `${doc.title}.pdf`}
-                          className="px-2.5 py-1 bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0 transition"
-                        >
-                          <Download size={11} />
-                          <span>Download</span>
-                        </a>
-                      </div>
-                    ))}
+                          <a
+                            href={doc.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            download={doc.fileName || `${doc.title}.pdf`}
+                            className="px-2.5 py-1 bg-[#163868] hover:bg-[#1e4a82] text-white text-[10px] font-bold rounded-md flex items-center gap-1 shrink-0 transition"
+                          >
+                            <Download size={11} />
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         );
       })}

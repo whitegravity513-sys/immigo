@@ -400,6 +400,9 @@ const validateRestrictedApplicationMutation = async (app, nextUpdate, req, lockS
 
       const wantsOnlineApproval = nextPayStatus === "Approved" && prevPayStatus !== "Approved";
       if (wantsOnlineApproval) {
+        if (!Number.isFinite(expectedFee) || expectedFee <= 0) {
+          return "No online payment is due for this zero-amount milestone.";
+        }
         if (
           !rv ||
           String(rv.milestoneId || "") !== String(m?.id || "") ||
@@ -418,6 +421,7 @@ const validateRestrictedApplicationMutation = async (app, nextUpdate, req, lockS
           applicationId: app.applicationId || app.id || req.params.id,
           milestoneId: m.id,
           actorId: req.vendorId || req.userId || "",
+          actorIds: [req.vendorId, req.userId, req.user?.vendorId, req.user?.id, req.user?._id],
           actorRole: req.userRole || "VENDOR",
           consume: true,
         });

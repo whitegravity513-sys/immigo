@@ -303,7 +303,7 @@ export default function LandingPage() {
         id="home"
         className="relative bg-white text-slate-900 overflow-hidden select-none"
       >
-        <div className="relative min-h-[270px] sm:min-h-[350px] lg:min-h-[420px] xl:min-h-[450px] w-full overflow-hidden flex flex-col justify-between">
+        <div className="relative min-h-[290px] sm:min-h-[380px] lg:min-h-[455px] xl:min-h-[490px] w-full overflow-hidden flex flex-col justify-between">
           {!curtainRemoved && (
             <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden flex">
               <div
@@ -343,8 +343,8 @@ export default function LandingPage() {
             })}
           </div>
 
-          <div className="relative z-20 w-full max-w-7xl 2xl:max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-between h-full min-h-[270px] sm:min-h-[350px] lg:min-h-[420px] xl:min-h-[450px] pointer-events-none">
-            <div className="max-w-2xl text-left space-y-1.5 sm:space-y-3 pt-1 sm:pt-3 pointer-events-auto">
+          <div className="relative z-20 w-full max-w-7xl 2xl:max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-between h-full min-h-[290px] sm:min-h-[380px] lg:min-h-[455px] xl:min-h-[490px] pointer-events-none">
+            <div className="max-w-2xl text-left space-y-1.5 sm:space-y-3 pt-4 sm:pt-8 lg:pt-10 pointer-events-auto">
               <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white tracking-tight leading-tight drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
                 {heroSlides[currentSlide].title}
               </h1>
@@ -353,7 +353,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="pb-1 sm:pb-3 flex justify-start items-end pointer-events-auto">
+            <div className="pb-2 sm:pb-4 flex justify-start items-end pointer-events-auto">
               <Link
                 to="/vendor/register"
                 className="px-4 sm:px-7 py-2 sm:py-3 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-2xl hover:shadow-blue-600/40 transition-all cursor-pointer inline-flex items-center gap-1.5 sm:gap-2"

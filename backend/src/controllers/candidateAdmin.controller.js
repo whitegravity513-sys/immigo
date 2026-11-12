@@ -1143,6 +1143,9 @@ export const recordApplicationPayment = asyncHandler(async (req, res) => {
     amount !== undefined && amount !== null && amount !== "" && !isNaN(Number(amount))
       ? Number(amount)
       : Number(milestones[mIdx].paymentAmount ?? milestones[mIdx].amount ?? 0);
+  if (!Number.isFinite(paidAmt) || paidAmt < 0) {
+    return res.status(400).json({ success: false, message: "Payment amount must be a valid non-negative number." });
+  }
   const isCash = String(paymentMode).toLowerCase().includes("cash");
   const refNum = referenceNumber.trim() || (isCash ? `CASH-${Date.now().toString().slice(-6)}` : `REF-${Date.now().toString().slice(-6)}`);
   const receiptNum = `INV-${app.applicationId || app.id}-${milestoneId}`;

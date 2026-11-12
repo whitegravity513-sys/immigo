@@ -9,6 +9,7 @@ import {
 import {
   authenticateRBAC,
   requirePermission,
+  requireRoles,
 } from "../middleware/rbac.middleware.js";
 
 const router = express.Router();
@@ -44,6 +45,7 @@ router.get(
 router.get(
   "/performance-reports",
   authenticateRBAC,
+  requireRoles("SUPER_ADMIN", "ADMIN", "HR", "EMPLOYEE_HR", "VENDOR_HR"),
   getHrPerformanceReport
 );
 

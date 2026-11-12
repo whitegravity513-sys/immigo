@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import env from "../config/env.js";
 import Candidate from "../models/Candidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
+import CrmCandidateApplication from "../models/CrmCandidateApplication.js";
 import Project from "../models/Project.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import ActivityLog from "../models/ActivityLog.js";
@@ -738,7 +739,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   }
 
   const paidAmt = Number(milestones[mIdx].paymentAmount ?? milestones[mIdx].amount ?? 0);
-  if (!paidAmt || Number.isNaN(paidAmt) || paidAmt <= 0) {
+  if (!Number.isFinite(paidAmt) || paidAmt <= 0) {
     return res.status(400).json({ success: false, message: "Invalid milestone payment amount." });
   }
 
@@ -771,6 +772,7 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
       applicationId: app.applicationId || app.id || id,
       milestoneId: targetMilestoneId,
       actorId: candidate.candidateId,
+      actorIds: [candidate.candidateId, candidate._id?.toString(), req.user?.candidateId, req.user?.id, req.user?._id],
       actorRole: "CANDIDATE",
       consume: true,
     });
@@ -840,6 +842,23 @@ export const submitCandidateMilestonePayment = asyncHandler(async (req, res) => 
   app.markModified("payments");
 
   await app.save();
+
+  try {
+    await CrmCandidateApplication.findOneAndUpdate(
+      {
+        $or: [
+          { applicationId: app.applicationId || id },
+          ...(isObjectId ? [{ _id: id }] : []),
+        ],
+      },
+      {
+        $set: {
+          processMilestones: app.processMilestones,
+          paymentPlan: app.paymentPlan,
+        },
+      }
+    );
+  } catch {}
 
   try {
     await NotificationService.createNotification({
