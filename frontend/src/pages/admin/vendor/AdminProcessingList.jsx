@@ -164,7 +164,7 @@ export default function AdminProcessingList() {
 
     return (
       <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-12">
-        <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
           <button
             onClick={handleBackToList}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
@@ -178,7 +178,7 @@ export default function AdminProcessingList() {
           </span>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-4">
               <div className={`w-14 h-14 rounded-2xl ${selectedApp.candidatePhoto || selectedApp.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-bold text-xl shadow-xs overflow-hidden shrink-0`}>
@@ -214,8 +214,8 @@ export default function AdminProcessingList() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Clock size={18} className="text-indigo-600" />
               <span>Project-wise Candidate Processing Timeline</span>
@@ -277,7 +277,7 @@ export default function AdminProcessingList() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[800px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-2 px-3 text-[10px] sm:px-5">Candidate Name</th>

@@ -53,15 +53,15 @@ export default function VendorHRJobsSection({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={jobSearch}
               onChange={(e) => setJobSearch(e.target.value)}
               placeholder="Search trade, code, location..."
-              className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 w-44 sm:w-56"
+              className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 w-full sm:w-56"
             />
           </div>
 
@@ -123,7 +123,7 @@ export default function VendorHRJobsSection({
       {jobViewMode === "list" ? (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[760px] text-left text-xs">
               <thead className="bg-slate-50/90 text-slate-600 font-bold uppercase text-[10.5px] border-b border-slate-200/80 tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3.5">Trade & Sector</th>

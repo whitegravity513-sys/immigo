@@ -119,7 +119,7 @@ export default function VendorDocumentsVaultView({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-semibold">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs font-semibold">
           <div className="p-2 sm:p-2.5 bg-slate-50 rounded-lg border border-slate-200/80">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Commercial Reg No</span>
             <span className="text-slate-900 font-bold">{selectedVendor.registrationNumber || "N/A"}</span>
@@ -234,7 +234,7 @@ export default function VendorDocumentsVaultView({
                       Category: <strong className="text-slate-800">{doc.type || "Statutory"}</strong>
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => onPreviewDoc(doc)}

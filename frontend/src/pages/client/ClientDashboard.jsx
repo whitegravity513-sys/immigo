@@ -87,7 +87,7 @@ export function ClientDashboard() {
             <h2 className="text-xs font-bold text-gray-900">Client Organizations Management</h2>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <Link
               to="/client/clients/new"
               className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-2xs cursor-pointer"

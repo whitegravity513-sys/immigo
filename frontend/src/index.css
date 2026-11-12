@@ -199,7 +199,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 @media print {
-  html, body, #root, #root > div, .h-screen, .overflow-hidden, .overflow-y-auto, main {
+  html, body, #root, #root > div, .h-screen, .h-\[100dvh\], .lg\:h-\[100dvh\], .overflow-hidden, .overflow-y-auto, main {
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;

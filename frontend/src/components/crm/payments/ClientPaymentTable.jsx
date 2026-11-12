@@ -37,7 +37,7 @@ export default function ClientPaymentTable({
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
         <div>
           <h3 className="text-sm font-bold text-gray-900">Payment Transactions</h3>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -88,7 +88,7 @@ export default function ClientPaymentTable({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[740px] text-left text-xs">
             <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="py-2 px-3 text-[10px]">Payment ID & Date</th>

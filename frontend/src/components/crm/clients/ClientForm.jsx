@@ -895,7 +895,7 @@ export function ClientForm({
                 </label>
                 
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <div className="relative w-48 sm:w-56">
+                  <div className="relative w-full sm:w-56">
                     <span className="absolute left-3 top-2 text-sm font-bold text-blue-600">₹</span>
                     <input
                       type="number"
@@ -981,8 +981,8 @@ export function ClientForm({
                     key={milestone.id || idx}
                     className="p-4 rounded-xl border border-gray-200 bg-white shadow-2xs hover:border-blue-200 transition-colors space-y-3 relative"
                   >
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
                           {idx + 1}
                         </span>

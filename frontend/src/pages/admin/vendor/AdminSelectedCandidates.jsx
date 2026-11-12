@@ -103,7 +103,7 @@ export default function AdminSelectedCandidates() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Filter selected candidates by candidate, project, role..."
-          className="w-full pl-10 pr-4 py-1.5 rounded-md text-xs border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 shadow-2xs"
+          className="w-full pl-10 pr-4 py-1.5 rounded-md border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600 shadow-2xs"
         />
       </div>
 
@@ -121,7 +121,7 @@ export default function AdminSelectedCandidates() {
       ) : (
         <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[820px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-1 px-2 text-[10px] sm:px-5">Candidate Name</th>

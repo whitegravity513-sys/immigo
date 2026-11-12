@@ -144,7 +144,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
   const isPortalLocked = !hasUploadedDocuments;
 
   return (
-    <div className="h-screen flex overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <div className="min-h-[100dvh] lg:h-[100dvh] flex overflow-x-hidden lg:overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
       <VendorSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
@@ -152,7 +152,7 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
         isPortalLocked={isPortalLocked}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 min-h-[100dvh] lg:min-h-0 lg:h-full lg:overflow-hidden">
         <VendorNavbar
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
@@ -161,12 +161,14 @@ export function VendorLayout({ children, title = "Vendor Portal" }) {
           isPortalLocked={isPortalLocked}
         />
 
-        <main className="flex-1 p-2 sm:p-2.5 max-w-full w-full mx-auto overflow-y-auto overflow-x-hidden">
-          {isPortalLocked ? (
-            <VendorOnboarding vendor={vendor} onVendorUpdate={handleVendorUpdate} />
-          ) : (
-            children || <Outlet />
-          )}
+        <main className="flex-1 p-2.5 sm:p-4 lg:p-5 max-w-full w-full mx-auto overflow-y-auto overflow-x-hidden">
+          <div className="w-full max-w-[1680px] mx-auto">
+            {isPortalLocked ? (
+              <VendorOnboarding vendor={vendor} onVendorUpdate={handleVendorUpdate} />
+            ) : (
+              children || <Outlet />
+            )}
+          </div>
         </main>
 
         <AppFooter role="vendor" />

@@ -113,7 +113,7 @@ export default function RejectedCandidates() {
       ) : (
         <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[780px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50/80 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200/80">
                 <tr>
                   <th className="py-1 px-2 text-[10px] sm:px-6">Candidate</th>
@@ -175,7 +175,7 @@ export default function RejectedCandidates() {
                         : "-"}
                     </td>
 
-                    <td className="py-1 px-2 text-right">
+                    <td className="py-1 px-2 text-right whitespace-nowrap">
                       <Link
                         to={`/vendor/candidates/submit?candidateId=${app.candidateId}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-sm"

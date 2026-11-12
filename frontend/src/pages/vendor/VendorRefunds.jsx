@@ -444,7 +444,7 @@ export default function VendorRefunds() {
                   Supporting Document (Optional)
                 </label>
                 {documentName ? (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs h-[62px]">
+                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 text-xs min-h-[62px]">
                     <div className="flex items-center gap-2 min-w-0">
                       <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span className="font-semibold truncate">{documentName}</span>
@@ -461,7 +461,7 @@ export default function VendorRefunds() {
                     </button>
                   </div>
                 ) : (
-                  <label className="flex items-center justify-center gap-2 h-[62px] border border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs text-slate-500 transition">
+                  <label className="flex items-center justify-center gap-2 min-h-[62px] p-2.5 border border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs text-slate-500 transition">
                     <Upload size={14} className="text-blue-600" />
                     <span>Upload PDF / Image (Max 5MB)</span>
                     <input
@@ -475,7 +475,7 @@ export default function VendorRefunds() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowApplyPanel(false)}
@@ -552,7 +552,7 @@ export default function VendorRefunds() {
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs overflow-hidden">
-          <div className="px-3 py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-3 py-1.5 bg-slate-50/90 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Applied Refund Claims List
@@ -575,7 +575,7 @@ export default function VendorRefunds() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[780px] text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] border-b border-slate-200/80">
                 <tr>
                   <th className="py-1.5 px-2.5">Candidate &amp; Ref ID</th>

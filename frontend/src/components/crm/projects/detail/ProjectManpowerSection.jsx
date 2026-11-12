@@ -10,7 +10,7 @@ export function ProjectManpowerSection({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
             <Users size={18} className="text-blue-600" />

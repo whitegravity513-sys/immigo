@@ -50,11 +50,11 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
         <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
           Admin Portal
         </h2>
-        <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full shrink-0">
           Super Admin & Admin
         </span>
       </div>
@@ -77,17 +77,17 @@ export default function AdminLoginPage() {
   );
 
   return (
-    <div className="h-screen max-h-screen w-screen overflow-hidden relative flex flex-col justify-between font-sans select-none bg-slate-50">
+    <div className="min-h-[100dvh] w-full overflow-x-hidden relative flex flex-col justify-between font-sans select-none bg-slate-50">
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-40"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-40"
         style={{ backgroundImage: `url(${heroTravelerBg})` }}
       />
 
-      <div className="fixed top-0 inset-x-0 z-30">
+      <div className="sticky top-0 inset-x-0 z-30 shrink-0">
         <AuthHeader portalBadge="Admin Portal" />
       </div>
 
-      <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-10 xl:px-12 pt-[52px] pb-[38px] max-w-[1400px] mx-auto overflow-hidden">
+      <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-10 xl:px-14 py-6 sm:py-8 max-w-[1440px] mx-auto">
         <div className="w-full flex items-center justify-center lg:justify-between gap-6 lg:gap-10 xl:gap-14">
           <div className="hidden lg:block flex-1 min-w-0 max-w-2xl xl:max-w-3xl">
             <AuthHeroSection />
@@ -98,9 +98,9 @@ export default function AdminLoginPage() {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 inset-x-0 z-30 h-[38px] px-6 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md flex items-center justify-center">
+      <footer className="relative z-30 w-full px-4 sm:px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="text-cyan-400">&bull;</span>
         <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
 

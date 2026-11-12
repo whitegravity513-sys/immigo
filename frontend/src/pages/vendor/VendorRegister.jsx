@@ -197,7 +197,7 @@ export function VendorRegister() {
   };
 
   return (
-    <div className="h-screen max-h-screen w-full relative flex flex-col justify-between overflow-hidden font-sans select-none">
+    <div className="min-h-[100dvh] w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none">
       <style>{`
         @keyframes vendorSideFlipEntrance {
           0% {
@@ -236,7 +236,7 @@ export function VendorRegister() {
         />
       </div>
 
-      <header className="relative z-20 w-full px-5 sm:px-10 py-2.5 flex items-center justify-between border-b border-white/20 bg-slate-900/75 backdrop-blur-md shrink-0 text-white shadow-xs">
+      <header className="relative z-20 w-full px-4 sm:px-8 lg:px-10 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-white/20 bg-slate-900/75 backdrop-blur-md shrink-0 text-white shadow-xs">
         <div className="flex items-center gap-3">
           <Link to="/" className="inline-block">
             <ImmiGoLogo size="sm" theme="light" subtitle="Partner Network" />
@@ -247,27 +247,27 @@ export function VendorRegister() {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Link
             to="/vendor/login"
-            className="text-xs text-blue-300 hover:text-white font-semibold hidden sm:inline transition-colors"
+            className="text-[11px] sm:text-xs text-blue-200 hover:text-white font-semibold px-2.5 py-1.5 rounded-lg bg-blue-500/15 border border-blue-400/30 transition-colors"
           >
-            Sign In Instead
+            Sign In
           </Link>
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-100 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-100 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 sm:px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
             title="Return to Main Website"
           >
-            <ArrowLeft size={13} className="text-blue-300" />
+            <ArrowLeft size={13} className="text-blue-300 shrink-0" />
             <span>Back to Home</span>
           </Link>
         </div>
       </header>
 
-      <main className="relative z-10 w-full flex-1 flex items-center justify-end px-4 sm:px-8 lg:px-12 xl:px-16 py-2 min-h-0 overflow-hidden">
+      <main className="relative z-10 w-full flex-1 flex items-center justify-center lg:justify-end px-3.5 sm:px-8 lg:px-12 xl:px-16 py-5 sm:py-8 max-w-[1440px] mx-auto">
         <div
-          className={`w-full max-w-lg lg:max-w-xl bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/90 p-4 sm:p-5 max-h-[calc(100vh-75px)] overflow-y-auto ${
+          className={`w-full max-w-lg lg:max-w-xl bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/90 p-4 sm:p-6 ${
             !animationDone ? "animate-vendor-side-flip" : ""
           }`}
           style={animationDone ? { transform: "none" } : undefined}
@@ -312,10 +312,10 @@ export function VendorRegister() {
             </div>
           ) : (
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div>
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                <div className="min-w-0">
                   <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <Building2 size={16} />
                     </div>
                     <span>Vendor / Agency Registration</span>
@@ -621,7 +621,7 @@ export function VendorRegister() {
         </div>
       </main>
 
-      <footer className="relative z-20 px-5 sm:px-10 py-1 border-t border-white/15 bg-slate-900/75 backdrop-blur-md flex items-center justify-between text-[11px] text-slate-300 shrink-0">
+      <footer className="relative z-20 px-4 sm:px-10 py-2 border-t border-white/15 bg-slate-900/75 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left text-[11px] text-slate-300 shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo CRM &bull; Designed by White Gravity Web Solutions</span>
         <span className="flex items-center gap-1 text-slate-300">
           <ShieldCheck size={12} className="text-emerald-400" />

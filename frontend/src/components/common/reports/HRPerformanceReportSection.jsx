@@ -62,14 +62,14 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50/50 transition-colors border-b border-slate-100"
+        className="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-slate-50/50 transition-colors border-b border-slate-100"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
             <BarChart3 size={20} />
           </div>
-          <div>
-            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+          <div className="min-w-0">
+            <h3 className="font-bold text-base text-slate-900 flex flex-wrap items-center gap-2">
               <span>HR Performance & Operational Reports</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
                 Live Audit Data
@@ -113,7 +113,7 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
                   <div className="flex items-center justify-between text-slate-500 text-xs font-semibold">
                     <span>Candidates Processed</span>
@@ -182,7 +182,7 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                   ) : (
                     <div className="space-y-2">
                       {Object.entries(report.statusDistribution).map(([st, cnt]) => (
-                        <div key={st} className="flex items-center justify-between text-xs">
+                        <div key={st} className="flex items-center justify-between gap-2 text-xs">
                           <span className="font-semibold text-slate-700">{st}</span>
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold text-[11px]">
@@ -206,11 +206,11 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                       No meeting outcomes logged yet. Complete meetings to record results.
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {Object.entries(report.outcomeBreakdown).map(([outc, count]) => (
                         <div
                           key={outc}
-                          className="p-2.5 rounded-lg border border-slate-100 bg-slate-50 flex items-center justify-between"
+                          className="p-2.5 rounded-lg border border-slate-100 bg-slate-50 flex flex-wrap items-center justify-between gap-2"
                         >
                           <span className="text-xs font-bold text-slate-800">{outc}</span>
                           <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
@@ -230,7 +230,7 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                 </h4>
 
                 <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left text-xs">
+                  <table className="w-full min-w-[600px] text-left text-xs">
                     <thead>
                       <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
                         <th className="py-2 px-2.5">Vendor Name</th>
@@ -284,7 +284,7 @@ export default function HRPerformanceReportSection({ hrId = null, vendorId = nul
                   </h4>
 
                   <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left text-xs">
+                    <table className="w-full min-w-[680px] text-left text-xs">
                       <thead>
                         <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
                           <th className="py-2 px-2.5">HR Officer</th>

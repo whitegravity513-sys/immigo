@@ -50,7 +50,7 @@ export default function VendorHRProjectsSection({
       {detailedProject ? (
         <div className="space-y-4 animate-in fade-in">
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center space-x-3.5 min-w-0">
+            <div className="flex items-center space-x-3 sm:space-x-3.5 min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => setDetailedProject(null)}
@@ -101,7 +101,7 @@ export default function VendorHRProjectsSection({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap shrink-0">
+            <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
               <button
                 type="button"
                 onClick={() => {
@@ -192,7 +192,7 @@ export default function VendorHRProjectsSection({
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4">
                     <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
                       <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                         <FolderKanban className="w-4 h-4" />
@@ -247,8 +247,8 @@ export default function VendorHRProjectsSection({
                     </div>
                   </div>
 
-                  <div className="lg:col-span-2 p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="lg:col-span-2 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center font-bold">
                           <Briefcase className="w-4 h-4" />
@@ -315,8 +315,8 @@ export default function VendorHRProjectsSection({
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                         <Users className="w-4 h-4" />
@@ -348,7 +348,7 @@ export default function VendorHRProjectsSection({
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full min-w-[760px] text-left text-xs">
                         <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[10.5px]">
                           <tr>
                             <th className="py-2.5 px-3">Candidate</th>
@@ -391,11 +391,11 @@ export default function VendorHRProjectsSection({
                                   {cleanEmail && <div>{cleanEmail}</div>}
                                   <div>{cand.candidatePhone || cand.phone || "-"}</div>
                                 </td>
-                                <td className="py-2.5 px-3 text-right">
+                                <td className="py-2.5 px-3 text-right whitespace-nowrap">
                                   <button
                                     type="button"
                                     onClick={() => openCandidateModal(cand)}
-                                    className="px-3 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition cursor-pointer"
+                                    className="px-3 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition cursor-pointer whitespace-nowrap"
                                   >
                                     View Details
                                   </button>
@@ -427,15 +427,15 @@ export default function VendorHRProjectsSection({
               </div>
             </div>
 
-            <div className="flex items-center space-x-2.5 flex-wrap">
-              <div className="relative">
+            <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={projectSearch}
                   onChange={(e) => setProjectSearch(e.target.value)}
                   placeholder="Search project, code, client..."
-                  className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-600 w-44 sm:w-56"
+                  className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-600 w-full sm:w-56"
                 />
               </div>
 
@@ -482,7 +482,7 @@ export default function VendorHRProjectsSection({
           {projectViewMode === "list" ? (
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full min-w-[780px] text-left text-xs">
                   <thead className="bg-slate-50/90 text-slate-600 font-bold uppercase text-[10.5px] border-b border-slate-200/80 tracking-wider">
                     <tr>
                       <th className="py-3 px-4">Project & Code</th>
@@ -552,17 +552,17 @@ export default function VendorHRProjectsSection({
                             <td className="py-3.5 px-3 text-center font-bold font-mono text-emerald-600">
                               {selectedCount}
                             </td>
-                            <td className="py-3.5 px-3 text-center">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
                                 {prj.status || "Active"}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   type="button"
                                   onClick={() => setDetailedProject(prj)}
-                                  className="px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition cursor-pointer"
+                                  className="px-3 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition cursor-pointer whitespace-nowrap"
                                 >
                                   Open
                                 </button>
@@ -572,7 +572,7 @@ export default function VendorHRProjectsSection({
                                     setSubmitForm((prev) => ({ ...prev, projectId: prj.projectId }));
                                     setShowSubmitModal(true);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition cursor-pointer shadow-2xs"
+                                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition cursor-pointer shadow-2xs whitespace-nowrap"
                                   title="Submit Candidate"
                                 >
                                   + Submit
@@ -604,7 +604,7 @@ export default function VendorHRProjectsSection({
                   <div
                     key={prj.projectId}
                     onClick={() => setDetailedProject(prj)}
-                    className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition cursor-pointer space-y-3.5 flex flex-col justify-between group"
+                    className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-md transition cursor-pointer space-y-3.5 flex flex-col justify-between group"
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
@@ -642,7 +642,7 @@ export default function VendorHRProjectsSection({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 pt-3 text-center">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 text-center">
                         <div className="p-2 rounded-xl bg-blue-50/60 border border-blue-100">
                           <span className="block text-[10px] text-blue-600 font-bold uppercase">Applied</span>
                           <span className="font-extrabold text-sm text-blue-700 font-mono">{projectCands.length}</span>

@@ -143,8 +143,8 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
         onClick={(e) => e.stopPropagation()}
       >
         {showHolidayPopup && (
-          <div className="fixed inset-0 z-[60] bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-sm rounded-2xl border border-indigo-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="fixed inset-0 z-[60] bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white w-full max-w-sm rounded-2xl border border-indigo-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 my-auto max-h-[90vh] overflow-y-auto">
               <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
@@ -196,10 +196,10 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
           </div>
         )}
 
-        <div className="px-5 py-4 border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-blue-50/40 flex items-center justify-between shrink-0">
+        <div className="px-4 sm:px-5 py-4 border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-blue-50/40 flex items-center justify-between shrink-0">
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold shrink-0">
                 <Clock size={15} />
               </div>
               <h3 className="text-sm font-bold text-slate-900 tracking-tight">Edit Attendance</h3>
@@ -288,7 +288,7 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="flex flex-col gap-0.5">
               <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
                 Date
@@ -336,7 +336,7 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="flex flex-col gap-0.5">
               <label className="text-[10px] font-bold uppercase text-slate-500 tracking-wider flex items-center gap-1">
                 <Clock size={11} className="text-emerald-600" />
@@ -377,7 +377,7 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
           )}
         </div>
 
-        <div className="p-4 border-t border-slate-200/80 bg-slate-50/70 flex items-center gap-2.5 shrink-0">
+        <div className="p-4 border-t border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
             className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold rounded-xl text-xs transition-all shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"

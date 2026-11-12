@@ -28,7 +28,7 @@ export function MeetingsPage() {
 
   if (isVendor) {
     return (
-      <div className="p-4 sm:p-6 overflow-y-auto max-w-7xl mx-auto custom-scrollbar">
+      <div className="p-3 sm:p-6 overflow-y-auto max-w-[1680px] mx-auto w-full custom-scrollbar">
         {calendarContent}
       </div>
     );
@@ -36,7 +36,7 @@ export function MeetingsPage() {
 
   return (
     <AdminMasterLayout>
-      <div className="p-4 sm:p-6 space-y-4 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-6 space-y-4 max-w-[1680px] mx-auto w-full">
         {calendarContent}
       </div>
     </AdminMasterLayout>

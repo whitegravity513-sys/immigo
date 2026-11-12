@@ -6,7 +6,7 @@ export default function VendorOverviewTab({ vendor }) {
         <h3 className="text-sm font-bold text-white uppercase tracking-wider">
           Company Profile & Statutory
         </h3>
-        <div className="grid grid-cols-2 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
             <span className="text-slate-400">Vendor Code</span>
             <p className="font-mono font-semibold text-white mt-0.5">{vendor.vendorId}</p>
@@ -44,7 +44,7 @@ export default function VendorOverviewTab({ vendor }) {
         <h3 className="text-sm font-bold text-white uppercase tracking-wider">
           Bank Settlement Details
         </h3>
-        <div className="grid grid-cols-2 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
             <span className="text-slate-400">Bank Name</span>
             <p className="font-semibold text-white mt-0.5">

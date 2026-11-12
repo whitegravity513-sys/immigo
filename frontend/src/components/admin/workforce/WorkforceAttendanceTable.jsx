@@ -79,9 +79,9 @@ export function WorkforceAttendanceTable({
         </div>
       </div>
 
-      <div className="block md:hidden p-2.5 space-y-2">
+      <div className="block lg:hidden p-2.5 grid grid-cols-1 md:grid-cols-2 gap-2.5">
         {displayedAttendance.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+          <div className="md:col-span-2 py-8 text-center text-xs text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
             <p className="font-bold text-slate-600">No attendance records found</p>
             <p className="text-[10px] text-slate-400 mt-0.5">Try adjusting search or status filter.</p>
           </div>
@@ -145,7 +145,7 @@ export function WorkforceAttendanceTable({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[10px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[10px]">
                   <div>
                     <span className="text-slate-400 block uppercase font-bold text-[8px]">In</span>
                     <span className="font-mono font-bold text-slate-800">
@@ -209,18 +209,18 @@ export function WorkforceAttendanceTable({
         )}
       </div>
 
-      <div className="hidden md:block w-full">
-        <table className="w-full text-left border-collapse table-fixed">
+      <div className="hidden lg:block overflow-x-auto xl:overflow-visible w-full">
+        <table className="w-full min-w-[780px] text-left border-collapse table-auto">
           <thead>
             <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
-              <th className="px-2.5 py-2 w-[25%]">Employee</th>
-              <th className="px-2 py-2 w-[16%]">Department & Role</th>
-              <th className="px-2 py-2 w-[16%]">Attendance Status</th>
-              <th className="px-2 py-2 w-[11%]">Check In</th>
-              <th className="px-2 py-2 w-[11%]">Check Out</th>
-              <th className="px-1.5 py-2 w-[7%]">Break</th>
-              <th className="px-2 py-2 w-[9%]">Net Work</th>
-              <th className="px-1.5 py-2 w-[5%] text-center">Options</th>
+              <th className="px-2.5 py-2">Employee</th>
+              <th className="px-2 py-2">Department & Role</th>
+              <th className="px-2 py-2">Attendance Status</th>
+              <th className="px-2 py-2 whitespace-nowrap">Check In</th>
+              <th className="px-2 py-2 whitespace-nowrap">Check Out</th>
+              <th className="px-1.5 py-2 whitespace-nowrap">Break</th>
+              <th className="px-2 py-2 whitespace-nowrap">Net Work</th>
+              <th className="px-1.5 py-2 text-center whitespace-nowrap">Options</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
@@ -231,7 +231,7 @@ export function WorkforceAttendanceTable({
                 </td>
               </tr>
             ) : (
-              displayedAttendance.map((rep) => {
+              displayedAttendance.map((rep, idx) => {
                 const actualEmpId =
                   rep.employeeId ||
                   (typeof rep._id === "string" ? rep._id.replace(/^virtual-/, "") : rep._id);
@@ -337,7 +337,13 @@ export function WorkforceAttendanceTable({
                                 setActionMenuOpenId(null);
                               }}
                             />
-                            <div className="absolute right-0 bottom-full mb-1.5 w-40 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
+                            <div
+                              className={`absolute right-0 w-40 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100 ${
+                                idx === 0 && displayedAttendance.length > 1
+                                  ? "top-full mt-1.5"
+                                  : "bottom-full mb-1.5"
+                              }`}
+                            >
                               <button
                                 type="button"
                                 onClick={(e) => {

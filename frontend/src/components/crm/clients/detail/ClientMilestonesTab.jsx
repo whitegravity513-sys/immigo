@@ -181,7 +181,7 @@ export function ClientMilestonesTab({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <div className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-2xs">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
             <IndianRupee size={12} className="text-blue-600" />
@@ -285,7 +285,7 @@ export function ClientMilestonesTab({
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Link
               to={`/client/payments-expenses?clientId=${client.id || client._id}`}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors"
@@ -314,7 +314,7 @@ export function ClientMilestonesTab({
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
           <div>
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <CreditCard size={16} className="text-blue-600" />
@@ -339,7 +339,7 @@ export function ClientMilestonesTab({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[780px] text-left text-xs">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-2 px-3 text-[10px]">#</th>
@@ -427,9 +427,9 @@ export function ClientMilestonesTab({
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50/20">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-emerald-50/20">
           <div>
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 flex-wrap">
               <Receipt size={17} className="text-emerald-600" />
               <span>Client Payment History</span>
               <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
@@ -441,15 +441,15 @@ export function ClientMilestonesTab({
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative w-full sm:w-auto">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search receipts..."
                 value={paymentSearch}
                 onChange={(e) => setPaymentSearch(e.target.value)}
-                className="pl-7 pr-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                className="w-full sm:w-44 pl-7 pr-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
@@ -493,7 +493,7 @@ export function ClientMilestonesTab({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[880px] text-left text-xs">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-2 px-3 text-[10px]">Date</th>
@@ -562,7 +562,7 @@ export function ClientMilestonesTab({
               </tbody>
             </table>
 
-            <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-gray-500 font-medium">
                 Showing {Math.min(3, filteredPayments.length)} of {filteredPayments.length} payment entries
               </span>
@@ -579,9 +579,9 @@ export function ClientMilestonesTab({
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-rose-50/20">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-rose-50/20">
           <div>
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 flex-wrap">
               <TrendingDown size={17} className="text-rose-600" />
               <span>Expense Paid History</span>
               <span className="text-xs bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">
@@ -593,15 +593,15 @@ export function ClientMilestonesTab({
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative w-full sm:w-auto">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search expenses..."
                 value={expenseSearch}
                 onChange={(e) => setExpenseSearch(e.target.value)}
-                className="pl-7 pr-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-rose-500"
+                className="w-full sm:w-44 pl-7 pr-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-rose-500"
               />
             </div>
 
@@ -644,7 +644,7 @@ export function ClientMilestonesTab({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[900px] text-left text-xs">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-2 px-3 text-[10px]">Date</th>
@@ -723,7 +723,7 @@ export function ClientMilestonesTab({
               </tbody>
             </table>
 
-            <div className="px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-gray-500 font-medium">
                 Showing {Math.min(3, filteredExpenses.length)} of {filteredExpenses.length} expenses
               </span>

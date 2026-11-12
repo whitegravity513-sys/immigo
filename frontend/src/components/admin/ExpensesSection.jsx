@@ -236,7 +236,7 @@ export default function ExpensesSection({
   };
 
   return (
-    <div className="space-y-3.5 w-full max-w-full overflow-hidden">
+    <div className="space-y-3.5 w-full max-w-full overflow-x-clip">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">Corporate Expense & Claims Hub</h3>
@@ -308,10 +308,10 @@ export default function ExpensesSection({
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 border-b border-slate-200">
+      <div className="flex items-center gap-1.5 border-b border-slate-200 overflow-x-auto max-w-full">
         <button
           onClick={() => setActiveTab("company")}
-          className={`flex items-center gap-1.5 px-3.5 py-2 font-bold text-xs border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 font-bold text-xs border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === "company"
               ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -321,7 +321,7 @@ export default function ExpensesSection({
         </button>
         <button
           onClick={() => setActiveTab("claims")}
-          className={`flex items-center gap-1.5 px-3.5 py-2 font-bold text-xs border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 font-bold text-xs border-b-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === "claims"
               ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg"
               : "border-transparent text-slate-500 hover:text-slate-800"
@@ -429,7 +429,7 @@ export default function ExpensesSection({
               </div>
 
               <form onSubmit={handleExpenseSubmit} className="space-y-2.5 text-left">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date *</label>
                     <DateInput
@@ -455,7 +455,7 @@ export default function ExpensesSection({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Amount (₹) *</label>
                     <input
@@ -484,7 +484,7 @@ export default function ExpensesSection({
 
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Classification *</label>
-                  <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg">
                     <button
                       type="button"
                       onClick={() => {
@@ -560,7 +560,7 @@ export default function ExpensesSection({
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div className="flex flex-col gap-0.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Project Ref</label>
                     <input
@@ -613,7 +613,7 @@ export default function ExpensesSection({
               ) : sortedDates.length > 0 ? (
                 sortedDates.map(dateStr => (
                   <div key={dateStr} className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
-                    <div className="px-3.5 py-2 bg-slate-50/80 border-b border-slate-100 flex justify-between items-center">
+                    <div className="px-3.5 py-2 bg-slate-50/80 border-b border-slate-100 flex flex-wrap justify-between items-center gap-2">
                       <h4 className="text-xs font-bold text-slate-800">{formatDate(dateStr)}</h4>
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider bg-slate-200/60 px-2 py-0.5 rounded">
                         {grouped[dateStr].length} {grouped[dateStr].length === 1 ? "entry" : "entries"}
@@ -627,7 +627,7 @@ export default function ExpensesSection({
 
                         return (
                           <div key={rec._id} className="p-2.5 sm:p-3 flex flex-wrap justify-between items-center gap-2.5 hover:bg-slate-50/30 transition-colors">
-                            <div className="space-y-1 text-left flex-1 min-w-[200px]">
+                            <div className="space-y-1 text-left flex-1 min-w-0 sm:min-w-[200px] w-full sm:w-auto">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                                   isExpense ? "bg-rose-50 text-rose-700 border border-rose-200" :
@@ -716,7 +716,7 @@ export default function ExpensesSection({
 
       {activeTab === "claims" && (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="px-3.5 py-2.5 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-3.5 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
             <div>
               <h4 className="text-xs sm:text-sm font-bold text-slate-800">Employee Expense Claims</h4>
               <p className="text-[11px] text-slate-500">Review, verify receipts, and approve or reject reimbursement requests</p>
@@ -724,7 +724,7 @@ export default function ExpensesSection({
           </div>
 
           <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+            <table className="w-full min-w-[780px] text-left border-collapse table-auto">
               <thead>
                 <tr>
                   {["Employee", "Date", "Category / Desc", "Amount", "Receipt", "Status", "Admin Action"].map(h => (
@@ -879,11 +879,11 @@ export default function ExpensesSection({
             onClick={() => setReviewModalOpen(false)}
           />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
-              <div className="px-4 py-3 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">
-                <div>
-                  <h4 className="text-sm font-bold tracking-tight">
+          <div className="fixed inset-y-0 right-0 max-w-full w-full flex pl-4 sm:pl-10 justify-end pointer-events-none">
+            <div className="pointer-events-auto w-full max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+              <div className="px-4 py-3 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between gap-2 shadow-xs">
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold tracking-tight truncate">
                     Expense Claim & Settlement
                   </h4>
                   <p className="text-[11px] text-blue-200 font-medium">
@@ -892,7 +892,7 @@ export default function ExpensesSection({
                 </div>
                 <button
                   onClick={() => setReviewModalOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition cursor-pointer shrink-0"
                 >
                   ✕
                 </button>
@@ -913,28 +913,28 @@ export default function ExpensesSection({
                 )}
 
                 <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-2.5">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex flex-wrap items-center justify-between gap-1 pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Employee</span>
                     <span className="text-xs font-bold text-blue-900">
                       {typeof selectedClaim.employee?.name === "string" ? selectedClaim.employee.name : "Employee"}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex flex-wrap items-center justify-between gap-1 pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Claim Amount</span>
                     <span className="text-lg font-bold text-slate-900 font-mono">
                       ₹{Number(selectedClaim.amount || 0).toLocaleString("en-IN")}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex flex-wrap items-center justify-between gap-1 pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Category</span>
                     <span className="text-xs font-bold text-slate-700">
                       {selectedClaim.category?.name || "General Expense"}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex flex-wrap items-center justify-between gap-1 pb-2 border-b border-slate-200">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expense Date</span>
                     <span className="text-xs font-semibold text-slate-600">
                       {formatDate(selectedClaim.date)}
@@ -967,7 +967,7 @@ export default function ExpensesSection({
                     Update Claim Status & Payment
                   </label>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -1100,22 +1100,22 @@ export default function ExpensesSection({
       )}
 
       {receiptModalUrl && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <Receipt size={18} className="text-blue-600" />
-                Bill Receipt Viewer
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto my-auto flex flex-col">
+            <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 shrink-0">
+              <h4 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2 min-w-0">
+                <Receipt size={18} className="text-blue-600 shrink-0" />
+                <span className="truncate">Bill Receipt Viewer</span>
               </h4>
-              <button onClick={() => setReceiptModalUrl(null)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+              <button onClick={() => setReceiptModalUrl(null)} className="text-slate-400 hover:text-slate-600 text-lg font-bold shrink-0 cursor-pointer">✕</button>
             </div>
 
-            <div className="flex-1 overflow-auto flex items-center justify-center p-3 bg-slate-50 rounded-xl">
+            <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center p-2.5 sm:p-3 bg-slate-50 rounded-xl">
               {receiptModalUrl.startsWith("data:application/pdf") || receiptModalUrl.endsWith(".pdf") ? (
                 <iframe
                   src={formatFileUrl(receiptModalUrl)}
                   title="Receipt"
-                  className="w-full h-[60vh] rounded-lg border border-slate-200"
+                  className="w-full h-[50vh] sm:h-[60vh] rounded-lg border border-slate-200"
                 />
               ) : receiptModalUrl.startsWith("data:image/") ||
                 receiptModalUrl.match(/\.(jpeg|jpg|png|gif|webp|svg)($|\?)/i) ||
@@ -1123,7 +1123,7 @@ export default function ExpensesSection({
                 <img
                   src={formatFileUrl(receiptModalUrl)}
                   alt="Bill Receipt"
-                  className="max-h-[60vh] object-contain rounded-lg shadow-xs"
+                  className="max-h-[50vh] sm:max-h-[60vh] object-contain rounded-lg shadow-xs"
                 />
               ) : (
                 <div className="text-center py-10 space-y-3">
@@ -1142,7 +1142,7 @@ export default function ExpensesSection({
               )}
             </div>
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <a
                 href={formatFileUrl(receiptModalUrl)}
                 target="_blank"

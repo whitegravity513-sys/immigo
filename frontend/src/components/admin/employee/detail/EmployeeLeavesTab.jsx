@@ -8,7 +8,7 @@ export function EmployeeLeavesTab({
 }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
-      <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h4 className="text-sm font-bold text-slate-800">
             Leave History{" "}
@@ -25,7 +25,7 @@ export function EmployeeLeavesTab({
         </div>
       </div>
       <div className="overflow-x-auto w-full">
-        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+        <table className="w-full min-w-[760px] text-left border-collapse table-auto">
           <thead>
             <tr>
               {[

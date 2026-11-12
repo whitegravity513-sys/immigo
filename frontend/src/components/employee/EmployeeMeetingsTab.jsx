@@ -80,7 +80,7 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
             <Video size={14} />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex flex-wrap items-center gap-2">
               <span>My Scheduled Meetings</span>
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                 {meetings.length}
@@ -92,8 +92,8 @@ export default function EmployeeMeetingsTab({ token, initialMeetings = [] }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap self-start sm:self-auto">
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+        <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg text-xs font-semibold overflow-x-auto max-w-full">
             <button
               type="button"
               onClick={() => setActiveTab("all")}

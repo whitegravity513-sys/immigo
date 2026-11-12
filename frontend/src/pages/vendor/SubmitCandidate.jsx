@@ -434,7 +434,7 @@ export default function SubmitCandidate() {
           </div>
           <Link
             to="/vendor/candidates/add"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition self-start sm:self-auto shrink-0"
           >
             <Plus size={13} />
             <span>Register New Candidate</span>

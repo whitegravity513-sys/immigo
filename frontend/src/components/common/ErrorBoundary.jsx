@@ -27,7 +27,7 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-8 text-center bg-white rounded-xl border border-slate-200/80 shadow-xs my-6">
+        <div className="min-h-[400px] w-full flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-white rounded-xl border border-slate-200/80 shadow-xs my-6">
           <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4 shadow-xs">
             <AlertTriangle size={32} />
           </div>
@@ -47,7 +47,7 @@ export class ErrorBoundary extends React.Component {
               </pre>
             </div>
           )}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={() => this.setState({ hasError: false, error: null })}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"

@@ -48,10 +48,10 @@ export default function VendorHRVisaAllottedSection({
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-slate-900">Visa Allotted Candidates</h2>
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 whitespace-nowrap">
               {filteredVisaAllotted.length} Visa Allotted
             </span>
           </div>
@@ -60,8 +60,8 @@ export default function VendorHRVisaAllottedSection({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative w-64">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <div className="relative w-full sm:w-64">
             <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
@@ -95,7 +95,7 @@ export default function VendorHRVisaAllottedSection({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[840px] text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>
@@ -137,11 +137,11 @@ export default function VendorHRVisaAllottedSection({
                       )
                     )}
                   </td>
-                  <td className="py-3.5 px-3 text-center">
+                  <td className="py-3.5 px-3 text-center whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => navigateByTag && navigateByTag("Visa Allotted", cand)}
-                      className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1 cursor-pointer hover:scale-105 transition"
+                      className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1 cursor-pointer hover:scale-105 transition whitespace-nowrap"
                       title="Click to view Visa Allotted section"
                     >
                       <CheckCircle2 size={11} className="text-emerald-600" />
@@ -168,11 +168,11 @@ export default function VendorHRVisaAllottedSection({
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => openCandidateModal(cand)}
-                      className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1 border border-emerald-200"
+                      className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1 border border-emerald-200 whitespace-nowrap"
                     >
                       <span>Update Visa</span>
                       <ArrowRight size={12} />

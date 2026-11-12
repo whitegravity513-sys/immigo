@@ -73,11 +73,11 @@ export default function HolidayAnnouncementModals({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4 animate-in fade-in duration-150"
       onClick={handleDismiss}
     >
       <div
-        className="bg-white w-full max-w-md rounded-2xl border border-indigo-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white w-full max-w-md my-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-200 shadow-2xl animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-600 p-5 text-white relative">

@@ -170,7 +170,7 @@ export default function EmployeeExpensesTab() {
   });
 
   return (
-    <div className="w-full min-h-[calc(100vh-125px)] flex flex-col space-y-2.5 text-left">
+    <div className="w-full min-h-[calc(100dvh-125px)] flex flex-col space-y-2.5 text-left">
       {errorMsg && (
         <div className="flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-100 text-rose-700 rounded-xl text-xs font-medium">
           <AlertCircle size={14} className="shrink-0" />
@@ -190,7 +190,7 @@ export default function EmployeeExpensesTab() {
             <IndianRupee size={13} />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex flex-wrap items-center gap-1.5">
               <span>Expense Claims & Reimbursements</span>
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                 {expenses.length} Claims
@@ -355,22 +355,22 @@ export default function EmployeeExpensesTab() {
             onClick={() => setIsModalOpen(false)}
           />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-xs">
-                <h3 className="text-base font-bold flex items-center gap-2">
-                  <IndianRupee size={18} className="text-amber-300" /> Submit Business Expense
+          <div className="fixed inset-y-0 right-0 max-w-full w-full flex pl-4 sm:pl-10 justify-end pointer-events-none">
+            <div className="pointer-events-auto w-full max-w-md bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
+              <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200 flex items-center justify-between gap-2 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-xs">
+                <h3 className="text-sm sm:text-base font-bold flex items-center gap-2 min-w-0 truncate">
+                  <IndianRupee size={18} className="text-amber-300 shrink-0" /> Submit Business Expense
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold cursor-pointer transition"
+                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold cursor-pointer transition shrink-0"
                 >
                   ✕
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar text-left">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -475,7 +475,7 @@ export default function EmployeeExpensesTab() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-3">
                   <button
                     type="submit"
                     disabled={submitting}
@@ -499,40 +499,40 @@ export default function EmployeeExpensesTab() {
 
       {previewReceipt && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4"
           onClick={() => setPreviewReceipt(null)}
         >
           <div
-            className="bg-white w-full max-w-2xl rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white w-full max-w-2xl my-auto rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <FileText size={18} className="text-blue-600" />
-                <h3 className="text-base font-bold text-slate-800 truncate">{previewReceipt.title} — Bill Receipt</h3>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <FileText size={18} className="text-blue-600 shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate">{previewReceipt.title} — Bill Receipt</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setPreviewReceipt(null)}
-                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer shrink-0"
               >
                 ×
               </button>
             </div>
 
-            <div className="flex-1 p-4 bg-slate-100 overflow-y-auto flex items-center justify-center min-h-[350px]">
+            <div className="flex-1 p-4 bg-slate-100 overflow-y-auto flex items-center justify-center min-h-[240px] sm:min-h-[350px]">
               {previewReceipt.receipt?.startsWith("data:application/pdf") || previewReceipt.receipt?.endsWith(".pdf") ? (
-                <iframe src={formatFileUrl(previewReceipt.receipt)} title="Receipt" className="w-full h-[500px] rounded-xl border" />
+                <iframe src={formatFileUrl(previewReceipt.receipt)} title="Receipt" className="w-full h-[50vh] sm:h-[500px] rounded-xl border" />
               ) : (
                 <img
                   src={formatFileUrl(previewReceipt.receipt)}
                   alt="Receipt"
-                  className="max-h-[500px] max-w-full rounded-xl object-contain shadow-sm"
+                  className="max-h-[55vh] sm:max-h-[500px] max-w-full rounded-xl object-contain shadow-sm"
                 />
               )}
             </div>
 
-            <div className="px-6 py-3 border-t border-slate-100 bg-white flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-3 border-t border-slate-100 bg-white flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-slate-600 font-bold">
                 Amount: ₹{Number(previewReceipt.amount || 0).toLocaleString("en-IN")}
               </span>

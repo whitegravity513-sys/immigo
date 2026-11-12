@@ -229,7 +229,7 @@ export function ClientDetails() {
       {activeTab === "contacts" && <ClientContactsTab client={client} />}
 
       {activeTab === "documents" && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-4">
           <div>
             <h3 className="text-base font-bold text-gray-900">
               Compliance & Client Documents

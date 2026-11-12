@@ -112,15 +112,15 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
         onClick={onClose}
       />
 
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-gray-200">
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-6 text-center">
+        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all my-auto w-full max-w-lg border border-gray-200 max-h-[90vh] overflow-y-auto">
           <form onSubmit={handleSubmit}>
-            <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="bg-gray-50/80 px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
                   <FileText size={18} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-base font-bold text-gray-900">
                     Add Client Document
                   </h3>
@@ -132,13 +132,13 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer shrink-0"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SelectField
                   label="Document Category"
@@ -232,7 +232,7 @@ export function AddDocumentModal({ isOpen, onClose, onSave }) {
               />
             </div>
 
-            <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-100">
+            <div className="bg-gray-50 px-4 sm:px-6 py-4 flex flex-wrap items-center justify-end gap-3 border-t border-gray-100">
               <button
                 type="button"
                 onClick={onClose}

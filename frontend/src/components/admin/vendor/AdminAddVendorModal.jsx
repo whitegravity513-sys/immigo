@@ -39,9 +39,9 @@ export function AdminAddVendorModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative max-h-[90vh] overflow-y-auto font-sans">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full p-4 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative my-auto max-h-[90vh] overflow-y-auto font-sans">
+        <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <Building2 className="text-blue-600" size={22} />
@@ -251,7 +251,7 @@ export function AdminAddVendorModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">City</label>
                 <input
@@ -544,7 +544,7 @@ export function AdminAddVendorModal({
             </p>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}

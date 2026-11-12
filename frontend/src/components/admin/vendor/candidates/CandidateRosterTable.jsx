@@ -33,7 +33,7 @@ export default function CandidateRosterTable({
   return (
     <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
+        <table className="w-full min-w-[760px] text-left text-xs border-collapse">
           <thead className="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
             <tr>
               <th className="py-2 px-3">Candidate</th>

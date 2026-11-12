@@ -416,7 +416,7 @@ export default function CandidateProcessTimeline({
               "border-slate-200 bg-slate-50 opacity-75"
             }`}
           >
-            <div className="flex items-start justify-between mb-4 pb-4 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   {isCompleted ? <CheckCircle2 className="w-5 h-5 text-blue-600" /> :
@@ -427,7 +427,7 @@ export default function CandidateProcessTimeline({
                   </span>
                 </h3>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right shrink-0">
                 <div className="text-sm font-bold text-slate-700 flex items-center gap-1">
                   <IndianRupee className="w-3 h-3" />
                   {amt.toLocaleString()}
@@ -564,7 +564,7 @@ export default function CandidateProcessTimeline({
                             Milestone Due: ₹{amt.toLocaleString()}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-500 mb-1">Payment Date</label>
                             <DateInput value={vendorPaymentForm.date} onChange={e => setVendorPaymentForm({...vendorPaymentForm, date: e.target.value})} className="w-full text-xs border border-slate-300 rounded p-1.5 outline-none bg-white focus:border-indigo-500" />
@@ -701,7 +701,7 @@ export default function CandidateProcessTimeline({
                           )}
 
                           {stage.visaDocumentUrl && (
-                            <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-2 shadow-2xs">
+                            <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
                               <div className="flex items-center gap-2">
                                 <FileCheck size={16} className="text-emerald-600 shrink-0" />
                                 <div>
@@ -714,7 +714,7 @@ export default function CandidateProcessTimeline({
                                 target="_blank"
                                 rel="noreferrer"
                                 download={stage.visaFileName || "Candidate_Visa.pdf"}
-                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 shadow-2xs cursor-pointer"
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 shadow-2xs cursor-pointer self-start sm:self-auto"
                               >
                                 <Download size={11} />
                                 <span>Download Visa</span>
@@ -723,7 +723,7 @@ export default function CandidateProcessTimeline({
                           )}
 
                           {!refundLocked && canManageStages && (stage.name?.toLowerCase().includes("visa") || sIdx === ((milestone.stages || []).length - 1)) && !stage.visaDocumentUrl && (
-                            <div className="mt-2 p-2 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between gap-2 text-xs">
+                            <div className="mt-2 p-2 rounded-xl bg-indigo-50/70 border border-indigo-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                               <span className="text-[11px] font-bold text-indigo-900 flex items-center gap-1">
                                 <Upload size={13} className="text-indigo-600" />
                                 <span>Upload Official Visa Copy:</span>
@@ -819,7 +819,7 @@ export default function CandidateProcessTimeline({
             {Array.isArray(milestone.clearanceDocuments) &&
               milestone.clearanceDocuments.filter((d) => !d.targetAudience || d.targetAudience !== "candidate").length > 0 && (
               <div className="mt-3 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/90 space-y-2">
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="font-bold text-[#163868] flex items-center gap-1.5">
                     <FileText size={14} className="text-[#163868]" />
                     <span>Official Milestone Clearance Documents</span>
@@ -835,7 +835,7 @@ export default function CandidateProcessTimeline({
                     .map((doc) => (
                       <div
                         key={doc.id}
-                        className="p-2 rounded-lg bg-white border border-slate-200 flex items-center justify-between gap-2 shadow-2xs hover:border-blue-300 transition"
+                        className="p-2 rounded-lg bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs hover:border-blue-300 transition"
                       >
                         <div className="flex items-center gap-2 overflow-hidden">
                           <div className="w-6 h-6 rounded bg-blue-100 text-[#163868] flex items-center justify-center shrink-0">

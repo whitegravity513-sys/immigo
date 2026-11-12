@@ -26,7 +26,7 @@ export default function CandidateOverviewTab({
           </span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white rounded border border-sky-200 text-[10px] font-semibold text-slate-700 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />
             <span>
@@ -59,7 +59,7 @@ export default function CandidateOverviewTab({
       </div>
 
       {!canApply && (
-        <div className="px-3 py-1.5 bg-amber-50/80 border border-amber-200/80 rounded-lg flex items-center justify-between gap-2 text-xs">
+        <div className="px-3 py-1.5 bg-amber-50/80 border border-amber-200/80 rounded-lg flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
             <ShieldCheck size={14} className="text-amber-600 shrink-0" />
             <span className="text-[11px] text-amber-900 font-medium">
@@ -121,7 +121,7 @@ export default function CandidateOverviewTab({
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-2.5 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-xs font-semibold text-slate-900">My Job Applications</h3>
           <button
             type="button"
@@ -138,15 +138,15 @@ export default function CandidateOverviewTab({
             </div>
           ) : (
             applications.map((app) => (
-              <div key={app.applicationId} className="p-2 flex items-center justify-between gap-2.5">
-                <div>
-                  <div className="font-semibold text-slate-900 text-xs">{app.projectName}</div>
-                  <div className="text-slate-500 text-[10px] mt-0.5 font-medium">
+              <div key={app.applicationId} className="p-2 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-slate-900 text-xs truncate">{app.projectName}</div>
+                  <div className="text-slate-500 text-[10px] mt-0.5 font-medium truncate">
                     {app.position} &bull; {app.destinationCountry} &bull; Applied on{" "}
                     {new Date(app.appliedAt).toLocaleDateString()}
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-100 text-blue-800">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-100 text-blue-800 shrink-0 whitespace-nowrap">
                   {app.status}
                 </span>
               </div>

@@ -304,11 +304,11 @@ export default function Documents() {
         </button>
       </div>
 
-      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
+      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1.5 overflow-x-auto max-w-full">
         {isMouAssigned && (
           <button
             onClick={() => setActiveTab("mou")}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === "mou"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -327,7 +327,7 @@ export default function Documents() {
 
         <button
           onClick={() => setActiveTab("company")}
-          className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
             !isMouAssigned || activeTab === "company"
               ? "bg-slate-900 text-white shadow-xs"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -392,7 +392,7 @@ export default function Documents() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setViewingMou(true)}
@@ -446,7 +446,7 @@ export default function Documents() {
               </div>
             </div>
 
-            <div className="p-2.5 sm:p-3 grid grid-cols-2 lg:grid-cols-4 gap-2 bg-slate-50/60 border-b border-slate-200/80">
+            <div className="p-2.5 sm:p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 bg-slate-50/60 border-b border-slate-200/80">
               <div className="p-2 rounded-md bg-white border border-slate-200/80">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Authorized Signatory</span>
                 <span className="text-xs font-bold text-slate-900 mt-1 block">
@@ -624,9 +624,9 @@ export default function Documents() {
                     </div>
                   </div>
 
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[11px] text-slate-500 font-medium">Status: {docStatusLabel}</span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => setPreviewingDoc(doc)}
@@ -664,8 +664,8 @@ export default function Documents() {
       )}
 
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-slate-900 mb-2">Upload Statutory Document</h3>
             <p className="text-xs text-slate-500 mb-4">
               Add government agency licenses, incorporation certificates or GST/tax documents.
@@ -724,7 +724,7 @@ export default function Documents() {
                 <p className="text-xs text-rose-600 font-semibold">{uploadError}</p>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}

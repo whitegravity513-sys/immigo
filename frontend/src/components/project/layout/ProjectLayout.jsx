@@ -25,7 +25,7 @@ export function ProjectLayout({
 
   return (
     <CrmToastContext.Provider value={{ showToast }}>
-      <div className="h-screen overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
+      <div className="min-h-[100dvh] lg:h-[100dvh] lg:max-h-[100dvh] overflow-x-hidden lg:overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
         <ProjectSidebar
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
@@ -33,7 +33,7 @@ export function ProjectLayout({
           setCollapsed={setCollapsed}
         />
 
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 min-h-[100dvh] lg:min-h-0 lg:h-full lg:overflow-hidden">
           <ProjectNavbar
             mobileOpen={mobileOpen}
             setMobileOpen={setMobileOpen}
@@ -44,8 +44,8 @@ export function ProjectLayout({
             breadcrumbs={breadcrumbs}
           />
 
-          <main className="flex-1 p-4 sm:p-5 w-full overflow-y-auto">
-            {children}
+          <main className="flex-1 p-3 sm:p-5 w-full overflow-y-auto overflow-x-hidden">
+            <div className="w-full max-w-[1680px] mx-auto">{children}</div>
           </main>
 
           <AppFooter role="admin" />

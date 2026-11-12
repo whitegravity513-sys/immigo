@@ -59,7 +59,7 @@ export default function CandidateJobsTab({
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-2xs">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-xs sm:text-sm font-bold text-[#0f2744]">
             Available Job Opportunities
           </h2>
@@ -68,8 +68,8 @@ export default function CandidateJobsTab({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative w-48 sm:w-60">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-60">
             <Search
               size={13}
               className="absolute left-2.5 top-2.5 text-slate-400 pointer-events-none"
@@ -128,7 +128,7 @@ export default function CandidateJobsTab({
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[760px] text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   <th className="py-2.5 px-3.5">Project & Employer</th>
@@ -272,9 +272,9 @@ export default function CandidateJobsTab({
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
           />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 z-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl border-l border-slate-200 flex flex-col justify-between animate-in slide-in-from-right duration-300">
-              <div className="p-4 sm:p-5 bg-gradient-to-r from-[#0f2744] to-[#163660] text-white flex items-center justify-between shrink-0">
+          <div className="fixed inset-y-0 right-0 max-w-full w-full flex pl-4 sm:pl-10 z-10 justify-end pointer-events-none">
+            <div className="pointer-events-auto w-full max-w-lg bg-white shadow-2xl border-l border-slate-200 flex flex-col justify-between animate-in slide-in-from-right duration-300">
+              <div className="p-4 sm:p-5 bg-gradient-to-r from-[#0f2744] to-[#163660] text-white flex items-center justify-between gap-2 shrink-0">
                 <div className="min-w-0 pr-3">
                   <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white inline-block mb-1">
                     {selectedProject.destinationCountry ||
@@ -292,14 +292,14 @@ export default function CandidateJobsTab({
                 <button
                   type="button"
                   onClick={() => setSelectedProject(null)}
-                  className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer transition-colors"
+                  className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg cursor-pointer transition-colors shrink-0"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-xs">
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80">
                     <span className="text-[10px] font-semibold text-slate-400 block">
                       Target Position
@@ -364,12 +364,12 @@ export default function CandidateJobsTab({
                           (mpr, mIdx) => (
                             <div
                               key={mpr.id || mIdx}
-                              className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200/70"
+                              className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200/70"
                             >
-                              <span className="font-semibold text-slate-800">
+                              <span className="font-semibold text-slate-800 min-w-0 break-words">
                                 {mpr.position || mpr.trade}
                               </span>
-                              <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[11px]">
+                              <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[11px] shrink-0">
                                 {mpr.quantity || 1} required
                               </span>
                             </div>
@@ -486,7 +486,7 @@ export default function CandidateJobsTab({
                 </div>
               </div>
 
-              <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2.5 shrink-0">
+              <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setSelectedProject(null)}

@@ -251,8 +251,8 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="relative group">
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+            <div className="relative group shrink-0">
               <div className={`w-14 h-14 rounded-xl overflow-hidden ${profile?.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xl flex items-center justify-center shadow-xs`}>
                 {profile?.profileImage ? (
                   <img src={formatFileUrl(profile.profileImage)} alt={profile.name} className="w-full h-full object-cover" />
@@ -270,9 +270,9 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
               </label>
             </div>
 
-            <div className="space-y-0.5">
+            <div className="space-y-0.5 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
+                <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight break-words">
                   {profile?.name}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -290,8 +290,8 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                   </>
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-0.5">
-                <Mail size={12} className="text-slate-400" />
+              <p className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-0.5 break-all">
+                <Mail size={12} className="text-slate-400 shrink-0" />
                 <span>{profile?.email}</span>
               </p>
             </div>
@@ -371,7 +371,7 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                       }
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold"
                     />
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <input
                         type="tel"
                         placeholder="Emergency Phone"
@@ -450,10 +450,10 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
 
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+              <div className="min-w-0">
                 <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <FileCheck size={15} className="text-blue-600" /> Compliance Document Checklist
+                  <FileCheck size={15} className="text-blue-600 shrink-0" /> Compliance Document Checklist
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                   Mandatory documentation for legal payroll and identity verification
@@ -466,7 +466,7 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                   setDocFileLabel("");
                   setUploadModalOpen(true);
                 }}
-                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer transition-all"
+                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer transition-all whitespace-nowrap shrink-0"
               >
                 <Plus size={13} /> Upload Custom
               </button>
@@ -537,8 +537,8 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                     </div>
 
                     {isRejected && (
-                      <div className="pt-2 border-t border-rose-200/70 flex items-center justify-between gap-2">
-                        <span className="text-[10px] text-rose-700 font-medium truncate" title={existingDoc.verificationNote}>
+                      <div className="pt-2 border-t border-rose-200/70 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[10px] text-rose-700 font-medium truncate min-w-0 flex-1" title={existingDoc.verificationNote}>
                           Reason: {existingDoc.verificationNote || "Document rejected by HR"}
                         </span>
                         <button
@@ -589,23 +589,25 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
             <tbody>
               {uploadedDocs.map((doc) => (
                 <tr key={doc._id || doc.id} className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors">
-                  <td className="px-3 py-1.5 text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <FileText size={16} className="text-blue-600 shrink-0" />
-                    <span className="truncate max-w-[220px]">{doc.name}</span>
+                  <td className="px-3 py-1.5 text-sm font-bold text-slate-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText size={16} className="text-blue-600 shrink-0" />
+                      <span className="truncate max-w-[220px]">{doc.name}</span>
+                    </div>
                   </td>
-                  <td className="px-3 py-1.5 text-xs font-bold text-slate-600">
+                  <td className="px-3 py-1.5 text-xs font-bold text-slate-600 whitespace-nowrap">
                     <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
                       {doc.type}
                     </span>
                   </td>
-                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-600">{doc.uploadedBy || "Employee"}</td>
-                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-500">
+                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap">{doc.uploadedBy || "Employee"}</td>
+                  <td className="px-3 py-1.5 text-xs font-semibold text-slate-500 whitespace-nowrap">
                     {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString("en-IN") : "—"}
                   </td>
                   <td className="px-3 py-1.5">
                     <div className="space-y-1">
                       <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${doc.status === "Verified"
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border whitespace-nowrap ${doc.status === "Verified"
                           ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                           : doc.status === "Rejected"
                             ? "bg-rose-50 text-rose-800 border-rose-200"
@@ -621,7 +623,7 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-1.5 text-right">
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
@@ -666,27 +668,28 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
 
       {uploadModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4"
           onClick={() => setUploadModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
+            className="bg-white w-full max-w-md my-auto max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <UploadCloud size={18} className="text-blue-600" /> Upload Document to Vault
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50 sticky top-0 z-10">
+              <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2 min-w-0">
+                <UploadCloud size={18} className="text-blue-600 shrink-0" />
+                <span className="truncate">Upload Document to Vault</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setUploadModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer shrink-0"
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleSubmitDocument} className="p-6 space-y-4 text-left">
+            <form onSubmit={handleSubmitDocument} className="p-4 sm:p-6 space-y-4 text-left">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Document Category *</label>
                 <select
@@ -735,7 +738,7 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2">
                 <button
                   type="submit"
                   disabled={docUploading || !docForm.url}
@@ -758,43 +761,43 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
 
       {previewDoc && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4"
           onClick={() => setPreviewDoc(null)}
         >
           <div
-            className="bg-white w-full max-w-3xl rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white w-full max-w-3xl my-auto rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
-                <FileText size={18} className="text-blue-600" />
-                <h3 className="text-base font-bold text-slate-800 truncate">{previewDoc.name}</h3>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <FileText size={18} className="text-blue-600 shrink-0" />
+                <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate">{previewDoc.name}</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 shrink-0">
                   {previewDoc.type}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setPreviewDoc(null)}
-                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 text-xl font-bold cursor-pointer shrink-0"
               >
                 ×
               </button>
             </div>
 
-            <div className="flex-1 p-4 bg-slate-100 overflow-y-auto flex items-center justify-center min-h-[400px]">
+            <div className="flex-1 p-4 bg-slate-100 overflow-y-auto flex items-center justify-center min-h-[240px] sm:min-h-[400px]">
               {previewDoc.url?.startsWith("data:application/pdf") || previewDoc.url?.toLowerCase().endsWith(".pdf") ? (
-                <iframe src={formatFileUrl(previewDoc.url)} title={previewDoc.name} className="w-full h-[500px] rounded-xl border" />
+                <iframe src={formatFileUrl(previewDoc.url)} title={previewDoc.name} className="w-full h-[50vh] sm:h-[500px] rounded-xl border" />
               ) : (
                 <img
                   src={formatFileUrl(previewDoc.url)}
                   alt={previewDoc.name}
-                  className="max-h-[500px] max-w-full rounded-xl object-contain shadow-sm"
+                  className="max-h-[55vh] sm:max-h-[500px] max-w-full rounded-xl object-contain shadow-sm"
                 />
               )}
             </div>
 
-            <div className="px-6 py-3 border-t border-slate-100 bg-white flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-3 border-t border-slate-100 bg-white flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-slate-500 font-semibold">
                 Uploaded by {previewDoc.uploadedBy || "Employee"} on{" "}
                 {previewDoc.uploadedAt ? new Date(previewDoc.uploadedAt).toLocaleDateString("en-IN") : "—"}
@@ -804,7 +807,7 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
                 download={previewDoc.name}
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
               >
                 <ExternalLink size={13} /> Download / Open
               </a>

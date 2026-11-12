@@ -2,7 +2,7 @@ import { IndianRupee, CreditCard, TrendingUp, Clock, AlertCircle } from "lucide-
 
 export default function ClientPaymentStatsCards({ stats = {} }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
       <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
           <IndianRupee size={13} className="text-blue-600" />
@@ -49,7 +49,7 @@ export default function ClientPaymentStatsCards({ stats = {} }) {
         <p className="text-xs text-gray-500 mt-1">Milestones awaiting payment</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs col-span-2 lg:col-span-1">
+      <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-2xs sm:col-span-2 md:col-span-1">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
           <AlertCircle size={13} className="text-rose-600" />
           Overdue Payments

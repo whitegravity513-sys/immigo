@@ -443,7 +443,7 @@ export default function AdminCandidateMilestones() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 font-sans antialiased text-slate-800 pb-20 px-2 sm:px-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={() => navigate(-1)}
           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition cursor-pointer shadow-2xs"
@@ -796,7 +796,7 @@ export default function AdminCandidateMilestones() {
           </div>
 
           <div className="p-3 sm:p-4 space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <Layers size={14} className="text-slate-700" />
                 <span>2. Processing Steps ({currentStagesDoneCount}/{currentStages.length} Done)</span>
@@ -958,8 +958,8 @@ export default function AdminCandidateMilestones() {
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-2 sm:-mx-4 -mb-20 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+      <div className="sticky bottom-0 -mx-2 sm:-mx-4 -mb-20 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 sm:px-6 py-2.5 sm:py-3 shadow-lg">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
               Active Step:

@@ -266,11 +266,11 @@ export default function AdminCandidateProfilePage() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-start sm:items-center gap-3.5 min-w-0">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl flex items-center justify-center shrink-0 shadow-sm uppercase">
               {candidate.fullName?.charAt(0) || "C"}
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-lg sm:text-xl font-bold text-slate-900">
                   {candidate.fullName}
@@ -301,8 +301,8 @@ export default function AdminCandidateProfilePage() {
               </div>
 
               <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
-                <span className="flex items-center gap-1">
-                  <Mail size={13} className="text-slate-400" />
+                <span className="flex items-center gap-1 break-all">
+                  <Mail size={13} className="text-slate-400 shrink-0" />
                   {candidate.email}
                 </span>
                 {candidate.phone && (
@@ -320,11 +320,11 @@ export default function AdminCandidateProfilePage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 border-b border-slate-200 pt-3 text-xs font-bold">
+        <div className="flex items-center gap-2 border-b border-slate-200 pt-3 text-xs font-bold overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setActiveTab("overview")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "overview"
                 ? "border-blue-600 text-blue-600 font-bold"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -335,7 +335,7 @@ export default function AdminCandidateProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab("skills")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "skills"
                 ? "border-blue-600 text-blue-600 font-bold"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -346,7 +346,7 @@ export default function AdminCandidateProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab("documents")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "documents"
                 ? "border-blue-600 text-blue-600 font-bold"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -357,7 +357,7 @@ export default function AdminCandidateProfilePage() {
           <button
             type="button"
             onClick={() => setActiveTab("applications")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer ${
+            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "applications"
                 ? "border-blue-600 text-blue-600 font-bold"
                 : "border-transparent text-slate-500 hover:text-slate-800"
@@ -370,19 +370,19 @@ export default function AdminCandidateProfilePage() {
 
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
               <User size={14} className="text-blue-600" />
               Basic Identity & Profile
             </h2>
-            <div className="grid grid-cols-2 gap-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium">Candidate ID</span>
                 <span className="font-mono font-bold text-blue-700">{candidate.candidateId}</span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium">Full Name</span>
-                <span className="font-bold text-slate-900">{candidate.fullName}</span>
+                <span className="font-bold text-slate-900 break-words">{candidate.fullName}</span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium">Date of Birth</span>
@@ -403,23 +403,23 @@ export default function AdminCandidateProfilePage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
               <MapPin size={14} className="text-blue-600" />
               Contact & Address
             </h2>
-            <div className="grid grid-cols-2 gap-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium">Primary Email</span>
-                <span className="font-semibold text-slate-900">{candidate.email}</span>
+                <span className="font-semibold text-slate-900 break-all">{candidate.email}</span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium">Primary Phone</span>
                 <span className="font-semibold text-slate-900">{candidate.phone || "—"}</span>
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <span className="text-slate-400 block text-[11px] font-medium">Residential Address</span>
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-slate-800 break-words">
                   {candidate.profile?.address || "Not specified"}
                 </span>
               </div>
@@ -445,7 +445,7 @@ export default function AdminCandidateProfilePage() {
       )}
 
       {activeTab === "skills" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
             <Briefcase size={14} className="text-blue-600" />
             Trade, Experience & Passports
@@ -490,8 +490,8 @@ export default function AdminCandidateProfilePage() {
       )}
 
       {activeTab === "documents" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
               <FileText size={14} className="text-blue-600" />
               Candidate Submitted Documents
@@ -513,13 +513,13 @@ export default function AdminCandidateProfilePage() {
                   className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-bold text-slate-900">{doc.name}</span>
                       <span className="text-[10px] uppercase font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                         {doc.docType}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
+                    <div className="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                       <span>Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}</span>
                       {doc.rejectionReason && (
                         <span className="text-rose-600 font-semibold">
@@ -534,7 +534,7 @@ export default function AdminCandidateProfilePage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                         doc.status === "Verified"
@@ -592,7 +592,7 @@ export default function AdminCandidateProfilePage() {
       )}
 
       {activeTab === "applications" && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
             <Award size={14} className="text-blue-600" />
             Job Applications & Project Alignments
@@ -610,7 +610,7 @@ export default function AdminCandidateProfilePage() {
                   className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
                 >
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-bold text-slate-900 text-sm">{app.projectName || app.jobTitle || "Project Assignment"}</span>
                       <span className="font-mono text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                         {app.applicationId}
@@ -640,8 +640,8 @@ export default function AdminCandidateProfilePage() {
       )}
 
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-rose-700 flex items-center gap-1.5">
                 <Trash2 size={16} />
@@ -688,8 +688,8 @@ export default function AdminCandidateProfilePage() {
       )}
 
       {rejectModalOpen && selectedDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-rose-700 flex items-center gap-1.5">
                 <RotateCcw size={16} />

@@ -95,7 +95,7 @@ export default function AdminVendorDashboard() {
 
       <ActiveMeetingAlertBanner />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         <div className="bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Vendors</span>
           <div className="text-xl font-bold text-slate-900 mt-0.5">{stats.totalVendors}</div>
@@ -132,10 +132,10 @@ export default function AdminVendorDashboard() {
       </div>
 
       <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs p-4 sm:p-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3.5">
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-indigo-600" />
+              <Building2 className="w-4 h-4 text-indigo-600 shrink-0" />
               <span>Recent Vendor Activity & Updates</span>
             </h3>
             <p className="text-[11px] text-slate-500 mt-0.5">
@@ -144,7 +144,7 @@ export default function AdminVendorDashboard() {
           </div>
           <Link
             to="/admin/vendor/vendors"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors shrink-0"
           >
             <span>See All Vendors</span>
             <ArrowRight size={13} />
@@ -155,7 +155,7 @@ export default function AdminVendorDashboard() {
           {(stats.recentActivity || []).map((act, i) => (
             <div
               key={act.id || i}
-              className="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/70 flex items-center justify-between gap-3 transition-colors"
+              className="p-3 rounded-xl bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">

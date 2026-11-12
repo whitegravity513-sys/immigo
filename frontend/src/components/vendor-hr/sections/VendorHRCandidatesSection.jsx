@@ -102,7 +102,7 @@ export default function VendorHRCandidatesSection({
     <div className="space-y-4">
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-slate-900">Candidate Directory & Screening</h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
               {preSelectionCount} Candidates
@@ -112,7 +112,7 @@ export default function VendorHRCandidatesSection({
             Review full profiles, CVs, and passports, shortlist candidates, schedule interviews, and manage hiring decisions.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveMenu("milestones")}
@@ -133,7 +133,7 @@ export default function VendorHRCandidatesSection({
       </div>
 
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative flex-1 min-w-0 sm:min-w-[240px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -148,7 +148,7 @@ export default function VendorHRCandidatesSection({
           />
         </div>
 
-        <div className="flex items-center space-x-1.5 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {[
             { id: "ALL", label: `All (${preSelectionCount})` },
             {
@@ -204,7 +204,7 @@ export default function VendorHRCandidatesSection({
 
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[780px] text-left text-xs">
             <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
               <tr>
                 <th className="py-3 px-4">Candidate &amp; Resume</th>

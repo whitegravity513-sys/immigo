@@ -155,14 +155,14 @@ export default function ExcelExportModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/70">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shadow-2xs">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh] my-auto">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/70">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shadow-2xs shrink-0">
               <FileSpreadsheet size={20} />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
                 {title}
               </h3>
@@ -171,13 +171,13 @@ export default function ExcelExportModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer shrink-0"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-5 overflow-y-auto space-y-4 flex-1">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
           {additionalFiltersNode && (
             <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
@@ -284,7 +284,7 @@ export default function ExcelExportModal({
             </div>
           )}
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 px-1">
             <span>
               Total records to be exported:{" "}
               <strong className="text-slate-800">{data?.length || 0}</strong>
@@ -293,7 +293,7 @@ export default function ExcelExportModal({
           </div>
         </div>
 
-        <div className="px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+        <div className="px-4 sm:px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <button
             type="button"
             onClick={onClose}
@@ -302,7 +302,7 @@ export default function ExcelExportModal({
             Cancel
           </button>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               disabled={selectedKeys.length === 0 || exporting}

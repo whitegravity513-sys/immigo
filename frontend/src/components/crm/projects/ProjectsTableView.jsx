@@ -29,7 +29,7 @@ export default function ProjectsTableView({
   const [openMenuId, setOpenMenuId] = useState(null);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-x-clip">
       {loading ? (
         <div className="p-6">
           <LoadingSkeleton count={4} />
@@ -57,8 +57,8 @@ export default function ProjectsTableView({
         </div>
       ) : (
         <>
-          <div className="hidden md:block overflow-x-auto min-h-[340px] pb-16">
-            <table className="w-full text-left border-collapse text-xs">
+          <div className="hidden lg:block overflow-x-auto xl:overflow-visible min-h-[340px] pb-16">
+            <table className="w-full min-w-[820px] text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-2 px-3">Project ID</th>
@@ -237,7 +237,7 @@ export default function ProjectsTableView({
             </table>
           </div>
 
-          <div className="md:hidden divide-y divide-gray-100">
+          <div className="lg:hidden divide-y divide-gray-100">
             {projects.map((proj) => (
               <div key={proj.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">

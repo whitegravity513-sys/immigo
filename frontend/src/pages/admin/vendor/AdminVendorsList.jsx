@@ -988,7 +988,7 @@ export default function AdminVendorsList() {
   }
 
   return (
-    <div className="space-y-3.5 w-full max-w-full overflow-hidden font-sans antialiased text-slate-800">
+    <div className="space-y-3.5 w-full max-w-full overflow-x-clip font-sans antialiased text-slate-800">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
         <div>
           <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">All Vendors</h1>
@@ -997,7 +997,7 @@ export default function AdminVendorsList() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-xs font-bold">
             Total Agencies: {vendors.length}
           </span>

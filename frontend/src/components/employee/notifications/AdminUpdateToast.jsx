@@ -28,7 +28,7 @@ export default function AdminUpdateToast({ notification, onClose, onView }) {
   const badge = getBadgeInfo();
 
   return (
-    <div className="fixed top-5 right-5 z-[9999] max-w-sm sm:max-w-md w-full animate-in slide-in-from-top-4 fade-in duration-300">
+    <div className="fixed top-3 sm:top-5 right-3 sm:right-5 left-3 sm:left-auto z-[9999] max-w-sm sm:max-w-md sm:w-full animate-in slide-in-from-top-4 fade-in duration-300">
       <div className="bg-white rounded-2xl shadow-2xl border-2 border-blue-600/30 p-4 relative overflow-hidden backdrop-blur-md">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500" />
 

@@ -226,7 +226,7 @@ export default function AdminSelectedCandidates() {
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[920px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-2.5 px-4 text-[10px]">Candidate Profile</th>
@@ -382,11 +382,11 @@ export default function AdminSelectedCandidates() {
                           </div>
                         </td>
 
-                        <td className="py-2.5 px-4 text-right">
+                        <td className="py-2.5 px-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleOpenPaymentModal(app)}
-                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#163868] border border-blue-200 font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#163868] border border-blue-200 font-bold text-xs transition inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
                               title="Quickly record milestone payment"
                             >
                               <IndianRupee size={12} />
@@ -395,7 +395,7 @@ export default function AdminSelectedCandidates() {
 
                             <Link
                               to={`/admin/candidates/milestones-manage?appId=${app.applicationId || app.id}`}
-                              className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer"
+                              className="px-3 py-1.5 rounded-lg bg-[#163868] hover:bg-[#1e4a82] text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                               title="Manage candidate processing stages & upload documents"
                             >
                               <Sliders size={12} />
@@ -413,9 +413,9 @@ export default function AdminSelectedCandidates() {
       )}
 
       {paymentModalApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
-            <div className="px-5 py-3.5 bg-[#163868] text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs overflow-y-auto p-3 sm:p-4 animate-fade-in">
+          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full">
+            <div className="px-4 sm:px-5 py-3.5 bg-[#163868] text-white flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-2">
                 <IndianRupee className="w-4 h-4 text-cyan-300" />
                 <h3 className="text-xs sm:text-sm font-bold">Record Milestone Payment</h3>
@@ -428,7 +428,7 @@ export default function AdminSelectedCandidates() {
               </button>
             </div>
 
-            <div className="p-5 space-y-3.5 text-xs text-slate-800">
+            <div className="p-4 sm:p-5 space-y-3.5 text-xs text-slate-800">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div className="font-bold text-slate-900">{paymentModalApp.candidateName}</div>
                 <div className="text-[11px] text-slate-500 font-medium">
@@ -474,7 +474,7 @@ export default function AdminSelectedCandidates() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Amount (₹)
@@ -531,7 +531,7 @@ export default function AdminSelectedCandidates() {
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+              <div className="pt-2 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setPaymentModalApp(null)}

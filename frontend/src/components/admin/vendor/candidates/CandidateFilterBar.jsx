@@ -15,7 +15,7 @@ export default function CandidateFilterBar({
   countryOptions = [],
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
       <div className="relative sm:col-span-1">
         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
         <input

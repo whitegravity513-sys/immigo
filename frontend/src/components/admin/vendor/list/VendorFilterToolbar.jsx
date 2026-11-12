@@ -61,7 +61,7 @@ export default function VendorFilterToolbar({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1.5 border-t border-slate-100 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1.5 border-t border-slate-100 text-xs">
         <div>
           <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
             State

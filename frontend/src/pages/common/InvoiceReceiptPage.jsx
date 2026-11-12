@@ -143,7 +143,7 @@ export default function InvoiceReceiptPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
+      <div className="min-h-[100dvh] bg-slate-100 flex items-center justify-center p-4 font-sans">
         <div className="text-center">
           <div className="w-10 h-10 border-3 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-xs font-bold text-slate-700">Loading Official Payment Receipt...</p>
@@ -154,7 +154,7 @@ export default function InvoiceReceiptPage() {
 
   if (!application) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
+      <div className="min-h-[100dvh] bg-slate-100 flex items-center justify-center p-4 font-sans">
         <div className="bg-white p-8 rounded-2xl shadow-sm text-center max-w-sm border border-slate-200">
           <h2 className="text-base font-bold text-slate-900 mb-2">Receipt Not Found</h2>
           <p className="text-xs text-slate-500 mb-4">The requested milestone payment receipt could not be located.</p>
@@ -232,7 +232,7 @@ export default function InvoiceReceiptPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-6 sm:py-8 px-2 sm:px-4 font-sans text-slate-900 print:bg-white print:p-0">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-slate-100 py-5 sm:py-8 px-2.5 sm:px-4 font-sans text-slate-900 print:bg-white print:p-0 print:overflow-visible">
       <style>{`
         @media print {
           @page {
@@ -262,7 +262,7 @@ export default function InvoiceReceiptPage() {
         }
       `}</style>
 
-      <div className="max-w-[800px] mx-auto mb-4 flex items-center justify-between print-hide">
+      <div className="max-w-[800px] mx-auto mb-4 flex flex-wrap items-center justify-between gap-2 print-hide">
         <button
           onClick={() => window.close()}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-950 bg-white px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs cursor-pointer transition"
@@ -270,7 +270,7 @@ export default function InvoiceReceiptPage() {
           <ArrowLeft size={14} />
           <span>Close</span>
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handlePrint}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl shadow-xs cursor-pointer transition"
@@ -288,10 +288,10 @@ export default function InvoiceReceiptPage() {
         </div>
       </div>
 
-      <div className="receipt-paper max-w-[800px] mx-auto bg-white border-2 border-slate-900 p-6 sm:p-8 shadow-md text-slate-900 text-xs leading-relaxed space-y-4 font-sans">
+      <div className="receipt-paper max-w-[800px] mx-auto bg-white border-2 border-slate-900 p-3.5 sm:p-8 shadow-md text-slate-900 text-xs leading-relaxed space-y-4 font-sans">
         
         <div className="border border-slate-900 flex flex-col sm:flex-row items-stretch">
-          <div className="flex-1 p-4 border-b sm:border-b-0 sm:border-r border-slate-900 flex items-start gap-3">
+          <div className="flex-1 p-3.5 sm:p-4 border-b sm:border-b-0 sm:border-r border-slate-900 flex flex-wrap sm:flex-nowrap items-start gap-3">
             <div className="shrink-0 pt-0.5">
               <div className="flex items-baseline">
                 <span className="text-3xl font-bold tracking-tight text-slate-950">immi</span>
@@ -305,7 +305,7 @@ export default function InvoiceReceiptPage() {
               </p>
             </div>
 
-            <div className="text-[10px] text-slate-800 space-y-0.5 pl-2 leading-tight">
+            <div className="text-[10px] text-slate-800 space-y-0.5 pl-0 sm:pl-2 leading-tight">
               <h2 className="text-xs font-bold uppercase text-slate-950">
                 IMMIGO EDUCARE LLP
               </h2>
@@ -326,17 +326,17 @@ export default function InvoiceReceiptPage() {
               </span>
             </div>
             <div className="text-[10px] space-y-1 text-slate-700">
-              <div className="flex justify-between">
-                <span>Receipt No:</span>
-                <strong className="text-slate-900">{receiptNo}</strong>
+              <div className="flex justify-between gap-2">
+                <span className="shrink-0">Receipt No:</span>
+                <strong className="text-slate-900 text-right">{receiptNo}</strong>
               </div>
-              <div className="flex justify-between">
-                <span>Payment Date:</span>
-                <strong className="text-slate-900">{formattedFullDate}</strong>
+              <div className="flex justify-between gap-2">
+                <span className="shrink-0">Payment Date:</span>
+                <strong className="text-slate-900 text-right">{formattedFullDate}</strong>
               </div>
-              <div className="flex justify-between">
-                <span>Mode:</span>
-                <strong className="text-slate-900">{paymentMode}</strong>
+              <div className="flex justify-between gap-2">
+                <span className="shrink-0">Mode:</span>
+                <strong className="text-slate-900 text-right">{paymentMode}</strong>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function InvoiceReceiptPage() {
         </div>
 
         <div className="border border-slate-900 overflow-x-auto">
-          <table className="w-full text-left text-[11px] border-collapse">
+          <table className="w-full min-w-[540px] sm:min-w-0 text-left text-[11px] border-collapse">
             <thead className="bg-slate-100 text-slate-800 font-bold border-b border-slate-900 text-[10px]">
               <tr>
                 <th className="py-2 px-3 border-r border-slate-900 w-10 text-center">#</th>

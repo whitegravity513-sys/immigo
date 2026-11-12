@@ -183,7 +183,7 @@ export default function AdminDocumentsList() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="relative sm:col-span-2">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -239,7 +239,7 @@ export default function AdminDocumentsList() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[820px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-2 px-3 text-[10px] sm:px-5">Document Title</th>
@@ -299,7 +299,7 @@ export default function AdminDocumentsList() {
                     </td>
 
                     <td className="py-1.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => setPreviewingDoc(doc)}

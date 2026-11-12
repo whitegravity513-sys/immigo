@@ -37,9 +37,9 @@ export function ConfirmDialog({
         onClick={!loading ? onClose : undefined}
       />
 
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-gray-200">
-          <div className="bg-white p-6">
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-6 text-center">
+        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all my-auto w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-200">
+          <div className="bg-white p-4 sm:p-6">
             <div className="flex items-start gap-4">
               <div
                 className={`w-10 h-10 rounded-full border flex items-center justify-center shrink-0 ${current.iconBg}`}
@@ -62,7 +62,7 @@ export function ConfirmDialog({
             </div>
           </div>
 
-          <div className="bg-gray-50 px-6 py-3.5 flex items-center justify-end gap-2.5 border-t border-gray-100">
+          <div className="bg-gray-50 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-end gap-2.5 border-t border-gray-100">
             <button
               type="button"
               onClick={onClose}

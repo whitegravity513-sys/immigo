@@ -12,8 +12,8 @@ export default function ClientPaymentReversalModal({
   if (!isOpen || !payment) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-md w-full p-4 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto my-auto">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
             <RotateCcw size={20} />
@@ -49,7 +49,7 @@ export default function ClientPaymentReversalModal({
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
             <button
               type="button"
               disabled={submitting}

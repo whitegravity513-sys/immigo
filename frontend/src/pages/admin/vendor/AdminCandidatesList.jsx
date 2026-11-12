@@ -656,7 +656,7 @@ export default function AdminCandidatesList() {
             Central candidate database. Review profiles, verify documents and manage the selection pipeline.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold">
             Total Candidates: {candidates.length}
           </span>

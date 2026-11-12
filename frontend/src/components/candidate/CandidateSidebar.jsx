@@ -43,7 +43,7 @@ export default function CandidateSidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#F3F7FC] border-r border-blue-800/80 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 h-[100dvh] w-64 bg-[#F3F7FC] border-r border-blue-800/80 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

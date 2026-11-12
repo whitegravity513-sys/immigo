@@ -64,8 +64,8 @@ export function EmployeeAttendanceTab({
     const gridItems = [...blanks, ...days];
 
     return (
-      <div className="p-4 sm:p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/60">
+      <div className="p-3 sm:p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
           <span className="font-bold text-slate-800 text-sm">
             {months[calendarMonth - 1]} {calendarYear}
           </span>
@@ -81,18 +81,20 @@ export function EmployeeAttendanceTab({
           />
         </div>
 
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div
-              key={d}
-              className="text-center font-bold text-slate-500 text-[10px] sm:text-xs uppercase py-1"
-            >
-              {d}
+        <div className="overflow-x-auto w-full pb-1">
+          <div className="min-w-[580px] space-y-1.5 sm:space-y-2">
+            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                <div
+                  key={d}
+                  className="text-center font-bold text-slate-500 text-[10px] sm:text-xs uppercase py-1"
+                >
+                  {d}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-2">
           {gridItems.map((day, idx) => {
             if (day === null) {
               return (
@@ -276,6 +278,8 @@ export function EmployeeAttendanceTab({
               </div>
             );
           })}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -284,7 +288,7 @@ export function EmployeeAttendanceTab({
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
       <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center gap-3 justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h4 className="text-sm font-bold text-slate-800">Attendance Log</h4>
           <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/40">
             <button
@@ -383,7 +387,7 @@ export function EmployeeAttendanceTab({
 
       {employeeDetailView === "table" ? (
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+          <table className="w-full min-w-[780px] text-left border-collapse table-auto">
             <thead>
               <tr>
                 {[

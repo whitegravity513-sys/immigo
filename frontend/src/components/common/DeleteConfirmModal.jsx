@@ -13,17 +13,17 @@ export default function DeleteConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
+        className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] overflow-y-auto my-auto transform transition-all"
         role="dialog"
         aria-modal="true"
       >
-        <div className="p-5 flex items-start gap-4">
+        <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
             <AlertTriangle size={20} />
           </div>
-          <div className="flex-1 pr-2">
+          <div className="flex-1 min-w-0 pr-2">
             <h3 className="text-base font-bold text-slate-900">{title}</h3>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">{message}</p>
 
@@ -40,14 +40,14 @@ export default function DeleteConfirmModal({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
             aria-label="Close"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+        <div className="px-4 sm:px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}

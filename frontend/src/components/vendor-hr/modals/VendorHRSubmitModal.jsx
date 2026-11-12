@@ -62,8 +62,8 @@ export default function VendorHRSubmitModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">Submit New Candidate</h3>
@@ -93,7 +93,7 @@ export default function VendorHRSubmitModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-700 font-bold mb-1">Email Address (Optional)</label>
               <input
@@ -116,7 +116,7 @@ export default function VendorHRSubmitModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-700 font-bold mb-1">Passport Number</label>
               <input
@@ -232,7 +232,7 @@ export default function VendorHRSubmitModal({
             />
           </div>
 
-          <div className="pt-2 flex justify-end space-x-2 border-t border-slate-100">
+          <div className="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}

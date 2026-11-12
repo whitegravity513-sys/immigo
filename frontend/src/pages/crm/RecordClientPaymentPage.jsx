@@ -248,10 +248,10 @@ export default function RecordClientPaymentPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12 font-sans">
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-500 mb-1">
               <Link to="/client/dashboard" className="hover:text-blue-600 transition-colors">
                 Dashboard
               </Link>
@@ -262,8 +262,8 @@ export default function RecordClientPaymentPage() {
               <span className="text-gray-300">/</span>
               <span className="text-gray-900 font-bold">Record Payment</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
-              <Receipt className="text-blue-600" size={26} />
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5 min-w-0">
+              <Receipt className="text-blue-600 shrink-0" size={26} />
               <span>Record Client Payment</span>
             </h1>
             <p className="text-xs text-gray-500 mt-1">
@@ -282,7 +282,7 @@ export default function RecordClientPaymentPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-6">
         {errors.form && (
           <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
             <AlertCircle size={16} className="text-red-500 shrink-0" />
@@ -354,28 +354,28 @@ export default function RecordClientPaymentPage() {
           </div>
 
           {selectedMilestone && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div>
+            <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div className="min-w-0">
                   <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">Milestone</span>
-                  <p className="font-bold text-gray-900 mt-0.5">{selectedMilestone.name}</p>
+                  <p className="font-bold text-gray-900 mt-0.5 break-words">{selectedMilestone.name}</p>
                   <p className="text-[10px] text-gray-500 line-clamp-1">{selectedMilestone.condition}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">Agreed Amount</span>
-                  <p className="font-bold text-gray-900 mt-0.5 font-mono">
+                  <p className="font-bold text-gray-900 mt-0.5 font-mono break-all">
                     ₹{agreedAmount.toLocaleString("en-IN")}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">Currently Paid</span>
-                  <p className="font-bold text-emerald-700 mt-0.5 font-mono">
+                  <p className="font-bold text-emerald-700 mt-0.5 font-mono break-all">
                     ₹{currentPaid.toLocaleString("en-IN")}
                   </p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider">Remaining Balance</span>
-                  <p className="font-bold text-blue-900 mt-0.5 font-mono text-sm">
+                  <p className="font-bold text-blue-900 mt-0.5 font-mono text-sm break-all">
                     ₹{remainingAfterPayment.toLocaleString("en-IN")}
                   </p>
                 </div>
@@ -556,7 +556,7 @@ export default function RecordClientPaymentPage() {
         </div>
 
         <div className="space-y-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
               <Percent size={15} className="text-indigo-600" />
               <span>3. Tax & GST Handling</span>
@@ -616,7 +616,7 @@ export default function RecordClientPaymentPage() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-indigo-100 grid grid-cols-3 gap-3 text-xs">
+              <div className="pt-2 border-t border-indigo-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
                   <span className="text-[10px] text-gray-500 uppercase font-bold">Base Milestone Amount</span>
                   <p className="font-mono font-bold text-gray-800 mt-0.5">
@@ -653,7 +653,7 @@ export default function RecordClientPaymentPage() {
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-100">
           <button
             type="button"
             onClick={() => navigate("/client/ledger")}

@@ -64,8 +64,8 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-5">
-      <div className="flex items-center gap-2.5 mb-4">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-slate-50 to-slate-100 p-3 sm:p-5 overflow-x-hidden">
+      <div className="flex flex-wrap items-center gap-2.5 mb-4">
         <button
           onClick={onGoBack}
           className="p-1.5 hover:bg-white rounded-md transition-colors cursor-pointer"
@@ -127,12 +127,12 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 <div className="font-bold text-green-900 text-xs">{typeof selectedEmployee?.name === 'string' ? selectedEmployee.name : (selectedEmployee?.name?.first ? `${selectedEmployee.name.first} ${selectedEmployee.name.last}` : String(selectedEmployee?.name || ""))}</div>
                 <div className="text-[11px] text-green-700">{selectedEmployee.employeeId}</div>
                 {selectedEmployee.joiningDate && (
-                  <div className="text-[10px] text-green-700 mt-0.5 font-semibold flex items-center justify-between">
+                  <div className="text-[10px] text-green-700 mt-0.5 font-semibold flex flex-wrap items-center justify-between gap-1.5">
                     <span>📅 Joined: {new Date(selectedEmployee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     <button
                       type="button"
                       onClick={handleSetJoiningToToday}
-                      className="ml-1 text-[10px] bg-green-700 text-white px-1.5 py-0.5 rounded hover:bg-green-800 cursor-pointer"
+                      className="text-[10px] bg-green-700 text-white px-1.5 py-0.5 rounded hover:bg-green-800 cursor-pointer"
                     >
                       Use Joining Date
                     </button>
@@ -143,9 +143,9 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1">
               <label className="text-xs font-bold text-slate-700">2. Salary Calculation Period</label>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setUseDateRange(false)}
@@ -178,7 +178,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                   maxDate={new Date()}
                   className="w-full px-2.5 py-1.5 border border-slate-200 rounded-md bg-white text-black text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
                 />
-                <div className="flex items-center justify-between mt-1 text-[11px] text-slate-500">
+                <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[11px] text-slate-500">
                   <span>From 1st of month to today</span>
                   {selectedEmployee?.joiningDate && (
                     <button
@@ -192,7 +192,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 mb-0.5">From Date</label>
                   <DateInput
@@ -291,7 +291,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
               </h2>
             </div>
             <div className="p-3.5 sm:p-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
                 <div>
                   <div className="text-xs text-slate-500 font-bold mb-0.5">Monthly Base Salary</div>
                   <div className="text-lg font-bold text-slate-800">
@@ -321,7 +321,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 </div>
               </div>
               {monthlyData.calcStartDate && (
-                <div className="mt-3 px-3 py-1.5 bg-blue-50/90 rounded-md border border-blue-200 text-xs text-blue-900 flex items-center justify-between">
+                <div className="mt-3 px-3 py-1.5 bg-blue-50/90 rounded-md border border-blue-200 text-xs text-blue-900 flex flex-wrap items-center justify-between gap-2">
                   <span>📅 Calculation Window: <strong className="font-bold">{monthlyData.calcStartDate}</strong> to <strong className="font-bold">{monthlyData.calcEndDate}</strong></span>
                   <span>Evaluated Working Days: <strong className="font-bold">{monthlyData.summary?.totalWorkingDays ?? 0} Days</strong></span>
                 </div>
@@ -331,18 +331,18 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
 
           <div className="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
             <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-4 py-2.5">
-              <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" />
-                Daily Attendance Details (Past to Today)
+              <h2 className="text-sm font-bold text-white flex flex-wrap items-center gap-2">
+                <Calendar className="w-4 h-4 shrink-0" />
+                <span>Daily Attendance Details (Past to Today)</span>
                 {monthlyData.employee?.joiningDate && (
-                  <span className="ml-auto text-[11px] font-semibold text-green-100 bg-green-800/40 px-2 py-0.5 rounded">
+                  <span className="sm:ml-auto text-[11px] font-semibold text-green-100 bg-green-800/40 px-2 py-0.5 rounded">
                     From Joining: {new Date(monthlyData.employee.joiningDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 )}
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
                     <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Date & Day</th>
@@ -419,7 +419,7 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                 </h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200">
                       <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Leave Type</th>

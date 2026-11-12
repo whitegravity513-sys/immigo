@@ -38,7 +38,7 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-bold text-gray-900">Deployment Projects</h3>
           <p className="text-xs text-gray-500">
@@ -54,7 +54,7 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-x-clip">
         {(client.projects || []).length === 0 ? (
           <div className="p-8 text-center text-xs text-gray-500 space-y-3">
             <p>No projects registered for this client yet.</p>
@@ -67,8 +67,8 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto min-h-[300px] pb-16">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="overflow-x-auto xl:overflow-visible min-h-[300px] pb-16">
+            <table className="w-full min-w-[740px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
                   <th className="py-2 px-3 text-[10px] sm:px-6">Project Name</th>

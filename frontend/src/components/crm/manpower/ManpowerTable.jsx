@@ -273,7 +273,7 @@ export function ManpowerTable({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full min-w-[640px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
                   <th className="py-2 px-3 text-[10px]">Position</th>
@@ -340,7 +340,7 @@ export function ManpowerTable({
           </div>
         )}
 
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-wrap gap-4">
+        <div className="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-200 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <Users size={16} className="text-blue-600 shrink-0" />
             <span>Headcount auto-aggregates across all listed trade requirements</span>

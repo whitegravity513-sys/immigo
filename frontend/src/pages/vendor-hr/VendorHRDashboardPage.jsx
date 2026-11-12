@@ -20,6 +20,8 @@ import {
   RefreshCw,
   ArrowRightLeft,
   Video,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "../../context/useAuth.js";
 import vendorHRService from "../../services/vendorHRService.js";
@@ -86,10 +88,12 @@ export default function VendorHRDashboardPage() {
   const [activeMenu, setActiveMenu] = useState(
     !isSuperAdmin && !isAdmin && initialView === "assignments" ? "overview" : initialView
   );
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSelectMenu = (menuId) => {
     setActiveMenu(menuId);
     setSearchParams({ view: menuId });
+    setSidebarOpen(false);
   };
 
   useEffect(() => {
@@ -861,10 +865,10 @@ export default function VendorHRDashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[#f8fafc] font-sans antialiased overflow-hidden text-slate-800">
+    <div className="flex min-h-[100dvh] lg:h-[100dvh] lg:max-h-[100dvh] w-full bg-[#f8fafc] font-sans antialiased overflow-x-hidden lg:overflow-hidden text-slate-800 relative">
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold transition-all animate-in fade-in slide-in-from-top-2 ${toast.type === "error"
+          className={`fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] px-4 py-2.5 rounded-xl shadow-lg border text-xs font-bold transition-all animate-in fade-in slide-in-from-top-2 ${toast.type === "error"
             ? "bg-rose-50 border-rose-300 text-rose-800"
             : "bg-emerald-50 border-emerald-300 text-emerald-800"
             }`}
@@ -873,13 +877,32 @@ export default function VendorHRDashboardPage() {
         </div>
       )}
 
-      <aside className="w-[240px] flex flex-col shrink-0 h-screen bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none">
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[250px] lg:w-[240px] lg:static flex flex-col shrink-0 h-[100dvh] lg:h-full bg-gradient-to-b from-[#eef5ff] via-[#e8f2fe] to-[#edf4fe] text-slate-800 border-r border-blue-200/80 shadow-[1px_0_6px_rgba(37,99,235,0.06)] select-none transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="h-[52px] min-h-[52px] px-4 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs shrink-0">
           <ImmiGoLogo
             size="sm"
             theme="light"
             subtitle={isSuperAdmin ? "Super Admin Portal" : isAdmin ? "Admin Portal" : "Vendor HR Portal"}
           />
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1.5 text-blue-200 hover:text-white rounded-lg cursor-pointer"
+            aria-label="Close Sidebar"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {(isSuperAdmin || isAdmin) && (
@@ -956,12 +979,20 @@ export default function VendorHRDashboardPage() {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-4 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0">
-          <div className="w-full flex items-center justify-between gap-3 sm:gap-5">
-            <div className="flex items-center gap-2.5 truncate">
-              <ImmiGoLogo size="xs" theme="light" />
-              <ChevronRight size={13} className="text-blue-400 shrink-0" />
+      <div className="flex-1 flex flex-col min-w-0 min-h-[100dvh] lg:min-h-0 lg:h-full lg:overflow-hidden">
+        <header className="min-h-[52px] py-1.5 bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white px-3 sm:px-6 flex items-center border-b border-blue-900/60 shadow-xs shrink-0 sticky top-0 z-30 lg:static">
+          <div className="w-full flex items-center justify-between gap-2 sm:gap-5">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 truncate">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-1.5 rounded-lg bg-blue-900/60 hover:bg-blue-800/90 text-blue-100 hover:text-white border border-blue-700/60 cursor-pointer shrink-0"
+                aria-label="Open Navigation"
+              >
+                <Menu size={17} />
+              </button>
+              <ImmiGoLogo size="xs" theme="light" className="hidden sm:flex" />
+              <ChevronRight size={13} className="text-blue-400 shrink-0 hidden sm:inline" />
               <span className="text-white font-bold text-sm sm:text-[14px] tracking-tight truncate drop-shadow-2xs">
                 {isSuperAdmin ? "Super Admin Operations" : isAdmin ? "Admin Operations" : "Vendor HR Dashboard"}
               </span>
@@ -1008,9 +1039,9 @@ export default function VendorHRDashboardPage() {
               <button
                 type="button"
                 onClick={() => setShowSubmitModal(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition flex items-center space-x-1.5 cursor-pointer"
+                className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition flex items-center space-x-1.5 cursor-pointer shrink-0"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">Submit Candidate</span>
               </button>
             </div>
@@ -1019,8 +1050,9 @@ export default function VendorHRDashboardPage() {
 
         <ActiveMeetingAlertBanner customRole={isSuperAdmin ? "SUPER_ADMIN" : isAdmin ? "ADMIN" : "VENDOR_HR"} />
 
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto bg-[#f8fafc]">
-          <div className="flex items-center justify-between mb-4">
+        <main className="flex-1 p-3 sm:p-5 lg:p-6 overflow-y-auto overflow-x-hidden bg-[#f8fafc]">
+          <div className="w-full max-w-[1680px] mx-auto">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div className="flex items-center space-x-2 text-xs">
               <span className="font-bold text-slate-400 uppercase tracking-wider">Workspace</span>
               <span className="text-slate-300">/</span>
@@ -1231,20 +1263,21 @@ export default function VendorHRDashboardPage() {
               vendorName={defaultVendorName}
             />
           )}
+          </div>
         </main>
 
-        <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto h-[48px] min-h-[48px] px-4 sm:px-6 flex items-center">
-          <div className="w-full flex items-center justify-between gap-3 flex-wrap">
+        <footer className="select-none shrink-0 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 border-t border-blue-800/80 shadow-md mt-auto min-h-[44px] sm:min-h-[48px] py-2 sm:py-1.5 px-4 sm:px-6 flex items-center">
+          <div className="w-full max-w-[1680px] mx-auto flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-1.5 sm:gap-3 text-center sm:text-left">
             <div className="flex items-center gap-3">
               <ImmiGoLogo size="xs" theme="light" />
-              <span className="hidden sm:inline-block text-[11px] text-blue-300/80 pl-3 border-l border-blue-800/80">
+              <span className="hidden md:inline-block text-[11px] text-blue-300/80 pl-3 border-l border-blue-800/80">
                 Vendor HR Portal • Global Manpower Supply Command Center
               </span>
             </div>
 
-            <div className="flex items-center gap-2.5 text-[10px] sm:text-[11px] text-white font-medium">
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-2.5 gap-y-0.5 text-[10px] sm:text-[11px] text-white font-medium">
               <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-              <span className="text-cyan-400">&bull;</span>
+              <span className="text-cyan-400 hidden sm:inline">&bull;</span>
               <span className="font-semibold text-cyan-300 tracking-wide">
                 Designed by White Gravity Web Solutions
               </span>

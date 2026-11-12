@@ -178,7 +178,7 @@ export default function ActiveMeetingAlertBanner({
               </span>
 
               {participantLabel && (
-                <span className="text-[11px] font-semibold text-slate-300 truncate max-w-[200px]">
+                <span className="text-[11px] font-semibold text-slate-300 truncate max-w-full sm:max-w-[200px]">
                   • {participantLabel}
                 </span>
               )}

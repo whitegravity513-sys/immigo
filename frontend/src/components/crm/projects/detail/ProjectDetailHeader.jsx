@@ -22,7 +22,7 @@ export function ProjectDetailHeader({
 
   return (
     <>
-      <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-white px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
         <Link
           to={`/client/clients/${client?.id || clientId || project.clientId}`}
           className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 rounded-lg transition-colors"
@@ -43,7 +43,7 @@ export function ProjectDetailHeader({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 font-bold text-xl flex items-center justify-center shrink-0">
@@ -102,7 +102,7 @@ export function ProjectDetailHeader({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 to={`/client/clients/${client?.id || clientId || project.clientId}/projects/${project.id}/edit`}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"

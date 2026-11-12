@@ -503,8 +503,8 @@ export function AddCandidate() {
                 </div>
               )}
             </div>
-            <div className="space-y-1.5 flex-1">
-              <div className="flex items-center gap-2">
+            <div className="space-y-1.5 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:border-blue-500 hover:text-blue-600 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs transition">
                   <Camera size={14} className="text-blue-600" />
                   <span>{candidatePhoto ? "Change Photo" : "Upload Candidate Photo"}</span>
@@ -716,7 +716,7 @@ export function AddCandidate() {
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-3 sm:p-6 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Resume / CV Document</h3>
               <p className="text-xs text-slate-500">Optional PDF, JPG, or PNG document (Max 5 MB)</p>
@@ -729,7 +729,7 @@ export function AddCandidate() {
           </div>
 
           {resumeFile ? (
-            <div className="flex items-center justify-between bg-slate-50 p-2.5 border border-slate-200 rounded-xl text-xs">
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-slate-50 p-2.5 border border-slate-200 rounded-xl text-xs">
               <div className="flex items-center gap-2 min-w-0">
                 <FileText size={14} className="text-blue-600 shrink-0" />
                 <span className="truncate text-xs font-mono font-medium text-slate-800">{resumeFile.name}</span>
@@ -762,7 +762,7 @@ export function AddCandidate() {
           )}
         </div>
 
-        <div className="p-4 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
+        <div className="p-4 bg-white rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-xs text-slate-500">
             Candidate will be saved under your active vendor account and available for project allocations.
           </p>
@@ -770,7 +770,7 @@ export function AddCandidate() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60 shrink-0"
           >
             <Save size={15} />
             <span>{loading ? "Saving Candidate..." : "Save Candidate"}</span>

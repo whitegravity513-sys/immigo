@@ -239,14 +239,14 @@ export function RecordClientPaymentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden my-6">
-        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-6 py-4 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden my-auto max-h-[90vh] flex flex-col">
+        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-4 sm:px-6 py-4 text-white flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
               <Receipt size={20} className="text-blue-200" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-base font-bold text-white tracking-tight">Record Client Payment</h2>
               <p className="text-xs text-blue-200">
                 Register actual payment transaction made to client against recruitment milestones.
@@ -256,13 +256,13 @@ export function RecordClientPaymentModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer shrink-0"
           >
             <X size={16} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <form onSubmit={handleSubmit} className="p-3.5 sm:p-6 space-y-5 flex-1 overflow-y-auto custom-scrollbar">
           {errors.form && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
               <AlertCircle size={15} className="shrink-0 text-red-600" />
@@ -322,7 +322,7 @@ export function RecordClientPaymentModal({
                   Trigger: <strong>{selectedMilestone.condition}</strong> &bull; Timeline: {selectedMilestone.timeline || "N/A"}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-right">
+              <div className="flex flex-wrap items-center gap-3 text-left sm:text-right">
                 <div>
                   <span className="text-[10px] text-slate-500 block uppercase font-semibold">Agreed Amount</span>
                   <span className="font-mono font-bold text-slate-800">
@@ -437,10 +437,10 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Percent size={16} className="text-indigo-600" />
+                <Percent size={16} className="text-indigo-600 shrink-0" />
                 <span className="text-xs font-bold text-slate-800">GST / Tax Treatment</span>
               </div>
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -494,24 +494,24 @@ export function RecordClientPaymentModal({
               </div>
             )}
 
-            <div className="mt-2 p-3 rounded-lg bg-white border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div>
+            <div className="mt-2 p-3 rounded-lg bg-white border border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+              <div className="min-w-0">
                 <span className="text-[10px] text-slate-400 block uppercase">Agreed Milestone</span>
-                <span className="font-mono font-bold text-slate-800">₹{agreedAmount.toLocaleString()}</span>
+                <span className="font-mono font-bold text-slate-800 break-all">₹{agreedAmount.toLocaleString()}</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] text-slate-400 block uppercase">Base Payment</span>
-                <span className="font-mono font-bold text-blue-700">₹{numericAmount.toLocaleString()}</span>
+                <span className="font-mono font-bold text-blue-700 break-all">₹{numericAmount.toLocaleString()}</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] text-slate-400 block uppercase">
                   GST Amount {formData.gstApplicable && `(${formData.gstRate}%)`}
                 </span>
-                <span className="font-mono font-bold text-amber-700">₹{computedGstAmount.toLocaleString()}</span>
+                <span className="font-mono font-bold text-amber-700 break-all">₹{computedGstAmount.toLocaleString()}</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] text-slate-400 block uppercase">Total Transaction</span>
-                <span className="font-mono font-bold text-emerald-700 text-sm">
+                <span className="font-mono font-bold text-emerald-700 text-sm break-all">
                   ₹{computedTotalTransaction.toLocaleString()}
                 </span>
               </div>
@@ -552,11 +552,11 @@ export function RecordClientPaymentModal({
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
+          <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
             <span className="text-[11px] text-slate-500">
               Transaction reference will be validated to prevent accidental duplicate entries.
             </span>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end shrink-0">
               <button
                 type="button"
                 onClick={onClose}

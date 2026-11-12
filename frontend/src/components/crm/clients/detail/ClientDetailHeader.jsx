@@ -37,7 +37,7 @@ export function ClientDetailHeader({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 font-bold text-xl flex items-center justify-center shrink-0">

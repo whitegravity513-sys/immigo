@@ -42,7 +42,7 @@ export default function AttendanceSummarySection({
       </div>
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+          <table className="w-full min-w-[560px] text-left border-collapse table-auto">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                 <th className="px-3 py-2 w-[36%]">Employee</th>

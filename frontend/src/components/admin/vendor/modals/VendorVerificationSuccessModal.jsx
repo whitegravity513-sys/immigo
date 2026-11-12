@@ -12,35 +12,35 @@ export default function VendorVerificationSuccessModal({ modalState, onClose }) 
         aria-hidden="true"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col justify-between transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right">
-          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center border border-blue-400/30">
+      <div className="fixed inset-y-0 right-0 max-w-full w-full flex pl-4 sm:pl-10 justify-end pointer-events-none">
+        <div className="pointer-events-auto w-full max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col justify-between transform transition-transform duration-300 ease-in-out animate-in slide-in-from-right">
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center border border-blue-400/30 shrink-0">
                 <CheckCircle2 size={18} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-white">Vendor Verified Successfully</h3>
-                <span className="text-[11px] text-blue-300 font-medium">Initial Registration Approved</span>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-white truncate">Vendor Verified Successfully</h3>
+                <span className="text-[11px] text-blue-300 font-medium block">Initial Registration Approved</span>
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
             >
               <X size={16} />
             </button>
           </div>
 
-          <div className="p-5 flex-1 overflow-y-auto space-y-4">
+          <div className="p-4 sm:p-5 flex-1 overflow-y-auto space-y-4">
             <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl space-y-1">
               <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">
                 Agency Details
               </span>
-              <h4 className="text-sm font-bold text-slate-900">{modalState.vendorName}</h4>
-              <p className="text-xs text-slate-600 font-mono">ID: {modalState.vendorId}</p>
-              <p className="text-xs text-slate-600">Email: {modalState.email || "Registered Vendor Email"}</p>
+              <h4 className="text-sm font-bold text-slate-900 break-words">{modalState.vendorName}</h4>
+              <p className="text-xs text-slate-600 font-mono break-all">ID: {modalState.vendorId}</p>
+              <p className="text-xs text-slate-600 break-all">Email: {modalState.email || "Registered Vendor Email"}</p>
             </div>
 
             <div className="space-y-3 text-xs text-slate-700">
@@ -59,7 +59,7 @@ export default function VendorVerificationSuccessModal({ modalState, onClose }) 
                 <div>
                   <strong className="text-slate-900 block mb-0.5">Portal Notification Dispatched</strong>
                   <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Access link and onboarding confirmation have been sent to <strong>{modalState.email || "agency email"}</strong>.
+                    Access link and onboarding confirmation have been sent to <strong className="break-all">{modalState.email || "agency email"}</strong>.
                   </p>
                 </div>
               </div>
@@ -76,7 +76,7 @@ export default function VendorVerificationSuccessModal({ modalState, onClose }) 
             </div>
           </div>
 
-          <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+          <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
             <Link
               to="/admin/vendor/dashboard"
               onClick={onClose}

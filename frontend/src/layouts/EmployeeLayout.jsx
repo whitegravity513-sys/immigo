@@ -28,7 +28,7 @@ export default function EmployeeLayout({
   children,
 }) {
   return (
-    <div className="flex h-screen max-h-screen w-screen overflow-hidden bg-slate-50 font-sans relative">
+    <div className="flex min-h-[100dvh] lg:h-[100dvh] lg:max-h-[100dvh] w-full max-w-full overflow-x-hidden lg:overflow-hidden bg-slate-50 font-sans relative">
       <DashboardWatermark />
 
       <HolidayAnnouncementModals
@@ -69,7 +69,7 @@ export default function EmployeeLayout({
         setSidebarOpen={setSidebarOpen}
       />
 
-      <div className="flex-1 flex flex-col h-screen max-h-screen overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col min-h-[100dvh] lg:min-h-0 lg:h-[100dvh] lg:max-h-[100dvh] lg:overflow-hidden min-w-0">
         <EmpTopbar
           view={view}
           setView={setView}
@@ -82,20 +82,22 @@ export default function EmployeeLayout({
           onNewNotification={(n) => setLiveAdminNotification(n)}
         />
 
-        <main className="flex-1 overflow-y-auto px-3 sm:px-5 py-3 w-full custom-scrollbar flex flex-col">
-          {errorMsg && (
-            <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mb-3">
-              <AlertCircle size={15} className="shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-          {successMsg && (
-            <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold mb-3">
-              <CheckCircle size={15} className="shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-          {children}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-5 lg:px-6 py-3 sm:py-4 w-full custom-scrollbar flex flex-col">
+          <div className="w-full max-w-[1680px] mx-auto flex-1 flex flex-col">
+            {errorMsg && (
+              <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold mb-3">
+                <AlertCircle size={15} className="shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+            {successMsg && (
+              <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold mb-3">
+                <CheckCircle size={15} className="shrink-0" />
+                <span>{successMsg}</span>
+              </div>
+            )}
+            {children}
+          </div>
         </main>
 
         <AppFooter

@@ -34,16 +34,16 @@ export default function PastAttendanceModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
       onClick={() => setPastAttendanceModal(null)}
     >
       <div
-        className="relative bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
+        className="relative bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {showHolidayPopup && (
-          <div className="fixed inset-0 z-[60] bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-sm rounded-2xl border border-indigo-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="fixed inset-0 z-[60] bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white w-full max-w-sm rounded-2xl border border-indigo-200 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-auto animate-in zoom-in-95 duration-150">
               <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
@@ -95,7 +95,7 @@ export default function PastAttendanceModal({
           </div>
         )}
 
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50">
           <h3 className="text-base font-bold text-slate-800">
             Add/Update Past Attendance
           </h3>
@@ -106,7 +106,7 @@ export default function PastAttendanceModal({
             ×
           </button>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           {isHolidayBlocked && (
             <div className="flex items-start gap-2.5 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs">
               <Calendar size={16} className="text-indigo-600 mt-0.5 shrink-0" />
@@ -175,7 +175,7 @@ export default function PastAttendanceModal({
 
           {(pastAttendanceModal.status === "Present" ||
             pastAttendanceModal.status === "Half Day") && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Check-in Time
@@ -229,7 +229,7 @@ export default function PastAttendanceModal({
             />
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               type="button"
               className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl cursor-pointer text-sm shadow-sm shadow-blue-500/20 transition-all"

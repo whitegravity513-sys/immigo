@@ -41,7 +41,7 @@ export default function VendorHROverviewSection({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
@@ -117,9 +117,9 @@ export default function VendorHROverviewSection({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                   <FolderKanban className="w-4 h-4" />
@@ -145,7 +145,7 @@ export default function VendorHROverviewSection({
             <div className="space-y-2.5 pt-1">
               {hideProjectNames ? (
                 <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-100 space-y-3">
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
                     <div className="p-2.5 rounded-lg bg-white border border-slate-100">
                       <span className="block text-[10px] font-bold text-slate-400 uppercase">Assigned</span>
                       <span className="text-lg font-extrabold text-blue-700 font-mono">{projectsList.length}</span>
@@ -175,10 +175,10 @@ export default function VendorHROverviewSection({
                       if (setDetailedProject) setDetailedProject(p);
                       setActiveMenu("projects");
                     }}
-                    className="p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/30 transition flex items-center justify-between gap-3 cursor-pointer group"
+                    className="p-3 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/30 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition truncate">
                           {p.projectName || p.title}
                         </span>
@@ -186,12 +186,12 @@ export default function VendorHROverviewSection({
                           {p.projectId || p.id}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-3 mt-1">
+                      <div className="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                         <span>📍 {p.destinationCountry || p.country || "Overseas"}</span>
                         <span className="truncate max-w-[150px]">🏢 {p.clientName || "Client"}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-wrap items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => {
@@ -248,9 +248,9 @@ export default function VendorHROverviewSection({
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center font-bold">
                   <Briefcase className="w-4 h-4" />
@@ -315,9 +315,9 @@ export default function VendorHROverviewSection({
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                   <Users className="w-4 h-4" />
@@ -360,7 +360,7 @@ export default function VendorHROverviewSection({
                   return (
                     <div
                       key={cand.applicationId || idx}
-                      className="p-3 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition flex items-center justify-between gap-3"
+                      className="p-3 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
                     >
                       <div className="flex items-center space-x-3 min-w-0">
                         <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-[11px] shrink-0">
@@ -414,9 +414,9 @@ export default function VendorHROverviewSection({
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
                   <Calendar className="w-4 h-4" />
@@ -489,9 +489,9 @@ export default function VendorHROverviewSection({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                   <Video className="w-4 h-4" />
@@ -558,9 +558,9 @@ export default function VendorHROverviewSection({
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
                   <ArrowRightLeft className="w-4 h-4" />

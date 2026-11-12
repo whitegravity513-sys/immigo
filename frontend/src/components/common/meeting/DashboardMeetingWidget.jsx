@@ -665,7 +665,7 @@ export default function DashboardMeetingWidget({
         )}
       </div>
 
-      <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+      <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
         <div>
           Today: <strong className="text-slate-800">{stats.todayMeetingsCount}</strong> &bull; Upcoming:{" "}
           <strong className="text-slate-800">{stats.upcomingMeetingsCount}</strong>
@@ -680,8 +680,8 @@ export default function DashboardMeetingWidget({
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-4 sm:p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                 <Calendar size={15} className="text-blue-600" />
@@ -719,7 +719,7 @@ export default function DashboardMeetingWidget({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Meeting Type</label>
                   {isVendorUser ? (
@@ -777,7 +777,7 @@ export default function DashboardMeetingWidget({
                 }
               />
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Date *</label>
                   <DateInput

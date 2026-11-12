@@ -10,7 +10,7 @@ export function WorkforceMetricCards({
   openMetricListModal,
 }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
       <div
         onClick={() => openMetricListModal("total")}
         className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3 shadow-2xs hover:shadow-xs hover:border-blue-300 hover:scale-[1.005] active:scale-[0.99] transition-all cursor-pointer group"

@@ -133,7 +133,7 @@ export function EmployeeDocumentsTab({
 
       <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
         <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+          <table className="w-full min-w-[680px] text-left border-collapse table-auto">
             <thead>
               <tr>
                 {[
@@ -284,9 +284,9 @@ export function EmployeeDocumentsTab({
       </div>
 
       {adminDocModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto my-auto">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                 <UploadCloud size={18} className="text-blue-600" />
                 Upload Employee Document
@@ -388,9 +388,9 @@ export function EmployeeDocumentsTab({
       )}
 
       {previewDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col my-auto">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-slate-800">
                   {previewDocModal.name}
@@ -467,9 +467,9 @@ export function EmployeeDocumentsTab({
       )}
 
       {rejectDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto my-auto">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">
                   <XCircle size={18} />

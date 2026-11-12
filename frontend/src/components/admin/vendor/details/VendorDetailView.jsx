@@ -106,7 +106,7 @@ export default function VendorDetailView({
 
   return (
     <div className="space-y-3 w-full max-w-full overflow-hidden font-sans antialiased text-slate-800">
-      <div className="flex items-center justify-between bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/90 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200/90 shadow-2xs">
         <button
           onClick={onBack}
           type="button"
@@ -132,7 +132,7 @@ export default function VendorDetailView({
 
       <div className="bg-white rounded-lg border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-start sm:items-center gap-3">
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
             <div className={`w-10 h-10 rounded-lg ${selectedVendor.logo || selectedVendor.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} flex items-center justify-center font-bold text-sm shadow-xs shrink-0 overflow-hidden`}>
               {selectedVendor.logo || selectedVendor.profileImage ? (
                 <img src={selectedVendor.logo || selectedVendor.profileImage} alt="" className="w-full h-full object-cover" />
@@ -160,7 +160,7 @@ export default function VendorDetailView({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0 self-start sm:self-center">
             <button
               type="button"
               onClick={() => onEditVendor(selectedVendor)}
@@ -536,13 +536,13 @@ export default function VendorDetailView({
               return (
                 <div
                   key={idx}
-                  className="p-2.5 sm:p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex items-start justify-between gap-2"
+                  className="p-2.5 sm:p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5"
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
                     <div className="p-1.5 bg-blue-100 text-blue-700 rounded-md shrink-0">
                       <FileText size={15} />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h4 className="text-xs font-bold text-slate-900 truncate">{doc.name || doc.type || "Document"}</h4>
                       <p className="text-[10px] text-slate-500 font-mono truncate">{doc.fileName || "document"}</p>
                       <span
@@ -559,7 +559,7 @@ export default function VendorDetailView({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0 self-center">
+                  <div className="flex flex-wrap items-center justify-end gap-1 pt-2 border-t border-slate-200/70">
                     <button
                       type="button"
                       onClick={() => onPreviewDoc(doc)}
@@ -600,7 +600,7 @@ export default function VendorDetailView({
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Bank Settlement Account
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
                 <div className="p-2 sm:p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                   <span className="text-[10px] text-slate-400 font-bold block uppercase">Account Name</span>
                   <span className="font-bold text-slate-900 truncate block">{selectedVendor.bankDetails.accountName || "N/A"}</span>

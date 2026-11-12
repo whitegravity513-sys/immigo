@@ -192,12 +192,12 @@ export default function AdminNewRegistrations() {
       )}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-base sm:text-lg font-bold text-[#0f2744]">
               New Candidate Registrations
             </h1>
-            <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+            <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">
               {candidates.length} Pending
             </span>
           </div>
@@ -206,7 +206,7 @@ export default function AdminNewRegistrations() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative w-full sm:w-60">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -230,7 +230,7 @@ export default function AdminNewRegistrations() {
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[860px] text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Candidate ID</th>
@@ -290,7 +290,7 @@ export default function AdminNewRegistrations() {
                         Pending Approval
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => navigate(`/admin/candidates/${cand.candidateId}`)}
@@ -346,8 +346,8 @@ export default function AdminNewRegistrations() {
       </div>
 
       {rejectModalOpen && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-rose-700 flex items-center gap-1.5">
                 <XCircle size={16} />
@@ -400,8 +400,8 @@ export default function AdminNewRegistrations() {
       )}
 
       {remarksModalOpen && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-[#0f2744] flex items-center gap-1.5">
                 <MessageSquare size={16} />

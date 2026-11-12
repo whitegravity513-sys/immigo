@@ -34,9 +34,9 @@ export default function VendorTable({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-      <div className="overflow-x-auto min-h-[260px] pb-8">
-        <table className="w-full text-left text-xs border-collapse">
+    <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-x-clip">
+      <div className="overflow-x-auto xl:overflow-visible min-h-[260px] pb-16">
+        <table className="w-full min-w-[760px] text-left text-xs border-collapse">
           <thead className="bg-slate-50/90 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
             <tr>
               <th className="py-2 px-3">Vendor ID</th>

@@ -31,7 +31,7 @@ export default function ActiveProjectsTable({ projectsList }) {
             No active projects.
           </div>
         ) : (
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[560px] text-left text-xs">
             <thead>
               <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-1.5 px-3">Project</th>
@@ -80,7 +80,7 @@ export default function ActiveProjectsTable({ projectsList }) {
       </div>
 
       {projectsList.length > 5 && (
-        <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+        <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="text-slate-500 font-medium">
             Showing 5 of {projectsList.length} active projects
           </span>

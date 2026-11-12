@@ -65,7 +65,7 @@ export default function AdminRejectedCandidates() {
         </p>
       </div>
 
-      <div className="p-2.5 rounded-lg bg-amber-50 text-xs border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+      <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
         <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
           <strong className="font-semibold text-amber-950 block">Candidate Reusability Guarantee:</strong>
@@ -98,7 +98,7 @@ export default function AdminRejectedCandidates() {
       ) : (
         <div className="bg-white rounded-lg border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[800px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-1 px-2 text-[10px] sm:px-6">Candidate</th>

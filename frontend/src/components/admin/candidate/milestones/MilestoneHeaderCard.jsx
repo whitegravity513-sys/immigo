@@ -57,7 +57,7 @@ export default function MilestoneHeaderCard({
             </div>
           </div>
 
-          <div className="pt-3.5 flex items-center gap-2">
+          <div className="pt-1 md:pt-3.5 flex flex-wrap items-center gap-2">
             {!isCurrentPaid ? (
               <>
                 <button

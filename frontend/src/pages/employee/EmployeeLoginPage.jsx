@@ -216,32 +216,34 @@ export default function EmployeeLoginPage() {
   };
 
   return (
-    <div className="h-screen max-h-screen w-full relative flex flex-col justify-between overflow-hidden font-sans select-none bg-[#daf0f9]">
+    <div className="min-h-[100dvh] w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-[#daf0f9]">
       <FullWidthLandscapeBackground />
 
-      <AuthHeader
-        portalBadge="Employee Portal"
-        rightBadge={
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/60 backdrop-blur-md border border-blue-700/60 text-white shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-semibold text-cyan-200">Workforce Portal</span>
-          </div>
-        }
-      />
+      <div className="sticky top-0 z-30 shrink-0">
+        <AuthHeader
+          portalBadge="Employee Portal"
+          rightBadge={
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/60 backdrop-blur-md border border-blue-700/60 text-white shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[11px] font-semibold text-cyan-200">Workforce Portal</span>
+            </div>
+          }
+        />
+      </div>
 
-      <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-6 sm:px-10 lg:px-16 xl:px-24 py-2 min-h-0 overflow-hidden">
-        <div className="hidden lg:flex w-full lg:w-[50%] xl:w-[52%] h-full items-center justify-center lg:justify-end select-none pointer-events-none pr-0 lg:pr-8 xl:pr-12">
-          <div className="relative w-full max-w-[480px] xl:max-w-[560px] flex items-center justify-center">
+      <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-center lg:justify-between px-4 sm:px-10 lg:px-16 xl:px-24 py-6 sm:py-8 max-w-[1440px] mx-auto gap-8">
+        <div className="hidden lg:flex w-full lg:w-[50%] xl:w-[52%] items-center justify-center lg:justify-end select-none pointer-events-none pr-0 lg:pr-8 xl:pr-12">
+          <div className="relative w-full max-w-[460px] xl:max-w-[540px] flex items-center justify-center">
             <img
               src={employeeVectorHd}
               alt="Employee Workplace Family"
-              className="w-full max-h-[78vh] object-contain drop-shadow-[0_20px_45px_rgba(30,70,110,0.18)]"
+              className="w-full max-h-[72vh] object-contain drop-shadow-[0_20px_45px_rgba(30,70,110,0.18)]"
             />
           </div>
         </div>
 
-        <div className="w-full lg:w-[50%] xl:w-[48%] h-full flex items-center justify-center lg:justify-start pl-0 lg:pl-8 xl:pl-12">
-          <div className="w-full max-w-[430px] sm:max-w-[450px] bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_25px_60px_rgba(20,60,100,0.14)] border border-white/90 p-7 sm:p-9 text-left relative">
+        <div className="w-full lg:w-[50%] xl:w-[48%] flex items-center justify-center lg:justify-start pl-0 lg:pl-8 xl:pl-12">
+          <div className="w-full max-w-[430px] sm:max-w-[450px] bg-white rounded-[28px] sm:rounded-[36px] shadow-[0_25px_60px_rgba(20,60,100,0.14)] border border-white/90 p-5 sm:p-8 text-left relative">
             <div className="mb-5 space-y-1">
               <h1 className="text-2xl sm:text-[28px] font-bold text-[#261b4d] tracking-tight leading-tight">
                 Employee Operations Portal
@@ -349,9 +351,9 @@ export default function EmployeeLoginPage() {
         </div>
       </main>
 
-      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md shrink-0">
+      <footer className="relative z-20 w-full px-4 sm:px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md shrink-0 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="text-cyan-400">&bull;</span>
         <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
     </div>

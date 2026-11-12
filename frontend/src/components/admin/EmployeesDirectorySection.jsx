@@ -44,9 +44,9 @@ export default function EmployeesDirectorySection({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+      <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-x-clip">
+        <div className="overflow-x-auto xl:overflow-visible w-full">
+          <table className="w-full min-w-[780px] text-left border-collapse table-auto">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
                 <th className="px-3 py-2 w-[16%]">Employee ID</th>
@@ -59,7 +59,7 @@ export default function EmployeesDirectorySection({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {employees.map((emp) => {
+              {employees.map((emp, idx) => {
                 const safeName =
                   typeof emp?.name === "string"
                     ? emp.name
@@ -157,7 +157,13 @@ export default function EmployeesDirectorySection({
                                 setActionOpenId(null);
                               }}
                             />
-                            <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100">
+                            <div
+                              className={`absolute right-0 w-44 bg-white rounded-xl shadow-xl border border-slate-200 py-1 z-50 text-xs font-semibold text-slate-700 text-left animate-in fade-in duration-100 ${
+                                idx === 0 && employees.length > 1
+                                  ? "top-full mt-1.5"
+                                  : "bottom-full mb-1.5"
+                              }`}
+                            >
                               <button
                                 type="button"
                                 onClick={(e) => {

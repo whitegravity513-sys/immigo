@@ -99,7 +99,7 @@ export default function LeaveManagementSection({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 sticky top-24">
+        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 lg:sticky lg:top-24">
           <div className="flex items-center gap-2 mb-3.5 pb-2.5 border-b border-slate-100">
             <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
               <CalendarPlus size={16} />
@@ -134,7 +134,7 @@ export default function LeaveManagementSection({
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                   Start Date
@@ -235,13 +235,13 @@ export default function LeaveManagementSection({
         </div>
 
         <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-slate-900">Leave Applications History</h3>
               <p className="text-[11px] text-slate-500 font-medium">Track your previous leave approvals and remarks</p>
             </div>
 
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl max-w-full shrink-0">
               {["All", "Pending", "Approved", "Rejected"].map((st) => (
                 <button
                   key={st}
@@ -260,7 +260,7 @@ export default function LeaveManagementSection({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[540px] text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/70 border-b border-slate-100">
                   <th className="px-3 py-2 text-[10px] text-slate-500 font-bold uppercase text-[10px] tracking-wider">

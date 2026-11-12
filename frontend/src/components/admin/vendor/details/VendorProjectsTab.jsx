@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 export default function VendorProjectsTab({ projects, onOpenAssignModal, onRemoveProject }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold text-white">Assigned Projects</h3>
           <p className="text-xs text-slate-400">Projects where this vendor is authorized to supply candidates</p>
@@ -17,8 +17,8 @@ export default function VendorProjectsTab({ projects, onOpenAssignModal, onRemov
         </button>
       </div>
 
-      <div className="rounded-2xl bg-slate-900/60 border border-slate-800 overflow-hidden">
-        <table className="w-full text-left text-xs">
+      <div className="rounded-2xl bg-slate-900/60 border border-slate-800 overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-xs">
           <thead className="bg-slate-900/90 text-slate-400 border-b border-slate-800">
             <tr>
               <th className="py-3 px-4 font-semibold">Project Name</th>

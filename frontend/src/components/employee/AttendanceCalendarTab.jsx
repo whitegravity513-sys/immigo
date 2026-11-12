@@ -62,7 +62,7 @@ export default function AttendanceCalendarTab({
 
   return (
     <div className="space-y-3.5">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           {
             label: "Present Days",
@@ -119,65 +119,69 @@ export default function AttendanceCalendarTab({
 
         {monthlyLoading && <div className="text-sm text-slate-500 mb-3">Loading calendar…</div>}
 
-        <div className="grid grid-cols-7 gap-2 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <div key={d}>{d}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-2">
-          {gridItems.map((day, idx) => {
-            if (day === null) return <div key={`blank-${idx}`} className="h-12 sm:h-13 rounded-xl border border-slate-100 bg-slate-50/40" />;
-            const dateKey = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const holiday = holidays.find((h) => h.date === dateKey);
-            const leaveOnDay = leaveHistory.some((lv) => isDateInLeaveRange(dateKey, lv));
-            const record = monthlyData?.dailyRecords?.find((item) => item.date === dateKey);
-            const isToday = dateKey === todayKey;
-            const dayOfWeek = new Date(calendarYear, calendarMonth - 1, day).getDay();
-            const isSunday = dayOfWeek === 0;
-            const satCount = dayOfWeek === 6 ? Math.ceil(day / 7) : 0;
-            const isOffSaturday = dayOfWeek === 6 && (satCount === 2 || satCount === 4);
-            const isWeeklyOff = isSunday || isOffSaturday;
+        <div className="overflow-x-auto pb-1">
+          <div className="min-w-[520px]">
+            <div className="grid grid-cols-7 gap-2 text-center text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {gridItems.map((day, idx) => {
+                if (day === null) return <div key={`blank-${idx}`} className="h-12 sm:h-13 rounded-xl border border-slate-100 bg-slate-50/40" />;
+                const dateKey = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const holiday = holidays.find((h) => h.date === dateKey);
+                const leaveOnDay = leaveHistory.some((lv) => isDateInLeaveRange(dateKey, lv));
+                const record = monthlyData?.dailyRecords?.find((item) => item.date === dateKey);
+                const isToday = dateKey === todayKey;
+                const dayOfWeek = new Date(calendarYear, calendarMonth - 1, day).getDay();
+                const isSunday = dayOfWeek === 0;
+                const satCount = dayOfWeek === 6 ? Math.ceil(day / 7) : 0;
+                const isOffSaturday = dayOfWeek === 6 && (satCount === 2 || satCount === 4);
+                const isWeeklyOff = isSunday || isOffSaturday;
 
-            const isBeforeJoining = joiningDateStr && dateKey < joiningDateStr;
-            const isFuture = dateKey > todayKey;
+                const isBeforeJoining = joiningDateStr && dateKey < joiningDateStr;
+                const isFuture = dateKey > todayKey;
 
-            let cellClass = "h-12 sm:h-13 rounded-xl border border-slate-200 bg-white p-1 flex flex-col justify-between";
-            let badge = null;
+                let cellClass = "h-12 sm:h-13 rounded-xl border border-slate-200 bg-white p-1 flex flex-col justify-between";
+                let badge = null;
 
-            if (isBeforeJoining) {
-              
-              cellClass = "h-12 sm:h-13 rounded-xl border border-slate-100 bg-slate-50/50 p-1 flex flex-col justify-between opacity-35";
-              badge = null;
-            } else if (holiday || record?.status === "Holiday") {
-              cellClass = "h-12 sm:h-13 rounded-xl border border-amber-200 bg-amber-50 p-1 flex flex-col justify-between";
-              badge = <span className="text-[7.5px] font-bold uppercase bg-amber-600 text-white px-1.5 py-0.5 rounded-full">Holiday</span>;
-            } else if (record?.status && ["Present", "Active", "Checked Out", "On Break", "Half Day"].includes(record.status)) {
-              cellClass = "h-12 sm:h-13 rounded-xl border border-emerald-200 bg-emerald-50 p-1 flex flex-col justify-between";
-              badge = <span className="text-[7.5px] font-bold uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-full">Present</span>;
-            } else if (isWeeklyOff || record?.status === "Weekly Off" || record?.status === "Weekend") {
-              cellClass = "h-12 sm:h-13 rounded-xl border border-slate-200 bg-slate-100/70 p-1 flex flex-col justify-between";
-              badge = <span className="text-[7.5px] font-bold uppercase bg-slate-400 text-white px-1.5 py-0.5 rounded-full">OFF</span>;
-            } else if (leaveOnDay || record?.status === "On Leave") {
-              cellClass = "h-12 sm:h-13 rounded-xl border border-blue-200 bg-blue-50 p-1 flex flex-col justify-between";
-              badge = <span className="text-[7.5px] font-bold uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Leave</span>;
-            } else if (isToday) {
-              cellClass = "h-12 sm:h-13 rounded-xl border border-blue-400 bg-blue-50/50 p-1 flex flex-col justify-between shadow-xs";
-              badge = <span className="text-[7.5px] font-bold uppercase bg-blue-700 text-white px-1.5 py-0.5 rounded-full">Today</span>;
-            } else if (!isFuture && (record?.status === "Absent" || !record)) {
-              cellClass = "h-12 sm:h-13 rounded-xl border border-rose-200 bg-rose-50 p-1 flex flex-col justify-between";
-              badge = <span className="text-[7.5px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded-full">Absent</span>;
-            }
+                if (isBeforeJoining) {
 
-            return (
-              <div key={dateKey} className={cellClass}>
-                <div className="flex items-center justify-between text-[9px] font-bold text-slate-700">
-                  <span>{day}</span>
-                  {holiday && <span className="text-[8px] text-amber-700 max-w-[40px] truncate">{holiday.title}</span>}
-                </div>
-                <div className="flex justify-end">{badge}</div>
-              </div>
-            );
-          })}
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-slate-100 bg-slate-50/50 p-1 flex flex-col justify-between opacity-35";
+                  badge = null;
+                } else if (holiday || record?.status === "Holiday") {
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-amber-200 bg-amber-50 p-1 flex flex-col justify-between";
+                  badge = <span className="text-[7.5px] font-bold uppercase bg-amber-600 text-white px-1.5 py-0.5 rounded-full">Holiday</span>;
+                } else if (record?.status && ["Present", "Active", "Checked Out", "On Break", "Half Day"].includes(record.status)) {
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-emerald-200 bg-emerald-50 p-1 flex flex-col justify-between";
+                  badge = <span className="text-[7.5px] font-bold uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-full">Present</span>;
+                } else if (isWeeklyOff || record?.status === "Weekly Off" || record?.status === "Weekend") {
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-slate-200 bg-slate-100/70 p-1 flex flex-col justify-between";
+                  badge = <span className="text-[7.5px] font-bold uppercase bg-slate-400 text-white px-1.5 py-0.5 rounded-full">OFF</span>;
+                } else if (leaveOnDay || record?.status === "On Leave") {
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-blue-200 bg-blue-50 p-1 flex flex-col justify-between";
+                  badge = <span className="text-[7.5px] font-bold uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded-full">Leave</span>;
+                } else if (isToday) {
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-blue-400 bg-blue-50/50 p-1 flex flex-col justify-between shadow-xs";
+                  badge = <span className="text-[7.5px] font-bold uppercase bg-blue-700 text-white px-1.5 py-0.5 rounded-full">Today</span>;
+                } else if (!isFuture && (record?.status === "Absent" || !record)) {
+                  cellClass = "h-12 sm:h-13 rounded-xl border border-rose-200 bg-rose-50 p-1 flex flex-col justify-between";
+                  badge = <span className="text-[7.5px] font-bold uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded-full">Absent</span>;
+                }
+
+                return (
+                  <div key={dateKey} className={cellClass}>
+                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-700">
+                      <span>{day}</span>
+                      {holiday && <span className="text-[8px] text-amber-700 max-w-[40px] truncate">{holiday.title}</span>}
+                    </div>
+                    <div className="flex justify-end">{badge}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-3 text-[10px] font-semibold text-slate-500">
@@ -190,11 +194,11 @@ export default function AttendanceCalendarTab({
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4">
-        <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h3 className="text-xs sm:text-sm font-bold text-slate-800">Today’s Snapshot</h3>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{getIndiaDateString()}</span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: "Status", value: status },
             { label: "Check In", value: statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "—" },

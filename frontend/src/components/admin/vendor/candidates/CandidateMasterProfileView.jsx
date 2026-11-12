@@ -75,7 +75,7 @@ export default function CandidateMasterProfileView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans antialiased text-slate-800 pb-16">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs cursor-pointer"
@@ -88,7 +88,7 @@ export default function CandidateMasterProfileView({
         </span>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-4">
             <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
@@ -181,13 +181,13 @@ export default function CandidateMasterProfileView({
               <span className="text-slate-400">Mobile Phone:</span>
               <span className="font-bold text-slate-900">{selectedCandidate.phone}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span className="text-slate-400">Email Address:</span>
-              <span className="font-bold text-slate-900">{selectedCandidate.email}</span>
+              <span className="font-bold text-slate-900 break-all">{selectedCandidate.email}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span className="text-slate-400">Full Address:</span>
-              <span className="font-semibold text-slate-800">{selectedCandidate.address}</span>
+              <span className="font-semibold text-slate-800 text-right">{selectedCandidate.address}</span>
             </div>
           </div>
 
@@ -234,7 +234,7 @@ export default function CandidateMasterProfileView({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -326,7 +326,7 @@ export default function CandidateMasterProfileView({
                   )}
 
                   <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/80 text-[11px] gap-2 flex-wrap">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => onPreviewDoc(doc)}
@@ -436,8 +436,8 @@ export default function CandidateMasterProfileView({
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <h2 className="text-base font-bold text-slate-900">
             Project Applications ({submissionHistory.length})
           </h2>
@@ -740,7 +740,7 @@ export default function CandidateMasterProfileView({
                             </p>
                           </div>
                           {!subRefundLocked && (
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex flex-wrap items-center gap-2 shrink-0">
                               <Link
                                 to={`/admin/vendor/processing?appId=${subId}`}
                                 className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
@@ -763,12 +763,12 @@ export default function CandidateMasterProfileView({
 
                         {resolvedSubMilestones.length > 0 ? (
                           <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                               <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                 Payment Milestones — Total: ₹{resolvedTotal.toLocaleString("en-IN")}
                               </p>
                               {!subRefundLocked && (
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex flex-wrap items-center gap-1.5">
                                   <button
                                     onClick={() => setConfigureMilestonesModal({ application: sub })}
                                     className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition border border-indigo-200 shadow-2xs"
@@ -842,7 +842,7 @@ export default function CandidateMasterProfileView({
                             </div>
                           </div>
                         ) : !subRefundLocked ? (
-                          <div className="flex items-center justify-between p-3 bg-blue-50/70 rounded-xl border border-blue-200">
+                          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-blue-50/70 rounded-xl border border-blue-200">
                             <div>
                               <p className="text-xs font-bold text-blue-900">Payment Milestones & Processing Stages</p>
                               <p className="text-[10px] text-blue-700">
@@ -868,7 +868,7 @@ export default function CandidateMasterProfileView({
                           if (displayStages.length === 0) return null;
                           return (
                             <div className="pt-2 border-t border-slate-100">
-                              <div className="flex items-center justify-between mb-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                                 <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                   Processing Stages
                                 </p>
@@ -931,8 +931,8 @@ export default function CandidateMasterProfileView({
       </div>
 
       {interviewModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full my-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">
@@ -997,7 +997,7 @@ export default function CandidateMasterProfileView({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setInterviewModal(null)}
@@ -1020,8 +1020,8 @@ export default function CandidateMasterProfileView({
       )}
 
       {rejectAppModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full my-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">
@@ -1063,7 +1063,7 @@ export default function CandidateMasterProfileView({
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setRejectAppModal(null)}

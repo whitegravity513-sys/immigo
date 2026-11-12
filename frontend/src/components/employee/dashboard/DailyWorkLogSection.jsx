@@ -292,7 +292,7 @@ export default function DailyWorkLogSection({
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-0.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
           <button
             type="button"
             onClick={toggleHistory}
@@ -350,7 +350,7 @@ export default function DailyWorkLogSection({
 
         {showHistory && (
           <div className="mt-3 pt-3 border-t border-slate-100 space-y-2 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1">
                 <Clock size={12} className="text-blue-600" />
                 Recent Work Log History (Past 30 Days)

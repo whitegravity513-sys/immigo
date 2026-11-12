@@ -327,7 +327,7 @@ export default function AssignHRSection() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="p-3.5 border-b border-slate-200/80 space-y-2.5 bg-slate-50/70">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-cyan-100 text-cyan-800">
                   <UserCheck size={15} />
@@ -711,7 +711,7 @@ export default function AssignHRSection() {
               </form>
 
               <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between">
+                <div className="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h3 className="text-xs font-bold text-slate-900">
                       Current Allocations for {selectedHR.name} ({activeHRAllocations.length})
@@ -728,7 +728,7 @@ export default function AssignHRSection() {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                    <table className="w-full min-w-[600px] text-left text-xs">
                       <thead className="bg-slate-50 text-[10.5px] font-bold uppercase text-slate-500 border-b border-slate-200">
                         <tr>
                           <th className="py-2.5 px-4">Project Name</th>

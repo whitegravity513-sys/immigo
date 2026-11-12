@@ -388,7 +388,7 @@ export function DateInput({
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const popWidth = 284;
+    const popWidth = Math.min(284, window.innerWidth - 16);
     const popHeight = includeTime ? 378 : 330;
 
     let left = rect.left;
@@ -918,7 +918,7 @@ export function DateInput({
             )}
 
             {includeTime && viewMode === "days" && (
-              <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+              <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="flex items-center gap-1 text-[11px] font-bold text-slate-500">
                   <Clock size={12} />
                   Time

@@ -65,15 +65,15 @@ export default function VendorHRLoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-950 font-sans antialiased text-slate-800">
-      <div className="lg:hidden w-full bg-[#080D1A] border-b border-slate-800/80 px-4 py-3.5 flex items-center justify-between">
+    <div className="min-h-[100dvh] overflow-x-hidden w-full flex flex-col lg:flex-row bg-slate-950 font-sans antialiased text-slate-800">
+      <div className="lg:hidden w-full bg-[#080D1A] border-b border-slate-800/80 px-4 py-3.5 flex flex-wrap items-center justify-between gap-2">
         <ImmiGoLogo size="sm" theme="light" subtitle="Vendor HR Portal" />
-        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">
+        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 shrink-0">
           Vendor HR
         </span>
       </div>
 
-      <div className="hidden lg:flex relative w-1/2 xl:w-[48%] bg-[#080D1A] text-white p-8 xl:p-12 flex-col justify-between overflow-hidden min-h-screen max-h-screen">
+      <div className="hidden lg:flex relative w-1/2 xl:w-[48%] bg-[#080D1A] text-white p-8 xl:p-12 flex-col justify-between overflow-hidden lg:sticky lg:top-0 lg:min-h-[100dvh]">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-[480px] h-64 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/3 right-10 w-2 h-2 rounded-full bg-indigo-400/60 blur-xs" />
@@ -173,7 +173,7 @@ export default function VendorHRLoginPage() {
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 xl:w-[52%] bg-white flex items-center justify-center p-4 sm:p-8 xl:p-12 min-h-screen overflow-y-auto">
+      <div className="w-full lg:w-1/2 xl:w-[52%] bg-white flex items-center justify-center p-4 sm:p-8 xl:p-12 flex-1 lg:min-h-[100dvh] overflow-y-auto">
         <div className="w-full max-w-md my-auto py-4 space-y-5">
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-1">
@@ -240,7 +240,7 @@ export default function VendorHRLoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-0.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-0.5">
               <label className="flex items-center space-x-2 text-slate-600 cursor-pointer select-none">
                 <input
                   type="checkbox"

@@ -99,13 +99,13 @@ export default function CandidateActivityTimeline({
         </div>
       )}
 
-      <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center">
+      <div className="p-3.5 sm:p-4 border-b border-slate-200 bg-slate-50/70 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
             <Activity size={16} />
           </div>
-          <div>
-            <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+          <div className="min-w-0">
+            <h4 className="font-bold text-sm text-slate-900 flex flex-wrap items-center gap-2">
               <span>Candidate Activity & Audit Timeline</span>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 Immutable
@@ -130,7 +130,7 @@ export default function CandidateActivityTimeline({
               placeholder={allowStageEdit ? "Add process remark or candidate notes..." : "Add candidate note or remark..."}
               value={remarkText}
               onChange={(e) => setRemarkText(e.target.value)}
-              className="flex-1 min-w-[200px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              className="flex-1 min-w-0 sm:min-w-[200px] w-full sm:w-auto px-3 py-1.5 rounded-lg border border-slate-200 bg-white focus:ring-1 focus:ring-blue-600 focus:outline-none"
             />
 
             {allowStageEdit && (
@@ -138,7 +138,7 @@ export default function CandidateActivityTimeline({
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
+                  className="w-full sm:w-auto px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
                 >
                   <option value="">Status (No Change)</option>
                   <option value="Applied">Applied</option>
@@ -153,7 +153,7 @@ export default function CandidateActivityTimeline({
                 <select
                   value={newStage}
                   onChange={(e) => setNewStage(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
+                  className="w-full sm:w-auto px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs"
                 >
                   <option value="">Stage (No Change)</option>
                   <option value="Screening">Screening</option>
@@ -243,7 +243,7 @@ export default function CandidateActivityTimeline({
                     )}
 
                     {(act.previousStatus || act.newStatus) && (
-                      <div className="flex items-center gap-2 text-xs font-bold my-1 text-slate-800">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-bold my-1 text-slate-800">
                         <span className="text-slate-500 text-[11px] uppercase font-semibold">Status:</span>
                         {act.previousStatus ? (
                           <>
@@ -260,7 +260,7 @@ export default function CandidateActivityTimeline({
                     )}
 
                     {(act.previousStage || act.newStage) && (
-                      <div className="flex items-center gap-2 text-xs font-bold my-1 text-slate-800">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-bold my-1 text-slate-800">
                         <span className="text-slate-500 text-[11px] uppercase font-semibold">Stage:</span>
                         {act.previousStage ? (
                           <>
@@ -277,7 +277,7 @@ export default function CandidateActivityTimeline({
                     )}
 
                     {(act.previousMilestone || act.newMilestone) && (
-                      <div className="flex items-center gap-2 text-xs font-bold my-1 text-slate-800">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-bold my-1 text-slate-800">
                         <span className="text-slate-500 text-[11px] uppercase font-semibold">Milestone:</span>
                         {act.previousMilestone ? (
                           <>

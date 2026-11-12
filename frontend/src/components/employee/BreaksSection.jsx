@@ -29,7 +29,7 @@ export default function BreaksSection({
   return (
     <div className="flex-1 flex flex-col justify-center max-w-3xl mx-auto my-auto w-full py-4 space-y-4">
 
-      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-4 sm:p-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0">
@@ -49,8 +49,8 @@ export default function BreaksSection({
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl border border-sky-200 p-6 text-center">
-          <div className="text-5xl sm:text-6xl font-bold tabular-nums tracking-tight text-sky-950 mb-1">
+        <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl border border-sky-200 p-4 sm:p-6 text-center">
+          <div className="text-4xl sm:text-6xl font-bold tabular-nums tracking-tight text-sky-950 mb-1">
             {fmtDur(totalBreakSec)}
           </div>
           <div className="text-xs font-bold text-sky-700 uppercase tracking-wider">Total Break Time Used Today</div>
@@ -64,7 +64,7 @@ export default function BreaksSection({
         )}
 
         {!isHolidayToday && (isActive || isOnBreak) && !isCheckedOut && (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap sm:flex-nowrap gap-3">
             {!isOnBreak ? (
               <button
                 onClick={() => handleBreakStart("Break")}
@@ -99,8 +99,8 @@ export default function BreaksSection({
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-4 sm:p-6 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Clock size={18} className="text-blue-600" />
             <h3 className="text-base font-bold text-slate-900 tracking-tight">Today's Break Activity</h3>
@@ -138,7 +138,7 @@ export default function BreaksSection({
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-6">
+      <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-4 sm:p-6">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
           <ShieldCheck size={16} className="text-blue-600" /> Break Best Practices
         </h3>

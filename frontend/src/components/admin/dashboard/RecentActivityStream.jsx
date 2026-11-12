@@ -78,7 +78,7 @@ export default function RecentActivityStream({
       </div>
 
       {activityTotalPages > 1 && (
-        <div className="p-2 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs">
+        <div className="p-2 border-t border-slate-100 bg-slate-50 flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="text-slate-500 text-[11px]">
             Page {activityPage} of {activityTotalPages} ({activityTotal} total)
           </span>

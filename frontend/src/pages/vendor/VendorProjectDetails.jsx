@@ -103,7 +103,7 @@ export default function VendorProjectDetails() {
 
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/vendor/projects"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 transition"
@@ -162,7 +162,7 @@ export default function VendorProjectDetails() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
           <div className="flex items-center gap-1.5 text-blue-700 font-bold text-[11px] uppercase tracking-wider mb-1">
             <Users size={14} /> Total Headcount
@@ -221,7 +221,7 @@ export default function VendorProjectDetails() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[820px] text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
               <tr>
                 <th className="py-2 px-3 text-[10px]">#</th>
@@ -271,12 +271,12 @@ export default function VendorProjectDetails() {
                     <td className="py-1.5 px-3 text-slate-600 italic">
                       {pos.lastCompany || "-"}
                     </td>
-                    <td className="py-1.5 px-3 text-right">
+                    <td className="py-1.5 px-3 text-right whitespace-nowrap">
                       <Link
                         to={`/vendor/submit-candidate?project=${project.id}&position=${encodeURIComponent(
                           pos.position || pos.positionTitle || ""
                         )}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold text-[11px] transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold text-[11px] transition-colors whitespace-nowrap"
                       >
                         <Send size={11} /> Submit Trade
                       </Link>

@@ -271,7 +271,7 @@ export default function Applications() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[780px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50/80 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200/80">
                 <tr>
                   <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>
@@ -368,8 +368,8 @@ export default function Applications() {
                         </div>
                       </td>
 
-                      <td className="py-1.5 px-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="py-1.5 px-3 text-right whitespace-nowrap">
+                        <div className="flex flex-wrap items-center justify-end gap-2">
                           {isSelected && (
                             <Link
                               to={`/vendor/candidates?candidateId=${app.candidateId}`}

@@ -344,7 +344,7 @@ export function MainAdminDashboard() {
 
   return (
     <AdminMasterLayout title="Overview" subtitle="Real-time Operational Command Center">
-      <div className="relative font-sans pb-3.5 w-full max-w-full overflow-hidden">
+      <div className="relative font-sans pb-3.5 w-full max-w-full overflow-x-clip">
         <div className="space-y-3">
           
           <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-xl text-white shadow-xs">
@@ -352,7 +352,7 @@ export function MainAdminDashboard() {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-xs font-bold text-white">Operations Command Center</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 to="/admin/hr-activities?tab=vendorHRDashboard&view=overview"
                 className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-colors"

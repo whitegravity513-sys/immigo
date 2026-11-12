@@ -17,21 +17,21 @@ export default function CandidateProfileBar({ application, totalPaid, totalAmoun
                 ID: {application.candidateId}
               </span>
             </div>
-            <div className="text-[11px] text-slate-200 mt-0.5 flex items-center gap-2.5 flex-wrap">
-              <span>{application.candidateEmail}</span>
+            <div className="text-[11px] text-slate-200 mt-0.5 flex items-center gap-x-2.5 gap-y-0.5 flex-wrap">
+              <span className="break-all">{application.candidateEmail}</span>
               {application.candidatePhone && <span>• {application.candidatePhone}</span>}
               <span>• Role: <strong className="text-white">{application.position || "Specialist"}</strong></span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/10 px-3 py-2 rounded-lg border border-white/15 text-xs">
-          <div>
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-white/10 px-3 py-2 rounded-lg border border-white/15 text-xs w-full lg:w-auto">
+          <div className="min-w-0">
             <span className="text-[9px] uppercase font-bold text-slate-300 block">Project & Client</span>
-            <span className="font-bold text-white block text-xs">{application.projectName}</span>
+            <span className="font-bold text-white block text-xs break-words">{application.projectName}</span>
             <span className="text-[10px] text-cyan-300">{application.destinationCountry || "Overseas"}</span>
           </div>
-          <div className="border-l border-white/20 pl-3">
+          <div className="border-t sm:border-t-0 sm:border-l border-white/20 pt-2 sm:pt-0 sm:pl-3 w-full sm:w-auto shrink-0">
             <span className="text-[9px] uppercase font-bold text-slate-300 block">Fees Collected</span>
             <span className="font-bold text-cyan-300 text-xs sm:text-sm">
               ₹{totalPaid.toLocaleString()} / ₹{Number(totalAmount).toLocaleString()}

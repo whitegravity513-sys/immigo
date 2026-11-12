@@ -54,8 +54,8 @@ export default function CheckInOutSection({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs p-4 sm:p-6 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
                 <Clock size={16} />
@@ -136,7 +136,7 @@ export default function CheckInOutSection({
 
             {!isHolidayToday && (status === "Active" || status === "On Break") && (
               <div className="space-y-3">
-                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between gap-3">
+                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Coffee size={16} className="text-amber-700" />
                     <div>
@@ -224,7 +224,7 @@ export default function CheckInOutSection({
               Shift Timings
             </h3>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Check In

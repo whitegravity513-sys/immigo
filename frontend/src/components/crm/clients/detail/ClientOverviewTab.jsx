@@ -61,7 +61,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <Building2 size={16} className="text-blue-600" />
@@ -118,7 +118,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
               <span className="text-gray-400 block text-[11px]">Official Email</span>
               <a
                 href={`mailto:${client.email}`}
-                className="font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                className="font-semibold text-blue-600 hover:underline flex items-center gap-1 break-all"
               >
                 <Mail size={12} />
                 <span>{client.email || "—"}</span>
@@ -140,7 +140,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
                   href={client.website}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-semibold text-blue-600 hover:underline flex items-center gap-1.5"
+                  className="font-semibold text-blue-600 hover:underline flex items-center gap-1.5 break-all"
                 >
                   <Globe size={12} />
                   <span>{client.website}</span>
@@ -151,7 +151,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <User size={16} className="text-blue-600" />
@@ -179,7 +179,7 @@ export function ClientOverviewTab({ client, totalClientManpower, primaryContact 
                   <span className="text-gray-400 block text-[11px]">Email Address</span>
                   <a
                     href={`mailto:${contact.email}`}
-                    className="font-semibold text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
+                    className="font-semibold text-blue-600 hover:underline flex items-center gap-1 mt-0.5 break-all"
                   >
                     <Mail size={12} />
                     <span>{contact.email || "—"}</span>

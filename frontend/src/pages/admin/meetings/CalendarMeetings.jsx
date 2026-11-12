@@ -232,13 +232,13 @@ export default function CalendarMeetings() {
   }, [employees, empSearch]);
 
   return (
-    <div className="space-y-3.5 w-full max-w-full overflow-hidden">
+    <div className="space-y-3.5 w-full max-w-full overflow-x-clip">
       {!isModalOpen ? (
         <>
           <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-0.5">
+            <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
               <CalendarIcon size={16} />
             </span>
             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
@@ -305,7 +305,7 @@ export default function CalendarMeetings() {
 
       {viewMode === "calendar" && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/60">
+          <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/60">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-slate-800">
                 {monthNames[currentMonth]} {currentYear}
@@ -328,7 +328,9 @@ export default function CalendarMeetings() {
             />
           </div>
 
-          <div className="grid grid-cols-7 border-b border-slate-200 text-center py-1.5 bg-slate-100 text-[10px] font-bold text-slate-800 uppercase tracking-wider">
+          <div className="overflow-x-auto w-full">
+            <div className="min-w-[640px]">
+              <div className="grid grid-cols-7 border-b border-slate-200 text-center py-1.5 bg-slate-100 text-[10px] font-bold text-slate-800 uppercase tracking-wider">
             <span>Sun</span>
             <span>Mon</span>
             <span>Tue</span>
@@ -427,6 +429,8 @@ export default function CalendarMeetings() {
                 </div>
               );
             })}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -450,7 +454,7 @@ export default function CalendarMeetings() {
             </div>
 
             {!selectedDayMeetings && (
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+              <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600 max-w-full">
                 {["all", "upcoming", "today", "past"].map((tab) => (
                   <button
                     key={tab}
@@ -490,7 +494,7 @@ export default function CalendarMeetings() {
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1.5 mb-1.5 flex-wrap">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 border border-indigo-200 tracking-wider">
                             {meeting.platform || "Google Meet"}
                           </span>
@@ -525,7 +529,7 @@ export default function CalendarMeetings() {
                         </p>
                       )}
 
-                      <div className="flex items-center gap-2.5 text-[11px] text-slate-600 font-medium mb-2">
+                      <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-slate-600 font-medium mb-2">
                         <div className="flex items-center gap-1">
                           <CalendarIcon size={12} className="text-indigo-600" />
                           <span>{meeting.date}</span>
@@ -558,7 +562,7 @@ export default function CalendarMeetings() {
                     </div>
 
                     <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <a
                           href={meeting.meetingLink}
                           target="_blank"
@@ -629,9 +633,9 @@ export default function CalendarMeetings() {
           </button>
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2.5">
-                <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 bg-slate-50">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 shrink-0">
                   <Video size={18} />
                 </span>
                 <div>
@@ -739,7 +743,7 @@ export default function CalendarMeetings() {
                 <label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
                   Notify & Invite Audience *
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, targetType: "ALL" })}
@@ -775,7 +779,7 @@ export default function CalendarMeetings() {
 
                 {formData.targetType === "SPECIFIC" && (
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 mt-2">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-xs font-bold text-slate-700">
                         Selected: {formData.targetEmployees.length} employee(s)
                       </span>
@@ -808,17 +812,17 @@ export default function CalendarMeetings() {
                           <div
                             key={emp._id || emp.id}
                             onClick={() => toggleEmployeeSelection(emp._id || emp.id)}
-                            className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
+                            className={`flex items-center justify-between gap-2 p-2 rounded-lg text-xs cursor-pointer transition-colors ${
                               isSelected
                                 ? "bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-bold"
                                 : "bg-white hover:bg-slate-100 text-slate-700 border border-transparent"
                             }`}
                           >
-                            <div className="flex items-center gap-2">
-                              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-bold shrink-0">
                                 {emp.name?.[0]?.toUpperCase() || "E"}
                               </span>
-                              <div>
+                              <div className="min-w-0 truncate">
                                 <span>{emp.name}</span>
                                 <span className="text-[10px] text-slate-400 ml-1 font-normal">
                                   ({emp.employeeId || emp.designation || "Emp"})
@@ -829,7 +833,7 @@ export default function CalendarMeetings() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => {}}
-                              className="accent-indigo-600 cursor-pointer"
+                              className="accent-indigo-600 cursor-pointer shrink-0"
                             />
                           </div>
                         );
@@ -852,7 +856,7 @@ export default function CalendarMeetings() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-2.5 border-t border-slate-100">
                 <button
                   type="submit"
                   disabled={actionLoading}

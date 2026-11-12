@@ -105,14 +105,14 @@ export function VendorLogin() {
   };
 
   return (
-    <div className="min-h-screen w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-100">
+    <div className="min-h-[100dvh] w-full relative flex flex-col justify-between overflow-x-hidden font-sans select-none bg-slate-100">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none opacity-90"
         style={{ backgroundImage: `url(${heroTravelerBg})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-blue-900/30 pointer-events-none" />
 
-      <header className="relative z-20 w-full px-6 sm:px-10 lg:px-14 py-3.5 flex items-center justify-between border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-md">
+      <header className="relative z-20 w-full px-4 sm:px-8 lg:px-14 py-3 flex flex-wrap items-center justify-between gap-2.5 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-md">
         <div className="flex items-center gap-3">
           <ImmiGoLogo size="sm" theme="light" />
           <span className="hidden sm:inline-block text-xs font-semibold text-indigo-200/80 pl-3 border-l border-indigo-800/60">
@@ -120,7 +120,7 @@ export function VendorLogin() {
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-semibold text-slate-200">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-semibold text-slate-200">
           <div className="hidden md:flex items-center gap-5">
             <span className="flex items-center gap-1.5 hover:text-blue-400 transition cursor-pointer">
               <Globe size={14} className="text-blue-400" /> Work Abroad
@@ -137,28 +137,28 @@ export function VendorLogin() {
 
           <Link
             to="/candidate/login"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-500/20 hover:bg-blue-500/30 px-3 py-1.5 rounded-lg border border-blue-400/40 shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white bg-blue-500/20 hover:bg-blue-500/30 px-2.5 sm:px-3 py-1.5 rounded-lg border border-blue-400/40 shadow-2xs transition-all cursor-pointer"
             title="Candidate Portal"
           >
-            <Users size={13} className="text-blue-300" />
+            <Users size={13} className="text-blue-300 shrink-0" />
             <span>Candidate Sign In</span>
           </Link>
 
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-2.5 sm:px-3 py-1.5 rounded-lg border border-white/20 shadow-2xs transition-all cursor-pointer"
             title="Return to Main Website"
           >
-            <ArrowLeft size={14} className="text-blue-300" />
+            <ArrowLeft size={14} className="text-blue-300 shrink-0" />
             <span>Back to Home</span>
           </Link>
         </div>
       </header>
 
-      <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-4 sm:px-8 lg:px-14 xl:px-16 py-6 sm:py-10 gap-6 lg:gap-8 max-w-7xl mx-auto">
+      <main className="relative z-10 w-full flex-1 flex flex-col lg:flex-row items-center justify-between px-4 sm:px-8 lg:px-14 xl:px-16 py-6 sm:py-10 gap-6 lg:gap-8 max-w-7xl 2xl:max-w-[1440px] mx-auto">
         <div className="w-full lg:w-[54%] flex flex-col justify-between space-y-4 sm:space-y-6 text-left">
           <div className="space-y-3 sm:space-y-4">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-blue-50/90 border border-blue-200 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold text-blue-700 shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-blue-50/90 border border-blue-200 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold text-blue-700 shadow-2xs max-w-full">
               <Users size={13} className="text-blue-600 shrink-0" />
               <span className="uppercase tracking-wider text-[10px] sm:text-[11px]">INTERNATIONAL HIRING & WORKFORCE SOLUTIONS</span>
             </div>
@@ -175,8 +175,8 @@ export function VendorLogin() {
             </p>
 
             <div className="block lg:hidden w-full my-3">
-              <div className="w-full max-w-[440px] bg-white rounded-xl border border-slate-200/90 p-3 text-left shadow-lg relative mx-auto">
-                <div className="flex items-center justify-between mb-4">
+              <div className="w-full max-w-[440px] bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 text-left shadow-lg relative mx-auto">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <ImmiGoLogo size="sm" />
                   <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-semibold uppercase tracking-wider">
                     Vendor Portal
@@ -246,7 +246,7 @@ export function VendorLogin() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-0.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-0.5">
                     <label className="flex items-center gap-2 text-slate-600 cursor-pointer font-medium">
                       <input
                         type="checkbox"
@@ -473,7 +473,7 @@ export function VendorLogin() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
                 <label className="flex items-center gap-2 text-slate-600 cursor-pointer font-medium">
                   <input
                     type="checkbox"
@@ -523,9 +523,9 @@ export function VendorLogin() {
         </div>
       </main>
 
-      <footer className="relative z-20 w-full px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md">
+      <footer className="relative z-20 w-full px-4 sm:px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="text-cyan-400">&bull;</span>
         <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
 

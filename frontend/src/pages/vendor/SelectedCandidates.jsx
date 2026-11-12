@@ -131,7 +131,7 @@ export default function SelectedCandidates() {
 
         <Link
           to="/vendor/candidates?tab=selected"
-          className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition shadow-sm"
+          className="inline-flex items-center gap-2 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-bold transition shadow-sm self-start sm:self-auto shrink-0 whitespace-nowrap"
         >
           <span>View Processing Stepper</span>
           <ArrowRight className="w-4 h-4" />
@@ -221,7 +221,7 @@ export default function SelectedCandidates() {
         </div>
       ) : (
         <div className="overflow-x-auto bg-white rounded-lg border border-slate-200/80 shadow-2xs">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[780px] text-left text-xs">
             <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
               <tr>
                 <th className="py-1 px-2 text-[10px]">Candidate</th>
@@ -408,11 +408,11 @@ export default function SelectedCandidates() {
                         <span className="text-slate-400 text-[10px]">No Milestones</span>
                       )}
                     </td>
-                    <td className="py-1 px-2 text-right">
+                    <td className="py-1 px-2 text-right whitespace-nowrap">
                       <Link
                         to={`/vendor/processing/${resolvedAppId}`}
                         state={{ application: app }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-2xs"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow-2xs whitespace-nowrap"
                       >
                         Timeline <ArrowRight className="w-3 h-3" />
                       </Link>

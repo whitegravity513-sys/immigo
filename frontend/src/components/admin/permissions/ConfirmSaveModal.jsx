@@ -11,8 +11,8 @@ export default function ConfirmSaveModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3 animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto animate-in fade-in zoom-in-95">
         <div className="flex items-center gap-2 text-blue-600">
           <ShieldCheck size={20} />
           <h3 className="font-bold text-slate-900 text-sm">Confirm Permission Update</h3>
@@ -32,7 +32,7 @@ export default function ConfirmSaveModal({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t">
           <button
             type="button"
             onClick={onClose}

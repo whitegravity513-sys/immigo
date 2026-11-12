@@ -55,7 +55,7 @@ export default function EmpSidebar({
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 w-64 sm:w-72 bg-gradient-to-b from-[#eef5ff] via-[#e4f0fe] to-[#edf5ff] text-slate-800 border-r border-blue-200/90 shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col shrink-0 h-[100dvh] lg:h-full w-64 sm:w-72 bg-gradient-to-b from-[#eef5ff] via-[#e4f0fe] to-[#edf5ff] text-slate-800 border-r border-blue-200/90 shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
       >
         <div className="h-[52px] min-h-[52px] px-5 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white flex items-center justify-between shadow-xs">

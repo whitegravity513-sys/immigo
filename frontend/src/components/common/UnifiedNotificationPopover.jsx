@@ -179,7 +179,7 @@ export default function UnifiedNotificationPopover({
 
   return (
     <div
-      className={`absolute right-0 mt-2.5 w-84 sm:w-96 rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden font-sans text-slate-800 animate-in fade-in slide-in-from-top-2 duration-150 ${className}`}
+      className={`fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-14 sm:top-full sm:mt-2.5 w-auto sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white shadow-2xl border border-slate-200 z-50 overflow-hidden font-sans text-slate-800 animate-in fade-in slide-in-from-top-2 duration-150 ${className}`}
     >
       <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-2">

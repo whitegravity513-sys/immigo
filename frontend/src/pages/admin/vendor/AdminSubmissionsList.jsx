@@ -315,7 +315,7 @@ export default function AdminSubmissionsList() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[780px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>
@@ -400,7 +400,7 @@ export default function AdminSubmissionsList() {
             )}
 
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                   <FileText size={14} className="text-indigo-600" />
                   Candidate Uploaded Documents ({reviewDocs.length})
@@ -428,7 +428,7 @@ export default function AdminSubmissionsList() {
                     return (
                       <div
                         key={docKey}
-                        className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs"
+                        className="p-2.5 bg-white rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                       >
                         <div className="truncate min-w-0">
                           <span className="font-bold text-slate-800 block truncate">
@@ -439,7 +439,7 @@ export default function AdminSubmissionsList() {
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex flex-wrap items-center gap-1 shrink-0">
                           <button
                             type="button"
                             onClick={() => setPreviewingDoc(doc)}

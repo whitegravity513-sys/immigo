@@ -68,8 +68,8 @@ export default function EditVendorModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/70 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold">
               <Building2 size={20} />
@@ -93,7 +93,7 @@ export default function EditVendorModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar text-xs">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar text-xs">
           <div>
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
               <Building2 size={13} className="text-blue-500" />
@@ -293,7 +293,7 @@ export default function EditVendorModal({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}

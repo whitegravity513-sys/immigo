@@ -96,7 +96,7 @@ export default function VendorCandidateDossierView({
         </span>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div className="flex items-center gap-4">
             <div className={`w-16 h-16 rounded-2xl ${selectedCandidate.photo ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0`}>
@@ -138,7 +138,7 @@ export default function VendorCandidateDossierView({
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-right">
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-left sm:text-right">
             <span className="text-[10px] text-slate-400 font-bold uppercase block">Sourcing Partner</span>
             <span className="font-bold text-slate-900 text-sm block">{selectedVendor.companyName}</span>
             <span className="font-mono text-slate-500 text-[11px] block">{selectedVendor.id}</span>
@@ -303,13 +303,13 @@ export default function VendorCandidateDossierView({
               <span className="text-slate-400">Mobile Phone:</span>
               <span className="font-bold text-slate-900">{selectedCandidate.phone || "+91 98765 00112"}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span className="text-slate-400">Email Address:</span>
-              <span className="font-bold text-slate-900 truncate block">
+              <span className="font-bold text-slate-900 break-all">
                 {selectedCandidate.email || "candidate@email.com"}
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span className="text-slate-400">Full Address:</span>
               <span className="font-semibold text-slate-800">{selectedCandidate.address || "H.No 44, Patel Nagar, India"}</span>
             </div>
@@ -345,7 +345,7 @@ export default function VendorCandidateDossierView({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -501,8 +501,8 @@ export default function VendorCandidateDossierView({
       </div>
 
       {rejectCandDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-bold text-slate-900">
               Reject Document • {rejectCandDocModal.docName}
             </h3>
@@ -518,7 +518,7 @@ export default function VendorCandidateDossierView({
               className="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
             />
 
-            <div className="flex items-center justify-end gap-2 pt-1">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setRejectCandDocModal(null)}
@@ -539,8 +539,8 @@ export default function VendorCandidateDossierView({
       )}
 
       {showAppRejectModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-bold text-slate-900">
               Reject Candidate Application • {showAppRejectModal.candName}
             </h3>
@@ -556,7 +556,7 @@ export default function VendorCandidateDossierView({
               className="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
             />
 
-            <div className="flex items-center justify-end gap-2 pt-1">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAppRejectModal(null)}
@@ -580,8 +580,8 @@ export default function VendorCandidateDossierView({
       )}
 
       {showReassignProjModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-bold text-slate-900">
               Edit / Reassign Project • {showReassignProjModal.candName}
             </h3>
@@ -621,7 +621,7 @@ export default function VendorCandidateDossierView({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowReassignProjModal(null)}

@@ -17,39 +17,39 @@ export default function CreateAdminModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs"
+      className="fixed inset-0 z-50 flex justify-end pl-4 sm:pl-10 bg-slate-900/50 backdrop-blur-2xs"
       onClick={onClose}
     >
       <div
-        className="h-full w-full max-w-md bg-white border-l border-slate-200 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200"
+        className="h-[100dvh] w-full max-w-md bg-white border-l border-slate-200 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50/70 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-200 bg-slate-50/70 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0">
               <UserPlus size={16} />
             </div>
-            <div>
-              <h3 className="font-bold text-slate-900 text-sm">Create Staff Account</h3>
+            <div className="min-w-0">
+              <h3 className="font-bold text-slate-900 text-sm truncate">Create Staff Account</h3>
               <p className="text-[11px] text-slate-500">Login ID & password will be sent to email</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer shrink-0"
           >
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={onSubmit} className="flex-1 flex flex-col justify-between overflow-y-auto custom-scrollbar">
-          <div className="p-5 space-y-3.5 text-xs">
+          <div className="p-4 sm:p-5 space-y-3.5 text-xs">
             <div>
               <label className="block text-slate-800 font-bold mb-1.5">
                 Select Account Type *
               </label>
-              <div className={`grid ${isSuperAdmin ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
+              <div className={`grid ${isSuperAdmin ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"} gap-2`}>
                 {isSuperAdmin && (
                   <button
                     type="button"
@@ -241,7 +241,7 @@ export default function CreateAdminModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-slate-200 bg-slate-50/80 shrink-0">
+          <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-3.5 border-t border-slate-200 bg-slate-50/80 shrink-0">
             <button
               type="button"
               onClick={onClose}

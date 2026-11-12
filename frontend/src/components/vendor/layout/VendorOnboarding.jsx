@@ -418,8 +418,8 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 animate-fadeIn">
       <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
+        <div className="space-y-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 uppercase tracking-wider">
               Vendor Onboarding & Verification
             </span>
@@ -427,15 +427,15 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               ID: {vendor?.id || vendor?.vendorId || "VND-PENDING"}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight break-words">
             {vendor?.companyName || "Recruitment Agency"}
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 break-all">
             Registered Email: <span className="font-semibold text-slate-700">{vendor?.email}</span>
           </p>
         </div>
 
-        <div className="shrink-0 flex items-center gap-3">
+        <div className="shrink-0 flex flex-wrap items-center gap-2 sm:gap-3">
           {vendorRejected ? (
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
               <XCircle size={14} className="text-rose-600" />
@@ -493,7 +493,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {stepsList.map((s) => (
             <div
               key={s.num}
@@ -541,7 +541,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       )}
 
       {!vendorRejected && currentStep === 1 && (
-        <form onSubmit={handleDocsSubmit} className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+        <form onSubmit={handleDocsSubmit} className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-8 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
               <UploadCloud className="w-5 h-5 text-blue-600" />
@@ -733,7 +733,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       )}
 
       {!vendorRejected && currentStep === 2 && (
-        <div className="bg-white rounded-xl border border-slate-200/90 p-8 shadow-xs text-center space-y-6">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-8 shadow-xs text-center space-y-6">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto border border-blue-200">
             <Clock size={32} className="animate-pulse" />
           </div>
@@ -824,7 +824,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       )}
 
       {!vendorRejected && currentStep === 3 && (
-        <div className="bg-white rounded-xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-8 shadow-xs space-y-6">
           <div
             className={`p-4 border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
               mouCorrectionRequired
@@ -1005,7 +1005,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
               </span>
             </label>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setViewMouFullPage(true)}
@@ -1038,7 +1038,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       )}
 
       {vendorRejected && (
-        <div className="bg-white rounded-xl border border-rose-200 p-8 shadow-xs text-center space-y-5">
+        <div className="bg-white rounded-xl border border-rose-200 p-4 sm:p-8 shadow-xs text-center space-y-5">
           <div className="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto">
             <XCircle size={32} />
           </div>
@@ -1066,7 +1066,7 @@ export function VendorOnboarding({ vendor, onVendorUpdate }) {
       )}
 
       {!vendorRejected && currentStep === 4 && (
-        <div className="bg-white rounded-xl border border-slate-200/90 p-8 shadow-xs text-center space-y-5">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-8 shadow-xs text-center space-y-5">
           <div
             className={`w-16 h-16 rounded-3xl flex items-center justify-center mx-auto border ${
               mouApproved

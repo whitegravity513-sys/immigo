@@ -53,8 +53,8 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-auto overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-2xs">
@@ -117,7 +117,7 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800">
                   Select Excel Fields
@@ -145,7 +145,7 @@ export default function CandidateDownloadModal({ isOpen, onClose, onDownload }) 
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
               {DEFAULT_CANDIDATE_FIELDS.map((f) => {
                 const isSelected = selectedFields.includes(f.key);
                 return (

@@ -556,9 +556,9 @@ export function ProjectForm({
 
               
               {selectedClient ? (
-                <div className="bg-blue-50/60 border border-blue-200 rounded-lg p-2.5 flex items-center justify-between gap-2.5">
+                <div className="bg-blue-50/60 border border-blue-200 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-2.5">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-bold text-gray-900 truncate">
                         {selectedClient.companyName}
                       </span>
@@ -733,13 +733,13 @@ export function ProjectForm({
           icon={Gift}
         >
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-2.5">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-2.5">
               {STANDARD_BENEFITS.map((benefit) => {
                 const checked = formData.benefits.includes(benefit);
                 return (
                   <label
                     key={benefit}
-                    className={`flex items-center gap-2 p-2 sm:p-2.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all duration-150 select-none break-words ${checked
+                    className={`min-w-0 flex items-center gap-2 p-2 sm:p-2.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all duration-150 select-none break-words ${checked
                         ? "bg-blue-50/80 border-blue-300 text-blue-900 shadow-2xs"
                         : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                       }`}
@@ -750,7 +750,7 @@ export function ProjectForm({
                       onChange={() => handleBenefitToggle(benefit)}
                       className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer shrink-0"
                     />
-                    <span>{benefit}</span>
+                    <span className="min-w-0 break-words">{benefit}</span>
                   </label>
                 );
               })}
@@ -967,7 +967,7 @@ export function ProjectForm({
                           
                           
                           {filteredVendors.length > 0 && (
-                            <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
+                            <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
                               <span className="text-[10px] text-gray-500 font-medium">
                                 Showing {(vendorCurrentPage - 1) * VENDORS_PER_PAGE + 1} to {Math.min(vendorCurrentPage * VENDORS_PER_PAGE, filteredVendors.length)} of {filteredVendors.length}
                               </span>
@@ -1017,7 +1017,7 @@ export function ProjectForm({
             Cancel
           </button>
 
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={(e) => handleSubmit(e, true)}

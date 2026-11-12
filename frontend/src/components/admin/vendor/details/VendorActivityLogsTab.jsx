@@ -13,7 +13,7 @@ export default function VendorActivityLogsTab({ activityLogs }) {
         activityLogs.map((log) => (
           <div
             key={log._id || log.id}
-            className="p-3 rounded-xl bg-slate-800/40 border border-slate-800 flex items-start justify-between"
+            className="p-3 rounded-xl bg-slate-800/40 border border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3"
           >
             <div className="space-y-1">
               <div className="text-xs font-semibold text-white">{log.title || log.action}</div>

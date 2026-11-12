@@ -163,7 +163,7 @@ export default function AdminPaymentsList() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full min-w-[800px] text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-2 px-3 text-[10px] sm:px-6">Candidate</th>

@@ -256,7 +256,7 @@ export default function CandidatePaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-3 max-w-sm w-full">
           <RefreshCw size={26} className="animate-spin text-[#163868] mx-auto" />
           <h3 className="text-sm font-bold text-slate-800">Loading Secure Checkout...</h3>
@@ -268,7 +268,7 @@ export default function CandidatePaymentPage() {
 
   if (error || !milestone || !application) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-3 max-w-md w-full">
           <AlertCircle size={32} className="text-rose-500 mx-auto" />
           <h3 className="text-base font-bold text-slate-900">Checkout Error</h3>
@@ -288,7 +288,7 @@ export default function CandidatePaymentPage() {
 
   if (paymentSuccess) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="min-h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
         <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-md border border-slate-200 text-center space-y-4 max-w-md w-full animate-fade-in">
           <div className="w-14 h-14 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center mx-auto text-[#163868]">
             <CheckCircle2 size={32} />
@@ -307,21 +307,21 @@ export default function CandidatePaymentPage() {
           </div>
 
           <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-left text-xs space-y-1.5 font-mono">
-            <div className="flex justify-between text-slate-600">
+            <div className="flex flex-wrap justify-between gap-1 text-slate-600">
               <span>Amount Paid:</span>
-              <strong className="text-slate-900 font-sans text-sm font-bold text-[#163868]">
+              <strong className="font-sans text-sm font-bold text-[#163868]">
                 ₹{paymentSuccess.amount.toLocaleString()}
               </strong>
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex flex-wrap justify-between gap-1 text-slate-600">
               <span>Payment Mode:</span>
               <span className="font-semibold text-slate-800">{paymentSuccess.mode}</span>
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex flex-wrap justify-between gap-1 text-slate-600">
               <span>Transaction Ref:</span>
               <span className="font-bold text-[#163868] break-all">{paymentSuccess.txnId}</span>
             </div>
-            <div className="flex justify-between text-slate-600">
+            <div className="flex flex-wrap justify-between gap-1 text-slate-600">
               <span>Status:</span>
               <span className="font-bold text-[#163868]">{paymentSuccess.status}</span>
             </div>
@@ -358,10 +358,10 @@ export default function CandidatePaymentPage() {
   )}`;
 
   return (
-    <div className="min-h-screen w-full bg-[#f8fafc] text-slate-800 flex flex-col font-sans" style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
+    <div className="min-h-[100dvh] w-full overflow-x-hidden bg-[#f8fafc] text-slate-800 flex flex-col font-sans" style={{ minHeight: "100dvh", backgroundColor: "#f8fafc" }}>
       <header className="bg-gradient-to-r from-[#0f274a] via-[#163868] to-[#1e4a82] text-white border-b border-blue-900/60 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-3.5 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => navigate("/candidate/dashboard")}
@@ -372,13 +372,13 @@ export default function CandidatePaymentPage() {
             </button>
             <div className="h-4 w-px bg-white/20 hidden sm:block" />
             <h1 className="text-xs sm:text-sm font-bold tracking-tight flex items-center gap-1.5">
-              <CreditCard size={16} className="text-cyan-300" />
+              <CreditCard size={16} className="text-cyan-300 shrink-0" />
               <span>Immigo Official Milestone Checkout</span>
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-cyan-200 font-semibold bg-white/10 px-3 py-1 rounded-full border border-white/15">
-            <Lock size={12} className="text-cyan-300" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-cyan-200 font-semibold bg-white/10 px-2.5 sm:px-3 py-1 rounded-full border border-white/15 shrink-0">
+            <Lock size={12} className="text-cyan-300 shrink-0" />
             <span>256-Bit SSL Encrypted</span>
           </div>
         </div>
@@ -413,7 +413,7 @@ export default function CandidatePaymentPage() {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-white/15 flex items-center justify-between text-xs text-blue-100">
+            <div className="pt-2 border-t border-white/15 flex flex-wrap items-center justify-between gap-2 text-xs text-blue-100">
               <span>Candidate:</span>
               <strong className="text-white font-semibold">
                 {candidate?.fullName || application.candidateName}
@@ -451,21 +451,21 @@ export default function CandidatePaymentPage() {
             )}
 
             <div className="pt-2.5 border-t border-slate-100 space-y-1.5 text-xs">
-              <div className="flex justify-between text-slate-600">
+              <div className="flex flex-wrap justify-between gap-2 text-slate-600">
                 <span>Milestone Base Amount:</span>
                 <span className="font-semibold text-slate-800">
                   ₹{amount.toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex flex-wrap justify-between gap-2 text-slate-600">
                 <span>Platform & Convenience Fee:</span>
                 <span className="font-bold text-[#163868]">FREE (₹0)</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex flex-wrap justify-between gap-2 text-slate-600">
                 <span>GST / Taxes:</span>
                 <span className="font-bold text-[#163868]">Included</span>
               </div>
-              <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline">
+              <div className="pt-2 border-t border-slate-200 flex flex-wrap justify-between items-baseline gap-2">
                 <span className="text-xs font-bold text-slate-900">Total Payable Now:</span>
                 <span className="text-xl font-extrabold text-[#163868]">
                   ₹{amount.toLocaleString()}
@@ -487,8 +487,8 @@ export default function CandidatePaymentPage() {
 
         <div className="lg:col-span-7 space-y-3.5">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <div>
+            <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                   Select Payment Method
                 </h3>
@@ -496,7 +496,7 @@ export default function CandidatePaymentPage() {
                   Choose from UPI Apps, Instant QR, Credit/Debit Card, NetBanking, or Bank Transfer.
                 </p>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-blue-100 text-[#163868] font-bold text-[10px] border border-blue-200">
+              <span className="px-2 py-0.5 rounded-md bg-blue-100 text-[#163868] font-bold text-[10px] border border-blue-200 shrink-0">
                 Razorpay Enabled
               </span>
             </div>
@@ -505,7 +505,7 @@ export default function CandidatePaymentPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMethod("upi_apps")}
-                className={`py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                className={`min-w-0 py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
                   selectedMethod === "upi_apps"
                     ? "bg-white text-[#163868] border-b-2 border-[#163868] font-bold shadow-2xs"
                     : "text-slate-600 hover:bg-slate-100"
@@ -518,7 +518,7 @@ export default function CandidatePaymentPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMethod("upi_qr")}
-                className={`py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                className={`min-w-0 py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
                   selectedMethod === "upi_qr"
                     ? "bg-white text-[#163868] border-b-2 border-[#163868] font-bold shadow-2xs"
                     : "text-slate-600 hover:bg-slate-100"
@@ -531,7 +531,7 @@ export default function CandidatePaymentPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMethod("card")}
-                className={`py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                className={`min-w-0 py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
                   selectedMethod === "card"
                     ? "bg-white text-[#163868] border-b-2 border-[#163868] font-bold shadow-2xs"
                     : "text-slate-600 hover:bg-slate-100"
@@ -544,7 +544,7 @@ export default function CandidatePaymentPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMethod("netbanking")}
-                className={`py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                className={`min-w-0 py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
                   selectedMethod === "netbanking"
                     ? "bg-white text-[#163868] border-b-2 border-[#163868] font-bold shadow-2xs"
                     : "text-slate-600 hover:bg-slate-100"
@@ -557,7 +557,7 @@ export default function CandidatePaymentPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMethod("wallets")}
-                className={`py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                className={`min-w-0 py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
                   selectedMethod === "wallets"
                     ? "bg-white text-[#163868] border-b-2 border-[#163868] font-bold shadow-2xs"
                     : "text-slate-600 hover:bg-slate-100"
@@ -570,7 +570,7 @@ export default function CandidatePaymentPage() {
               <button
                 type="button"
                 onClick={() => setSelectedMethod("bank_transfer")}
-                className={`py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
+                className={`min-w-0 py-2.5 px-1 flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
                   selectedMethod === "bank_transfer"
                     ? "bg-white text-[#163868] border-b-2 border-[#163868] font-bold shadow-2xs"
                     : "text-slate-600 hover:bg-slate-100"
@@ -656,8 +656,8 @@ export default function CandidatePaymentPage() {
                   </div>
                 </div>
 
-                <div className="max-w-sm mx-auto bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-700 flex items-center justify-between">
-                  <div className="font-mono text-[10px] truncate">
+                <div className="max-w-sm mx-auto bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-700 flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-mono text-[10px] truncate min-w-0">
                     UPI ID: <strong>immigo.recruitment@hdfcbank</strong>
                   </div>
                   <button
@@ -808,18 +808,18 @@ export default function CandidatePaymentPage() {
                 </div>
 
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-slate-800 font-mono text-[11px]">
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <div className="flex flex-wrap justify-between items-center gap-1 border-b border-slate-200 pb-1.5">
                     <span className="text-slate-500">Bank Name:</span>
                     <strong className="text-slate-900 font-sans">HDFC Bank Ltd.</strong>
                   </div>
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <div className="flex flex-wrap justify-between items-center gap-1 border-b border-slate-200 pb-1.5">
                     <span className="text-slate-500">Account Name:</span>
                     <strong className="text-slate-900 font-sans">Immigo Global Mobility Pvt Ltd</strong>
                   </div>
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <div className="flex flex-wrap justify-between items-center gap-1 border-b border-slate-200 pb-1.5">
                     <span className="text-slate-500">Account Number:</span>
                     <div className="flex items-center gap-1.5">
-                      <strong className="text-slate-900">50200084920192</strong>
+                      <strong className="text-slate-900 break-all">50200084920192</strong>
                       <button
                         type="button"
                         onClick={() => copyToClipboard("50200084920192", "acc")}
@@ -829,10 +829,10 @@ export default function CandidatePaymentPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                  <div className="flex flex-wrap justify-between items-center gap-1 border-b border-slate-200 pb-1.5">
                     <span className="text-slate-500">IFSC Code:</span>
                     <div className="flex items-center gap-1.5">
-                      <strong className="text-slate-900">HDFC0001234</strong>
+                      <strong className="text-slate-900 break-all">HDFC0001234</strong>
                       <button
                         type="button"
                         onClick={() => copyToClipboard("HDFC0001234", "ifsc")}
@@ -842,9 +842,9 @@ export default function CandidatePaymentPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-wrap justify-between items-center gap-1">
                     <span className="text-slate-500">UPI ID:</span>
-                    <strong className="text-[#163868]">immigo.recruitment@hdfcbank</strong>
+                    <strong className="text-[#163868] break-all">immigo.recruitment@hdfcbank</strong>
                   </div>
                 </div>
 

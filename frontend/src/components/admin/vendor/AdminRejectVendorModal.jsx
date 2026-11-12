@@ -10,8 +10,8 @@ export function AdminRejectVendorModal({
   if (!isOpen || !selectedVendor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
         <h3 className="text-base font-bold text-slate-900">Confirm Rejection</h3>
         <p className="text-xs text-slate-500">
           {selectedVendor.mouSigned ||
@@ -31,7 +31,7 @@ export function AdminRejectVendorModal({
           className="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none"
         />
 
-        <div className="flex items-center justify-end gap-2 pt-1">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
           <button
             type="button"
             onClick={onClose}

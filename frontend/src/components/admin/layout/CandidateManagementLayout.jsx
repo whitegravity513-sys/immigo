@@ -14,7 +14,7 @@ export function CandidateManagementLayout({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-[#0f2744] selection:text-white">
+    <div className="min-h-[100dvh] lg:h-[100dvh] lg:max-h-[100dvh] overflow-x-hidden lg:overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-[#0f2744] selection:text-white">
       <CandidateManagementSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
@@ -22,7 +22,7 @@ export function CandidateManagementLayout({
         setCollapsed={setCollapsed}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-[100dvh] lg:min-h-0 lg:h-full lg:overflow-hidden">
         <AdminMasterNavbar
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
@@ -33,8 +33,8 @@ export function CandidateManagementLayout({
           breadcrumbs={breadcrumbs}
         />
 
-        <main className="flex-1 p-3 sm:p-4.5 w-full overflow-y-auto bg-slate-50/80">
-          {children || <Outlet />}
+        <main className="flex-1 p-3 sm:p-4 lg:p-5 w-full overflow-y-auto overflow-x-hidden bg-slate-50/80">
+          <div className="w-full max-w-[1680px] mx-auto">{children || <Outlet />}</div>
         </main>
 
         <AppFooter role="admin" />

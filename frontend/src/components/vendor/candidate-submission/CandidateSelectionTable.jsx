@@ -86,7 +86,7 @@ export default function CandidateSelectionTable({
             </button>
           </div>
 
-          <div className="flex items-center gap-2 flex-1 sm:justify-end">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1 sm:justify-end">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -130,7 +130,7 @@ export default function CandidateSelectionTable({
       </div>
 
       <div className="overflow-x-auto bg-white max-h-[500px]">
-        <table className="w-full text-left text-xs">
+        <table className="w-full min-w-[720px] text-left text-xs">
           <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
             <tr>
               <th className="py-2 px-3 w-12 text-center">

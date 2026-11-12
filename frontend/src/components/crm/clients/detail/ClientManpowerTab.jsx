@@ -16,7 +16,7 @@ export function ClientManpowerTab({ client }) {
             key={proj.id}
             className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden"
           >
-            <div className="px-6 py-4 bg-gray-50/70 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+            <div className="px-4 sm:px-6 py-4 bg-gray-50/70 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
               <div>
                 <div className="flex items-center gap-2">
                   <Link
@@ -49,7 +49,7 @@ export function ClientManpowerTab({ client }) {
                 </p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
+                  <table className="w-full min-w-[680px] text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider text-[11px]">
                         <th className="py-2.5 px-3">Position</th>

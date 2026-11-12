@@ -364,9 +364,9 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
   const diffAmount = totalAmount - totalCalculated;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col font-sans max-h-[90vh]">
-        <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col font-sans my-auto max-h-[92vh]">
+        <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between gap-3 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-300">
               <Sliders size={18} />
@@ -409,7 +409,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
               <span className="font-bold text-slate-900">{application.candidateName}</span>
               <span className="text-slate-500 font-medium ml-1.5">• {application.position || "Staff"}</span>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Project</span>
               <span className="font-bold text-slate-800">{application.projectName}</span>
               <span className="text-blue-600 font-semibold ml-1.5">({application.country || "Overseas"})</span>
@@ -430,7 +430,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   type="number"
                   value={totalAmount}
                   onChange={(e) => handleTotalAmountChange(e.target.value)}
-                  className="w-32 font-bold text-slate-900 text-sm focus:outline-none"
+                  className="w-24 sm:w-32 font-bold text-slate-900 text-sm focus:outline-none"
                   placeholder="0"
                 />
               </div>
@@ -495,7 +495,7 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-bold text-slate-900 uppercase text-[11px] tracking-wider">
                 Configured Milestones & Processing Stages ({milestones.length})
               </span>
@@ -514,8 +514,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                 key={m.id || mIdx}
                 className="bg-white rounded-xl border border-slate-200 p-2.5 shadow-2xs space-y-3"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 space-y-1.5">
+                <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-3">
+                  <div className="flex-1 min-w-[180px] space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-200 text-slate-800 uppercase">
                         Milestone {mIdx + 1}
@@ -567,8 +567,8 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
                   </div>
                 </div>
 
-                <div className="mt-2 pt-2.5 border-t border-slate-100 bg-slate-50/70 -mx-4 -mb-4 p-3.5 rounded-b-2xl space-y-2">
-                  <div className="flex items-center justify-between">
+                <div className="mt-2 pt-2.5 border-t border-slate-100 bg-slate-50/70 -mx-2.5 -mb-2.5 p-3 sm:p-3.5 rounded-b-xl space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                       <Layers size={13} className="text-slate-700" />
                       <span className="text-[10px] font-bold uppercase text-slate-700 tracking-wider">
@@ -641,12 +641,12 @@ export default function ConfigureMilestonesModal({ isOpen, onClose, application,
           </div>
         </div>
 
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="text-xs">
             <span className="text-slate-500 font-medium">Total Configured: </span>
             <strong className="text-slate-900 font-bold">₹{totalCalculated.toLocaleString()}</strong>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={onClose}

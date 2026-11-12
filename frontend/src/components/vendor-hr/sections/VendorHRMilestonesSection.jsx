@@ -138,7 +138,7 @@ export default function VendorHRMilestonesSection({
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Clock size={16} className="text-indigo-600" />
                 <span>Candidate Deployment Milestones & Stage Verification</span>
@@ -159,7 +159,7 @@ export default function VendorHRMilestonesSection({
         <div className="space-y-4">
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-base font-bold text-slate-900">Selected Candidate Milestones & Processing</h2>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200">
                   {postSelectionCandidates.length} Selected Candidates
@@ -171,7 +171,7 @@ export default function VendorHRMilestonesSection({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Selected</span>
               <div className="text-xl font-bold text-slate-900 mt-1">{postSelectionCandidates.length}</div>
@@ -204,7 +204,7 @@ export default function VendorHRMilestonesSection({
           </div>
 
           <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div className="relative flex-1 min-w-[240px]">
+            <div className="relative flex-1 min-w-0 sm:min-w-[240px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -219,12 +219,12 @@ export default function VendorHRMilestonesSection({
               />
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold text-slate-500">Deployment Stage:</span>
               <select
                 value={milestoneStageFilter}
                 onChange={(e) => setMilestoneStageFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-600 cursor-pointer"
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-600 cursor-pointer max-w-full"
               >
                 <option value="ALL">All Selected Candidates ({postSelectionCandidates.length})</option>
                 <option value="Selected">1. Selected</option>
@@ -242,7 +242,7 @@ export default function VendorHRMilestonesSection({
 
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[840px] text-left text-xs">
                 <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10.5px]">
                   <tr>
                     <th className="py-3 px-4">Selected Candidate & Passport</th>

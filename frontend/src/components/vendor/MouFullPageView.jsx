@@ -474,7 +474,7 @@ export default function MouFullPageView({
   };
 
   return (
-    <div className="w-full font-sans text-slate-900 bg-slate-100 min-h-screen">
+    <div className="w-full font-sans text-slate-900 bg-slate-100 min-h-[100dvh]">
       <style>{`
         @media print {
           @page {
@@ -524,7 +524,7 @@ export default function MouFullPageView({
       `}</style>
 
       <div className="mou-print-hide print:hidden bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-8 py-2.5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
           <div>
             {onBack ? (
               <button
@@ -761,7 +761,7 @@ export default function MouFullPageView({
       )}
 
       <div ref={printRef} className="mou-page-container pt-4 pb-12">
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <div className="text-center space-y-4">
               <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-950 uppercase">
@@ -815,7 +815,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">1</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <ol start={6} className="list-decimal pl-5 space-y-2.5">
               <li>
@@ -869,7 +869,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">2</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               with the Associates in advance. Visa processing and immigration services required according to the demand are the sole responsibility of the First Party.
@@ -917,7 +917,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">3</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p className="pl-4">
               4.1.1. To provide accurate and updated information to the Second Party regarding available overseas job opportunities, eligibility criteria, required documentation, and processing timelines.<br />
@@ -946,7 +946,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">4</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               5.1. The Second Party is entering into this agreement strictly as an independent Business Associate, and nothing in this MoU shall be construed as creating an employer–employee relationship, partnership, joint venture, agency, or legal representation of any kind between the Parties.<br />
@@ -973,7 +973,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">5</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               6.5. The Second Party shall indemnify and hold harmless the First Party against any claims, disputes, chargebacks, or liabilities arising from:<br />
@@ -999,7 +999,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">6</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               7.5. No refund shall be provided if the candidate is found medically unfit after visa approval or upon arrival in the destination country, as these medical checks are conducted under the supervision of the employer or local health authorities, beyond the control of the First Party.<br />
@@ -1034,7 +1034,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">7</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               Each Party shall designate a representative who will serve as the primary point of contact for coordination, day-to-day communication, and issue resolution.<br />
@@ -1078,7 +1078,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">8</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               11.2. The Second Party is strictly prohibited from using the following without prior written approval from the First Party:<br />
@@ -1108,7 +1108,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">9</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               12.2. <b>Applicability to ImmiGo Overseas Services LLP</b> – The restrictions under this clause apply equally to ImmiGo Overseas Services LLP, its name, logo, brand elements, recruitment license numbers, office details, legal credentials, and any project or operational information belonging to ImmiGo, whether or not ImmiGo is a direct party to this MoU. Any use of ImmiGo’s identity or information in digital or offline marketing by the Second Party requires prior written approval from Immigo Educare LLP.<br />
@@ -1151,7 +1151,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">10</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               15.2. The Second Party shall be solely responsible for ensuring that all information provided to candidates and third parties is accurate and lawful. Any legal violations or regulatory non-compliance by the Second Party shall not involve or implicate the First Party under any circumstances.
@@ -1189,7 +1189,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">11</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               All services rendered, payments due, and deliverables initiated prior to the termination date shall remain valid and enforceable. Both Parties shall honour any pending commitments, dues, or documentation requirements for such cases.<br />
@@ -1227,7 +1227,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">12</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               &nbsp;&nbsp;&nbsp;&nbsp;18.1.4. Any project-specific material marked as confidential or shared verbally/in writing as sensitive<br />
@@ -1258,7 +1258,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">13</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               &nbsp;&nbsp;&nbsp;&nbsp;19.1.4. Governmental actions, embassy closures, policy changes, or visa restrictions<br />
@@ -1290,7 +1290,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">14</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               20.3.2. <b>The seat and venue of arbitration shall be Gautam Budh Nagar, Uttar Pradesh</b>, or any other location mutually agreed by the Parties.<br />
@@ -1325,7 +1325,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">15</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <p>
               21.5.2. The First Party shall not be held liable for any injury, loss, or legal action involving individuals, candidates, sub-agents, or employees managed or handled by the Second Party.<br />
@@ -1350,7 +1350,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">16</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-6">
             <p>
               introduced or processed through the First Party during the validity of this MoU, for a period of twelve (12) months.<br />
@@ -1363,13 +1363,13 @@ export default function MouFullPageView({
               </p>
 
               <div className="border border-slate-900 rounded-none overflow-hidden font-sans">
-                <div className="grid grid-cols-2 border-b border-slate-900 text-xs font-bold uppercase p-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 border-b border-slate-900 text-xs font-bold uppercase p-3 gap-2 sm:gap-0">
                   <div>ON BEHALF OF {firstPartyName}</div>
-                  <div className="border-l border-slate-900 pl-3">ON BEHALF OF {secondPartyName}</div>
+                  <div className="border-t pt-2 sm:pt-0 sm:border-t-0 sm:border-l border-slate-900 sm:pl-3">ON BEHALF OF {secondPartyName}</div>
                 </div>
-                <div className="grid grid-cols-2 p-4 min-h-[170px] items-end text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 p-4 min-h-[170px] items-end text-xs gap-4 sm:gap-0">
                   <div className="space-y-1">
-                    <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52">
+                    <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-full max-w-[13rem]">
                       {firstPartyRep}
                     </div>
                     <p className="font-bold text-slate-900">{firstPartyRep}</p>
@@ -1379,10 +1379,10 @@ export default function MouFullPageView({
                     </p>
                   </div>
 
-                  <div className="border-l border-slate-900 pl-4 space-y-1">
+                  <div className="border-t pt-4 sm:pt-0 sm:border-t-0 sm:border-l border-slate-900 sm:pl-4 space-y-1">
                     {isMouApproved ? (
                       <>
-                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-full max-w-[13rem] truncate">
                           {vendor?.signedMou?.signatureData || signatoryName}
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1397,7 +1397,7 @@ export default function MouFullPageView({
                       </>
                     ) : isMouUnderReview ? (
                       <>
-                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-full max-w-[13rem] truncate">
                           {vendor?.signedMou?.signatureData || signatoryName}
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1412,7 +1412,7 @@ export default function MouFullPageView({
                       </>
                     ) : (
                       <div className="space-y-2">
-                        <div className="h-12 border-b border-dashed border-slate-400 w-52 flex items-end text-slate-400 italic text-[11px]">
+                        <div className="h-12 border-b border-dashed border-slate-400 w-full max-w-[13rem] flex items-end text-slate-400 italic text-[11px]">
                           [Authorized Signatory]
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1431,7 +1431,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">17</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <div className="text-center space-y-1">
               <h3 className="font-bold text-base uppercase">
@@ -1452,8 +1452,8 @@ export default function MouFullPageView({
                 The total fixed Service Fee per candidate, payable by the Second Party to the First Party, shall be divided into the following Payment Stage(s):
               </p>
 
-              <div className="border border-slate-900 font-sans text-xs">
-                <table className="w-full text-left border-collapse">
+              <div className="border border-slate-900 font-sans text-xs overflow-x-auto">
+                <table className="w-full min-w-[520px] text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-900 font-bold">
                       <th className="p-2 border-r border-slate-900 w-24">PAYMENT STAGE</th>
@@ -1518,7 +1518,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">18</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-5">
             <p className="text-xs">
               4.2. The Second Party may charge candidates a service fee at its discretion but shall bear full and sole responsibility for all such collections.<br />
@@ -1572,7 +1572,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">19</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <div className="text-center space-y-1">
               <h3 className="font-bold text-base uppercase">
@@ -1654,7 +1654,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">20</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-4">
             <div className="text-center space-y-1">
               <h3 className="font-bold text-base uppercase">
@@ -1669,8 +1669,8 @@ export default function MouFullPageView({
               All candidates submitted by the Second Party to the First Party must have the following documents, verified and compiled in the order below. Incomplete submissions will not be accepted or registered in the system.
             </p>
 
-            <div className="border border-slate-900 font-sans text-[11px]">
-              <table className="w-full text-left border-collapse">
+            <div className="border border-slate-900 font-sans text-[11px] overflow-x-auto">
+              <table className="w-full min-w-[460px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-900 font-bold">
                     <th className="p-1.5 border-r border-slate-900 w-12 text-center">SNO</th>
@@ -1824,7 +1824,7 @@ export default function MouFullPageView({
           <div className="text-center text-xs text-slate-500 font-mono pt-8">21</div>
         </div>
 
-        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-8 sm:p-14 mb-8 text-slate-900 text-sm leading-relaxed font-sans text-justify relative min-h-[1050px] flex flex-col justify-between">
+        <div className="mou-page max-w-4xl mx-auto bg-white shadow-md border border-slate-200 sm:rounded-xl p-4 sm:p-10 lg:p-14 mb-4 sm:mb-8 text-slate-900 text-xs sm:text-sm leading-relaxed font-sans text-left sm:text-justify relative min-h-0 sm:min-h-[1050px] flex flex-col justify-between">
           <div className="space-y-6">
             <div>
               <p className="font-bold text-xs uppercase mb-2">IMPORTANT SUBMISSION CONDITIONS:</p>
@@ -1839,13 +1839,13 @@ export default function MouFullPageView({
 
             <div className="pt-10 border-t border-slate-300">
               <div className="border border-slate-900 overflow-hidden font-sans">
-                <div className="grid grid-cols-2 border-b border-slate-900 text-xs font-bold uppercase p-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 border-b border-slate-900 text-xs font-bold uppercase p-3 gap-2 sm:gap-0">
                   <div>ON BEHALF OF IMMIGO EDUCARE LLP</div>
-                  <div className="border-l border-slate-900 pl-3">ON BEHALF OF {secondPartyName}</div>
+                  <div className="border-t pt-2 sm:pt-0 sm:border-t-0 sm:border-l border-slate-900 sm:pl-3">ON BEHALF OF {secondPartyName}</div>
                 </div>
-                <div className="grid grid-cols-2 p-4 min-h-[170px] items-end text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 p-4 min-h-[170px] items-end text-xs gap-4 sm:gap-0">
                   <div className="space-y-1">
-                    <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52">
+                    <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-full max-w-[13rem]">
                       {firstPartyRep}
                     </div>
                     <p className="font-bold text-slate-900">{firstPartyRep}</p>
@@ -1855,10 +1855,10 @@ export default function MouFullPageView({
                     </p>
                   </div>
 
-                  <div className="border-l border-slate-900 pl-4 space-y-1">
+                  <div className="border-t pt-4 sm:pt-0 sm:border-t-0 sm:border-l border-slate-900 sm:pl-4 space-y-1">
                     {isMouApproved ? (
                       <>
-                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-full max-w-[13rem] truncate">
                           {vendor?.signedMou?.signatureData || signatoryName}
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1873,7 +1873,7 @@ export default function MouFullPageView({
                       </>
                     ) : isMouUnderReview ? (
                       <>
-                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-52 truncate">
+                        <div className="font-serif italic text-lg font-bold text-slate-900 pb-1 border-b border-slate-300 w-full max-w-[13rem] truncate">
                           {vendor?.signedMou?.signatureData || signatoryName}
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1888,7 +1888,7 @@ export default function MouFullPageView({
                       </>
                     ) : (
                       <div className="space-y-2">
-                        <div className="h-12 border-b border-dashed border-slate-400 w-52 flex items-end text-slate-400 italic text-[11px]">
+                        <div className="h-12 border-b border-dashed border-slate-400 w-full max-w-[13rem] flex items-end text-slate-400 italic text-[11px]">
                           [Authorized Signatory]
                         </div>
                         <p className="font-bold text-slate-900">
@@ -1911,7 +1911,7 @@ export default function MouFullPageView({
       {viewerRole !== "admin" && !isRejected && !isMouApproved && !isMouUnderReview && !onApprove && (isMouIssued || mode === "sign") && (
         <form
           onSubmit={handleVendorSignSubmit}
-          className="mou-print-hide print:hidden max-w-4xl mx-auto bg-white rounded-xl border border-indigo-200 shadow-md p-6 sm:p-8 space-y-6 mb-12"
+          className="mou-print-hide print:hidden max-w-4xl mx-auto bg-white rounded-xl border border-indigo-200 shadow-md p-4 sm:p-8 space-y-6 mb-12"
         >
           {isCorrectionRequired && (
             <div className="p-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-900 text-xs font-semibold flex items-start gap-2">
@@ -1932,7 +1932,7 @@ export default function MouFullPageView({
                 Choose to digitally sign online or download, sign/stamp and upload your signed copy for Admin verification.
               </p>
             </div>
-            <div className="inline-flex rounded-xl bg-slate-100 p-1 shrink-0">
+            <div className="inline-flex flex-wrap max-w-full rounded-xl bg-slate-100 p-1 shrink-0 gap-1">
               <button
                 type="button"
                 onClick={() => setSignMethod("digital")}
@@ -2057,11 +2057,11 @@ export default function MouFullPageView({
             </span>
           </label>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
+              className="w-full sm:w-auto justify-center px-6 sm:px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
             >
               {loading ? (
                 <span>Submitting MOU...</span>

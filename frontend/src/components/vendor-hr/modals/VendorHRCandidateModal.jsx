@@ -134,8 +134,8 @@ export default function VendorHRCandidateModal({
     : [];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 space-y-4 shadow-2xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -288,9 +288,9 @@ export default function VendorHRCandidateModal({
               {candidateDocs.map((doc, dIdx) => (
                 <div
                   key={dIdx}
-                  className="p-2.5 rounded-xl bg-white border border-blue-100 flex items-center justify-between gap-2"
+                  className="p-2.5 rounded-xl bg-white border border-blue-100 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="font-bold text-slate-900 text-[11.5px] truncate">{doc.name || doc.docType}</div>
                     <div className="text-[10px] text-slate-500 truncate">{doc.fileName || "Uploaded file"}</div>
                   </div>
@@ -415,7 +415,7 @@ export default function VendorHRCandidateModal({
                 <Plane className="w-4 h-4 text-blue-600" />
                 <span>Visa & Flight Deployment Details</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-600 mb-1">Visa Status</label>
                   <select
@@ -457,7 +457,7 @@ export default function VendorHRCandidateModal({
             </div>
           )}
 
-          <div className="pt-2 flex justify-between items-center border-t border-slate-100">
+          <div className="pt-2 flex flex-wrap justify-between items-center gap-2 border-t border-slate-100">
             {!refundLocked && !isOnHoldStage && !isPostSelectionStage && currentStage !== "Rejected" ? (
               <button
                 type="button"

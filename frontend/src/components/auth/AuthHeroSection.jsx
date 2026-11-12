@@ -56,36 +56,36 @@ export function AuthHeroFeatures({ isMobile = false }) {
 
   return (
     <div className={`space-y-4 text-left ${isMobile ? "w-full max-w-[430px] sm:max-w-xl mx-auto" : "w-full"}`}>
-      <div className="grid grid-cols-4 gap-2.5 sm:gap-3.5 w-full pt-1">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-3.5 w-full pt-1">
         {featureCards.map((card, idx) => (
           <div
             key={idx}
-            className="flex flex-col items-center text-center bg-white/95 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-white/90 shadow-xs hover:shadow-md transition-all group"
+            className="flex flex-col items-center text-center bg-white/95 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-white/90 shadow-xs hover:shadow-md transition-all group min-w-0"
           >
             <div
               className={`w-9 h-9 rounded-xl ${card.bg} flex items-center justify-center text-white shrink-0 shadow-xs mb-1.5 transition-transform group-hover:scale-105`}
             >
               {card.icon}
             </div>
-            <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight whitespace-nowrap">
+            <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight">
               {card.title}
             </h4>
-            <p className="text-[10px] sm:text-[11px] text-slate-600 font-medium leading-tight mt-1 whitespace-nowrap">
+            <p className="text-[10px] sm:text-[11px] text-slate-600 font-medium leading-tight mt-1">
               {card.desc}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xs p-3 sm:p-3.5 grid grid-cols-4 gap-2 sm:gap-3.5 w-full">
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xs p-3 sm:p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 w-full">
         {stats.map((s, idx) => (
           <div key={idx} className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <span className="shrink-0">{s.icon}</span>
             <div className="min-w-0">
-              <div className="text-xs sm:text-sm lg:text-[15px] font-bold text-slate-900 leading-none whitespace-nowrap">
+              <div className="text-xs sm:text-sm lg:text-[15px] font-bold text-slate-900 leading-none truncate">
                 {s.value}
               </div>
-              <div className="text-[10px] sm:text-[11px] text-slate-600 font-medium mt-1 whitespace-nowrap">
+              <div className="text-[10px] sm:text-[11px] text-slate-600 font-medium mt-1 truncate">
                 {s.label}
               </div>
             </div>

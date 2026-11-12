@@ -29,7 +29,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
   ).length;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <div
         onClick={() => onSelectFilter(statusFilter === "Registered" ? "All" : "Registered")}
         className={`p-3 rounded-xl border transition-all cursor-pointer shadow-2xs ${
@@ -38,7 +38,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             : "bg-white border-amber-200/90 hover:border-amber-400 hover:bg-amber-50/30"
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <span
             className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Registered" || statusFilter === "Pending Verification"
@@ -88,7 +88,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             : "bg-white border-emerald-200/90 hover:border-emerald-400 hover:bg-emerald-50/30"
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <span
             className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Approved" ? "text-emerald-100" : "text-emerald-800"
@@ -132,7 +132,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             : "bg-white border-slate-200/90 hover:border-slate-400 hover:bg-slate-50/50"
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <span
             className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Suspended" ? "text-slate-200" : "text-slate-700"
@@ -176,7 +176,7 @@ export default function VendorStatsCards({ vendors = [], statusFilter, onSelectF
             : "bg-white border-rose-200/90 hover:border-rose-400 hover:bg-rose-50/30"
         }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <span
             className={`text-[10px] font-bold uppercase tracking-wider ${
               statusFilter === "Rejected" ? "text-rose-200" : "text-rose-800"

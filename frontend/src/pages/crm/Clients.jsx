@@ -272,8 +272,8 @@ export function Clients() {
             />
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <div className="w-36 sm:w-40">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <div className="w-full sm:w-40">
               <select
                 value={countryFilter}
                 onChange={handleCountryChange}
@@ -288,7 +288,7 @@ export function Clients() {
               </select>
             </div>
 
-            <div className="w-32 sm:w-36">
+            <div className="w-full sm:w-36">
               <select
                 value={statusFilter}
                 onChange={handleStatusChange}
@@ -317,7 +317,7 @@ export function Clients() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-x-clip">
         {loading ? (
           <div className="p-6">
             <LoadingSkeleton type="table" count={6} />
@@ -334,8 +334,8 @@ export function Clients() {
             onAction={hasActiveFilters ? handleResetFilters : () => navigate("/clients/new")}
           />
         ) : (
-          <div className="overflow-x-auto min-h-[360px] pb-16">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="overflow-x-auto xl:overflow-visible min-h-[360px] pb-16">
+            <table className="w-full min-w-[780px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-2 px-3">Company</th>

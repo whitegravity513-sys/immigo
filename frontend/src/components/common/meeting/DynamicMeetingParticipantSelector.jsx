@@ -202,7 +202,7 @@ export default function DynamicMeetingParticipantSelector({
         ref={containerRef}
         className="p-3.5 rounded-xl bg-gradient-to-br from-indigo-50/70 to-purple-50/40 border border-indigo-200/90 space-y-3"
       >
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-indigo-950 font-bold text-xs flex items-center gap-1.5">
             <Users className="w-4 h-4 text-indigo-600" />
             <span>
@@ -402,7 +402,7 @@ export default function DynamicMeetingParticipantSelector({
         ref={containerRef}
         className="p-3.5 rounded-xl bg-gradient-to-br from-sky-50/70 to-indigo-50/40 border border-sky-200/90 space-y-3"
       >
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-sky-950 font-bold text-xs flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-sky-600" />
             <span>Admin &amp; Super Admin Invitees</span>
@@ -575,7 +575,7 @@ export default function DynamicMeetingParticipantSelector({
         ref={containerRef}
         className="p-3.5 rounded-xl bg-gradient-to-br from-amber-50/70 to-orange-50/40 border border-amber-200/90 space-y-3"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-amber-950 font-bold text-xs flex items-center gap-1.5">
             <Building2 className="w-4 h-4 text-amber-600" />
             <span>Vendor Agency Invitees</span>
@@ -727,7 +727,7 @@ export default function DynamicMeetingParticipantSelector({
         ref={containerRef}
         className="p-3.5 rounded-xl bg-gradient-to-br from-blue-50/70 to-indigo-50/40 border border-blue-200/90 space-y-3"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-blue-950 font-bold text-xs flex items-center gap-1.5">
             <User className="w-4 h-4 text-blue-600" />
             <span>Employee Participants</span>
@@ -881,7 +881,7 @@ export default function DynamicMeetingParticipantSelector({
         ref={containerRef}
         className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-50/70 to-teal-50/40 border border-emerald-200/90 space-y-3"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-emerald-950 font-bold text-xs flex items-center gap-1.5">
             <Briefcase className="w-4 h-4 text-emerald-600" />
             <span>Interview Candidate & Partner Agency</span>
@@ -944,7 +944,7 @@ export default function DynamicMeetingParticipantSelector({
             </button>
           </div>
         ) : manualCandidateEntry ? (
-          <div className="grid grid-cols-2 gap-2 bg-white/90 p-2.5 rounded-xl border border-emerald-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white/90 p-2.5 rounded-xl border border-emerald-200">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 mb-1">
                 Candidate Name *
@@ -1058,7 +1058,7 @@ export default function DynamicMeetingParticipantSelector({
       ref={containerRef}
       className="p-3.5 rounded-xl bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-200/90 space-y-3"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="text-slate-900 font-bold text-xs flex items-center gap-1.5">
           <Users className="w-4 h-4 text-blue-600" />
           <span>Conference Invitees</span>

@@ -418,14 +418,14 @@ export default function AdminDirectCandidateMilestones() {
       )}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200 pb-2.5">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={() => navigate("/admin/candidates/selected")}
             className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition shrink-0"
           >
             <ArrowLeft size={14} />
           </button>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-[#163868]" />
               <span>Candidate Milestone & Process Workflow</span>

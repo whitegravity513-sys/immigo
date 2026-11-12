@@ -31,18 +31,18 @@ export default function EmpTopbar({
   }, []);
 
   return (
-    <header className="h-[52px] min-h-[52px] bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between gap-4 shadow-md">
-      <div className="flex items-center gap-3 min-w-0">
+    <header className="min-h-[52px] py-1.5 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 border-b border-blue-800/80 text-white sticky top-0 lg:static z-30 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 shadow-md">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}
-          className="lg:hidden p-1.5 rounded-lg text-white hover:bg-blue-800/60 transition-colors cursor-pointer"
+          className="lg:hidden p-1.5 rounded-lg text-white hover:bg-blue-800/60 transition-colors cursor-pointer shrink-0"
           aria-label="Open Navigation"
         >
           <Menu size={18} />
         </button>
-        <div className="flex items-center gap-2">
-          <h1 className="text-xs sm:text-sm font-bold text-white tracking-tight">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xs sm:text-sm font-bold text-white tracking-tight truncate">
             Employee Dashboard
           </h1>
         </div>
@@ -88,7 +88,7 @@ export default function EmpTopbar({
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-slate-200 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl border border-slate-200 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
               <div className="px-4 py-2 border-b border-slate-100">
                 <div className="text-xs font-bold text-slate-900 truncate">
                   {user?.name || "Employee"}

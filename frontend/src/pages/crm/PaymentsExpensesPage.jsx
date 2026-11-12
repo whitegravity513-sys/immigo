@@ -433,10 +433,10 @@ export default function PaymentsExpensesPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500 mb-1">
               <Link to="/client/dashboard" className="hover:text-blue-600 transition-colors">
                 Client Management
               </Link>
@@ -445,7 +445,7 @@ export default function PaymentsExpensesPage() {
                 {isExpenseView ? "Expense" : "Record Payment"}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2.5">
               {isExpenseView ? (
                 <Receipt size={24} className="text-rose-600" />
               ) : (
@@ -583,7 +583,7 @@ export default function PaymentsExpensesPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
-        <div className="border-b border-gray-200 px-6 pt-3 flex items-center gap-2 overflow-x-auto bg-gray-50/50">
+        <div className="border-b border-gray-200 px-4 sm:px-6 pt-3 flex items-center gap-2 overflow-x-auto bg-gray-50/50">
           {visibleTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -678,7 +678,7 @@ export default function PaymentsExpensesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[960px] text-left text-xs">
               <thead className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-2 px-3 text-[10px]">Type</th>

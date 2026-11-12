@@ -198,7 +198,7 @@ export default function AdminReassignCandidate() {
       )}
 
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <div className="space-y-4">
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
@@ -269,7 +269,7 @@ export default function AdminReassignCandidate() {
           </div>
         </div>
 
-        <div className="bg-slate-50 p-6 border-t border-slate-100 flex items-center justify-end gap-3">
+        <div className="bg-slate-50 p-4 sm:p-6 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
           <button
             onClick={() => navigate(-1)}
             className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm hover:bg-slate-100 transition cursor-pointer"

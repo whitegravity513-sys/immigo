@@ -20,8 +20,8 @@ export default function CandidatePaymentModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs overflow-y-auto p-3 sm:p-4 animate-fade-in">
+      <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full">
         <div className="p-3 sm:p-3.5 bg-gradient-to-r from-[#163868] via-[#1e4a82] to-[#2563eb] text-white flex items-center justify-between">
           <div>
             <h3 className="text-xs sm:text-sm font-semibold flex items-center gap-1.5">
@@ -56,7 +56,7 @@ export default function CandidatePaymentModal({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 border-b border-slate-200 pb-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 border-b border-slate-200 pb-2.5">
             <button
               type="button"
               onClick={() => setPaymentTypeTab("online")}

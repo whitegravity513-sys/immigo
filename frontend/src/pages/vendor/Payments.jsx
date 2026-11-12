@@ -274,11 +274,11 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-bold w-full sm:w-auto overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab("All")}
-            className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
+            className={`px-3 sm:px-4 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "All"
                 ? "bg-white text-slate-900 shadow-2xs font-semibold"
                 : "text-slate-600 hover:text-slate-900 font-medium"
@@ -288,7 +288,7 @@ export default function Payments() {
           </button>
           <button
             onClick={() => setActiveTab("Paid")}
-            className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
+            className={`px-3 sm:px-4 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "Paid"
                 ? "bg-white text-emerald-700 shadow-2xs font-semibold"
                 : "text-slate-600 hover:text-slate-900 font-medium"
@@ -298,7 +298,7 @@ export default function Payments() {
           </button>
           <button
             onClick={() => setActiveTab("Due")}
-            className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
+            className={`px-3 sm:px-4 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "Due"
                 ? "bg-white text-amber-700 shadow-2xs font-semibold"
                 : "text-slate-600 hover:text-slate-900 font-medium"
@@ -345,7 +345,7 @@ export default function Payments() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[880px] text-left text-xs">
               <thead className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200">
                 <tr>
                   <th className="py-1.5 px-2.5 text-[10px]">Candidate</th>
@@ -519,7 +519,7 @@ export default function Payments() {
                         <tr className="bg-slate-50/90 border-b border-slate-200">
                           <td colSpan={8} className="p-4 sm:p-5">
                             <div className="bg-white rounded-xl border border-slate-200 p-2.5 space-y-3 shadow-2xs">
-                              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
                                 <div className="flex items-center gap-2">
                                   <Layers className="w-4 h-4 text-blue-600" />
                                   <h4 className="font-bold text-slate-900 text-xs sm:text-sm">
@@ -600,7 +600,7 @@ export default function Payments() {
             </table>
           </div>
 
-          <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+          <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
             <span>
               Showing <strong className="text-slate-900">{filteredAccounts.length}</strong> candidate deployment account(s)
             </span>

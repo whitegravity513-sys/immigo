@@ -10,19 +10,19 @@ export default function ClientPaymentDetailModal({
   if (!viewingPayment) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-2xl w-full overflow-hidden my-6">
-        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-6 py-4 text-white flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl max-w-2xl w-full overflow-hidden my-auto max-h-[90vh] flex flex-col">
+        <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-4 sm:px-6 py-4 text-white flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
               <Receipt size={20} className="text-blue-200" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white tracking-tight">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base font-bold text-white tracking-tight break-words">
                   {viewingPayment.paymentId || "Transaction Details"}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white shrink-0">
                   {viewingPayment.paymentStatus || "Completed"}
                 </span>
               </div>
@@ -35,66 +35,66 @@ export default function ClientPaymentDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-white/70 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            className="text-white/70 hover:text-white p-1 rounded-lg transition-colors cursor-pointer shrink-0"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 space-y-5 text-xs max-h-[75vh] overflow-y-auto">
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
+        <div className="p-3.5 sm:p-6 space-y-5 text-xs flex-1 overflow-y-auto">
+          <div className="p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="min-w-0">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                 Client Organization
               </span>
               <Link
                 to={`/client/clients/${viewingPayment.clientId}`}
-                className="font-bold text-sm text-blue-600 hover:underline flex items-center gap-1 mt-0.5"
+                className="font-bold text-sm text-blue-600 hover:underline inline-flex items-center gap-1 mt-0.5 max-w-full"
               >
-                <span>{viewingPayment.clientName}</span>
-                <ExternalLink size={12} />
+                <span className="min-w-0 break-words">{viewingPayment.clientName}</span>
+                <ExternalLink size={12} className="shrink-0" />
               </Link>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                 Project & Candidate
               </span>
-              <p className="font-semibold text-gray-900 mt-0.5">
+              <p className="font-semibold text-gray-900 mt-0.5 break-words">
                 {viewingPayment.projectName || "General Account Disbursement"}
               </p>
               {viewingPayment.candidateName && (
-                <p className="text-[11px] text-blue-600 font-medium">
+                <p className="text-[11px] text-blue-600 font-medium break-words">
                   Candidate: {viewingPayment.candidateName}
                 </p>
               )}
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2.5">
+          <div className="p-3.5 sm:p-4 bg-blue-50/40 rounded-xl border border-blue-200 space-y-2.5">
             <h4 className="text-[11px] font-bold text-blue-900 uppercase tracking-wider">
               Milestone Disbursement Summary
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="min-w-0">
                 <span className="text-gray-500 text-[10px] block">Milestone Name</span>
-                <span className="font-bold text-gray-900 text-xs">{viewingPayment.milestoneName}</span>
+                <span className="font-bold text-gray-900 text-xs break-words">{viewingPayment.milestoneName}</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-gray-500 text-[10px] block">Agreed Milestone</span>
-                <span className="font-bold text-gray-900 text-xs font-mono">
+                <span className="font-bold text-gray-900 text-xs font-mono break-all">
                   ₹{Number(viewingPayment.agreedMilestoneAmount || 0).toLocaleString("en-IN")}
                 </span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-gray-500 text-[10px] block">Amount Paid</span>
-                <span className="font-bold text-emerald-700 text-sm font-mono">
+                <span className="font-bold text-emerald-700 text-sm font-mono break-all">
                   ₹{Number(viewingPayment.amountPaid || 0).toLocaleString("en-IN")}
                 </span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-gray-500 text-[10px] block">Milestone Balance</span>
-                <span className="font-bold text-amber-700 text-xs font-mono">
+                <span className="font-bold text-amber-700 text-xs font-mono break-all">
                   ₹{Number(viewingPayment.remainingMilestoneBalance || 0).toLocaleString("en-IN")}
                 </span>
               </div>
@@ -102,46 +102,46 @@ export default function ClientPaymentDetailModal({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+            <div className="p-3.5 sm:p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
               <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
                 Banking & Reference
               </h4>
               <div className="space-y-1.5">
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-gray-500">Method:</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 text-right">
                     {viewingPayment.paymentMethod || "Bank Transfer"}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-gray-500">Transaction / UTR:</span>
-                  <span className="font-mono font-bold text-blue-700">
+                  <span className="font-mono font-bold text-blue-700 break-all text-right">
                     {viewingPayment.transactionReference || "—"}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-gray-500">Payment Date:</span>
-                  <span className="text-gray-900 font-medium">
+                  <span className="text-gray-900 font-medium text-right">
                     {formatDate(viewingPayment.paymentDate)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+            <div className="p-3.5 sm:p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
               <h4 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
                 Tax & GST Handling
               </h4>
               <div className="space-y-1.5">
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-gray-500">GST Treatment:</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 text-right">
                     {viewingPayment.gstTreatment || "Not Applicable"}
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-gray-500">GST Amount:</span>
-                  <span className="font-mono font-bold text-indigo-700">
+                  <span className="font-mono font-bold text-indigo-700 break-all text-right">
                     {viewingPayment.gstAmount > 0
                       ? `₹${Number(viewingPayment.gstAmount).toLocaleString("en-IN")} (${
                           viewingPayment.gstRate || 18
@@ -149,9 +149,9 @@ export default function ClientPaymentDetailModal({
                       : "₹0"}
                   </span>
                 </div>
-                <div className="flex justify-between border-t border-gray-200 pt-1 font-bold">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-1 font-bold">
                   <span className="text-gray-800">Total Transaction:</span>
-                  <span className="font-mono text-emerald-700">
+                  <span className="font-mono text-emerald-700 break-all text-right">
                     ₹
                     {Number(
                       viewingPayment.totalTransactionAmount || viewingPayment.amountPaid || 0
@@ -172,7 +172,7 @@ export default function ClientPaymentDetailModal({
           )}
 
           {viewingPayment.paymentProofUrl && (
-            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between">
+            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <FileCheck size={18} className="text-emerald-600" />
                 <div>
@@ -204,7 +204,7 @@ export default function ClientPaymentDetailModal({
           )}
         </div>
 
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
           <div>
             {!viewingPayment.isReversed && viewingPayment.paymentStatus === "Completed" && (
               <button

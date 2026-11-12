@@ -142,7 +142,7 @@ export default function ProjectMilestoneBuilder({
             </p>
 
             <div className="flex items-center gap-2.5 flex-wrap pt-0.5">
-              <div className="relative w-48 sm:w-60">
+              <div className="relative w-full sm:w-60">
                 <span className="absolute left-3 top-2 text-base font-bold text-blue-600">
                   ₹
                 </span>
@@ -215,7 +215,7 @@ export default function ProjectMilestoneBuilder({
                   />
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1 shadow-2xs focus-within:border-indigo-600 focus-within:ring-1 focus-within:ring-indigo-600">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Price:

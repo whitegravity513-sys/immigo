@@ -62,17 +62,17 @@ export default function ClientPaymentFilterBar({
           </select>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
           <button
             type="submit"
-            className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors cursor-pointer"
           >
             Apply Filter
           </button>
           <button
             type="button"
             onClick={onResetFilters}
-            className="px-3 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial px-3 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
           >
             Reset
           </button>

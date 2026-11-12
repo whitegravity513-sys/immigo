@@ -196,9 +196,9 @@ export default function Profile() {
             </label>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-slate-900">{vendor.companyName}</h2>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 break-words">{vendor.companyName}</h2>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 {vendor.status || "Approved"}

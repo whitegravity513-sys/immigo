@@ -219,8 +219,8 @@ export default function RecordClientExpensePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={() => {
@@ -230,13 +230,13 @@ export default function RecordClientExpensePage() {
                 navigate(-1);
               }
             }}
-            className="p-2 text-gray-500 hover:text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+            className="p-2 text-gray-500 hover:text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer shrink-0"
           >
             <ArrowLeft size={18} />
           </button>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <TrendingDown size={22} className="text-rose-600" />
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+              <TrendingDown size={22} className="text-rose-600 shrink-0" />
               <span>{expenseId ? "Edit Client Project Expense" : "Record Expense Paid"}</span>
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -245,7 +245,7 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <span className="text-[11px] font-semibold text-gray-400 block uppercase tracking-wider">
             Client Expense Ledger
           </span>
@@ -256,7 +256,7 @@ export default function RecordClientExpensePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">1. Client & Project Details</h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -327,7 +327,7 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">2. Expense Classification & Amount</h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -417,7 +417,7 @@ export default function RecordClientExpensePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-6">
           <div className="border-b border-gray-100 pb-4">
             <h2 className="text-sm font-bold text-gray-900">3. Payment Method & Status</h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -524,7 +524,7 @@ export default function RecordClientExpensePage() {
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
               Bill / Invoice / Payment Proof Attachment (Optional)
             </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 cursor-pointer shadow-2xs">
                 <Upload size={14} className="text-gray-500" />
                 <span>Choose File (Image / PDF)</span>
@@ -552,7 +552,7 @@ export default function RecordClientExpensePage() {
           </p>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4">
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={() => {

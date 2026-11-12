@@ -146,7 +146,7 @@ export function Projects() {
   );
 
   return (
-    <div className="space-y-3 max-w-7xl mx-auto">
+    <div className="space-y-3 max-w-[1680px] mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         <StatCard
           title="Total Projects"

@@ -144,7 +144,7 @@ export default function EditEmployeeSection({
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-4 shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+          <div className="flex flex-wrap items-center gap-2 pb-2.5 border-b border-slate-100">
             <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
               <User size={14} />
             </div>
@@ -232,7 +232,7 @@ export default function EditEmployeeSection({
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200/90 p-3 sm:p-4 shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+          <div className="flex flex-wrap items-center gap-2 pb-2.5 border-b border-slate-100">
             <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
               <Briefcase size={14} />
             </div>
@@ -369,7 +369,7 @@ export default function EditEmployeeSection({
         </div>
 
         <div className="bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30 rounded-xl border border-blue-200/90 p-3 sm:p-4 shadow-xs space-y-3">
-          <div className="flex items-center gap-2 pb-2.5 border-b border-blue-100">
+          <div className="flex flex-wrap items-center gap-2 pb-2.5 border-b border-blue-100">
             <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
               <Lock size={14} />
             </div>
@@ -383,7 +383,7 @@ export default function EditEmployeeSection({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="p-3 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-1.5">
                 <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   <span>Previous / Current Password</span>
@@ -436,7 +436,7 @@ export default function EditEmployeeSection({
             </div>
 
             <div className="p-3 bg-white rounded-lg border border-blue-200 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-1.5">
                 <label className="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                   <span>Set New Password</span>
@@ -496,7 +496,7 @@ export default function EditEmployeeSection({
             Review all details before saving. All changes will be updated live across the database.
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={onCancel}

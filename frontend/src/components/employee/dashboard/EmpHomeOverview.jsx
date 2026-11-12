@@ -365,7 +365,7 @@ export default function EmpHomeOverview({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 w-full">
         <div className="bg-white rounded-xl border border-emerald-200/90 hover:border-emerald-300 p-1.5 sm:p-2 shadow-2xs transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[9.5px] sm:text-[10px] font-bold text-emerald-900 uppercase tracking-wider truncate">Present</span>
@@ -438,7 +438,7 @@ export default function EmpHomeOverview({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
         <div className="lg:col-span-6 flex flex-col">
           <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-blue-600/10 text-blue-600 flex items-center justify-center">
                   <Timer size={14} />
@@ -485,14 +485,14 @@ export default function EmpHomeOverview({
                 </div>
               </div>
 
-              <div className="sm:col-span-6 grid grid-cols-3 gap-1 p-1.5 bg-slate-50 rounded-lg border border-slate-200/80 text-center">
+              <div className="sm:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-1 p-1.5 bg-slate-50 rounded-lg border border-slate-200/80 text-center">
                 <div className="p-1">
                   <div className="text-[9px] text-slate-500 font-bold uppercase">In</div>
                   <div className="text-xs font-bold text-slate-900 tabular-nums mt-0.5">
                     {statusRecord?.checkInTime ? fmtTime(statusRecord.checkInTime) : "—"}
                   </div>
                 </div>
-                <div className="p-1 border-x border-slate-200/80">
+                <div className="p-1 border-y sm:border-y-0 sm:border-x border-slate-200/80">
                   <div className="text-[9px] text-slate-500 font-bold uppercase">Out</div>
                   <div className="text-xs font-bold text-slate-900 tabular-nums mt-0.5">
                     {statusRecord?.checkOutTime ? fmtTime(statusRecord.checkOutTime) : "—"}

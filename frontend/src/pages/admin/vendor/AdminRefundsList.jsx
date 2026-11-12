@@ -460,7 +460,7 @@ export default function AdminRefundsList() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
-          <div className="px-4 py-2.5 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
+          <div className="px-4 py-2.5 bg-slate-50/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                 Candidate Refund Claims
@@ -482,7 +482,7 @@ export default function AdminRefundsList() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[880px] text-left text-xs">
               <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] border-b border-slate-200">
                 <tr>
                   <th className="py-2.5 px-3.5">Candidate</th>
@@ -636,8 +636,8 @@ export default function AdminRefundsList() {
       )}
 
       {selectedRefund && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 my-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Approve &amp; Set Refund Payout</h3>
@@ -806,8 +806,8 @@ export default function AdminRefundsList() {
       )}
 
       {rejectRefundModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto my-auto p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
             <h3 className="text-base font-bold text-slate-900">Reject Refund Request</h3>
             <p className="text-xs text-slate-500">
               Rejecting refund request for <strong>{rejectRefundModal.candidateName}</strong>. Please provide a reason.
@@ -849,8 +849,8 @@ export default function AdminRefundsList() {
       )}
 
       {editRefundModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 my-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900">Edit Refund Record</h3>
               <button

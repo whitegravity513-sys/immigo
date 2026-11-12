@@ -4,7 +4,7 @@ export function ProjectInfoCard({ project, client, totalRequired }) {
   if (!project) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-2xs space-y-4">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-2xs space-y-4">
       <h3 className="text-sm font-bold text-gray-900 pb-2 border-b border-gray-100">
         Project Information
       </h3>

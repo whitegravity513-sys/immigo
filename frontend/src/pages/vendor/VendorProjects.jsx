@@ -117,7 +117,7 @@ export default function VendorProjects() {
             ))}
           </select>
 
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 ml-auto md:ml-0">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 sm:ml-auto md:ml-0">
             <button
               type="button"
               onClick={() => setViewMode("list")}
@@ -168,7 +168,7 @@ export default function VendorProjects() {
       ) : viewMode === "list" ? (
         
         <div className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <FolderKanban size={16} className="text-blue-600" />
               <h2 className="text-sm font-bold text-slate-900">
@@ -181,7 +181,7 @@ export default function VendorProjects() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full min-w-[820px] text-left text-xs">
               <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-bold border-b border-slate-200/80">
                 <tr>
                   <th className="py-1 px-2 text-[10px]">Project & ID</th>
@@ -342,7 +342,7 @@ export default function VendorProjects() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-50/80 p-3 rounded-xl border border-slate-100">
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">
                         Location

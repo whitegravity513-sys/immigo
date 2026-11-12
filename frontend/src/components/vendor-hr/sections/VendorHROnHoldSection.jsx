@@ -39,7 +39,7 @@ export default function VendorHROnHoldSection({
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-slate-900">Candidates On Hold</h2>
             <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
               {filteredOnHold.length} On Hold
@@ -50,8 +50,8 @@ export default function VendorHROnHoldSection({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative w-64">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
@@ -85,7 +85,7 @@ export default function VendorHROnHoldSection({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[720px] text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>

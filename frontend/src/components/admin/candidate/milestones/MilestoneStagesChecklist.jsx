@@ -15,8 +15,8 @@ export default function MilestoneStagesChecklist({
 }) {
   return (
     <div className="p-3 sm:p-3.5 space-y-2">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
           <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
             Processing Steps & Clearances Checklist
           </h4>
@@ -27,7 +27,7 @@ export default function MilestoneStagesChecklist({
 
         <button
           onClick={() => onAddStage(activeMilestoneIdx)}
-          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 flex items-center gap-1 cursor-pointer transition"
+          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 flex items-center gap-1 cursor-pointer transition whitespace-nowrap shrink-0"
         >
           <Plus size={12} />
           <span>Add Step</span>
@@ -51,7 +51,7 @@ export default function MilestoneStagesChecklist({
               }`}
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">
                     {sIdx + 1}
                   </span>
@@ -60,7 +60,7 @@ export default function MilestoneStagesChecklist({
                     value={stage.name}
                     onChange={(e) => onStageNameChange(activeMilestoneIdx, sIdx, e.target.value)}
                     onBlur={() => autoSyncMilestones(milestonesList)}
-                    className="flex-1 px-2 py-0.5 rounded border border-transparent hover:border-slate-300 focus:border-[#163868] bg-transparent font-bold text-xs text-slate-900 focus:bg-white transition"
+                    className="flex-1 min-w-0 px-2 py-0.5 rounded border border-transparent hover:border-slate-300 focus:border-[#163868] bg-transparent font-bold text-xs text-slate-900 focus:bg-white transition"
                   />
                 </div>
 

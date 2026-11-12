@@ -31,7 +31,7 @@ export default function AdminUsersTable({
 
   return (
     <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3.5 space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
             Staff & Administrators ({adminsList.length})
@@ -63,7 +63,7 @@ export default function AdminUsersTable({
         />
       </div>
 
-      <div className="space-y-1.5 max-h-[calc(100vh-280px)] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="space-y-1.5 max-h-[420px] lg:max-h-[calc(100vh-280px)] overflow-y-auto pr-1 custom-scrollbar">
         {loading ? (
           <div className="text-center py-8 text-slate-400 text-xs">Loading administrators...</div>
         ) : filteredAdmins.length === 0 ? (

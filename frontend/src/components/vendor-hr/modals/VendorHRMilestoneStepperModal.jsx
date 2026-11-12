@@ -33,8 +33,8 @@ export default function VendorHRMilestoneStepperModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in duration-200">
-        <div className="p-4 sm:p-5 bg-gradient-to-r from-teal-900 via-slate-900 to-indigo-950 text-white flex items-center justify-between">
+      <div className="bg-white rounded-3xl max-w-3xl w-full my-auto max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in duration-200">
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-teal-900 via-slate-900 to-indigo-950 text-white flex items-start sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
               <Award className="w-5 h-5" />
@@ -168,7 +168,7 @@ export default function VendorHRMilestoneStepperModal({
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {amt > 0 ? (
                         isApproved ? (
                           <span className="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
@@ -237,7 +237,7 @@ export default function VendorHRMilestoneStepperModal({
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-1 border-t border-amber-200/80">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-amber-200/80">
                           <span className="text-[11px] text-amber-800 font-medium">
                             {refundLocked
                               ? "Payment verification frozen awaiting Admin refund response"
@@ -278,8 +278,8 @@ export default function VendorHRMilestoneStepperModal({
                                   : "bg-slate-50 border-slate-200 opacity-60"
                               }`}
                             >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex items-start space-x-2.5 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
+                                <div className="flex items-start space-x-2.5 min-w-0 flex-1">
                                   <div className="mt-0.5 shrink-0">
                                     {isStageDone ? (
                                       <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
@@ -320,15 +320,15 @@ export default function VendorHRMilestoneStepperModal({
                                 </div>
 
                                 {!refundLocked && isStageActive && (
-                                  <div className="shrink-0 flex items-center space-x-2">
+                                  <div className="w-full sm:w-auto shrink-0 flex flex-wrap items-center gap-2">
                                     {completingStageId === stage.id ? (
-                                      <div className="flex items-center space-x-1.5 animate-in fade-in">
+                                      <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto animate-in fade-in">
                                         <input
                                           type="text"
                                           value={stageCompletionRemark}
                                           onChange={(e) => setStageCompletionRemark(e.target.value)}
                                           placeholder="Optional verification remark..."
-                                          className="px-2.5 py-1 bg-white border border-blue-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 w-44 sm:w-56"
+                                          className="px-2.5 py-1 bg-white border border-blue-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 w-full sm:w-56"
                                         />
                                         <button
                                           type="button"
@@ -377,7 +377,7 @@ export default function VendorHRMilestoneStepperModal({
           </div>
         </div>
 
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
             <CheckCircle2 size={13} className="text-teal-600" />
             <span>All updates reflect immediately in the Vendor&apos;s Candidate Tracking portal.</span>

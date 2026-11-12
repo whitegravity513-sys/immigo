@@ -32,7 +32,7 @@ export function Pagination({
 
   return (
     <div
-      className={`px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between flex-wrap gap-4 text-sm ${className}`}
+      className={`px-4 sm:px-6 py-3.5 bg-white border-t border-gray-200 flex items-center justify-between flex-wrap gap-3 sm:gap-4 text-sm ${className}`}
     >
       <div className="text-gray-500 text-xs">
         Showing <span className="font-semibold text-gray-900">{startItem}</span> to{" "}
@@ -40,7 +40,7 @@ export function Pagination({
         <span className="font-semibold text-gray-900">{totalItems}</span> results
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <button
           type="button"
           onClick={() => onPageChange(currentPage - 1)}

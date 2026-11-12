@@ -8,10 +8,14 @@ import {
   Send,
   ShieldCheck,
   CheckCircle2,
+  ArrowRight,
+  Menu,
+  X,
 } from "lucide-react";
 import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
 
 export default function ContactPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -40,10 +44,10 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-[#0f2744] selection:text-white flex flex-col justify-between">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-slate-50 font-sans text-slate-900 selection:bg-[#0f2744] selection:text-white flex flex-col justify-between">
       <header className="sticky top-0 z-40 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white border-b border-blue-800/80 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
             <ImmiGoLogo size="sm" theme="light" subtitle="Manpower Supply" />
           </Link>
 
@@ -62,20 +66,108 @@ export default function ContactPage() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Link
               to="/candidate/login"
-              className="px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-xs transition-all cursor-pointer"
+              className="px-3 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               Sign In
             </Link>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label="Toggle navigation menu"
+              className="md:hidden p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/15 cursor-pointer"
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
-        <div className="text-center max-w-2xl mx-auto mb-7 space-y-1.5">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex justify-end">
+          <div
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+            aria-hidden="true"
+          />
+          <aside className="relative z-10 w-[260px] max-w-[80vw] h-[100dvh] bg-gradient-to-b from-blue-950 via-blue-900 to-indigo-950 text-white border-l border-blue-800/80 shadow-2xl flex flex-col justify-between overflow-y-auto">
+            <div>
+              <div className="h-14 px-4 flex items-center justify-between border-b border-blue-800/70">
+                <ImmiGoLogo size="sm" theme="light" subtitle="Manpower Supply" />
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Close navigation menu"
+                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/15 cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-3 space-y-1">
+                <span className="px-3 py-1 block text-[10px] font-bold uppercase tracking-wider text-blue-300/80">
+                  Navigation
+                </span>
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 text-xs font-semibold text-blue-100 hover:text-white flex items-center justify-between transition-colors"
+                >
+                  <span>Home</span>
+                  <ArrowRight size={13} className="text-blue-300" />
+                </Link>
+                <a
+                  href="/#about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 text-xs font-semibold text-blue-100 hover:text-white flex items-center justify-between transition-colors"
+                >
+                  <span>About Us</span>
+                  <ArrowRight size={13} className="text-blue-300" />
+                </a>
+                <a
+                  href="/#process"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 text-xs font-semibold text-blue-100 hover:text-white flex items-center justify-between transition-colors"
+                >
+                  <span>Process</span>
+                  <ArrowRight size={13} className="text-blue-300" />
+                </a>
+                <Link
+                  to="/contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/15 text-xs font-semibold text-white flex items-center justify-between transition-colors"
+                >
+                  <span>Contact Us</span>
+                  <ArrowRight size={13} className="text-cyan-300" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="p-3 border-t border-blue-800/70 space-y-2">
+              <Link
+                to="/vendor/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full block text-center px-3 py-2.5 text-xs font-bold text-blue-100 border border-blue-700/80 rounded-xl bg-blue-900/50 hover:bg-blue-800/70 transition-colors"
+              >
+                Vendor Sign In
+              </Link>
+              <Link
+                to="/vendor/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full block text-center px-3 py-2.5 text-xs font-bold text-white rounded-xl bg-blue-600 hover:bg-blue-500 shadow-sm transition-colors"
+              >
+                Vendor Register
+              </Link>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      <main className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8 w-full flex-1">
+        <div className="text-center max-w-2xl mx-auto mb-5 sm:mb-6 space-y-1">
+          <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Get in Touch with Immigo
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl mx-auto">
@@ -83,54 +175,54 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-5 space-y-4">
-            <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">
+          <div className="lg:col-span-5 space-y-3.5">
+            <div className="p-3.5 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                 Direct Contact Information
               </h2>
 
-              <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 text-xs">
 
-                <div className="flex items-start gap-3 p-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                    <Phone size={15} />
+                <div className="flex items-start gap-2 sm:gap-3 p-1.5 sm:p-2 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <Phone size={14} className="sm:w-[15px] sm:h-[15px]" />
                   </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-semibold">Phone Support</span>
-                    <span className="text-xs font-bold text-slate-800">+91 9876543210 / +91 11 2345 6789</span>
+                  <div className="min-w-0">
+                    <span className="text-[10.5px] sm:text-[11px] text-slate-400 block font-semibold">Phone Support</span>
+                    <span className="text-[11px] sm:text-xs font-bold text-slate-800 break-words leading-snug block">+91 9876543210 / +91 11 2345 6789</span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                    <Mail size={15} />
+                <div className="flex items-start gap-2 sm:gap-3 p-1.5 sm:p-2 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <Mail size={14} className="sm:w-[15px] sm:h-[15px]" />
                   </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-semibold">Email Desk</span>
-                    <span className="text-xs font-bold text-slate-800">inquiry@immigo.com</span>
+                  <div className="min-w-0">
+                    <span className="text-[10.5px] sm:text-[11px] text-slate-400 block font-semibold">Email Desk</span>
+                    <span className="text-[11px] sm:text-xs font-bold text-slate-800 break-all leading-snug block">inquiry@immigo.com</span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                    <MapPin size={15} />
+                <div className="flex items-start gap-2 sm:gap-3 p-1.5 sm:p-2 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <MapPin size={14} className="sm:w-[15px] sm:h-[15px]" />
                   </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-semibold">Corporate Head Office</span>
-                    <span className="text-xs text-slate-700 leading-snug block">
+                  <div className="min-w-0">
+                    <span className="text-[10.5px] sm:text-[11px] text-slate-400 block font-semibold">Corporate Head Office</span>
+                    <span className="text-[11px] sm:text-xs text-slate-700 leading-snug block break-words">
                       Immigo Overseas Manpower Tower, Commercial Plaza, New Delhi, India
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-                    <Clock size={15} />
+                <div className="flex items-start gap-2 sm:gap-3 p-1.5 sm:p-2 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <Clock size={14} className="sm:w-[15px] sm:h-[15px]" />
                   </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 block font-semibold">Working Hours</span>
-                    <span className="text-xs text-slate-700">Mon - Sat: 9:30 AM to 6:30 PM (IST)</span>
+                  <div className="min-w-0">
+                    <span className="text-[10.5px] sm:text-[11px] text-slate-400 block font-semibold">Working Hours</span>
+                    <span className="text-[11px] sm:text-xs text-slate-700 leading-snug block">Mon - Sat: 9:30 AM to 6:30 PM (IST)</span>
                   </div>
                 </div>
               </div>
@@ -148,7 +240,7 @@ export default function ContactPage() {
           </div>
 
           <div className="lg:col-span-7">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 sm:p-7 relative">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-4 sm:p-7 relative">
               <div className="pb-3 border-b border-slate-100">
                 <h2 className="text-base font-bold text-[#0f2744]">Direct Inquiry Form</h2>
                 <p className="text-[11px] text-slate-500 mt-0.5">
@@ -178,9 +270,9 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                  <div className="min-w-0">
+                    <label className="block text-[10.5px] sm:text-[11px] font-bold text-slate-700 mb-0.5 truncate">
                       Phone Number (WhatsApp)
                     </label>
                     <input
@@ -189,12 +281,12 @@ export default function ContactPage() {
                       placeholder="+91 9876543210"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                  <div className="min-w-0">
+                    <label className="block text-[10.5px] sm:text-[11px] font-bold text-slate-700 mb-0.5 truncate">
                       Email Address (Optional)
                     </label>
                     <input
@@ -202,7 +294,7 @@ export default function ContactPage() {
                       placeholder="client@company.com"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -249,23 +341,23 @@ export default function ContactPage() {
         </div>
       </main>
 
-      <footer className="bg-[#0f2744] text-white pt-10 pb-6 border-t border-blue-900 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10 items-start">
-            <div className="space-y-3">
+      <footer className="bg-[#0f2744] text-white pt-5 pb-3.5 sm:pt-7 sm:pb-4 border-t border-blue-900 mt-auto">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-3.5 sm:px-6 lg:px-8 space-y-3.5 sm:space-y-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 pb-3.5 sm:pb-5 border-b border-white/10 items-start">
+            <div className="col-span-2 md:col-span-1 space-y-2">
               <Link to="/" className="inline-block">
                 <ImmiGoLogo size="sm" theme="light" subtitle="Manpower Supply" />
               </Link>
-              <p className="text-xs text-slate-300 leading-relaxed max-w-sm">
+              <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed max-w-sm">
                 Certified international recruitment and overseas manpower supply agency connecting tested skilled professionals with global employers.
               </p>
             </div>
 
-            <div className="md:text-center space-y-3">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">
+            <div className="col-span-1 md:text-center space-y-2">
+              <span className="text-[11px] sm:text-xs font-bold text-white uppercase tracking-wider block">
                 Quick Links
               </span>
-              <nav className="flex flex-col md:items-center gap-2 text-xs font-semibold text-slate-300">
+              <nav className="flex flex-col md:items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-slate-300">
                 <Link to="/" className="hover:text-white transition-colors">Home</Link>
                 <a href="/#about" className="hover:text-white transition-colors">About</a>
                 <a href="/#process" className="hover:text-white transition-colors">Process</a>
@@ -273,34 +365,34 @@ export default function ContactPage() {
               </nav>
             </div>
 
-            <div className="space-y-3">
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">
+            <div className="col-span-1 space-y-2 min-w-0">
+              <span className="text-[11px] sm:text-xs font-bold text-white uppercase tracking-wider block">
                 Corporate Address
               </span>
-              <div className="space-y-2 text-xs text-slate-300">
-                <div className="flex items-start gap-2">
-                  <MapPin size={15} className="text-blue-400 shrink-0 mt-0.5" />
-                  <span>Immigo Overseas Tower, Commercial Plaza, New Delhi, India</span>
+              <div className="space-y-1.5 text-[10.5px] sm:text-xs text-slate-300">
+                <div className="flex items-start gap-1.5">
+                  <MapPin size={13} className="text-blue-400 shrink-0 mt-0.5" />
+                  <span className="min-w-0 break-words leading-snug">Immigo Overseas Tower, Commercial Plaza, New Delhi, India</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone size={14} className="text-blue-400 shrink-0" />
-                  <span>+91 9876543210</span>
+                <div className="flex items-center gap-1.5">
+                  <Phone size={13} className="text-blue-400 shrink-0" />
+                  <span className="min-w-0 break-words">+91 9876543210</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Mail size={14} className="text-blue-400 shrink-0" />
-                  <span>inquiry@immigo.com</span>
+                <div className="flex items-center gap-1.5">
+                  <Mail size={13} className="text-blue-400 shrink-0" />
+                  <span className="min-w-0 break-all">inquiry@immigo.com</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-start text-center sm:text-left">
               <span>&copy; {new Date().getFullYear()} Immigo Manpower Consultants</span>
               <span className="text-blue-400">&bull;</span>
               <span className="font-semibold text-cyan-300">Designed by White Gravity Web Solutions</span>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap justify-center">
               <Link to="/candidate/login" className="hover:text-white">Candidate Sign In</Link>
               <span>&bull;</span>
               <Link to="/vendor/login" className="hover:text-white">Vendor Portal</Link>

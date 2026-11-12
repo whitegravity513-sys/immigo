@@ -38,10 +38,10 @@ export default function VendorHRRejectedSection({
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-slate-900">Rejected Candidates / Talent Pool</h2>
-            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 whitespace-nowrap">
               {filteredRejected.length} Candidates
             </span>
           </div>
@@ -52,8 +52,8 @@ export default function VendorHRRejectedSection({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative w-64">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <div className="relative w-full sm:w-64">
             <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
@@ -87,7 +87,7 @@ export default function VendorHRRejectedSection({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[760px] text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Candidate & Identity</th>
@@ -124,32 +124,32 @@ export default function VendorHRRejectedSection({
                       )
                     )}
                   </td>
-                  <td className="py-3.5 px-3 text-center">
+                  <td className="py-3.5 px-3 text-center whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => navigateByTag && navigateByTag("Rejected", cand)}
-                      className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 cursor-pointer hover:scale-105 transition"
+                      className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 cursor-pointer hover:scale-105 transition whitespace-nowrap"
                       title="Click to view Rejected section"
                     >
                       Rejected
                     </button>
                   </td>
-                  <td className="py-3.5 px-4 text-center">
+                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => openReassignModal(cand)}
-                      className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                      className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition inline-flex items-center gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap"
                       title={hideProjectNames ? "Reassign this candidate to another requirement" : "Submit this candidate to another open project requirement"}
                     >
                       <RotateCcw size={12} />
                       <span>{hideProjectNames ? "Reassign Candidate" : "Apply to Another Project"}</span>
                     </button>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <button
                       type="button"
                       onClick={() => openCandidateModal(cand)}
-                      className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
                     >
                       <span>Details</span>
                       <ArrowRight size={12} />

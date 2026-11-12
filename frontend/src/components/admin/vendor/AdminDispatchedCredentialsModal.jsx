@@ -9,8 +9,8 @@ export function AdminDispatchedCredentialsModal({
   if (!dispatchedVendor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 text-center space-y-5 relative animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-8 shadow-2xl border border-slate-100 text-center space-y-5 relative my-auto max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
         <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
           <CheckCircle2 size={36} />
         </div>
@@ -22,25 +22,25 @@ export function AdminDispatchedCredentialsModal({
           <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
             Login ID, Password, and direct portal access link have been dispatched to:
           </p>
-          <p className="text-sm font-bold text-blue-700 underline">
+          <p className="text-sm font-bold text-blue-700 underline break-all">
             {dispatchedVendor.email}
           </p>
         </div>
 
-        <div className="bg-slate-50/90 rounded-xl border border-slate-200 p-2.5 text-left text-xs space-y-3">
-          <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+        <div className="bg-slate-50/90 rounded-xl border border-slate-200 p-3 text-left text-xs space-y-3">
+          <div className="flex flex-wrap justify-between items-center gap-2 border-b border-slate-200 pb-2">
             <span className="text-slate-500 font-semibold">Agency Name:</span>
             <span className="font-bold text-slate-900">{dispatchedVendor.companyName}</span>
           </div>
 
-          <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+          <div className="flex flex-wrap justify-between items-center gap-2 border-b border-slate-200 pb-2">
             <span className="text-slate-500 font-semibold">Vendor ID:</span>
             <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
               {dispatchedVendor.id}
             </span>
           </div>
 
-          <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+          <div className="flex flex-wrap justify-between items-center gap-2 border-b border-slate-200 pb-2">
             <span className="text-slate-500 font-semibold">Login Password:</span>
             <span className="font-mono font-bold text-slate-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
               {dispatchedVendor.password || "Password@123"}

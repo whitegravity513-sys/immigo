@@ -3,20 +3,20 @@ export default function TextModal({ data, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50">
           <h3 className="text-base font-bold text-slate-800">{data.title}</h3>
           <button className="text-slate-500 text-xl cursor-pointer p-1" onClick={onClose}>
             ×
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
             {data.content}
           </p>

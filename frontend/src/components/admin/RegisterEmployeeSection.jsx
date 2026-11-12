@@ -160,7 +160,7 @@ export const RegisterEmployeeSection = ({
             <ArrowLeft size={18} />
           </button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                 Register New Employee
               </h2>
@@ -199,7 +199,7 @@ export const RegisterEmployeeSection = ({
 
         <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-xs space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <div className="relative group shrink-0">
                 {employeeForm.profileImage ? (
                   <img
@@ -222,7 +222,7 @@ export const RegisterEmployeeSection = ({
                 />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => photoInputRef.current?.click()}
@@ -247,7 +247,7 @@ export const RegisterEmployeeSection = ({
               </div>
             </div>
 
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <span className="text-[11px] font-bold text-slate-500">Live Employee Code</span>
               <div className="text-sm font-mono font-bold text-slate-800 bg-white border border-slate-200 px-3 py-1 rounded-xl mt-1">
                 {generatedId}
@@ -645,7 +645,7 @@ export const RegisterEmployeeSection = ({
         </div>
 
 
-        <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={onCancel}

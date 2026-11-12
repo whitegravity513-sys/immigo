@@ -36,14 +36,14 @@ export default function LeaveApprovalsSection({
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden">
-      <div className="px-3 sm:px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-3 sm:px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold text-slate-800 tracking-tight">Leave Applications & Approval Portal</h3>
           <p className="text-[11px] text-slate-500">Approve or reject leave requests — internal notes stay private to Admin &amp; HR</p>
         </div>
       </div>
       <div className="overflow-x-auto w-full">
-        <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+        <table className="w-full min-w-[820px] text-left border-collapse table-auto">
           <thead>
             <tr className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
               <th className="px-2.5 sm:px-3 py-2 w-[22%]">Employee</th>

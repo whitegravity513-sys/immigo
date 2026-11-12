@@ -12,11 +12,11 @@ export default function VendorMetricsBar({ stats }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-3">
       {metrics.map((m, idx) => (
-        <div key={idx} className="p-3 rounded-2xl bg-slate-900/70 border border-slate-800 text-center">
-          <div className="text-[11px] text-slate-400 font-medium">{m.label}</div>
-          <div className={`text-base font-bold mt-1 ${m.color}`}>{m.val}</div>
+        <div key={idx} className="min-w-0 p-3 rounded-2xl bg-slate-900/70 border border-slate-800 text-center">
+          <div className="text-[11px] text-slate-400 font-medium truncate">{m.label}</div>
+          <div className={`text-sm sm:text-base font-bold mt-1 break-all ${m.color}`}>{m.val}</div>
         </div>
       ))}
     </div>

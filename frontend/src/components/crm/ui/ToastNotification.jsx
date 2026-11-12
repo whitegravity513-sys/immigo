@@ -35,7 +35,7 @@ export function ToastNotification({
   const current = styles[type] || styles.success;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-md animate-in fade-in slide-in-from-bottom-4 duration-200">
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 z-50 sm:max-w-md animate-in fade-in slide-in-from-bottom-4 duration-200">
       <div
         className={`flex items-center gap-3 p-4 rounded-xl border shadow-lg ${current.bg}`}
       >

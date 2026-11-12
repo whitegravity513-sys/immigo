@@ -48,7 +48,7 @@ export default function EmployeeRecentActivitySection() {
 
   return (
     <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
             <Activity size={14} className="text-blue-600" />
@@ -84,7 +84,7 @@ export default function EmployeeRecentActivitySection() {
           {activities.map((act) => (
             <div
               key={act._id || act.id}
-              className="p-3 sm:px-4 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/60 transition-colors"
+              className="p-3 sm:px-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 text-xs hover:bg-slate-50/60 transition-colors"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />

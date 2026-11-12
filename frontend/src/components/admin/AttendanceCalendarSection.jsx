@@ -252,14 +252,14 @@ export default function AttendanceCalendarSection({
 
   return (
     <div className="space-y-6 text-slate-800">
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-5">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 sm:p-6 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-sm">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-sm shrink-0">
               <CalendarIcon size={22} />
             </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex flex-wrap items-center gap-2">
                 Workforce Attendance Calendar
                 <span className="text-[10px] uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-bold">
                   Date-Wise
@@ -295,7 +295,7 @@ export default function AttendanceCalendarSection({
         </div>
 
         <div className="overflow-x-auto w-full pb-1">
-          <div className="w-full">
+          <div className="w-full min-w-[580px]">
             <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
               <span className="text-rose-600">Sun</span>
               <span>Mon</span>
@@ -400,7 +400,7 @@ export default function AttendanceCalendarSection({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 sm:p-6 space-y-6">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 sm:p-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2">
@@ -521,7 +521,7 @@ export default function AttendanceCalendarSection({
             ))}
           </div>
 
-          <div className="relative min-w-[220px]">
+          <div className="relative w-full sm:w-auto sm:min-w-[240px]">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -546,7 +546,7 @@ export default function AttendanceCalendarSection({
           </div>
         ) : (
           <div className="overflow-x-auto w-full rounded-xl border border-slate-200/90 shadow-2xs">
-            <table className="w-full text-left border-collapse table-auto sm:table-fixed">
+            <table className="w-full min-w-[920px] text-left border-collapse table-auto">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                   <th className="px-3 py-2 text-[10px]">Employee</th>
@@ -582,7 +582,7 @@ export default function AttendanceCalendarSection({
                   return (
                     <tr key={emp.id || emp.employeeId} className="hover:bg-slate-50/60 transition">
                       <td className="px-3 py-1.5">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div className={`w-8 h-8 rounded-xl ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
                             {emp.profileImage ? (
                               <img src={emp.profileImage} alt="" className="w-full h-full object-cover" />
@@ -590,7 +590,7 @@ export default function AttendanceCalendarSection({
                               emp.name ? emp.name.charAt(0).toUpperCase() : "E"
                             )}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <button
                               type="button"
                               onClick={() => openEmployeeDetail && openEmployeeDetail(emp.employeeId || emp._id, "employees")}
@@ -631,7 +631,7 @@ export default function AttendanceCalendarSection({
                       </td>
 
                       <td className="px-3 py-1.5">
-                        <div className="inline-flex items-center gap-1.5">
+                        <div className="inline-flex flex-wrap items-center gap-1.5">
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${statusBg}`}>
                             {emp.status || "Absent"}
                           </span>

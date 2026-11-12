@@ -10,7 +10,7 @@ export function WorkforceLeavesPanel({
 }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-      <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-rose-50/30 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-rose-50/30 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
             <Calendar size={15} />
@@ -52,7 +52,7 @@ export function WorkforceLeavesPanel({
                 key={leave._id || leave.id}
                 className="p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white shadow-2xs space-y-2.5 transition-all"
               >
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className={`w-8 h-8 rounded-lg ${emp.profileImage ? "bg-white" : "bg-blue-50 border border-blue-200 text-blue-600"} text-xs font-bold flex items-center justify-center shrink-0 shadow-2xs overflow-hidden`}>
                       {emp.profileImage ? (
@@ -88,7 +88,7 @@ export function WorkforceLeavesPanel({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] font-medium bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-medium bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
                   <div className="flex items-center gap-1.5 text-slate-700">
                     <Calendar size={12} className="text-slate-400" />
                     <span>
@@ -105,7 +105,7 @@ export function WorkforceLeavesPanel({
                   {leave.reason}
                 </p>
 
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => openEmployeeDetail(emp._id || emp.id)}

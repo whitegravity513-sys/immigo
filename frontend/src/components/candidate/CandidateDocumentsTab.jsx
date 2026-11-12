@@ -92,8 +92,8 @@ export default function CandidateDocumentsTab({
                 key={doc.id}
                 className="p-2 rounded-lg border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
               >
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5">
+                <div className="space-y-0.5 min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-semibold text-slate-900 text-xs">
                       {doc.name}
                     </span>

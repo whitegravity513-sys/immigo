@@ -650,7 +650,7 @@ export default function MeetingCalendarSection({
             <Calendar size={17} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight leading-tight">
                 Meeting Calendar & Scheduling
               </h3>
@@ -808,7 +808,7 @@ export default function MeetingCalendarSection({
             )}
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-52">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -877,7 +877,7 @@ export default function MeetingCalendarSection({
         )}
 
         {viewMode === "week" && (
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2">
             {weekDays.map((wDay) => {
               const dayMeetings = filteredMeetings.filter((m) => m.date === wDay.dateStr);
               const isToday = wDay.dateStr === todayStr;
@@ -951,7 +951,8 @@ export default function MeetingCalendarSection({
 
         {viewMode === "month" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-7 gap-1 border border-slate-200 rounded-xl overflow-hidden bg-slate-100">
+            <div className="overflow-x-auto w-full rounded-xl border border-slate-200 bg-slate-100">
+              <div className="min-w-[640px] grid grid-cols-7 gap-1">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((dayName) => (
                 <div
                   key={dayName}
@@ -1020,10 +1021,11 @@ export default function MeetingCalendarSection({
                   </div>
                 );
               })}
+              </div>
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-200">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
                   <CalendarDays size={16} className="text-blue-600" />
                   <span>Meetings for {selectedDateStr}</span>
@@ -1082,8 +1084,8 @@ export default function MeetingCalendarSection({
       </div>
 
       {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-lg w-full shadow-2xl space-y-3 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b pb-2.5">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                 <Video size={16} className="text-blue-600" />
@@ -1116,7 +1118,7 @@ export default function MeetingCalendarSection({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Meeting Type</label>
                   {isVendorUser ? (
@@ -1175,7 +1177,7 @@ export default function MeetingCalendarSection({
                 }
               />
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Date *</label>
                   <DateInput
@@ -1252,8 +1254,8 @@ export default function MeetingCalendarSection({
       )}
 
       {selectedMeetingDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-md w-full shadow-2xl space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b pb-2.5">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <Video size={16} className="text-blue-600" />
@@ -1372,8 +1374,8 @@ export default function MeetingCalendarSection({
       )}
 
       {meetingToReschedule && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                 <RefreshCw size={15} className="text-amber-600" />
@@ -1403,7 +1405,7 @@ export default function MeetingCalendarSection({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">New Start Time *</label>
                   <input
@@ -1469,8 +1471,8 @@ export default function MeetingCalendarSection({
       )}
 
       {meetingToCancel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 text-rose-600">
                 <XCircle size={16} />
@@ -1525,8 +1527,8 @@ export default function MeetingCalendarSection({
       )}
 
       {meetingToRecordOutcome && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 max-w-sm w-full shadow-2xl space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 text-emerald-600">
                 <Award size={16} />

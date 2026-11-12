@@ -240,7 +240,7 @@ export default function AdminCandidateDashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => fetchDashboardData(false)}
             disabled={loading}
@@ -259,7 +259,7 @@ export default function AdminCandidateDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -299,7 +299,7 @@ export default function AdminCandidateDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-3 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
                 <UserPlus size={14} />
@@ -315,7 +315,7 @@ export default function AdminCandidateDashboard() {
             </div>
             <Link
               to="/admin/candidates/new-registrations"
-              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 whitespace-nowrap shrink-0"
             >
               <span>View All</span>
               <ArrowRight size={12} />
@@ -372,7 +372,7 @@ export default function AdminCandidateDashboard() {
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-3 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
                 <Briefcase size={14} />
@@ -388,7 +388,7 @@ export default function AdminCandidateDashboard() {
             </div>
             <Link
               to="/admin/candidates/applications"
-              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 whitespace-nowrap shrink-0"
             >
               <span>View All</span>
               <ArrowRight size={12} />

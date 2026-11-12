@@ -216,7 +216,7 @@ export default function AdminDocumentVerification() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[180px]">
+          <div className="relative w-full sm:w-auto sm:min-w-[180px]">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -295,7 +295,7 @@ export default function AdminDocumentVerification() {
                       {candidate.fullName.charAt(0)}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-slate-900 text-xs sm:text-sm">
                           {candidate.fullName}
                         </span>
@@ -312,8 +312,8 @@ export default function AdminDocumentVerification() {
                           {candidate.accountStatus}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
-                        <span>{candidate.email}</span>
+                      <div className="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <span className="break-all">{candidate.email}</span>
                         {candidate.phone && (
                           <>
                             <span>&bull;</span>
@@ -324,7 +324,7 @@ export default function AdminDocumentVerification() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-[10px] font-semibold text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
                       {documents.length} {documents.length === 1 ? "Doc" : "Docs"}{" "}
                       <span className="text-emerald-700 font-bold">({verifiedCount} Verified)</span>
@@ -370,7 +370,7 @@ export default function AdminDocumentVerification() {
 
                 {isExpanded && (
                   <div className="border-t border-slate-200 bg-slate-50/50 p-2 sm:p-3 overflow-x-auto animate-in fade-in duration-150">
-                    <table className="w-full text-left border-collapse text-xs bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <table className="w-full min-w-[760px] text-left border-collapse text-xs bg-white rounded-lg border border-slate-200 overflow-hidden">
                       <thead>
                         <tr className="bg-slate-100/70 border-b border-slate-200 text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">
                           <th className="py-2 px-3">Document Title</th>
@@ -428,14 +428,14 @@ export default function AdminDocumentVerification() {
                                 "-"
                               )}
                             </td>
-                            <td className="py-2.5 px-3 text-right">
+                            <td className="py-2.5 px-3 text-right whitespace-nowrap">
                               <div className="flex items-center justify-end gap-1.5">
                                 {document.fileUrl && (
                                   <a
                                     href={document.fileUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                    className="px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors whitespace-nowrap"
                                   >
                                     Preview
                                   </a>
@@ -447,7 +447,7 @@ export default function AdminDocumentVerification() {
                                       handleVerify(candidate, document);
                                     }}
                                     disabled={actionLoading}
-                                    className="px-2.5 py-1 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-2xs transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-xs font-bold text-white bg-[#0f2744] hover:bg-[#163660] rounded-lg shadow-2xs transition-colors cursor-pointer whitespace-nowrap"
                                   >
                                     Verify
                                   </button>
@@ -461,7 +461,7 @@ export default function AdminDocumentVerification() {
                                       setRejectModalOpen(true);
                                     }}
                                     disabled={actionLoading}
-                                    className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                                   >
                                     Request Re-upload
                                   </button>
@@ -481,8 +481,8 @@ export default function AdminDocumentVerification() {
       )}
 
       {rejectModalOpen && selectedDoc && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-rose-700 flex items-center gap-1.5">
                 <RotateCcw size={16} />

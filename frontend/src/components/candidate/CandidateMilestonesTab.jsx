@@ -178,7 +178,7 @@ export default function CandidateMilestonesTab({
           </div>
 
           {selectedApps.length > 1 && (
-            <div className="bg-white/10 p-1.5 rounded-lg border border-white/15">
+            <div className="bg-white/10 p-1.5 rounded-lg border border-white/15 w-full md:w-auto">
               <label className="block text-[9px] uppercase font-semibold text-slate-400 mb-0.5">
                 Switch Project
               </label>
@@ -193,7 +193,7 @@ export default function CandidateMilestonesTab({
                     onFetchAppMilestones(target.applicationId || target.id);
                   }
                 }}
-                className="bg-[#132c50] text-white text-[11px] font-medium px-2 py-1 rounded border border-white/20 focus:outline-none"
+                className="w-full md:w-auto bg-[#132c50] text-white text-[11px] font-medium px-2 py-1 rounded border border-white/20 focus:outline-none"
               >
                 {selectedApps.map((a) => (
                   <option key={a.applicationId || a.id} value={a.applicationId || a.id}>
@@ -272,8 +272,8 @@ export default function CandidateMilestonesTab({
                   >
                     {isPaid ? "✓" : isLocked ? <Lock size={12} /> : mIdx + 1}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <h3 className="text-xs font-semibold text-slate-900">{m.name}</h3>
                       <span
                         className={`px-1.5 py-0.2 rounded text-[9px] font-semibold ${

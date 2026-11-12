@@ -23,8 +23,8 @@ export default function VendorHRReassignModal({
   const isRefundApprovedReassign = REASSIGN_ELIGIBLE_REFUND_STATUSES.has(refundStatus);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">
@@ -143,7 +143,7 @@ export default function VendorHRReassignModal({
             />
           </div>
 
-          <div className="pt-2 flex justify-end space-x-2 border-t border-slate-100">
+          <div className="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}

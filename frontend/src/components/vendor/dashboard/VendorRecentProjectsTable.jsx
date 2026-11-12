@@ -27,7 +27,7 @@ export default function VendorRecentProjectsTable({ allProjects }) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+        <table className="w-full min-w-[680px] text-left text-xs">
           <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
             <tr>
               <th className="py-2 px-3 text-[10px]">Project Name</th>
@@ -126,7 +126,7 @@ export default function VendorRecentProjectsTable({ allProjects }) {
       </div>
 
       {allProjects.length > 5 && (
-        <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+        <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="text-slate-500 font-medium">
             Showing 5 of {allProjects.length} assigned projects
           </span>

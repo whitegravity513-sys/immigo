@@ -88,20 +88,20 @@ export default function HRLoginPage() {
   };
 
   return (
-    <div className="h-screen w-screen max-h-screen overflow-hidden relative flex flex-col justify-between font-sans select-none bg-slate-900">
+    <div className="min-h-[100dvh] w-full overflow-x-hidden relative flex flex-col justify-between font-sans select-none bg-slate-900">
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
         style={{ backgroundImage: `url(${hrOfficeBg})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent pointer-events-none" />
+      <div className="fixed inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent pointer-events-none" />
 
-      <div className="fixed top-0 inset-x-0 z-30">
+      <div className="sticky top-0 inset-x-0 z-30 shrink-0">
         <AuthHeader
           portalBadge="HR Portal"
           rightBadge={
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/50 backdrop-blur-md border border-blue-700/60 text-white shadow-xs">
               <ShieldCheck size={14} className="text-cyan-400 shrink-0" />
-              <div className="text-left leading-tight hidden xs:block">
+              <div className="text-left leading-tight hidden sm:block">
                 <p className="text-[11px] font-bold text-white">Secure Access</p>
                 <p className="text-[9px] text-cyan-200">Your data is safe with us</p>
               </div>
@@ -110,8 +110,8 @@ export default function HRLoginPage() {
         />
       </div>
 
-      <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-8 lg:px-14 xl:px-16 pt-[52px] pb-[38px] max-w-7xl mx-auto overflow-hidden">
-        <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
+      <main className="relative z-10 w-full flex-1 flex items-center justify-center px-4 sm:px-8 lg:px-14 xl:px-16 py-6 sm:py-8 max-w-7xl 2xl:max-w-[1440px] mx-auto">
+        <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-10">
           
           <div className="w-full lg:w-[55%] text-left">
             <div className="flex items-center gap-2 mb-2">
@@ -148,7 +148,7 @@ export default function HRLoginPage() {
               Streamline your HR operations, manage your team and build a better workplace &mdash; all in one place.
             </p>
 
-            <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-lg">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg">
               <div className="flex flex-col items-center text-center group cursor-default">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600/25 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-md shadow-blue-900/30 transition-transform group-hover:scale-105">
                   <Users size={16} className="text-sky-300" />
@@ -273,7 +273,7 @@ export default function HRLoginPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] pt-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-0">
                   <label className="flex items-center gap-1.5 cursor-pointer text-slate-600 font-medium select-none">
                     <input
                       type="checkbox"
@@ -334,9 +334,9 @@ export default function HRLoginPage() {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 inset-x-0 z-30 px-6 py-2 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md">
+      <footer className="relative z-30 w-full px-4 sm:px-6 py-2.5 text-center border-t border-blue-900/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-blue-100 text-[11px] font-medium shadow-md flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 shrink-0">
         <span>&copy; {new Date().getFullYear()} ImmiGo Global Enterprise</span>
-        <span className="mx-2 text-cyan-400">&bull;</span>
+        <span className="text-cyan-400">&bull;</span>
         <span className="font-semibold text-cyan-300 tracking-wide">Designed by White Gravity Web Solutions</span>
       </footer>
 

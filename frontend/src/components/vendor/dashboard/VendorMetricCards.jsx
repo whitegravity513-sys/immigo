@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function VendorMetricCards({ cards }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 w-full">
       {cards.map((card) => {
         const Icon = card.icon;
         return (

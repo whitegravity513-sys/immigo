@@ -8,7 +8,7 @@ export default function CandidatePoolFilterCards({
   setCategoryFilter,
 }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-3">
       <div
         onClick={() => setCategoryFilter("All")}
         className={`p-2 rounded-lg border transition-all cursor-pointer ${

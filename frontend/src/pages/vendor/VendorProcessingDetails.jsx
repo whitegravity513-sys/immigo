@@ -121,7 +121,7 @@ export default function VendorProcessingDetails() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/vendor/processing"
           className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 text-xs font-bold transition"
@@ -137,7 +137,7 @@ export default function VendorProcessingDetails() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-5 text-xs space-y-2.5 mb-6">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
           <span className="font-bold text-slate-900 text-xs uppercase tracking-wider">Candidate Dossier</span>
           <Link
             to={`/vendor/candidates/${currentApp.candidateId}`}
@@ -147,7 +147,7 @@ export default function VendorProcessingDetails() {
             <ExternalLink size={12} />
           </Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-slate-600 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-slate-600 pt-1">
           <div>
             <span className="text-slate-400 block text-[10px]">Candidate</span>
             <span className="font-bold text-slate-900 truncate block text-sm">{currentApp.candidateName}</span>

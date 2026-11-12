@@ -147,8 +147,8 @@ export default function ForgotPasswordOtpModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
-      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 text-left relative animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs select-none">
+      <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-md w-full my-auto max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 text-left relative animate-in fade-in zoom-in-95 duration-200">
         <button
           type="button"
           onClick={onClose}
@@ -242,8 +242,8 @@ export default function ForgotPasswordOtpModal({
                 OTP Verification
               </span>
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">Enter OTP Code</h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                6-digit OTP code sent to <strong className="text-slate-800">{email}</strong> via <strong className="text-blue-600">abhishekyadav36219@gmail.com</strong>.
+              <p className="text-xs text-slate-500 font-medium leading-relaxed break-words">
+                6-digit OTP code sent to <strong className="text-slate-800 break-all">{email}</strong> via <strong className="text-blue-600 break-all">abhishekyadav36219@gmail.com</strong>.
               </p>
             </div>
 
@@ -273,7 +273,7 @@ export default function ForgotPasswordOtpModal({
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   placeholder="&bull; &bull; &bull; &bull; &bull; &bull;"
-                  className="w-full text-center tracking-[8px] font-mono text-lg font-bold py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-slate-900 focus:outline-none transition"
+                  className="w-full text-center tracking-[4px] sm:tracking-[8px] font-mono text-lg font-bold py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 rounded-xl text-slate-900 focus:outline-none transition"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export default function ForgotPasswordOtpModal({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-1">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
                 <button
                   type="button"
                   onClick={() => setStep(1)}

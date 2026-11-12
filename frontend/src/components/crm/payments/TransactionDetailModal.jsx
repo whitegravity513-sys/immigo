@@ -66,18 +66,18 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full border border-gray-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/70 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="bg-white rounded-2xl max-w-2xl w-full border border-gray-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto animate-in fade-in zoom-in-95 duration-150">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gray-50/70 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                 isPayment ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
               }`}
             >
               {isPayment ? <Receipt size={20} /> : <TrendingDown size={20} />}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base font-bold text-gray-900">
                   {isPayment ? "Payment Received Voucher" : "Client Expense Voucher"}
                 </h3>
@@ -102,15 +102,15 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-6 flex-1 overflow-y-auto">
           <div
-            className={`rounded-xl p-5 border ${
+            className={`rounded-xl p-4 sm:p-5 border ${
               isPayment
                 ? "bg-emerald-50/60 border-emerald-200/80"
                 : "bg-rose-50/60 border-rose-200/80"
             }`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
                   {isPayment
@@ -120,7 +120,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
                     : "Client Expense Amount"}
                 </p>
                 <p
-                  className={`text-3xl font-bold mt-1 ${
+                  className={`text-2xl sm:text-3xl font-bold mt-1 ${
                     isPayment ? "text-emerald-700" : "text-rose-700"
                   }`}
                 >
@@ -132,7 +132,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
                   </p>
                 )}
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <p className="text-xs text-gray-500">Transaction Date</p>
                 <p className="text-sm font-bold text-gray-900 mt-0.5">
                   {formatDate(transaction.paymentDate || transaction.date)}
@@ -141,7 +141,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
               <span className="text-gray-400 block font-medium">Client Organization</span>
               <span className="font-bold text-gray-900 text-sm mt-0.5 block">
@@ -208,7 +208,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
               <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                 Milestone Settlement Context
               </h4>
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                 <div className="bg-white p-2.5 rounded-lg border border-gray-200">
                   <span className="text-[10px] text-gray-500 uppercase font-bold block">Total Milestone</span>
                   <span className="text-sm font-bold text-gray-900 mt-0.5 block">
@@ -244,7 +244,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
 
           {proofUrl && (
             <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                   <FileCheck size={14} className="text-emerald-600" />
                   <span>Payment Receipt / Proof Attachment</span>
@@ -309,7 +309,7 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-2 shrink-0">
           <button
             type="button"
             onClick={onClose}

@@ -12,8 +12,8 @@ export function AssignProjectModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-base font-bold text-white">Assign Project to Vendor</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer">
@@ -50,7 +50,7 @@ export function AssignProjectModal({
             />
           </div>
 
-          <div className="pt-2 flex justify-end space-x-2 border-t border-slate-800">
+          <div className="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-800">
             <button
               type="button"
               onClick={onClose}
@@ -83,8 +83,8 @@ export function CreateHRModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-base font-bold text-white">Create Vendor HR Account</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer">
@@ -140,7 +140,7 @@ export function CreateHRModal({
             />
           </div>
 
-          <div className="pt-2 flex justify-end space-x-2 border-t border-slate-800">
+          <div className="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-800">
             <button
               type="button"
               onClick={onClose}
@@ -174,8 +174,8 @@ export function CreateMilestoneModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-base font-bold text-white">Create Payment Milestone</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer">
@@ -196,7 +196,7 @@ export function CreateMilestoneModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-300 font-bold mb-1">Select Project</label>
               <select
@@ -246,7 +246,7 @@ export function CreateMilestoneModal({
             />
           </div>
 
-          <div className="pt-2 flex justify-end space-x-2 border-t border-slate-800">
+          <div className="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-800">
             <button
               type="button"
               onClick={onClose}
@@ -280,8 +280,8 @@ export function DirectPayModal({
   if (!isOpen || !selectedMilestone) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div>
             <h3 className="text-base font-bold text-white">Direct Milestone Settlement</h3>
@@ -293,7 +293,7 @@ export function DirectPayModal({
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4 text-xs font-medium">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-300 font-bold mb-1">Paid Amount (₹) *</label>
               <input
@@ -343,7 +343,7 @@ export function DirectPayModal({
             />
           </div>
 
-          <div className="pt-2 flex justify-end space-x-2 border-t border-slate-800">
+          <div className="pt-2 flex flex-wrap justify-end gap-2 border-t border-slate-800">
             <button
               type="button"
               onClick={onClose}

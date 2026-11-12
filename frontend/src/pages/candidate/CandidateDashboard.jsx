@@ -641,7 +641,7 @@ export default function CandidateDashboard() {
   };
 
   return (
-    <div className="h-screen flex overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <div className="min-h-[100dvh] lg:h-[100dvh] flex overflow-x-hidden lg:overflow-hidden bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
       <CandidateSidebar
         candidate={candidate}
         user={user}
@@ -655,7 +655,7 @@ export default function CandidateDashboard() {
         selectedAppsCount={selectedApps.length}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64 min-h-[100dvh] lg:min-h-0 lg:h-full lg:overflow-hidden">
         <CandidateNavbar
           activeTabTitle={tabTitles[activeTab] || "Candidate Portal"}
           accountStatus={candidate?.accountStatus || "Active"}
@@ -671,8 +671,9 @@ export default function CandidateDashboard() {
           onOpenMobile={() => setMobileOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
-          {notification && (
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-5">
+          <div className="w-full max-w-[1680px] mx-auto space-y-3">
+            {notification && (
             <div
               className={`p-2.5 rounded-lg border flex items-center justify-between shadow-xs transition-all text-xs ${
                 notification.type === "success"
@@ -791,6 +792,7 @@ export default function CandidateDashboard() {
             setPaymentNotesInput={setPaymentNotesInput}
             onPayMilestone={handlePayMilestone}
           />
+          </div>
         </main>
 
         <AppFooter role="candidate" />

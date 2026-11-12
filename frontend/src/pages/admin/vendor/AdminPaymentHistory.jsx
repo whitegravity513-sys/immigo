@@ -70,8 +70,8 @@ export default function AdminPaymentHistory() {
         <ArrowLeft size={14} /> Back to Payments
       </Link>
 
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-6 space-y-6">
-        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-sm p-4 sm:p-6 space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block mb-1">
               Payment Audit Trail
@@ -109,7 +109,7 @@ export default function AdminPaymentHistory() {
                 return (
                   <div
                     key={m.id || idx}
-                    className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between shadow-sm hover:border-indigo-300 transition-colors"
+                    className="p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm hover:border-indigo-300 transition-colors"
                   >
                     <div className="space-y-1">
                       <span className="font-bold text-slate-900 block text-sm">{m.name}</span>

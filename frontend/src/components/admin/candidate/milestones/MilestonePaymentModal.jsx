@@ -11,8 +11,8 @@ export default function MilestonePaymentModal({
   if (!isOpen || !currentM) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs overflow-y-auto p-3 sm:p-4 animate-fade-in">
+      <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 max-w-sm w-full">
         <div className="px-4 py-2.5 bg-[#163868] text-white flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <IndianRupee size={15} />

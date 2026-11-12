@@ -2,8 +2,8 @@
 export default function VendorCandidatesTab({ candidates }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-slate-900/60 border border-slate-800 overflow-hidden">
-        <table className="w-full text-left text-xs">
+      <div className="rounded-2xl bg-slate-900/60 border border-slate-800 overflow-x-auto">
+        <table className="w-full min-w-[680px] text-left text-xs">
           <thead className="bg-slate-900/90 text-slate-400 border-b border-slate-800">
             <tr>
               <th className="py-3 px-4 font-semibold">Candidate</th>

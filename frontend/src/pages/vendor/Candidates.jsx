@@ -212,11 +212,11 @@ export function Candidates() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-fit text-xs font-bold">
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-fit max-w-full overflow-x-auto text-xs font-bold">
         <button
           type="button"
           onClick={() => { setStatusTab("Available"); setCurrentPage(1); }}
-          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             statusTab === "Available"
               ? "bg-white text-blue-700 shadow-2xs font-bold"
               : "text-slate-600 hover:text-slate-900"
@@ -227,7 +227,7 @@ export function Candidates() {
         <button
           type="button"
           onClick={() => { setStatusTab("Selected"); setCurrentPage(1); }}
-          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             statusTab === "Selected"
               ? "bg-white text-emerald-700 shadow-2xs font-bold"
               : "text-slate-600 hover:text-slate-900"
@@ -238,7 +238,7 @@ export function Candidates() {
         <button
           type="button"
           onClick={() => { setStatusTab("All"); setCurrentPage(1); }}
-          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+          className={`px-2.5 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             statusTab === "All"
               ? "bg-white text-slate-900 shadow-2xs font-bold"
               : "text-slate-600 hover:text-slate-900"
@@ -319,7 +319,7 @@ export function Candidates() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[840px] text-left text-xs">
                 <thead className="bg-slate-50/80 text-slate-500 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200/80">
                   <tr>
                     <th className="py-1 px-2.5">Candidate</th>
@@ -448,42 +448,44 @@ export function Candidates() {
                         </div>
                       </td>
 
-                      <td className="py-1 px-2.5 text-right space-x-1 whitespace-nowrap">
-                        <Link
-                          to={`/vendor/candidates/${c.id}`}
-                          className="inline-flex items-center px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"
-                          title="View Profile"
-                        >
-                          <Eye size={13} className="mr-1" />
-                          <span>View</span>
-                        </Link>
+                      <td className="py-1 px-2.5 text-right whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <Link
+                            to={`/vendor/candidates/${c.id}`}
+                            className="inline-flex items-center px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"
+                            title="View Profile"
+                          >
+                            <Eye size={13} className="mr-1" />
+                            <span>View</span>
+                          </Link>
 
-                        <Link
-                          to={`/vendor/submit-candidate?candidateId=${c.id}`}
-                          className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
-                          title={c.poolStatus === "Rejected" || c.poolStatus === "On Hold" ? "Reuse in New Project" : "Submit to Project"}
-                        >
-                          {c.poolStatus === "Rejected" || c.poolStatus === "On Hold" ? (
-                            <>
-                              <RotateCcw size={12} className="mr-1" />
-                              <span>Reuse</span>
-                            </>
-                          ) : (
-                            <>
-                              <Send size={12} className="mr-1" />
-                              <span>Submit</span>
-                            </>
-                          )}
-                        </Link>
+                          <Link
+                            to={`/vendor/submit-candidate?candidateId=${c.id}`}
+                            className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                            title={c.poolStatus === "Rejected" || c.poolStatus === "On Hold" ? "Reuse in New Project" : "Submit to Project"}
+                          >
+                            {c.poolStatus === "Rejected" || c.poolStatus === "On Hold" ? (
+                              <>
+                                <RotateCcw size={12} className="mr-1" />
+                                <span>Reuse</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send size={12} className="mr-1" />
+                                <span>Submit</span>
+                              </>
+                            )}
+                          </Link>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(c.id, c.fullName)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                          title="Delete candidate"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(c.id, c.fullName)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete candidate"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -498,7 +500,7 @@ export function Candidates() {
                 <strong className="text-slate-800">{candidates.length}</strong> candidates
               </span>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap justify-center items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => handlePageChange(currentPage - 1)}

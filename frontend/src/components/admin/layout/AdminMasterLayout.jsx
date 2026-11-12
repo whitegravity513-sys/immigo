@@ -13,7 +13,7 @@ export function AdminMasterLayout({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <div className="min-h-[100dvh] lg:h-[100dvh] overflow-x-hidden lg:overflow-hidden bg-slate-50 flex text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
       <AdminMasterSidebar
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
@@ -21,7 +21,7 @@ export function AdminMasterLayout({
         setCollapsed={setCollapsed}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-[100dvh] lg:min-h-0 lg:h-full lg:overflow-hidden">
         <AdminMasterNavbar
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
@@ -32,8 +32,8 @@ export function AdminMasterLayout({
           breadcrumbs={breadcrumbs}
         />
 
-        <main className="flex-1 p-2.5 sm:p-3.5 w-full overflow-y-auto max-w-full overflow-x-hidden">
-          {children}
+        <main className="flex-1 p-2.5 sm:p-4 lg:p-5 w-full overflow-y-auto overflow-x-hidden">
+          <div className="w-full max-w-[1680px] mx-auto">{children}</div>
         </main>
 
         <AppFooter role="admin" />

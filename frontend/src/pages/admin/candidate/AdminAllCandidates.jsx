@@ -104,7 +104,7 @@ export default function AdminAllCandidates() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[180px] flex-1 sm:flex-initial">
+          <div className="relative w-full sm:w-auto sm:min-w-[180px] flex-1 sm:flex-initial">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -149,7 +149,7 @@ export default function AdminAllCandidates() {
 
           <button
             onClick={() => setExportModalOpen(true)}
-            className="px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             title="Download Candidates in Excel/CSV"
           >
             <Download size={13} className="text-slate-500" />
@@ -169,7 +169,7 @@ export default function AdminAllCandidates() {
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[920px] text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Candidate ID</th>
@@ -267,10 +267,10 @@ export default function AdminAllCandidates() {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                         <button
                           onClick={() => navigate(`/admin/candidates/${c.candidateId}`)}
-                          className="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                         >
                           View Profile
                         </button>
@@ -291,7 +291,7 @@ export default function AdminAllCandidates() {
         </div>
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <div className="p-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
             <span>Page {page} of {totalPages}</span>
             <div className="flex gap-1.5">
               <button

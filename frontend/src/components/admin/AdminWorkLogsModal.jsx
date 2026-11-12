@@ -86,14 +86,14 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-4xl rounded-xl border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150"
+        className="bg-white w-full max-w-4xl rounded-xl border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/50 flex items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-blue-50/50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center font-bold">
               <FileText size={20} />
@@ -196,7 +196,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-xs font-bold text-slate-800">
                             {emp.name || "Employee"}
                           </span>
@@ -228,7 +228,7 @@ export default function AdminWorkLogsModal({ isOpen, onClose }) {
           )}
         </div>
 
-        <div className="p-3 sm:p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+        <div className="p-3 sm:p-4 border-t border-slate-100 bg-slate-50 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
           <span>Date: <strong className="text-slate-800">{selectedDate}</strong></span>
           <button
             type="button"

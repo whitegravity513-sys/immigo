@@ -38,22 +38,22 @@ export function AccessDenied({
           {(requiredPermission || requiredRole) && (
             <div className="w-full my-5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-left text-xs space-y-1">
               {requiredPermission && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
                   <span className="text-slate-500 font-medium">Required Permission:</span>
-                  <code className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-mono font-semibold">
+                  <code className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-mono font-semibold break-all">
                     {Array.isArray(requiredPermission) ? requiredPermission.join(", ") : requiredPermission}
                   </code>
                 </div>
               )}
               {requiredRole && (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
                   <span className="text-slate-500 font-medium">Required Role:</span>
                   <span className="font-bold text-slate-800 uppercase tracking-wide">
                     {requiredRole}
                   </span>
                 </div>
               )}
-              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-slate-200/60">
                 <span className="text-slate-500 font-medium">Your Current Role:</span>
                 <span className="font-bold text-blue-700 uppercase tracking-wide">
                   {role || "Admin"}

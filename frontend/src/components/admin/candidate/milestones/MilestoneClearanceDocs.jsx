@@ -90,11 +90,11 @@ export default function MilestoneClearanceDocs({
               key={doc.id}
               className="p-2 rounded-lg bg-white border border-blue-200 flex items-center justify-between gap-2 shadow-2xs"
             >
-              <div className="flex items-center gap-2 overflow-hidden">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <div className="w-6 h-6 rounded-md bg-blue-100 text-[#163868] flex items-center justify-center shrink-0">
                   <FileText size={13} />
                 </div>
-                <div className="truncate">
+                <div className="min-w-0 flex-1">
                   <div className="font-bold text-xs text-slate-900 truncate">{doc.title}</div>
                   <div className="text-[10px] text-slate-500 flex items-center gap-1.5">
                     <span>{doc.size || "PDF"}</span>

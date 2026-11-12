@@ -22,23 +22,23 @@ export function EmployeeProfileHeader({
   if (!emp) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-6">
-        <div className="flex items-start gap-4">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-4 sm:p-6 space-y-5 sm:space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 sm:gap-6">
+        <div className="flex flex-wrap sm:flex-nowrap items-start gap-3 sm:gap-4 min-w-0">
           {emp.profileImage ? (
             <img
               src={formatFileUrl(emp.profileImage)}
               alt={safeEmpName}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-3xl shadow-xs shrink-0">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-2xl sm:text-3xl shadow-xs shrink-0">
               {safeEmpName.charAt(0).toUpperCase()}
             </div>
           )}
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight break-words">
                 {safeEmpName}
               </h3>
               <span
@@ -51,7 +51,7 @@ export function EmployeeProfileHeader({
                 {emp.status ? emp.status.toUpperCase() : "ACTIVE"}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600 font-medium">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600 font-medium">
               <EmployeeIdBadge id={emp.employeeId} />
               {emp.department && (
                 <>
@@ -65,12 +65,12 @@ export function EmployeeProfileHeader({
               </span>
             </div>
             <div className="text-sm text-slate-500 flex flex-wrap items-center gap-x-4 gap-y-1 pt-0.5">
-              <p>
+              <p className="break-all">
                 <span className="text-slate-400 font-medium">Work Email:</span>{" "}
                 <span className="font-semibold text-slate-700">{emp.email}</span>
               </p>
               {emp.personalEmail && (
-                <p>
+                <p className="break-all">
                   <span className="text-slate-400 font-medium">Personal Email:</span>{" "}
                   <span className="font-semibold text-slate-700">
                     {emp.personalEmail}

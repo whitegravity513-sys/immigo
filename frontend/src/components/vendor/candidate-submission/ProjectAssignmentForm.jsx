@@ -21,7 +21,7 @@ export function ProjectAssignmentForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="bg-white rounded-lg border border-slate-300 shadow-xs p-4 sm:p-5">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3 mb-4">
           <div>
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center">2</span>
@@ -138,7 +138,7 @@ export function ProjectAssignmentForm({
               <span>Project Overview & Vacancy Status</span>
               <span className="text-blue-600 font-semibold">{selectedProject.country}</span>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <span className="text-slate-500 block text-[10px] uppercase font-bold">Positions Required</span>
                 <span className="font-bold text-slate-900">
@@ -166,7 +166,7 @@ export function ProjectAssignmentForm({
           />
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-200 flex justify-end gap-2">
+        <div className="mt-4 pt-3 border-t border-slate-200 flex flex-wrap justify-end gap-2">
           <button
             type="button"
             onClick={onBack}
@@ -199,8 +199,8 @@ export function ConfirmSubmissionModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto my-auto p-4 sm:p-5 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
         <h3 className="text-base font-bold text-slate-900">Confirm Candidate Assignment</h3>
         <p className="text-xs text-slate-600">
           You are submitting <strong>{selectedCandidateIds.length} candidate(s)</strong> to project{" "}

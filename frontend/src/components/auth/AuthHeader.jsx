@@ -3,7 +3,7 @@ import { ImmiGoLogo } from "../common/ImmiGoLogo.jsx";
 
 export default function AuthHeader({ portalBadge, rightBadge }) {
   return (
-    <header className="relative z-20 w-full px-6 sm:px-10 lg:px-14 py-3 sm:py-3.5 flex items-center justify-between border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-md">
+    <header className="relative z-20 w-full px-4 sm:px-8 lg:px-14 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-blue-800/80 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white shadow-md">
       <div className="flex items-center gap-3">
         <ImmiGoLogo size="sm" theme="light" />
         {portalBadge ? (

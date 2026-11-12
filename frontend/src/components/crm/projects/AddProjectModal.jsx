@@ -372,19 +372,19 @@ export function AddProjectModal({
         onClick={onClose}
       />
 
-      <div className="flex min-h-full items-center justify-center p-3 text-center sm:p-0">
-        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-200">
-          <form onSubmit={handleSubmit}>
-            <div className="bg-gray-50/80 px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-6 text-center">
+        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all my-auto w-full max-w-3xl max-h-[92vh] flex flex-col border border-gray-200">
+          <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+            <div className="bg-gray-50/80 px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
                   <FolderPlus size={18} />
                 </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900 truncate">
                     Add Project {client ? `for ${client.companyName}` : ""}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-gray-500">
+                  <p className="text-[11px] sm:text-xs text-gray-500 truncate">
                     Quickly configure deployment project & manpower requirements in-place.
                   </p>
                 </div>
@@ -392,15 +392,15 @@ export function AddProjectModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer shrink-0"
               >
                 <X size={18} />
               </button>
             </div>
 
             {client && (
-              <div className="bg-blue-50/70 border-b border-blue-100 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 truncate">
+              <div className="bg-blue-50/70 border-b border-blue-100 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
                   <span className="text-gray-500 font-medium">Adding to Client:</span>
                   <span className="font-bold text-blue-900 truncate">
                     {client.companyName}
@@ -415,7 +415,7 @@ export function AddProjectModal({
               </div>
             )}
 
-            <div className="p-4 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+            <div className="p-4 sm:p-6 space-y-6 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
               <div className="space-y-4">
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                   <Building2 size={15} className="text-blue-600" />
@@ -531,7 +531,7 @@ export function AddProjectModal({
               </div>
 
               <div className="space-y-3 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                     <Users size={15} className="text-blue-600" />
                     <span>Manpower Headcount</span>
@@ -709,7 +709,7 @@ export function AddProjectModal({
                               )}
                               
                               {filteredVendors.length > 0 && (
-                                <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-t border-gray-200">
+                                <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-gray-50 border-t border-gray-200">
                                   <span className="text-[10px] text-gray-500 font-medium">
                                     Showing {(vendorCurrentPage - 1) * VENDORS_PER_PAGE + 1} to {Math.min(vendorCurrentPage * VENDORS_PER_PAGE, filteredVendors.length)} of {filteredVendors.length}
                                   </span>
@@ -753,7 +753,7 @@ export function AddProjectModal({
                     <CreditCard size={15} className="text-blue-600" />
                     <span>Candidate Selection Payment Milestone Parts</span>
                   </h4>
-                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full w-fit">
                     Auto-Applied when Candidate Selected
                   </span>
                 </div>
@@ -895,8 +895,8 @@ export function AddProjectModal({
                     </button>
                   </div>
 
-                  <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
-                    <table className="w-full text-left border-collapse">
+                  <div className="border border-slate-200 rounded-lg overflow-x-auto bg-white">
+                    <table className="w-full min-w-[460px] text-left border-collapse">
                       <thead>
                         <tr className="bg-slate-100 text-[11px] font-bold text-slate-600 border-b border-slate-200">
                           <th className="py-2 px-3"># Milestone Stage Name</th>
@@ -1003,7 +1003,7 @@ export function AddProjectModal({
                     const sum = list.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
                     const target = Number(formData.paymentMilestoneConfig?.totalFeePerCandidate) || 0;
                     return (
-                      <div className="flex items-center justify-between text-[11px] pt-1 px-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1 px-1">
                         <span className="text-slate-600">
                           Sum of Milestones: <strong className="font-mono font-bold text-slate-800">₹{sum.toLocaleString()}</strong>
                         </span>
@@ -1029,7 +1029,7 @@ export function AddProjectModal({
               </div>
             </div>
 
-            <div className="bg-gray-50 px-4 sm:px-6 py-3.5 flex items-center justify-end gap-3 border-t border-gray-100">
+            <div className="bg-gray-50 px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-end gap-2 sm:gap-3 border-t border-gray-100 shrink-0">
               <button
                 type="button"
                 onClick={onClose}

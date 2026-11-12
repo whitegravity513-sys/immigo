@@ -263,7 +263,7 @@ export default function AnnouncementsSection({
   }, [holidays, searchQuery]);
 
   return (
-    <div className="space-y-3.5 text-slate-800 w-full max-w-full overflow-hidden">
+    <div className="space-y-3.5 text-slate-800 w-full max-w-full overflow-x-clip">
       <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3.5 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -271,7 +271,7 @@ export default function AnnouncementsSection({
               <Megaphone size={16} />
             </div>
             <div>
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex flex-wrap items-center gap-1.5">
                 <span>Announcements &amp; Company Holidays</span>
               </h1>
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
@@ -549,7 +549,7 @@ export default function AnnouncementsSection({
 
         <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="p-2.5 sm:p-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 max-w-full">
               <button
                 type="button"
                 onClick={() => setListTab("announcements")}
@@ -689,7 +689,7 @@ export default function AnnouncementsSection({
               </div>
 
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[600px] text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                       <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Date</th>
@@ -846,7 +846,7 @@ export default function AnnouncementsSection({
               </div>
 
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[600px] text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                       <th className="px-3 py-1.5 text-[10px] whitespace-nowrap">Holiday Date</th>

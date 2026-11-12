@@ -10,7 +10,7 @@ export default function VendorHRScopeView({
     <div className="space-y-3.5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-slate-900 tracking-tight">
               {selectedAdminData.name}
             </h2>
@@ -39,7 +39,7 @@ export default function VendorHRScopeView({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => onOpenEditModal(selectedAdminData)}
@@ -73,7 +73,7 @@ export default function VendorHRScopeView({
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 space-y-2.5 shadow-2xs">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-cyan-100 text-cyan-800">
               <Briefcase size={14} />

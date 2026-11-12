@@ -12,15 +12,15 @@ export default function LeaveActionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
       onClick={() => setLeaveActionModal(null)}
     >
       <div
-        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div
-          className={`px-6 py-4 border-b border-slate-100 flex items-center justify-between ${
+          className={`px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-2 ${
             isApproved ? "bg-emerald-50" : "bg-rose-50"
           }`}
         >
@@ -43,7 +43,7 @@ export default function LeaveActionModal({
             ×
           </button>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Internal Note / Reason{" "}
@@ -67,7 +67,7 @@ export default function LeaveActionModal({
               Saved privately for Admin &amp; HR reference only. Employees only see Accepted / Rejected status.
             </p>
           </div>
-          <div className="flex items-center gap-3 pt-1">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               className={`flex-1 py-3 text-white font-bold rounded-xl cursor-pointer text-sm ${
                 isApproved

@@ -32,21 +32,21 @@ export function ClientContactsTab({ client }) {
           </div>
 
           <div className="pt-3 border-t border-gray-100 space-y-2 text-xs">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-gray-400">Email:</span>
               <a
                 href={`mailto:${contact.email}`}
-                className="font-semibold text-blue-600 hover:underline"
+                className="font-semibold text-blue-600 hover:underline break-all"
               >
                 {contact.email}
               </a>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-gray-400">Phone:</span>
               <span className="font-semibold text-gray-800">{contact.phone}</span>
             </div>
             {contact.whatsapp && (
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-gray-400">WhatsApp:</span>
                 <span className="font-semibold text-emerald-700">
                   {contact.whatsapp}

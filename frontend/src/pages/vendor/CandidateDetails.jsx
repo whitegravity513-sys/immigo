@@ -213,7 +213,7 @@ export function CandidateDetails() {
             <ArrowLeft size={14} />
             <span>Back to Candidates</span>
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex flex-wrap items-center gap-2">
             <span>{candidate.fullName}</span>
             <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
               {candidate.id}
@@ -223,7 +223,7 @@ export function CandidateDetails() {
 
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs">
         <div className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative group shrink-0">
             {candidate.photo ? (
@@ -287,7 +287,7 @@ export function CandidateDetails() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 shrink-0 self-stretch sm:self-auto border-t sm:border-t-0 sm:border-l sm:border-slate-100 sm:pl-6 pt-3 sm:pt-0">
+          <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 self-stretch md:self-auto border-t md:border-t-0 md:border-l md:border-slate-100 md:pl-6 pt-3 md:pt-0">
             <button
               type="button"
               onClick={() => {
@@ -316,60 +316,60 @@ export function CandidateDetails() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3.5">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Personal Information
           </h3>
           <div className="space-y-2.5 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Date of Birth:</span>
-              <span className="font-semibold text-slate-800">{candidate.dob || "—"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Date of Birth:</span>
+              <span className="font-semibold text-slate-800 text-right">{candidate.dob || "—"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Gender:</span>
-              <span className="font-semibold text-slate-800">{candidate.gender || "Male"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Gender:</span>
+              <span className="font-semibold text-slate-800 text-right">{candidate.gender || "Male"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Nationality:</span>
-              <span className="font-semibold text-slate-800">{candidate.nationality || "Indian"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Nationality:</span>
+              <span className="font-semibold text-slate-800 text-right">{candidate.nationality || "Indian"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Phone:</span>
-              <span className="font-semibold text-slate-800">{candidate.phone || "—"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Phone:</span>
+              <span className="font-semibold text-slate-800 text-right break-all">{candidate.phone || "—"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Email:</span>
-              <span className="font-semibold text-slate-800">{candidate.email || "—"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Email:</span>
+              <span className="font-semibold text-slate-800 text-right break-all">{candidate.email || "—"}</span>
             </div>
-            <div className="flex items-start justify-between pt-1">
-              <span className="text-slate-400">Address:</span>
-              <span className="font-medium text-slate-800 text-right max-w-[200px]">
+            <div className="flex items-start justify-between gap-2 pt-1">
+              <span className="text-slate-400 shrink-0">Address:</span>
+              <span className="font-medium text-slate-800 text-right max-w-[220px] break-words">
                 {candidate.address || "—"}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3.5">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-3.5">
           <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
             Professional Information
           </h3>
           <div className="space-y-2.5 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Current Trade Position:</span>
-              <span className="font-bold text-slate-900">{candidate.currentPosition}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Current Trade Position:</span>
+              <span className="font-bold text-slate-900 text-right">{candidate.currentPosition}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Years of Experience:</span>
-              <span className="font-semibold text-slate-800">{candidate.experienceYears} Years</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Years of Experience:</span>
+              <span className="font-semibold text-slate-800 text-right">{candidate.experienceYears} Years</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Qualification:</span>
-              <span className="font-semibold text-slate-800">{candidate.qualification || "Trade Certified"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Qualification:</span>
+              <span className="font-semibold text-slate-800 text-right">{candidate.qualification || "Trade Certified"}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-400">Previous Company:</span>
-              <span className="font-semibold text-slate-800">{candidate.previousCompany || "—"}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-400 shrink-0">Previous Company:</span>
+              <span className="font-semibold text-slate-800 text-right break-words">{candidate.previousCompany || "—"}</span>
             </div>
             <div className="pt-1">
               <span className="text-slate-400 block mb-1">Key Skills:</span>
@@ -385,7 +385,7 @@ export function CandidateDetails() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-3">
         <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
           Attached Compliance Documents ({candidate.documents?.length || 0})
         </h3>
@@ -396,18 +396,18 @@ export function CandidateDetails() {
             {candidate.documents.map((doc, idx) => (
               <div
                 key={idx}
-                className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2 text-xs"
+                className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <FileText size={16} className="text-blue-600 shrink-0" />
-                  <div className="truncate">
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold text-slate-900 block truncate">{doc.name}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-slate-400 font-mono block truncate">
                       {doc.fileName} • {doc.size || "—"}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex flex-wrap items-center gap-1 shrink-0 self-end sm:self-auto">
                   <button
                     type="button"
                     onClick={() => setPreviewingDoc(doc)}
@@ -451,8 +451,8 @@ export function CandidateDetails() {
         const int = activeApp.interviewDetails;
 
         return (
-          <div className="bg-white rounded-xl border border-indigo-200 p-6 shadow-xs space-y-4 font-sans">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white rounded-xl border border-indigo-200 p-4 sm:p-6 shadow-xs space-y-4 font-sans">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-semibold text-indigo-600 uppercase tracking-widest block">
                   Project Recruitment Status & Interview Schedule
@@ -552,7 +552,7 @@ export function CandidateDetails() {
         const progressPct = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
         return (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4 font-sans">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-2xs space-y-4 font-sans">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest block">
@@ -622,7 +622,7 @@ export function CandidateDetails() {
                       key={m.id || idx}
                       className="p-3 rounded-xl border border-slate-200 bg-slate-50/40 space-y-1 text-xs"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5">
                         <span className="font-bold text-slate-900 truncate max-w-[200px]">{m.name}</span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -655,8 +655,8 @@ export function CandidateDetails() {
         );
       })()}
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">
               Project Application History
@@ -689,7 +689,7 @@ export function CandidateDetails() {
                 key={app.id}
                 className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-slate-900 text-sm">{app.projectName}</span>
                     <span className="text-[11px] font-semibold text-slate-500">
@@ -712,7 +712,7 @@ export function CandidateDetails() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 text-slate-500 text-[11px]">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500 text-[11px]">
                     <span className="flex items-center gap-1">
                       <Building2 size={12} className="text-slate-400" />
                       <span>{app.clientName}</span>
@@ -727,7 +727,7 @@ export function CandidateDetails() {
                   </div>
 
                   {appRefundLocked && (
-                    <div className="mt-1.5 p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 text-[11px] flex items-center justify-between gap-2">
+                    <div className="mt-1.5 p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-rose-900 text-[11px] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <span className="flex items-center gap-1.5 font-semibold">
                         <AlertTriangle size={13} className="text-rose-600 shrink-0" />
                         <span>
@@ -817,7 +817,7 @@ export function CandidateDetails() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-auto">
             <Link
               to="/vendor/refunds"
               className="text-xs font-semibold text-slate-600 hover:text-blue-700 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
@@ -872,7 +872,7 @@ export function CandidateDetails() {
                   </select>
                 </div>
               ) : (
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/90 flex items-center justify-between">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/90 flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-bold block">
                       Associated Project
@@ -932,7 +932,7 @@ export function CandidateDetails() {
                 )}
               </div>
 
-              <div className="flex gap-2 justify-end pt-3 border-t border-slate-100">
+              <div className="flex flex-wrap gap-2 justify-end pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowRefundForm(false)}
@@ -965,8 +965,8 @@ export function CandidateDetails() {
       })()}
 
       {resumeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-blue-600" />
@@ -983,7 +983,7 @@ export function CandidateDetails() {
               </button>
             </div>
 
-            <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 space-y-4">
+            <div className="p-4 sm:p-6 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700 space-y-4 break-words">
               <div className="border-b border-slate-200 pb-3">
                 <h2 className="text-base font-bold text-slate-900 font-sans">{candidate.fullName}</h2>
                 <p className="text-slate-500 font-sans text-xs">
@@ -1028,7 +1028,7 @@ export function CandidateDetails() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
               <span className="text-[11px] text-slate-400">
                 Verified by {candidate.vendorId}
               </span>

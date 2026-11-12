@@ -38,7 +38,7 @@ export default function PermissionMatrix({
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-bold text-slate-900 tracking-tight">
               {selectedAdminData.name}
             </h2>
@@ -75,7 +75,7 @@ export default function PermissionMatrix({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isSuperAdmin && changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
             <button
               type="button"
@@ -178,7 +178,7 @@ export default function PermissionMatrix({
       )}
 
       {changesDiff.hasChanges && !selectedAdminData.isSuperAdmin && (
-        <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
+        <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <AlertTriangle size={13} className="text-amber-600 shrink-0" />
             <span>
@@ -210,7 +210,7 @@ export default function PermissionMatrix({
             >
               <div
                 onClick={() => toggleGroup(group.id)}
-                className={`px-3 py-2.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
+                className={`px-3 py-2.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 cursor-pointer select-none transition-colors ${
                   isOpen ? "bg-slate-50 border-b border-slate-200" : group.headerBg
                 }`}
               >
@@ -228,7 +228,7 @@ export default function PermissionMatrix({
                   </span>
 
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-bold text-xs text-slate-900">
                         {group.title}
                       </span>
@@ -285,7 +285,7 @@ export default function PermissionMatrix({
                       key={sub.id}
                       className="bg-white rounded-lg border border-slate-200/80 p-3 space-y-2"
                     >
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
                         <div>
                           <h4 className="font-bold text-xs text-slate-900">
                             {sub.name}
@@ -296,7 +296,7 @@ export default function PermissionMatrix({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
                         {sub.actions.map((act) => {
                           const checked = isPermissionChecked(act.key);
                           const disabled = selectedAdminData.isSuperAdmin || !isSuperAdmin;
