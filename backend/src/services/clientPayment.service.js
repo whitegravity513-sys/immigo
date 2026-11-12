@@ -355,7 +355,7 @@ export class ClientPaymentService {
       previouslyReceivedAmount: Math.max(0, prevReceived),
       amountPaid: numericAmount,
       remainingMilestoneBalance,
-      remainingMilestoneAmount: Number(paymentData.remainingMilestoneAmount) !== undefined ? Number(paymentData.remainingMilestoneAmount) : remainingMilestoneBalance,
+      remainingMilestoneAmount: Number.isFinite(Number(paymentData.remainingMilestoneAmount)) ? Number(paymentData.remainingMilestoneAmount) : remainingMilestoneBalance,
       paymentDate: new Date(paymentDate),
       paymentMethod,
       transactionReference: trimmedRef,
