@@ -358,53 +358,53 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                   {(monthlyData.dailyRecords || [])
                     .filter((r) => r.status !== "Before Joining" && r.status !== "Upcoming")
                     .map((record, idx) => {
-                    const wSec = record.workSeconds || record.totalWorkSeconds || 0;
-                    const bSec = record.breakSeconds || record.totalBreakSeconds || 0;
-                    const workHours = Math.floor(wSec / 3600);
-                    const workMinutes = Math.floor((wSec % 3600) / 60);
-                    const breakHours = Math.floor(bSec / 3600);
-                    const breakMinutes = Math.floor((bSec % 3600) / 60);
+                      const wSec = record.workSeconds || record.totalWorkSeconds || 0;
+                      const bSec = record.breakSeconds || record.totalBreakSeconds || 0;
+                      const workHours = Math.floor(wSec / 3600);
+                      const workMinutes = Math.floor((wSec % 3600) / 60);
+                      const breakHours = Math.floor(bSec / 3600);
+                      const breakMinutes = Math.floor((bSec % 3600) / 60);
 
-                    const statusColors = {
-                      Present: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                      Active: "bg-blue-50 text-blue-700 border-blue-200",
-                      "Checked Out": "bg-cyan-50 text-cyan-700 border-cyan-200",
-                      Absent: "bg-rose-50 text-rose-700 border-rose-200",
-                      "On Leave": "bg-amber-50 text-amber-700 border-amber-200",
-                      "On Break": "bg-purple-50 text-purple-700 border-purple-200",
-                      Weekend: "bg-slate-100 text-slate-500 border-slate-200",
-                      "Weekly Off": "bg-slate-100 text-slate-500 border-slate-200",
-                      Holiday: "bg-green-50 text-green-700 border-green-200",
-                      Upcoming: "bg-sky-50 text-sky-600 border-sky-200",
-                    };
+                      const statusColors = {
+                        Present: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        Active: "bg-blue-50 text-blue-700 border-blue-200",
+                        "Checked Out": "bg-cyan-50 text-cyan-700 border-cyan-200",
+                        Absent: "bg-rose-50 text-rose-700 border-rose-200",
+                        "On Leave": "bg-amber-50 text-amber-700 border-amber-200",
+                        "On Break": "bg-purple-50 text-purple-700 border-purple-200",
+                        Weekend: "bg-slate-100 text-slate-500 border-slate-200",
+                        "Weekly Off": "bg-slate-100 text-slate-500 border-slate-200",
+                        Holiday: "bg-green-50 text-green-700 border-green-200",
+                        Upcoming: "bg-sky-50 text-sky-600 border-sky-200",
+                      };
 
-                    return (
-                      <tr
-                        key={idx}
-                        className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-3 py-1.5 font-bold text-slate-900 whitespace-nowrap text-xs">
-                          {record.date} <span className="text-[11px] text-slate-400 font-semibold">({record.dayOfWeek})</span>
-                        </td>
-                        <td className="px-3 py-1.5">
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${statusColors[record.status] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
-                            {record.status}
-                          </span>
-                        </td>
-                        <td className="px-3 py-1.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkInTime)}</td>
-                        <td className="px-3 py-1.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkOutTime)}</td>
-                        <td className="px-3 py-1.5 font-bold text-slate-900 text-xs">
-                          {String(workHours).padStart(2, "0")}:{String(workMinutes).padStart(2, "0")}
-                        </td>
-                        <td className="px-3 py-1.5 text-slate-600 text-xs">
-                          {String(breakHours).padStart(2, "0")}:{String(breakMinutes).padStart(2, "0")}
-                        </td>
-                        <td className="px-3 py-1.5 text-xs text-slate-600 max-w-xs truncate">
-                          {record.checkOutNote || "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      return (
+                        <tr
+                          key={idx}
+                          className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="px-3 py-1.5 font-bold text-slate-900 whitespace-nowrap text-xs">
+                            {record.date} <span className="text-[11px] text-slate-400 font-semibold">({record.dayOfWeek})</span>
+                          </td>
+                          <td className="px-3 py-1.5">
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${statusColors[record.status] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
+                              {record.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-1.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkInTime)}</td>
+                          <td className="px-3 py-1.5 text-slate-700 text-xs font-semibold whitespace-nowrap">{formatTime(record.checkOutTime)}</td>
+                          <td className="px-3 py-1.5 font-bold text-slate-900 text-xs">
+                            {String(workHours).padStart(2, "0")}:{String(workMinutes).padStart(2, "0")}
+                          </td>
+                          <td className="px-3 py-1.5 text-slate-600 text-xs">
+                            {String(breakHours).padStart(2, "0")}:{String(breakMinutes).padStart(2, "0")}
+                          </td>
+                          <td className="px-3 py-1.5 text-xs text-slate-600 max-w-xs truncate">
+                            {record.checkOutNote || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
@@ -440,13 +440,12 @@ function EmployeeMonthlyReport({ token, onGoBack }) {
                         <td className="px-3 py-1.5 text-slate-700 text-xs max-w-xs truncate">{leave.reason}</td>
                         <td className="px-3 py-1.5">
                           <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
-                              leave.status === "Approved"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : leave.status === "Pending"
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold border ${leave.status === "Approved"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : leave.status === "Pending"
                                 ? "bg-amber-50 text-amber-700 border-amber-200"
                                 : "bg-rose-50 text-rose-700 border-rose-200"
-                            }`}
+                              }`}
                           >
                             {leave.status}
                           </span>

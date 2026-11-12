@@ -30,7 +30,7 @@ export const verifyToken = (req, res, next) => {
     try {
       decoded = jwt.verify(token, secret);
       break;
-    } catch {}
+    } catch { }
   }
 
   if (!decoded) {
@@ -148,6 +148,16 @@ export const verifyVendorActive = (req, res, next) => {
   });
 };
 
+export const verifyVendor = (req, res, next) => {
+  verifyToken(req, res, () => {
+    const role = (req.user?.role || "").toLowerCase();
+    if (!req.user || role !== "vendor") {
+      return res.status(403).json({ success: false, message: "Access forbidden. Vendor role required." });
+    }
+    next();
+  });
+};
+
 export const verifyCandidate = (req, res, next) => {
   verifyToken(req, res, async () => {
     const role = (req.user?.role || "").toLowerCase();
@@ -198,6 +208,7 @@ export default {
   verifyToken,
   verifyAdmin,
   verifyEmployee,
+  verifyVendor,
   verifyVendorActive,
   verifyCandidate,
   authenticate,

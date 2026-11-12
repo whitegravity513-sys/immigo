@@ -3,6 +3,7 @@ import Client from "../models/Client.js";
 import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import ActivityService from "./activity.service.js";
 import { ApiError } from "../utils/apiError.js";
+import { escapeRegex } from "../utils/regex.js";
 
 export class ClientPaymentService {
   static async resolveClientIds(clientId) {
@@ -597,7 +598,7 @@ export class ClientPaymentService {
     }
 
     if (search && search.trim()) {
-      const regex = new RegExp(search.trim(), "i");
+      const regex = new RegExp(escapeRegex(search.trim()), "i");
       andConditions.push({
         $or: [
           { paymentId: regex },

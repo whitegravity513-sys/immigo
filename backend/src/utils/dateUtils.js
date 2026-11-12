@@ -1,4 +1,5 @@
 import Holiday from "../models/Holiday.js";
+import { escapeRegex } from "./regex.js";
 
 export const getTodayDateString = () => {
   const d = new Date();
@@ -91,5 +92,5 @@ export const normalizeDateString = (dateInput) => {
 export const getHolidayForDate = async (dateStr) => {
   const normalized = normalizeDateString(dateStr) || String(dateStr || "").trim();
   if (!normalized) return null;
-  return await Holiday.findOne({ date: { $regex: `^${normalized}` } });
+  return await Holiday.findOne({ date: { $regex: `^${escapeRegex(normalized)}` } });
 };

@@ -1,3 +1,54 @@
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function isSafeDocUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== "string") return false;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) return true;
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.startsWith("https://") ||
+    lower.startsWith("http://") ||
+    lower.startsWith("blob:")
+  ) {
+    return true;
+  }
+  if (lower.startsWith("data:")) {
+    return (
+      /^data:image\/(png|jpe?g|gif|webp|bmp);/i.test(lower) ||
+      /^data:application\/pdf;/i.test(lower)
+    );
+  }
+  return false;
+}
+
+function sanitizeHtmlFragment(element) {
+  const template = document.createElement("template");
+  template.innerHTML = element.innerHTML;
+  const blockedTags = template.content.querySelectorAll("script, iframe, object, embed, base");
+  blockedTags.forEach((node) => node.remove());
+  const allNodes = template.content.querySelectorAll("*");
+  allNodes.forEach((node) => {
+    Array.from(node.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      const val = String(attr.value || "").trim().toLowerCase();
+      if (name.startsWith("on")) {
+        node.removeAttribute(attr.name);
+      } else if ((name === "href" || name === "src" || name === "xlink:href") && (val.startsWith("javascript:") || val.startsWith("vbscript:") || val.startsWith("data:text/html"))) {
+        node.removeAttribute(attr.name);
+      }
+    });
+  });
+  return template.innerHTML;
+}
+
 export function dataUrlToBlobUrl(dataUrl) {
   if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) {
     return { url: dataUrl || "", isBlob: false };
@@ -66,8 +117,8 @@ function isPdfDoc(doc = {}) {
 }
 
 export function openUploadedDocument(doc) {
-  if (!doc?.fileUrl) {
-    alert("Original document file is not attached to this record.");
+  if (!doc?.fileUrl || !isSafeDocUrl(doc.fileUrl)) {
+    alert("Original document file is missing or uses an unsupported format.");
     return;
   }
   const { url, isBlob } = dataUrlToBlobUrl(doc.fileUrl);
@@ -78,8 +129,8 @@ export function openUploadedDocument(doc) {
 }
 
 export function downloadUploadedDocument(doc) {
-  if (!doc?.fileUrl) {
-    alert("Original document file is not attached to this record.");
+  if (!doc?.fileUrl || !isSafeDocUrl(doc.fileUrl)) {
+    alert("Original document file is missing or uses an unsupported format.");
     return;
   }
   const { url, isBlob } = dataUrlToBlobUrl(doc.fileUrl);
@@ -97,8 +148,8 @@ export function downloadUploadedDocument(doc) {
 }
 
 export async function printUploadedDocument(doc) {
-  if (!doc?.fileUrl) {
-    alert("Original document file is not attached to this record.");
+  if (!doc?.fileUrl || !isSafeDocUrl(doc.fileUrl)) {
+    alert("Original document file is missing or uses an unsupported format.");
     return;
   }
 
@@ -174,7 +225,7 @@ export async function printUploadedDocument(doc) {
     }
     idoc.open();
     idoc.write(
-      `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${docTitle.replace(/</g, "&lt;")}</title><style>@page{margin:0;}html,body{margin:0;padding:0;width:100%;height:100%;background:#ffffff;display:flex;align-items:center;justify-content:center;overflow:hidden;}img{max-width:100%;max-height:100vh;width:auto;height:auto;object-fit:contain;display:block;margin:auto;}</style></head><body></body></html>`
+      `<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${escapeHtml(docTitle)}</title><style>@page{margin:0;}html,body{margin:0;padding:0;width:100%;height:100%;background:#ffffff;display:flex;align-items:center;justify-content:center;overflow:hidden;}img{max-width:100%;max-height:100vh;width:auto;height:auto;object-fit:contain;display:block;margin:auto;}</style></head><body></body></html>`
     );
     idoc.close();
 
@@ -278,8 +329,9 @@ export function printHtmlElement(element, title = "Document") {
     return;
   }
 
+  const safeBodyHtml = sanitizeHtmlFragment(element);
   idoc.open();
-  idoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${safeTitle.replace(/</g, "&lt;")}</title>${styles}<style>@page{size:A4 portrait;margin:12mm 15mm;}html,body{background:#ffffff !important;margin:0 !important;padding:0 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;height:auto !important;overflow:visible !important;}.doc-print-hide,.mou-print-hide,.print\\:hidden{display:none !important;}</style></head><body><div>${element.innerHTML}</div></body></html>`);
+  idoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8" /><title>${escapeHtml(safeTitle)}</title>${styles}<style>@page{size:A4 portrait;margin:12mm 15mm;}html,body{background:#ffffff !important;margin:0 !important;padding:0 !important;-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;height:auto !important;overflow:visible !important;}.doc-print-hide,.mou-print-hide,.print\\:hidden{display:none !important;}</style></head><body><div>${safeBodyHtml}</div></body></html>`);
   idoc.close();
 
   setTimeout(() => {

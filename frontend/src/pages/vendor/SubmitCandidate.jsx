@@ -78,6 +78,8 @@ export default function SubmitCandidate() {
       const seenProjIds = new Set();
       const addProj = (p, c) => {
         if (!p) return;
+        const pStatus = String(p.status || "Active").toLowerCase();
+        if (["inactive", "closed", "cancelled"].includes(pStatus)) return;
         const key = String(p.id || p.projectId || p._id || "");
         if (!key) return;
         if (!seenProjIds.has(key)) {
@@ -131,9 +133,11 @@ export default function SubmitCandidate() {
         "Offer Released",
         "Offer Accepted",
         "Visa Processing",
+        "Visa Allotted",
         "Visa Issued",
         "Joined",
         "Deployed",
+        "Completed",
         "Processing",
         "Submitted",
         "Under Review",
@@ -147,7 +151,11 @@ export default function SubmitCandidate() {
       rawApps.forEach((app) => {
         const cId = String(app.candidateId || app.candidate?.id || app.candidate?._id || "");
         const stage = app.recruitmentStage || app.status || "";
-        if (cId && activeStages.includes(stage)) {
+        const isFrozenRefund =
+          stage === "Did Not Join" &&
+          (Boolean(app.isRefundLocked) ||
+            String(app.refundStatus || "").trim() === "Pending Admin Approval");
+        if (cId && (activeStages.includes(stage) || isFrozenRefund)) {
           busyMap.set(cId, app);
         }
       });
@@ -499,6 +507,8 @@ export default function SubmitCandidate() {
               const seen = new Set();
               const addItem = (p, c) => {
                 if (!p) return;
+                const pStatus = String(p.status || "Active").toLowerCase();
+                if (["inactive", "closed", "cancelled"].includes(pStatus)) return;
                 const key = String(p.id || p.projectId || p._id || "");
                 if (!key || seen.has(key)) return;
                 seen.add(key);

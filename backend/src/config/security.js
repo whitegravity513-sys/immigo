@@ -25,9 +25,6 @@ export const isAllowedCorsOrigin = (origin) => {
   if ((hostname === "localhost" || hostname === "127.0.0.1") && !env.isProduction) {
     return true;
   }
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return true;
-  }
 
   if (isVestaHost(hostname) && (protocol === "https:" || !env.isProduction)) {
     return true;

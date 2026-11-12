@@ -147,13 +147,13 @@ const buildStaffVisibilityQuery = (options = {}) => {
   if (role === "VENDOR_HR" || (role === "HR" && hrType === "VENDOR_HR")) {
     const vendorScope = assignedVendors.length > 0
       ? [
-          { targetVendorId: { $in: assignedVendors } },
-          { "metadata.vendorId": { $in: assignedVendors } },
-          ...(userId ? [{ targetUserId: userId }] : []),
-        ]
+        { targetVendorId: { $in: assignedVendors } },
+        { "metadata.vendorId": { $in: assignedVendors } },
+        ...(userId ? [{ targetUserId: userId }] : []),
+      ]
       : userId
-      ? [{ targetUserId: userId }]
-      : [{ targetRole: "VENDOR_HR" }];
+        ? [{ targetUserId: userId }]
+        : [{ targetRole: "VENDOR_HR" }];
 
     return {
       $and: [
@@ -175,15 +175,15 @@ const buildStaffVisibilityQuery = (options = {}) => {
         { $or: vendorScope },
         ...(userId
           ? [
-              {
-                $or: [
-                  { targetType: { $ne: "SPECIFIC" } },
-                  { targetUserId: null },
-                  { targetUserId: { $exists: false } },
-                  { targetUserId: userId },
-                ],
-              },
-            ]
+            {
+              $or: [
+                { targetType: { $ne: "SPECIFIC" } },
+                { targetUserId: null },
+                { targetUserId: { $exists: false } },
+                { targetUserId: userId },
+              ],
+            },
+          ]
           : []),
       ],
     };
@@ -230,14 +230,14 @@ const buildStaffVisibilityQuery = (options = {}) => {
         },
         ...(userId
           ? [
-              {
-                $or: [
-                  { targetType: "ALL" },
-                  { targetUserId: userId },
-                  { targetVendorId: userId },
-                ],
-              },
-            ]
+            {
+              $or: [
+                { targetType: "ALL" },
+                { targetUserId: userId },
+                { targetVendorId: userId },
+              ],
+            },
+          ]
           : []),
       ],
     };
@@ -293,8 +293,8 @@ export class NotificationService {
         Array.isArray(targetRoles) && targetRoles.length > 0
           ? Array.from(new Set(targetRoles.map((r) => String(r).toUpperCase())))
           : targetRole
-          ? [String(targetRole).toUpperCase()]
-          : [];
+            ? [String(targetRole).toUpperCase()]
+            : [];
 
       const notification = await Notification.create({
         type,
@@ -520,7 +520,7 @@ export class NotificationService {
     const notification = await Notification.findByIdAndUpdate(
       id,
       { read: true },
-      { new: true }
+      { returnDocument: "after" }
     );
     return notification;
   }
@@ -544,17 +544,17 @@ export class NotificationService {
       String(options?.hrType || "").toUpperCase() === "VENDOR_HR";
     const deleteFilter = isVendorHrRole
       ? {
-          $and: [
-            query,
-            {
-              $or: [
-                { targetRole: "VENDOR_HR" },
-                { targetRoles: "VENDOR_HR" },
-                ...(options?.userId ? [{ targetUserId: String(options.userId) }] : []),
-              ],
-            },
-          ],
-        }
+        $and: [
+          query,
+          {
+            $or: [
+              { targetRole: "VENDOR_HR" },
+              { targetRoles: "VENDOR_HR" },
+              ...(options?.userId ? [{ targetUserId: String(options.userId) }] : []),
+            ],
+          },
+        ],
+      }
       : query;
     await Notification.deleteMany(deleteFilter);
     return { success: true };
@@ -588,7 +588,7 @@ export class NotificationService {
         if (isMongoId) crmConds.push({ _id: new mongoose.Types.ObjectId(sId) });
         await CrmNotification.deleteMany({ $or: crmConds });
       }
-    } catch {}
+    } catch { }
 
     return { success: true };
   }

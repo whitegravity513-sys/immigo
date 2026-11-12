@@ -21,7 +21,7 @@ import {
 import crmVendorService from "../../../services/crmVendorService.js";
 import refundService, { isAppRefundLocked, getAppRefundStatus } from "../../../services/refundService.js";
 import CandidateActivityTimeline from "../../../components/common/candidate/CandidateActivityTimeline.jsx";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import { useAuth } from "../../../context/useAuth.js";
 
 export default function AdminCandidateMilestones() {
   const [searchParams] = useSearchParams();
@@ -443,7 +443,6 @@ export default function AdminCandidateMilestones() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 font-sans antialiased text-slate-800 pb-20 px-2 sm:px-4">
-      {/* Top Header: Back Button & Candidate Title */}
       <div className="flex items-center justify-between gap-2">
         <button
           onClick={() => navigate(-1)}
@@ -457,7 +456,6 @@ export default function AdminCandidateMilestones() {
         </div>
       </div>
 
-      {/* Candidate Dossier Banner (Simple, Compact Navy Blue) */}
       <div className="bg-slate-900 text-white rounded-xl border border-slate-800 p-3.5 sm:p-4 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -491,7 +489,6 @@ export default function AdminCandidateMilestones() {
           </div>
         </div>
 
-        {/* Compact Progress Bar */}
         <div className="mt-3 pt-2.5 border-t border-slate-800/80">
           <div className="flex items-center justify-between text-[11px] font-medium text-slate-300 mb-1">
             <span>Overall Mobilization Progress</span>
@@ -508,7 +505,6 @@ export default function AdminCandidateMilestones() {
         </div>
       </div>
 
-      {/* Project Milestones Stepper / Sequence (Clean, Simple, Compact) */}
       {refundLocked && (
         <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start gap-2.5">
@@ -612,10 +608,8 @@ export default function AdminCandidateMilestones() {
         </div>
       </div>
 
-      {/* Active Milestone Step Editor (Simple, Crisp Box) */}
       {currentMilestone && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          {/* Header Bar of Active Milestone */}
           <div className="p-3 sm:p-3.5 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
               <div className="flex items-center gap-2">
@@ -964,7 +958,6 @@ export default function AdminCandidateMilestones() {
         </div>
       )}
 
-      {/* Sticky Bottom Save Action Bar */}
       <div className="sticky bottom-0 -mx-2 sm:-mx-4 -mb-20 z-20 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -1016,7 +1009,6 @@ export default function AdminCandidateMilestones() {
           </div>
         </div>
 
-        {/* Section 12 & 13: Permanent Candidate Activity History */}
         {application && (
           <div className="mt-4">
             <CandidateActivityTimeline

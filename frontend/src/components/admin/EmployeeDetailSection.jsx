@@ -67,8 +67,8 @@ export default function EmployeeDetailSection({
   const attendance = Array.isArray(employeeHistory?.attendanceHistory)
     ? employeeHistory.attendanceHistory
     : Array.isArray(employeeHistory)
-    ? employeeHistory
-    : [];
+      ? employeeHistory
+      : [];
   const leaves = Array.isArray(employeeHistory?.leaveHistory)
     ? employeeHistory.leaveHistory
     : [];
@@ -144,8 +144,8 @@ export default function EmployeeDetailSection({
     typeof emp?.name === "string"
       ? emp.name
       : emp?.name?.first
-      ? `${emp.name.first} ${emp.name.last}`
-      : String(emp?.name || "Employee");
+        ? `${emp.name.first} ${emp.name.last}`
+        : String(emp?.name || "Employee");
 
   return (
     <div className="space-y-6">
@@ -195,31 +195,28 @@ export default function EmployeeDetailSection({
           <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab("attendance")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "attendance"
-                  ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === "attendance"
+                ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
             >
               <CalendarIcon size={16} /> Attendance History
             </button>
             <button
               onClick={() => setActiveTab("payments")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "payments"
-                  ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === "payments"
+                ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
             >
               <Award size={16} /> Payment & Financial Details
             </button>
             <button
               onClick={() => setActiveTab("documents")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "documents"
-                  ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === "documents"
+                ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
             >
               <FolderLock size={16} /> Corporate Document Vault
               <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
@@ -228,11 +225,10 @@ export default function EmployeeDetailSection({
             </button>
             <button
               onClick={() => setActiveTab("leaves")}
-              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "leaves"
-                  ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
+              className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === "leaves"
+                ? "border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-xl"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
             >
               <Briefcase size={16} /> Leave Applications
               <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">

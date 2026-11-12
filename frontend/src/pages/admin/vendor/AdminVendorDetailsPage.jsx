@@ -84,7 +84,7 @@ export default function AdminVendorDetailsPage() {
       const res = await adminVendorV1Service.getVendorDetails(id);
       setVendorData(res);
 
-      const projRes = await apiClient.get("/client/projects").catch(() => ({ data: [] }));
+      const projRes = await apiClient.get("/crm-sync/projects").catch(() => ({ data: [] }));
       const projects = projRes.data?.data || projRes.data?.projects || projRes.data || [];
       setAllProjects(Array.isArray(projects) ? projects : []);
     } catch (err) {
@@ -104,6 +104,8 @@ export default function AdminVendorDetailsPage() {
     };
   }, [loadDetails]);
 
+  const vendorKey = vendorData?.vendor?.vendorId || id;
+
   const handleAssignProject = async (e) => {
     e.preventDefault();
     if (!assignProjectForm.projectId) {
@@ -112,7 +114,7 @@ export default function AdminVendorDetailsPage() {
     }
     try {
       setActionLoading(true);
-      await adminVendorV1Service.assignProjectToVendor(id, assignProjectForm);
+      await adminVendorV1Service.assignProjectToVendor(vendorKey, assignProjectForm);
       showToast("Project assigned to vendor successfully");
       setShowAssignProjectModal(false);
       setAssignProjectForm({ projectId: "", notes: "" });
@@ -128,7 +130,7 @@ export default function AdminVendorDetailsPage() {
     if (!window.confirm("Are you sure you want to unassign this project from this vendor?")) return;
     try {
       setActionLoading(true);
-      await adminVendorV1Service.removeProjectFromVendor(id, projectId);
+      await adminVendorV1Service.removeProjectFromVendor(vendorKey, projectId);
       showToast("Project unassigned successfully");
       loadDetails();
     } catch (err) {
@@ -142,7 +144,7 @@ export default function AdminVendorDetailsPage() {
     e.preventDefault();
     try {
       setActionLoading(true);
-      await adminVendorV1Service.createVendorHR(id, createHRForm);
+      await adminVendorV1Service.createVendorHR(vendorKey, createHRForm);
       showToast("Vendor HR created successfully");
       setShowCreateHRModal(false);
       setCreateHRForm({ name: "", email: "", password: "", phone: "" });
@@ -158,8 +160,9 @@ export default function AdminVendorDetailsPage() {
     e.preventDefault();
     try {
       setActionLoading(true);
-      await adminVendorV1Service.createVendorMilestone(id, {
+      await adminVendorV1Service.createVendorMilestone(vendorKey, {
         ...milestoneForm,
+        projectId: milestoneForm.projectId || "GENERAL",
         amount: Number(milestoneForm.amount),
       });
       showToast("Milestone created successfully");
@@ -187,7 +190,7 @@ export default function AdminVendorDetailsPage() {
     try {
       setActionLoading(true);
       const mId = selectedMilestone.milestoneId || selectedMilestone._id;
-      await adminVendorV1Service.settleVendorMilestonePayment(id, mId, {
+      await adminVendorV1Service.settleVendorMilestonePayment(vendorKey, mId, {
         ...payForm,
         paidAmount: Number(payForm.paidAmount),
       });
@@ -214,11 +217,10 @@ export default function AdminVendorDetailsPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 lg:p-8 space-y-6">
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium border transition ${
-            toast.type === "error"
-              ? "bg-red-950/90 border-red-500 text-red-200"
-              : "bg-emerald-950/90 border-emerald-500 text-emerald-200"
-          }`}
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium border transition ${toast.type === "error"
+            ? "bg-red-950/90 border-red-500 text-red-200"
+            : "bg-emerald-950/90 border-emerald-500 text-emerald-200"
+            }`}
         >
           {toast.message}
         </div>
@@ -299,11 +301,10 @@ export default function AdminVendorDetailsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-2 rounded-xl font-semibold whitespace-nowrap transition cursor-pointer ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                    : "text-slate-400 hover:text-white hover:bg-slate-900"
-                }`}
+                className={`px-3.5 py-2 rounded-xl font-semibold whitespace-nowrap transition cursor-pointer ${activeTab === tab.id
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                  : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  }`}
               >
                 {tab.label}
               </button>

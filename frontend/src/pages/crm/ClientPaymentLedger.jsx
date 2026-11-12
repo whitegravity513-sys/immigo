@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Receipt, RefreshCw, Download, Plus } from "lucide-react";
 import * as XLSX from "xlsx";
 import crmClientService from "../../services/crmClientService.js";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import ClientPaymentStatsCards from "../../components/crm/payments/ClientPaymentStatsCards.jsx";
 import ClientPaymentFilterBar from "../../components/crm/payments/ClientPaymentFilterBar.jsx";
 import ClientPaymentTable from "../../components/crm/payments/ClientPaymentTable.jsx";

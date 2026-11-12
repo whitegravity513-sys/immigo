@@ -642,6 +642,9 @@ export const crmClientService = {
     return client.projects[pIdx];
   },
 
+  updateProjectManpower: async (clientId, projectId, manpowerRequirements = []) =>
+    crmClientService.updateProject(clientId, projectId, { manpowerRequirements }),
+
   
   toggleProjectStatus: async (clientId, projectId) => {
     let all = loadClientsFromStorage();
@@ -994,13 +997,20 @@ export const crmClientService = {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 15;
     const startIndex = (page - 1) * limit;
+    const totalPages = Math.ceil(list.length / limit) || 1;
 
     return {
       payments: list.slice(startIndex, startIndex + limit),
       total: list.length,
       page,
       limit,
-      totalPages: Math.ceil(list.length / limit) || 1,
+      totalPages,
+      pagination: {
+        total: list.length,
+        page,
+        limit,
+        totalPages,
+      },
     };
   },
 
@@ -1058,10 +1068,15 @@ export const crmClientService = {
     return newTx;
   },
 
-  getLedgerStats: async (clientId = null) => {
+  getLedgerStats: async (clientIdOrParams = null) => {
+    const resolvedClientId =
+      clientIdOrParams && typeof clientIdOrParams === "object"
+        ? clientIdOrParams.clientId || null
+        : clientIdOrParams || null;
+
     try {
       const res = await apiClient.get("/admin/client-payments/stats", {
-        params: { clientId: clientId || undefined },
+        params: { clientId: resolvedClientId || undefined },
       });
       if (res.data?.success) {
         return res.data.stats;
@@ -1073,8 +1088,8 @@ export const crmClientService = {
     
     const clients = loadClientsFromStorage();
     let relevantClients = clients;
-    if (clientId && clientId !== "ALL") {
-      relevantClients = clients.filter((c) => String(c.id) === String(clientId));
+    if (resolvedClientId && resolvedClientId !== "ALL") {
+      relevantClients = clients.filter((c) => String(c.id) === String(resolvedClientId));
     }
 
     let totalAgreed = 0;
@@ -1094,8 +1109,8 @@ export const crmClientService = {
 
     const localPaymentsRaw = localStorage.getItem("crm_client_payments_v1") || "[]";
     let list = JSON.parse(localPaymentsRaw).filter((p) => !p.isReversed);
-    if (clientId && clientId !== "ALL") {
-      list = list.filter((p) => String(p.clientId) === String(clientId));
+    if (resolvedClientId && resolvedClientId !== "ALL") {
+      list = list.filter((p) => String(p.clientId) === String(resolvedClientId));
     }
 
     const totalPaid = list.reduce((sum, p) => sum + (Number(p.amountPaid) || 0), 0);
@@ -1108,12 +1123,16 @@ export const crmClientService = {
       totalAgreedPayments: totalAgreed,
       totalPaymentsMade: totalPaid,
       totalOutstandingAmount: Math.max(0, totalAgreed - totalPaid),
+      paymentsDueCount: dueCount,
+      overduePaymentsCount: overdueCount,
       paymentsDue: dueCount,
       overduePayments: overdueCount,
       totalTransactions: list.length,
       totalTransactionsAmount,
     };
   },
+
+  getPaymentLedgerStats: async (params = {}) => crmClientService.getLedgerStats(params),
 
   reverseClientPayment: async (paymentId, reason) => {
     try {

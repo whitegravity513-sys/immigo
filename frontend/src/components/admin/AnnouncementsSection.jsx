@@ -353,13 +353,12 @@ export default function AnnouncementsSection({
                       setType(t.key);
                       setListTab(t.key === "announcement" ? "announcements" : "holidays");
                     }}
-                    className={`flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                      isActive
-                        ? t.key === "announcement"
-                          ? "bg-blue-600 text-white shadow-xs"
-                          : "bg-amber-600 text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
+                    className={`flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-bold transition-all cursor-pointer ${isActive
+                      ? t.key === "announcement"
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "bg-amber-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                      }`}
                   >
                     <IconComponent size={13} />
                     <span>{t.label}</span>
@@ -458,8 +457,8 @@ export default function AnnouncementsSection({
                           ? "Updating..."
                           : "Broadcasting..."
                         : editingAnnId
-                        ? "Update Announcement"
-                        : "Publish Announcement"}
+                          ? "Update Announcement"
+                          : "Publish Announcement"}
                     </span>
                   </button>
                   {editingAnnId && (
@@ -529,8 +528,8 @@ export default function AnnouncementsSection({
                           ? "Updating Holiday..."
                           : "Saving Holiday..."
                         : editingHolidayId
-                        ? "Update Public Holiday"
-                        : "Declare Public Holiday"}
+                          ? "Update Public Holiday"
+                          : "Declare Public Holiday"}
                     </span>
                   </button>
                   {editingHolidayId && (
@@ -554,11 +553,10 @@ export default function AnnouncementsSection({
               <button
                 type="button"
                 onClick={() => setListTab("announcements")}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  listTab === "announcements"
-                    ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
-                    : "text-slate-500 hover:text-slate-900"
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${listTab === "announcements"
+                  ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
+                  : "text-slate-500 hover:text-slate-900"
+                  }`}
               >
                 <Megaphone size={12} className="text-blue-600" />
                 <span>Notices ({announcements.length})</span>
@@ -567,11 +565,10 @@ export default function AnnouncementsSection({
               <button
                 type="button"
                 onClick={() => setListTab("holidays")}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  listTab === "holidays"
-                    ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
-                    : "text-slate-500 hover:text-slate-900"
-                }`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${listTab === "holidays"
+                  ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
+                  : "text-slate-500 hover:text-slate-900"
+                  }`}
               >
                 <CalendarDays size={12} className="text-amber-600" />
                 <span>Holidays ({holidays.length})</span>

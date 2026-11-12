@@ -9,7 +9,7 @@ import {
   vendorForgotPassword,
   vendorResetPassword,
 } from "../controllers/vendorAuth.controller.js";
-import { verifyToken } from "../middleware/auth.middleware.js";
+import { verifyVendor } from "../middleware/auth.middleware.js";
 import { authLimiter, otpLimiter } from "../middleware/rateLimit.middleware.js";
 
 const router = express.Router();
@@ -18,9 +18,9 @@ router.post("/register", authLimiter, vendorRegister);
 router.post("/login", authLimiter, vendorLogin);
 router.post("/forgot-password", otpLimiter, vendorForgotPassword);
 router.post("/reset-password", authLimiter, vendorResetPassword);
-router.get("/me", verifyToken, getVendorMe);
-router.post("/upload-documents", verifyToken, uploadVendorDocuments);
-router.post("/sign-mou", verifyToken, signVendorMou);
-router.put("/profile", verifyToken, updateVendorProfile);
+router.get("/me", verifyVendor, getVendorMe);
+router.post("/upload-documents", verifyVendor, uploadVendorDocuments);
+router.post("/sign-mou", verifyVendor, signVendorMou);
+router.put("/profile", verifyVendor, updateVendorProfile);
 
 export default router;

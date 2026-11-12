@@ -148,7 +148,7 @@ export const RegisterEmployeeSection = ({
 
   return (
     <div className="w-full space-y-6 text-left">
-      
+
       <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3.5">
           <button
@@ -194,9 +194,9 @@ export const RegisterEmployeeSection = ({
         </div>
       )}
 
-      
+
       <form onSubmit={onSubmit} className="space-y-6">
-        
+
         <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 sm:p-4 shadow-xs space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
             <div className="flex items-center gap-2.5 sm:gap-3">
@@ -255,7 +255,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          
+
           <div>
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <User size={15} className="text-blue-600" />
@@ -332,11 +332,10 @@ export const RegisterEmployeeSection = ({
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-semibold text-slate-700">Contact Phone *</label>
-                  <span className={`text-[10px] font-bold ${
-                    (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
-                      ? "text-emerald-600"
-                      : "text-slate-400"
-                  }`}>
+                  <span className={`text-[10px] font-bold ${(employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
+                    ? "text-emerald-600"
+                    : "text-slate-400"
+                    }`}>
                     {(employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
                       ? "10 Digits ✓"
                       : `${employeeForm.phone?.replace(/\D/g, "")?.length || 0}/10 digits`}
@@ -352,11 +351,10 @@ export const RegisterEmployeeSection = ({
                     const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
                     setEmployeeForm({ ...employeeForm, phone: digitsOnly });
                   }}
-                  className={`w-full bg-slate-50 border rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition font-medium ${
-                    (employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
-                      ? "border-emerald-300 focus:border-emerald-500"
-                      : "border-slate-200 focus:border-blue-500"
-                  }`}
+                  className={`w-full bg-slate-50 border rounded-md px-2.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition font-medium ${(employeeForm.phone?.replace(/\D/g, "")?.length || 0) === 10
+                    ? "border-emerald-300 focus:border-emerald-500"
+                    : "border-slate-200 focus:border-blue-500"
+                    }`}
                 />
               </div>
 
@@ -420,7 +418,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          
+
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Briefcase size={15} className="text-blue-600" />
@@ -477,7 +475,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          
+
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <Award size={15} className="text-blue-600" />
@@ -555,7 +553,7 @@ export const RegisterEmployeeSection = ({
             </div>
           </div>
 
-          
+
           <div className="pt-4 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3.5 flex items-center gap-1.5">
               <FileText size={15} className="text-blue-600" />
@@ -646,7 +644,7 @@ export const RegisterEmployeeSection = ({
           </div>
         </div>
 
-        
+
         <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-xs flex items-center justify-between gap-3">
           <button
             type="button"

@@ -12,6 +12,7 @@ import {
   normalizeMilestoneStages,
 } from "../utils/projectResolver.js";
 import { checkApplicationRefundLock } from "../utils/refundLock.js";
+import { escapeRegex } from "../utils/regex.js";
 import { emitRealtimeEvent } from "../services/realtime.service.js";
 
 const emitCandidateSync = (appOrCandidate) => {
@@ -115,7 +116,7 @@ export const getCandidates = asyncHandler(async (req, res) => {
   }
 
   if (search && String(search).trim()) {
-    const regex = new RegExp(String(search).trim(), "i");
+    const regex = new RegExp(escapeRegex(String(search).trim()), "i");
     query.$or = [
       { candidateId: regex },
       { fullName: regex },
@@ -450,7 +451,7 @@ export const getCandidateApplications = asyncHandler(async (req, res) => {
   }
 
   if (search && String(search).trim()) {
-    const regex = new RegExp(String(search).trim(), "i");
+    const regex = new RegExp(escapeRegex(String(search).trim()), "i");
     query.$or = [
       { applicationId: regex },
       { candidateId: regex },

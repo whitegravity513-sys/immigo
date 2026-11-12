@@ -74,7 +74,7 @@ export const updateAnnouncement = asyncHandler(async (req, res) => {
       ...(category ? { category } : {}),
       ...(priority ? { priority } : {}),
     },
-    { new: true, runValidators: true }
+    { returnDocument: "after", runValidators: true }
   );
   if (!announcement) {
     throw new ApiError(404, "Announcement not found");

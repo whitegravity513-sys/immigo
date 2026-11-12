@@ -4,7 +4,7 @@ import * as authService from "../services/auth.service.js";
 
 export const forgotPasswordOtp = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  const ipAddress = req.ip || req.connection?.remoteAddress;
+  const ipAddress = req.ip || req.socket?.remoteAddress;
 
   const result = await authService.forgotPasswordOtp({ email, ipAddress });
 

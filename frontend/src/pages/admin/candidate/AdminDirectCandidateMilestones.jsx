@@ -66,8 +66,8 @@ export default function AdminDirectCandidateMilestones() {
           syncedMs.length > 0
             ? syncedMs
             : Array.isArray(app.processMilestones) && app.processMilestones.length > 0
-            ? app.processMilestones
-            : app.paymentPlan?.milestones || [];
+              ? app.processMilestones
+              : app.paymentPlan?.milestones || [];
 
         setMilestonesList(milestones);
         setMilestonesCustomized(Boolean(app.milestonesOverridden));
@@ -402,11 +402,10 @@ export default function AdminDirectCandidateMilestones() {
     <div className="space-y-3 max-w-6xl w-full mx-auto font-sans antialiased text-slate-800 pb-10 text-xs">
       {notification && (
         <div
-          className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-between shadow-xs transition-all ${
-            notification.type === "success"
-              ? "bg-blue-50 text-[#163868] border-blue-200"
-              : "bg-rose-50 text-rose-800 border-rose-200"
-          }`}
+          className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center justify-between shadow-xs transition-all ${notification.type === "success"
+            ? "bg-blue-50 text-[#163868] border-blue-200"
+            : "bg-rose-50 text-rose-800 border-rose-200"
+            }`}
         >
           <div className="flex items-center gap-2">
             {notification.type === "success" ? <CheckCircle2 size={15} className="text-[#163868]" /> : <AlertCircle size={15} />}
@@ -441,9 +440,8 @@ export default function AdminDirectCandidateMilestones() {
           <button
             onClick={handleSave}
             disabled={saveLoading}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-2xs flex items-center gap-1.5 transition cursor-pointer ${
-              saveSuccess ? "bg-[#163868]" : "bg-[#163868] hover:bg-[#1e4a82]"
-            } disabled:opacity-50`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-2xs flex items-center gap-1.5 transition cursor-pointer ${saveSuccess ? "bg-[#163868]" : "bg-[#163868] hover:bg-[#1e4a82]"
+              } disabled:opacity-50`}
           >
             {saveLoading ? (
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />

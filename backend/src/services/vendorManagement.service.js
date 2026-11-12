@@ -7,6 +7,7 @@ import ActivityLog from "../models/ActivityLog.js";
 import NotificationService from "./notification.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { generateNextVendorId } from "../utils/idGenerator.js";
+import { escapeRegex } from "../utils/regex.js";
 import bcrypt from "bcryptjs";
 
 export class VendorManagementService {
@@ -131,13 +132,15 @@ export class VendorManagementService {
       filter.status = status;
     }
     if (search) {
-      const s = String(search).trim();
-      filter.$or = [
-        { companyName: { $regex: s, $options: "i" } },
-        { vendorId: { $regex: s, $options: "i" } },
-        { email: { $regex: s, $options: "i" } },
-        { contactPersonName: { $regex: s, $options: "i" } },
-      ];
+      const s = escapeRegex(String(search).trim());
+      if (s) {
+        filter.$or = [
+          { companyName: { $regex: s, $options: "i" } },
+          { vendorId: { $regex: s, $options: "i" } },
+          { email: { $regex: s, $options: "i" } },
+          { contactPersonName: { $regex: s, $options: "i" } },
+        ];
+      }
     }
 
     const vendors = await Vendor.find(filter)

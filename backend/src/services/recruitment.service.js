@@ -198,7 +198,7 @@ const findOrMirrorApplication = async (applicationId) => {
         adminRemarks: crmDoc.adminRemark || "",
       },
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   );
   return application;
 };

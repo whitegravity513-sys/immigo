@@ -15,7 +15,13 @@ const isProjectVisibleToVendor = (project, allowedVendorIds) => {
   const visType = project.vendorAssignmentType || project.vendorVisibility || "";
   if (visType !== "Specific Vendor" && visType !== "specific") return true;
   const assigned = project.assignedVendors || project.assignedVendorIds || [];
-  return Array.isArray(assigned) && assigned.some((v) => allowedVendorIds.has(String(v).trim()));
+  return (
+    Array.isArray(assigned) &&
+    assigned.some((v) => {
+      const vid = typeof v === "object" ? v?.vendorId || v?.id || v?._id : v;
+      return vid && allowedVendorIds.has(String(vid).trim());
+    })
+  );
 };
 
 export const getClients = asyncHandler(async (req, res) => {
@@ -25,7 +31,11 @@ export const getClients = asyncHandler(async (req, res) => {
     const allowedVendorIds = getVendorAllowedSet(req);
     const vendorClients = (clients || []).map((c) => {
       const visibleProjects = (Array.isArray(c.projects) ? c.projects : [])
-        .filter((p) => isProjectVisibleToVendor(p, allowedVendorIds))
+        .filter((p) => {
+          if (!isProjectVisibleToVendor(p, allowedVendorIds)) return false;
+          const pStatus = String(p?.status || "Active").toLowerCase();
+          return pStatus !== "inactive" && pStatus !== "closed" && pStatus !== "cancelled";
+        })
         .map((p) => {
           const clone = { ...p };
           delete clone.assignedVendors;

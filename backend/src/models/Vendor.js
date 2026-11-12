@@ -35,6 +35,14 @@ const vendorSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    alternatePhone: {
+      type: String,
+      default: "",
+    },
+    profileImage: {
+      type: String,
+      default: "",
+    },
     pan: {
       type: String,
       default: "",

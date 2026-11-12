@@ -1,9 +1,13 @@
+import mongoose from "mongoose";
 import VendorPaymentMilestone from "../models/VendorPaymentMilestone.js";
 import Vendor from "../models/Vendor.js";
-import Project from "../models/Project.js";
 import ActivityLog from "../models/ActivityLog.js";
 import NotificationService from "./notification.service.js";
 import { ApiError } from "../utils/apiError.js";
+import { findProjectAcrossSources } from "../utils/projectResolver.js";
+
+const isValidObjectId = (val) =>
+  typeof val === "string" && mongoose.Types.ObjectId.isValid(val.trim()) && /^[0-9a-fA-F]{24}$/.test(val.trim());
 
 export class VendorPaymentService {
   static async createMilestone({
@@ -22,26 +26,33 @@ export class VendorPaymentService {
       throw new ApiError(400, "Milestone name, vendor, project, and amount are required.");
     }
 
-    const [vendor, project] = await Promise.all([
+    const cleanVendorId = String(vendorId).trim();
+    const cleanProjectId = String(projectId).trim();
+
+    const [vendor, resolvedProject] = await Promise.all([
       Vendor.findOne({
         $or: [
-          { vendorId },
-          { _id: vendorId.match(/^[0-9a-fA-F]{24}$/) ? vendorId : null },
+          { vendorId: cleanVendorId },
+          ...(isValidObjectId(cleanVendorId) ? [{ _id: cleanVendorId }] : []),
         ],
       }),
-      Project.findOne({
-        $or: [
-          { projectId },
-          { _id: projectId.match(/^[0-9a-fA-F]{24}$/) ? projectId : null },
-        ],
-      }),
+      cleanProjectId.toUpperCase() === "GENERAL"
+        ? Promise.resolve({
+            projectId: "GENERAL",
+            projectRef: undefined,
+            projectName: "General (All Projects)",
+          })
+        : findProjectAcrossSources(cleanProjectId),
     ]);
 
     if (!vendor) throw new ApiError(404, "Vendor not found.");
-    if (!project) throw new ApiError(404, "Project not found.");
+    if (!resolvedProject) throw new ApiError(404, "Project not found.");
 
     const milestoneId = `MIL-${Date.now().toString().slice(-6)}`;
     const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+      throw new ApiError(400, "Milestone amount must be a valid non-negative number.");
+    }
 
     const milestone = await VendorPaymentMilestone.create({
       milestoneId,
@@ -49,9 +60,9 @@ export class VendorPaymentService {
       vendorId: vendor.vendorId || vendor._id.toString(),
       vendorRef: vendor._id,
       vendorName: vendor.companyName,
-      projectId: project.projectId || project._id.toString(),
-      projectRef: project._id,
-      projectName: project.title,
+      projectId: resolvedProject.projectId,
+      ...(resolvedProject.projectRef ? { projectRef: resolvedProject.projectRef } : {}),
+      projectName: resolvedProject.projectName || resolvedProject.title || "Overseas Project",
       amount: parsedAmount,
       percentage: Number(percentage) || 0,
       conditions: conditions || "",
@@ -80,7 +91,7 @@ export class VendorPaymentService {
       userName: actorUser?.name || "Administrator",
       action: "PAYMENT_MILESTONE_CREATED",
       title: `Created Milestone [${milestone.milestoneName}]`,
-      description: `Payment milestone of ₹${parsedAmount} created for ${vendor.companyName} on project ${project.title}.`,
+      description: `Payment milestone of ₹${parsedAmount} created for ${vendor.companyName} on project ${milestone.projectName}.`,
       entityType: "VendorPayment",
       entityId: milestone.milestoneId,
       entityName: milestone.milestoneName,
@@ -96,7 +107,7 @@ export class VendorPaymentService {
         actor: actorUser,
         type: "PAYMENT",
         title: "New Payment Milestone Created",
-        message: `Milestone "${milestone.milestoneName}" for ₹${parsedAmount} was created for project ${project.title}.`,
+        message: `Milestone "${milestone.milestoneName}" for ₹${parsedAmount} was created for project ${milestone.projectName}.`,
         moduleScope: "VENDOR",
         targetVendorId: vendor.vendorId || vendor._id.toString(),
         metadata: {
@@ -127,8 +138,20 @@ export class VendorPaymentService {
     const previousStatus = milestone.status;
 
     if (updateData.milestoneName) milestone.milestoneName = updateData.milestoneName.trim();
-    if (updateData.amount !== undefined) milestone.amount = Number(updateData.amount);
-    if (updateData.percentage !== undefined) milestone.percentage = Number(updateData.percentage);
+    if (updateData.amount !== undefined) {
+      const nextAmt = Number(updateData.amount);
+      if (!Number.isFinite(nextAmt) || nextAmt < 0) {
+        throw new ApiError(400, "Milestone amount must be a valid non-negative number.");
+      }
+      milestone.amount = nextAmt;
+    }
+    if (updateData.percentage !== undefined) {
+      const nextPct = Number(updateData.percentage);
+      if (!Number.isFinite(nextPct) || nextPct < 0 || nextPct > 100) {
+        throw new ApiError(400, "Percentage must be between 0 and 100.");
+      }
+      milestone.percentage = nextPct;
+    }
     if (updateData.conditions !== undefined) milestone.conditions = updateData.conditions;
     if (updateData.dueDate) milestone.dueDate = new Date(updateData.dueDate);
     if (updateData.remarks !== undefined) milestone.remarks = updateData.remarks;
@@ -154,7 +177,11 @@ export class VendorPaymentService {
     }
 
     if (updateData.paidAmount !== undefined) {
-      milestone.paidAmount = Number(updateData.paidAmount);
+      const nextPaid = Number(updateData.paidAmount);
+      if (!Number.isFinite(nextPaid) || nextPaid < 0) {
+        throw new ApiError(400, "Paid amount must be a valid non-negative number.");
+      }
+      milestone.paidAmount = nextPaid;
       if (milestone.paidAmount >= milestone.amount) {
         milestone.status = "Paid";
         milestone.paidAt = new Date();
@@ -224,6 +251,9 @@ export class VendorPaymentService {
     }
 
     const amountToCredit = paidAmount !== undefined ? Number(paidAmount) : milestone.amount;
+    if (!Number.isFinite(amountToCredit) || amountToCredit < 0) {
+      throw new ApiError(400, "Paid amount must be a valid non-negative number.");
+    }
     milestone.paidAmount = amountToCredit;
     milestone.status = amountToCredit >= milestone.amount ? "Paid" : "Partially Paid";
     milestone.paymentReference = paymentReference || `TXN-${Date.now().toString().slice(-6)}`;

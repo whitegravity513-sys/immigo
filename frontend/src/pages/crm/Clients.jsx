@@ -1,31 +1,24 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
-  Building2,
-  Plus,
-  Filter,
   MoreVertical,
   Eye,
   Edit2,
   Trash2,
   FolderPlus,
   MapPin,
-  Mail,
-  Phone,
   RotateCcw,
-  Users,
   Download,
 } from "lucide-react";
 import ExcelExportModal from "../../components/common/ExcelExportModal.jsx";
 import StatusBadge from "../../components/crm/ui/StatusBadge.jsx";
 import SearchInput from "../../components/crm/ui/SearchInput.jsx";
-import SelectField from "../../components/crm/ui/SelectField.jsx";
 import Pagination from "../../components/crm/ui/Pagination.jsx";
 import EmptyState from "../../components/crm/ui/EmptyState.jsx";
 import LoadingSkeleton from "../../components/crm/ui/LoadingSkeleton.jsx";
 import ConfirmDialog from "../../components/crm/ui/ConfirmDialog.jsx";
 import AddProjectModal from "../../components/crm/projects/AddProjectModal.jsx";
-import { useCrmToast } from "../../components/crm/layout/CrmLayout.jsx";
+import { useCrmToast } from "../../components/crm/layout/crmToastContext.js";
 import crmClientService, {
   calculateClientManpower,
 } from "../../services/crmClientService.js";
@@ -188,7 +181,7 @@ export function Clients() {
       showToast(`Client "${deleteClientTarget.companyName}" deleted successfully.`);
       setDeleteClientTarget(null);
       fetchClients();
-    } catch (err) {
+    } catch {
       showToast("Failed to delete client.", "error");
     } finally {
       setDeleting(false);
@@ -371,7 +364,7 @@ export function Clients() {
                       <td className="py-1.5 px-3">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-100 font-bold text-[10px] flex items-center justify-center shrink-0">
-                            {client.companyName.charAt(0).toUpperCase()}
+                            {(client.companyName || "?").charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <Link

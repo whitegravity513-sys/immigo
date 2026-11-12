@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -22,28 +23,41 @@ export default defineConfig({
     },
   },
   plugins: [
+    react(),
     tailwindcss(),
   ],
   build: {
     chunkSizeWarningLimit: 1000,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("react") || id.includes("react-dom") || id.includes("react-router-dom")) {
-              return "vendor-react";
-            }
-            if (id.includes("lucide-react")) {
-              return "vendor-icons";
-            }
-            if (id.includes("xlsx")) {
-              return "vendor-excel";
-            }
-            if (id.includes("html2pdf") || id.includes("jspdf") || id.includes("html2canvas")) {
-              return "vendor-pdf";
-            }
-            return "vendor";
-          }
+        codeSplitting: {
+          groups: [
+            {
+              name: "vendor-react",
+              test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom|scheduler)[\\/]/,
+              priority: 30,
+            },
+            {
+              name: "vendor-icons",
+              test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+              priority: 20,
+            },
+            {
+              name: "vendor-excel",
+              test: /[\\/]node_modules[\\/]xlsx[\\/]/,
+              priority: 20,
+            },
+            {
+              name: "vendor-pdf",
+              test: /[\\/]node_modules[\\/](html2pdf\.js|jspdf|html2canvas)[\\/]/,
+              priority: 20,
+            },
+            {
+              name: "vendor",
+              test: /[\\/]node_modules[\\/]/,
+              priority: 1,
+            },
+          ],
         },
       },
     },

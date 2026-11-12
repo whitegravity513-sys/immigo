@@ -125,9 +125,8 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                             type="button"
                             onClick={() => handleToggleProjectStatus(project.id)}
                             className="px-2 py-0.5 text-[10px] font-medium text-gray-600 hover:text-blue-700 hover:bg-blue-50 border border-gray-200 rounded transition-colors cursor-pointer"
-                            title={`Switch status to ${
-                              project.status === "Active" ? "Inactive" : "Active"
-                            }`}
+                            title={`Switch status to ${project.status === "Active" ? "Inactive" : "Active"
+                              }`}
                           >
                             {project.status === "Active" ? "Set Inactive" : "Set Active"}
                           </button>
@@ -140,11 +139,10 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                             onClick={() =>
                               setOpenMenuId(isMenuOpen ? null : project.id)
                             }
-                            className={`w-6 h-6 rounded-md flex items-center justify-center transition-all cursor-pointer ${
-                              isMenuOpen
-                                ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
-                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                            }`}
+                            className={`w-6 h-6 rounded-md flex items-center justify-center transition-all cursor-pointer ${isMenuOpen
+                              ? "bg-blue-100 text-blue-700 font-bold shadow-xs"
+                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                              }`}
                             title="Actions"
                           >
                             <MoreVertical size={16} />
@@ -157,11 +155,10 @@ export function ClientProjectsTab({ client, handleToggleProjectStatus }) {
                                 onClick={() => setOpenMenuId(null)}
                               />
                               <div
-                                className={`absolute right-0 ${
-                                  isNearBottom
-                                    ? "bottom-full mb-1.5"
-                                    : "top-full mt-1.5"
-                                } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
+                                className={`absolute right-0 ${isNearBottom
+                                  ? "bottom-full mb-1.5"
+                                  : "top-full mt-1.5"
+                                  } w-48 bg-white rounded-xl shadow-2xl border border-gray-200 py-1.5 z-50 text-xs text-left divide-y divide-gray-100`}
                               >
                                 <div className="py-1">
                                   <Link

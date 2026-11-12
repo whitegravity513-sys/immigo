@@ -23,7 +23,7 @@ export const createSession = async (user, req = {}) => {
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   const userAgent = req.headers ? req.headers["user-agent"] : null;
-  const ipAddress = req.ip || req.connection?.remoteAddress || null;
+  const ipAddress = req.ip || req.socket?.remoteAddress || null;
 
   await RefreshToken.create({
     userId: user._id,

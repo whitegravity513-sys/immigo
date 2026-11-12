@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ImmiGoLogo } from "../../components/common/ImmiGoLogo.jsx";
+import { useNavigate } from "react-router-dom";
 import AuthHeader from "../../components/auth/AuthHeader.jsx";
 import { employeeLogin } from "../../services/authService.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/useAuth.js";
 import employeeVectorHd from "../../assets/employee-vector-hd.jpg";
 import {
   User,

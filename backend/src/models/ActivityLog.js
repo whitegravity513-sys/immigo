@@ -4,7 +4,7 @@ const activityLogSchema = new mongoose.Schema(
   {
     userType: {
       type: String,
-      enum: ["ADMIN", "SUPER_ADMIN", "HR", "EMPLOYEE", "VENDOR", "SYSTEM"],
+      enum: ["ADMIN", "SUPER_ADMIN", "HR", "VENDOR_HR", "EMPLOYEE_HR", "EMPLOYEE", "VENDOR", "CANDIDATE", "SYSTEM"],
       default: "SYSTEM",
       index: true,
     },
@@ -44,6 +44,7 @@ const activityLogSchema = new mongoose.Schema(
         "Document",
         "System",
         "Meeting",
+        "VendorPayment",
         "CLIENT",
         "VENDOR",
         "PROJECT",

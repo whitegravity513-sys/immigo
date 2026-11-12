@@ -1,5 +1,6 @@
 import ActivityLog from "../models/ActivityLog.js";
 import { logger } from "../utils/logger.js";
+import { escapeRegex } from "../utils/regex.js";
 
 export class ActivityService {
   static async log({
@@ -44,7 +45,7 @@ export class ActivityService {
       query.entityType = entityType;
     }
     if (search && search.trim()) {
-      const regex = new RegExp(search.trim(), "i");
+      const regex = new RegExp(escapeRegex(search.trim()), "i");
       query.$or = [
         { title: regex },
         { description: regex },

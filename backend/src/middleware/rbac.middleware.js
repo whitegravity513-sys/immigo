@@ -299,7 +299,7 @@ export const logAudit = async ({
   status = "SUCCESS",
 }) => {
   try {
-    const ipAddress = req.ip || req.headers["x-forwarded-for"] || req.connection?.remoteAddress || "";
+    const ipAddress = req.ip || req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "";
     const userAgent = req.headers["user-agent"] || "";
 
     await AuditLog.create({

@@ -9,6 +9,7 @@ import { fetchAllMergedProjects } from "../../utils/projectResolver.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
+import { escapeRegex } from "../../utils/regex.js";
 import { emitRealtimeEvent } from "../../services/realtime.service.js";
 
 const isValidObjectId = (val) =>
@@ -236,18 +237,20 @@ export const getApplications = asyncHandler(async (req, res) => {
   if (status && status !== "ALL") baseFilter.status = status;
 
   if (search) {
-    const s = String(search).trim();
-    const searchOr = [
+    const s = escapeRegex(String(search).trim());
+    const searchOr = s ? [
       { candidateName: { $regex: s, $options: "i" } },
       { candidateEmail: { $regex: s, $options: "i" } },
       { candidatePhone: { $regex: s, $options: "i" } },
       { applicationId: { $regex: s, $options: "i" } },
-    ];
-    if (baseFilter.$or) {
-      baseFilter.$and = [{ $or: baseFilter.$or }, { $or: searchOr }];
-      delete baseFilter.$or;
-    } else {
-      baseFilter.$or = searchOr;
+    ] : null;
+    if (searchOr) {
+      if (baseFilter.$or) {
+        baseFilter.$and = [{ $or: baseFilter.$or }, { $or: searchOr }];
+        delete baseFilter.$or;
+      } else {
+        baseFilter.$or = searchOr;
+      }
     }
   }
 

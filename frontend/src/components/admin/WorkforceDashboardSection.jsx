@@ -22,14 +22,14 @@ export default function WorkforceDashboardSection({
   employees = [],
   attendanceReport = [],
   leavesReport = [],
-  openEmployeeDetail = () => {},
-  openAddModal = () => {},
-  fetchAdminReports = () => {},
-  openLeaveAction = () => {},
-  navigateTo = () => {},
+  openEmployeeDetail = () => { },
+  openAddModal = () => { },
+  fetchAdminReports = () => { },
+  openLeaveAction = () => { },
+  navigateTo = () => { },
   formatTime = (t) => t,
   formatDate = (d) => d,
-  setEditingAttendance = () => {},
+  setEditingAttendance = () => { },
   isFullRegisterPage = false,
 }) {
   const [workLogs, setWorkLogs] = useState([]);
@@ -208,8 +208,8 @@ export default function WorkforceDashboardSection({
         typeof emp?.name === "string"
           ? emp.name
           : emp?.name?.first
-          ? `${emp.name.first} ${emp.name.last}`
-          : "";
+            ? `${emp.name.first} ${emp.name.last}`
+            : "";
       const code = emp.employeeCode || emp.employeeId || "";
       const dept = emp.department || "";
       const email = emp.email || "";
@@ -229,8 +229,8 @@ export default function WorkforceDashboardSection({
       typeof rep?.name === "string"
         ? rep.name
         : rep?.name?.first
-        ? `${rep.name.first} ${rep.name.last}`
-        : String(rep?.name || "");
+          ? `${rep.name.first} ${rep.name.last}`
+          : String(rep?.name || "");
     const empCode = rep.employeeCode || rep.employeeId || "";
     const dept = rep.department || "";
     const email = rep.email || "";
@@ -271,8 +271,8 @@ export default function WorkforceDashboardSection({
         typeof rep?.name === "string"
           ? rep.name
           : rep?.name?.first
-          ? `${rep.name.first} ${rep.name.last}`
-          : String(rep?.name || "");
+            ? `${rep.name.first} ${rep.name.last}`
+            : String(rep?.name || "");
       const totalWorkSec = rep.totalWorkSeconds || 0;
       const hrs = Math.floor(totalWorkSec / 3600);
       const mins = Math.floor((totalWorkSec % 3600) / 60);

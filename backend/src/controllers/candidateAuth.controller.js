@@ -233,6 +233,10 @@ export const findCandidateFromRequest = async (req) => {
 };
 
 export const getCandidateProfile = asyncHandler(async (req, res) => {
+  const actorRole = String(req.user?.role || "").toLowerCase();
+  if (actorRole && actorRole !== "candidate" && actorRole !== "admin" && actorRole !== "super_admin") {
+    return res.status(403).json({ success: false, message: "Access forbidden. Candidate role required." });
+  }
   const candidate = await findCandidateFromRequest(req);
   if (!candidate) {
     return res.status(404).json({ success: false, message: "Candidate not found." });

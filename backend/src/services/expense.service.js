@@ -6,6 +6,7 @@ import CrmOverseasClient from "../models/CrmOverseasClient.js";
 import { ApiError } from "../utils/apiError.js";
 import NotificationService from "./notification.service.js";
 import { saveBase64File } from "../utils/fileStorage.js";
+import { escapeRegex } from "../utils/regex.js";
 
 export class ExpenseService {
   static async resolveClientInfo(clientId) {
@@ -209,7 +210,7 @@ export class ExpenseService {
     const category = await ExpenseCategory.findByIdAndUpdate(
       id,
       { name: name.trim() },
-      { new: true }
+      { returnDocument: "after" }
     );
     if (!category) {
       throw new ApiError(404, "Category not found.");
@@ -288,7 +289,7 @@ export class ExpenseService {
 
     if (customCategoryText) {
       let catDoc = await ExpenseCategory.findOne({
-        name: { $regex: new RegExp(`^${customCategoryText}$`, "i") },
+        name: { $regex: new RegExp(`^${escapeRegex(customCategoryText)}$`, "i") },
       });
       if (!catDoc) {
         catDoc = await ExpenseCategory.create({ name: customCategoryText });
@@ -433,7 +434,7 @@ export class ExpenseService {
     const expense = await Expense.findByIdAndUpdate(
       cleanId,
       { $set: updateData },
-      { new: true, runValidators: false }
+      { returnDocument: "after", runValidators: false }
     ).populate(["categoryId", "employeeId"]);
 
     if (!expense) {

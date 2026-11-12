@@ -92,14 +92,14 @@ export function RecordClientPaymentModal({
               clientName: found.companyName || found.name || "",
               ...(ms
                 ? {
-                    milestoneId: ms.id,
-                    milestoneName: ms.name,
-                    amountPaid:
-                      prev.amountPaid ||
-                      (ms.remainingBalance
-                        ? String(ms.remainingBalance)
-                        : String(ms.amount || "")),
-                  }
+                  milestoneId: ms.id,
+                  milestoneName: ms.name,
+                  amountPaid:
+                    prev.amountPaid ||
+                    (ms.remainingBalance
+                      ? String(ms.remainingBalance)
+                      : String(ms.amount || "")),
+                }
                 : {}),
             }));
           }
@@ -279,9 +279,8 @@ export function RecordClientPaymentModal({
                 value={formData.clientId}
                 onChange={handleClientChange}
                 disabled={Boolean(initialClientId)}
-                className={`w-full px-3 py-2.5 rounded-lg border text-xs focus:ring-1 focus:ring-blue-500 bg-white ${
-                  errors.clientId ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
-                }`}
+                className={`w-full px-3 py-2.5 rounded-lg border text-xs focus:ring-1 focus:ring-blue-500 bg-white ${errors.clientId ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
+                  }`}
               >
                 <option value="">-- Choose Client --</option>
                 {clients.map((c) => (
@@ -301,9 +300,8 @@ export function RecordClientPaymentModal({
                 value={formData.milestoneId}
                 onChange={handleMilestoneChange}
                 disabled={!selectedClient}
-                className={`w-full px-3 py-2.5 rounded-lg border text-xs focus:ring-1 focus:ring-blue-500 bg-white ${
-                  errors.milestoneId ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
-                }`}
+                className={`w-full px-3 py-2.5 rounded-lg border text-xs focus:ring-1 focus:ring-blue-500 bg-white ${errors.milestoneId ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
+                  }`}
               >
                 <option value="">-- Select Milestone --</option>
                 {(selectedClient?.paymentMilestones || []).map((m) => (
@@ -385,9 +383,8 @@ export function RecordClientPaymentModal({
                     if (errors.amountPaid) setErrors((prev) => ({ ...prev, amountPaid: "" }));
                   }}
                   placeholder="25000"
-                  className={`w-full pl-7 pr-3 py-2.5 rounded-lg border text-xs font-mono font-bold focus:ring-1 focus:ring-blue-500 ${
-                    errors.amountPaid ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
-                  }`}
+                  className={`w-full pl-7 pr-3 py-2.5 rounded-lg border text-xs font-mono font-bold focus:ring-1 focus:ring-blue-500 ${errors.amountPaid ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
+                    }`}
                 />
               </div>
               {errors.amountPaid && <p className="text-[11px] text-rose-600 mt-1">{errors.amountPaid}</p>}
@@ -431,9 +428,8 @@ export function RecordClientPaymentModal({
                   if (errors.transactionReference) setErrors((prev) => ({ ...prev, transactionReference: "" }));
                 }}
                 placeholder="e.g. UTR129381923"
-                className={`w-full px-3 py-2.5 rounded-lg border text-xs font-mono font-bold uppercase focus:ring-1 focus:ring-blue-500 ${
-                  errors.transactionReference ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
-                }`}
+                className={`w-full px-3 py-2.5 rounded-lg border text-xs font-mono font-bold uppercase focus:ring-1 focus:ring-blue-500 ${errors.transactionReference ? "border-rose-300 bg-rose-50/50" : "border-slate-300"
+                  }`}
               />
               {errors.transactionReference && (
                 <p className="text-[11px] text-rose-600 mt-1">{errors.transactionReference}</p>

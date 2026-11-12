@@ -431,19 +431,69 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Vendor not found");
   }
 
-  const updatePayload = { ...req.body };
-  delete updatePayload._id;
-  delete updatePayload.id;
-  delete updatePayload.vendorId;
-  delete updatePayload.__v;
-  delete updatePayload.password;
-  delete updatePayload.createdAt;
-  delete updatePayload.updatedAt;
+  const ALLOWED_PROFILE_FIELDS = [
+    "companyName",
+    "contactPersonName",
+    "contactPersonPhone",
+    "contactPersonEmail",
+    "phone",
+    "mobile",
+    "alternatePhone",
+    "profileImage",
+    "address",
+    "city",
+    "state",
+    "country",
+    "gstin",
+    "pan",
+    "website",
+    "businessType",
+    "specialization",
+    "employeeCount",
+    "experienceYears",
+    "countriesServed",
+    "vendorNotes",
+  ];
+
+  const updatePayload = {};
+  for (const field of ALLOWED_PROFILE_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, field) && req.body[field] !== undefined) {
+      updatePayload[field] = req.body[field];
+    }
+  }
+
+  if (req.body?.bankDetails && typeof req.body.bankDetails === "object" && !Array.isArray(req.body.bankDetails)) {
+    const cleanBank = {};
+    for (const bkField of ["accountName", "accountNumber", "bankName", "ifsc"]) {
+      if (req.body.bankDetails[bkField] !== undefined) {
+        cleanBank[bkField] = String(req.body.bankDetails[bkField] || "").trim();
+      }
+    }
+    updatePayload.bankDetails = {
+      ...(existing.bankDetails?.toObject?.() || existing.bankDetails || {}),
+      ...cleanBank,
+    };
+  }
+
   const hasNewDocuments = Array.isArray(req.body?.documents);
   if (hasNewDocuments) {
-    updatePayload.documentsUploaded = req.body.documents.length > 0;
+    updatePayload.documents = req.body.documents
+      .filter((d) => d && (d.fileUrl || d.fileName || d.name))
+      .map((d, idx) => ({
+        id: d.id || `doc_${Date.now()}_${idx}`,
+        name: String(d.name || d.fileName || "Document").trim(),
+        fileName: String(d.fileName || d.name || "document").trim(),
+        type: String(d.type || "Document").trim(),
+        fileUrl: String(d.fileUrl || ""),
+        mimeType: String(d.mimeType || ""),
+        size: String(d.size || ""),
+        uploadedAt: d.uploadedAt || new Date(),
+        status: "Pending",
+        remarks: String(d.remarks || ""),
+      }));
+    updatePayload.documentsUploaded = updatePayload.documents.length > 0;
     if (
-      req.body.documents.length > 0 &&
+      updatePayload.documents.length > 0 &&
       ["Registration Approved", "Documents Pending", "Documents Correction Required"].includes(existing.status)
     ) {
       updatePayload.status = "Documents Under Review";
@@ -453,7 +503,7 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
   }
 
   const vendor = await Vendor.findByIdAndUpdate(vendorId, updatePayload, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 
@@ -506,7 +556,7 @@ export const vendorForgotPassword = asyncHandler(async (req, res) => {
     throw new ApiError(404, "No registered vendor found with this Email or Vendor ID.");
   }
 
-  const ipAddress = req.ip || req.connection?.remoteAddress;
+  const ipAddress = req.ip || req.socket?.remoteAddress;
 
   await requestAndSendOtp({
     email: vendor.email,

@@ -13,6 +13,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ROLES } from "../constants/roles.js";
 import { fetchAllMergedProjects } from "../utils/projectResolver.js";
+import { escapeRegex } from "../utils/regex.js";
 import { emitRealtimeEvent } from "../services/realtime.service.js";
 
 const emitMeetingSync = (meeting) => {
@@ -1132,8 +1133,9 @@ export const getAdminMeetings = asyncHandler(async (req, res) => {
   if (date) {
     filter.date = date;
   } else if (month && year) {
-    const formattedMonth = String(month).padStart(2, "0");
-    filter.date = { $regex: `^${year}-${formattedMonth}` };
+    const formattedMonth = escapeRegex(String(month).padStart(2, "0"));
+    const safeYear = escapeRegex(String(year).trim());
+    filter.date = { $regex: `^${safeYear}-${formattedMonth}` };
   }
 
   if (status && status !== "ALL") {
@@ -1732,13 +1734,15 @@ export const getMeetingEmployees = asyncHandler(async (req, res) => {
   const { search = "" } = req.query;
   const filter = { status: { $ne: "inactive" } };
   if (search) {
-    const q = String(search).trim();
-    filter.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { employeeId: { $regex: q, $options: "i" } },
-      { email: { $regex: q, $options: "i" } },
-      { designation: { $regex: q, $options: "i" } },
-    ];
+    const q = escapeRegex(String(search).trim());
+    if (q) {
+      filter.$or = [
+        { name: { $regex: q, $options: "i" } },
+        { employeeId: { $regex: q, $options: "i" } },
+        { email: { $regex: q, $options: "i" } },
+        { designation: { $regex: q, $options: "i" } },
+      ];
+    }
   }
   const employees = await Employee.find(filter)
     .select("_id employeeId name email designation department")
@@ -1795,17 +1799,19 @@ export const getMeetingVendors = asyncHandler(async (req, res) => {
     ];
   }
   if (search) {
-    const q = String(search).trim();
-    const searchOr = [
-      { companyName: { $regex: q, $options: "i" } },
-      { vendorId: { $regex: q, $options: "i" } },
-      { contactPerson: { $regex: q, $options: "i" } },
-      { email: { $regex: q, $options: "i" } },
-    ];
-    if (filter.$and) {
-      filter.$and.push({ $or: searchOr });
-    } else {
-      filter.$or = searchOr;
+    const q = escapeRegex(String(search).trim());
+    if (q) {
+      const searchOr = [
+        { companyName: { $regex: q, $options: "i" } },
+        { vendorId: { $regex: q, $options: "i" } },
+        { contactPerson: { $regex: q, $options: "i" } },
+        { email: { $regex: q, $options: "i" } },
+      ];
+      if (filter.$and) {
+        filter.$and.push({ $or: searchOr });
+      } else {
+        filter.$or = searchOr;
+      }
     }
   }
   const vendors = await Vendor.find(filter)
@@ -1840,13 +1846,15 @@ export const getMeetingAdmins = asyncHandler(async (req, res) => {
   };
   const adminFilter = {};
   if (search) {
-    const q = String(search).trim();
-    userFilter.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { email: { $regex: q, $options: "i" } },
-      { role: { $regex: q, $options: "i" } },
-    ];
-    adminFilter.$or = [{ email: { $regex: q, $options: "i" } }];
+    const q = escapeRegex(String(search).trim());
+    if (q) {
+      userFilter.$or = [
+        { name: { $regex: q, $options: "i" } },
+        { email: { $regex: q, $options: "i" } },
+        { role: { $regex: q, $options: "i" } },
+      ];
+      adminFilter.$or = [{ email: { $regex: q, $options: "i" } }];
+    }
   }
 
   const [staffUsers, legacyAdmins] = await Promise.all([
@@ -1919,12 +1927,14 @@ export const getMeetingHRs = asyncHandler(async (req, res) => {
     filter.hrType = hrType;
   }
   if (search) {
-    const q = String(search).trim();
-    filter.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { email: { $regex: q, $options: "i" } },
-      { department: { $regex: q, $options: "i" } },
-    ];
+    const q = escapeRegex(String(search).trim());
+    if (q) {
+      filter.$or = [
+        { name: { $regex: q, $options: "i" } },
+        { email: { $regex: q, $options: "i" } },
+        { department: { $regex: q, $options: "i" } },
+      ];
+    }
   }
   const hrs = await User.find(filter)
     .select("_id name email role hrType assignedVendors department phone")
@@ -1957,14 +1967,16 @@ export const getMeetingCandidates = asyncHandler(async (req, res) => {
     filter.vendorId = vendorId;
   }
   if (search) {
-    const q = String(search).trim();
-    filter.$or = [
-      { candidateName: { $regex: q, $options: "i" } },
-      { candidateId: { $regex: q, $options: "i" } },
-      { candidateEmail: { $regex: q, $options: "i" } },
-      { position: { $regex: q, $options: "i" } },
-      { projectName: { $regex: q, $options: "i" } },
-    ];
+    const q = escapeRegex(String(search).trim());
+    if (q) {
+      filter.$or = [
+        { candidateName: { $regex: q, $options: "i" } },
+        { candidateId: { $regex: q, $options: "i" } },
+        { candidateEmail: { $regex: q, $options: "i" } },
+        { position: { $regex: q, $options: "i" } },
+        { projectName: { $regex: q, $options: "i" } },
+      ];
+    }
   }
   const candidates = await CandidateApplication.find(filter)
     .select(
@@ -2014,7 +2026,7 @@ export const getEmployeeMeetings = asyncHandler(async (req, res) => {
     orConditions.push({ "attendees.email": employeeEmail.toLowerCase() });
   }
   if (employeeName) {
-    orConditions.push({ "attendees.name": { $regex: new RegExp(`^${employeeName}$`, "i") } });
+    orConditions.push({ "attendees.name": { $regex: new RegExp(`^${escapeRegex(employeeName)}$`, "i") } });
   }
   query.$or = orConditions;
 

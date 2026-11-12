@@ -8,6 +8,7 @@ import User from "../models/User.js";
 import Vendor from "../models/Vendor.js";
 import ROLES from "../constants/roles.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { escapeRegex } from "../utils/regex.js";
 
 export const getHrDashboard = asyncHandler(async (req, res) => {
   const todayStr = new Date().toISOString().split("T")[0];
@@ -101,12 +102,14 @@ export const getHrEmployees = asyncHandler(async (req, res) => {
   if (status) query.status = status;
   if (department) query.department = department;
   if (search) {
-    const s = String(search).trim();
-    query.$or = [
-      { name: { $regex: s, $options: "i" } },
-      { email: { $regex: s, $options: "i" } },
-      { employeeId: { $regex: s, $options: "i" } },
-    ];
+    const s = escapeRegex(String(search).trim());
+    if (s) {
+      query.$or = [
+        { name: { $regex: s, $options: "i" } },
+        { email: { $regex: s, $options: "i" } },
+        { employeeId: { $regex: s, $options: "i" } },
+      ];
+    }
   }
 
   const employees = await Employee.find(query).sort({ createdAt: -1 });

@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
 import UserPermission from "../models/UserPermission.js";
@@ -11,6 +12,7 @@ import { sendStaffAccountCredentialsEmail } from "../services/email.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { generateNextHRId } from "../utils/idGenerator.js";
+import { escapeRegex } from "../utils/regex.js";
 import { logAudit, invalidateUserAuthCache } from "../middleware/rbac.middleware.js";
 
 export const getAdmins = asyncHandler(async (req, res) => {
@@ -31,11 +33,13 @@ export const getAdmins = asyncHandler(async (req, res) => {
   }
 
   if (search) {
-    const s = String(search).trim();
-    query.$or = [
-      { name: { $regex: s, $options: "i" } },
-      { email: { $regex: s, $options: "i" } },
-    ];
+    const s = escapeRegex(String(search).trim());
+    if (s) {
+      query.$or = [
+        { name: { $regex: s, $options: "i" } },
+        { email: { $regex: s, $options: "i" } },
+      ];
+    }
   }
 
   const users = await User.find(query).select("+rawPassword").sort({ createdAt: -1 });
@@ -86,10 +90,17 @@ export const getAdmins = asyncHandler(async (req, res) => {
 
 export const getAdminById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid admin ID.");
+  }
   const user = await User.findById(id).select("+rawPassword");
 
   if (!user) {
     throw new ApiError(404, "Admin account not found");
+  }
+
+  if (!req.isSuperAdmin && req.userRole === ROLES.ADMIN && user.role !== ROLES.HR) {
+    throw new ApiError(403, "Admins are strictly permitted to view HR staff accounts only.");
   }
 
   const resolved = await PermissionService.resolveUserPermissions(user);
@@ -281,6 +292,9 @@ export const createAdmin = asyncHandler(async (req, res) => {
 
 export const updateAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid admin ID.");
+  }
   const {
     name,
     email,
@@ -476,6 +490,9 @@ export const updateAdmin = asyncHandler(async (req, res) => {
 
 export const deleteAdmin = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid admin ID.");
+  }
 
   if (String(req.userId) === String(id)) {
     throw new ApiError(400, "You cannot delete your own administrator account.");
@@ -520,10 +537,17 @@ export const deleteAdmin = asyncHandler(async (req, res) => {
 
 export const getAdminPermissions = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid admin ID.");
+  }
   const user = await User.findById(id);
 
   if (!user) {
     throw new ApiError(404, "Admin account not found");
+  }
+
+  if (!req.isSuperAdmin && req.userRole === ROLES.ADMIN && user.role !== ROLES.HR) {
+    throw new ApiError(403, "Admins are strictly permitted to view permissions for HR staff only.");
   }
 
   const permDoc = await UserPermission.findOne({ userId: user._id });
@@ -544,6 +568,9 @@ export const getAdminPermissions = asyncHandler(async (req, res) => {
 
 export const updateAdminPermissions = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid admin ID.");
+  }
   const { permissions, deniedPermissions = [], notes = "" } = req.body;
 
   const targetUser = await User.findById(id);
@@ -557,7 +584,7 @@ export const updateAdminPermissions = asyncHandler(async (req, res) => {
     }
   }
 
-  const ipAddress = req.ip || req.connection?.remoteAddress || "";
+  const ipAddress = req.ip || req.socket?.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
 
   const result = await PermissionService.updateAdminPermissions({
@@ -589,16 +616,18 @@ export const getAuditLogs = asyncHandler(async (req, res) => {
   const { action, targetResource, limit = 50, page = 1 } = req.query;
 
   const filter = {};
-  if (action) filter.action = action;
-  if (targetResource) filter.targetResource = targetResource;
+  if (action && typeof action === "string") filter.action = action;
+  if (targetResource && typeof targetResource === "string") filter.targetResource = targetResource;
 
-  const skip = (Math.max(1, parseInt(page, 10)) - 1) * Math.min(100, parseInt(limit, 10));
+  const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+  const parsedLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const [logs, total] = await Promise.all([
     AuditLog.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Math.min(100, parseInt(limit, 10))),
+      .limit(parsedLimit),
     AuditLog.countDocuments(filter),
   ]);
 
@@ -606,8 +635,8 @@ export const getAuditLogs = asyncHandler(async (req, res) => {
     success: true,
     logs,
     total,
-    page: parseInt(page, 10),
-    pages: Math.ceil(total / limit) || 1,
+    page: parsedPage,
+    pages: Math.ceil(total / parsedLimit) || 1,
   });
 });
 

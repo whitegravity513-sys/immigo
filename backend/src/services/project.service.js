@@ -1,6 +1,7 @@
 import Project from "../models/Project.js";
 import { ApiError } from "../utils/apiError.js";
 import { generateNextProjectId } from "../utils/idGenerator.js";
+import { escapeRegex } from "../utils/regex.js";
 
 export class ProjectService {
   static formatProject(project) {
@@ -90,7 +91,7 @@ export class ProjectService {
     let query = {};
     if (status) query.status = status;
     if (search && search.trim()) {
-      query.title = new RegExp(search.trim(), "i");
+      query.title = new RegExp(escapeRegex(search.trim()), "i");
     }
 
     const projects = await Project.find(query)

@@ -80,7 +80,7 @@ const vendorPaymentMilestoneSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       default: "Bank Transfer",
-      enum: ["Bank Transfer", "NEFT", "RTGS", "UPI", "Cheque", "Direct Deposit", "Other"],
+      enum: ["Bank Transfer", "NEFT", "RTGS", "UPI", "Cheque", "Cash", "Direct Deposit", "Other"],
     },
     paidAt: {
       type: Date,

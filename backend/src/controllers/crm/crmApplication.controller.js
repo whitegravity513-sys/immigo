@@ -593,7 +593,7 @@ export const submitApplication = asyncHandler(async (req, res) => {
           paymentPlan: appData.paymentPlan || { totalAmount: 0, currency: "INR", milestones: [] },
         },
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
   } catch (mirrorErr) {
     console.warn("Mirroring application to CandidateApplication failed:", mirrorErr.message);

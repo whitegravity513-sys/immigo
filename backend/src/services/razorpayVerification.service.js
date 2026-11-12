@@ -424,7 +424,7 @@ export const verifyAndFetchRazorpayPayment = async ({
             },
           },
         },
-        { new: true }
+        { returnDocument: "after" }
       );
       if (!updatedTxn) {
         throw new ApiError(409, "This payment has already been consumed.");

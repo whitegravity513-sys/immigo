@@ -58,7 +58,7 @@ export const adminForgotPassword = asyncHandler(async (req, res) => {
   }
 
   const name = user?.name || "Super Administrator";
-  const ipAddress = req.ip || req.connection?.remoteAddress;
+  const ipAddress = req.ip || req.socket?.remoteAddress;
 
   await requestAndSendOtp({
     email: cleanEmail,

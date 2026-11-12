@@ -1,17 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { apiClient } from "../../services/apiClient.js";
 import {
-  User,
   Mail,
   Phone,
-  MapPin,
-  Briefcase,
-  Calendar,
-  Shield,
   FileText,
   UploadCloud,
   CheckCircle2,
-  Clock,
   AlertCircle,
   Eye,
   Trash2,
@@ -20,8 +14,6 @@ import {
   ExternalLink,
   Plus,
   Save,
-  Check,
-  X,
   FileCheck,
 } from "lucide-react";
 import { EmployeeIdBadge } from "../common/ImmiGoLogo.jsx";
@@ -108,7 +100,7 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
           onProfileUpdateRef.current(res.data.profileImage);
         }
       }
-    } catch (err) {
+    } catch {
     }
   }, []);
 

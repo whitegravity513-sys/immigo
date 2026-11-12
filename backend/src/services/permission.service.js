@@ -227,7 +227,7 @@ export class PermissionService {
             name,
             description: `Allows user to ${act} records in ${mod.name}`,
           },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: "after" }
         );
       }
     }
@@ -267,7 +267,7 @@ export class PermissionService {
       await Role.findOneAndUpdate(
         { name: r.name },
         r,
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: "after" }
       );
     }
   }

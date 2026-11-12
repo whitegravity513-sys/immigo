@@ -6,6 +6,7 @@ import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
 import { ApiError } from "../../utils/apiError.js";
 import { findProjectAcrossSources } from "../../utils/projectResolver.js";
+import { escapeRegex } from "../../utils/regex.js";
 
 const isValidObjectId = (val) =>
   typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
@@ -151,7 +152,10 @@ export const getJobs = asyncHandler(async (req, res) => {
 
   if (status && status !== "ALL") filter.status = status;
   if (search) {
-    filter.title = { $regex: String(search).trim(), $options: "i" };
+    const s = escapeRegex(String(search).trim());
+    if (s) {
+      filter.title = { $regex: s, $options: "i" };
+    }
   }
 
   const jobs = await Job.find(filter).sort({ createdAt: -1 }).lean();
@@ -176,7 +180,27 @@ export const updateJob = asyncHandler(async (req, res) => {
 
   if (!job) throw new ApiError(404, "Job position not found.");
 
-  Object.assign(job, req.body);
+  const ALLOWED_JOB_FIELDS = [
+    "title",
+    "department",
+    "openings",
+    "filledPositions",
+    "skills",
+    "experience",
+    "salaryRange",
+    "location",
+    "country",
+    "jobType",
+    "description",
+    "requirements",
+    "status",
+    "assignedVendors",
+  ];
+  for (const field of ALLOWED_JOB_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, field) && req.body[field] !== undefined) {
+      job[field] = req.body[field];
+    }
+  }
   await job.save();
 
   return ApiResponse.send(res, 200, "Job updated successfully", job);

@@ -26,9 +26,36 @@ export const adminVendorV1Service = {
     return response.data?.data || response.data;
   },
 
+  async assignProjectToVendor(vendorId, data = {}) {
+    const response = await apiClient.post("/v1/assignments/vendor", {
+      vendorId,
+      ...data,
+    });
+    return response.data?.data || response.data;
+  },
+
   async removeVendorFromProject(data) {
     const response = await apiClient.post("/v1/assignments/remove-vendor", data);
     return response.data?.data || response.data;
+  },
+
+  async removeProjectFromVendor(vendorId, projectId, reason = "") {
+    const response = await apiClient.post("/v1/assignments/remove-vendor", {
+      vendorId,
+      projectId,
+      ...(reason ? { reason } : {}),
+    });
+    return response.data?.data || response.data;
+  },
+
+  async createVendorHR(vendorId, data = {}) {
+    const response = await apiClient.post("/admins", {
+      ...data,
+      role: "VENDOR_HR",
+      hrType: "VENDOR_HR",
+      assignedVendors: vendorId ? [String(vendorId)] : [],
+    });
+    return response.data?.admin || response.data?.data || response.data;
   },
 
   async assignVendorHRToProject(data) {
@@ -51,6 +78,14 @@ export const adminVendorV1Service = {
     return response.data?.data || response.data;
   },
 
+  async createVendorMilestone(vendorId, data = {}) {
+    const response = await apiClient.post("/v1/vendor-payments/milestones", {
+      ...data,
+      vendorId,
+    });
+    return response.data?.data || response.data;
+  },
+
   async updateMilestone(id, data) {
     const response = await apiClient.put(`/v1/vendor-payments/milestones/${id}`, data);
     return response.data?.data || response.data;
@@ -58,6 +93,14 @@ export const adminVendorV1Service = {
 
   async markPaymentAsPaid(id, data) {
     const response = await apiClient.post(`/v1/vendor-payments/milestones/${id}/pay`, data);
+    return response.data?.data || response.data;
+  },
+
+  async settleVendorMilestonePayment(vendorId, milestoneId, data = {}) {
+    const response = await apiClient.post(`/v1/vendor-payments/milestones/${milestoneId}/pay`, {
+      ...data,
+      vendorId,
+    });
     return response.data?.data || response.data;
   },
 

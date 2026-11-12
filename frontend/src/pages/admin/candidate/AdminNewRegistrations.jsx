@@ -169,11 +169,10 @@ export default function AdminNewRegistrations() {
     <div className="space-y-3.5">
       {notification && (
         <div
-          className={`p-3 rounded-xl border flex items-center justify-between shadow-xs transition-all text-xs ${
-            notification.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-rose-50 border-rose-200 text-rose-800"
-          }`}
+          className={`p-3 rounded-xl border flex items-center justify-between shadow-xs transition-all text-xs ${notification.type === "success"
+            ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+            : "bg-rose-50 border-rose-200 text-rose-800"
+            }`}
         >
           <div className="flex items-center gap-2.5">
             {notification.type === "success" ? (

@@ -96,7 +96,7 @@ export class HolidayService {
         ...(title ? { title: title.trim() } : {}),
         ...(description !== undefined ? { description: description.trim() } : {}),
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
     if (!holiday) {
       throw new ApiError(404, "Holiday not found");

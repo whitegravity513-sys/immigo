@@ -489,7 +489,7 @@ export class AttendanceService {
           logText: trimmedNote,
           updatedAt: new Date(),
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
       );
     } else if (!worklog || !worklog.logText || !worklog.logText.trim()) {
       throw new ApiError(

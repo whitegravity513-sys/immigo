@@ -9,7 +9,7 @@ import { ApiError } from "../utils/apiError.js";
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, role } = req.body;
-  const ipAddress = req.ip || req.connection?.remoteAddress;
+  const ipAddress = req.ip || req.socket?.remoteAddress;
 
   const user = await authService.register({
     name,
@@ -29,7 +29,7 @@ export const register = asyncHandler(async (req, res) => {
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  const ipAddress = req.ip || req.connection?.remoteAddress;
+  const ipAddress = req.ip || req.socket?.remoteAddress;
   const userAgent = req.headers["user-agent"];
 
   const result = await authService.login({
@@ -124,7 +124,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 
 export const resendVerificationOtp = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  const ipAddress = req.ip || req.connection?.remoteAddress;
+  const ipAddress = req.ip || req.socket?.remoteAddress;
 
   const user = await User.findOne({ email });
   if (!user) {

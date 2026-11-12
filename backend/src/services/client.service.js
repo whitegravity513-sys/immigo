@@ -1,6 +1,7 @@
 import Client from "../models/Client.js";
 import { ApiError } from "../utils/apiError.js";
 import { generateNextClientId } from "../utils/idGenerator.js";
+import { escapeRegex } from "../utils/regex.js";
 
 export class ClientService {
   static async createClient(data) {
@@ -77,7 +78,7 @@ export class ClientService {
   static async getClients(search = "") {
     let query = {};
     if (search && search.trim()) {
-      const regex = new RegExp(search.trim(), "i");
+      const regex = new RegExp(escapeRegex(search.trim()), "i");
       query = {
         $or: [
           { name: regex },
@@ -167,7 +168,7 @@ export class ClientService {
       updateData.totalAgreedAmount = totalAgreed;
     }
 
-    const client = await Client.findByIdAndUpdate(id, updateData, { new: true });
+    const client = await Client.findByIdAndUpdate(id, updateData, { returnDocument: "after" });
     if (!client) {
       throw new ApiError(404, "Client not found.");
     }
