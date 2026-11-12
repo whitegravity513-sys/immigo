@@ -965,8 +965,14 @@ export function CandidateDetails() {
       })()}
 
       {resumeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
+        <div
+          onClick={() => setResumeModalOpen(false)}
+          className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white max-w-2xl w-full h-[100dvh] p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-blue-600" />

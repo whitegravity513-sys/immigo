@@ -226,7 +226,7 @@ export default function HRLoginPage() {
               <form onSubmit={handleSubmit} className="space-y-2.5 relative z-10" autoComplete="off">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    Email Address
+                    Email Address or HR ID
                   </label>
                   <div className="relative">
                     <Mail
@@ -239,7 +239,7 @@ export default function HRLoginPage() {
                       autoFocus
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="Enter your email or username"
+                      placeholder="Enter email or HR ID (e.g. IMMI-HR-001)"
                       className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1e3a6a] focus:ring-2 focus:ring-blue-500/10 font-medium transition-all shadow-2xs"
                     />
                   </div>

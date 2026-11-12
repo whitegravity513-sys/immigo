@@ -499,11 +499,11 @@ export default function EmployeeExpensesTab() {
 
       {previewReceipt && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4"
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
           onClick={() => setPreviewReceipt(null)}
         >
           <div
-            className="bg-white w-full max-w-2xl my-auto rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white w-full max-w-2xl border-l border-slate-200 shadow-2xl overflow-hidden h-[100dvh] flex flex-col animate-in slide-in-from-right duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50">

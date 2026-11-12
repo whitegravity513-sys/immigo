@@ -284,8 +284,14 @@ export function EmployeeDocumentsTab({
       </div>
 
       {adminDocModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setAdminDocModalOpen(false)}
+        >
+          <div
+            className="bg-white h-[100dvh] max-w-md w-full p-4 sm:p-6 border-l border-slate-200 shadow-2xl space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                 <UploadCloud size={18} className="text-blue-600" />
@@ -388,8 +394,14 @@ export function EmployeeDocumentsTab({
       )}
 
       {previewDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col my-auto">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setPreviewDocModal(null)}
+        >
+          <div
+            className="bg-white h-[100dvh] max-w-2xl w-full p-4 sm:p-6 border-l border-slate-200 shadow-2xl space-y-4 overflow-y-auto flex flex-col animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-slate-800">
@@ -467,8 +479,14 @@ export function EmployeeDocumentsTab({
       )}
 
       {rejectDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setRejectDocModal(null)}
+        >
+          <div
+            className="bg-white h-[100dvh] max-w-md w-full p-4 sm:p-6 border-l border-slate-200 shadow-2xl space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">

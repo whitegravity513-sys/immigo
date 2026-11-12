@@ -481,8 +481,14 @@ export default function AdminDocumentVerification() {
       )}
 
       {rejectModalOpen && selectedDoc && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div
+          onClick={() => setRejectModalOpen(false)}
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="h-[100dvh] overflow-y-auto bg-white max-w-md w-full p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 animate-in slide-in-from-right duration-200"
+          >
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-sm font-bold text-rose-700 flex items-center gap-1.5">
                 <RotateCcw size={16} />

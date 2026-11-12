@@ -501,8 +501,14 @@ export default function VendorCandidateDossierView({
       </div>
 
       {rejectCandDocModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setRejectCandDocModal(null)}
+        >
+          <div
+            className="bg-white max-w-md w-full h-[100dvh] p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-base font-bold text-slate-900">
               Reject Document • {rejectCandDocModal.docName}
             </h3>
@@ -539,8 +545,14 @@ export default function VendorCandidateDossierView({
       )}
 
       {showAppRejectModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setShowAppRejectModal(null)}
+        >
+          <div
+            className="bg-white max-w-md w-full h-[100dvh] p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-base font-bold text-slate-900">
               Reject Candidate Application • {showAppRejectModal.candName}
             </h3>
@@ -580,8 +592,14 @@ export default function VendorCandidateDossierView({
       )}
 
       {showReassignProjModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setShowReassignProjModal(null)}
+        >
+          <div
+            className="bg-white max-w-md w-full h-[100dvh] p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-base font-bold text-slate-900">
               Edit / Reassign Project • {showReassignProjModal.candName}
             </h3>

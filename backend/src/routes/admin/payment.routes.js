@@ -6,14 +6,16 @@ import {
   updateProjectPayment,
   deleteProjectPayment,
 } from "../../controllers/payment.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.post("/payments", verifyAdmin, createProjectPayment);
-router.get("/payments", verifyAdmin, getAllProjectPayments);
-router.get("/payments/project/:projectId", verifyAdmin, getPaymentsByProject);
-router.put("/payments/:id", verifyAdmin, updateProjectPayment);
-router.delete("/payments/:id", verifyAdmin, deleteProjectPayment);
+const requireAdminAccess = [authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN")];
+
+router.post("/payments", ...requireAdminAccess, createProjectPayment);
+router.get("/payments", ...requireAdminAccess, getAllProjectPayments);
+router.get("/payments/project/:projectId", ...requireAdminAccess, getPaymentsByProject);
+router.put("/payments/:id", ...requireAdminAccess, updateProjectPayment);
+router.delete("/payments/:id", ...requireAdminAccess, deleteProjectPayment);
 
 export default router;

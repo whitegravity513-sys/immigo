@@ -147,8 +147,14 @@ export default function ForgotPasswordOtpModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs select-none">
-      <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-md w-full my-auto max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 text-left relative animate-in fade-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-xs select-none animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white p-5 sm:p-8 max-w-md w-full h-[100dvh] overflow-y-auto shadow-2xl border-l border-slate-200 text-left relative animate-in slide-in-from-right duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
           onClick={onClose}

@@ -10,22 +10,38 @@ import PermissionService from "./permission.service.js";
 import { verifyOtp as verifyOtpCode } from "./otp.service.js";
 import { OTP_PURPOSES } from "../models/Otp.js";
 import { ApiError } from "../utils/apiError.js";
+import { escapeRegex } from "../utils/regex.js";
+
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000;
 
 export class AdminAuthService {
   static async login(email, password) {
     if (!email || !password) {
-      throw new ApiError(400, "Email and password are required");
+      throw new ApiError(400, "Email/ID and password are required");
     }
 
-    const cleanEmail = String(email).trim().toLowerCase();
+    const rawIdentifier = String(email).trim();
+    const cleanEmail = rawIdentifier.toLowerCase();
     const cleanPassword = String(password).trim();
+    const isEmailIdentifier = rawIdentifier.includes("@");
     const superAdminConfigEmail = (env.SUPER_ADMIN_EMAIL || env.SUPERADMIN_EMAIL || "")
       .trim()
       .toLowerCase();
 
+    const userLookupQuery = isEmailIdentifier
+      ? { email: cleanEmail }
+      : {
+          $or: [
+            { email: cleanEmail },
+            { hrId: rawIdentifier.toUpperCase() },
+            { hrId: { $regex: new RegExp(`^${escapeRegex(rawIdentifier)}$`, "i") } },
+          ],
+        };
+
     const [userDoc, adminDoc] = await Promise.all([
-      User.findOne({ email: cleanEmail }).select("+passwordHash"),
-      Admin.findOne({ email: cleanEmail }),
+      User.findOne(userLookupQuery).select("+passwordHash"),
+      isEmailIdentifier ? Admin.findOne({ email: cleanEmail }) : Promise.resolve(null),
     ]);
 
     let user = userDoc;
@@ -33,6 +49,7 @@ export class AdminAuthService {
 
     if (!user && !admin) {
       if (
+        isEmailIdentifier &&
         superAdminConfigEmail &&
         cleanEmail === superAdminConfigEmail &&
         env.SUPERADMIN_PASSWORD &&
@@ -61,18 +78,30 @@ export class AdminAuthService {
       if (user.isActive === false) {
         throw new ApiError(403, "Your account has been deactivated. Please contact your administrator.");
       }
+      if (typeof user.isLocked === "function" && user.isLocked()) {
+        const remainingMins = Math.max(1, Math.ceil((new Date(user.lockedUntil).getTime() - Date.now()) / 60000));
+        throw new ApiError(423, `Account temporarily locked due to multiple failed sign-in attempts. Please retry in ${remainingMins} minute(s).`);
+      }
 
       const isMatch = user.passwordHash
         ? await bcrypt.compare(cleanPassword, user.passwordHash)
         : false;
       if (!isMatch) {
+        const nextAttempts = (user.failedLoginAttempts || 0) + 1;
+        user.failedLoginAttempts = nextAttempts;
+        if (nextAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+          user.lockedUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        }
+        await user.save();
         throw new ApiError(401, "Invalid credentials");
       }
 
-      if (superAdminConfigEmail && cleanEmail === superAdminConfigEmail) {
+      if (superAdminConfigEmail && user.email === superAdminConfigEmail) {
         user.role = ROLES.SUPER_ADMIN;
       }
 
+      user.failedLoginAttempts = 0;
+      user.lockedUntil = null;
       user.lastLoginAt = new Date();
       await user.save();
 
@@ -115,9 +144,11 @@ export class AdminAuthService {
         sub: targetId,
         role: user.role,
         hrType: user.hrType || "",
+        hrId: user.hrId || "",
         assignedVendors: user.assignedVendors || [],
         email: user.email,
         isSuperAdmin: resolved.isSuperAdmin,
+        tokenVersion: user.tokenVersion || 0,
       },
       env.JWT_SECRET,
       { expiresIn: "30d" }
@@ -207,9 +238,11 @@ export class AdminAuthService {
         sub: targetId,
         role: user.role,
         hrType: user.hrType || "",
+        hrId: user.hrId || "",
         assignedVendors: user.assignedVendors || [],
         email: user.email,
         isSuperAdmin: resolved.isSuperAdmin,
+        tokenVersion: user.tokenVersion || 0,
       },
       env.JWT_SECRET,
       { expiresIn: "30d" }
@@ -322,9 +355,11 @@ export class AdminAuthService {
         sub: decoded.id,
         role,
         hrType: user.hrType || "",
+        hrId: user.hrId || "",
         assignedVendors: user.assignedVendors || [],
         email: user.email,
         isSuperAdmin: resolved.isSuperAdmin,
+        tokenVersion: user.tokenVersion || 0,
       },
       env.JWT_SECRET,
       { expiresIn: "30d" }

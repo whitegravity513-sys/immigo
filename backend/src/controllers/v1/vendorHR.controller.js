@@ -24,6 +24,10 @@ import {
 } from "../../utils/projectResolver.js";
 import { isRecordRefundLocked } from "../../utils/refundLock.js";
 import { generateNextHRId } from "../../utils/idGenerator.js";
+import { escapeRegex } from "../../utils/regex.js";
+
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000;
 
 const cleanCandidateEmail = (val) => {
   const s = String(val || "").trim();
@@ -59,14 +63,25 @@ const isValidObjectId = (val) =>
 export const vendorHRLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    throw new ApiError(400, "Email and password are required.");
+    throw new ApiError(400, "Email/HR ID and password are required.");
   }
 
-  const cleanEmail = String(email).trim().toLowerCase();
-  const user = await User.findOne({ email: cleanEmail }).select("+passwordHash");
+  const rawIdentifier = String(email).trim();
+  const cleanEmail = rawIdentifier.toLowerCase();
+  const userQuery = rawIdentifier.includes("@")
+    ? { email: cleanEmail }
+    : {
+        $or: [
+          { email: cleanEmail },
+          { hrId: rawIdentifier.toUpperCase() },
+          { hrId: { $regex: new RegExp(`^${escapeRegex(rawIdentifier)}$`, "i") } },
+        ],
+      };
+
+  const user = await User.findOne(userQuery).select("+passwordHash");
 
   if (!user) {
-    throw new ApiError(401, "Invalid email or password.");
+    throw new ApiError(401, "Invalid email/HR ID or password.");
   }
 
   if (user.isActive === false) {
@@ -77,11 +92,24 @@ export const vendorHRLogin = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Access restricted. This portal is strictly for Vendor HR personnel.");
   }
 
-  const isMatch = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
-  if (!isMatch) {
-    throw new ApiError(401, "Invalid email or password.");
+  if (typeof user.isLocked === "function" && user.isLocked()) {
+    const remainingMins = Math.max(1, Math.ceil((new Date(user.lockedUntil).getTime() - Date.now()) / 60000));
+    throw new ApiError(423, `Account temporarily locked due to multiple failed attempts. Retry in ${remainingMins} minute(s).`);
   }
 
+  const isMatch = user.passwordHash ? await bcrypt.compare(password, user.passwordHash) : false;
+  if (!isMatch) {
+    const nextAttempts = (user.failedLoginAttempts || 0) + 1;
+    user.failedLoginAttempts = nextAttempts;
+    if (nextAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+      user.lockedUntil = new Date(Date.now() + LOCK_DURATION_MS);
+    }
+    await user.save();
+    throw new ApiError(401, "Invalid email/HR ID or password.");
+  }
+
+  user.failedLoginAttempts = 0;
+  user.lockedUntil = null;
   user.lastLoginAt = new Date();
   if (!user.hrId) {
     user.hrId = await generateNextHRId();
@@ -104,6 +132,7 @@ export const vendorHRLogin = asyncHandler(async (req, res) => {
     email: user.email,
     name: user.name,
     isSuperAdmin: false,
+    tokenVersion: user.tokenVersion || 0,
   };
 
   const accessToken = jwt.sign(tokenPayload, env.JWT_SECRET, { expiresIn: "30d" });

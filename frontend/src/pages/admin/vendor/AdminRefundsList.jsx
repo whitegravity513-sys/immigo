@@ -636,8 +636,14 @@ export default function AdminRefundsList() {
       )}
 
       {selectedRefund && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto">
+        <div
+          onClick={resetProcessModal}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex justify-end"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white max-w-md w-full h-[100dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 animate-in slide-in-from-right duration-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Approve &amp; Set Refund Payout</h3>
@@ -806,8 +812,17 @@ export default function AdminRefundsList() {
       )}
 
       {rejectRefundModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto my-auto p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div
+          onClick={() => {
+            setRejectRefundModal(null);
+            setModalError("");
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex justify-end"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white max-w-sm w-full h-[100dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 animate-in slide-in-from-right duration-200"
+          >
             <h3 className="text-base font-bold text-slate-900">Reject Refund Request</h3>
             <p className="text-xs text-slate-500">
               Rejecting refund request for <strong>{rejectRefundModal.candidateName}</strong>. Please provide a reason.
@@ -849,8 +864,17 @@ export default function AdminRefundsList() {
       )}
 
       {editRefundModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-200 space-y-4 my-auto">
+        <div
+          onClick={() => {
+            setEditRefundModal(null);
+            setModalError("");
+          }}
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-2xs flex justify-end"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white max-w-md w-full h-[100dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 animate-in slide-in-from-right duration-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900">Edit Refund Record</h3>
               <button

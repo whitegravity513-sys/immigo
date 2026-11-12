@@ -1084,8 +1084,14 @@ export default function MeetingCalendarSection({
       </div>
 
       {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-lg w-full shadow-2xl space-y-3 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150"
+          onClick={() => setShowScheduleModal(false)}
+        >
+          <div
+            className="bg-white border-l border-slate-200 p-4 sm:p-5 max-w-lg w-full h-[100dvh] shadow-2xl space-y-3 animate-in slide-in-from-right duration-200 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-2.5">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                 <Video size={16} className="text-blue-600" />
@@ -1254,8 +1260,14 @@ export default function MeetingCalendarSection({
       )}
 
       {selectedMeetingDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150"
+          onClick={() => setSelectedMeetingDetail(null)}
+        >
+          <div
+            className="bg-white border-l border-slate-200 p-4 sm:p-5 max-w-md w-full h-[100dvh] shadow-2xl space-y-3 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-2.5">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <Video size={16} className="text-blue-600" />
@@ -1374,8 +1386,14 @@ export default function MeetingCalendarSection({
       )}
 
       {meetingToReschedule && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150"
+          onClick={() => setMeetingToReschedule(null)}
+        >
+          <div
+            className="bg-white border-l border-slate-200 p-4 sm:p-5 max-w-sm w-full h-[100dvh] shadow-2xl space-y-3 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                 <RefreshCw size={15} className="text-amber-600" />
@@ -1471,8 +1489,14 @@ export default function MeetingCalendarSection({
       )}
 
       {meetingToCancel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150"
+          onClick={() => setMeetingToCancel(null)}
+        >
+          <div
+            className="bg-white border-l border-slate-200 p-4 sm:p-5 max-w-sm w-full h-[100dvh] shadow-2xl space-y-3 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 text-rose-600">
                 <XCircle size={16} />
@@ -1527,8 +1551,14 @@ export default function MeetingCalendarSection({
       )}
 
       {meetingToRecordOutcome && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 max-w-sm w-full shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150"
+          onClick={() => setMeetingToRecordOutcome(null)}
+        >
+          <div
+            className="bg-white border-l border-slate-200 p-4 sm:p-5 max-w-sm w-full h-[100dvh] shadow-2xl space-y-3 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 text-emerald-600">
                 <Award size={16} />

@@ -1100,8 +1100,14 @@ export default function ExpensesSection({
       )}
 
       {receiptModalUrl && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto my-auto flex flex-col">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setReceiptModalUrl(null)}
+        >
+          <div
+            className="bg-white h-[100dvh] max-w-2xl w-full p-4 sm:p-6 border-l border-slate-200 shadow-2xl space-y-4 overflow-y-auto flex flex-col animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100 shrink-0">
               <h4 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2 min-w-0">
                 <Receipt size={18} className="text-blue-600 shrink-0" />

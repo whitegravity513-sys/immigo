@@ -12,8 +12,14 @@ export default function VendorHRFeedbackModal({
   if (!show || !feedbackInterviewTarget) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 shadow-2xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white max-w-md w-full p-4 sm:p-6 space-y-4 shadow-2xl border-l border-slate-200 h-[100dvh] overflow-y-auto animate-in slide-in-from-right duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">Record Interview Evaluation</h3>

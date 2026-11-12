@@ -6,7 +6,7 @@ import {
   updateClient,
   deleteClient,
 } from "../../controllers/client.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles } from "../../middleware/rbac.middleware.js";
 import {
   validateCreateClient,
   validateUpdateClient,
@@ -14,10 +14,12 @@ import {
 
 const router = express.Router();
 
-router.post("/clients", verifyAdmin, validateCreateClient, createClient);
-router.get("/clients", verifyAdmin, getClients);
-router.get("/clients/:id", verifyAdmin, getClientById);
-router.put("/clients/:id", verifyAdmin, validateUpdateClient, updateClient);
-router.delete("/clients/:id", verifyAdmin, deleteClient);
+const requireAdminAccess = [authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN")];
+
+router.post("/clients", ...requireAdminAccess, validateCreateClient, createClient);
+router.get("/clients", ...requireAdminAccess, getClients);
+router.get("/clients/:id", ...requireAdminAccess, getClientById);
+router.put("/clients/:id", ...requireAdminAccess, validateUpdateClient, updateClient);
+router.delete("/clients/:id", ...requireAdminAccess, deleteClient);
 
 export default router;

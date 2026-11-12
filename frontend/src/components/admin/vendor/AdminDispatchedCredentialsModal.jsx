@@ -9,8 +9,14 @@ export function AdminDispatchedCredentialsModal({
   if (!dispatchedVendor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-4 sm:p-8 shadow-2xl border border-slate-100 text-center space-y-5 relative my-auto max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white max-w-lg w-full h-[100dvh] p-4 sm:p-8 shadow-2xl border-l border-slate-200 text-center space-y-5 relative overflow-y-auto animate-in slide-in-from-right duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
           <CheckCircle2 size={36} />
         </div>

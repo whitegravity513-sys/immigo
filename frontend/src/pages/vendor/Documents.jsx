@@ -664,8 +664,14 @@ export default function Documents() {
       )}
 
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
+        <div
+          onClick={() => setShowUploadModal(false)}
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white max-w-md w-full h-[100dvh] p-4 sm:p-6 shadow-2xl border-l border-slate-200 overflow-y-auto animate-in slide-in-from-right duration-200"
+          >
             <h3 className="text-lg font-bold text-slate-900 mb-2">Upload Statutory Document</h3>
             <p className="text-xs text-slate-500 mb-4">
               Add government agency licenses, incorporation certificates or GST/tax documents.

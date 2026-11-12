@@ -680,8 +680,14 @@ export default function DashboardMeetingWidget({
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-4 sm:p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto my-auto">
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-2xs animate-in fade-in duration-150"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white border-l border-slate-200 max-w-md w-full h-[100dvh] p-4 sm:p-5 shadow-2xl space-y-3 overflow-y-auto animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                 <Calendar size={15} className="text-blue-600" />

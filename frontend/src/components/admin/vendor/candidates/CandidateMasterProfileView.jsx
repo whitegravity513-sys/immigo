@@ -931,8 +931,14 @@ export default function CandidateMasterProfileView({
       </div>
 
       {interviewModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-lg w-full my-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setInterviewModal(null)}
+        >
+          <div
+            className="bg-white max-w-lg w-full h-[100dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider block">
@@ -1020,8 +1026,14 @@ export default function CandidateMasterProfileView({
       )}
 
       {rejectAppModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-md w-full my-auto max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-100 space-y-4">
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+          onClick={() => setRejectAppModal(null)}
+        >
+          <div
+            className="bg-white max-w-md w-full h-[100dvh] overflow-y-auto p-4 sm:p-6 shadow-2xl border-l border-slate-200 space-y-4 animate-in slide-in-from-right duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">

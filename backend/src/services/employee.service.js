@@ -208,6 +208,7 @@ export class EmployeeService {
         loginId: finalEmployeeId,
         email: cleanEmail,
         password: password,
+        department: department ? department.trim() : "",
         portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`,
         loginType: "Employee Portal",
       });
@@ -281,9 +282,12 @@ export class EmployeeService {
     if (personalEmail !== undefined) {
       emp.personalEmail = personalEmail ? personalEmail.trim().toLowerCase() : "";
     }
-    if (password) {
-      emp.password = await bcrypt.hash(password, 10);
-      emp.rawPassword = password;
+    let passwordUpdated = false;
+    const trimmedPassword = password !== undefined && password !== null ? String(password).trim() : "";
+    if (trimmedPassword && trimmedPassword !== (emp.rawPassword || "")) {
+      emp.password = await bcrypt.hash(trimmedPassword, 10);
+      emp.rawPassword = trimmedPassword;
+      passwordUpdated = true;
     }
     if (department !== undefined) emp.department = department ? department.trim() : "";
     if (designation !== undefined) emp.designation = designation;
@@ -309,6 +313,31 @@ export class EmployeeService {
     }
 
     await emp.save();
+
+    if (passwordUpdated) {
+      try {
+        const recipientEmails = [];
+        if (emp.personalEmail) recipientEmails.push(emp.personalEmail);
+        if (emp.email && !recipientEmails.includes(emp.email)) recipientEmails.push(emp.email);
+        if (recipientEmails.length > 0) {
+          await sendCredentialsEmail({
+            to: recipientEmails,
+            name: emp.name,
+            role: emp.designation || emp.role || "Employee",
+            loginId: emp.employeeId,
+            email: emp.email,
+            password: trimmedPassword,
+            department: emp.department || "",
+            portalUrl: `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`,
+            loginType: "Employee Portal",
+            isPasswordReset: true,
+          });
+        }
+      } catch (mailErr) {
+        console.error("Failed to send updated employee credentials email:", mailErr.message);
+      }
+    }
+
     return this.formatEmployee(emp);
   }
 

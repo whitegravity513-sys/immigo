@@ -65,8 +65,14 @@ export function TransactionDetailModal({ isOpen, onClose, transaction, type = "p
   const proofUrl = transaction.paymentProofUrl || transaction.proofUrl || transaction.receipt;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full border border-gray-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col my-auto animate-in fade-in zoom-in-95 duration-150">
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white max-w-2xl w-full border-l border-gray-200 shadow-2xl overflow-hidden h-[100dvh] flex flex-col animate-in slide-in-from-right duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-gray-50/70 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div

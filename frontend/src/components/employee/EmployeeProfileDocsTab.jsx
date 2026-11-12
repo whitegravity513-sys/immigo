@@ -668,11 +668,11 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
 
       {uploadModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4"
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
           onClick={() => setUploadModalOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-md my-auto max-h-[90vh] overflow-y-auto rounded-xl border border-slate-200 shadow-2xl"
+            className="bg-white w-full max-w-md h-[100dvh] overflow-y-auto border-l border-slate-200 shadow-2xl animate-in slide-in-from-right duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50 sticky top-0 z-10">
@@ -761,11 +761,11 @@ export default function EmployeeProfileDocsTab({ user, onProfileUpdate }) {
 
       {previewDoc && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center overflow-y-auto p-3 sm:p-4"
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
           onClick={() => setPreviewDoc(null)}
         >
           <div
-            className="bg-white w-full max-w-3xl my-auto rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="bg-white w-full max-w-3xl border-l border-slate-200 shadow-2xl overflow-hidden h-[100dvh] flex flex-col animate-in slide-in-from-right duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50">

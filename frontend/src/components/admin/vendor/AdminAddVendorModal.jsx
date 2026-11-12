@@ -39,8 +39,14 @@ export function AdminAddVendorModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full p-4 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative my-auto max-h-[90vh] overflow-y-auto font-sans">
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white max-w-3xl w-full h-[100dvh] p-4 sm:p-8 shadow-2xl border-l border-slate-200 space-y-6 relative overflow-y-auto font-sans animate-in slide-in-from-right duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">

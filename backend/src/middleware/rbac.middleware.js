@@ -115,6 +115,17 @@ export const authenticateRBAC = async (req, res, next) => {
     });
   }
 
+  if (
+    decoded.tokenVersion !== undefined &&
+    Number(decoded.tokenVersion) !== Number(user.tokenVersion || 0)
+  ) {
+    invalidateUserAuthCache(userId);
+    return res.status(401).json({
+      success: false,
+      message: "Session invalidated due to password or security update. Please sign in again.",
+    });
+  }
+
   const resolved = await PermissionService.resolveUserPermissions(user);
 
   req.user = user;

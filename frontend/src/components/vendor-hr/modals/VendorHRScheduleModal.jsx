@@ -17,8 +17,14 @@ export default function VendorHRScheduleModal({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 space-y-4 shadow-2xl border border-slate-200 my-auto max-h-[90vh] overflow-y-auto">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white max-w-md w-full h-[100dvh] p-4 sm:p-6 space-y-4 shadow-2xl border-l border-slate-200 overflow-y-auto animate-in slide-in-from-right duration-200"
+      >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div>
             <h3 className="text-base font-bold text-slate-900">Schedule Interview Round</h3>

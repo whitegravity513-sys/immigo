@@ -143,8 +143,8 @@ export default function EditAttendance({ attendance, holidays = [], onClose, onS
         onClick={(e) => e.stopPropagation()}
       >
         {showHolidayPopup && (
-          <div className="fixed inset-0 z-[60] bg-slate-900/55 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-sm rounded-2xl border border-indigo-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150 my-auto max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 z-[60] bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150">
+            <div className="bg-white w-full max-w-sm h-[100dvh] border-l border-indigo-200 shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-200">
               <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">

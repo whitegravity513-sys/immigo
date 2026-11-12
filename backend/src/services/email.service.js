@@ -259,15 +259,16 @@ export const sendOtpEmail = async ({ to, otp, purpose, name = "User" }) => {
     text: `Dear ${name},\n\nYour ImmiGo verification code for ${purposeTitle} is: ${otp}.\n\nThis code will expire in ${expiryMinutes} minutes. For your security, do not share this code with anyone.\n\nBest regards,\nImmiGo Team`,
   };
 
-  logger.info(`[OTP DISPATCH] Destination: ${to} | Purpose: ${purpose} | OTP: ${otp}`);
+  logger.info(`[OTP DISPATCH] Destination: ${to} | Purpose: ${purpose}`);
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated email dispatch successful.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     logger.info(`Email sent successfully: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -980,22 +981,34 @@ export const sendCredentialsEmail = async ({
   loginId = "",
   email = "",
   password = "",
+  department = "",
   portalUrl = "",
   loginType = "Enterprise Portal",
+  isPasswordReset = false,
 }) => {
   const finalPortalUrl = portalUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/employee/login`;
   const designatedRecipient = process.env.VENDOR_NOTIFICATION_EMAIL || "abhishekyadav36219@gmail.com";
   const isEmployee = loginType.toLowerCase().includes("employee");
+
+  const safeName = escapeHtml(name);
+  const safeRole = escapeHtml(role);
+  const safeLoginId = escapeHtml(loginId || (Array.isArray(to) ? to[0] : to));
+  const safeEmail = escapeHtml(email);
+  const safePassword = escapeHtml(password);
+  const safeDept = escapeHtml(department);
+  const safeLoginType = escapeHtml(loginType);
+  const safePortalUrl = escapeHtml(finalPortalUrl);
 
   const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Account Credentials - ImmiGo</title>
+  <title>${isPasswordReset ? "Updated Account Credentials" : "Account Credentials"} - ImmiGo</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
     .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #eef2ff; color: #3730a3; font-size: 11px; font-weight: 700; margin-bottom: 14px; border: 1px solid #c7d2fe; }
     .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
     .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
     .creds-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
@@ -1014,43 +1027,51 @@ export const sendCredentialsEmail = async ({
         <td valign="middle" style="line-height: 1;">
           <span style="font-size: 28px; font-weight: 900; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #3b2875; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
           <div style="font-size: 10px; font-weight: 800; color: #3b2875; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            Workforce & Global Operations
+            Workforce &amp; Global Operations
           </div>
         </td>
       </tr>
     </table>
 
-    <div class="title">Welcome, ${name}!</div>
+    <div class="badge">${safeLoginType} &bull; ${isPasswordReset ? "Credentials Updated" : "Account Activated"}</div>
+    <div class="title">${isPasswordReset ? `Credentials Updated, ${safeName}` : `Welcome, ${safeName}!`}</div>
     <div class="text">
-      Your official account for the <strong>${loginType}</strong> (${role}) has been created successfully. Please find your sign-in credentials and portal access link below:
+      ${isPasswordReset
+        ? `Your login credentials for the <strong>${safeLoginType}</strong> (${safeRole}) have been updated by an administrator. Please use the updated credentials below to sign in:`
+        : `Your official account for the <strong>${safeLoginType}</strong> (${safeRole}) has been created successfully. Please find your sign-in credentials and portal access link below:`}
     </div>
 
     <div class="creds-box">
       <div class="cred-row">
         <span class="cred-label">${isEmployee ? "Employee ID (Login ID):" : "Login ID:"}</span>
-        <span class="cred-value" style="color: #2563eb;">${loginId || to}</span>
+        <span class="cred-value" style="color: #2563eb;">${safeLoginId}</span>
       </div>
       ${email ? `
       <div class="cred-row">
         <span class="cred-label">Company Email:</span>
-        <span class="cred-value" style="font-family: inherit; font-weight: 600;">${email}</span>
+        <span class="cred-value" style="font-family: inherit; font-weight: 600;">${safeEmail}</span>
+      </div>` : ""}
+      ${department ? `
+      <div class="cred-row">
+        <span class="cred-label">Department / Role:</span>
+        <span class="cred-value" style="font-family: inherit; font-weight: 600;">${safeDept} (${safeRole})</span>
       </div>` : ""}
       <div class="cred-row">
         <span class="cred-label">Password:</span>
-        <span class="cred-value">${password}</span>
+        <span class="cred-value">${safePassword}</span>
       </div>
       <div class="cred-row">
         <span class="cred-label">Portal URL:</span>
-        <span class="cred-value"><a href="${finalPortalUrl}" style="color: #2563eb; text-decoration: underline;">${finalPortalUrl}</a></span>
+        <span class="cred-value"><a href="${safePortalUrl}" style="color: #2563eb; text-decoration: underline;">${safePortalUrl}</a></span>
       </div>
     </div>
 
     <div style="text-align: center;">
-      <a href="${finalPortalUrl}" class="btn">Sign In to Portal</a>
+      <a href="${safePortalUrl}" class="btn">Sign In to Portal</a>
     </div>
 
     <div class="text" style="font-size: 12px; color: #64748b;">
-      <em>Security Notice:</em> For your account security, we recommend logging in promptly and updating your password under Account Settings. Please keep your credentials strictly confidential.
+      <em>Security Notice:</em> Please keep your credentials strictly confidential and sign in using your ${isEmployee ? "Employee ID" : "Login ID"} above.
     </div>
 
     <div class="footer">
@@ -1061,7 +1082,7 @@ export const sendCredentialsEmail = async ({
 </html>
   `;
 
-  const recipients = Array.isArray(to) ? to : [to];
+  const recipients = Array.isArray(to) ? to.filter(Boolean) : to ? [to] : [];
   if (designatedRecipient && !recipients.includes(designatedRecipient)) {
     recipients.push(designatedRecipient);
   }
@@ -1069,12 +1090,14 @@ export const sendCredentialsEmail = async ({
   const mailOptions = {
     from: DEFAULT_FROM,
     to: recipients.join(", "),
-    subject: `[ImmiGo] Official Account Credentials & Access Details (${loginType})`,
+    subject: isPasswordReset
+      ? `[ImmiGo] Updated Account Credentials & Access Details (${loginType})`
+      : `[ImmiGo] Official Account Credentials & Access Details (${loginType})`,
     html: htmlContent,
-    text: `Dear ${name},\n\nYour official account for ${loginType} (${role}) has been created successfully.\n\n${isEmployee ? "Employee ID (Login ID)" : "Login ID"}: ${loginId || to}\n${email ? `Company Email: ${email}\n` : ""}Password: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials confidential.\n\nBest regards,\nImmiGo Team`,
+    text: `Dear ${name},\n\n${isPasswordReset ? `Your login credentials for ${loginType} (${role}) have been updated.` : `Your official account for ${loginType} (${role}) has been created successfully.`}\n\n${isEmployee ? "Employee ID (Login ID)" : "Login ID"}: ${loginId || to}\n${email ? `Company Email: ${email}\n` : ""}${department ? `Department: ${department}\n` : ""}Password: ${password}\nPortal URL: ${finalPortalUrl}\n\nPlease keep your credentials confidential.\n\nBest regards,\nImmiGo Team`,
   };
 
-  logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId}`);
+  logger.info(`[CREDENTIALS EMAIL DISPATCH] Destination: ${mailOptions.to} | LoginId: ${loginId} | Reset: ${isPasswordReset}`);
 
   const activeTransporter = getTransporter();
   if (!activeTransporter) {
@@ -1096,13 +1119,26 @@ export const sendStaffAccountCredentialsEmail = async ({
   to,
   name = "Staff Member",
   email = "",
+  staffId = "",
   password = "",
   roleLabel = "Staff",
+  department = "",
+  assignedVendors = [],
   isPasswordReset = false,
   portalUrl = "",
 }) => {
   const finalPortalUrl = portalUrl || `${process.env.FRONTEND_URL || "http://localhost:5173"}/admin/login`;
   const loginEmail = email || to;
+  const vendorListStr = Array.isArray(assignedVendors) && assignedVendors.length > 0 ? assignedVendors.join(", ") : "";
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(loginEmail);
+  const safeStaffId = escapeHtml(staffId);
+  const safePassword = escapeHtml(password);
+  const safeRole = escapeHtml(roleLabel);
+  const safeDept = escapeHtml(department);
+  const safeVendors = escapeHtml(vendorListStr);
+  const safePortalUrl = escapeHtml(finalPortalUrl);
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -1113,6 +1149,7 @@ export const sendStaffAccountCredentialsEmail = async ({
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 24px; }
     .card { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; background-color: #eef2ff; color: #3730a3; font-size: 11px; font-weight: 700; margin-bottom: 14px; border: 1px solid #c7d2fe; }
     .title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
     .text { font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
     .creds-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
@@ -1131,40 +1168,60 @@ export const sendStaffAccountCredentialsEmail = async ({
         <td valign="middle" style="line-height: 1;">
           <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -1px;">immi</span><span style="font-size: 28px; font-weight: 900; color: #3b2875; letter-spacing: -1px;">Go</span><span style="font-size: 24px; font-weight: 900; color: #f97316; margin-left: 3px;">&#10140;</span>
           <div style="font-size: 10px; font-weight: 800; color: #3b2875; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;">
-            Admin & Management Portal
+            Admin &amp; Management Portal
           </div>
         </td>
       </tr>
     </table>
 
-    <div class="title">${isPasswordReset ? `Password Updated, ${name}` : `Welcome, ${name}!`}</div>
+    <div class="badge">${safeRole} &bull; ${isPasswordReset ? "Credentials Updated" : "Account Created"}</div>
+    <div class="title">${isPasswordReset ? `Credentials Updated, ${safeName}` : `Welcome, ${safeName}!`}</div>
     <div class="text">
       ${isPasswordReset
-        ? `Your login password for the <strong>${roleLabel}</strong> portal account has been updated by an administrator. Use your updated credentials below to sign in:`
-        : `Your official <strong>${roleLabel}</strong> account has been created. Use the login ID and password below to access the portal:`}
+        ? `Your login credentials for the <strong>${safeRole}</strong> portal account have been updated by an administrator. Use your updated credentials below to sign in:`
+        : `Your official <strong>${safeRole}</strong> portal account has been created. Use the login credentials and portal link below to access your workspace:`}
     </div>
 
     <div class="creds-box">
       <div class="cred-row">
         <span class="cred-label">Role:</span>
-        <span class="cred-value" style="font-family: inherit;">${roleLabel}</span>
+        <span class="cred-value" style="font-family: inherit;">${safeRole}</span>
       </div>
+      ${staffId ? `
       <div class="cred-row">
-        <span class="cred-label">Login Email / ID:</span>
-        <span class="cred-value" style="color: #2563eb;">${loginEmail}</span>
+        <span class="cred-label">Staff / HR ID (Login ID):</span>
+        <span class="cred-value" style="color: #2563eb;">${safeStaffId}</span>
+      </div>` : ""}
+      <div class="cred-row">
+        <span class="cred-label">Login Email:</span>
+        <span class="cred-value" style="color: #2563eb; font-family: inherit;">${safeEmail}</span>
       </div>
+      ${department ? `
+      <div class="cred-row">
+        <span class="cred-label">Department:</span>
+        <span class="cred-value" style="font-family: inherit; font-weight: 600;">${safeDept}</span>
+      </div>` : ""}
+      ${vendorListStr ? `
+      <div class="cred-row">
+        <span class="cred-label">Assigned Vendors:</span>
+        <span class="cred-value" style="font-family: inherit; font-weight: 600;">${safeVendors}</span>
+      </div>` : ""}
       <div class="cred-row">
         <span class="cred-label">Password:</span>
-        <span class="cred-value">${password}</span>
+        <span class="cred-value">${safePassword}</span>
       </div>
       <div class="cred-row">
         <span class="cred-label">Portal URL:</span>
-        <span class="cred-value"><a href="${finalPortalUrl}" style="color: #2563eb; text-decoration: underline;">${finalPortalUrl}</a></span>
+        <span class="cred-value"><a href="${safePortalUrl}" style="color: #2563eb; text-decoration: underline;">${safePortalUrl}</a></span>
       </div>
     </div>
 
     <div style="text-align: center;">
-      <a href="${finalPortalUrl}" class="btn">Sign In to Portal</a>
+      <a href="${safePortalUrl}" class="btn">Sign In to ${safeRole} Portal</a>
+    </div>
+
+    <div class="text" style="font-size: 12px; color: #64748b;">
+      <em>Security Notice:</em> ${staffId ? "You may sign in using either your Staff / HR ID or your registered Login Email." : "Please sign in using your registered Login Email."} Keep these credentials strictly confidential.
     </div>
 
     <div class="footer">
@@ -1182,12 +1239,12 @@ export const sendStaffAccountCredentialsEmail = async ({
       ? `[ImmiGo] Updated Portal Login Credentials (${roleLabel})`
       : `[ImmiGo] Your Staff Portal Account Credentials (${roleLabel})`,
     html: htmlContent,
-    text: `Dear ${name},\n\n${isPasswordReset ? `Your ${roleLabel} portal password has been updated.` : `Your ${roleLabel} portal account has been created.`}\n\nLogin Email / ID: ${loginEmail}\nPassword: ${password}\nPortal URL: ${finalPortalUrl}\n\nBest regards,\nImmiGo Team`,
+    text: `Dear ${name},\n\n${isPasswordReset ? `Your ${roleLabel} portal credentials have been updated.` : `Your ${roleLabel} portal account has been created.`}\n\nRole: ${roleLabel}\n${staffId ? `Staff / HR ID (Login ID): ${staffId}\n` : ""}Login Email: ${loginEmail}\n${department ? `Department: ${department}\n` : ""}${vendorListStr ? `Assigned Vendors: ${vendorListStr}\n` : ""}Password: ${password}\nPortal URL: ${finalPortalUrl}\n\nBest regards,\nImmiGo Team`,
   };
 
   const activeTransporter = getTransporter();
   if (!activeTransporter) {
-    logger.info(`[STAFF CREDENTIALS EMAIL SIMULATED] To: ${to}`);
+    logger.info(`[STAFF CREDENTIALS EMAIL SIMULATED] To: ${to} | Role: ${roleLabel}`);
     return { success: true, simulated: true };
   }
 
@@ -1320,13 +1377,14 @@ Candidate Portal Login: ${finalPortalUrl}`;
 
   logger.info(`[CANDIDATE APPROVAL EMAIL] Destination: ${to} | Candidate: ${candidateId} (${candidateName})`);
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated candidate approval email dispatched.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     logger.info(`Candidate approval email sent: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -1400,13 +1458,14 @@ export const sendCandidateRejectionEmail = async ({
 
   logger.info(`[CANDIDATE REJECTION EMAIL] Destination: ${to} | Candidate: ${candidateId}`);
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated candidate rejection email dispatched.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     logger.error("Failed to send candidate rejection email:", error);
@@ -1478,13 +1537,14 @@ export const sendCandidateInterviewEmail = async ({
     text: `Dear ${candidateName},\n\nYour interview for ${position} (${projectName}) is scheduled.\nDate: ${interview.scheduledDate}\nTime: ${interview.scheduledTime}\nMode: ${interview.mode}\nLink/Venue: ${interview.locationOrLink}\n\nBest regards,\nTeam Immigo`,
   };
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info("Transporter not active. Simulated interview email dispatched.");
     return { success: true, simulated: true };
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     logger.error("Failed to send interview email:", error);
@@ -1498,28 +1558,29 @@ export const sendCandidateSelectionEmail = async ({
   projectName,
   position,
 }) => {
+  const candidateDashUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/candidate/dashboard`;
   const htmlContent = `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
     <div style="text-align: center; margin-bottom: 20px;">
-      <h2 style="color: #0f172a; margin: 0;">🎉 Congratulations, ${candidateName}!</h2>
+      <h2 style="color: #0f172a; margin: 0;">🎉 Congratulations, ${escapeHtml(candidateName)}!</h2>
       <p style="color: #10b981; font-weight: bold; margin-top: 4px;">You have been officially SELECTED!</p>
     </div>
-    <p>Dear <strong>${candidateName}</strong>,</p>
-    <p>We are thrilled to inform you that you have been selected for the position of <strong>${position || "Specialist"}</strong> on project <strong>${projectName}</strong>.</p>
+    <p>Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
+    <p>We are thrilled to inform you that you have been selected for the position of <strong>${escapeHtml(position || "Specialist")}</strong> on project <strong>${escapeHtml(projectName)}</strong>.</p>
     
     <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 20px 0;">
-      <h4 style="margin: 0 0 10px 0; color: #0f172a;">Next Steps & Milestone Processing:</h4>
+      <h4 style="margin: 0 0 10px 0; color: #0f172a;">Next Steps &amp; Milestone Processing:</h4>
       <p style="margin: 4px 0; font-size: 14px;">• Your overseas deployment pipeline and processing milestones have been initiated.</p>
-      <p style="margin: 4px 0; font-size: 14px;">• Step 1: Selection & Document Clearance.</p>
+      <p style="margin: 4px 0; font-size: 14px;">• Step 1: Selection &amp; Document Clearance.</p>
       <p style="margin: 4px 0; font-size: 14px;">• Track all milestones, upload proofs, and manage payments directly in your Candidate Portal.</p>
     </div>
 
     <div style="text-align: center; margin: 25px 0;">
-      <a href="http://localhost:5173/candidate/dashboard" style="background: #0f2744; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
-        View Process & Milestones
+      <a href="${escapeHtml(candidateDashUrl)}" style="background: #0f2744; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">
+        View Process &amp; Milestones
       </a>
     </div>
 
@@ -1537,15 +1598,16 @@ export const sendCandidateSelectionEmail = async ({
     to,
     subject: `🎉 Congratulations! Selected for ${projectName} (${position || "Role"})`,
     html: htmlContent,
-    text: `Congratulations ${candidateName}! You have been selected for ${position} on ${projectName}. Please login to your Candidate Portal to view your processing milestones.`,
+    text: `Congratulations ${candidateName}! You have been selected for ${position} on ${projectName}. Please login to your Candidate Portal (${candidateDashUrl}) to view your processing milestones.`,
   };
 
-  if (!transporter) {
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) {
     logger.info(`Simulated selection email dispatched to ${to}`);
     return { success: true, simulated: true };
   }
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await activeTransporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     logger.error("Failed to send selection email:", error);
@@ -1562,25 +1624,26 @@ export const sendCandidateMilestoneUpdateEmail = async ({
   stageStatus,
   remarks,
 }) => {
+  const candidateDashUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/candidate/dashboard`;
   const htmlContent = `
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px;">
     <h3 style="color: #0f2744; margin-top: 0;">Processing Stage Update 🚀</h3>
-    <p>Dear <strong>${candidateName}</strong>,</p>
-    <p>Your processing status for project <strong>${projectName}</strong> has progressed.</p>
+    <p>Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
+    <p>Your processing status for project <strong>${escapeHtml(projectName)}</strong> has progressed.</p>
     
     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin: 16px 0;">
-      <p style="margin: 4px 0;"><strong>Milestone:</strong> ${milestoneName}</p>
-      <p style="margin: 4px 0;"><strong>Stage:</strong> ${stageName}</p>
-      <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color: #2563eb; font-weight: bold;">${stageStatus}</span></p>
-      ${remarks ? `<p style="margin: 4px 0;"><strong>Remarks:</strong> ${remarks}</p>` : ""}
+      <p style="margin: 4px 0;"><strong>Milestone:</strong> ${escapeHtml(milestoneName)}</p>
+      <p style="margin: 4px 0;"><strong>Stage:</strong> ${escapeHtml(stageName)}</p>
+      <p style="margin: 4px 0;"><strong>Status:</strong> <span style="color: #2563eb; font-weight: bold;">${escapeHtml(stageStatus)}</span></p>
+      ${remarks ? `<p style="margin: 4px 0;"><strong>Remarks:</strong> ${escapeHtml(remarks)}</p>` : ""}
     </div>
 
     <p style="font-size: 14px;">Log in to your Candidate Portal to check your updated timeline and download clearance certificates.</p>
     <div style="text-align: center; margin: 20px 0;">
-      <a href="http://localhost:5173/candidate/dashboard" style="background: #2563eb; color: #ffffff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">
+      <a href="${escapeHtml(candidateDashUrl)}" style="background: #2563eb; color: #ffffff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; display: inline-block;">
         Open Candidate Portal
       </a>
     </div>
@@ -1589,14 +1652,15 @@ export const sendCandidateMilestoneUpdateEmail = async ({
 </html>
   `;
 
-  if (!transporter) return { success: true, simulated: true };
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) return { success: true, simulated: true };
   try {
-    const info = await transporter.sendMail({
+    const info = await activeTransporter.sendMail({
       from: DEFAULT_FROM,
       to,
       subject: `Processing Update: ${stageName} is now ${stageStatus} - ${projectName}`,
       html: htmlContent,
-      text: `Processing Update for ${candidateName}: ${stageName} is now ${stageStatus} on ${projectName}.`,
+      text: `Processing Update for ${candidateName}: ${stageName} is now ${stageStatus} on ${projectName}. Portal: ${candidateDashUrl}`,
     });
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -1620,15 +1684,15 @@ export const sendCandidatePaymentReceiptEmail = async ({
 <body style="font-family: Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 28px;">
     <h3 style="color: #10b981; margin-top: 0;">Payment Receipt Confirmation ✅</h3>
-    <p>Dear <strong>${candidateName}</strong>,</p>
-    <p>We have successfully verified and received your payment for project <strong>${projectName}</strong>.</p>
+    <p>Dear <strong>${escapeHtml(candidateName)}</strong>,</p>
+    <p>We have successfully verified and received your payment for project <strong>${escapeHtml(projectName)}</strong>.</p>
     
     <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; margin: 16px 0;">
-      <p style="margin: 4px 0;"><strong>Receipt #:</strong> ${receiptNumber || "N/A"}</p>
-      <p style="margin: 4px 0;"><strong>Milestone:</strong> ${milestoneName}</p>
+      <p style="margin: 4px 0;"><strong>Receipt #:</strong> ${escapeHtml(receiptNumber || "N/A")}</p>
+      <p style="margin: 4px 0;"><strong>Milestone:</strong> ${escapeHtml(milestoneName)}</p>
       <p style="margin: 4px 0;"><strong>Amount Paid:</strong> ₹${Number(amount).toLocaleString()}</p>
-      <p style="margin: 4px 0;"><strong>Payment Mode:</strong> ${paymentMode || "Online Transfer"}</p>
-      <p style="margin: 4px 0;"><strong>Status:</strong> Verified & Approved</p>
+      <p style="margin: 4px 0;"><strong>Payment Mode:</strong> ${escapeHtml(paymentMode || "Online Transfer")}</p>
+      <p style="margin: 4px 0;"><strong>Status:</strong> Verified &amp; Approved</p>
     </div>
 
     <p style="font-size: 13px; color: #64748b;">The next processing stage for your overseas deployment has been unlocked.</p>
@@ -1637,9 +1701,10 @@ export const sendCandidatePaymentReceiptEmail = async ({
 </html>
   `;
 
-  if (!transporter) return { success: true, simulated: true };
+  const activeTransporter = getTransporter();
+  if (!activeTransporter) return { success: true, simulated: true };
   try {
-    const info = await transporter.sendMail({
+    const info = await activeTransporter.sendMail({
       from: DEFAULT_FROM,
       to,
       subject: `Payment Receipt: ₹${Number(amount).toLocaleString()} for ${milestoneName}`,

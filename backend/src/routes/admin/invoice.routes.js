@@ -7,15 +7,17 @@ import {
   updateInvoice,
   deleteInvoice,
 } from "../../controllers/invoice.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.post("/invoices", verifyAdmin, createInvoice);
-router.get("/invoices", verifyAdmin, getAllInvoices);
-router.get("/invoices/project/:projectId", verifyAdmin, getInvoicesByProject);
-router.get("/invoices/:id", verifyAdmin, getInvoiceById);
-router.put("/invoices/:id", verifyAdmin, updateInvoice);
-router.delete("/invoices/:id", verifyAdmin, deleteInvoice);
+const requireAdminAccess = [authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN")];
+
+router.post("/invoices", ...requireAdminAccess, createInvoice);
+router.get("/invoices", ...requireAdminAccess, getAllInvoices);
+router.get("/invoices/project/:projectId", ...requireAdminAccess, getInvoicesByProject);
+router.get("/invoices/:id", ...requireAdminAccess, getInvoiceById);
+router.put("/invoices/:id", ...requireAdminAccess, updateInvoice);
+router.delete("/invoices/:id", ...requireAdminAccess, deleteInvoice);
 
 export default router;

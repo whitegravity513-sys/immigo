@@ -366,14 +366,17 @@ export function AddProjectModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-hidden">
       <div
-        className="fixed inset-0 bg-gray-900/60 backdrop-blur-2xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs transition-opacity"
         onClick={onClose}
       />
 
-      <div className="flex min-h-full items-center justify-center p-3 sm:p-6 text-center">
-        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all my-auto w-full max-w-3xl max-h-[92vh] flex flex-col border border-gray-200">
+      <div className="fixed inset-y-0 right-0 flex max-w-full pl-4 sm:pl-10">
+        <div
+          className="relative transform overflow-hidden bg-white text-left shadow-2xl transition-all w-screen max-w-3xl h-[100dvh] flex flex-col border-l border-gray-200 animate-in slide-in-from-right duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
           <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
             <div className="bg-gray-50/80 px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3 shrink-0">
               <div className="flex items-center gap-3 min-w-0">

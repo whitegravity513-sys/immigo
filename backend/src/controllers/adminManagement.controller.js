@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 import Admin from "../models/Admin.js";
+import Session from "../models/Session.js";
 import UserPermission from "../models/UserPermission.js";
 import AuditLog from "../models/AuditLog.js";
 import { ROLES } from "../constants/roles.js";
@@ -223,14 +224,26 @@ export const createAdmin = asyncHandler(async (req, res) => {
       ? "Vendor HR"
       : "Employee HR";
 
+  const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const staffPortalUrl =
+    assignedRole === ROLES.ADMIN
+      ? `${frontendBaseUrl}/admin/login`
+      : assignedHrType === "VENDOR_HR"
+      ? `${frontendBaseUrl}/vendor-hr/login`
+      : `${frontendBaseUrl}/hr/login`;
+
   let emailResult = { success: false };
   try {
     emailResult = await sendStaffAccountCredentialsEmail({
       to: newUser.email,
       name: newUser.name,
       email: newUser.email,
+      staffId: newUser.hrId || "",
       password: plainPassword,
       roleLabel,
+      department: newUser.department || "",
+      assignedVendors: assignedHrType === "VENDOR_HR" ? newUser.assignedVendors : [],
+      portalUrl: staffPortalUrl,
     });
   } catch (mailErr) {
     emailResult = { success: false, error: mailErr?.message };
@@ -411,7 +424,12 @@ export const updateAdmin = asyncHandler(async (req, res) => {
     targetUser.hrId = await generateNextHRId();
   }
 
+  const emailChanged = targetUser.email !== before.email;
+
   await targetUser.save();
+  if (passwordChanged || targetUser.isActive === false) {
+    await Session.deleteMany({ userId: id });
+  }
   invalidateUserAuthCache(id);
   PermissionService.invalidateUserCache(id);
 
@@ -430,15 +448,28 @@ export const updateAdmin = asyncHandler(async (req, res) => {
       ? "Vendor HR"
       : "Employee HR";
 
-  if (passwordChanged) {
+  const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const staffPortalUrl =
+    targetUser.role === ROLES.ADMIN
+      ? `${frontendBaseUrl}/admin/login`
+      : targetUser.hrType === "VENDOR_HR"
+      ? `${frontendBaseUrl}/vendor-hr/login`
+      : `${frontendBaseUrl}/hr/login`;
+
+  const passwordToSend = passwordChanged ? trimmedPassword : targetUser.rawPassword || "";
+  if ((passwordChanged || emailChanged) && passwordToSend) {
     try {
       await sendStaffAccountCredentialsEmail({
         to: targetUser.email,
         name: targetUser.name,
         email: targetUser.email,
-        password: trimmedPassword,
+        staffId: targetUser.hrId || "",
+        password: passwordToSend,
         roleLabel,
+        department: targetUser.department || "",
+        assignedVendors: targetUser.hrType === "VENDOR_HR" ? targetUser.assignedVendors : [],
         isPasswordReset: true,
+        portalUrl: staffPortalUrl,
       });
     } catch {}
   }
@@ -515,6 +546,7 @@ export const deleteAdmin = asyncHandler(async (req, res) => {
 
   await User.findByIdAndDelete(id);
   await UserPermission.deleteMany({ userId: id });
+  await Session.deleteMany({ userId: id });
   await Admin.deleteMany({ email: targetUser.email });
   invalidateUserAuthCache(id);
   PermissionService.invalidateUserCache(id);

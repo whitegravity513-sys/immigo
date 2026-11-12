@@ -6,14 +6,16 @@ import {
   deleteRenewal,
   getRenewalAlerts,
 } from "../../controllers/renewal.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
-router.post("/renewals", verifyAdmin, createRenewal);
-router.get("/renewals", verifyAdmin, getRenewals);
-router.get("/renewals/alerts", verifyAdmin, getRenewalAlerts);
-router.put("/renewals/:id", verifyAdmin, updateRenewal);
-router.delete("/renewals/:id", verifyAdmin, deleteRenewal);
+const requireAdminAccess = [authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN")];
+
+router.post("/renewals", ...requireAdminAccess, createRenewal);
+router.get("/renewals", ...requireAdminAccess, getRenewals);
+router.get("/renewals/alerts", ...requireAdminAccess, getRenewalAlerts);
+router.put("/renewals/:id", ...requireAdminAccess, updateRenewal);
+router.delete("/renewals/:id", ...requireAdminAccess, deleteRenewal);
 
 export default router;

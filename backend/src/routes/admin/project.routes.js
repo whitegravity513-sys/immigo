@@ -6,7 +6,7 @@ import {
   updateProject,
   deleteProject,
 } from "../../controllers/project.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles } from "../../middleware/rbac.middleware.js";
 import {
   validateCreateProject,
   validateUpdateProject,
@@ -14,10 +14,12 @@ import {
 
 const router = express.Router();
 
-router.post("/projects", verifyAdmin, validateCreateProject, createProject);
-router.get("/projects", verifyAdmin, getProjects);
-router.get("/projects/:id", verifyAdmin, getProjectById);
-router.put("/projects/:id", verifyAdmin, validateUpdateProject, updateProject);
-router.delete("/projects/:id", verifyAdmin, deleteProject);
+const requireAdminAccess = [authenticateRBAC, requireRoles("SUPER_ADMIN", "ADMIN")];
+
+router.post("/projects", ...requireAdminAccess, validateCreateProject, createProject);
+router.get("/projects", ...requireAdminAccess, getProjects);
+router.get("/projects/:id", ...requireAdminAccess, getProjectById);
+router.put("/projects/:id", ...requireAdminAccess, validateUpdateProject, updateProject);
+router.delete("/projects/:id", ...requireAdminAccess, deleteProject);
 
 export default router;

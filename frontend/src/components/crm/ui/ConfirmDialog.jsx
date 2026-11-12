@@ -31,14 +31,17 @@ export function ConfirmDialog({
   const current = variantStyles[variant] || variantStyles.danger;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-hidden">
       <div
-        className="fixed inset-0 bg-gray-900/60 backdrop-blur-2xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs transition-opacity"
         onClick={!loading ? onClose : undefined}
       />
 
-      <div className="flex min-h-full items-center justify-center p-3 sm:p-6 text-center">
-        <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all my-auto w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-200">
+      <div className="fixed inset-y-0 right-0 flex max-w-full pl-4 sm:pl-10">
+        <div
+          className="relative transform overflow-hidden bg-white text-left shadow-2xl transition-all w-screen max-w-md h-[100dvh] overflow-y-auto border-l border-gray-200 flex flex-col justify-between animate-in slide-in-from-right duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="bg-white p-4 sm:p-6">
             <div className="flex items-start gap-4">
               <div

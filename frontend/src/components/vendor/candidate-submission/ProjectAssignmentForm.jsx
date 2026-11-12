@@ -199,8 +199,14 @@ export function ConfirmSubmissionModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto my-auto p-4 sm:p-5 space-y-4 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white max-w-md w-full h-[100dvh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl border-l border-slate-200 animate-in slide-in-from-right duration-200"
+      >
         <h3 className="text-base font-bold text-slate-900">Confirm Candidate Assignment</h3>
         <p className="text-xs text-slate-600">
           You are submitting <strong>{selectedCandidateIds.length} candidate(s)</strong> to project{" "}

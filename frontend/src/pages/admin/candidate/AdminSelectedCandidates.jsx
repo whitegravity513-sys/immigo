@@ -413,8 +413,14 @@ export default function AdminSelectedCandidates() {
       )}
 
       {paymentModalApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs overflow-y-auto p-3 sm:p-4 animate-fade-in">
-          <div className="my-auto max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full">
+        <div
+          onClick={() => setPaymentModalApp(null)}
+          className="fixed inset-0 z-50 flex justify-end bg-slate-900/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="h-[100dvh] overflow-y-auto bg-white shadow-2xl border-l border-slate-200 max-w-md w-full animate-in slide-in-from-right duration-200"
+          >
             <div className="px-4 sm:px-5 py-3.5 bg-[#163868] text-white flex items-center justify-between sticky top-0 z-10">
               <div className="flex items-center gap-2">
                 <IndianRupee className="w-4 h-4 text-cyan-300" />

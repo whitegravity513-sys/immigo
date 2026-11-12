@@ -12,11 +12,11 @@ export default function LeaveActionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex justify-end animate-in fade-in duration-150"
       onClick={() => setLeaveActionModal(null)}
     >
       <div
-        className="bg-white w-full max-w-md rounded-xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto my-auto"
+        className="bg-white w-full max-w-md h-[100dvh] border-l border-slate-200 shadow-2xl overflow-y-auto flex flex-col animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div
