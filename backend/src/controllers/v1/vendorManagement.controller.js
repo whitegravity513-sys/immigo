@@ -32,7 +32,7 @@ export const getVendors = asyncHandler(async (req, res) => {
 export const getVendorDetails = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!id) throw new ApiError(400, "Vendor ID is required");
-  const details = await VendorManagementService.getVendorDetails(id);
+  const details = await VendorManagementService.getVendorDetails(id, req.user);
   return ApiResponse.send(res, 200, "Vendor details fetched successfully", details);
 });
 

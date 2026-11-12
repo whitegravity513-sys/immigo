@@ -9,6 +9,7 @@ import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { fetchAllMergedProjects, resolveProjectMilestonesData } from "../../utils/projectResolver.js";
 import { ACTIVE_REFUND_LOCK_STATUSES } from "../../utils/refundLock.js";
+import { resolveVendorHrScope } from "../../utils/vendorHrScope.js";
 
 const isHexObjectId = (val) => typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
 
@@ -154,6 +155,7 @@ const resolveVendorIdentifiers = async (vendorId) => {
 
 export const getRefunds = asyncHandler(async (req, res) => {
   const { vendorId } = req.query;
+  const scope = await resolveVendorHrScope(req.user);
   const filter = {};
   let appFilter = {};
   if (req.isVendor) {
@@ -161,6 +163,35 @@ export const getRefunds = asyncHandler(async (req, res) => {
     const vMatch = vendorIds.length > 1 ? { $in: vendorIds } : vendorIds[0] || "";
     filter.vendorId = vMatch;
     appFilter = { vendorId: vMatch };
+  } else if (scope.isVendorHR) {
+    if (vendorId && !scope.expandedVendorIds.includes(String(vendorId))) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are not assigned to this vendor.",
+      });
+    }
+    if (vendorId) {
+      const vendorIds = await resolveVendorIdentifiers(vendorId);
+      const vMatch = vendorIds.length > 1 ? { $in: vendorIds } : String(vendorId);
+      filter.vendorId = vMatch;
+      appFilter = { vendorId: vMatch };
+    } else {
+      const scopeOr = [
+        ...(scope.expandedVendorIds.length > 0
+          ? [{ vendorId: { $in: scope.expandedVendorIds } }]
+          : []),
+        ...(scope.assignedProjectIds.length > 0
+          ? [{ projectId: { $in: scope.assignedProjectIds } }]
+          : []),
+      ];
+      if (scopeOr.length === 0) {
+        filter._id = null;
+        appFilter._id = null;
+      } else {
+        filter.$or = scopeOr;
+        appFilter = { $or: scopeOr };
+      }
+    }
   } else if (vendorId) {
     const vendorIds = await resolveVendorIdentifiers(vendorId);
     const vMatch = vendorIds.length > 1 ? { $in: vendorIds } : String(vendorId);

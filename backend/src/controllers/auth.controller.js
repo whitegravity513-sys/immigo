@@ -8,14 +8,13 @@ import { User } from "../models/User.js";
 import { ApiError } from "../utils/apiError.js";
 
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
   const ipAddress = req.ip || req.socket?.remoteAddress;
 
   const user = await authService.register({
     name,
     email,
     password,
-    role,
     ipAddress,
   });
 

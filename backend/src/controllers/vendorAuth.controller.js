@@ -14,6 +14,29 @@ import {
 import { requestAndSendOtp, verifyOtp } from "../services/otp.service.js";
 import { OTP_PURPOSES } from "../models/Otp.js";
 import { generateNextVendorId } from "../utils/idGenerator.js";
+import { saveBase64File } from "../utils/fileStorage.js";
+
+const sanitizeVendorFileUrl = (val, subDir = "documents", originalName = "") => {
+  const s = String(val || "").trim();
+  if (!s) return "";
+  return saveBase64File(s, subDir, originalName);
+};
+
+const sanitizeVendorDocs = (documents = []) =>
+  documents
+    .filter((d) => d && (d.fileUrl || d.fileName || d.name))
+    .map((d, idx) => ({
+      id: d.id || `doc_${Date.now()}_${idx}`,
+      name: String(d.name || d.fileName || "Document").trim(),
+      fileName: String(d.fileName || d.name || "document").trim(),
+      type: String(d.type || "Document").trim(),
+      fileUrl: sanitizeVendorFileUrl(d.fileUrl, "documents", d.fileName || d.name || ""),
+      mimeType: String(d.mimeType || ""),
+      size: String(d.size || ""),
+      status: d.status || "Pending",
+      remarks: String(d.remarks || ""),
+      uploadedAt: d.uploadedAt || new Date(),
+    }));
 
 export const vendorRegister = asyncHandler(async (req, res) => {
   const {
@@ -54,22 +77,7 @@ export const vendorRegister = asyncHandler(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const vendorId = await generateNextVendorId();
 
-  const sanitizedDocs = Array.isArray(documents)
-    ? documents
-        .filter((d) => d && (d.fileUrl || d.fileName || d.name))
-        .map((d, idx) => ({
-          id: d.id || `doc_${Date.now()}_${idx}`,
-          name: String(d.name || d.fileName || "Document").trim(),
-          fileName: String(d.fileName || d.name || "document").trim(),
-          type: String(d.type || "Document").trim(),
-          fileUrl: String(d.fileUrl || ""),
-          mimeType: String(d.mimeType || ""),
-          size: String(d.size || ""),
-          status: d.status || "Pending",
-          remarks: String(d.remarks || ""),
-          uploadedAt: d.uploadedAt || new Date(),
-        }))
-    : [];
+  const sanitizedDocs = Array.isArray(documents) ? sanitizeVendorDocs(documents) : [];
 
   const newVendor = await Vendor.create({
     vendorId,
@@ -249,6 +257,7 @@ export const vendorLogin = asyncHandler(async (req, res) => {
       companyName: vendor.companyName,
       role: "vendor",
       status: vendor.status,
+      tokenVersion: vendor.tokenVersion || 0,
     },
     env.JWT_SECRET,
     { expiresIn: "30d" }
@@ -284,8 +293,8 @@ export const uploadVendorDocuments = asyncHandler(async (req, res) => {
   }
 
   if (Array.isArray(documents) && documents.length > 0) {
-    vendor.documents = documents;
-    vendor.documentsUploaded = true;
+    vendor.documents = sanitizeVendorDocs(documents);
+    vendor.documentsUploaded = vendor.documents.length > 0;
     vendor.documentVerified = false;
   }
   if (bankDetails) {
@@ -362,12 +371,16 @@ export const signVendorMou = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Authorized signatory name is required for digital signing.");
   }
 
+  const cleanSignedFileUrl = signedFileUrl
+    ? sanitizeVendorFileUrl(signedFileUrl, "documents", signedFileName || "signed-mou.pdf")
+    : "";
+
   vendor.mouSigned = true;
   vendor.mouStatus = "Under Review";
   vendor.status = "Pending MOU Approval";
   vendor.onboardingStage = "MOU_UNDER_REVIEW";
   vendor.mouSignMethod = normalizedMethod;
-  vendor.signedMouDocUrl = signedFileUrl || "";
+  vendor.signedMouDocUrl = cleanSignedFileUrl;
   vendor.adminRemarks = "";
   vendor.rejectionReason = "";
   vendor.signedMou = {
@@ -377,7 +390,7 @@ export const signVendorMou = asyncHandler(async (req, res) => {
       normalizedMethod === "upload"
         ? signedFileName || "Uploaded Signed MOU Copy"
         : signatureData || signatoryName || "Digitally Signed & Acknowledged",
-    signedFileUrl: signedFileUrl || "",
+    signedFileUrl: cleanSignedFileUrl,
     signedAt: new Date(),
   };
 
@@ -473,7 +486,11 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
   const updatePayload = {};
   for (const field of ALLOWED_PROFILE_FIELDS) {
     if (Object.prototype.hasOwnProperty.call(req.body || {}, field) && req.body[field] !== undefined) {
-      updatePayload[field] = req.body[field];
+      if (field === "profileImage") {
+        updatePayload[field] = sanitizeVendorFileUrl(req.body[field], "profiles", "profile.png");
+      } else {
+        updatePayload[field] = req.body[field];
+      }
     }
   }
 
@@ -492,20 +509,7 @@ export const updateVendorProfile = asyncHandler(async (req, res) => {
 
   const hasNewDocuments = Array.isArray(req.body?.documents);
   if (hasNewDocuments) {
-    updatePayload.documents = req.body.documents
-      .filter((d) => d && (d.fileUrl || d.fileName || d.name))
-      .map((d, idx) => ({
-        id: d.id || `doc_${Date.now()}_${idx}`,
-        name: String(d.name || d.fileName || "Document").trim(),
-        fileName: String(d.fileName || d.name || "document").trim(),
-        type: String(d.type || "Document").trim(),
-        fileUrl: String(d.fileUrl || ""),
-        mimeType: String(d.mimeType || ""),
-        size: String(d.size || ""),
-        uploadedAt: d.uploadedAt || new Date(),
-        status: "Pending",
-        remarks: String(d.remarks || ""),
-      }));
+    updatePayload.documents = sanitizeVendorDocs(req.body.documents);
     updatePayload.documentsUploaded = updatePayload.documents.length > 0;
     if (
       updatePayload.documents.length > 0 &&
@@ -585,8 +589,8 @@ export const vendorForgotPassword = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    message: `A 6-digit verification OTP has been sent from abhishekyadav36219@gmail.com to your registered email (${maskedEmail}).`,
-    email: vendor.email,
+    message: `A 6-digit verification OTP has been sent to your registered email (${maskedEmail}).`,
+    maskedEmail,
   });
 });
 
@@ -594,28 +598,31 @@ export const vendorResetPassword = asyncHandler(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
-    throw new ApiError(400, "Email, OTP code, and new password are required");
+    throw new ApiError(400, "Email/Vendor ID, OTP code, and new password are required");
   }
 
-  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanIdentifier = String(email).trim().toLowerCase();
 
   if (String(newPassword).trim().length < 6) {
     throw new ApiError(400, "New password must be at least 6 characters long");
   }
 
-  const vendor = await Vendor.findOne({ email: cleanEmail });
+  const vendor = await Vendor.findOne({
+    $or: [{ email: cleanIdentifier }, { vendorId: cleanIdentifier.toUpperCase() }],
+  });
   if (!vendor) {
     throw new ApiError(404, "Vendor account not found for this email");
   }
 
   await verifyOtp({
-    email: cleanEmail,
+    email: vendor.email,
     otp: String(otp).trim(),
     purpose: OTP_PURPOSES.PASSWORD_RESET,
   });
 
   const hashedPassword = await bcrypt.hash(String(newPassword).trim(), 10);
   vendor.password = hashedPassword;
+  vendor.tokenVersion = (vendor.tokenVersion || 0) + 1;
   await vendor.save();
 
   await ActivityService.log({

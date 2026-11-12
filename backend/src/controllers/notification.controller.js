@@ -47,7 +47,8 @@ export const getNotifications = asyncHandler(async (req, res) => {
 });
 
 export const markAsRead = asyncHandler(async (req, res) => {
-  const notification = await NotificationService.markAsRead(req.params.id);
+  const ctx = await buildStaffContext(req.user);
+  const notification = await NotificationService.markAsRead(req.params.id, ctx);
   return res.status(200).json({ success: true, notification });
 });
 
@@ -65,7 +66,8 @@ export const clearAllNotifications = asyncHandler(async (req, res) => {
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await NotificationService.deleteNotification(id);
+  const ctx = await buildStaffContext(req.user);
+  await NotificationService.deleteNotification(id, ctx);
   return res.status(200).json({ success: true, message: "Notification deleted successfully" });
 });
 

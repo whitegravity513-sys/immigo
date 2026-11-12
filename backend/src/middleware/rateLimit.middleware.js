@@ -1,6 +1,12 @@
 import rateLimit from "express-rate-limit";
 
-const isDev = process.env.NODE_ENV !== "production";
+const isHostedEnvironment = Boolean(
+  process.env.RENDER ||
+    process.env.RAILWAY_ENVIRONMENT ||
+    process.env.VERCEL ||
+    process.env.FLY_APP_NAME
+);
+const isDev = process.env.NODE_ENV !== "production" && !isHostedEnvironment;
 
 export const apiLimiter = rateLimit({
   windowMs: 60 * 1000,

@@ -516,7 +516,19 @@ export class NotificationService {
     };
   }
 
-  static async markAsRead(id) {
+  static async markAsRead(id, options = null) {
+    if (!id) return null;
+    if (options && !options.isSuperAdmin) {
+      const visibilityQuery = buildStaffVisibilityQuery(options);
+      const idFilter = mongoose.Types.ObjectId.isValid(String(id))
+        ? { _id: new mongoose.Types.ObjectId(String(id)) }
+        : { notificationId: String(id) };
+      return await Notification.findOneAndUpdate(
+        { $and: [visibilityQuery, idFilter] },
+        { read: true },
+        { returnDocument: "after" }
+      );
+    }
     const notification = await Notification.findByIdAndUpdate(
       id,
       { read: true },
@@ -560,7 +572,7 @@ export class NotificationService {
     return { success: true };
   }
 
-  static async deleteNotification(id) {
+  static async deleteNotification(id, options = null) {
     if (!id) return { success: true };
     const sId = String(id);
     const isMongoId = mongoose.Types.ObjectId.isValid(sId);
@@ -575,8 +587,14 @@ export class NotificationService {
       filterOr.push({ _id: new mongoose.Types.ObjectId(sId) });
     }
 
+    const visibilityQuery =
+      options && !options.isSuperAdmin ? buildStaffVisibilityQuery(options) : null;
+
     try {
-      await Notification.deleteMany({ $or: filterOr });
+      const deleteQuery = visibilityQuery
+        ? { $and: [visibilityQuery, { $or: filterOr }] }
+        : { $or: filterOr };
+      await Notification.deleteMany(deleteQuery);
     } catch (e) {
       console.warn("Notification delete warning:", e?.message);
     }
@@ -586,7 +604,29 @@ export class NotificationService {
       if (CrmNotification) {
         const crmConds = [{ notificationId: sId }, { id: sId }];
         if (isMongoId) crmConds.push({ _id: new mongoose.Types.ObjectId(sId) });
-        await CrmNotification.deleteMany({ $or: crmConds });
+        const crmDeleteQuery =
+          options && !options.isSuperAdmin
+            ? {
+                $and: [
+                  { $or: crmConds },
+                  ...(String(options?.hrType || "").toUpperCase() === "VENDOR_HR"
+                    ? [
+                        {
+                          recipientRole: { $in: ["VENDOR_HR", "HR"] },
+                          ...(Array.isArray(options?.assignedVendors)
+                            ? { vendorId: { $in: options.assignedVendors } }
+                            : {}),
+                        },
+                      ]
+                    : [
+                        {
+                          recipientRole: { $ne: "SUPER_ADMIN" },
+                        },
+                      ]),
+                ],
+              }
+            : { $or: crmConds };
+        await CrmNotification.deleteMany(crmDeleteQuery);
       }
     } catch { }
 

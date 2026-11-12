@@ -2,16 +2,32 @@ import CrmCandidate from "../../models/CrmCandidate.js";
 import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateNextCandidateId } from "../../utils/idGenerator.js";
+import { resolveVendorHrScope } from "../../utils/vendorHrScope.js";
 
 const getVendorAllowedSet = (req) =>
   new Set([req.vendorId, req.userId].filter(Boolean).map((v) => String(v).trim()));
 
 export const getCandidates = asyncHandler(async (req, res) => {
   const { vendorId } = req.query;
+  const scope = await resolveVendorHrScope(req.user);
   const filter = {};
   if (req.isVendor) {
     const allowedVendorIds = Array.from(getVendorAllowedSet(req));
     filter.vendorId = allowedVendorIds.length > 1 ? { $in: allowedVendorIds } : allowedVendorIds[0] || "";
+  } else if (scope.isVendorHR) {
+    if (vendorId && !scope.expandedVendorIds.includes(String(vendorId))) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are not assigned to this vendor.",
+      });
+    }
+    if (vendorId) {
+      filter.vendorId = String(vendorId);
+    } else if (scope.expandedVendorIds.length > 0) {
+      filter.vendorId = { $in: scope.expandedVendorIds };
+    } else {
+      filter._id = null;
+    }
   } else if (vendorId) {
     filter.vendorId = String(vendorId);
   }

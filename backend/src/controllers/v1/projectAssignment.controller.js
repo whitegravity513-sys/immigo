@@ -3,6 +3,8 @@ import ProjectAssignment from "../../models/ProjectAssignment.js";
 import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
+import { ApiError } from "../../utils/apiError.js";
+import { resolveVendorHrScope } from "../../utils/vendorHrScope.js";
 
 const emitAssignmentSync = (vendorId = null) => {
   emitRealtimeEvent({
@@ -101,12 +103,35 @@ export const removeAssignmentById = asyncHandler(async (req, res) => {
 
 export const getProjectAssignments = asyncHandler(async (req, res) => {
   const { projectId, vendorId, userId, assignmentType, status = "Active" } = req.query;
+  const scope = await resolveVendorHrScope(req.user);
   const filter = {};
   if (projectId) filter.projectId = projectId;
-  if (vendorId) filter.vendorId = vendorId;
+  if (vendorId) {
+    if (scope.isVendorHR && !scope.expandedVendorIds.includes(String(vendorId))) {
+      throw new ApiError(403, "Forbidden: You are not assigned to this vendor.");
+    }
+    filter.vendorId = vendorId;
+  }
   if (userId) filter.userId = userId;
   if (assignmentType) filter.assignmentType = assignmentType;
   if (status && status !== "ALL") filter.status = status;
+
+  if (scope.isVendorHR) {
+    const scopeOr = [
+      ...(scope.userIdStr ? [{ userId: scope.userIdStr }, { vendorHRUserId: scope.userIdStr }] : []),
+      ...(scope.expandedVendorIds.length > 0
+        ? [{ vendorId: { $in: scope.expandedVendorIds } }]
+        : []),
+      ...(scope.assignedProjectIds.length > 0
+        ? [{ projectId: { $in: scope.assignedProjectIds } }]
+        : []),
+    ];
+    if (scopeOr.length === 0) {
+      filter._id = null;
+    } else {
+      filter.$and = [{ $or: scopeOr }];
+    }
+  }
 
   const assignments = await ProjectAssignment.find(filter)
     .sort({ createdAt: -1 })

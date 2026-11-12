@@ -622,8 +622,17 @@ export class ClientPaymentService {
       query.$and = andConditions;
     }
 
+    const ALLOWED_SORT_FIELDS = new Set([
+      "paymentDate",
+      "createdAt",
+      "amountPaid",
+      "paymentId",
+      "clientName",
+      "status",
+    ]);
+    const safeSortBy = ALLOWED_SORT_FIELDS.has(String(sortBy || "")) ? String(sortBy) : "paymentDate";
     const sortObj = {};
-    sortObj[sortBy] = sortOrder === "asc" ? 1 : -1;
+    sortObj[safeSortBy] = sortOrder === "asc" ? 1 : -1;
     sortObj.createdAt = -1;
 
     const skip = (Math.max(1, Number(page)) - 1) * Number(limit);

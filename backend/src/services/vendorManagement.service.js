@@ -8,6 +8,7 @@ import NotificationService from "./notification.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { generateNextVendorId } from "../utils/idGenerator.js";
 import { escapeRegex } from "../utils/regex.js";
+import { resolveVendorHrScope } from "../utils/vendorHrScope.js";
 import bcrypt from "bcryptjs";
 
 export class VendorManagementService {
@@ -126,7 +127,8 @@ export class VendorManagementService {
     return vendor;
   }
 
-  static async getVendorsList({ search, status }) {
+  static async getVendorsList({ search, status, actorUser = null }) {
+    const scope = await resolveVendorHrScope(actorUser);
     const filter = {};
     if (status && status !== "ALL") {
       filter.status = status;
@@ -143,7 +145,28 @@ export class VendorManagementService {
       }
     }
 
+    if (scope.isVendorHR) {
+      if (scope.expandedVendorIds.length === 0) {
+        return { count: 0, vendors: [] };
+      }
+      const hexIds = scope.expandedVendorIds.filter((id) => /^[0-9a-fA-F]{24}$/.test(String(id)));
+      const scopeCond = {
+        $or: [
+          { vendorId: { $in: scope.expandedVendorIds } },
+          ...(hexIds.length > 0 ? [{ _id: { $in: hexIds } }] : []),
+        ],
+      };
+      if (filter.$or) {
+        const searchOr = filter.$or;
+        delete filter.$or;
+        filter.$and = [{ $or: searchOr }, scopeCond];
+      } else {
+        Object.assign(filter, scopeCond);
+      }
+    }
+
     const vendors = await Vendor.find(filter)
+      .select("-password")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -160,7 +183,9 @@ export class VendorManagementService {
         hrType: "VENDOR_HR",
         assignedVendors: { $in: vendorIds },
         isActive: true,
-      }).lean(),
+      })
+        .select("_id name email hrId hrType assignedVendors isActive")
+        .lean(),
       CandidateApplication.find({
         vendorId: { $in: vendorIds },
       }).lean(),
@@ -216,16 +241,27 @@ export class VendorManagementService {
     };
   }
 
-  static async getVendorDetails(vendorId) {
+  static async getVendorDetails(vendorId, actorUser = null) {
+    const scope = await resolveVendorHrScope(actorUser);
     const vendor = await Vendor.findOne({
       $or: [
         { vendorId },
         { _id: vendorId.match(/^[0-9a-fA-F]{24}$/) ? vendorId : null },
       ],
-    }).lean();
+    })
+      .select("-password")
+      .lean();
 
     if (!vendor) {
       throw new ApiError(404, "Vendor not found.");
+    }
+
+    if (scope.isVendorHR) {
+      const targetIdentifiers = [vendor.vendorId, vendor._id?.toString()].filter(Boolean);
+      const isAllowed = targetIdentifiers.some((tid) => scope.expandedVendorIds.includes(String(tid)));
+      if (!isAllowed) {
+        throw new ApiError(403, "Forbidden: You are not assigned to this vendor.");
+      }
     }
 
     const [assignments, vendorHRs, applications, milestones, activityLogs] = await Promise.all([
@@ -237,7 +273,9 @@ export class VendorManagementService {
         role: "HR",
         hrType: "VENDOR_HR",
         assignedVendors: { $in: [vendor.vendorId, vendor._id.toString()].filter(Boolean) },
-      }).lean(),
+      })
+        .select("_id name email phone hrId hrType assignedVendors isActive createdAt")
+        .lean(),
       CandidateApplication.find({
         vendorId: { $in: [vendor.vendorId, vendor._id.toString()].filter(Boolean) },
       }).sort({ createdAt: -1 }).lean(),

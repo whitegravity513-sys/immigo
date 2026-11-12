@@ -1,6 +1,13 @@
 import { ApiError } from "../utils/apiError.js";
 import { logger } from "../utils/logger.js";
 
+const isHostedEnvironment = Boolean(
+  process.env.RENDER ||
+    process.env.RAILWAY_ENVIRONMENT ||
+    process.env.VERCEL ||
+    process.env.FLY_APP_NAME
+);
+
 export const errorHandler = (err, req, res, _next) => {
   void _next;
   let error = err;
@@ -39,7 +46,7 @@ export const errorHandler = (err, req, res, _next) => {
     statusCode: error.statusCode,
     message: error.message,
     ...(error.errors?.length > 0 && { errors: error.errors }),
-    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
+    ...(process.env.NODE_ENV === "development" && !isHostedEnvironment && { stack: error.stack }),
   };
 
   return res.status(error.statusCode).json(response);

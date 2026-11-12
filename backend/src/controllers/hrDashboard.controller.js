@@ -8,7 +8,9 @@ import User from "../models/User.js";
 import Vendor from "../models/Vendor.js";
 import ROLES from "../constants/roles.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/apiError.js";
 import { escapeRegex } from "../utils/regex.js";
+import { resolveVendorHrScope } from "../utils/vendorHrScope.js";
 
 export const getHrDashboard = asyncHandler(async (req, res) => {
   const todayStr = new Date().toISOString().split("T")[0];
@@ -112,7 +114,9 @@ export const getHrEmployees = asyncHandler(async (req, res) => {
     }
   }
 
-  const employees = await Employee.find(query).sort({ createdAt: -1 });
+  const employees = await Employee.find(query)
+    .select("-password -rawPassword")
+    .sort({ createdAt: -1 });
 
   return res.status(200).json({
     success: true,
@@ -154,6 +158,15 @@ export const getHrLeaves = asyncHandler(async (req, res) => {
 
 export const getHrPerformanceReport = asyncHandler(async (req, res) => {
   const { hrId, vendorId, startDate, endDate } = req.query;
+  const scope = await resolveVendorHrScope(req.user);
+  const isEmployeeHR =
+    req.userRole === ROLES.HR && !scope.isVendorHR;
+
+  if (scope.isVendorHR && vendorId && vendorId !== "ALL") {
+    if (!scope.expandedVendorIds.includes(String(vendorId))) {
+      throw new ApiError(403, "Forbidden: You are not assigned to this vendor.");
+    }
+  }
 
   let hrQuery = { role: ROLES.HR };
   if (req.userRole === ROLES.HR) {
@@ -174,8 +187,10 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
   } else if (hrId) {
     activityQuery.updatedByUserId = hrId;
   }
-  if (vendorId) {
+  if (vendorId && vendorId !== "ALL") {
     activityQuery.vendorId = vendorId;
+  } else if (scope.isVendorHR) {
+    activityQuery.vendorId = { $in: scope.expandedVendorIds };
   }
 
   const meetingQuery = {};
@@ -185,13 +200,36 @@ export const getHrPerformanceReport = asyncHandler(async (req, res) => {
   } else if (hrId) {
     meetingQuery.$or = [{ hrId }, { createdBy: hrId }];
   }
-  if (vendorId) meetingQuery.vendorId = vendorId;
+  if (vendorId && vendorId !== "ALL") {
+    meetingQuery.vendorId = vendorId;
+  } else if (scope.isVendorHR) {
+    meetingQuery.vendorId = { $in: scope.expandedVendorIds };
+  }
+
+  const crmAppQuery = vendorId && vendorId !== "ALL"
+    ? { vendorId }
+    : scope.isVendorHR
+    ? { vendorId: { $in: scope.expandedVendorIds } }
+    : {};
+
+  const vendorQuery = scope.isVendorHR
+    ? {
+        $or: [
+          { vendorId: { $in: scope.expandedVendorIds } },
+          {
+            _id: {
+              $in: scope.expandedVendorIds.filter((id) => /^[0-9a-fA-F]{24}$/.test(String(id))),
+            },
+          },
+        ],
+      }
+    : {};
 
   const [activities, meetings, crmApps, allVendors] = await Promise.all([
     ActivityLog.find(activityQuery).sort({ createdAt: -1 }),
     Meeting.find(meetingQuery),
-    CrmCandidateApplication.find(vendorId ? { vendorId } : {}),
-    Vendor.find().select("vendorId companyName"),
+    isEmployeeHR ? Promise.resolve([]) : CrmCandidateApplication.find(crmAppQuery),
+    isEmployeeHR ? Promise.resolve([]) : Vendor.find(vendorQuery).select("vendorId companyName"),
   ]);
 
   const uniqueCandidateIds = new Set(activities.map((a) => a.candidateId).filter(Boolean));

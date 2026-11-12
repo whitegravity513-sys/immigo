@@ -21,23 +21,23 @@ import {
   createRefund,
   updateRefund,
 } from "../controllers/crm/index.js";
-import { authenticateRBAC, requireRoles, blockEmployeeHR } from "../middleware/rbac.middleware.js";
+import { authenticateRBAC, requireRoles, blockEmployeeHR, blockVendorHR } from "../middleware/rbac.middleware.js";
 
 const router = express.Router();
 
 const CRM_READ_ACTORS = ["SUPER_ADMIN", "ADMIN", "HR", "VENDOR_HR", "VENDOR"];
-const CRM_MANAGE_ACTORS = ["SUPER_ADMIN", "ADMIN", "HR", "VENDOR_HR"];
+const CRM_MANAGE_ACTORS = ["SUPER_ADMIN", "ADMIN"];
 
 router.use(authenticateRBAC, blockEmployeeHR);
 
 router.get("/clients", requireRoles(...CRM_READ_ACTORS), getClients);
-router.post("/clients", requireRoles(...CRM_MANAGE_ACTORS), saveClient);
-router.delete("/clients/:id", requireRoles(...CRM_MANAGE_ACTORS), deleteClient);
+router.post("/clients", blockVendorHR, requireRoles(...CRM_MANAGE_ACTORS), saveClient);
+router.delete("/clients/:id", blockVendorHR, requireRoles(...CRM_MANAGE_ACTORS), deleteClient);
 
 router.get("/projects", requireRoles(...CRM_READ_ACTORS), getAvailableProjects);
-router.post("/projects", requireRoles(...CRM_MANAGE_ACTORS), addOrUpdateProject);
-router.delete("/clients/:clientId/projects/:projectId", requireRoles(...CRM_MANAGE_ACTORS), deleteProject);
-router.delete("/projects/:projectId", requireRoles(...CRM_MANAGE_ACTORS), deleteProject);
+router.post("/projects", blockVendorHR, requireRoles(...CRM_MANAGE_ACTORS), addOrUpdateProject);
+router.delete("/clients/:clientId/projects/:projectId", blockVendorHR, requireRoles(...CRM_MANAGE_ACTORS), deleteProject);
+router.delete("/projects/:projectId", blockVendorHR, requireRoles(...CRM_MANAGE_ACTORS), deleteProject);
 
 router.get("/applications", requireRoles(...CRM_READ_ACTORS), getApplications);
 router.post("/applications", requireRoles(...CRM_READ_ACTORS), submitApplication);

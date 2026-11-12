@@ -131,11 +131,21 @@ export const getCandidates = asyncHandler(async (req, res) => {
   const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
   const skip = (pageNum - 1) * limitNum;
 
+  const ALLOWED_SORT_FIELDS = new Set([
+    "createdAt",
+    "fullName",
+    "email",
+    "candidateId",
+    "accountStatus",
+    "documentStatus",
+    "updatedAt",
+  ]);
+  const safeSortBy = ALLOWED_SORT_FIELDS.has(String(sortBy || "")) ? String(sortBy) : "createdAt";
   const sortDirection = sortOrder === "asc" ? 1 : -1;
-  const sortOptions = { [sortBy]: sortDirection };
+  const sortOptions = { [safeSortBy]: sortDirection };
 
   const [candidates, total] = await Promise.all([
-    Candidate.find(query).sort(sortOptions).skip(skip).limit(limitNum).lean(),
+    Candidate.find(query).select("-password").sort(sortOptions).skip(skip).limit(limitNum).lean(),
     Candidate.countDocuments(query),
   ]);
 
@@ -157,7 +167,7 @@ export const getCandidateById = asyncHandler(async (req, res) => {
   const isObjectId = typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id);
   const query = isObjectId ? { $or: [{ _id: id }, { candidateId: id }] } : { candidateId: id };
 
-  const candidate = await Candidate.findOne(query).lean();
+  const candidate = await Candidate.findOne(query).select("-password").lean();
   if (!candidate) {
     return res.status(404).json({ success: false, message: "Candidate not found." });
   }

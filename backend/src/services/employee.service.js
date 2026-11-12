@@ -746,7 +746,11 @@ export class EmployeeService {
     const displayDailyRecords = dailyRecords
       .filter((r) => r.status !== "Before Joining" && r.status !== "Upcoming" && (!r.date || r.date <= todayStr));
 
-    const empObj = typeof emp.toObject === "function" ? emp.toObject() : emp;
+    const empObj = typeof emp.toObject === "function" ? emp.toObject() : { ...emp };
+    delete empObj.password;
+    if (!includeInternalRemarks) {
+      delete empObj.rawPassword;
+    }
     return {
       employee: {
         ...empObj,
@@ -835,8 +839,8 @@ export class EmployeeService {
   static async getEmployeeProfile(id) {
     const cleanId = cleanObjectId(id);
     const emp = cleanId
-      ? await Employee.findById(cleanId).select("-password +documents").lean()
-      : await Employee.findOne({ employeeId: String(id || "").trim() }).select("-password +documents").lean();
+      ? await Employee.findById(cleanId).select("-password -rawPassword +documents").lean()
+      : await Employee.findOne({ employeeId: String(id || "").trim() }).select("-password -rawPassword +documents").lean();
     if (!emp) {
       throw new ApiError(404, "Employee not found");
     }

@@ -35,6 +35,7 @@ export default function ForgotPasswordOtpModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
+  const [maskedTarget, setMaskedTarget] = useState("");
   const [cooldown, setCooldown] = useState(0);
 
   const openKey = isOpen ? `${isOpen}:${initialEmail}` : "closed";
@@ -49,6 +50,7 @@ export default function ForgotPasswordOtpModal({
       setConfirmPassword("");
       setError("");
       setInfoMsg("");
+      setMaskedTarget("");
       setCooldown(0);
     }
   }
@@ -89,13 +91,13 @@ export default function ForgotPasswordOtpModal({
       let res;
       if (isVendor) {
         res = await vendorForgotPassword(cleanInput);
-        if (res.email) setEmail(res.email);
+        if (res.maskedEmail) setMaskedTarget(res.maskedEmail);
       } else {
         res = await adminForgotPassword(cleanInput);
         if (res.email) setEmail(res.email);
       }
 
-      setInfoMsg(res.message || "A 6-digit OTP code has been sent from abhishekyadav36219@gmail.com.");
+      setInfoMsg(res.message || "A 6-digit OTP code has been sent to your registered email.");
       setStep(2);
       setCooldown(60);
     } catch (err) {
@@ -179,15 +181,15 @@ export default function ForgotPasswordOtpModal({
               <p className="text-xs text-slate-500 font-medium leading-relaxed">
                 {isSuperAdmin ? (
                   <>
-                    Enter the Super Administrator email address. A 6-digit OTP code will be sent from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong> to verify identity and set a new password.
+                    Enter the Super Administrator email address. A 6-digit OTP code will be sent to your registered email to verify identity and set a new password.
                   </>
                 ) : isVendor ? (
                   <>
-                    Enter your registered email or Vendor ID. We will send a secure 6-digit OTP code from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong>.
+                    Enter your registered email or Vendor ID. We will send a secure 6-digit OTP code to your registered email.
                   </>
                 ) : (
                   <>
-                    Enter your administrator email. We will send a secure 6-digit OTP code from <strong className="text-slate-700">abhishekyadav36219@gmail.com</strong>.
+                    Enter your administrator email. We will send a secure 6-digit OTP code to your registered email.
                   </>
                 )}
               </p>
@@ -249,7 +251,7 @@ export default function ForgotPasswordOtpModal({
               </span>
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">Enter OTP Code</h3>
               <p className="text-xs text-slate-500 font-medium leading-relaxed break-words">
-                6-digit OTP code sent to <strong className="text-slate-800 break-all">{email}</strong> via <strong className="text-blue-600 break-all">abhishekyadav36219@gmail.com</strong>.
+                6-digit OTP code sent to <strong className="text-slate-800 break-all">{maskedTarget || email}</strong>.
               </p>
             </div>
 

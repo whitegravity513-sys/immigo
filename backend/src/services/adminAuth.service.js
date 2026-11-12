@@ -72,7 +72,8 @@ export class AdminAuthService {
         throw new ApiError(401, "Invalid credentials");
       }
     } else if (user) {
-      if (["EMPLOYEE", "VENDOR", "CANDIDATE"].includes(String(user.role || "").toUpperCase())) {
+      const normalizedRole = String(user.role || "").toUpperCase();
+      if (![ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.HR].includes(normalizedRole)) {
         throw new ApiError(403, "Use the dedicated portal login for your role.");
       }
       if (user.isActive === false) {
@@ -212,8 +213,14 @@ export class AdminAuthService {
       throw new ApiError(404, "Admin not found");
     }
 
-    if (user && user.isActive === false) {
-      throw new ApiError(403, "Your account has been deactivated.");
+    if (user) {
+      const normalizedRole = String(user.role || "").toUpperCase();
+      if (![ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.HR].includes(normalizedRole)) {
+        throw new ApiError(403, "Use the dedicated portal login for your role.");
+      }
+      if (user.isActive === false) {
+        throw new ApiError(403, "Your account has been deactivated.");
+      }
     }
 
     if (!user && admin) {

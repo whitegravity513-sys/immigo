@@ -24,8 +24,14 @@ const ALLOWED_EXTENSIONS = new Set([".pdf", ".png", ".jpg", ".jpeg", ".webp", ".
 export function saveBase64File(dataUrl, subDir = "documents", originalName = "") {
   if (!dataUrl || typeof dataUrl !== "string") return "";
 
-  if (dataUrl.startsWith("http://") || dataUrl.startsWith("https://") || dataUrl.startsWith("/uploads/")) {
-    return dataUrl;
+  const trimmed = dataUrl.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith("javascript:") || lower.startsWith("vbscript:")) {
+    throw new ApiError(400, "Invalid or unsafe file URL.");
+  }
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/uploads/")) {
+    return trimmed;
   }
 
   const safeSubDir = String(subDir || "documents").trim();
@@ -33,9 +39,12 @@ export function saveBase64File(dataUrl, subDir = "documents", originalName = "")
     throw new ApiError(400, "Invalid upload directory.");
   }
 
-  const match = dataUrl.match(/^data:([a-zA-Z0-9.+/-]+);base64,(.+)$/s);
+  const match = trimmed.match(/^data:([a-zA-Z0-9.+/-]+);base64,(.+)$/s);
+  if (!match && trimmed.includes(":")) {
+    throw new ApiError(400, "Unsupported file URL format.");
+  }
   const mimeType = match ? String(match[1]).trim().toLowerCase() : "";
-  const base64Data = match ? match[2].trim() : dataUrl.trim();
+  const base64Data = match ? match[2].trim() : trimmed;
 
   if (mimeType && (mimeType.includes("svg") || mimeType.includes("html") || mimeType.includes("javascript"))) {
     throw new ApiError(400, "Unsupported file format.");

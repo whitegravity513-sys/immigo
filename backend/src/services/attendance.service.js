@@ -591,7 +591,7 @@ export class AttendanceService {
 
     const [todayHoliday, employees, attendanceRecords, approvedLeaves] = await Promise.all([
       Holiday.findOne({ date: queryDate }).lean(),
-      Employee.find().lean(),
+      Employee.find().select("-password -rawPassword").lean(),
       Attendance.find({ date: queryDate }).lean(),
       Leave.find({
         status: "Approved",
@@ -790,7 +790,7 @@ export class AttendanceService {
     const endDate = `${y}-${String(m).padStart(2, "0")}-${String(totalDays).padStart(2, "0")}`;
 
     const [employees, records, leaves, holidays] = await Promise.all([
-      Employee.find().lean(),
+      Employee.find().select("-password -rawPassword").lean(),
       Attendance.find({ date: { $gte: startDate, $lte: endDate } }).lean(),
       Leave.find({
         status: "Approved",
@@ -1002,7 +1002,7 @@ export class AttendanceService {
     const startDate = `${y}-${String(m).padStart(2, "0")}-01`;
     const endDate = `${y}-${String(m).padStart(2, "0")}-${String(endDay).padStart(2, "0")}`;
     const [employees, records, leaves, holidays] = await Promise.all([
-      Employee.find().lean(),
+      Employee.find().select("-password -rawPassword").lean(),
       Attendance.find({ date: { $gte: startDate, $lte: endDate } }).lean(),
       Leave.find({
         status: "Approved",

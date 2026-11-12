@@ -174,6 +174,7 @@ const employeeSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         ret.id = ret._id.toString();
         delete ret.__v;
+        delete ret.password;
         return ret;
       },
     },
@@ -182,6 +183,7 @@ const employeeSchema = new mongoose.Schema(
       transform: (doc, ret) => {
         ret.id = ret._id.toString();
         delete ret.__v;
+        delete ret.password;
         return ret;
       },
     },

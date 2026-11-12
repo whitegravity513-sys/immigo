@@ -7,15 +7,24 @@ import {
   deleteNotification,
 } from "../../controllers/notification.controller.js";
 import { getAdminWorkLogs } from "../../controllers/worklog.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles, blockVendorHR } from "../../middleware/rbac.middleware.js";
 
 const router = express.Router();
+const staffNotificationGuard = [
+  authenticateRBAC,
+  requireRoles("SUPER_ADMIN", "ADMIN", "HR", "EMPLOYEE_HR", "VENDOR_HR"),
+];
+const internalWorkforceGuard = [
+  authenticateRBAC,
+  blockVendorHR,
+  requireRoles("SUPER_ADMIN", "ADMIN", "HR", "EMPLOYEE_HR"),
+];
 
-router.get("/notifications", verifyAdmin, getNotifications);
-router.put("/notifications/:id/read", verifyAdmin, markAsRead);
-router.put("/notifications/read-all", verifyAdmin, markAllAsRead);
-router.delete("/notifications/:id", verifyAdmin, deleteNotification);
-router.delete("/notifications", verifyAdmin, clearAllNotifications);
-router.get("/worklogs", verifyAdmin, getAdminWorkLogs);
+router.get("/notifications", ...staffNotificationGuard, getNotifications);
+router.put("/notifications/:id/read", ...staffNotificationGuard, markAsRead);
+router.put("/notifications/read-all", ...staffNotificationGuard, markAllAsRead);
+router.delete("/notifications/:id", ...staffNotificationGuard, deleteNotification);
+router.delete("/notifications", ...staffNotificationGuard, clearAllNotifications);
+router.get("/worklogs", ...internalWorkforceGuard, getAdminWorkLogs);
 
 export default router;

@@ -88,6 +88,21 @@ export const authenticateRBAC = async (req, res, next) => {
       ],
     });
     if (vendorDoc) {
+      if (vendorDoc.status === "Suspended") {
+        return res.status(403).json({
+          success: false,
+          message: "Your vendor account has been temporarily Suspended. Please contact ImmiGo Admin.",
+        });
+      }
+      if (
+        decoded.tokenVersion !== undefined &&
+        Number(decoded.tokenVersion) !== Number(vendorDoc.tokenVersion || 0)
+      ) {
+        return res.status(401).json({
+          success: false,
+          message: "Session invalidated due to password or security update. Please sign in again.",
+        });
+      }
       req.user = vendorDoc;
       req.userId = vendorDoc._id.toString();
       req.userRole = ROLES.VENDOR;

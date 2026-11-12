@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import AdminAuthService from "../services/adminAuth.service.js";
 import Admin from "../models/Admin.js";
 import User from "../models/User.js";
+import Session from "../models/Session.js";
+import { invalidateUserAuthCache } from "../middleware/rbac.middleware.js";
 import { requestAndSendOtp, verifyOtp } from "../services/otp.service.js";
 import { OTP_PURPOSES } from "../models/Otp.js";
 import env from "../config/env.js";
@@ -127,7 +129,10 @@ export const adminResetPassword = asyncHandler(async (req, res) => {
   if (user) {
     user.passwordHash = hashedPassword;
     user.passwordChangedAt = new Date();
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
+    await Session.deleteMany({ userId: String(user._id) });
+    invalidateUserAuthCache(user._id);
   }
 
   return res.status(200).json({

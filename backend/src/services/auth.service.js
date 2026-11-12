@@ -6,8 +6,9 @@ import { requestAndSendOtp, verifyOtp } from "./otp.service.js";
 import { createSession, revokeAllSessions } from "./token.service.js";
 import { ApiError } from "../utils/apiError.js";
 import { generateNextHRId } from "../utils/idGenerator.js";
+import { invalidateUserAuthCache } from "../middleware/rbac.middleware.js";
 
-export const register = async ({ name, email, password, role = ROLES.USER, ipAddress = null }) => {
+export const register = async ({ name, email, password, ipAddress = null }) => {
   const normalizedEmail = email.trim().toLowerCase();
 
   const existingUser = await User.findOne({ email: normalizedEmail });
@@ -17,15 +18,14 @@ export const register = async ({ name, email, password, role = ROLES.USER, ipAdd
 
   const passwordHash = await hashPassword(password);
 
-  const assignedRole = Object.values(ROLES).includes(role) ? role : ROLES.USER;
-  const hrId = assignedRole === ROLES.HR ? await generateNextHRId() : "";
-
   const user = await User.create({
     name: name.trim(),
     email: normalizedEmail,
     passwordHash,
-    role: assignedRole,
-    hrId,
+    role: ROLES.USER,
+    hrId: "",
+    hrType: "",
+    assignedVendors: [],
     isActive: true,
     isEmailVerified: false,
   });
@@ -165,11 +165,13 @@ export const resetPasswordWithOtp = async ({ email, otp, newPassword }) => {
 
   user.passwordHash = passwordHash;
   user.passwordChangedAt = new Date();
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   user.failedLoginAttempts = 0;
   user.lockedUntil = null;
   await user.save();
 
   await revokeAllSessions(user._id);
+  invalidateUserAuthCache(user._id);
 
   return {
     message: "Password has been successfully reset. Please log in with your new password.",

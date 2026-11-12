@@ -10,6 +10,7 @@ import { verifyAndFetchRazorpayPayment } from "../../services/razorpayVerificati
 import { emitRealtimeEvent } from "../../services/realtime.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { generateNextCandidateApplicationId } from "../../utils/idGenerator.js";
+import { resolveVendorHrScope } from "../../utils/vendorHrScope.js";
 import {
   findProjectAcrossSources,
   fetchAllMergedProjects,
@@ -69,14 +70,48 @@ const POST_SELECTION_STATUSES = new Set([
 
 export const getApplications = asyncHandler(async (req, res) => {
   const { vendorId, projectId } = req.query;
+  const scope = await resolveVendorHrScope(req.user);
   const filter = {};
   if (req.isVendor) {
     const allowedVendorIds = Array.from(getVendorAllowedSet(req));
     filter.vendorId = allowedVendorIds.length > 1 ? { $in: allowedVendorIds } : allowedVendorIds[0] || "";
+  } else if (scope.isVendorHR) {
+    if (vendorId && !scope.expandedVendorIds.includes(String(vendorId))) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are not assigned to this vendor.",
+      });
+    }
+    const scopeOr = [
+      ...(scope.expandedVendorIds.length > 0
+        ? [{ vendorId: { $in: scope.expandedVendorIds } }]
+        : []),
+      ...(scope.assignedProjectIds.length > 0
+        ? [{ projectId: { $in: scope.assignedProjectIds } }]
+        : []),
+      ...(scope.userIdStr ? [{ vendorHrId: scope.userIdStr }] : []),
+    ];
+    if (vendorId) {
+      filter.vendorId = String(vendorId);
+    } else if (scopeOr.length === 0) {
+      filter._id = null;
+    } else {
+      filter.$or = scopeOr;
+    }
   } else if (vendorId) {
     filter.vendorId = String(vendorId);
   }
-  if (projectId) filter.projectId = String(projectId);
+  if (projectId) {
+    if (
+      scope.isVendorHR &&
+      scope.assignedProjectIds.length > 0 &&
+      !scope.assignedProjectIds.includes(String(projectId))
+    ) {
+      filter._id = null;
+    } else {
+      filter.projectId = String(projectId);
+    }
+  }
 
   const [crmApps, directApps, mergedProjects] = await Promise.all([
     CrmCandidateApplication.find(filter).sort({ createdAt: -1 }).lean(),
@@ -684,6 +719,21 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
       success: false,
       message: "Forbidden: You are not authorized to modify another vendor's application.",
     });
+  }
+
+  const scope = await resolveVendorHrScope(req.user);
+  if (app && scope.isVendorHR) {
+    const inVendorScope =
+      app.vendorId && scope.expandedVendorIds.includes(String(app.vendorId).trim());
+    const inProjectScope =
+      app.projectId && scope.assignedProjectIds.includes(String(app.projectId).trim());
+    const inHrScope = app.vendorHrId && String(app.vendorHrId).trim() === scope.userIdStr;
+    if (!inVendorScope && !inProjectScope && !inHrScope) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You are not assigned to this application's vendor or project.",
+      });
+    }
   }
 
   const prevStatus = app ? app.status : "Applied";

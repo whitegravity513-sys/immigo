@@ -11,19 +11,24 @@ import {
   updateAnnouncement,
   deleteAnnouncement,
 } from "../../controllers/adminAnnouncement.controller.js";
-import { verifyAdmin } from "../../middleware/auth.middleware.js";
+import { authenticateRBAC, requireRoles, blockVendorHR } from "../../middleware/rbac.middleware.js";
 import { validateCreateAnnouncement } from "../../validators/announcement.validator.js";
 
 const router = express.Router();
+const internalWorkforceGuard = [
+  authenticateRBAC,
+  blockVendorHR,
+  requireRoles("SUPER_ADMIN", "ADMIN", "HR", "EMPLOYEE_HR"),
+];
 
-router.get("/holidays", verifyAdmin, getHolidays);
-router.post("/holidays", verifyAdmin, createHoliday);
-router.put("/holidays/:id", verifyAdmin, updateHoliday);
-router.delete("/holidays/:id", verifyAdmin, deleteHoliday);
+router.get("/holidays", ...internalWorkforceGuard, getHolidays);
+router.post("/holidays", ...internalWorkforceGuard, createHoliday);
+router.put("/holidays/:id", ...internalWorkforceGuard, updateHoliday);
+router.delete("/holidays/:id", ...internalWorkforceGuard, deleteHoliday);
 
-router.get("/announcements", verifyAdmin, getAnnouncements);
-router.post("/announcements", verifyAdmin, validateCreateAnnouncement, createAnnouncement);
-router.put("/announcements/:id", verifyAdmin, updateAnnouncement);
-router.delete("/announcements/:id", verifyAdmin, deleteAnnouncement);
+router.get("/announcements", ...internalWorkforceGuard, getAnnouncements);
+router.post("/announcements", ...internalWorkforceGuard, validateCreateAnnouncement, createAnnouncement);
+router.put("/announcements/:id", ...internalWorkforceGuard, updateAnnouncement);
+router.delete("/announcements/:id", ...internalWorkforceGuard, deleteAnnouncement);
 
 export default router;

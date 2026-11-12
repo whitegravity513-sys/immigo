@@ -1,3 +1,5 @@
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import Candidate from "../models/Candidate.js";
 import CrmCandidate from "../models/CrmCandidate.js";
 import CandidateApplication from "../models/CandidateApplication.js";
@@ -415,12 +417,13 @@ export class RecruitmentService {
     if (!candidate) {
       if (cleanEmail) {
         const candidateId = await generateNextCandidateId();
+        const generatedTempPassword = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
         candidate = await Candidate.create({
           candidateId,
           fullName: fullName.trim(),
           email: cleanEmail,
           phone: cleanPhone || "N/A",
-          password: "TempPassword123!",
+          password: generatedTempPassword,
           accountStatus: "Approved",
           documentStatus: normalizedDocs.length > 0 ? "Verified" : "Not Submitted",
           jobApplicationAccess: "Unlocked",

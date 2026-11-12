@@ -177,9 +177,25 @@ export const createAdmin = asyncHandler(async (req, res) => {
     assignedRole = ROLES.ADMIN;
   }
 
-  if (!req.isSuperAdmin && req.userRole !== ROLES.SUPER_ADMIN) {
+  const callerIsSuperAdmin = req.isSuperAdmin || req.userRole === ROLES.SUPER_ADMIN;
+  if (!callerIsSuperAdmin) {
     if (assignedRole !== ROLES.HR) {
       throw new ApiError(403, "Admins are strictly permitted to create HR staff accounts only.");
+    }
+    if (Array.isArray(assignedPermissions) && assignedPermissions.length > 0) {
+      const callerPermSet = new Set(Array.isArray(req.userPermissions) ? req.userPermissions : []);
+      const forbiddenPerm = assignedPermissions.find(
+        (p) =>
+          p.startsWith("permissions.") ||
+          p.startsWith("settings.") ||
+          !callerPermSet.has(p)
+      );
+      if (forbiddenPerm) {
+        throw new ApiError(
+          403,
+          "Forbidden: You cannot grant permissions beyond your own access level."
+        );
+      }
     }
   }
 
@@ -191,6 +207,11 @@ export const createAdmin = asyncHandler(async (req, res) => {
   const passwordHash = await bcrypt.hash(plainPassword, 10);
   const generatedHrId = assignedRole === ROLES.HR ? await generateNextHRId() : "";
 
+  const normalizedAssignedVendors =
+    assignedRole === ROLES.HR && assignedHrType === "VENDOR_HR" && Array.isArray(assignedVendors)
+      ? assignedVendors.map(String).filter(Boolean)
+      : [];
+
   const newUser = await User.create({
     name: String(name).trim(),
     email: cleanEmail,
@@ -199,7 +220,7 @@ export const createAdmin = asyncHandler(async (req, res) => {
     role: assignedRole,
     hrType: assignedHrType,
     hrId: generatedHrId,
-    assignedVendors: Array.isArray(assignedVendors) ? assignedVendors : [],
+    assignedVendors: normalizedAssignedVendors,
     phone: phone ? String(phone).trim() : "",
     department: department ? String(department).trim() : "",
     isActive: true,

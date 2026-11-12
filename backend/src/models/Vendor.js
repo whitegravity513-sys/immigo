@@ -258,10 +258,23 @@ const vendorSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
     toJSON: {
+      virtuals: true,
+      transform: (doc, ret) => {
+        ret.id = ret._id.toString();
+        delete ret.__v;
+        delete ret.password;
+        return ret;
+      },
+    },
+    toObject: {
       virtuals: true,
       transform: (doc, ret) => {
         ret.id = ret._id.toString();

@@ -133,6 +133,15 @@ export const verifyVendorActive = (req, res, next) => {
       if (!vendor) {
         return res.status(404).json({ success: false, message: "Vendor account not found." });
       }
+      if (
+        req.user?.tokenVersion !== undefined &&
+        Number(req.user.tokenVersion) !== Number(vendor.tokenVersion || 0)
+      ) {
+        return res.status(401).json({
+          success: false,
+          message: "Session invalidated due to password or security update. Please sign in again.",
+        });
+      }
       if (vendor.status !== "Active" && vendor.status !== "Approved") {
         return res.status(403).json({
           success: false,
@@ -149,12 +158,43 @@ export const verifyVendorActive = (req, res, next) => {
 };
 
 export const verifyVendor = (req, res, next) => {
-  verifyToken(req, res, () => {
+  verifyToken(req, res, async () => {
     const role = (req.user?.role || "").toLowerCase();
     if (!req.user || role !== "vendor") {
       return res.status(403).json({ success: false, message: "Access forbidden. Vendor role required." });
     }
-    next();
+    try {
+      const vendorLookupId = String(req.user?.id || req.user?._id || "");
+      const isHex = /^[0-9a-fA-F]{24}$/.test(vendorLookupId);
+      const vendor = await Vendor.findOne({
+        $or: [
+          ...(isHex ? [{ _id: vendorLookupId }] : []),
+          ...(req.user?.vendorId ? [{ vendorId: String(req.user.vendorId) }] : []),
+        ],
+      });
+      if (!vendor) {
+        return res.status(401).json({ success: false, message: "Vendor account not found." });
+      }
+      if (vendor.status === "Suspended") {
+        return res.status(403).json({
+          success: false,
+          message: "Your vendor account has been temporarily Suspended. Please contact ImmiGo Admin.",
+        });
+      }
+      if (
+        req.user?.tokenVersion !== undefined &&
+        Number(req.user.tokenVersion) !== Number(vendor.tokenVersion || 0)
+      ) {
+        return res.status(401).json({
+          success: false,
+          message: "Session invalidated due to password or security update. Please sign in again.",
+        });
+      }
+      req.vendor = vendor;
+      next();
+    } catch {
+      return res.status(500).json({ success: false, message: "Error verifying vendor account." });
+    }
   });
 };
 
